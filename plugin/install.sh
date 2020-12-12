@@ -99,14 +99,15 @@ for f in $tg_root_dir/dev/gdk/gsql/src/QueryUdf/*.json; do
 done
 sed -i "s|TG_ROOT_DIR|$tg_root_dir|" $tg_root_dir/dev/gdk/MakeUdf 
 
+# bash_tigergraph deaprecated in TigerGraph 3.x
 # Back up .bash_tigergraph
-if [ -f "$HOME/.bash_tigergraph" ]; then
-    backup_file=".bash_tigergraph-$timestamp"
-    cp $HOME/.bash_tigergraph $HOME/$backup_file
-    echo "Saved the original $HOME/.bash_tigergraph as $HOME/$backup_file"
-fi
-cp tigergraph/bash_tigergraph $HOME/.bash_tigergraph
-gadmin config set GPE.BasicConfig.Env "LD_PRELOAD=\$LD_PRELOAD; LD_LIBRARY_PATH=/opt/xilinx/xrt/lib:/opt/xilinx/xrm/lib:\$LD_LIBRARY_PATH; CPUPROFILE=/tmp/tg_cpu_profiler; CPUPROFILESIGNAL=12; MALLOC_CONF=prof:true,prof_active:false; XILINX_XRT=/opt/xilinx/xrt; XILINX_XRM=/opt/xilinx/xrm"
+#if [ -f "$HOME/.bash_tigergraph" ]; then
+#    backup_file=".bash_tigergraph-$timestamp"
+#    cp $HOME/.bash_tigergraph $HOME/$backup_file
+#    echo "Saved the original $HOME/.bash_tigergraph as $HOME/$backup_file"
+#fi
+#cp tigergraph/bash_tigergraph $HOME/.bash_tigergraph
+gadmin config set GPE.BasicConfig.Env "LD_PRELOAD=\$LD_PRELOAD; LD_LIBRARY_PATH=/opt/xilinx/xrt/lib:/opt/xilinx/xrm/lib:/usr/lib/x86_64-linux-gnu/:\$LD_LIBRARY_PATH; CPUPROFILE=/tmp/tg_cpu_profiler; CPUPROFILESIGNAL=12; MALLOC_CONF=prof:true,prof_active:false; XILINX_XRT=/opt/xilinx/xrt; XILINX_XRM=/opt/xilinx/xrm"
 
 echo "Apply the new configurations"
 gadmin config apply -y
