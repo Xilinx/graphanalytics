@@ -28,12 +28,12 @@ void generateSourceParams(unsigned int numVertices,
                           unsigned int numEdges,
                           int dataType,
                           int sourceID,
-                          ap_uint<32>* offset32[PUNUM],
-                          ap_uint<32>* indice32[PUNUM],
+                          ap_int<32>* offset32[PUNUM],
+                          ap_int<32>* indice32[PUNUM],
                           float* weightSparse[PUNUM],
                           unsigned int& sourceNUM,
-                          ap_uint<32>** sourceIndice,
-                          ap_uint<32>** sourceWeight) {
+                          ap_int<32>** sourceIndice,
+                          ap_int<32>** sourceWeight) {
     int row0, col0, row1, col1;
 
     bool flag0 = 0;
@@ -68,8 +68,8 @@ void generateSourceParams(unsigned int numVertices,
     }
 
     sourceNUM = (unsigned int)(offset32[row0][col0] - offset32[row1][col1]);
-    *sourceIndice = aligned_alloc<ap_uint<32> >(sourceNUM);
-    *sourceWeight = aligned_alloc<ap_uint<32> >(sourceNUM);
+    *sourceIndice = aligned_alloc<ap_int<32> >(sourceNUM);
+    *sourceWeight = aligned_alloc<ap_int<32> >(sourceNUM);
 
     int ind = offset32[row1][col1];
     for (int i = 0; i < sourceNUM; i++) {
@@ -90,7 +90,7 @@ void generateSourceParams(unsigned int numVertices,
             row2 = PUNUM - 1;
             col2 = indNew - offset32[PUNUM - 1][0];
         }
-        sourceIndice[0][i] = (ap_uint<32>)indice32[row2][col2];
+        sourceIndice[0][i] = (ap_int<32>)indice32[row2][col2];
         unsigned int tmpNum = (unsigned int)(indNew);
         sourceWeight[0][i] = floatToBits<float, uint32_t>(weightSparse[row2][col2]);
     }
@@ -103,9 +103,9 @@ void generateSourceParams(unsigned int numVerticesPU[PUNUM],
                           int sourceID,
                           float* weightDense[4 * PUNUM],
                           unsigned int& sourceNUM,
-                          ap_uint<32>** sourceWeight) {
+                          ap_int<32>** sourceWeight) {
     sourceNUM = (unsigned int)numEdges;
-    *sourceWeight = aligned_alloc<ap_uint<32> >(numEdges);
+    *sourceWeight = aligned_alloc<ap_int<32> >(numEdges);
 
     unsigned int id, row;
     unsigned int offset[4 * PUNUM + 1];
@@ -139,18 +139,18 @@ int computeSimilarity(std::string xclbinPath,
                       int repInt,
                       unsigned int numVerticesPU[PUNUM],
                       unsigned int numEdgesPU[PUNUM],
-                      ap_uint<32>* offset32[PUNUM],
-                      ap_uint<32>* indice32[PUNUM],
+                      ap_int<32>* offset32[PUNUM],
+                      ap_int<32>* indice32[PUNUM],
                       float* weightSparse[PUNUM],
                       unsigned int sourceNUM,
-                      ap_uint<32>* sourceIndice,
-                      ap_uint<32>* sourceWeight) {
+                      ap_int<32>* sourceIndice,
+                      ap_int<32>* sourceWeight) {
     struct timeval start_time; // End to end time clock start
     gettimeofday(&start_time, 0);
 
     // output && config////////////////////////////////////////////////////////////////
-    std::vector<ap_uint<32>*> config(repInt);
-    std::vector<ap_uint<32>*> result_id(repInt);
+    std::vector<ap_int<32>*> config(repInt);
+    std::vector<ap_int<32>*> result_id(repInt);
     std::vector<float*> similarity(repInt);
     unsigned int startID[PUNUM];
     unsigned int tmp = 0;
@@ -161,9 +161,9 @@ int computeSimilarity(std::string xclbinPath,
     startID[PUNUM - 1] = tmp;
     for (int i = 0; i < repInt; i++) {
         similarity[i] = aligned_alloc<float>(128);
-        result_id[i] = aligned_alloc<ap_uint<32> >(128);
+        result_id[i] = aligned_alloc<ap_int<32> >(128);
         int base_id = 3;
-        config[i] = aligned_alloc<ap_uint<32> >(64);
+        config[i] = aligned_alloc<ap_int<32> >(64);
         config[i][0] = sortK;
         config[i][1] = sourceNUM;
         config[i][2] = similarityType;
@@ -230,24 +230,24 @@ int computeSimilarity(std::string xclbinPath,
     for (int i = 0; i < PUNUM; i++) {
         int sizeW = numEdgesPU[i];
         offset_buf[i] = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                   sizeof(ap_uint<32>) * (numVerticesPU[i] + CHANNEL_NUMBER), &mext_o[3 * i + 0]);
+                                   sizeof(ap_int<32>) * (numVerticesPU[i] + CHANNEL_NUMBER), &mext_o[3 * i + 0]);
         indice_buf[i] = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                   sizeof(ap_uint<32>) * (numEdgesPU[i] + CHANNEL_NUMBER), &mext_o[3 * i + 1]);
+                                   sizeof(ap_int<32>) * (numEdgesPU[i] + CHANNEL_NUMBER), &mext_o[3 * i + 1]);
         weight_buf[i] = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                   sizeof(ap_uint<32>) * (sizeW + CHANNEL_NUMBER), &mext_o[3 * i + 2]);
+                                   sizeof(ap_int<32>) * (sizeW + CHANNEL_NUMBER), &mext_o[3 * i + 2]);
     }
 
     source_indice_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                   sizeof(ap_uint<32>) * (sourceNUM + CHANNEL_NUMBER), &mext_o[3 * PUNUM]);
+                                   sizeof(ap_int<32>) * (sourceNUM + CHANNEL_NUMBER), &mext_o[3 * PUNUM]);
 
     source_weight_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                   sizeof(ap_uint<32>) * (sourceNUM + CHANNEL_NUMBER), &mext_o[3 * PUNUM + 1]);
+                                   sizeof(ap_int<32>) * (sourceNUM + CHANNEL_NUMBER), &mext_o[3 * PUNUM + 1]);
 
     for (int i = 0; i < repInt; i++) {
         config_buf[i] = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                   sizeof(ap_uint<32>) * 64, &mext_o[3 * PUNUM + 2 + i]);
+                                   sizeof(ap_int<32>) * 64, &mext_o[3 * PUNUM + 2 + i]);
         result_id_buf[i] = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                      sizeof(ap_uint<32>) * 128, &mext_o[3 * PUNUM + 2 + repInt + i]);
+                                      sizeof(ap_int<32>) * 128, &mext_o[3 * PUNUM + 2 + repInt + i]);
         similarity_buf[i] = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
                                        sizeof(float) * 128, &mext_o[3 * PUNUM + 2 + 2 * repInt + i]);
     }
@@ -390,13 +390,13 @@ int computeSimilarity(std::string xclbinPath,
                       unsigned int numEdgesPU[PUNUM],
                       float* weightDense[4 * PUNUM],
                       unsigned int sourceNUM,
-                      ap_uint<32>* sourceWeight) {
+                      ap_int<32>* sourceWeight) {
     struct timeval start_time; // End to end time clock start
     gettimeofday(&start_time, 0);
 
     // output && config////////////////////////////////////////////////////////////////
-    std::vector<ap_uint<32>*> config(repInt);
-    std::vector<ap_uint<32>*> result_id(repInt);
+    std::vector<ap_int<32>*> config(repInt);
+    std::vector<ap_int<32>*> result_id(repInt);
     std::vector<float*> similarity(repInt);
     unsigned int startID[PUNUM];
     unsigned int tmp = 0;
@@ -407,9 +407,9 @@ int computeSimilarity(std::string xclbinPath,
     startID[PUNUM - 1] = tmp;
     for (int i = 0; i < repInt; i++) {
         similarity[i] = aligned_alloc<float>(128);
-        result_id[i] = aligned_alloc<ap_uint<32> >(128);
+        result_id[i] = aligned_alloc<ap_int<32> >(128);
         int base_id = 3;
-        config[i] = aligned_alloc<ap_uint<32> >(64);
+        config[i] = aligned_alloc<ap_int<32> >(64);
         config[i][0] = sortK;
         config[i][1] = sourceNUM;
         config[i][2] = similarityType;
@@ -473,17 +473,17 @@ int computeSimilarity(std::string xclbinPath,
     for (int i = 0; i < 4 * PUNUM; i++) {
         int sizeW = numVerticesPU[i / 4] * numEdges;
         weight_buf[i] = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                   sizeof(ap_uint<32>) * (sizeW + CHANNEL_NUMBER), &mext_o[i]);
+                                   sizeof(ap_int<32>) * (sizeW + CHANNEL_NUMBER), &mext_o[i]);
     }
 
     source_weight_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                   sizeof(ap_uint<32>) * (sourceNUM + CHANNEL_NUMBER), &mext_o[4 * PUNUM]);
+                                   sizeof(ap_int<32>) * (sourceNUM + CHANNEL_NUMBER), &mext_o[4 * PUNUM]);
 
     for (int i = 0; i < repInt; i++) {
         config_buf[i] = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                   sizeof(ap_uint<32>) * 64, &mext_o[4 * PUNUM + 1 + i]);
+                                   sizeof(ap_int<32>) * 64, &mext_o[4 * PUNUM + 1 + i]);
         result_id_buf[i] = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                      sizeof(ap_uint<32>) * 128, &mext_o[4 * PUNUM + 1 + repInt + i]);
+                                      sizeof(ap_int<32>) * 128, &mext_o[4 * PUNUM + 1 + repInt + i]);
         similarity_buf[i] = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
                                        sizeof(float) * 128, &mext_o[4 * PUNUM + 1 + 2 * repInt + i]);
     }

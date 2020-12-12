@@ -40,8 +40,8 @@ int main(int argc, const char* argv[]) {
     unsigned int numEdges = 200;           // total number of edge read from file
     unsigned int numVerticesPU[PU_NUMBER]; // vertex numbers in each PU
     unsigned int numEdgesPU[PU_NUMBER];    // edge numbers in each PU
-    ap_uint<32>* offset32[PU_NUMBER];      // offset arrays of multi-PUs
-    ap_uint<32>* indice32[PU_NUMBER];      // indice arrays of multi-PUs
+    ap_int<32>* offset32[PU_NUMBER];       // offset arrays of multi-PUs
+    ap_int<32>* indice32[PU_NUMBER];       // indice arrays of multi-PUs
     float* weightSparse[PU_NUMBER];        // weight arrays of sparse PUs
     float* weightDense[4 * PU_NUMBER];     // weight arrays of dense PUs
 
@@ -147,9 +147,9 @@ int main(int argc, const char* argv[]) {
                               numVertices, numEdges, offset32, indice32, weightSparse, weightDense);
 
     // generate source vertex's indice array and weight array
-    unsigned int sourceNUM;    // sourceIndice array length
-    ap_uint<32>* sourceIndice; // source vertex's out members
-    ap_uint<32>* sourceWeight; // weights of source vertex's out members
+    unsigned int sourceNUM;   // sourceIndice array length
+    ap_int<32>* sourceIndice; // source vertex's out members
+    ap_int<32>* sourceWeight; // weights of source vertex's out members
     if (graphType == 0)
         generateSourceParams<PU_NUMBER>(numVertices, numEdges, dataType, sourceID, offset32, indice32, weightSparse,
                                         sourceNUM, &sourceIndice, &sourceWeight);
