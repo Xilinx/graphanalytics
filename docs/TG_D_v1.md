@@ -5,7 +5,7 @@ As mentioned in the previous sections, there are two use cases - application end
 
 
 <p align="center">
-<img src="images2/fig_dev_dep.jpg", width "150">
+<img src="images/fig_dev_dep.jpg", width "150">
 </p>
 
 <br/>
@@ -15,7 +15,7 @@ As far as required software goes, for deployment use you need to install: XRT, X
 You can find all these from [here](https://www.xilinx.com/products/boards-and-kits/alveo/u50.html#gettingStarted).
 
 <p align="center">
-<img src="images2/fig_downloadVitis.jpg", width "50">
+<img src="images/fig_downloadVitis.jpg", width "50">
 </p>
 
 
@@ -46,7 +46,7 @@ synthesis/implementation tool in Vitis environment to map/place/route and produc
 
 
 <p align="center">
-<img src="images2/fig_cpu_fpga_vitis.jpg", width "100">
+<img src="images/fig_cpu_fpga_vitis.jpg", width "100">
 </p>
 
 
@@ -59,7 +59,7 @@ utilizing those FPGA functions available in *xclbin* and does not have to deal w
 implementation tasks. In this case it becomes a pure SW application development flow, where user simply calls those functions thru API in his host codes.
 
 <p align="center">
-<img src="images2/fig_vitisFlow.jpg", width "50">
+<img src="images/fig_vitisFlow.jpg", width "50">
 </p>
 
 
@@ -87,7 +87,7 @@ This covers overview/introduction of Vitis development flow, build/run designs
 and analyze results.
 
 <p align="center">
-<img src="images2/fig_vitis101.jpg", width "100">
+<img src="images/fig_vitis101.jpg", width "100">
 </p>
 
 - [Examples](https://github.com/Xilinx/Vitis_Accel_Examples)<br/>
@@ -101,7 +101,7 @@ You have seen this already. This has several domain specific libraries of
 functions that you can use to compile/build your own applications
 
 <p align="center">
-<img src="images2/fig_library.jpg", width "150">
+<img src="images/fig_library.jpg", width "150">
 </p>
 
 

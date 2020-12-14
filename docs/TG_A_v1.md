@@ -8,7 +8,7 @@ The server where U50 is plugged in is HPE DL385 with 2x AMD EPYC processor. This
 
 
 <p align="center">
-<img src="images2/fig_hpe.jpg">
+<img src="images/fig_hpe.jpg">
 </p>
 
 
@@ -23,7 +23,7 @@ Vitis is a unified software environment that includes:
 - Libraries, like graph analytics library
 
 <p align="center">
-<img src="images2/fig_vitis.jpg" width="300">
+<img src="images/fig_vitis.jpg" width="300">
 </p>
 
 In order to deploy/run an application like Cosine Similarity on Alveo cards, you need to install the following in order:
@@ -36,7 +36,7 @@ In order to deploy/run an application like Cosine Similarity on Alveo cards, you
 6) Vitis libraries
 
 <p align="center">
-<img src="images2/fig_cpu_fpga.jpg" width="500">
+<img src="images/fig_cpu_fpga.jpg" width="500">
 </p>
 
 
@@ -53,7 +53,7 @@ XRT is a key component in running application in Alveo. It handles all the data 
 
 
 <p align="center">
-<img src="images2/fig_xrt.jpg" width="600">
+<img src="images/fig_xrt.jpg" width="600">
 </p>
 
 
@@ -97,7 +97,7 @@ XRM is the software to manage all the FPGA resources on the system.
 
 
 <p align="center">
-<img src="images2/fig_xrm.jpg" width="650">
+<img src="images/fig_xrm.jpg" width="650">
 </p>
 
 
@@ -122,7 +122,7 @@ There are two major partitions within the FPGA - one is static area we call "she
 
 
 <p align="center">
-<img src="images2/fig_heter.jpg" width="600">
+<img src="images/fig_heter.jpg" width="600">
 </p>
 
 
@@ -153,7 +153,7 @@ We need to install TigerGraph Enterprise version 3.1 to work properly with the r
 [Vitis Library](https://xilinx.github.io/Vitis_Libraries/index.html) includes several domain specific libraries which are open-sourced (Apache License, v2.0) and performance optimized.
 
 <p align="center">
-<img src="images2/fig_vitisLib.jpg" width="600">
+<img src="images/fig_vitisLib.jpg" width="600">
 </p>
 
 You can install Vitis Library by:
@@ -169,7 +169,7 @@ There are 3 levels of hierarchy in Vitis Library.
 
 
 <p align="center">
-<img src="images2/fig_L123.jpg" width="300">
+<img src="images/fig_L123.jpg" width="300">
 </p>
 
 ### [Vitis Graph Library](https://github.com/Xilinx/Vitis_Libraries/tree/master/graph)
@@ -198,7 +198,7 @@ Before the TigerGraph integration, it would be good to understand the directory 
 - tests: contains 20+ test application to run on Alveo cards. <test>.cpp in each directory contains the host code that runs on x86. This code utilizes XRM API;thus, adding a little more complexity to the code but allows easier provisioning and maintenance of FPGA resources. One thing to note is that generating *xclbin* takes awhile - it may take several hours. In order to avoid this compiling time, these *xclbin* files can be downloaded from TBD.
 
 <p align="center">
-<img src="images2/fig_dir1.jpg", width "300">
+<img src="images/fig_dir1.jpg", width "300">
 </p>
 
 

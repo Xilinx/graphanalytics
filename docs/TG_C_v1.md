@@ -3,7 +3,7 @@
 If you have gone thru *Targeting Alveo in HPE server* section, you have installed all the necessary software to start integration of Xilinx Graph Library IP with Tigergraph software. This section explains how L3 Vitis Graph Library is ported into TigerGraph SW framework, and finally running the application on Alveo by calling GSQL query from TigerGraph SW.
 
 <p align="center">
-<img src="images2/fig_TG_top.jpg", width "300">
+<img src="images/fig_TG_top.jpg", width "300">
 </p>
 
 ### TigerGraph [User-Defined Functions](https://docs.tigergraph.com/dev/gsql-ref/querying/operators-functions-and-expressions#user-defined-functions)(UDF)
@@ -16,7 +16,7 @@ Users can define their own custom functions in C++ in *<tigergraph.root.dir>/dev
 
 
 <p align="center">
-<img src="images2/fig_plugin.jpg", width "200">
+<img src="images/fig_plugin.jpg", width "200">
 </p>
 
 
