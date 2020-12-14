@@ -3,15 +3,15 @@
 The goal of this page is to describe the process of integrating graphics analytic functions running on Alveo FPGA accelerator card to TigerGraph software environment;thus, accelerating the overall execution of TigerGraph software. There are 4 main sections:
 
 
-- Targeting Alveo in HPE server: 
+- [Targeting Alveo in HPE server](TG_A_v1.md): 
 Describes the steps to bring up Alveo U50 card in on-premise environment like HPE server.  The target application is cosine similarity computation from Xilinx Vitis Graph Library.  
 
 - Targeting Azure NP VM (later): 
 Describes the steps to run applications on Azure NP virtual machine
 
-- Integration with TigerGraph:
+- [Integration with TigerGraph](TG_C_v1.md):
 Explains how Xilinx Vitis graph library IP is constructed and ported into TigerGraph SW framework
 
-- Vitis development flow: 
+- [Vitis development flow](TG_D_v1.md): 
 Describes the development flow to create/modify accelerator IP to run on FPGA, which can be exported to TigerGraph SW
 
