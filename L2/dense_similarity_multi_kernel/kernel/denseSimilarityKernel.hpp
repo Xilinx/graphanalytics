@@ -26,8 +26,8 @@
 #include <hls_stream.h>
 
 #define W_DATA 32
-#define CHANNEL_NUMBER 8
-#define PU_NUMBER 4
+#define CHANNEL_NUMBER 16
+#define PU_NUMBER 3
 #define RAM_SIZE 15
 #define MAX_K 101
 #define EXT_MEM_SZ 32 << 10
@@ -79,11 +79,6 @@ extern "C" void denseSimilarityKernel(ap_int<32>* config,
                                       ap_int<32 * CHANNEL_NUMBER>* dataIn21,
                                       ap_int<32 * CHANNEL_NUMBER>* dataIn22,
                                       ap_int<32 * CHANNEL_NUMBER>* dataIn23,
-
-                                      ap_int<32 * CHANNEL_NUMBER>* dataIn30,
-                                      ap_int<32 * CHANNEL_NUMBER>* dataIn31,
-                                      ap_int<32 * CHANNEL_NUMBER>* dataIn32,
-                                      ap_int<32 * CHANNEL_NUMBER>* dataIn33,
 
                                       ap_int<32>* resultID,
                                       float* similarity);

@@ -69,29 +69,26 @@ void load(ap_int<32> num, ap_int<WData * CHNM>* data, hls::stream<ap_int<WData *
     std::cout << "loading data: num=" << num << " base=" << base << " fraction=" << fraction << std::endl;
 #endif
 
+    ap_int<32> addr = 0;
+
 load_base:
     for (ap_int<32> i = 0; i < base; i++) {
         for (ap_int<32> j = 0; j < 64; j++) {
 #pragma HLS PIPELINE II = 1
 
-            ap_int<32> addr;
-            addr(31, 6) = i;
-            addr(5, 0) = j;
-
             in = data[addr];
+            addr++;
             strm.write(in);
         }
     }
 
+    addr(31, 6) = base;
 load_fraction:
     for (ap_int<32> i = 0; i < fraction; i++) {
 #pragma HLS PIPELINE II = 1
 
-        ap_int<32> addr;
-        addr(31, 6) = base;
-        addr(5, 0) = i;
-
         in = data[addr];
+        addr++;
 
 #ifndef __SYNTHESIS__
         std::cout << "loading data: fraction=" << std::hex << in << std::dec << std::endl;
@@ -188,7 +185,7 @@ void loadConfig(ap_int<32>* config,
 }
 
 template <int CHNM, int WData>
-void loadData4PU(ap_int<32> similarity_type,
+void loadData3PU(ap_int<32> similarity_type,
                  ap_int<32> vertex_num[8],
                  ap_int<32> edge_num[8],
 
@@ -207,11 +204,6 @@ void loadData4PU(ap_int<32> similarity_type,
                  ap_int<WData * CHNM>* dataIn22,
                  ap_int<WData * CHNM>* dataIn23,
 
-                 ap_int<WData * CHNM>* dataIn30,
-                 ap_int<WData * CHNM>* dataIn31,
-                 ap_int<WData * CHNM>* dataIn32,
-                 ap_int<WData * CHNM>* dataIn33,
-
                  hls::stream<ap_int<WData * CHNM> > strm0[4],
                  hls::stream<ap_int<WData * CHNM> > strm1[4],
                  hls::stream<ap_int<WData * CHNM> > strm2[4],
@@ -226,9 +218,6 @@ void loadData4PU(ap_int<32> similarity_type,
 
     loadPU<CHNM, WData>(similarity_type, vertex_num[2], edge_num[2], dataIn20, dataIn21, dataIn22, dataIn23, strm0[2],
                         strm1[2], strm2[2], strm3[2]);
-
-    loadPU<CHNM, WData>(similarity_type, vertex_num[3], edge_num[3], dataIn30, dataIn31, dataIn32, dataIn33, strm0[3],
-                        strm1[3], strm2[3], strm3[3]);
 }
 
 void feedResult(hls::stream<ap_int<32> >& row_strm,
@@ -253,7 +242,7 @@ void feedResult(hls::stream<ap_int<32> >& row_strm,
 }
 
 template <int CHNM, int WData, int RAM_SZ, int MAXK>
-void denseSimilarityTop4PU(ap_int<32> k,
+void denseSimilarityTop3PU(ap_int<32> k,
                            ap_int<32> source_num,
                            ap_int<32> similarity_type,
                            ap_int<32> data_type,
@@ -280,18 +269,13 @@ void denseSimilarityTop4PU(ap_int<32> k,
                            ap_int<WData * CHNM>* dataIn22,
                            ap_int<WData * CHNM>* dataIn23,
 
-                           ap_int<WData * CHNM>* dataIn30,
-                           ap_int<WData * CHNM>* dataIn31,
-                           ap_int<WData * CHNM>* dataIn32,
-                           ap_int<WData * CHNM>* dataIn33,
-
                            hls::stream<ap_int<WData> >& resultID,
                            hls::stream<float>& similarity,
                            hls::stream<bool>& end_strm) {
 #pragma HLS INLINE off
 #pragma HLS DATAFLOW
 
-    const int PU = 4;
+    const int PU = 3;
 
     hls::stream<ap_int<WData * CHNM> > strm_in0[PU];
 #pragma HLS stream variable = strm_in0 depth = 512
@@ -314,9 +298,9 @@ void denseSimilarityTop4PU(ap_int<32> k,
     std::cout << "loading data" << std::endl;
 #endif
 
-    loadData4PU<CHNM, WData>(similarity_type, vertex_num, edge_num, dataIn00, dataIn01, dataIn02, dataIn03, dataIn10,
-                             dataIn11, dataIn12, dataIn13, dataIn20, dataIn21, dataIn22, dataIn23, dataIn30, dataIn31,
-                             dataIn32, dataIn33, strm_in0, strm_in1, strm_in2, strm_in3);
+    loadData3PU<CHNM, WData>(similarity_type, vertex_num, edge_num, dataIn00, dataIn01, dataIn02, dataIn03, dataIn10,
+                             dataIn11, dataIn12, dataIn13, dataIn20, dataIn21, dataIn22, dataIn23, strm_in0, strm_in1,
+                             strm_in2, strm_in3);
 
     hls::stream<ap_int<WData> > row_strm0;
 #pragma HLS stream variable = row_strm0 depth = 8
@@ -361,66 +345,48 @@ extern "C" void denseSimilarityKernel(ap_int<32>* config,
                                       ap_int<32 * CHANNEL_NUMBER>* dataIn22,
                                       ap_int<32 * CHANNEL_NUMBER>* dataIn23,
 
-                                      ap_int<32 * CHANNEL_NUMBER>* dataIn30,
-                                      ap_int<32 * CHANNEL_NUMBER>* dataIn31,
-                                      ap_int<32 * CHANNEL_NUMBER>* dataIn32,
-                                      ap_int<32 * CHANNEL_NUMBER>* dataIn33,
-
                                       ap_int<32>* resultID,
                                       float* similarity) {
     const int ext_mem_size = EXT_MEM_SZ;
 
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 1 num_read_outstanding = \
-    32 max_write_burst_length = 2 max_read_burst_length = 64 bundle = gmem0_0 port = dataIn00 depth = ext_mem_size
+    8 max_write_burst_length = 16 max_read_burst_length = 64 bundle = gmem0_0 port = dataIn00 depth = ext_mem_size
 #pragma HLS INTERFACE s_axilite port = dataIn00 bundle = control
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 1 num_read_outstanding = \
-    32 max_write_burst_length = 2 max_read_burst_length = 64 bundle = gmem0_1 port = dataIn01 depth = ext_mem_size
+    8 max_write_burst_length = 16 max_read_burst_length = 64 bundle = gmem0_1 port = dataIn01 depth = ext_mem_size
 #pragma HLS INTERFACE s_axilite port = dataIn01 bundle = control
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 1 num_read_outstanding = \
-    32 max_write_burst_length = 2 max_read_burst_length = 64 bundle = gmem0_2 port = dataIn02 depth = ext_mem_size
+    8 max_write_burst_length = 16 max_read_burst_length = 64 bundle = gmem0_2 port = dataIn02 depth = ext_mem_size
 #pragma HLS INTERFACE s_axilite port = dataIn02 bundle = control
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 1 num_read_outstanding = \
-    32 max_write_burst_length = 2 max_read_burst_length = 64 bundle = gmem0_3 port = dataIn03 depth = ext_mem_size
+    8 max_write_burst_length = 16 max_read_burst_length = 64 bundle = gmem0_3 port = dataIn03 depth = ext_mem_size
 #pragma HLS INTERFACE s_axilite port = dataIn03 bundle = control
 
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 1 num_read_outstanding = \
-    32 max_write_burst_length = 2 max_read_burst_length = 64 bundle = gmem1_0 port = dataIn10 depth = ext_mem_size
+    8 max_write_burst_length = 16 max_read_burst_length = 64 bundle = gmem1_0 port = dataIn10 depth = ext_mem_size
 #pragma HLS INTERFACE s_axilite port = dataIn10 bundle = control
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 1 num_read_outstanding = \
-    32 max_write_burst_length = 2 max_read_burst_length = 64 bundle = gmem1_1 port = dataIn11 depth = ext_mem_size
+    8 max_write_burst_length = 16 max_read_burst_length = 64 bundle = gmem1_1 port = dataIn11 depth = ext_mem_size
 #pragma HLS INTERFACE s_axilite port = dataIn11 bundle = control
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 1 num_read_outstanding = \
-    32 max_write_burst_length = 2 max_read_burst_length = 64 bundle = gmem1_2 port = dataIn12 depth = ext_mem_size
+    8 max_write_burst_length = 16 max_read_burst_length = 64 bundle = gmem1_2 port = dataIn12 depth = ext_mem_size
 #pragma HLS INTERFACE s_axilite port = dataIn12 bundle = control
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 1 num_read_outstanding = \
-    32 max_write_burst_length = 2 max_read_burst_length = 64 bundle = gmem1_3 port = dataIn13 depth = ext_mem_size
+    8 max_write_burst_length = 16 max_read_burst_length = 64 bundle = gmem1_3 port = dataIn13 depth = ext_mem_size
 #pragma HLS INTERFACE s_axilite port = dataIn13 bundle = control
 
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 1 num_read_outstanding = \
-    32 max_write_burst_length = 2 max_read_burst_length = 64 bundle = gmem2_0 port = dataIn20 depth = ext_mem_size
+    8 max_write_burst_length = 16 max_read_burst_length = 64 bundle = gmem2_0 port = dataIn20 depth = ext_mem_size
 #pragma HLS INTERFACE s_axilite port = dataIn20 bundle = control
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 1 num_read_outstanding = \
-    32 max_write_burst_length = 2 max_read_burst_length = 64 bundle = gmem2_1 port = dataIn21 depth = ext_mem_size
+    8 max_write_burst_length = 16 max_read_burst_length = 64 bundle = gmem2_1 port = dataIn21 depth = ext_mem_size
 #pragma HLS INTERFACE s_axilite port = dataIn21 bundle = control
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 1 num_read_outstanding = \
-    32 max_write_burst_length = 2 max_read_burst_length = 64 bundle = gmem2_2 port = dataIn22 depth = ext_mem_size
+    8 max_write_burst_length = 16 max_read_burst_length = 64 bundle = gmem2_2 port = dataIn22 depth = ext_mem_size
 #pragma HLS INTERFACE s_axilite port = dataIn22 bundle = control
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 1 num_read_outstanding = \
-    32 max_write_burst_length = 2 max_read_burst_length = 64 bundle = gmem2_3 port = dataIn23 depth = ext_mem_size
+    8 max_write_burst_length = 16 max_read_burst_length = 64 bundle = gmem2_3 port = dataIn23 depth = ext_mem_size
 #pragma HLS INTERFACE s_axilite port = dataIn23 bundle = control
-
-#pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 1 num_read_outstanding = \
-    32 max_write_burst_length = 2 max_read_burst_length = 64 bundle = gmem3_0 port = dataIn30 depth = ext_mem_size
-#pragma HLS INTERFACE s_axilite port = dataIn30 bundle = control
-#pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 1 num_read_outstanding = \
-    32 max_write_burst_length = 2 max_read_burst_length = 64 bundle = gmem3_1 port = dataIn31 depth = ext_mem_size
-#pragma HLS INTERFACE s_axilite port = dataIn31 bundle = control
-#pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 1 num_read_outstanding = \
-    32 max_write_burst_length = 2 max_read_burst_length = 64 bundle = gmem3_2 port = dataIn32 depth = ext_mem_size
-#pragma HLS INTERFACE s_axilite port = dataIn32 bundle = control
-#pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 1 num_read_outstanding = \
-    32 max_write_burst_length = 2 max_read_burst_length = 64 bundle = gmem3_3 port = dataIn33 depth = ext_mem_size
-#pragma HLS INTERFACE s_axilite port = dataIn33 bundle = control
 
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 1 num_read_outstanding = \
     32 max_write_burst_length = 8 max_read_burst_length = 8 bundle = gmem4_0 port = config depth = 64
@@ -443,7 +409,7 @@ extern "C" void denseSimilarityKernel(ap_int<32>* config,
 
 #pragma HLS INLINE off
 
-    const int PU = 4;
+    const int PU = 3;
 
     ap_int<32> k;
     ap_int<32> source_num;
@@ -486,11 +452,11 @@ extern "C" void denseSimilarityKernel(ap_int<32>* config,
 #pragma HLS stream variable = end_strm depth = 512
 #pragma HLS resource variable = end_strm core = FIFO_SRL
 
-    denseSimilarityTop4PU<CHANNEL_NUMBER, W_DATA, RAM_SIZE, 64>(
+    denseSimilarityTop3PU<CHANNEL_NUMBER, W_DATA, RAM_SIZE, 64>(
         k, source_num, similarity_type, data_type, start_id, vertex_num, edge_num, config_strm, source_weight,
 
         dataIn00, dataIn01, dataIn02, dataIn03, dataIn10, dataIn11, dataIn12, dataIn13, dataIn20, dataIn21, dataIn22,
-        dataIn23, dataIn30, dataIn31, dataIn32, dataIn33,
+        dataIn23,
 
         row_strm, similarity_strm, end_strm);
 

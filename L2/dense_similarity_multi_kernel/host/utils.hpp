@@ -159,6 +159,7 @@ void readInWeight(std::fstream& fstream,      // input: file stream
             } else {
                 buffer[row][id] = tmp;
             }
+
             id++;
             if (id >= length[row / 4]) {
                 id = 0;

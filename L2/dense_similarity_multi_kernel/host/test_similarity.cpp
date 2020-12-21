@@ -36,8 +36,8 @@ int main(int argc, const char* argv[]) {
     int sourceID = 0;       // source ID
     int sortK = 32;         // topK
 
-    unsigned int numVertices = 160;        // total number of vertex read from file
-    unsigned int numEdges = 200;           // total number of edge read from file
+    unsigned int numVertices = 120;        // total number of vertex read from file
+    unsigned int numEdges = 208;           // total number of edge read from file
     unsigned int numVerticesPU[PU_NUMBER]; // vertex numbers in each PU
     unsigned int numEdgesPU[PU_NUMBER];    // edge numbers in each PU
     ap_int<32>* offset32[PU_NUMBER];       // offset arrays of multi-PUs
@@ -131,15 +131,8 @@ int main(int argc, const char* argv[]) {
     }
 
     // set the numbers of vertex in each PU
-    if (graphType == 0) {
-        for (int i = 0; i < PU_NUMBER - 1; ++i) {
-            numVerticesPU[i] = 4;
-        }
-        numVerticesPU[PU_NUMBER - 1] = 6; // vertex number in the last PU
-    } else {
-        for (int i = 0; i < PU_NUMBER; ++i) {
-            numVerticesPU[i] = 10;
-        }
+    for (int i = 0; i < PU_NUMBER; ++i) {
+        numVerticesPU[i] = 10;
     }
 
     // read in data from file
@@ -148,25 +141,18 @@ int main(int argc, const char* argv[]) {
 
     // generate source vertex's indice array and weight array
     unsigned int sourceNUM;   // sourceIndice array length
-    ap_int<32>* sourceIndice; // source vertex's out members
     ap_int<32>* sourceWeight; // weights of source vertex's out members
-    if (graphType == 0)
-        generateSourceParams<PU_NUMBER>(numVertices, numEdges, dataType, sourceID, offset32, indice32, weightSparse,
-                                        sourceNUM, &sourceIndice, &sourceWeight);
-    else
-        generateSourceParams<PU_NUMBER>(numVerticesPU, numEdges, dataType, sourceID, weightDense, sourceNUM,
-                                        &sourceWeight);
+    generateSourceParams<PU_NUMBER>(numVerticesPU, numEdges, dataType, sourceID, weightDense, sourceNUM, &sourceWeight);
 
     // calculate similarity
     int info;
-    if (graphType == 0)
-        info = computeSimilarity<PU_NUMBER>(xclbinPath, goldenFile, numVertices, numEdges, similarityType, dataType,
-                                            sourceID, sortK, repInt, numVerticesPU, numEdgesPU, offset32, indice32,
-                                            weightSparse, sourceNUM, sourceIndice, sourceWeight);
-    else
-        info = computeSimilarity<PU_NUMBER>(xclbinPath, goldenFile, numVertices, numEdges, similarityType, dataType,
-                                            sourceID, sortK, repInt, numVerticesPU, numEdgesPU, weightDense, sourceNUM,
-                                            sourceWeight);
+    info =
+        computeSimilarity0<PU_NUMBER>(xclbinPath, goldenFile, numVertices, numEdges, similarityType, dataType, sourceID,
+                                      sortK, repInt, numVerticesPU, numEdgesPU, weightDense, sourceNUM, sourceWeight);
+
+    info =
+        computeSimilarity1<PU_NUMBER>(xclbinPath, goldenFile, numVertices, numEdges, similarityType, dataType, sourceID,
+                                      sortK, repInt, numVerticesPU, numEdgesPU, weightDense, sourceNUM, sourceWeight);
 
     return info;
 }

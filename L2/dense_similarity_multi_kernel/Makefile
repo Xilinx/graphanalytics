@@ -86,12 +86,12 @@ export XCL_BINDIR = $(XCLBIN_DIR)
 
 # ######################### Setting up Host Variables #########################
 #Include Required Host Source Files
-HOST_SRCS += $(XFLIB_DIR)/L2/dense_similarity_int/host/test_similarity.cpp
+HOST_SRCS += $(XFLIB_DIR)/L2/dense_similarity_multi_kernel/host/test_similarity.cpp
 HOST_SRCS += $(XFLIB_DIR)/ext/xcl2/xcl2.cpp
 CXXFLAGS += -I$(XFLIB_DIR)/L1/include/hw
 CXXFLAGS += -I$(XFLIB_DIR)/L2/include/hw
-CXXFLAGS += -I$(XFLIB_DIR)/L2/dense_similarity_int/host
-CXXFLAGS += -I$(XFLIB_DIR)/L2/dense_similarity_int/kernel
+CXXFLAGS += -I$(XFLIB_DIR)/L2/dense_similarity_multi_kernel/host
+CXXFLAGS += -I$(XFLIB_DIR)/L2/dense_similarity_multi_kernel/kernel
 CXXFLAGS += -I$(XFLIB_DIR)/ext/xcl2
 CXXFLAGS += -I$(XFLIB_DIR)/L2/include
 CXXFLAGS += -I$(XFLIB_DIR)/../database/L1/include/hw
@@ -119,20 +119,15 @@ endif
 
 # ################### Setting package and image directory #######################
 PKG_OUT_DIR := package_$(TARGET)
-ifneq (,$(findstring zc706, $(XDEVICE)))
-K_IMAGE := $(SYSROOT)/../../uImage
-else
-K_IMAGE := $(SYSROOT)/../../Image
-endif
 
 EXE_NAME := host.exe
 EXE_FILE := $(BUILD_DIR)/$(EXE_NAME)
-HOST_ARGS :=  -xclbin $(BUILD_DIR)/denseSimilarityKernel.xclbin -weight $(XFLIB_DIR)/L2/dense_similarity_int/data/cosine_dense_weight.csr -golden $(XFLIB_DIR)/L2/dense_similarity_int/data/cosine_dense.mtx -similarityType 1 -dataType 0 -graphType 1 -sourceID 3 -topK 32 -v 160 -e 200
+HOST_ARGS :=  -xclbin $(BUILD_DIR)/denseSimilarityKernel.xclbin -weight $(XFLIB_DIR)/L2/dense_similarity_multi_kernel/data/cosine_dense_weight.csr -golden $(XFLIB_DIR)/L2/dense_similarity_multi_kernel/data/cosine_dense.mtx -similarityType 1 -dataType 0 -graphType 1 -sourceID 3 -topK 32 -v 120 -e 208
 PKG_HOST_ARGS = $(foreach args,$(HOST_ARGS),$(subst $(dir $(patsubst %/,%,$(args))),,$(args)))
 
 # ##################### Kernel compiler global settings ##########################
 VPP_FLAGS += -t $(TARGET) --platform $(XPLATFORM) --save-temps --optimize 2
-VPP_FLAGS += --jobs 8
+VPP_FLAGS += --jobs 2 
 ifneq (,$(shell echo $(XPLATFORM) | awk '/u50/'))
 VPP_FLAGS += --config $(CUR_DIR)/conn_u50_u280.cfg
 endif
@@ -144,7 +139,7 @@ VPP_FLAGS += -I$(XFLIB_DIR)/../utils/L1/include
 
 VPP_FLAGS += -I$(XFLIB_DIR)/L1/include/hw
 VPP_FLAGS += -I$(XFLIB_DIR)/L2/include/hw
-VPP_FLAGS += -I$(XFLIB_DIR)/L2/dense_similarity_int/kernel
+VPP_FLAGS += -I$(XFLIB_DIR)/L2/dense_similarity_multi_kernel/kernel
 
 denseSimilarityKernel_VPP_FLAGS +=  -D KERNEL_NAME=denseSimilarityKernel
 denseSimilarityKernel_VPP_FLAGS += --hls.clock 300000000:denseSimilarityKernel
@@ -178,7 +173,7 @@ xclbin: check_vpp check_sysroot $(BINARY_CONTAINERS)
 build: xclbin
 
 # ################ Setting Rules for Binary Containers (Building Kernels) ################
-$(TEMP_DIR)/denseSimilarityKernel.xo: $(XFLIB_DIR)/L2/dense_similarity_int/kernel/denseSimilarityKernel.cpp
+$(TEMP_DIR)/denseSimilarityKernel.xo: $(XFLIB_DIR)/L2/dense_similarity_multi_kernel/kernel/denseSimilarityKernel.cpp
 	$(ECHO) "Compiling Kernel: denseSimilarityKernel"
 	mkdir -p $(TEMP_DIR)
 	$(VPP) -c $(denseSimilarityKernel_VPP_FLAGS) $(VPP_FLAGS) -k denseSimilarityKernel -I'$(<D)' --temp_dir $(TEMP_DIR) --report_dir $(TEMP_REPORT_DIR) -o'$@' '$<'

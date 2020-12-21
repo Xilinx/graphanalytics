@@ -24,79 +24,6 @@
 #include "utils.hpp"
 
 template <int PUNUM>
-void generateSourceParams(unsigned int numVertices,
-                          unsigned int numEdges,
-                          int dataType,
-                          int sourceID,
-                          ap_int<32>* offset32[PUNUM],
-                          ap_int<32>* indice32[PUNUM],
-                          float* weightSparse[PUNUM],
-                          unsigned int& sourceNUM,
-                          ap_int<32>** sourceIndice,
-                          ap_int<32>** sourceWeight) {
-    int row0, col0, row1, col1;
-
-    bool flag0 = 0;
-    int k;
-    for (k = 1; k < PUNUM; ++k) {
-        if ((sourceID + 1) < offset32[k][0]) {
-            flag0 = 1;
-            break;
-        }
-    }
-    if (flag0) {
-        k--;
-        row0 = k;
-        col0 = (sourceID + 1) - offset32[k][0];
-    } else {
-        row0 = PUNUM - 1;
-        col0 = (sourceID + 1) - offset32[PUNUM - 1][0];
-    }
-    for (k = 1; k < PUNUM; ++k) {
-        if (sourceID < offset32[k][0]) {
-            flag0 = 1;
-            break;
-        }
-    }
-    if (flag0) {
-        k--;
-        row1 = k;
-        col1 = sourceID - offset32[k][0];
-    } else {
-        row1 = PUNUM - 1;
-        col1 = sourceID - offset32[PUNUM - 1][0];
-    }
-
-    sourceNUM = (unsigned int)(offset32[row0][col0] - offset32[row1][col1]);
-    *sourceIndice = aligned_alloc<ap_int<32> >(sourceNUM);
-    *sourceWeight = aligned_alloc<ap_int<32> >(sourceNUM);
-
-    int ind = offset32[row1][col1];
-    for (int i = 0; i < sourceNUM; i++) {
-        int indNew = ind + i;
-        int j, row2, col2;
-        bool flag = 0;
-        for (j = 1; j < PUNUM; ++j) {
-            if (indNew < offset32[j][0]) {
-                flag = 1;
-                break;
-            }
-        }
-        if (flag) {
-            j--;
-            row2 = j;
-            col2 = indNew - offset32[j][0];
-        } else {
-            row2 = PUNUM - 1;
-            col2 = indNew - offset32[PUNUM - 1][0];
-        }
-        sourceIndice[0][i] = (ap_int<32>)indice32[row2][col2];
-        unsigned int tmpNum = (unsigned int)(indNew);
-        sourceWeight[0][i] = floatToBits<float, uint32_t>(weightSparse[row2][col2]);
-    }
-}
-
-template <int PUNUM>
 void generateSourceParams(unsigned int numVerticesPU[PUNUM],
                           unsigned int numEdges,
                           int dataType,
@@ -118,7 +45,6 @@ void generateSourceParams(unsigned int numVerticesPU[PUNUM],
         }
     }
 
-    std::cout << "id =" << id << " row=" << row << std::endl;
     for (int i = 0; i < sourceNUM; i++) {
         sourceWeight[0][i] = floatToBits<float, uint32_t>(weightDense[id][row * numEdges + i]);
 
@@ -128,23 +54,20 @@ void generateSourceParams(unsigned int numVerticesPU[PUNUM],
 }
 
 template <int PUNUM>
-int computeSimilarity(std::string xclbinPath,
-                      std::string goldenFile,
-                      unsigned int numVertices,
-                      unsigned int numEdges,
-                      int similarityType,
-                      int dataType,
-                      int sourceID,
-                      int sortK,
-                      int repInt,
-                      unsigned int numVerticesPU[PUNUM],
-                      unsigned int numEdgesPU[PUNUM],
-                      ap_int<32>* offset32[PUNUM],
-                      ap_int<32>* indice32[PUNUM],
-                      float* weightSparse[PUNUM],
-                      unsigned int sourceNUM,
-                      ap_int<32>* sourceIndice,
-                      ap_int<32>* sourceWeight) {
+int computeSimilarity0(std::string xclbinPath,
+                       std::string goldenFile,
+                       unsigned int numVertices,
+                       unsigned int numEdges,
+                       int similarityType,
+                       int dataType,
+                       int sourceID,
+                       int sortK,
+                       int repInt,
+                       unsigned int numVerticesPU[PUNUM],
+                       unsigned int numEdgesPU[PUNUM],
+                       float* weightDense[4 * PUNUM],
+                       unsigned int sourceNUM,
+                       ap_int<32>* sourceWeight) {
     struct timeval start_time; // End to end time clock start
     gettimeofday(&start_time, 0);
 
@@ -156,7 +79,7 @@ int computeSimilarity(std::string xclbinPath,
     unsigned int tmp = 0;
     for (int i = 0; i < PUNUM - 1; i++) { // calculate multi PU start address
         startID[i] = tmp;
-        tmp += numVerticesPU[i];
+        tmp += 4 * numVerticesPU[i];
     }
     startID[PUNUM - 1] = tmp;
     for (int i = 0; i < repInt; i++) {
@@ -195,61 +118,51 @@ int computeSimilarity(std::string xclbinPath,
     // create kernels
     std::vector<cl::Kernel> similarity_kernel(repInt);
     for (int i = 0; i < repInt; i++) {
-        similarity_kernel[i] = cl::Kernel(program, "sparseSimilarityKernel");
+        similarity_kernel[i] = cl::Kernel(program, "denseSimilarityKernel:{denseSimilarityKernel_0}");
     }
     std::cout << "INFO: kernel has been created" << std::endl;
 
     // declare map of host buffers
-    std::vector<cl_mem_ext_ptr_t> mext_o(3 * repInt + 3 * PUNUM + 2);
+    std::vector<cl_mem_ext_ptr_t> mext_o(3 * repInt + 4 * PUNUM + 1);
     for (int i = 0; i < PUNUM; i++) {
-        mext_o[3 * i + 0] = {XCL_BANK(3 * i), offset32[i], 0};
-        mext_o[3 * i + 1] = {XCL_BANK(3 * i + 1), indice32[i], 0};
-        mext_o[3 * i + 2] = {XCL_BANK(3 * i + 2), weightSparse[i], 0};
+        mext_o[4 * i + 0] = {XCL_BANK(8 * i), weightDense[4 * i], 0};
+        mext_o[4 * i + 1] = {XCL_BANK(8 * i + 1), weightDense[4 * i + 1], 0};
+        mext_o[4 * i + 2] = {XCL_BANK(8 * i + 2), weightDense[4 * i + 2], 0};
+        mext_o[4 * i + 3] = {XCL_BANK(8 * i + 3), weightDense[4 * i + 3], 0};
     }
 
-    mext_o[3 * PUNUM] = {XCL_BANK24, sourceIndice, 0};
-    mext_o[3 * PUNUM + 1] = {XCL_BANK24, sourceWeight, 0};
+    mext_o[4 * PUNUM] = {XCL_BANK24, sourceWeight, 0};
 
     for (int i = 0; i < repInt; i++) {
-        mext_o[3 * PUNUM + 2 + i] = {XCL_BANK24, config[i], 0};
-        mext_o[3 * PUNUM + 2 + repInt + i] = {XCL_BANK24, result_id[i], 0};
-        mext_o[3 * PUNUM + 2 + 2 * repInt + i] = {XCL_BANK24, similarity[i], 0};
+        mext_o[4 * PUNUM + 1 + i] = {XCL_BANK24, config[i], 0};
+        mext_o[4 * PUNUM + 1 + repInt + i] = {XCL_BANK24, result_id[i], 0};
+        mext_o[4 * PUNUM + 1 + 2 * repInt + i] = {XCL_BANK24, similarity[i], 0};
     }
 
     // create device buffer and map dev buf to host buf
-    cl::Buffer offset_buf[PUNUM];
-    cl::Buffer indice_buf[PUNUM];
-    cl::Buffer weight_buf[PUNUM];
-    cl::Buffer empty_buf[PUNUM];
-    cl::Buffer source_indice_buf, source_weight_buf;
+    cl::Buffer weight_buf[4 * PUNUM];
+    cl::Buffer source_weight_buf;
     std::vector<cl::Buffer> config_buf(repInt);
     std::vector<cl::Buffer> result_id_buf(repInt);
     std::vector<cl::Buffer> similarity_buf(repInt);
 
     // declare cl::buffers
-    for (int i = 0; i < PUNUM; i++) {
-        int sizeW = numEdgesPU[i];
-        offset_buf[i] = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                   sizeof(ap_int<32>) * (numVerticesPU[i] + CHANNEL_NUMBER), &mext_o[3 * i + 0]);
-        indice_buf[i] = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                   sizeof(ap_int<32>) * (numEdgesPU[i] + CHANNEL_NUMBER), &mext_o[3 * i + 1]);
+    for (int i = 0; i < 4 * PUNUM; i++) {
+        int sizeW = numVerticesPU[i / 4] * numEdges;
         weight_buf[i] = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                   sizeof(ap_int<32>) * (sizeW + CHANNEL_NUMBER), &mext_o[3 * i + 2]);
+                                   sizeof(ap_int<32>) * (sizeW + CHANNEL_NUMBER), &mext_o[i]);
     }
 
-    source_indice_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                   sizeof(ap_int<32>) * (sourceNUM + CHANNEL_NUMBER), &mext_o[3 * PUNUM]);
-
     source_weight_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                   sizeof(ap_int<32>) * (sourceNUM + CHANNEL_NUMBER), &mext_o[3 * PUNUM + 1]);
+                                   sizeof(ap_int<32>) * (sourceNUM + CHANNEL_NUMBER), &mext_o[4 * PUNUM]);
 
     for (int i = 0; i < repInt; i++) {
         config_buf[i] = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                   sizeof(ap_int<32>) * 64, &mext_o[3 * PUNUM + 2 + i]);
+                                   sizeof(ap_int<32>) * 64, &mext_o[4 * PUNUM + 1 + i]);
         result_id_buf[i] = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                      sizeof(ap_int<32>) * 128, &mext_o[3 * PUNUM + 2 + repInt + i]);
+                                      sizeof(ap_int<32>) * 128, &mext_o[4 * PUNUM + 1 + repInt + i]);
         similarity_buf[i] = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                       sizeof(float) * 128, &mext_o[3 * PUNUM + 2 + 2 * repInt + i]);
+                                       sizeof(float) * 128, &mext_o[4 * PUNUM + 1 + 2 * repInt + i]);
     }
 
     // add buffers to migrate
@@ -257,12 +170,15 @@ int computeSimilarity(std::string xclbinPath,
     for (int i = 0; i < repInt; i++) {
         init.push_back(config_buf[i]);
     }
-    for (int i = 0; i < PUNUM; i++) {
-        init.push_back(offset_buf[i]);
-        init.push_back(indice_buf[i]);
+    for (int i = 0; i < 4 * PUNUM; i++) {
         init.push_back(weight_buf[i]);
     }
-    init.push_back(source_indice_buf);
+    for (int i = 0; i < repInt; i++) {
+        init.push_back(result_id_buf[i]);
+    }
+    for (int i = 0; i < repInt; i++) {
+        init.push_back(similarity_buf[i]);
+    }
     init.push_back(source_weight_buf);
 
     // migrate data from host to device
@@ -275,12 +191,9 @@ int computeSimilarity(std::string xclbinPath,
     for (int i = 0; i < repInt; i++) {
         ob_in.push_back(config_buf[i]);
     }
-    for (int i = 0; i < PUNUM; i++) {
-        ob_in.push_back(offset_buf[i]);
-        ob_in.push_back(indice_buf[i]);
+    for (int i = 0; i < 4 * PUNUM; i++) {
         ob_in.push_back(weight_buf[i]);
     }
-    ob_in.push_back(source_indice_buf);
     ob_in.push_back(source_weight_buf);
 
     for (int i = 0; i < repInt; i++) {
@@ -300,12 +213,9 @@ int computeSimilarity(std::string xclbinPath,
     for (int i = 0; i < repInt; i++) {
         int j = 0;
         similarity_kernel[i].setArg(j++, config_buf[i]);
-        similarity_kernel[i].setArg(j++, source_indice_buf);
         similarity_kernel[i].setArg(j++, source_weight_buf);
 
-        for (int k = 0; k < PUNUM; k++) {
-            similarity_kernel[i].setArg(j++, offset_buf[k]);
-            similarity_kernel[i].setArg(j++, indice_buf[k]);
+        for (int k = 0; k < 4 * PUNUM; k++) {
             similarity_kernel[i].setArg(j++, weight_buf[k]);
         }
 
@@ -362,11 +272,9 @@ int computeSimilarity(std::string xclbinPath,
     std::cout << "-------------------------------------------------------" << std::endl;
 
 #else
-    sparseSimilarityKernel(config[0], sourceIndice, sourceWeight, offsetDDR[0], indiceDDR[0], weightDDR[0],
-                           offsetDDR[1], indiceDDR[1], weightDDR[1], offsetDDR[2], indiceDDR[2], weightDDR[2],
-                           offsetDDR[3], indiceDDR[3], weightDDR[3], offsetDDR[4], indiceDDR[4], weightDDR[4],
-                           offsetDDR[5], indiceDDR[5], weightDDR[5], offsetDDR[6], indiceDDR[6], weightDDR[6],
-                           offsetDDR[7], indiceDDR[7], weightDDR[7], result_id[0], similarity[0]);
+    denseSimilarityKernel(config[0], sourceWeight, weightDense[0], weightDense[1], weightDense[2], weightDense[3],
+                          weightDense[4], weightDense[5], weightDense[6], weightDense[7], weightDense[8],
+                          weightDense[9], weightDense[10], weightDense[11], result_id[0], similarity[0]);
 #endif
 
     // need to write a compare function in order to compare golden values with results and put it here
@@ -377,20 +285,20 @@ int computeSimilarity(std::string xclbinPath,
 }
 
 template <int PUNUM>
-int computeSimilarity(std::string xclbinPath,
-                      std::string goldenFile,
-                      unsigned int numVertices,
-                      unsigned int numEdges,
-                      int similarityType,
-                      int dataType,
-                      int sourceID,
-                      int sortK,
-                      int repInt,
-                      unsigned int numVerticesPU[PUNUM],
-                      unsigned int numEdgesPU[PUNUM],
-                      float* weightDense[4 * PUNUM],
-                      unsigned int sourceNUM,
-                      ap_int<32>* sourceWeight) {
+int computeSimilarity1(std::string xclbinPath,
+                       std::string goldenFile,
+                       unsigned int numVertices,
+                       unsigned int numEdges,
+                       int similarityType,
+                       int dataType,
+                       int sourceID,
+                       int sortK,
+                       int repInt,
+                       unsigned int numVerticesPU[PUNUM],
+                       unsigned int numEdgesPU[PUNUM],
+                       float* weightDense[4 * PUNUM],
+                       unsigned int sourceNUM,
+                       ap_int<32>* sourceWeight) {
     struct timeval start_time; // End to end time clock start
     gettimeofday(&start_time, 0);
 
@@ -441,17 +349,17 @@ int computeSimilarity(std::string xclbinPath,
     // create kernels
     std::vector<cl::Kernel> similarity_kernel(repInt);
     for (int i = 0; i < repInt; i++) {
-        similarity_kernel[i] = cl::Kernel(program, "denseSimilarityKernel");
+        similarity_kernel[i] = cl::Kernel(program, "denseSimilarityKernel:{denseSimilarityKernel_1}");
     }
     std::cout << "INFO: kernel has been created" << std::endl;
 
     // declare map of host buffers
     std::vector<cl_mem_ext_ptr_t> mext_o(3 * repInt + 4 * PUNUM + 1);
     for (int i = 0; i < PUNUM; i++) {
-        mext_o[4 * i + 0] = {XCL_BANK(8 * i), weightDense[4 * i], 0};
-        mext_o[4 * i + 1] = {XCL_BANK(8 * i + 1), weightDense[4 * i + 1], 0};
-        mext_o[4 * i + 2] = {XCL_BANK(8 * i + 2), weightDense[4 * i + 2], 0};
-        mext_o[4 * i + 3] = {XCL_BANK(8 * i + 3), weightDense[4 * i + 3], 0};
+        mext_o[4 * i + 0] = {XCL_BANK(8 * i + 4), weightDense[4 * i], 0};
+        mext_o[4 * i + 1] = {XCL_BANK(8 * i + 5), weightDense[4 * i + 1], 0};
+        mext_o[4 * i + 2] = {XCL_BANK(8 * i + 6), weightDense[4 * i + 2], 0};
+        mext_o[4 * i + 3] = {XCL_BANK(8 * i + 7), weightDense[4 * i + 3], 0};
     }
 
     mext_o[4 * PUNUM] = {XCL_BANK28, sourceWeight, 0};
@@ -597,8 +505,7 @@ int computeSimilarity(std::string xclbinPath,
 #else
     denseSimilarityKernel(config[0], sourceWeight, weightDense[0], weightDense[1], weightDense[2], weightDense[3],
                           weightDense[4], weightDense[5], weightDense[6], weightDense[7], weightDense[8],
-                          weightDense[9], weightDense[10], weightDense[11], weightDense[12], weightDense[13],
-                          weightDense[14], weightDense[15], result_id[0], similarity[0]);
+                          weightDense[9], weightDense[10], weightDense[11], result_id[0], similarity[0]);
 #endif
 
     // need to write a compare function in order to compare golden values with results and put it here
