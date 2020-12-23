@@ -51,26 +51,53 @@ Each attribute (e.g. age, gender, race, immunization, etc) of a patient is mappe
 | 190-209        | careplans map      |
 
 ### Cosine similarity GSQL
-TigerGraph uses GSQL query language for fast and scalable graph operations and analytics. A reference design of patient similarity based on cosine similarity was created in GSQL to baseline the functionalities and computation complexity of the algorithm. It is used to verify and validate the functioanl correctness and performance improvement of the Alveo accelerated desgin. Below is the block diagram of cosine similarity computation in GSQL, which is executed entirely on CPU.
+TigerGraph uses GSQL query language for fast and scalable graph operations and analytics. A reference 
+design of patient similarity based on cosine similarity was created in GSQL to baseline the 
+functionalities and computation complexity of the algorithm. It is used to verify and validate the functioanl 
+correctness and performance improvement of the Alveo accelerated desgin. Below is the block diagram of cosine 
+similarity computation in GSQL, which is executed entirely on CPU.
 <p align="center">
 <img src="docs/images/cosine-similarity-gsql.png"  width="400">
 </p>
 
+Below is the code snippet of cosine similarity in GSQL:
+<p align="center">
+<img src="docs/images/tg-graph-algorithm-cosine-similarity.png">
+</p>
+
 ### FPGA Accelerated cosine similarity function
-Xilinx Vitis Graph Analytics Library plugin provides a user defined function that offloads the computation of cosine simimarity and the top K highest scores to the FPGA:
+Xilinx Vitis Graph Analytics Library plugin provides a user defined function that offloads the computation 
+of cosine simimarity and the top K highest scores to the FPGA:
 <p align="center">
 <img src="docs/images/cosine-similarity-alveo.png" width="400">
 </p>
 
 The accelerated cosine simlarity UDF consists of two parts:
-* Host code: C++ code that runs on the CPU to manage resource allocation and data movement between the CPU and the FPGA
-* Kernel: custom computation hardware logic that utilizes massive parallel processing horsepwer and abundant on-chip memory on FPGA. Each kernel contains two compute units(CUs) running in parallel with each CU connecting to one HBM stack that stores patients' records.
+* Host code: C++ code that runs on the CPU to manage resource allocation and data movement between 
+the CPU and the FPGA
+* Kernel: custom computation hardware logic that utilizes massive parallel processing horsepwer and 
+abundant on-chip memory on FPGA. Each kernel contains two compute units(CUs) running in parallel with 
+each CU connecting to one HBM stack that stores patients' records.
 
+Below is the code snippet of cosine similarity accelerated on Alveo card using Tigergraph UDF.
+<p align="center">
+<img src="docs/images/tg-query-cosine-similarity-fpga-gsql.png.png">
+</p>
+<p align="center">
+<img src="docs/images/tg-query-cosine-similarity-fpga-udf.png">
+</p>
 <p align="center">
 <img src="docs/images/cosine-similarity-kernel-top.png" width="400">
 </p>
 
-The kernel design for each CU is illustrated in the block diagram below. Each CU contains 16 fully pipelined cosine similarity processing elements (PEs) and one MaxK components to choose the top similarities. The 16 PEs are connected to 16 channels to access 5M patients' data in parallel. The incoming new patient's record is transmitted to the FPGA's PLRAM by the host and then duplicated to 16 PEs. The MaxK primitive calculates the top cosine similarities and their corresponding indices and writes them to the PLRAMA, which is read out by the host. In the end, the host will do a simple computation to extract the final top similarities from the two returned top similarity sets computed by the two CUs.
+The kernel design for each CU is illustrated in the block diagram below. Each CU contains 16 fully 
+pipelined cosine similarity processing elements (PEs) and one MaxK components to choose the top 
+similarities. The 16 PEs are connected to 16 channels to access 5M patients' data in parallel. The 
+incoming new patient's record is transmitted to the FPGA's PLRAM by the host and then duplicated to 
+16 PEs. The MaxK primitive calculates the top cosine similarities and their corresponding indices 
+and writes them to the PLRAMA, which is read out by the host. In the end, the host will do a simple 
+computation to extract the final top similarities from the two returned top similarity sets computed 
+by the two CUs.
 <p align="center">
 <img src="docs/images/cosine-similarity-kernel-block-diagram.png" width="400">
 </p>
@@ -87,10 +114,18 @@ an HPE DL385 server comparing to running on 128 CPU cores with 256GB RAM. A demo
 plugin with Alveo U50 acceleration card is included in this repository to show the general usage of the plugin 
 and the development flow of custom graph algorithm accelerators on Xilinx Alveo cards in TigerGraph. Please 
 Check the user guide [Targeting Alveo in HPE Server](docs/TG_A_v1.md) for detailed instructions on how to 
-run the demo.
+run the demo on premise.
 
-## Test drive cosine similarity acceleration on Azure NP
-NP Azure Virtual Machines for HPC coming soon – Our Alveo U250 FPGA-Accelerated VMs offer from 1-to-4 Xilinx U250 FPGA devices as an Azure VM- backed by powerful Xeon Platinum CPU cores, and fast NVMe-based storage. The NP series will enable true lift-and-shift and single-target development of FPGA applications for a general purpose cloud. Based on a board and software ecosystem customers can buy today, RTL and high-level language designs targeted at Xilinx’s U250 card and SDAccel 2019.1 runtime will run on Azure VMs just as they do on-premises and on the edge, enabling the bleeding edge of accelerator development to harness the power of the cloud without additional development costs.
+## Test drive cosine similarity acceleration on Microsofte Azure NP
+Microsoft NP Azure Alveo U50 FPGA-Accelerated Virtual Machines for HPC offer from 1-to-4 Xilinx U250 
+FPGA devices backed by powerful Xeon Platinum CPU cores, and fast NVMe-based storage. The NP series 
+enable true lift-and-shift and single-target development of FPGA applications for a general purpose cloud. 
+Based on a board and software ecosystem customers can buy today, RTL and high-level language designs 
+targeted at Xilinx’s U250 card and SDAccel 2019.1 runtime will run on Azure VMs just as they do on-premises 
+and on the edge, enabling the bleeding edge of accelerator development to harness the power of the cloud 
+without additional development costs.
 
+Please check the user guide [Targeting Alveo in Azure NP VM](doc/target-alveo-in-azure.md) for detailed instructions on how to run the 
+demo on Azure NP VM.
 # References
 * Lee J, Maslove DM, Dubin JA. Personalized mortality prediction driven by electronic medical data and a patient similarity metric. PLoS One 2015 May;10(5):e0127428 [FREE Full text] [CrossRef] [Medline]
