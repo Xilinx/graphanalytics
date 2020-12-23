@@ -81,7 +81,7 @@ each CU connecting to one HBM stack that stores patients' records.
 
 Below is the code snippet of cosine similarity accelerated on Alveo card using Tigergraph UDF.
 <p align="center">
-<img src="docs/images/tg-query-cosine-similarity-fpga-gsql.png.png">
+<img src="docs/images/tg-query-cosine-similarity-fpga-gsql.png">
 </p>
 <p align="center">
 <img src="docs/images/tg-query-cosine-similarity-fpga-udf.png">
