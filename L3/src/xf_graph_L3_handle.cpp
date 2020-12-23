@@ -203,6 +203,7 @@ void Handle::initOpSimSparse(const char* kernelName,
 };
 
 void Handle::addOp(singleOP op) {
+    std::cout << "handle::addOp" << std::endl;
     ops.push_back(op);
 }
 
@@ -211,7 +212,8 @@ int Handle::setUp() {
     unsigned int opNm = ops.size();
     unsigned int deviceCounter = 0;
     for (int i = 0; i < opNm; ++i) {
-        if (strcmp(ops[i].operationName, "pagerank") == 0) {
+        std::cout << "INFO: Handle::setUp operationName=" << ops[i].operationName << std::endl;
+        if (ops[i].operationName == "pagerank") {
             unsigned int boardNm = ops[i].deviceNeeded;
             if (deviceCounter + boardNm > numDevices) {
                 std::cout << "Error: Need more devices" << std::endl;
@@ -235,7 +237,7 @@ int Handle::setUp() {
 
             initOpPageRank(ops[i].kernelName, ops[i].xclbinFile, ops[i].kernelAlias, ops[i].requestLoad,
                            ops[i].deviceNeeded, ops[i].cuPerBoard);
-        } else if (strcmp(ops[i].operationName, "shortestPathFloat") == 0) {
+        } else if (ops[i].operationName == "shortestPathFloat") {
             unsigned int boardNm = ops[i].deviceNeeded;
             if (deviceCounter + boardNm > numDevices) {
                 std::cout << "Error: Need more devices" << std::endl;
@@ -258,7 +260,7 @@ int Handle::setUp() {
             deviceCounter += boardNm;
             initOpSP(ops[i].kernelName, ops[i].xclbinFile, ops[i].kernelAlias, ops[i].requestLoad, ops[i].deviceNeeded,
                      ops[i].cuPerBoard);
-        } else if (strcmp(ops[i].operationName, "similarityDense") == 0) {
+        } else if (ops[i].operationName == "similarityDense") {
             unsigned int boardNm = ops[i].deviceNeeded;
             if (deviceCounter + boardNm > numDevices) {
                 std::cout << "Error: Need more devices" << std::endl;
@@ -288,7 +290,7 @@ int Handle::setUp() {
             deviceCounter += boardNm;
             initOpSimDense(ops[i].kernelName, ops[i].xclbinFile, ops[i].kernelAlias, ops[i].requestLoad,
                            ops[i].deviceNeeded, ops[i].cuPerBoard);
-        } else if (strcmp(ops[i].operationName, "similarityDenseInt") == 0) {
+        } else if (ops[i].operationName == "similarityDenseInt") {
             unsigned int boardNm = ops[i].deviceNeeded;
             if (deviceCounter + boardNm > numDevices) {
                 std::cout << "Error: Need more devices" << std::endl;
@@ -315,7 +317,7 @@ int Handle::setUp() {
             deviceCounter += boardNm;
             initOpSimDenseInt(ops[i].kernelName, ops[i].xclbinFile, ops[i].xclbinFile2, ops[i].kernelAlias,
                               ops[i].requestLoad, ops[i].deviceNeeded, ops[i].cuPerBoard);
-        } else if (strcmp(ops[i].operationName, "similaritySparse") == 0) {
+        } else if (ops[i].operationName == "similaritySparse") {
             unsigned int boardNm = ops[i].deviceNeeded;
             if (deviceCounter + boardNm > numDevices) {
                 std::cout << "Error: Need more devices" << std::endl;
@@ -338,7 +340,7 @@ int Handle::setUp() {
             deviceCounter += boardNm;
             initOpSimSparse(ops[i].kernelName, ops[i].xclbinFile, ops[i].kernelAlias, ops[i].requestLoad,
                             ops[i].deviceNeeded, ops[i].cuPerBoard);
-        } else if (strcmp(ops[i].operationName, "triangleCount") == 0) {
+        } else if (ops[i].operationName == "triangleCount") {
             unsigned int boardNm = ops[i].deviceNeeded;
             if (deviceCounter + boardNm > numDevices) {
                 std::cout << "Error: Need more devices" << std::endl;
@@ -361,7 +363,7 @@ int Handle::setUp() {
             deviceCounter += boardNm;
             initOpTriangleCount(ops[i].kernelName, ops[i].xclbinFile, ops[i].kernelAlias, ops[i].requestLoad,
                                 ops[i].deviceNeeded, ops[i].cuPerBoard);
-        } else if (strcmp(ops[i].operationName, "labelPropagation") == 0) {
+        } else if (ops[i].operationName == "labelPropagation") {
             unsigned int boardNm = ops[i].deviceNeeded;
             if (deviceCounter + boardNm > numDevices) {
                 std::cout << "Error: Need more devices" << std::endl;
@@ -384,7 +386,7 @@ int Handle::setUp() {
             deviceCounter += boardNm;
             initOpLabelPropagation(ops[i].kernelName, ops[i].xclbinFile, ops[i].kernelAlias, ops[i].requestLoad,
                                    ops[i].deviceNeeded, ops[i].cuPerBoard);
-        } else if (strcmp(ops[i].operationName, "BFS") == 0) {
+        } else if (ops[i].operationName == "BFS")  {
             unsigned int boardNm = ops[i].deviceNeeded;
             if (deviceCounter + boardNm > numDevices) {
                 std::cout << "Error: Need more devices" << std::endl;
@@ -407,7 +409,7 @@ int Handle::setUp() {
             deviceCounter += boardNm;
             initOpBFS(ops[i].kernelName, ops[i].xclbinFile, ops[i].kernelAlias, ops[i].requestLoad, ops[i].deviceNeeded,
                       ops[i].cuPerBoard);
-        } else if (strcmp(ops[i].operationName, "WCC") == 0) {
+        } else if (ops[i].operationName == "WCC") {
             unsigned int boardNm = ops[i].deviceNeeded;
             if (deviceCounter + boardNm > numDevices) {
                 std::cout << "Error: Need more devices" << std::endl;
@@ -430,7 +432,7 @@ int Handle::setUp() {
             deviceCounter += boardNm;
             initOpWCC(ops[i].kernelName, ops[i].xclbinFile, ops[i].kernelAlias, ops[i].requestLoad, ops[i].deviceNeeded,
                       ops[i].cuPerBoard);
-        } else if (strcmp(ops[i].operationName, "SCC") == 0) {
+        } else if (ops[i].operationName == "SCC") {
             unsigned int boardNm = ops[i].deviceNeeded;
             if (deviceCounter + boardNm > numDevices) {
                 std::cout << "Error: Need more devices" << std::endl;
@@ -453,7 +455,7 @@ int Handle::setUp() {
             deviceCounter += boardNm;
             initOpSCC(ops[i].kernelName, ops[i].xclbinFile, ops[i].kernelAlias, ops[i].requestLoad, ops[i].deviceNeeded,
                       ops[i].cuPerBoard);
-        } else if (strcmp(ops[i].operationName, "convertCsrCsc") == 0) {
+        } else if (ops[i].operationName == "convertCsrCsc") {
             unsigned int boardNm = ops[i].deviceNeeded;
             if (deviceCounter + boardNm > numDevices) {
                 std::cout << "Error: Need more devices" << std::endl;
@@ -527,11 +529,24 @@ void Handle::getEnv() {
     }
 }
 
+void Handle::debug() {
+    unsigned int opNm = ops.size();
+    for (int i = 0; i < opNm; ++i) {
+        std::cout << "INFO: Handle::debug opNm=" << opNm << 
+            " operationName=" << ops[i].operationName << 
+            " kernelname=" << ops[i].kernelName << 
+            " requestLoad=" << ops[i].requestLoad << 
+            " xclbinFile=" << ops[i].xclbinFile << 
+            std::endl;
+    }
+}
+
 void Handle::free() {
     unsigned int opNm = ops.size();
     unsigned int deviceCounter = 0;
     for (int i = 0; i < opNm; ++i) {
-        if (strcmp(ops[i].operationName, "pagerank") == 0) {
+        std::cout << "INFO: Handle::free operationName=" << ops[i].operationName << std::endl;
+        if (ops[i].operationName == "pagerank") {
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];
             for (int j = 0; j < boardNm; ++j) {
@@ -542,7 +557,7 @@ void Handle::free() {
             }
             deviceCounter += boardNm;
             oppg->freePG();
-        } else if (strcmp(ops[i].operationName, "shortestPathFloat") == 0) {
+        } else if (ops[i].operationName == "shortestPathFloat") {
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];
             for (int j = 0; j < boardNm; ++j) {
@@ -553,7 +568,8 @@ void Handle::free() {
             }
             deviceCounter += boardNm;
             opsp->freeSP();
-        } else if (strcmp(ops[i].operationName, "similarityDense") == 0) {
+        } else if (ops[i].operationName == "similarityDense") {
+            std::cout << "l3-hanle similaritydense entering" << std::endl;
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];
             for (int j = 0; j < boardNm; ++j) {
@@ -562,9 +578,10 @@ void Handle::free() {
             for (int j = 0; j < boardNm; ++j) {
                 thUn[j].join();
             }
+            std::cout << "l3-hanle similaritydense after join" << std::endl;
             deviceCounter += boardNm;
             opsimdense->freeSimDense();
-        } else if (strcmp(ops[i].operationName, "similarityDenseInt") == 0) {
+        } else if (ops[i].operationName == "similarityDenseInt") {
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];
             for (int j = 0; j < boardNm; ++j) {
@@ -576,7 +593,7 @@ void Handle::free() {
             deviceCounter += boardNm;
             opsimdense->freeSimDense();
             xrm->freeCuGroup(boardNm);
-        } else if (strcmp(ops[i].operationName, "similaritySparse") == 0) {
+        } else if (ops[i].operationName == "similaritySparse") {
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];
             for (int j = 0; j < boardNm; ++j) {
@@ -587,7 +604,7 @@ void Handle::free() {
             }
             deviceCounter += boardNm;
             opsimsparse->freeSimSparse();
-        } else if (strcmp(ops[i].operationName, "triangleCount") == 0) {
+        } else if (ops[i].operationName == "triangleCount") {
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];
             for (int j = 0; j < boardNm; ++j) {
@@ -598,7 +615,7 @@ void Handle::free() {
             }
             deviceCounter += boardNm;
             optcount->freeTriangleCount();
-        } else if (strcmp(ops[i].operationName, "labelPropagation") == 0) {
+        } else if (ops[i].operationName == "labelPropagation") {
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];
             for (int j = 0; j < boardNm; ++j) {
@@ -609,7 +626,7 @@ void Handle::free() {
             }
             deviceCounter += boardNm;
             oplprop->freeLabelPropagation();
-        } else if (strcmp(ops[i].operationName, "BFS") == 0) {
+        } else if (ops[i].operationName == "BFS") {
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];
             for (int j = 0; j < boardNm; ++j) {
@@ -620,7 +637,7 @@ void Handle::free() {
             }
             deviceCounter += boardNm;
             opbfs->freeBFS();
-        } else if (strcmp(ops[i].operationName, "WCC") == 0) {
+        } else if (ops[i].operationName == "WCC") {
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];
             for (int j = 0; j < boardNm; ++j) {
@@ -631,7 +648,7 @@ void Handle::free() {
             }
             deviceCounter += boardNm;
             opwcc->freeWCC();
-        } else if (strcmp(ops[i].operationName, "SCC") == 0) {
+        } else if (ops[i].operationName == "SCC") {
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];
             for (int j = 0; j < boardNm; ++j) {
@@ -642,7 +659,7 @@ void Handle::free() {
             }
             deviceCounter += boardNm;
             opscc->freeSCC();
-        } else if (strcmp(ops[i].operationName, "convertCsrCsc") == 0) {
+        } else if (ops[i].operationName == "convertCsrCsc") {
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];
             for (int j = 0; j < boardNm; ++j) {
@@ -655,7 +672,7 @@ void Handle::free() {
             opconvertcsrcsc->freeConvertCsrCsc();
         }
     }
-    xrm->freeXRM();
+    //xrm->freeXRM();
 };
 
 void Handle::loadXclbin(unsigned int deviceId, char* xclbinName) {

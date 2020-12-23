@@ -54,7 +54,7 @@ class Handle {
      *
      */
     struct singleOP {
-        char* operationName; // for example, cosineSim
+        std::string operationName; // for example, cosineSim
         char* kernelName;    // user defined kernel names
         char* kernelAlias;   // user defined kernel names
         unsigned int requestLoad = 100;
@@ -146,6 +146,8 @@ class Handle {
     };
 
     void free();
+
+    void debug();
 
     int setUp();
 

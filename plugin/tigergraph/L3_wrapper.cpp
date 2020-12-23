@@ -451,7 +451,7 @@ extern "C" int bfs_fpga(uint32_t numVertices,
 
     //----------------- Setup shortestPathFloat thread ---------
     xf::graph::L3::Handle::singleOP op0;
-    op0.operationName = (char*)opName.c_str();
+    op0.operationName = opName;
     op0.setKernelName((char*)kernelName.c_str());
     op0.requestLoad = requestLoad;
     op0.xclbinFile = (char*)xclbinPath.c_str();
@@ -806,6 +806,11 @@ extern "C" int loadgraph_cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
     if (status < 0)
         return status;
 
+    //-------------------------
+    std::shared_ptr<xf::graph::L3::Handle> handle1 = sharedHandlesCosSimDense::instance().handlesMap[0];
+    handle1->debug();
+    //------------------------
+    
     //---------------- Run Load Graph -----------------------------------
     for (int i = 0; i < deviceNeeded * cuNm; ++i) {
         (handle0->opsimdense)->loadGraphMultiCardNonBlocking(i / cuNm, i % cuNm, g[i][0]);
@@ -831,7 +836,9 @@ extern "C" void cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
                                         int32_t* resultID,
                                         float* similarity) {
     //---------------- Run Load Graph -----------------------------------
+    std::cout << "INFO: L3_wrapper::cosinesim_ss_dense_fpga starting..." << std::endl;
     std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
+    handle0->debug();
     int32_t requestNm = 1;
     //    int ret = xf::graph::L3::cosineSimilaritySSDenseMultiCard(handle0, deviceNeeded, sourceLen, sourceWeight,
     //    topK, g,
