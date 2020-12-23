@@ -76,7 +76,18 @@ The kernel design for each CU is illustrated in the block diagram below. Each CU
 </p>
 
 ### Test drive cosine similarity acceleration on Alveo U50 on premise
-The [Xilinx® Alveo™ U50 Data Center accelerator cards](https://www.xilinx.com/products/boards-and-kits/alveo/u50.html) provide optimized acceleration for workloads in financial computing, machine learning, computational storage, and data search and analytics. Built on Xilinx UltraScale+ architecture and packaged up in an efficient 75-watt, small form factor, and armed with 100 Gbps networking I/O, PCIe Gen4, and HBM, Alveo U50 is designed for deployment in any server.  
+The [Xilinx® Alveo™ U50 Data Center accelerator cards](https://www.xilinx.com/products/boards-and-kits/alveo/u50.html) 
+provide optimized acceleration for workloads in financial computing, machine learning, computational storage, 
+and data search and analytics. Built on Xilinx UltraScale+ architecture and packaged up in an efficient 
+75-watt, small form factor, and armed with 100 Gbps networking I/O, PCIe Gen4, and HBM, Alveo U50 is 
+designed for deployment in any server.  
+
+Xilinx has demonstrated 400x acceleration of cosine simlarity running on Alveo U50 acceleration cards in 
+an HPE DL385 server comparing to running on 128 CPU cores with 256GB RAM. A demo utilizing Xilinx TigerGraph 
+plugin with Alveo U50 acceleration card is included in this repository to show the general usage of the plugin 
+and the development flow of custom graph algorithm accelerators on Xilinx Alveo cards in TigerGraph. Please 
+Check the user guide [Targeting Alveo in HPE Server](docs/TG_A_v1.md) for detailed instructions on how to 
+run the demo.
 
 ## Test drive cosine similarity acceleration on Azure NP
 NP Azure Virtual Machines for HPC coming soon – Our Alveo U250 FPGA-Accelerated VMs offer from 1-to-4 Xilinx U250 FPGA devices as an Azure VM- backed by powerful Xeon Platinum CPU cores, and fast NVMe-based storage. The NP series will enable true lift-and-shift and single-target development of FPGA applications for a general purpose cloud. Based on a board and software ecosystem customers can buy today, RTL and high-level language designs targeted at Xilinx’s U250 card and SDAccel 2019.1 runtime will run on Azure VMs just as they do on-premises and on the edge, enabling the bleeding edge of accelerator development to harness the power of the cloud without additional development costs.
