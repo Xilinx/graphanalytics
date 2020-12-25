@@ -743,7 +743,7 @@ extern "C" int loadgraph_cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
     std::fstream userInput(jsonFilePath, std::ios::in);
     if (!userInput) {
         std::cout << "Error : config file " << jsonFilePath << " doesn't exist !" << std::endl;
-        return -2;
+        return XF_GRAPH_L3_ERROR_CONFIG_FILE_NOT_EXIST;
     }
     char line[1024] = {0};
     char* token;
@@ -793,9 +793,9 @@ extern "C" int loadgraph_cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
     }
 
     std::fstream xclbinFS2(xclbinPath2, std::ios::in);
-    if (!xclbinFS2) {
+    if (deviceNeeded > 1 && !xclbinFS2) {
         std::cout << "Error : xclbinFile2 doesn't exist: " << xclbinPath2 << std::endl;
-        return -4;
+        return XF_GRAPH_L3_ERROR_XCLBIN2_FILE_NOT_EXIST;
     }
     std::shared_ptr<xf::graph::L3::Handle> handleInstance(new xf::graph::L3::Handle);
     sharedHandlesCosSimDense::instance().handlesMap[0] = handleInstance;
