@@ -70,10 +70,11 @@ $(libGRAPHL3WRAPPER): ${CPP_PATH} ${HPP_PATH}
 	/usr/bin/g++ -fPIC $(CXXFLAGS) -rdynamic -shared -o $@ ${CPP_PATH} $(LDFLAGS) -Wl,--export-dynamic
 
 gen-xclbin-pkg:
-	mkdir xilinx-graphanalytics-xclbin
+	mkdir -p xilinx-graphanalytics-xclbin
+	rm -f xilinx-graphanalytics-xclbin/* 
 	cp ./install-xclbin.sh xilinx-graphanalytics-xclbin/
-	cp ../L2/dense_similarity_multi_kernel/build_dir.hw_emu.xilinx_u50_gen3x16_xdma_201920_3/denseSimilarityKernel.xclbin xilinx-graphanalytics-xclbin/
-	cp ../L2/dense_similarity_multi_kernel/build_dir.hw_emu.xilinx_u50_gen3x16_xdma_201920_3/denseSimilarityKernel.xclbin.info xilinx-graphanalytics-xclbin/
+	cp ../L2/dense_similarity_multi_kernel/build_dir.hw.xilinx_u50_gen3x16_xdma_201920_3/denseSimilarityKernel.xclbin xilinx-graphanalytics-xclbin/
+	cp ../L2/dense_similarity_multi_kernel/build_dir.hw.xilinx_u50_gen3x16_xdma_201920_3/denseSimilarityKernel.xclbin.info xilinx-graphanalytics-xclbin/
 	tar zcf xilinx-graphanalytics-xclbin.tar.gz xilinx-graphanalytics-xclbin/
 
 ############################## Cleaning Rules ##############################
