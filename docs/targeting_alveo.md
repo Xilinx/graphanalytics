@@ -97,8 +97,8 @@ XRM is the software to manage all the FPGA resources on the system.
 - XRM provides command line tool (*xrmadm*) to download xclbin to FPGA devices and builds the resource database.
 - XRM daemon (*xrmd*) is running on the background process to support resource reservation, relinquishing, allocation and release of CU. 
 - Load distribution among CUs can be easily done utilizing XRM APIs
-- Check [*xrm.h*](https://github.com/Xilinx/XRM/blob/master/src/lib/xrm.h) for
-  details on XRM functions API
+- Check [overview of XRM](https://developer.xilinx.com/en/articles/orchestrating-alveo-compute-workloads-with-xrm.html) and [*xrm.h*](https://github.com/Xilinx/XRM/blob/master/src/lib/xrm.h) for
+  more details
 
 
 <p align="center">
