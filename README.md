@@ -116,18 +116,6 @@ and the development flow of custom graph algorithm accelerators on Xilinx Alveo 
 Check the user guide [Targeting Alveo in HPE Server](docs/targeting_alveo.md) for detailed instructions on how to 
 run the demo on premise.
 
-## Test drive cosine similarity acceleration on Microsofte Azure NP
-Microsoft NP Azure Alveo U50 FPGA-Accelerated Virtual Machines for HPC offer from 1-to-4 Xilinx U250 
-FPGA devices backed by powerful Xeon Platinum CPU cores, and fast NVMe-based storage. The NP series 
-enable true lift-and-shift and single-target development of FPGA applications for a general purpose cloud. 
-Based on a board and software ecosystem customers can buy today, RTL and high-level language designs 
-targeted at Xilinx’s U250 card and SDAccel 2019.1 runtime will run on Azure VMs just as they do on-premises 
-and on the edge, enabling the bleeding edge of accelerator development to harness the power of the cloud 
-without additional development costs.
-
-Please check the user guide [Targeting Alveo in Azure NP VM](doc/target-alveo-in-azure.md) for detailed instructions on how to run the 
-demo on Azure NP VM.
-
 # License
 
 Licensed using the [Apache 2.0 license](https://www.apache.org/licenses/LICENSE-2.0).
