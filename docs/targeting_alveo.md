@@ -110,16 +110,13 @@ XRM is the software to manage all the FPGA resources on the system.
 Similar to XRT, we need to build XRM with a static boost library for stability.
 
 ```
-# use this Github for now. It will be replaced with https://github.com/Xilinx/XRM later
-git clone -b master https://gitenterprise.xilinx.com/ywu/XRM
-sudo -i
-cd <install dir>
+source /opt/xilinx/xrt/setup.sh
+git clone -b master https://github.com/Xilinx/XRM
+cd XRM
 ./boost.sh
 ./build.sh -clean
-env XRM_BOOST_INSTALL=$install ./build.sh
-cd <install dir>/Release
-apt install ./xrm_202020.1.1.0_16.04-x86_64.deb
-
+env XRM_BOOST_INSTALL=./boost/xrm ./build.sh
+sudo apt install ./Release/xrm_202110.1.2.0_16.04-x86_64.deb
 ```
 
 ### 4. Alveo deployment shell
