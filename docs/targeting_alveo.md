@@ -35,7 +35,7 @@ In order to deploy and run an application like Cosine Similarity on Alveo cards,
 1) U50 card to a server 
 2) Xilinx Runtime (XRT)
 3) Xilinx Resource Manager (XRM)
-4) Alveo Deployment shell
+4) Alveo U50 Deployment shell u50-gen3x16-xdma-201920.3
 5) Install TigerGraph Enterprise version 3.1 
 6) Vitis Library
 
@@ -67,25 +67,17 @@ Typically XRT can be installed simply from .deb/.rpm package, but TigerGraph int
 
 1) Build XRT
 ```
-git clone -b master https://github.com/Xilinx/XRT 
-sudo -i
-cd <XRT install directory>
-PATH_XRT=$PWD
-source $PATH_XRT/src/runtime_src/tools/scripts/xrtdeps.sh
-source $PATH_XRT/src/runtime_src/tools/scripts/boost.sh -prefix $PATH_XRT/boost
-source $PATH_XRT/build/build.sh -clean
-sudo -i
-cd <XRT install directory>
-PATH_XRT=$PWD
-env XRT_BOOST_INSTALL=$PATH_XRT/boost/xrt $PATH_XRT/build/build.sh
-cd $PATH_XRT/build/Release
-make package
+git clone -b 2020.2 https://github.com/Xilinx/XRT 
+cd XRT
+sudo ./src/runtime_src/tools/scripts/xrtdeps.sh
+./src/runtime_src/tools/scripts/boost.sh
+./build/build.sh -clean
+env XRT_BOOST_INSTALL=$PWD/boost/xrt ./build/build.sh
 ```
 
 2) Install XRT
 ```
-cd $PATH_XRT/build/Release
-apt install ./xrt_202110.2.9.0_16.04-amd64-xrt.deb
+sudo apt install ./build/Release/xrt_202020.2.8.0_16.04-amd64-xrt.deb
 ```
 
 
@@ -131,10 +123,10 @@ There are two major partitions or areas within the FPGA - one is a static area w
 
 ### Installing deployment shell
 
-Here are the steps to install a deployment shell for U50. First, download the deployment shell (version 2020.1, Ubuntu 16.04) from [here](https://www.xilinx.com/products/boards-and-kits/alveo/u50.html#gettingStarted)
+Here are the steps to install a deployment shell for U50. First, download the deployment shell (version 2020.2, Ubuntu 16.04) from [here](https://www.xilinx.com/products/boards-and-kits/alveo/u50.html#gettingStarted)
 ```
-tar xvzf <xilinx_....>.deb.tar.gz
-sudo apt install all 3 files 
+tar xvzf xilinx-u50-gen3x16-xdma-201920_3-2_all.deb.tar.gz
+sudo apt install ./xilinx*.deb 
 # follow the instruction on the log message to flash the card, and cold-reboot
 ```
 
