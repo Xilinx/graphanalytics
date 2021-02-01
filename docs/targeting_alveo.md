@@ -32,12 +32,12 @@ Vitis is a unified software environment that comprises of:
 
 In order to deploy and run an application like Cosine Similarity on Alveo cards, you need to install the following in order:
 
-1) U50 card to a server 
-2) Xilinx Runtime (XRT)
-3) Xilinx Resource Manager (XRM)
-4) Alveo U50 Deployment shell u50-gen3x16-xdma-201920.3
-5) Install TigerGraph Enterprise version 3.1 
-6) Vitis Library
+1. [TigerGraph Enterprise version 3.1](https://info.tigergraph.com/enterprise-free)
+1. U50 card to a server 
+1. Xilinx Runtime (XRT)
+1. Xilinx Resource Manager (XRM)
+1. Alveo U50 Deployment shell u50-gen3x16-xdma-201920.3
+1. Vitis Graph Analytics Library
 
 <p align="center">
 <img src="images/fig_cpu_fpga.jpg" width="500">
