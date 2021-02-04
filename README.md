@@ -110,10 +110,10 @@ and data search and analytics. Built on Xilinx UltraScale+ architecture and pack
 designed for deployment in any server.  
 
 Xilinx has demonstrated 400x acceleration of cosine simlarity running on Alveo U50 acceleration cards in 
-an HPE DL385 server comparing to running on 128 CPU cores with 256GB RAM. A demo utilizing Xilinx TigerGraph 
+a HPE DL385 server comparing to running on 128 CPU cores with 256GB RAM. A demo utilizing Xilinx TigerGraph 
 plugin with Alveo U50 acceleration card is included in this repository to show the general usage of the plugin 
 and the development flow of custom graph algorithm accelerators on Xilinx Alveo cards in TigerGraph. Please 
-Check the user guide [Targeting Alveo in HPE Server](docs/targeting_alveo.md) for detailed instructions on how to 
+Check [Running Alveo Demo](docs/running_demo.md) for detailed instructions on how to 
 run the demo on premise.
 
 # License
