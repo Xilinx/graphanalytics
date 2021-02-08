@@ -46,8 +46,11 @@ if [[ $OSDIST == "ubuntu" ]]; then
         echo "ERROR: Ubuntu release version must be 16.04 or 18.04."
         return 1
     fi
-else
-    echo "ERROR: only Ubuntu is supported."
+elif [[ $OSDIST == "centos" ]]; then
+    pkg_dir="./centos_7.8"
+
+else 
+    echo "ERROR: only Ubuntu and Centos are supported."
     return 1
 fi
 
@@ -76,6 +79,33 @@ if [[ $OSDIST == "ubuntu" ]]; then
     tg_username=${tg_username:-tigergraph}
     su -c $SCRIPTPATH/install-overlays.sh - $tg_username
 fi
+
+if [[ $OSDIST == "centos" ]]; then
+    read -p "XRT will be removed if present. Continue? (Y/N): " confirm && \
+           [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]] || exit 1
+
+    printf "\nRemove XRT if present\n"
+    sudo yum remove xrt -y
+
+    # install XRT/XRM/Deployment shell
+    printf "\nINFO: install XRT\n"
+    sudo yum install $pkg_dir/xrt/xrt*.rpm
+
+    printf "\nINFO: install XRM\n"
+    sudo yum install $pkg_dir/xrm/xrm*.rpm
+
+    printf "\nINFO: install deployment shell\n"
+    sudo yum install $pkg_dir/deployment-shell/xilinx*.rpm
+
+    # install required package
+    sudo yum install jq -y
+
+    printf "\nINFO: install Xilinx overlaysas on TigerGraph installation\n"
+    read -p "Enter username used for TigerGraph installation [default: tigergraph]:" tg_username
+    tg_username=${tg_username:-tigergraph}
+    su -c $SCRIPTPATH/install-overlays.sh - $tg_username
+fi
+
 
 printf "\nINFO: please run the command below to flash the card if needed\n" 
 printf "${YELLOW}sudo /opt/xilinx/xrt/bin/xbmgmt flash --update --shell xilinx_u50_gen3x16_xdma_201920_3${NC}\n"
