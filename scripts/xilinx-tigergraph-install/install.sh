@@ -47,7 +47,7 @@ if [[ $OSDIST == "ubuntu" ]]; then
         return 1
     fi
 elif [[ $OSDIST == "centos" ]]; then
-    pkg_dir="./centos_7.8"
+    pkg_dir="./centos-7.8"
 
 else 
     echo "ERROR: only Ubuntu and Centos are supported."
