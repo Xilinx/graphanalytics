@@ -1,0 +1,26 @@
+
+USE GRAPH xgraph
+
+CREATE OR REPLACE QUERY client_load_cache() FOR GRAPH xgraph {
+    AndAccum @@status;
+
+# Make cache of cosine sim vectors of old patients
+    udf_clear_cosinesim_vector_cache();  # UDF supports incremental but for now just do whole cache every time
+    population = {patients.*};
+    patientList = SELECT p FROM population:p
+        ACCUM @@status += udf_update_cosinesim_vector_cache(getvid(p), patient_vector(p));
+}
+
+
+CREATE OR REPLACE QUERY client_cosinesim_sw(UINT numResults, VERTEX<patients> newPatient) FOR GRAPH xgraph {
+    ListAccum<INT> @@newPatientVec;
+    ListAccum<testResults> @@results;
+
+# Run the cosine similarity of the given new patient against the cache of old patients
+    @@newPatientVec = patient_vector(newPatient);
+    @@results = udf_cosinesim_sw(numResults, @@newPatientVec);
+    PRINT @@results;
+}
+
+
+INSTALL QUERY client_load_cache, client_cosinesim_sw
