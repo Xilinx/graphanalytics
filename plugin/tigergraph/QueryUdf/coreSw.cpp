@@ -22,10 +22,21 @@
 #include <unordered_map>
 #include <vector>
 #include <cstdint>
+#include <mutex>
 
 namespace {
 
 using namespace xai;
+
+using Mutex = std::mutex;
+using Lock = std::lock_guard<Mutex>;
+
+Mutex &getMutex() {
+    static Mutex *pMutex = nullptr;
+    if (pMutex == nullptr)
+        pMutex = new Mutex();
+    return *pMutex;
+}
 
 }
 
@@ -61,8 +72,11 @@ std::int64_t abs64(std::int64_t x) {
 std::vector<CosineVecValue> makeCosineVector(SnomedConcept concept,
                                              unsigned vectorLength,
                                              const std::vector<SnomedCode>& codes) {
+    Lock lock(getMutex());
+//    std::cout << "makeCosineVector: start" << std::endl;
     std::vector<CosineVecValue> outVec;
     outVec.reserve(vectorLength);
+//    std::cout << "makeCosineVector: after reserve" << std::endl;
     CodeToIdMap* pIdMap = CodeToIdMap::getInstance();
     // const SnomedId numIds = pIdMap->getNumReservedIds(concept);
     SnomedId numIds = pIdMap->getNumReservedIds(concept);
@@ -70,6 +84,7 @@ std::vector<CosineVecValue> makeCosineVector(SnomedConcept concept,
 
     // Create the set of buckets
 
+//    std::cout << "makeCosineVector: before buckets" << std::endl;
     std::vector<Bucket> buckets;
     for (std::uint64_t i = 0; i < vectorLength; ++i) {
         SnomedId pos = SnomedId(i * numIds / vectorLength);
@@ -78,6 +93,7 @@ std::vector<CosineVecValue> makeCosineVector(SnomedConcept concept,
         SnomedId bucketEndId = (nextPos >= numIds) ? numIds : nextPos;
         buckets.emplace_back(bucketStartId, bucketEndId, MinVecValue, MaxVecValue, NullVecValue);
     }
+//    std::cout << "makeCosineVector: after buckets" << std::endl;
     // Fill the buckets with codes.  When a bucket is full, dump the summary of
     // the bucket to the vector.
 
@@ -95,8 +111,10 @@ std::vector<CosineVecValue> makeCosineVector(SnomedConcept concept,
         buckets[bucketNum].addId(id);
     }
     // Dump all buckets and return the vector
+//    std::cout << "makeCosineVector: after add codes" << std::endl;
 
     for (const Bucket& bucket : buckets) outVec.push_back(bucket.getCosineVecVale());
+//    std::cout << "makeCosineVector: end" << std::endl;
 
     return outVec; // Move semantics
 }

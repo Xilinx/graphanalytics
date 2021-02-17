@@ -30,13 +30,12 @@
 # limitations under the License.
 #
 echo "Run query cosinesim_ss_tg"
-time gsql -g xgraph "set query_timeout=240000000 run query cosinesim_ss_tg(\"$PWD/tg.txt\")"
-time gsql -g xgraph "set query_timeout=240000000 run query cosinesim_ss_tg(\"$PWD/tg.txt\")"
-time gsql -g xgraph "set query_timeout=240000000 run query cosinesim_ss_tg(\"$PWD/tg.txt\")"
-time gsql -g xgraph "set query_timeout=240000000 run query cosinesim_ss_tg(\"$PWD/tg.txt\")"
-time gsql -g xgraph "set query_timeout=240000000 run query cosinesim_ss_tg(\"$PWD/tg.txt\")"
-time gsql -g xgraph "set query_timeout=240000000 run query cosinesim_ss_tg(\"$PWD/tg.txt\")"
-time gsql -g xgraph "set query_timeout=240000000 run query cosinesim_ss_tg(\"$PWD/tg.txt\")"
-time gsql -g xgraph "set query_timeout=240000000 run query cosinesim_ss_tg(\"$PWD/tg.txt\")"
-time gsql -g xgraph "set query_timeout=240000000 run query cosinesim_ss_tg(\"$PWD/tg.txt\")"
-time gsql -g xgraph "set query_timeout=240000000 run query cosinesim_ss_tg(\"$PWD/tg.txt\")"
+for i in {1..100}
+do
+    echo "Restarting TigerGraph..."
+    gadmin restart all -y
+    for j in {1..10}
+    do
+        time gsql -g xgraph "set query_timeout=240000000 run query cosinesim_ss_tg(\"$PWD/tg.txt\")"
+    done
+done
