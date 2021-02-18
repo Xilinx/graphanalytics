@@ -18,6 +18,23 @@
 #include <dlfcn.h>
 #include <iostream>
 #include "codevector.hpp"
+#include <mutex>
+
+namespace {
+
+using Mutex = std::mutex;
+using Lock = std::lock_guard<Mutex>;
+
+Mutex &getMutex() {
+    static Mutex *pMutex = nullptr;
+    if (pMutex == nullptr)
+        pMutex = new Mutex();
+    return *pMutex;
+}
+
+}
+
+//#####################################################################################################################
 
 int bfs_fpga_wrapper(int numVertices,
                      int numEdges,
@@ -25,6 +42,7 @@ int bfs_fpga_wrapper(int numVertices,
                      xf::graph::Graph<unsigned int, unsigned int> g,
                      unsigned int* predecent,
                      unsigned int* distance) {
+    Lock lock(getMutex());
     std::cout << "INFO: Running Breadth-First Search API\n\n";
 
     // open the library
@@ -65,6 +83,7 @@ int bfs_fpga_wrapper(int numVertices,
 }
 
 int load_xgraph_fpga_wrapper(uint32_t numVertices, uint32_t numEdges, xf::graph::Graph<uint32_t, float> g) {
+    Lock lock(getMutex());
     std::cout << "INFO: Running Load Graph of Single Source Shortest Path API\n\n";
 
     // open the library
@@ -109,6 +128,7 @@ int shortest_ss_pos_wt_fpga_wrapper(uint32_t numVertices,
                                     xf::graph::Graph<uint32_t, float> g,
                                     float** result,
                                     uint32_t** pred) {
+    Lock lock(getMutex());
     std::cout << "INFO: Running Single Source Shortest Path API\n\n";
 
     // open the library
@@ -148,6 +168,7 @@ int shortest_ss_pos_wt_fpga_wrapper(uint32_t numVertices,
 }
 
 int load_xgraph_pageRank_wt_fpga_wrapper(uint32_t numVertices, uint32_t numEdges, xf::graph::Graph<uint32_t, float> g) {
+    Lock lock(getMutex());
     std::cout << "INFO: Running Load Graph of PageRank API\n\n";
 
     // open the library
@@ -188,6 +209,7 @@ int load_xgraph_pageRank_wt_fpga_wrapper(uint32_t numVertices, uint32_t numEdges
 
 int pageRank_wt_fpga_wrapper(
     float alpha, float tolerance, uint32_t maxIter, xf::graph::Graph<uint32_t, float> g, float* rank) {
+    Lock lock(getMutex());
     std::cout << "INFO: Running PageRank API\n\n";
 
     // open the library
@@ -229,6 +251,7 @@ int pageRank_wt_fpga_wrapper(
 int load_xgraph_cosine_nbor_ss_fpga_wrapper(uint32_t numVertices,
                                             uint32_t numEdges,
                                             xf::graph::Graph<uint32_t, float> g) {
+    Lock lock(getMutex());
     std::cout << "INFO: Running Load Graph of Single Source Cosine Similarity API\n\n";
 
     // open the library
@@ -274,6 +297,7 @@ int cosine_nbor_ss_fpga_wrapper(uint32_t topK,
                                 xf::graph::Graph<uint32_t, float> g,
                                 uint32_t* resultID,
                                 float* similarity) {
+    Lock lock(getMutex());
     std::cout << "INFO: Running Single Source Cosine Similarity API\n\n";
 
     // open the library
@@ -343,6 +367,7 @@ std::int64_t abs64(std::int64_t x) {
 std::vector<CosineVecValue> makeCosineVector(SnomedConcept concept,
                                              unsigned vectorLength,
                                              const std::vector<SnomedCode>& codes) {
+    Lock lock(getMutex());
     std::vector<CosineVecValue> outVec;
     outVec.reserve(vectorLength);
     CodeToIdMap* pIdMap = CodeToIdMap::getInstance();
@@ -385,6 +410,7 @@ std::vector<CosineVecValue> makeCosineVector(SnomedConcept concept,
 }
 
 int loadgraph_cosinesim_ss_dense_fpga_wrapper(uint32_t deviceNeeded, uint32_t cuNm, xf::graph::Graph<int32_t, int32_t>** g) {
+    Lock lock(getMutex());
     int status = 0;
     std::cout << "INFO: Running Load Graph for Single Source Cosine Similarity Dense API" << std::endl;
 
@@ -436,6 +462,7 @@ int cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
                             xf::graph::Graph<int32_t, int32_t>** g,
                             int32_t* resultID,
                             float* similarity) {
+    Lock lock(getMutex());
     std::cout << "INFO: Running Single Source Cosine Similarity Dense API\n\n";
 
     // open the library
@@ -482,6 +509,7 @@ int cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
 }
 
 int close_fpga() {
+    Lock lock(getMutex());
     std::cout << "\n\nINFO: Closing FPGA" << std::endl;
 
     // open the library
