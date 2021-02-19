@@ -22,21 +22,10 @@
 #include <unordered_map>
 #include <vector>
 #include <cstdint>
-#include <mutex>
 
 namespace {
 
 using namespace xai;
-
-using Mutex = std::mutex;
-using Lock = std::lock_guard<Mutex>;
-
-Mutex &getMutex() {
-    static Mutex *pMutex = nullptr;
-    if (pMutex == nullptr)
-        pMutex = new Mutex();
-    return *pMutex;
-}
 
 }
 
@@ -51,6 +40,13 @@ CodeToIdMap* pMap = nullptr;
 std::vector<uint64_t> IDMap;
 std::int64_t abs64(std::int64_t x) {
     return (x >= 0) ? x : -x;
+}
+
+Mutex &getMutex() {
+    static Mutex *pMutex = nullptr;
+    if (pMutex == nullptr)
+        pMutex = new Mutex();
+    return *pMutex;
 }
 
 /**

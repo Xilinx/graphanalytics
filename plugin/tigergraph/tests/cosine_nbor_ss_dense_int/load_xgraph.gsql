@@ -15,13 +15,14 @@
 #
 use graph xgraph
 set sys.data_root="./1K_patients"
+#set sys.data_root="/proj/isimsj/graph_db/synthea/100K_patients"
 
 begin
    create loading job load_xgraph for graph xgraph 
    {
      
      load "$sys.data_root/patients.csv"
-        to vertex patients values ($"Id",$"BIRTHDATE",$"DEATHDATE",$"SSN",$"FIRST_NAME",$"LAST_NAME",$"MARITAL",$"RACE",$"ETHNICITY",$"GENDER") 
+        to vertex patients values ($"Id",$"BIRTHDATE",$"DEATHDATE",$"SSN",$"FIRST_NAME",$"LAST_NAME",$"MARITAL",$"RACE",$"ETHNICITY",$"GENDER",_) 
         using header="true", separator=",";
 
      load "$sys.data_root/immunizations.csv" 

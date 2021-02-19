@@ -252,6 +252,71 @@ create query cos_theta_tigergraph(vertex<patients> p1, vertex<patients> p2) for 
 	return result;
 }
 
+
+CREATE QUERY cosinesim_cache_to_vertices() FOR GRAPH xgraph {
+# Patient Population
+    population = {patients.*};
+    UPDATE p FROM population:p
+        SET p.COSINE_SIM_VECTOR = patient_vector(p);
+}
+
+
+CREATE QUERY cosinesim_match_from_vertices(vertex<patients> source, uint topKID) FOR GRAPH xgraph RETURNS (ListAccum<testResults>) {
+
+# Heap with max size of topKID sorted decending by score then ascending last name
+    HeapAccum<testResults>(topKID, score DESC, Id ASC) @@topK_Heap;
+    ListAccum<testResults> @@topK;
+    ListAccum<vertex<patients>> @@plist;
+    ListAccum<INT> @@newPatientVector;
+
+# Patient Population
+    population = {patients.*};
+    @@newPatientVector = patient_vector(source);
+
+    patientList = SELECT p FROM population:p
+        ACCUM @@topK_Heap += testResults(p, udf_cos_theta(p.COSINE_SIM_VECTOR, @@newPatientVector));
+
+    FOREACH item IN @@topK_Heap do
+        @@topK += item; 
+    END;
+
+    RETURN @@topK;
+}
+
+
+CREATE QUERY cosinesim_cache_to_cppmap() FOR GRAPH xgraph {
+    AndAccum @@dummyAccum;
+# Patient Population
+    population = {patients.*};
+    udf_clear_cosinesim_vector_cache();
+    patientList = SELECT p FROM population:p
+        POST-ACCUM @@dummyAccum += udf_update_cosinesim_vector_cache(getvid(p), patient_vector(p));
+}
+
+
+CREATE QUERY cosinesim_match_from_cppmap(vertex<patients> source, uint topKID) FOR GRAPH xgraph RETURNS (ListAccum<testResults>) {
+
+# Heap with max size of topKID sorted decending by score then ascending last name
+    HeapAccum<testResults>(topKID, score DESC, Id ASC) @@topK_Heap;
+    ListAccum<testResults> @@topK;
+    ListAccum<vertex<patients>> @@plist;
+    ListAccum<int> @@newPatientVector;
+
+# Patient Population
+    population = {patients.*};
+    @@newPatientVector = patient_vector(source);
+
+    patientList = SELECT p FROM population:p
+        ACCUM @@topK_Heap += testResults(p, udf_cos_theta_id_list(getvid(p), @@newPatientVector));
+
+    foreach item in @@topK_Heap do
+        @@topK += item; 
+    end;
+
+    return @@topK;
+}
+
+
 create query cosinesim_ss_tigergraph(vertex<patients> source, uint topKID) for graph xgraph returns (ListAccum<testResults>) {
 
 # Heap with max size of topKID sorted decending by score then ascending last name
@@ -275,4 +340,4 @@ create query cosinesim_ss_tigergraph(vertex<patients> source, uint topKID) for g
 }
 
 
-install query patient_age, patient_race, patient_gender, patient_ethnicity, patient_vector, cos_theta_tigergraph, cosinesim_ss_tigergraph
+install query patient_age, patient_race, patient_gender, patient_ethnicity, patient_vector, cos_theta_tigergraph, cosinesim_ss_tigergraph, cosinesim_cache_to_vertices, cosinesim_match_from_vertices, cosinesim_cache_to_cppmap, cosinesim_match_from_cppmap

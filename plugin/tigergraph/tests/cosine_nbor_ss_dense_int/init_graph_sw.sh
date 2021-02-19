@@ -29,13 +29,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-echo "Run query cosinesim_ss_tg"
-for i in {1..100}
-do
-    echo "Restarting TigerGraph..."
-    gadmin restart all -y
-    for j in {1..10}
-    do
-        time gsql -g xgraph "set query_timeout=240000000 run query cosinesim_ss_tg(\"$PWD/tg.txt\")"
-    done
-done
+time gsql schema_xgraph.gsql
+time gsql load_xgraph.gsql
+./install_query_sw.sh

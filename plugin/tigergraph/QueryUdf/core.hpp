@@ -24,6 +24,8 @@
 #include <vector>
 #include <unordered_map>
 #include <functional>
+#include <mutex>
+
 
 namespace xai {
 
@@ -39,6 +41,9 @@ struct CacheEntry {
 
 using PatientVectorMap = std::unordered_map<PatientId, CacheEntry>;
 using CosineSimilarity = float;
+
+using Mutex = std::mutex;
+using Lock = std::lock_guard<Mutex>;
 
 
 struct CosineSimResult {
@@ -60,7 +65,7 @@ struct CosineSimResult {
     };
 };
 
-
+extern Mutex &getMutex();
 extern PatientVectorMap *get_patient_vector_map(bool isDelete = false);
 
 }  // namespace xai

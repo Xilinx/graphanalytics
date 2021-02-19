@@ -29,6 +29,7 @@
 #include <algorithm>
 #include <functional>
 
+
 namespace UDIMPL {
 
 /* Start Xilinx UDF additions */
@@ -113,10 +114,12 @@ inline ListAccum<int64_t> udf_get_similarity_vec(int64_t property,
 
 // *NEW*
 inline void udf_clear_cosinesim_vector_cache() {
+    xai::Lock lock(xai::getMutex());
     xai::get_patient_vector_map(true);  // true means delete the singleton map
 }
 
 inline bool udf_update_cosinesim_vector_cache(uint64_t patientId, const ListAccum<int64_t> &patientVec) {
+    xai::Lock lock(xai::getMutex());
     xai::PatientVectorMap *const pMap = xai::get_patient_vector_map();
     xai::CacheEntry &entry = (*pMap)[xai::PatientId(patientId)];
     int64_t normInt = patientVec.get(0);
@@ -125,7 +128,6 @@ inline bool udf_update_cosinesim_vector_cache(uint64_t patientId, const ListAccu
     entry.vector_.resize(patientVec.size());
     for (std::size_t i = 0, end = patientVec.size(); i < end; ++i)
         entry.vector_[i] = patientVec.get(i);
-    exit(1);  // TODO: remove this when done testing
 #ifdef DEBUG_VALUES
     std::vector<xai::CosineVecValue> &testVec = (*pMap)[xai::PatientId(patientId)];
     std::cout << "PatientId:" << patientId << ", [";
@@ -140,6 +142,28 @@ inline bool udf_update_cosinesim_vector_cache(uint64_t patientId, const ListAccu
     std::cout << "]" << std::endl;
 #endif
     return true;
+}
+
+inline double udf_cos_theta_id_list(uint64_t patientId, const ListAccum<int64_t> &vec_B) {
+    xai::Lock lock(xai::getMutex());
+    xai::PatientVectorMap *const pMap = xai::get_patient_vector_map();
+    xai::PatientVectorMap::const_iterator it = pMap->find(patientId);
+    if (it == pMap->cend())
+        return GSQL_INT_MIN;
+    const xai::CacheEntry &entry = it->second;
+    double res;
+    int size = entry.vector_.size();
+    int64_t norm_B = vec_B.get(0);
+    double norm_d_B = *(reinterpret_cast<double*>(&norm_B));
+    double prod = 0;
+    int i = xai::startPropertyIndex;
+    while (i < size) {
+        prod = prod + entry.vector_[i] * vec_B.get(i);
+        ++i;
+    }
+    res = prod / (entry.norm_ * norm_d_B);
+    std::cout << "norm_d_A = " << entry.norm_ << ", norm_d_B = " << norm_d_B << ", val = " << res << std::endl;
+    return res;
 }
 
 inline double udf_cos_theta_entry_list(const xai::CacheEntry &entry, const ListAccum<int64_t> &vec_B) {
@@ -160,6 +184,7 @@ inline double udf_cos_theta_entry_list(const xai::CacheEntry &entry, const ListA
 
 inline ListAccum<testResults> udf_cosinesim_sw(uint64_t numResults, const ListAccum<int64_t> &newPatientVec)
 {
+    xai::Lock lock(xai::getMutex());
     HeapAccum<xai::CosineSimResult, xai::CosineSimResult::Comparator> heap;
     heap.resize(numResults);
     xai::PatientVectorMap *const pMap = xai::get_patient_vector_map();
