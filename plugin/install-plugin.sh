@@ -39,6 +39,7 @@ tg_root_dir=$(cat $HOME/.tg.cfg | jq .System.AppRoot | tr -d \")
 tg_temp_root=$(cat $HOME/.tg.cfg | jq .System.TempRoot | tr -d \")
 echo "INFO: Found TigerGraph installation in $tg_root_dir"
 echo "INFO: TigerGraph TEMP root is $tg_temp_root"
+echo "INFO: Home is $HOME"
 
 rm -rf tigergraph/QueryUdf/tgFunctions.hpp
 rm -rf tigergraph/QueryUdf/ExprFunctions.hpp
@@ -115,7 +116,7 @@ done
 sed -i "s|TG_ROOT_DIR|$tg_root_dir|" $tg_root_dir/dev/gdk/MakeUdf 
 
 gadmin start all
-gadmin config set GPE.BasicConfig.Env "LD_PRELOAD=\$LD_PRELOAD; LD_LIBRARY_PATH=/opt/xilinx/xrt/lib:/opt/xilinx/xrm/lib:/usr/lib/x86_64-linux-gnu/:\$LD_LIBRARY_PATH; CPUPROFILE=/tmp/tg_cpu_profiler; CPUPROFILESIGNAL=12; MALLOC_CONF=prof:true,prof_active:false; XILINX_XRT=/opt/xilinx/xrt; XILINX_XRM=/opt/xilinx/xrm"
+gadmin config set GPE.BasicConfig.Env "LD_PRELOAD=\$LD_PRELOAD; LD_LIBRARY_PATH=$HOME/libstd:/opt/xilinx/xrt/lib:/opt/xilinx/xrm/lib:/usr/lib/x86_64-linux-gnu/:\$LD_LIBRARY_PATH; CPUPROFILE=/tmp/tg_cpu_profiler; CPUPROFILESIGNAL=12; MALLOC_CONF=prof:true,prof_active:false; XILINX_XRT=/opt/xilinx/xrt; XILINX_XRM=/opt/xilinx/xrm"
 
 echo "Apply the new configurations"
 gadmin config apply -y
