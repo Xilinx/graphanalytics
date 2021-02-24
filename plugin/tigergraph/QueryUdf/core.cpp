@@ -358,9 +358,12 @@ const unsigned int startPropertyIndex = 3; // Start index of property in the
                                            // for norm, id */
 CodeToIdMap* pMap = nullptr;
 std::vector<uint64_t> IDMap;
-std::int64_t abs64(std::int64_t x) {
-    return (x >= 0) ? x : -x;
-}
+t_time_point timer_start_time = std::chrono::high_resolution_clock::now();
+
+
+//std::int64_t abs64(std::int64_t x) {
+//    return (x >= 0) ? x : -x;
+//}
 
 /**
 * Converts a set of codes into a vector of integers to use in a cosine

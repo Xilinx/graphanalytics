@@ -31,8 +31,13 @@
 #include <unordered_map>
 #include <vector>
 #include <cmath>
+#include <chrono>
 
 namespace xai {
+
+typedef std::chrono::time_point<std::chrono::high_resolution_clock> t_time_point, *pt_time_point; 
+extern t_time_point timer_start_time;
+
 class CodeToIdMap;
 extern CodeToIdMap* pMap;
 extern const unsigned int startPropertyIndex;

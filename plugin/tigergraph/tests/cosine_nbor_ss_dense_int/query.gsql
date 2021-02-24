@@ -38,6 +38,7 @@ create query code_str(vertex<patients> p, string e_str, int num) for graph xgrap
 create query cosinesim_ss_tg(string log_file) for graph xgraph {
     uint topK;
     double score;
+    DOUBLE run_time;
     vertex<patients> newPatient;
     ListAccum<testResults> @@result;
     FILE file1 (log_file);
@@ -51,9 +52,12 @@ create query cosinesim_ss_tg(string log_file) for graph xgraph {
     randomPatient = select p from randomPatient:p
         ACCUM newPatient = p;
 # Cosine Similarity using TigerGraph
+    udf_reset_timer(true);
     @@result = cosinesim_match_sw(newPatient, topK);
+    run_time = udf_elapsed_time(true);
     print "Software UDF" AS ComputationTechnique;
     print newPatient.FIRST_NAME + " " + newPatient.LAST_NAME AS Patient;
+    print run_time AS ExecTimeInMs;
     file1.println("SCORE", "FIRST_NAME", "LAST_NAME", "AGE", "RACE", "ETHNICITY", "GENDER", 
             "#immunization", "immunizations", 
             "#allergy", "allergies", 
@@ -100,6 +104,7 @@ create query cosinesim_ss_fpga(string log_file1) for graph xgraph {
     vertex<patients> newPatient;
     ListAccum<testResults> @@result;
     double score;
+    DOUBLE run_time;
     FILE file1 (log_file1);
     topK = 100;
 # Patient Population
@@ -111,9 +116,12 @@ create query cosinesim_ss_fpga(string log_file1) for graph xgraph {
     randomPatient = select p from randomPatient:p
         ACCUM newPatient = p;
 # Cosine Similarity using TigerGraph
+    udf_reset_timer(true);
     @@result = cosinesim_ss_fpga_core(newPatient, topK);
+    run_time = udf_elapsed_time(true);
     print "Xilinx Alveo U50" AS ComputationTechnique;
     print newPatient.FIRST_NAME + " " + newPatient.LAST_NAME AS Patient;
+    print run_time AS ExecTimeInMs;
     file1.println("SCORE", "FIRST_NAME", "LAST_NAME", "AGE", "RACE", "ETHNICITY", "GENDER",
             "#immunization", "immunizations",
             "#allergy", "allergies",

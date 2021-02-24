@@ -205,11 +205,15 @@ inline bool udf_setcode(int property, uint64_t startCode, uint64_t endCode, int6
 }
 
 inline bool udf_reset_timer(bool dummy) {
+    xai::timer_start_time = std::chrono::high_resolution_clock::now();
     return true;
 }
 
 inline double udf_elapsed_time(bool dummy) {
-    return 1;
+    xai::t_time_point cur_time = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> l_durationSec = cur_time - xai::timer_start_time;
+    double l_timeMs = l_durationSec.count() * 1e3;
+    return l_timeMs;
 }
 
 inline double udf_cos_theta(ListAccum<int64_t> vec_A, ListAccum<int64_t> vec_B) {
