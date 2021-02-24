@@ -291,7 +291,7 @@ create query loadgraph_cosinesim_ss_fpga_core() for graph xgraph returns (int) {
 
 	population = {patients.*};
 	patientList = select p from population:p
-		ACCUM @@patientsAll += patient_vector(p);
+		ACCUM @@patientsAll += p.COSINE_SIM_VECTOR;
 
 	ret = udf_loadgraph_cosinesim_ss_fpga(population.size(), 200, @@patientsAll);
 
