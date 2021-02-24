@@ -36,6 +36,6 @@ time gsql -g xgraph "set query_timeout=240000000 run query cosinesim_ss_tg(\"$PW
 echo "Run query loadgraph_cosinesim_ss_fpga"
 time gsql -g xgraph "set query_timeout=240000000 run query loadgraph_cosinesim_ss_fpga()"
 echo "Run query cosinesim_ss_fpga"
-time gsql -g xgraph "set query_timeout=240000000 run query cosinesim_ss_fpga(\"$PWD/fpga1.txt\", \"$PWD/fpga2.txt\")"
+time gsql -g xgraph "set query_timeout=240000000 run query cosinesim_ss_fpga(\"$PWD/fpga.txt\")"
 echo "Run query close_fpga"
 time gsql -g xgraph "set query_timeout=240000000 run query close_fpga()"

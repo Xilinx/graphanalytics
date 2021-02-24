@@ -15,7 +15,7 @@
 #
 set query_timeout = 600000
 use graph xgraph
-drop query cosinesim_ss_tg, loadgraph_cosinesim_ss_fpga, code_str, cosinesim_ss_fpga, cosinesim_ss_test
+drop query cosinesim_ss_tg, loadgraph_cosinesim_ss_fpga, cosinesim_ss_fpga, cosinesim_ss_test_fpga_consistency, cosinesim_ss_test, code_str
 
 create query code_str(vertex<patients> p, string e_str, int num) for graph xgraph returns (string){
     string res;
@@ -95,7 +95,46 @@ create query loadgraph_cosinesim_ss_fpga() for graph xgraph {
     PRINT status;
 }
 
-create query cosinesim_ss_fpga(string log_file1, string log_file2) for graph xgraph {
+create query cosinesim_ss_fpga(string log_file1) for graph xgraph {
+    uint topK;
+    vertex<patients> newPatient;
+    ListAccum<testResults> @@result;
+    double score;
+    FILE file1 (log_file1);
+    topK = 100;
+# Patient Population
+    population = {patients.*};
+# Pick one random patient
+    randomPatient = select p from population:p 
+        Limit 10;
+# Assign to a patient vertex
+    randomPatient = select p from randomPatient:p
+        ACCUM newPatient = p;
+# Cosine Similarity using TigerGraph
+    @@result = cosinesim_ss_fpga_core(newPatient, topK);
+    print "Xilinx Alveo U50" AS ComputationTechnique;
+    print newPatient.FIRST_NAME + " " + newPatient.LAST_NAME AS Patient;
+    file1.println("SCORE", "FIRST_NAME", "LAST_NAME", "AGE", "RACE", "ETHNICITY", "GENDER",
+            "#immunization", "immunizations",
+            "#allergy", "allergies",
+            "#condition", "conditions",
+            "#procedure", "procedures",
+            "#careplan", "careplans");
+    foreach topKP in @@result do
+        patientSet = select v from population:v
+        WHERE getvid(topKP.Id) == getvid(v)
+        ACCUM score = topKP.score
+        POST-ACCUM file1.println(score, v.FIRST_NAME, v.LAST_NAME, patient_age(v), v.RACE, v.ETHNICITY,v.GENDER,
+                v.outdegree("patient_HAD_immunization"), code_str(v, "patient_HAD_immunization", 3),
+                v.outdegree("patient_HAD_allergy"), code_str(v, "patient_HAD_allergy", 3),
+                v.outdegree("patient_HAD_condition"), code_str(v, "patient_HAD_condition", 3),
+                v.outdegree("patient_HAD_procedure"), code_str(v, "patient_HAD_procedure", 3),
+                v.outdegree("patient_HAD_careplan"), code_str(v, "patient_HAD_careplan", 3)
+                );
+    end;
+}
+
+create query cosinesim_ss_test_fpga_consistency(string log_file1, string log_file2) for graph xgraph {
     uint topK;
     vertex<patients> newPatient;
     ListAccum<testResults> @@result;
@@ -224,4 +263,4 @@ create query cosinesim_ss_test() for graph xgraph {
     end;
 }
 
-install query code_str, cosinesim_ss_tg, loadgraph_cosinesim_ss_fpga, cosinesim_ss_fpga, cosinesim_ss_test
+install query code_str, cosinesim_ss_tg, loadgraph_cosinesim_ss_fpga, cosinesim_ss_fpga, cosinesim_ss_test_fpga_consistency, cosinesim_ss_test
