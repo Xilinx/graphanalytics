@@ -39,14 +39,11 @@ create query cosinesim_vertices_sw(string log_file) for graph xgraph {
     uint topK;
     double score;
     vertex<patients> newPatient;
-    ListAccum<ListAccum<int> > @@patientsAll;
     ListAccum<testResults> @@result;
     FILE file1 (log_file);
     topK = 100;
 # Patient Population
     population = {patients.*};
-    patientList = select p from population:p
-        ACCUM @@patientsAll += patient_vector(p);
 # Pick one random patient
     randomPatient = select p from population:p 
         Limit 10;
@@ -82,14 +79,11 @@ create query cosinesim_cppmap_sw(string log_file) for graph xgraph {
     uint topK;
     double score;
     vertex<patients> newPatient;
-    ListAccum<ListAccum<int> > @@patientsAll;
     ListAccum<testResults> @@result;
     FILE file1 (log_file);
     topK = 100;
 # Patient Population
     population = {patients.*};
-    patientList = select p from population:p
-        ACCUM @@patientsAll += patient_vector(p);
 # Pick one random patient
     randomPatient = select p from population:p 
         Limit 10;
@@ -120,5 +114,6 @@ create query cosinesim_cppmap_sw(string log_file) for graph xgraph {
                 );
     end;
 }
+
 
 install query code_str, cosinesim_vertices_sw, cosinesim_cppmap_sw

@@ -22,6 +22,8 @@
 
 namespace {
 
+using namespace xai;
+
 using Mutex = std::mutex;
 using Lock = std::lock_guard<Mutex>;
 
@@ -32,7 +34,19 @@ Mutex &getMutex() {
     return *pMutex;
 }
 
+
+// Cormen/Knuth hash algo
+//
+std::uint64_t hash(std::uint64_t x) {
+    static double A = 0.5 * (std::sqrt(5.0) - 1.0);
+    static std::uint64_t S = std::floor(A * double(SnomedCode(1) << SnomedCodeNumBits));
+    x = x * S;
+    x = x >> (SnomedCodeNumBits - SnomedIdNumBits);
+    x = x & ((std::uint64_t(1) << SnomedIdNumBits) - 1);
+    return x;
 }
+
+}  // namespace <anonymous>
 
 //#####################################################################################################################
 
@@ -370,10 +384,7 @@ std::vector<CosineVecValue> makeCosineVector(SnomedConcept concept,
     Lock lock(getMutex());
     std::vector<CosineVecValue> outVec;
     outVec.reserve(vectorLength);
-    CodeToIdMap* pIdMap = CodeToIdMap::getInstance();
-    // const SnomedId numIds = pIdMap->getNumReservedIds(concept);
-    SnomedId numIds = pIdMap->getNumReservedIds(concept);
-    if (numIds < vectorLength) numIds = vectorLength;
+    const SnomedId numIds = SnomedId(1) << SnomedIdNumBits;
 
     // Create the set of buckets
 
@@ -385,29 +396,34 @@ std::vector<CosineVecValue> makeCosineVector(SnomedConcept concept,
         SnomedId bucketEndId = (nextPos >= numIds) ? numIds : nextPos;
         buckets.emplace_back(bucketStartId, bucketEndId, MinVecValue, MaxVecValue, NullVecValue);
     }
+
     // Fill the buckets with codes.  When a bucket is full, dump the summary of
     // the bucket to the vector.
 
     for (unsigned i = 0; i < codes.size(); ++i) {
         // Convert the code to an ID (small int)
-        SnomedId id = pIdMap->addCode(concept, codes[i]);
+        SnomedId id = SnomedId(hash(codes[i]));
 
         // Determine which bucket the ID goes into.  If the ID is out of range
         // (because it wasn't accounted for when
         // IDs were reserved for the concept), ignore the ID/code.
         const unsigned bucketNum = id * vectorLength / numIds;
-        if (bucketNum >= vectorLength) continue;
+        if (bucketNum >= vectorLength)
+            continue;
 
         // Add the ID to the bucket
         buckets[bucketNum].addId(id);
     }
+
     // Dump all buckets and return the vector
 
-    for (const Bucket& bucket : buckets) outVec.push_back(bucket.getCosineVecVale());
+    for (const Bucket& bucket : buckets)
+        outVec.push_back(bucket.getCosineVecVale());
 
     return outVec; // Move semantics
 }
-}
+
+}  // namespace xai
 
 int loadgraph_cosinesim_ss_dense_fpga_wrapper(uint32_t deviceNeeded, uint32_t cuNm, xf::graph::Graph<int32_t, int32_t>** g) {
     Lock lock(getMutex());

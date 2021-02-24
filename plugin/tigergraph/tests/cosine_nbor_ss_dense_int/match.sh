@@ -29,6 +29,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-time gsql base_sw.gsql
-time gsql client.gsql
-time gsql query_sw.gsql
+echo "Caching cosine similarity vectors to patient vertices..."
+time gsql -g xgraph "set query_timeout=240000000 run query cosinesim_cache_to_vertices()"
+echo "Run query cosinesim_ss_tg"
+time gsql -g xgraph "set query_timeout=240000000 run query cosinesim_ss_tg(\"$PWD/tg.txt\")"
+echo "Run query loadgraph_cosinesim_ss_fpga"
+time gsql -g xgraph "set query_timeout=240000000 run query loadgraph_cosinesim_ss_fpga()"
+echo "Run query cosinesim_ss_fpga"
+time gsql -g xgraph "set query_timeout=240000000 run query cosinesim_ss_fpga(\"$PWD/fpga1.txt\", \"$PWD/fpga2.txt\")"
+echo "Run query close_fpga"
+time gsql -g xgraph "set query_timeout=240000000 run query close_fpga()"

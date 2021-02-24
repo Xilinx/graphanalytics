@@ -252,27 +252,37 @@ create query cos_theta_tigergraph(vertex<patients> p1, vertex<patients> p2) for 
 	return result;
 }
 
-create query cosinesim_ss_tigergraph(vertex<patients> source, uint topKID) for graph xgraph returns (ListAccum<testResults>) {
+
+CREATE QUERY cosinesim_cache_to_vertices() FOR GRAPH xgraph {
+# Patient Population
+    population = {patients.*};
+    UPDATE p FROM population:p
+        SET p.COSINE_SIM_VECTOR = patient_vector(p);
+}
+
+
+CREATE QUERY cosinesim_match_sw(vertex<patients> source, uint topKID) FOR GRAPH xgraph RETURNS (ListAccum<testResults>) {
 
 # Heap with max size of topKID sorted decending by score then ascending last name
-	HeapAccum<testResults>(topKID, score DESC, Id ASC) @@topK_Heap;
-	ListAccum<testResults> @@topK;
-	ListAccum<vertex<patients>> @@plist;
-	ListAccum<int> @@newPatientVector;
+    HeapAccum<testResults>(topKID, score DESC, Id ASC) @@topK_Heap;
+    ListAccum<testResults> @@topK;
+    ListAccum<vertex<patients>> @@plist;
+    ListAccum<INT> @@newPatientVector;
 
 # Patient Population
-	population = {patients.*};
-	@@newPatientVector = patient_vector(source);
+    population = {patients.*};
+    @@newPatientVector = patient_vector(source);
 
-	patientList = select p from population:p
-		ACCUM @@topK_Heap += testResults(p, udf_cos_theta(patient_vector(p), @@newPatientVector));
+    patientList = SELECT p FROM population:p
+        ACCUM @@topK_Heap += testResults(p, udf_cos_theta(p.COSINE_SIM_VECTOR, @@newPatientVector));
 
-	foreach item in @@topK_Heap do
-		@@topK += item; 
-	end;
+    FOREACH item IN @@topK_Heap do
+        @@topK += item; 
+    END;
 
-	return @@topK;
+    RETURN @@topK;
 }
+
 
 create query loadgraph_cosinesim_ss_fpga_core() for graph xgraph returns (int) {
 
@@ -310,4 +320,4 @@ create query close_fpga () for graph xgraph {
 }
 
 
-install query patient_age, patient_race, patient_gender, patient_ethnicity, patient_vector, cos_theta_tigergraph, cosinesim_ss_tigergraph, loadgraph_cosinesim_ss_fpga_core , cosinesim_ss_fpga_core, close_fpga
+install query patient_age, patient_race, patient_gender, patient_ethnicity, patient_vector, cosinesim_cache_to_vertices, cos_theta_tigergraph, cosinesim_match_sw, loadgraph_cosinesim_ss_fpga_core , cosinesim_ss_fpga_core, close_fpga

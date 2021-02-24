@@ -39,14 +39,11 @@ create query cosinesim_ss_tg(string log_file) for graph xgraph {
     uint topK;
     double score;
     vertex<patients> newPatient;
-    ListAccum<ListAccum<int> > @@patientsAll;
     ListAccum<testResults> @@result;
     FILE file1 (log_file);
     topK = 100;
 # Patient Population
     population = {patients.*};
-    patientList = select p from population:p
-        ACCUM @@patientsAll += patient_vector(p);
 # Pick one random patient
     randomPatient = select p from population:p 
         Limit 10;
@@ -54,8 +51,9 @@ create query cosinesim_ss_tg(string log_file) for graph xgraph {
     randomPatient = select p from randomPatient:p
         ACCUM newPatient = p;
 # Cosine Similarity using TigerGraph
-    @@result = cosinesim_ss_tigergraph(newPatient, topK);
-    print "Cosine Sim using TigerGraph";
+    @@result = cosinesim_match_sw(newPatient, topK);
+    print "Software UDF" AS ComputationTechnique;
+    print newPatient.FIRST_NAME + " " + newPatient.LAST_NAME AS Patient;
     file1.println("SCORE", "FIRST_NAME", "LAST_NAME", "AGE", "RACE", "ETHNICITY", "GENDER", 
             "#immunization", "immunizations", 
             "#allergy", "allergies", 
@@ -183,7 +181,7 @@ create query cosinesim_ss_test() for graph xgraph {
     print getvid(newPatient);
     print @@newPatientVector;
 # Cosine Similarity using TigerGraph
-    @@result_tg = cosinesim_ss_tigergraph(newPatient, topK);
+    @@result_tg = cosinesim_match_sw(newPatient, topK);
     print "Cosine Sim using TigerGraph";
     loadgraph_cosinesim_ss_fpga_core();
     @@result_fpga = cosinesim_ss_fpga_core(newPatient, topK);

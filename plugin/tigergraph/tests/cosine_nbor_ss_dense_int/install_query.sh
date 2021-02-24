@@ -29,6 +29,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-time gsql base_sw.gsql
+time gsql base.gsql
 time gsql client.gsql
-time gsql query_sw.gsql
+time gsql query.gsql
