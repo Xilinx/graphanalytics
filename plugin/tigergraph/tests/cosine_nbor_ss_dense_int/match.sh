@@ -29,8 +29,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+# common.sh sets up gsql client and gets username and passowrd
+. common.sh
 
-if [ "$1" != "-noload" ]
+if [ "$3" != "-noload" ]
 then
     echo "Caching cosine similarity vectors to patient vertices..."
     time gsql -g xgraph "set query_timeout=240000000 run query cosinesim_cache_to_vertices()"

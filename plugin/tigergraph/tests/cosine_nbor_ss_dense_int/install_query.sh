@@ -29,6 +29,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+# common.sh sets up gsql client and gets username and passowrd
+. common.sh
 time gsql base.gsql
 time gsql client.gsql
 time gsql query.gsql

@@ -29,6 +29,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+# common.sh sets up gsql client and gets username and passowrd
+. common.sh
 time gsql schema_xgraph.gsql
 time gsql load_xgraph.gsql
-./install_query.sh
+./install_query.sh $username $password
+
