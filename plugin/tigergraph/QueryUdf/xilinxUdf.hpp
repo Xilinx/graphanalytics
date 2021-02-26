@@ -262,7 +262,7 @@ inline int udf_loadgraph_cosinesim_ss_fpga(int64_t numVertices,
     const int cuNm = 2;
     int deviceNeeded = 1;
     const int channelW = 16;
-    int32_t nullVal = xai::NullVecValue;
+    int32_t nullVal = 0; // xai::NullVecValue;
 
     int32_t edgeAlign8 = ((numEdges + channelW - 1) / channelW) * channelW;
     int general = ((numVertices + deviceNeeded * cuNm * splitNm * channelsPU - 1) /
@@ -353,7 +353,7 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     const int cuNm = 2;
     int deviceNeeded = 1;
     const int channelW = 16;
-    int32_t nullVal = xai::NullVecValue;
+    int32_t nullVal = 0; // xai::NullVecValue;
 
     int32_t edgeAlign8 = ((numEdges + channelW - 1) / channelW) * channelW;
     int general = ((numVertices + deviceNeeded * cuNm * splitNm * channelsPU - 1) /
