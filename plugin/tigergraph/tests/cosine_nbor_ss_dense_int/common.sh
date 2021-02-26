@@ -30,10 +30,8 @@
 # limitations under the License.
 #
 
-set -x 
-
 function gsql () {
-    java  -DGSQL_CLIENT_VERSION=v3_1_0 -jar ../gsql_client.jar -u $username -p $password $@
+    java -DGSQL_CLIENT_VERSION=v3_1_0 -jar ../gsql_client.jar -u $username -p $password "$@"
 }
 
 if [ "$#" -lt 2 ]; then
@@ -42,9 +40,10 @@ if [ "$#" -lt 2 ]; then
 fi
 username=$1
 password=$2
+xgraph="xgraph_$username"
 
 if [ ! -f "../gsql_client.jar" ]; then
-    wget -o wget.log -O ../gsql_client.jar 'https://bintray.com/tigergraphecosys/tgjars/download_file?file_path=com%2Ftigergraph%2Fclient%2Fgsql_client%2F3.1.0%2Fgsql_client-3.1.0.jar'
+    wget -o wget.log -O ../gsql_client.jar 'https://dl.bintray.com/tigergraphecosys/tgjars/com/tigergraph/client/gsql_client/3.1.0/gsql_client-3.1.0.jar'
     echo "INFO: Downloaded the latest gsql client"
 fi
 

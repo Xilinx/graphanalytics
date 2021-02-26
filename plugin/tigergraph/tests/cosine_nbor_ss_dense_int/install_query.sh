@@ -31,6 +31,6 @@
 #
 # common.sh sets up gsql client and gets username and passowrd
 . common.sh
-time gsql base.gsql
-time gsql client.gsql
-time gsql query.gsql
+time gsql "$(cat base.gsql | sed "s/@graph/$xgraph/")"
+time gsql "$(cat client.gsql | sed "s/@graph/$xgraph/")"
+time gsql "$(cat query.gsql | sed "s/@graph/$xgraph/")"

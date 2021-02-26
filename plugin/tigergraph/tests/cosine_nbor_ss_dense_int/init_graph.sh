@@ -29,9 +29,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# common.sh sets up gsql client and gets username and passowrd
+# common.sh sets up gsql client, gets username and passowrd, sets graph name
 . common.sh
-time gsql schema_xgraph.gsql
-time gsql load_xgraph.gsql
+time gsql "$(cat schema_xgraph.gsql | sed "s/@graph/$xgraph/")"
+time gsql "$(cat load_xgraph.gsql | sed "s/@graph/$xgraph/")"
 ./install_query.sh $username $password
-

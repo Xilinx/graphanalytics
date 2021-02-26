@@ -41,10 +41,11 @@ echo "INFO: Found TigerGraph installation in $tg_root_dir"
 echo "INFO: TigerGraph TEMP root is $tg_temp_root"
 echo "INFO: Home is $HOME"
 
-rm -rf tigergraph/QueryUdf/tgFunctions.hpp
-rm -rf tigergraph/QueryUdf/ExprFunctions.hpp
-rm -rf tigergraph/QueryUdf/ExprUtil.hpp
-rm -rf tigergraph/QueryUdf/graph.hpp
+mkdir -p $tg_temp_root/QueryUdf
+rm -rf $tg_temp_root/QueryUdf/tgFunctions.hpp
+rm -rf $tg_temp_root/QueryUdf/ExprFunctions.hpp
+rm -rf $tg_temp_root/QueryUdf/ExprUtil.hpp
+rm -rf $tg_temp_root/QueryUdf/graph.hpp
 
 # save a copy of the original UDF Files
 if [ ! -d "$tg_root_dir/dev/gdk/gsql/src/QueryUdf.orig" ]; then
@@ -53,10 +54,10 @@ if [ ! -d "$tg_root_dir/dev/gdk/gsql/src/QueryUdf.orig" ]; then
 fi
 
 # prepare UDF files
-cp $tg_root_dir/dev/gdk/gsql/src/QueryUdf.orig/ExprFunctions.hpp tigergraph/QueryUdf/tgFunctions.hpp
-cp $tg_root_dir/dev/gdk/gsql/src/QueryUdf.orig/ExprUtil.hpp tigergraph/QueryUdf/
-cp tigergraph/QueryUdf/xilinxUdf.hpp tigergraph/QueryUdf/ExprFunctions.hpp
-cp -rf ../L3/include/graph.hpp tigergraph/QueryUdf/
+cp $tg_root_dir/dev/gdk/gsql/src/QueryUdf.orig/ExprFunctions.hpp $tg_temp_root/QueryUdf/tgFunctions.hpp
+cp $tg_root_dir/dev/gdk/gsql/src/QueryUdf.orig/ExprUtil.hpp $tg_temp_root/QueryUdf/
+cp tigergraph/QueryUdf/xilinxUdf.hpp $tg_temp_root/QueryUdf/ExprFunctions.hpp
+cp ../L3/include/graph.hpp $tg_temp_root/QueryUdf/
 
 xrtPath=/opt/xilinx/xrt
 xrmPath=/opt/xilinx/xrm
@@ -82,31 +83,31 @@ source $xrtPath/setup.sh
 source $xrmPath/setup.sh
 
 # make L3 wrapper library
-#make clean
-make TigerGraphPath=$tg_root_dir libgraphL3wrapper
+make clean
+make TigerGraphPath=$tg_root_dir TigerGraphTemp=$tg_temp_root libgraphL3wrapper
 
 # copy files to $tg_rrot_dir UDF area
 mkdir -p $tg_temp_root/gsql/codegen/udf
 timestamp=$(date "+%Y%m%d-%H%M%S")
 #rm -rf $tg_install_dir/tigergraph/dev/gdk/gsql/src/QueryUdf
-cp -rf tigergraph/QueryUdf/ExprFunctions.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
-cp -rf tigergraph/QueryUdf/ExprUtil.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+cp $tg_temp_root/QueryUdf/ExprFunctions.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+cp $tg_temp_root/QueryUdf/ExprUtil.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
 
-cp -rf tigergraph/QueryUdf/codevector.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
-cp -rf tigergraph/QueryUdf/loader.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
-cp -rf tigergraph/QueryUdf/tgFunctions.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
-cp -rf tigergraph/QueryUdf/graph.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
-cp -rf tigergraph/QueryUdf/core.cpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+cp tigergraph/QueryUdf/codevector.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+cp tigergraph/QueryUdf/loader.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+cp $tg_temp_root/QueryUdf/tgFunctions.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+cp $tg_temp_root/QueryUdf/graph.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+cp tigergraph/QueryUdf/core.cpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
 
-cp -rf tigergraph/QueryUdf/tgFunctions.hpp $tg_temp_root/gsql/codegen/udf
-cp -rf tigergraph/QueryUdf/loader.hpp $tg_temp_root/gsql/codegen/udf
-cp -rf tigergraph/QueryUdf/graph.hpp $tg_temp_root/gsql/codegen/udf
-cp -rf tigergraph/QueryUdf/codevector.hpp $tg_temp_root/gsql/codegen/udf
+cp $tg_temp_root/QueryUdf/tgFunctions.hpp $tg_temp_root/gsql/codegen/udf
+cp tigergraph/QueryUdf/loader.hpp $tg_temp_root/gsql/codegen/udf
+cp $tg_temp_root/QueryUdf/graph.hpp $tg_temp_root/gsql/codegen/udf
+cp tigergraph/QueryUdf/codevector.hpp $tg_temp_root/gsql/codegen/udf
 
-cp -rf tigergraph/QueryUdf/*.json $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
-cp -rf tigergraph/QueryUdf/libgraphL3wrapper.so $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+cp tigergraph/QueryUdf/*.json $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+cp $tg_temp_root/QueryUdf/libgraphL3wrapper.so $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
 cp $tg_root_dir/dev/gdk/MakeUdf $tg_root_dir/dev/gdk/MakeUdf-$timestamp
-cp -rf tigergraph/MakeUdf $tg_root_dir/dev/gdk/
+cp tigergraph/MakeUdf $tg_root_dir/dev/gdk/
 
 # update files with tg_root_dir
 for f in $tg_root_dir/dev/gdk/gsql/src/QueryUdf/*.json; do
