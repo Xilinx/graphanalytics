@@ -80,4 +80,4 @@ gen-xclbin-pkg:
 
 ############################## Cleaning Rules ##############################
 clean:
-	-$(RMDIR) ${XFLIB_DIR}/plugin/tigergraph/QueryUdf/*.so 
+	-$(RMDIR) ${libGRAPHL3WRAPPER}

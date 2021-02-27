@@ -31,19 +31,33 @@
 #
 
 function gsql () {
-    java -DGSQL_CLIENT_VERSION=v3_1_0 -jar ../gsql_client.jar -u $username -p $password "$@"
+    java -DGSQL_CLIENT_VERSION=v3_1_0 -jar $HOME/gsql-client/gsql_client.jar \
+        -u $username -p $password "$@"
 }
 
 if [ "$#" -lt 2 ]; then
-    echo "Usage: $0 TG-username TG-password other-options"
+    echo "Usage: $0 TG-username TG-password [load-option graph-name data-root]"
     exit 1
 fi
 username=$1
 password=$2
-xgraph="xgraph_$username"
+# $3 is -noload or default
+# $4 graph-name
+if [ "$#" -gt 3 ]; then
+    xgraph=$4
+else
+    xgraph="xgraph_$username"
+fi
+if [ "$#" -gt 4 ]; then
+    data_root=$5
+else
+    data_root="./1K_patients"
+fi
+echo "data_root=$data_root"
 
-if [ ! -f "../gsql_client.jar" ]; then
-    wget -o wget.log -O ../gsql_client.jar 'https://dl.bintray.com/tigergraphecosys/tgjars/com/tigergraph/client/gsql_client/3.1.0/gsql_client-3.1.0.jar'
+if [ ! -f "$HOME/gsql-client/gsql_client.jar" ]; then
+    mkdir -p $HOME/gsql-client
+    wget -o wget.log -O $HOME/gsql-client/gsql_client.jar 'https://dl.bintray.com/tigergraphecosys/tgjars/com/tigergraph/client/gsql_client/3.1.0/gsql_client-3.1.0.jar'
     echo "INFO: Downloaded the latest gsql client"
 fi
 

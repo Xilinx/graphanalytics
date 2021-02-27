@@ -29,8 +29,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# common.sh sets up gsql client, gets username and passowrd, sets graph name
+# common.sh sets up things like gsql client, username and passowrd, graph name, etc
 . common.sh
+set -x
+echo "data_root=$data_root"
+patients_infile="$data_root/patients.csv"
+immunizations_infile="$data_root/immunizations.csv"
+allergies_infile="$data_root/allergies.csv"
+conditions_infile="$data_root/conditions.csv"
+imaging_studies_infile="$data_root/imaging_studies.csv"
+procedures_infile="$data_root/procedures.csv"
+careplans_infile="$data_root/careplans.csv"
+
 time gsql "$(cat schema_xgraph.gsql | sed "s/@graph/$xgraph/")"
 time gsql "$(cat load_xgraph.gsql | sed "s/@graph/$xgraph/")"
-./install_query.sh $username $password
+time gsql -g $xgraph "RUN LOADING JOB load_xgraph USING \
+                        patients_infile=\"$patients_infile\", \
+                        immunizations_infile=\"$immunizations_infile\", \
+                        allergies_infile=\"$allergies_infile\", \
+                        conditions_infile=\"$conditions_infile\", \
+                        imaging_studies_infile=\"$imaging_studies_infile\", \
+                        procedures_infile=\"$procedures_infile\", \
+                        careplans_infile=\"$careplans_infile\" "
+time gsql -g $xgraph "DROP JOB load_xgraph"
+
+./install_query.sh $@
+
