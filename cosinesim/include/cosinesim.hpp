@@ -48,13 +48,23 @@ public:
         }
     };
     
-    CosineSim(ColIndex vecLength, Value nullValue, const std::string &xclbinFileName)
-    : vecLength_(vecLength), nullValue_(nullValue), xclbinFileName_(xclbinFileName) {}
+    struct Options {
+        
+    };
+    
+    CosineSim(ColIndex vecLength, const Options &options)
+    : vecLength_(vecLength), options_(options) {}
 
     ColIndex getVectorLength() const { return vecLength_; }
     
-    void startLoadOldVectors();
-    Value *getOldVectorBuffer() { reinterpret_cast<Value *>(pImpl_->getOldVectorBuffer()); }
+    void openFpga(...);
+    void startLoadOldVectors();  // 
+    Value *getOldVectorBuffer(RowIndex &rowIndex) {
+        // figure out where in weightDense to start writing
+        // memset vector padding (8 bytes for example) to 0
+        // return pointer into weightDense
+        reinterpret_cast<Value *>(pImpl_->getOldVectorBuffer());
+    }
     void finishCurrentOldVector();
     void finishLoadOldVectors();
     
@@ -73,8 +83,6 @@ public:
 private:
     ColIndex vecLength_ = 0;
     RowIndex numRows_ = 0;
-    Value nullValue_ = 0;
-    std::string &xclbinFileName_;
     
     int CosineSim<Value>::loadgraph_cosinesim_ss_dense_fpga(uint32_t deviceNeeded, uint32_t cuNm,
         xf::graph::Graph<int32_t, int32_t>** g);
