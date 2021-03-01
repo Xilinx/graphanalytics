@@ -51,9 +51,9 @@ fi
 if [ "$#" -gt 4 ]; then
     data_root=$5
 else
-    data_root="./1K_patients"
+    data_root="./1000_patients/csv"
 fi
-echo "data_root=$data_root"
+echo "INFO: data_root=$data_root"
 
 if [ ! -f "$HOME/gsql-client/gsql_client.jar" ]; then
     mkdir -p $HOME/gsql-client

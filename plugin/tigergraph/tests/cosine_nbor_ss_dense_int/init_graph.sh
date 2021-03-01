@@ -31,7 +31,7 @@
 #
 # common.sh sets up things like gsql client, username and passowrd, graph name, etc
 . common.sh
-set -x
+
 echo "data_root=$data_root"
 patients_infile="$data_root/patients.csv"
 immunizations_infile="$data_root/immunizations.csv"
