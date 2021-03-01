@@ -16,7 +16,46 @@
 #
 
 set -e
-echo "Checking TigerGraph installation version and directory"
+SCRIPT=$(readlink -f $0)
+SCRIPTPATH=`dirname $SCRIPT`
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+###############################################################################
+# script options processing
+xrtPath=/opt/xilinx/xrt
+xrmPath=/opt/xilinx/xrm
+clean=0
+# will not reset TG engines when dev_mode=1
+dev_mode=0
+
+while getopts ":r:m:df" opt
+do
+case $opt in
+    r)
+    xrtPath=$OPTARG
+    echo "INFO: XRT path set to $xrtPath"
+    ;;
+    m)
+    xrmPath=$OPTARG
+    echo "INFO: XRM path set to $xrmPath"
+    ;;
+    f)
+    clean=1
+    echo "INFO: Option set: Force rebuidling plugin libraries"
+    ;;
+    d)
+    dev_mode=1
+    echo "INFO: Option set: Install plugin in development mode"
+    ;;
+    ?)
+    echo "unknown"
+    exit 1;;
+    esac
+done
+
+echo "INFO: Checking TigerGraph installation version and directory"
 if ! [ -x "$(command -v jq)" ]; then
     echo "ERROR: The program jq is required. Please follow the instructions below to install it:"
     echo "       RedHat/CentOS: sudo yum install jq"
@@ -41,10 +80,22 @@ echo "INFO: Found TigerGraph installation in $tg_root_dir"
 echo "INFO: TigerGraph TEMP root is $tg_temp_root"
 echo "INFO: Home is $HOME"
 
-rm -rf tigergraph/QueryUdf/tgFunctions.hpp
-rm -rf tigergraph/QueryUdf/ExprFunctions.hpp
-rm -rf tigergraph/QueryUdf/ExprUtil.hpp
-rm -rf tigergraph/QueryUdf/graph.hpp
+###############################################################################
+echo "INFO: Checking Xilinx library installation"
+if [ ! -f "$tg_root_dir/dev/gdk/gsql/src/QueryUdf/xclbin/denseSimilarityKernel.xclbin" ]; then
+    printf "${RED}ERROR: Xilinx library and XCLBIN files not found.\n"
+    printf "${YELLOW}INFO: Please download Xilinx library installation package "
+    printf "from Xilinx Database PoC site: https://www.xilinx.com/member/dba_poc.html${NC}\n"
+    exit 1
+fi
+echo "INFO: Found Xilinx XCLBIN files installed in $tg_root_dir/dev/gdk/gsql/src/QueryUdf/xclbin/"
+
+# Prepare UDF files
+mkdir -p $tg_temp_root/QueryUdf
+rm -rf $tg_temp_root/QueryUdf/tgFunctions.hpp
+rm -rf $tg_temp_root/QueryUdf/ExprFunctions.hpp
+rm -rf $tg_temp_root/QueryUdf/ExprUtil.hpp
+rm -rf $tg_temp_root/QueryUdf/graph.hpp
 
 # save a copy of the original UDF Files
 if [ ! -d "$tg_root_dir/dev/gdk/gsql/src/QueryUdf.orig" ]; then
@@ -53,60 +104,45 @@ if [ ! -d "$tg_root_dir/dev/gdk/gsql/src/QueryUdf.orig" ]; then
 fi
 
 # prepare UDF files
-cp $tg_root_dir/dev/gdk/gsql/src/QueryUdf.orig/ExprFunctions.hpp tigergraph/QueryUdf/tgFunctions.hpp
-cp $tg_root_dir/dev/gdk/gsql/src/QueryUdf.orig/ExprUtil.hpp tigergraph/QueryUdf/
-cp tigergraph/QueryUdf/xilinxUdf.hpp tigergraph/QueryUdf/ExprFunctions.hpp
-cp -rf ../L3/include/graph.hpp tigergraph/QueryUdf/
-
-xrtPath=/opt/xilinx/xrt
-xrmPath=/opt/xilinx/xrm
-
-while getopts ":r:m:" opt
-do
-case $opt in
-    r)
-    xrtPath=$OPTARG
-    echo "$xrtPath"
-    ;;
-    m)
-    xrmPath=$OPTARG
-    echo "$xrmPath"
-    ;;
-    ?)
-    echo "unknown"
-    exit 1;;
-    esac
-done
+cp $tg_root_dir/dev/gdk/gsql/src/QueryUdf.orig/ExprFunctions.hpp $tg_temp_root/QueryUdf/tgFunctions.hpp
+cp $tg_root_dir/dev/gdk/gsql/src/QueryUdf.orig/ExprUtil.hpp $tg_temp_root/QueryUdf/
+cp $SCRIPTPATH/tigergraph/QueryUdf/xilinxUdf.hpp $tg_temp_root/QueryUdf/ExprFunctions.hpp
+cp $SCRIPTPATH/../L3/include/graph.hpp $tg_temp_root/QueryUdf/
 
 source $xrtPath/setup.sh
 source $xrmPath/setup.sh
 
 # make L3 wrapper library
-#make clean
-make TigerGraphPath=$tg_root_dir libgraphL3wrapper
+if [ "$clean" -eq 1 ]
+then
+    echo "INFO: make TigerGraphPath=$tg_root_dir TigerGraphTemp=$tg_temp_root clean"
+    cd $SCRIPTPATH && make TigerGraphPath=$tg_root_dir TigerGraphTemp=$tg_temp_root clean
+fi
+
+cd $SCRIPTPATH && make TigerGraphPath=$tg_root_dir TigerGraphTemp=$tg_temp_root libgraphL3wrapper
 
 # copy files to $tg_rrot_dir UDF area
 mkdir -p $tg_temp_root/gsql/codegen/udf
 timestamp=$(date "+%Y%m%d-%H%M%S")
 #rm -rf $tg_install_dir/tigergraph/dev/gdk/gsql/src/QueryUdf
-cp -rf tigergraph/QueryUdf/ExprFunctions.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
-cp -rf tigergraph/QueryUdf/ExprUtil.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+cp $tg_temp_root/QueryUdf/ExprFunctions.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+cp $tg_temp_root/QueryUdf/ExprUtil.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
 
-cp -rf tigergraph/QueryUdf/codevector.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
-cp -rf tigergraph/QueryUdf/loader.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
-cp -rf tigergraph/QueryUdf/tgFunctions.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
-cp -rf tigergraph/QueryUdf/graph.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
-cp -rf tigergraph/QueryUdf/core.cpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+cp $SCRIPTPATH/tigergraph/QueryUdf/codevector.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+cp $SCRIPTPATH/tigergraph/QueryUdf/loader.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+cp $tg_temp_root/QueryUdf/tgFunctions.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+cp $tg_temp_root/QueryUdf/graph.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+cp $SCRIPTPATH/tigergraph/QueryUdf/core.cpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
 
-cp -rf tigergraph/QueryUdf/tgFunctions.hpp $tg_temp_root/gsql/codegen/udf
-cp -rf tigergraph/QueryUdf/loader.hpp $tg_temp_root/gsql/codegen/udf
-cp -rf tigergraph/QueryUdf/graph.hpp $tg_temp_root/gsql/codegen/udf
-cp -rf tigergraph/QueryUdf/codevector.hpp $tg_temp_root/gsql/codegen/udf
+cp $tg_temp_root/QueryUdf/tgFunctions.hpp $tg_temp_root/gsql/codegen/udf
+cp $SCRIPTPATH/tigergraph/QueryUdf/loader.hpp $tg_temp_root/gsql/codegen/udf
+cp $tg_temp_root/QueryUdf/graph.hpp $tg_temp_root/gsql/codegen/udf
+cp $SCRIPTPATH/tigergraph/QueryUdf/codevector.hpp $tg_temp_root/gsql/codegen/udf
 
-cp -rf tigergraph/QueryUdf/*.json $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
-cp -rf tigergraph/QueryUdf/libgraphL3wrapper.so $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+cp $SCRIPTPATH/tigergraph/QueryUdf/*.json $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+cp $tg_temp_root/QueryUdf/libgraphL3wrapper.so $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
 cp $tg_root_dir/dev/gdk/MakeUdf $tg_root_dir/dev/gdk/MakeUdf-$timestamp
-cp -rf tigergraph/MakeUdf $tg_root_dir/dev/gdk/
+cp $SCRIPTPATH/tigergraph/MakeUdf $tg_root_dir/dev/gdk/
 
 # update files with tg_root_dir
 for f in $tg_root_dir/dev/gdk/gsql/src/QueryUdf/*.json; do
@@ -115,18 +151,18 @@ for f in $tg_root_dir/dev/gdk/gsql/src/QueryUdf/*.json; do
 done
 sed -i "s|TG_ROOT_DIR|$tg_root_dir|" $tg_root_dir/dev/gdk/MakeUdf 
 
-gadmin start all
-gadmin config set GPE.BasicConfig.Env "LD_PRELOAD=\$LD_PRELOAD; LD_LIBRARY_PATH=$HOME/libstd:/opt/xilinx/xrt/lib:/opt/xilinx/xrm/lib:/usr/lib/x86_64-linux-gnu/:\$LD_LIBRARY_PATH; CPUPROFILE=/tmp/tg_cpu_profiler; CPUPROFILESIGNAL=12; MALLOC_CONF=prof:true,prof_active:false; XILINX_XRT=/opt/xilinx/xrt; XILINX_XRM=/opt/xilinx/xrm"
+if [ "$dev_mode" -eq 0 ]
+then
+    echo "INFO: Apply environment changes to TigerGraph installation"
+    gadmin start all
+    gadmin config set GPE.BasicConfig.Env "LD_PRELOAD=\$LD_PRELOAD; LD_LIBRARY_PATH=$HOME/libstd:/opt/xilinx/xrt/lib:/opt/xilinx/xrm/lib:/usr/lib/x86_64-linux-gnu/:\$LD_LIBRARY_PATH; CPUPROFILE=/tmp/tg_cpu_profiler; CPUPROFILESIGNAL=12; MALLOC_CONF=prof:true,prof_active:false; XILINX_XRT=/opt/xilinx/xrt; XILINX_XRM=/opt/xilinx/xrm"
 
-echo "Apply the new configurations"
-gadmin config apply -y
-gadmin restart gpe -y
-gadmin config get GPE.BasicConfig.Env
+    echo "Apply the new configurations"
+    gadmin config apply -y
+    gadmin restart gpe -y
+    gadmin config get GPE.BasicConfig.Env
+fi
 
-echo "Xilinx FPGA acceleration plugin for Tigergraph has been installed."
+echo ""
+echo "INFO: Xilinx FPGA acceleration plugin for Tigergraph has been installed."
 
-# Copy xclbins to TG root directory 
-echo "Xilinx FPGA binary files for accelerated graph functions need to be dowloaded"
-echo "from Xilinx DBA lounge and then installed by following instructions in the package."
-#mkdir -p $tg_root_dir/dev/gdk/gsql/src/QueryUdf/xclbin
-#

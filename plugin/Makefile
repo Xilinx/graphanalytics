@@ -27,6 +27,7 @@ ifndef XILINX_XRT
 endif
 
 TigerGraphPath=/home/tigergraph/tigergraph/
+TigerGraphTemp=/home/tigergraph/tigergraph/
 
 ############################## Setting up Host Variables ##############################
 CXXFLAGS += -I$(XFLIB_DIR)/ext/xcl2
@@ -46,7 +47,7 @@ CXXFLAGS += -D USE_HBM
 CXXFLAGS += -D TIGERGRAPH_PATH=\"$(TigerGraphPath)\"
 
 ############################## Setting Rules for so (Building Dynamic Library) ##############################
-libGRAPHL3WRAPPER = $(XFLIB_DIR)/plugin/tigergraph/QueryUdf/libgraphL3wrapper.so
+libGRAPHL3WRAPPER = $(TigerGraphTemp)/QueryUdf/libgraphL3wrapper.so
 libgraphL3wrapper : $(libGRAPHL3WRAPPER)
 CPP_PATH += $(XFLIB_DIR)/ext/xcl2/xcl2.cpp
 CPP_PATH += $(XFLIB_DIR)/L3/src/common.cpp
@@ -79,4 +80,4 @@ gen-xclbin-pkg:
 
 ############################## Cleaning Rules ##############################
 clean:
-	-$(RMDIR) ${XFLIB_DIR}/plugin/tigergraph/QueryUdf/*.so 
+	-$(RMDIR) ${libGRAPHL3WRAPPER}

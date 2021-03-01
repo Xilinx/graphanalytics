@@ -1,10 +1,10 @@
 
-USE GRAPH xgraph
+USE GRAPH @graph
 SET query_timeout = 600000
 DROP QUERY client_cosinesim_load_cache, client_cosinesim_match_sw, client_cosinesim_load_alveo, client_cosinesim_match_alveo
 
 
-CREATE QUERY client_cosinesim_load_cache() FOR GRAPH xgraph {
+CREATE QUERY client_cosinesim_load_cache() FOR GRAPH @graph {
     DOUBLE run_time;
     udf_reset_timer(true);
     cosinesim_cache_to_vertices();
@@ -13,7 +13,7 @@ CREATE QUERY client_cosinesim_load_cache() FOR GRAPH xgraph {
 }
 
 
-CREATE QUERY client_cosinesim_match_sw(VERTEX<patients> newPatient, UINT topK) FOR GRAPH xgraph {
+CREATE QUERY client_cosinesim_match_sw(VERTEX<patients> newPatient, UINT topK) FOR GRAPH @graph {
     DOUBLE run_time;
     ListAccum<testResults> @@result;
     udf_reset_timer(true);
@@ -24,7 +24,7 @@ CREATE QUERY client_cosinesim_match_sw(VERTEX<patients> newPatient, UINT topK) F
 }
 
 
-CREATE QUERY client_cosinesim_load_alveo() FOR GRAPH xgraph {
+CREATE QUERY client_cosinesim_load_alveo() FOR GRAPH @graph {
     DOUBLE run_time;
     STRING status;
     INT ret;
@@ -48,7 +48,7 @@ CREATE QUERY client_cosinesim_load_alveo() FOR GRAPH xgraph {
 }
 
 
-CREATE QUERY client_cosinesim_match_alveo(VERTEX<patients> newPatient, UINT topK) FOR GRAPH xgraph {
+CREATE QUERY client_cosinesim_match_alveo(VERTEX<patients> newPatient, UINT topK) FOR GRAPH @graph {
     DOUBLE run_time;
     ListAccum<testResults> @@result;
     udf_reset_timer(true);
@@ -59,4 +59,5 @@ CREATE QUERY client_cosinesim_match_alveo(VERTEX<patients> newPatient, UINT topK
 }
 
 
-INSTALL QUERY client_cosinesim_load_cache, client_cosinesim_match_sw, client_cosinesim_load_alveo, client_cosinesim_match_alveo
+INSTALL QUERY client_cosinesim_load_cache, client_cosinesim_match_sw, 
+              client_cosinesim_load_alveo, client_cosinesim_match_alveo

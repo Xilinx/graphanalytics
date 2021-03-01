@@ -14,10 +14,10 @@
 # limitations under the License.
 #
 set query_timeout = 600000
-use graph xgraph
+use graph @graph
 drop query all
 
-create query patient_age(vertex<patients> p) for graph xgraph returns (int){ 
+create query patient_age(vertex<patients> p) for graph @graph returns (int){ 
 	float age;
 	datetime deathdate;
 	datetime birthdate;
@@ -40,7 +40,7 @@ create query patient_age(vertex<patients> p) for graph xgraph returns (int){
 	return float_to_int_xilinx(age);
 }
 
-create query patient_gender(vertex<patients> p) for graph xgraph returns (int){ 
+create query patient_gender(vertex<patients> p) for graph @graph returns (int){ 
 	uint gender;
 
 	if (p.GENDER == "M") then 
@@ -52,7 +52,7 @@ create query patient_gender(vertex<patients> p) for graph xgraph returns (int){
 	return gender;
 }
 
-create query patient_race(vertex<patients> p) for graph xgraph returns (int){ 
+create query patient_race(vertex<patients> p) for graph @graph returns (int){ 
 	uint race;
 	string raceString;
 
@@ -71,7 +71,7 @@ create query patient_race(vertex<patients> p) for graph xgraph returns (int){
 	return race;
 }
 
-create query patient_ethnicity(vertex<patients> p) for graph xgraph returns (int){ 
+create query patient_ethnicity(vertex<patients> p) for graph @graph returns (int){ 
 	uint ethnicity;
 	STRING eString;
 
@@ -88,7 +88,7 @@ create query patient_ethnicity(vertex<patients> p) for graph xgraph returns (int
 }
 
 
-create query patient_vector(vertex<patients> targetPatient) for graph xgraph returns (ListAccum<int>) {
+create query patient_vector(vertex<patients> targetPatient) for graph @graph returns (ListAccum<int>) {
 
 # For each patient population, property vector has following
 # Unused fields are filled with zeros
@@ -215,7 +215,8 @@ create query patient_vector(vertex<patients> targetPatient) for graph xgraph ret
 	return @@patientVector;
 }
 
-create query cos_theta_tigergraph(vertex<patients> p1, vertex<patients> p2) for graph xgraph returns (double) 
+create query cos_theta_tigergraph(vertex<patients> p1, vertex<patients> p2) for 
+    graph @graph returns (double) 
 {
 	double result;
 	float resultf;
@@ -253,7 +254,7 @@ create query cos_theta_tigergraph(vertex<patients> p1, vertex<patients> p2) for 
 }
 
 
-CREATE QUERY cosinesim_cache_to_vertices() FOR GRAPH xgraph {
+CREATE QUERY cosinesim_cache_to_vertices() FOR GRAPH @graph {
 # Patient Population
     population = {patients.*};
     UPDATE p FROM population:p
@@ -261,7 +262,8 @@ CREATE QUERY cosinesim_cache_to_vertices() FOR GRAPH xgraph {
 }
 
 
-CREATE QUERY cosinesim_match_sw(vertex<patients> source, uint topKID) FOR GRAPH xgraph RETURNS (ListAccum<testResults>) {
+CREATE QUERY cosinesim_match_sw(vertex<patients> source, uint topKID) 
+FOR GRAPH @graph RETURNS (ListAccum<testResults>) {
 
 # Heap with max size of topKID sorted decending by score then ascending last name
     HeapAccum<testResults>(topKID, score DESC, Id ASC) @@topK_Heap;
@@ -284,7 +286,7 @@ CREATE QUERY cosinesim_match_sw(vertex<patients> source, uint topKID) FOR GRAPH 
 }
 
 
-create query loadgraph_cosinesim_ss_fpga_core() for graph xgraph returns (int) {
+create query loadgraph_cosinesim_ss_fpga_core() for graph @graph returns (int) {
 
 	ListAccum<ListAccum<int> > @@patientsAll;
 	int ret;
@@ -298,7 +300,8 @@ create query loadgraph_cosinesim_ss_fpga_core() for graph xgraph returns (int) {
     return ret;
 }
 
-create query cosinesim_ss_fpga_core (vertex<patients> source, uint topK) for graph xgraph returns (ListAccum<testResults>) {
+create query cosinesim_ss_fpga_core (vertex<patients> source, uint topK) 
+for graph @graph returns (ListAccum<testResults>) {
 
 	ListAccum<testResults> @@topK_result_fpga;
 
@@ -313,11 +316,14 @@ create query cosinesim_ss_fpga_core (vertex<patients> source, uint topK) for gra
 
 }
 
-create query close_fpga () for graph xgraph {
+create query close_fpga () for graph @graph {
 
 	double ret;
 	ret = udf_close_fpga();
 }
 
 
-install query patient_age, patient_race, patient_gender, patient_ethnicity, patient_vector, cosinesim_cache_to_vertices, cos_theta_tigergraph, cosinesim_match_sw, loadgraph_cosinesim_ss_fpga_core , cosinesim_ss_fpga_core, close_fpga
+install query patient_age, patient_race, patient_gender, patient_ethnicity, 
+              patient_vector, cosinesim_cache_to_vertices, cos_theta_tigergraph, 
+			  cosinesim_match_sw, loadgraph_cosinesim_ss_fpga_core , 
+			  cosinesim_ss_fpga_core, close_fpga

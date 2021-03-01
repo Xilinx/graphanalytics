@@ -31,5 +31,5 @@
 #
 # common.sh sets up gsql client and gets username and passowrd
 . common.sh
-./init_graph.sh $username $password
-./match.sh $username $password
+./init_graph.sh $@
+./match.sh $@
