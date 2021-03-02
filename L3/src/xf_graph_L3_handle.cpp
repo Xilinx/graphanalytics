@@ -291,6 +291,8 @@ int Handle::setUp() {
             initOpSimDense(ops[i].kernelName, ops[i].xclbinFile, ops[i].kernelAlias, ops[i].requestLoad,
                            ops[i].deviceNeeded, ops[i].cuPerBoard);
         } else if (ops[i].operationName == "similarityDenseInt") {
+            std::cout << "INFO: " << __FILE__ << "::" << __FUNCTION__ <<
+                << ": operation " << i << "=similarityDenseInt" << std::endl;
             unsigned int boardNm = ops[i].deviceNeeded;
             if (deviceCounter + boardNm > numDevices) {
                 std::cout << "Error: Need more devices" << std::endl;

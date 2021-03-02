@@ -52,6 +52,7 @@ time gsql -g $xgraph "RUN LOADING JOB load_xgraph USING \
                         procedures_infile=\"$procedures_infile\", \
                         careplans_infile=\"$careplans_infile\" "
 time gsql -g $xgraph "DROP JOB load_xgraph"
+echo "INFO: -------- $(date) load_xgraph completed. --------"
 
 ./install_query.sh $@
 

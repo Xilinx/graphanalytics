@@ -862,8 +862,9 @@ extern "C" void cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
     }
     //---------------- Run L3 API -----------------------------------
     for (int m = 0; m < requestNm; ++m) {
-        eventQueue[m] = xf::graph::L3::cosineSimilaritySSDenseMultiCard(handle0, hwNm, sourceLen, sourceWeight, topK, g,
-                                                                        resultID0[m], similarity0[m]);
+        eventQueue[m] = xf::graph::L3::cosineSimilaritySSDenseMultiCard(
+            handle0, hwNm, sourceLen, sourceWeight, topK, g,
+            resultID0[m], similarity0[m]);
     }
 
     int ret = 0;
