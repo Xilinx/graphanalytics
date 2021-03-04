@@ -20,24 +20,33 @@
 #include <cstdint>
 #include <vector>
 #include <string>
+#include <memory>
 #include "xf_graph_L3_handle.hpp"
 
 namespace xilinx_apps {
 namespace cosinesim {
 
-class Impl {
-    void *getOldVectorBuffer();
+
+
+using RowIndex = std::int64_t;
+using ColIndex = std::int32_t;
+
+class ImplBase {
+public:
+	virtual ~ImplBase(){};
+	virtual void *getPopulationVectorBuffer(RowIndex &rowIndex) = 0;
 };
 
-/*
- 
- */
+extern "C" {
+    ImplBase *createImpl();
+    void destroyImpl(ImplBase *pImpl);
+}
+
 template <typename Value>
 class CosineSim {
 public:
-    using RowIndex = std::int64_t;
-    using ColIndex = std::int32_t;
     
+
     struct Result {
         RowIndex index_ = -1L;
         double similarity_ = 0.0;
@@ -52,21 +61,21 @@ public:
         
     };
     
-    CosineSim(ColIndex vecLength, const Options &options)
-    : vecLength_(vecLength), options_(options) {}
 
+    CosineSim(ColIndex vecLength, const Options &options) : vecLength_(vecLength), options_(options), pImpl_(createImpl()) {};
     ColIndex getVectorLength() const { return vecLength_; }
     
     void openFpga(...);
-    void startLoadOldVectors();  // 
-    Value *getOldVectorBuffer(RowIndex &rowIndex) {
+    void startLoadPopulation();  //
+
+    Value *getPopulationVectorBuffer(RowIndex &rowIndex) {
         // figure out where in weightDense to start writing
         // memset vector padding (8 bytes for example) to 0
         // return pointer into weightDense
-        reinterpret_cast<Value *>(pImpl_->getOldVectorBuffer());
+         return reinterpret_cast<Value *>(pImpl_->getPopulationVectorBuffer(rowIndex));
     }
-    void finishCurrentOldVector();
-    void finishLoadOldVectors();
+    void finishCurrentPopulationVector();
+    void finishLoadPopulationVectors();
     
     int loadOldVectors(RowIndex numRows, const Value *elements) {
 //        startLoadOldVectors();
@@ -75,22 +84,26 @@ public:
 //            memcpy(pBuf, oldVectors[i], numElements * sizeof(int32));
 //            finishCurrentOldVector();
 //        finishLoadOldVectors();
+    	return 1;
     }
     
-    std::vector<Result> matchNewVector(unsigned numResults, const Value *elements);
+    std::vector<Result> matchTargetVector(unsigned numResults, const Value *elements);
     void closeFpga();
     
 private:
+    Options options_;
     ColIndex vecLength_ = 0;
     RowIndex numRows_ = 0;
-    
+    std::unique_ptr<ImplBase> pImpl_;
+    /*
     int CosineSim<Value>::loadgraph_cosinesim_ss_dense_fpga(uint32_t deviceNeeded, uint32_t cuNm,
         xf::graph::Graph<int32_t, int32_t>** g);
     void cosinesim_ss_dense_fpga(uint32_t deviceNeeded, int32_t sourceLen, int32_t* sourceWeight,
         int32_t topK, xf::graph::Graph<int32_t, int32_t>** g, int32_t* resultID, float* similarity);
-
+*/
 };
 
+/*
 //#####################################################################################################################
 
 //
@@ -435,7 +448,7 @@ void CosineSim<Value>::cosinesim_ss_dense_fpga(uint32_t deviceNeeded, int32_t so
         delete[] resultID0[m];
     }
 }
-
+*/
 } // namespace cosinesim
 } // namespace xilinx_apps
 
