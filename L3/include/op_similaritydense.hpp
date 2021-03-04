@@ -45,11 +45,11 @@ class opSimilarityDense : public opBase {
 
     void freeSimDense();
 
-    void init(char* kernelName, char* xclbinFile, uint32_t* deviceIDs, uint32_t* cuIDs, unsigned int requestLoad);
+    void init(char* kernelName, char* xclbinFile, uint32_t* deviceIDs, 
+              uint32_t* cuIDs, unsigned int requestLoad);
 
     void initInt(char* kernelName,
                  char* xclbinFile,
-                 char* xclbinFile2,
                  uint32_t* deviceIDs,
                  uint32_t* cuIDs,
                  unsigned int requestLoad);

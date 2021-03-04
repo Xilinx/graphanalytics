@@ -99,7 +99,6 @@ void opSimilarityDense::init(
 
 void opSimilarityDense::initInt(char* kernelName,
                                 char* xclbinFile,
-                                char* xclbinFile2,
                                 uint32_t* deviceIDs,
                                 uint32_t* cuIDs,
                                 unsigned int requestLoad) {
@@ -121,11 +120,8 @@ void opSimilarityDense::initInt(char* kernelName,
         handles[i].deviceID = deviceIDs[i];
         handles[i].cuID = cuIDs[i];
         handles[i].dupID = i % dupNmSimDense;
-        if (deviceIDs[i] == 1) {
-            createHandleSimDense(handles[i], kernelName, xclbinFile2, deviceIDs[i]);
-        } else {
-            createHandleSimDense(handles[i], kernelName, xclbinFile, deviceIDs[i]);
-        }
+
+        createHandleSimDense(handles[i], kernelName, xclbinFile, deviceIDs[i]);
         handles[i].buffer = new cl::Buffer[bufferNm];
         if (deviceIDs[i] != prev) {
             prev = deviceIDs[i];

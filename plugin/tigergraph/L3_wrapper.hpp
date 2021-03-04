@@ -25,7 +25,7 @@
 #include <unordered_map>
 
 #define XF_GRAPH_L3_ERROR_CONFIG_FILE_NOT_EXIST -2
-#define XF_GRAPH_L3_ERROR_XCLBIN2_FILE_NOT_EXIST -4
+#define XF_GRAPH_L3_ERROR_XCLBIN_FILE_NOT_EXIST -3
 
 namespace xf {
 namespace graph {

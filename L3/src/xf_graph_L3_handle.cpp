@@ -171,7 +171,6 @@ void Handle::initOpSimDense(const char* kernelName,
 
 void Handle::initOpSimDenseInt(const char* kernelName,
                                char* xclbinFile,
-                               char* xclbinFile2,
                                char* kernelAlias,
                                unsigned int requestLoad,
                                unsigned int deviceNeeded,
@@ -180,7 +179,7 @@ void Handle::initOpSimDenseInt(const char* kernelName,
     uint32_t* cuID;
     xrm->fetchCuInfo(kernelName, kernelAlias, requestLoad, deviceNm, maxChannelSize, maxCU, &deviceID, &cuID);
     opsimdense->setHWInfo(deviceNm, maxCU);
-    opsimdense->initInt((char*)kernelName, xclbinFile, xclbinFile2, deviceID, cuID, requestLoad);
+    opsimdense->initInt((char*)kernelName, xclbinFile, deviceID, cuID, requestLoad);
     opsimdense->initThreadInt(xrm, kernelName, kernelAlias, requestLoad, deviceNeeded, cuPerBoard);
     delete[] cuID;
     delete[] deviceID;
@@ -258,13 +257,19 @@ int Handle::setUp() {
                 th[j].join();
             }
             deviceCounter += boardNm;
-            initOpSP(ops[i].kernelName, ops[i].xclbinFile, ops[i].kernelAlias, ops[i].requestLoad, ops[i].deviceNeeded,
+            initOpSP(ops[i].kernelName, ops[i].xclbinFile, ops[i].kernelAlias, 
+                     ops[i].requestLoad, ops[i].deviceNeeded,
                      ops[i].cuPerBoard);
         } else if (ops[i].operationName == "similarityDense") {
+            std::cout << "INFO: " << __FILE__ << "::" << __FUNCTION__ 
+                << ": operation " << i << "=similarityDense" << std::endl;
+
             unsigned int boardNm = ops[i].deviceNeeded;
             if (deviceCounter + boardNm > numDevices) {
-                std::cout << "Error: Need more devices" << std::endl;
-                exit(1);
+                std::cout << "ERROR: Current node does not have requested device count." 
+                    << "Requested: " << deviceCounter + boardNm 
+                    << "Available: " << numDevices << std::endl;
+                return XF_GRAPH_L3_HANDLE_NOT_ENOUGH_DEVICES;
             }
             std::thread thUn[boardNm];
             for (int j = 0; j < boardNm; ++j) {
@@ -291,7 +296,7 @@ int Handle::setUp() {
             initOpSimDense(ops[i].kernelName, ops[i].xclbinFile, ops[i].kernelAlias, ops[i].requestLoad,
                            ops[i].deviceNeeded, ops[i].cuPerBoard);
         } else if (ops[i].operationName == "similarityDenseInt") {
-            std::cout << "INFO: " << __FILE__ << "::" << __FUNCTION__ <<
+            std::cout << "INFO: " << __FILE__ << "::" << __FUNCTION__ 
                 << ": operation " << i << "=similarityDenseInt" << std::endl;
             unsigned int boardNm = ops[i].deviceNeeded;
             if (deviceCounter + boardNm > numDevices) {
@@ -307,17 +312,13 @@ int Handle::setUp() {
             }
             std::thread th[boardNm];
             for (int j = 0; j < boardNm; ++j) {
-                if (j > 0) {
-                    th[j] = loadXclbinNonBlock(deviceCounter + j, ops[i].xclbinFile2);
-                } else {
-                    th[j] = loadXclbinNonBlock(deviceCounter + j, ops[i].xclbinFile);
-                }
+                th[j] = loadXclbinNonBlock(deviceCounter + j, ops[i].xclbinFile);
             }
             for (int j = 0; j < boardNm; ++j) {
                 th[j].join();
             }
             deviceCounter += boardNm;
-            initOpSimDenseInt(ops[i].kernelName, ops[i].xclbinFile, ops[i].xclbinFile2, ops[i].kernelAlias,
+            initOpSimDenseInt(ops[i].kernelName, ops[i].xclbinFile, ops[i].kernelAlias,
                               ops[i].requestLoad, ops[i].deviceNeeded, ops[i].cuPerBoard);
         } else if (ops[i].operationName == "similaritySparse") {
             unsigned int boardNm = ops[i].deviceNeeded;

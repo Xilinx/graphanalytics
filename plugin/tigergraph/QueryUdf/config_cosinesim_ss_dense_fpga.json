@@ -4,6 +4,5 @@
     "kernelName" : "denseSimilarityKernel",
     "requestLoad" : 100,
     "comment" : "The path below is automactically updated with the TigerGraph installation root directory during installation",
-    "xclbinPath" : "TG_ROOT_DIR/dev/gdk/gsql/src/QueryUdf/xclbin/denseSimilarityKernel.xclbin",
-    "deviceNeeded" : 1
+    "xclbinPath" : "TG_ROOT_DIR/dev/gdk/gsql/src/QueryUdf/xclbin/denseSimilarityKernel.xclbin"
 }

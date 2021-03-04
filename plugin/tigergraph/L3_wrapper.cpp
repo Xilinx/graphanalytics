@@ -736,7 +736,6 @@ extern "C" int loadgraph_cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
     std::string kernelName;
     int requestLoad;
     std::string xclbinPath;
-    std::string xclbinPath2;
 
     std::string basePath = TIGERGRAPH_PATH;
     std::string jsonFilePath = basePath + "/dev/gdk/gsql/src/QueryUdf/config_cosinesim_ss_dense_fpga.json";
@@ -763,40 +762,27 @@ extern "C" int loadgraph_cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
                 token = strtok(NULL, "\"\t ,}:{\n");
                 std::string tmpStr = token;
                 xclbinPath = tmpStr;
-            } else if (!std::strcmp(token, "xclbinPath2")) {
-                token = strtok(NULL, "\"\t ,}:{\n");
-                std::string tmpStr2 = token;
-                xclbinPath2 = tmpStr2;
-            } else if (!std::strcmp(token, "deviceNeeded")) {
-                token = strtok(NULL, "\"\t ,}:{\n");
-                //             deviceNeeded = std::atoi(token);
-            }
+            } 
             token = strtok(NULL, "\"\t ,}:{\n");
         }
     }
     userInput.close();
 
-    //----------------- Setup shortestPathFloat thread ---------
+    //----------------- Setup denseSimilarityKernel thread ---------
     xf::graph::L3::Handle::singleOP op0;
     op0.operationName = (char*)opName.c_str();
     op0.setKernelName((char*)kernelName.c_str());
     op0.requestLoad = requestLoad;
     op0.xclbinFile = (char*)xclbinPath.c_str();
-    op0.xclbinFile2 = (char*)xclbinPath2.c_str();
     op0.deviceNeeded = deviceNeeded;
     op0.cuPerBoard = cuNm;
     
     std::fstream xclbinFS(xclbinPath, std::ios::in);
     if (!xclbinFS) {
         std::cout << "Error : xclbinFile doesn't exist: " << xclbinPath << std::endl;
-        return -3;
+        return XF_GRAPH_L3_ERROR_XCLBIN_FILE_NOT_EXIST;
     }
 
-    std::fstream xclbinFS2(xclbinPath2, std::ios::in);
-    if (deviceNeeded > 1 && !xclbinFS2) {
-        std::cout << "Error : xclbinFile2 doesn't exist: " << xclbinPath2 << std::endl;
-        return XF_GRAPH_L3_ERROR_XCLBIN2_FILE_NOT_EXIST;
-    }
     std::shared_ptr<xf::graph::L3::Handle> handleInstance(new xf::graph::L3::Handle);
     sharedHandlesCosSimDense::instance().handlesMap[0] = handleInstance;
     std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
