@@ -311,7 +311,8 @@ void opSimilarityDense::loadGraphMultiCardBlocking(int deviceID, int cuID, xf::g
     }
 };
 
-void opSimilarityDense::loadGraphMultiCardNonBlocking(int deviceID, int cuID, xf::graph::Graph<int32_t, int32_t> g) {
+void opSimilarityDense::loadGraphMultiCardNonBlocking(
+    int deviceID, int cuID, xf::graph::Graph<int32_t, int32_t> g) {
     int nnz = g.edgeNum;
     int nrows = g.nodeNum;
     bool freed[maxCU];

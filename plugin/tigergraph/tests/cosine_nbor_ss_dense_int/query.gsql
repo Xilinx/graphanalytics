@@ -97,13 +97,11 @@ create query loadgraph_cosinesim_ss_fpga(int device_needed) for graph @graph {
         status = "config_cosinesim_ss_dense_fpga.json does not exit";
     ELSE IF ret == -3 THEN
         status = "xclbin does not exist";
-    ELSE IF ret == -4 THEN
-        status = "xclbin2 does not exist";
     ELSE IF ret == -5 THEN
         status = "Shared library loading failed";
     ELSE IF ret == -6 THEN
         status = "Not enough devices";
-    ELSE IF ret == -7 THEN
+    ELSE IF ret == -1001 THEN
         status = "Vertices distribution error";
     END;
     PRINT status;
@@ -146,7 +144,7 @@ create query cosinesim_ss_fpga(string log_file1) for graph @graph {
                 v.outdegree("patient_HAD_immunization"), 
                 #code_str(v, "patient_HAD_immunization", 3),
                 v.outdegree("patient_HAD_allergy"), 
-                code_str(v, "patient_HAD_allergy", 3),
+                #code_str(v, "patient_HAD_allergy", 3),
                 v.outdegree("patient_HAD_condition"), 
                 #code_str(v, "patient_HAD_condition", 3),
                 v.outdegree("patient_HAD_procedure"), 

@@ -7,7 +7,7 @@ set -x
 if [ "$3" != "-noload_fpga" ]
 then
     echo "Load FPGA with accelerators"
-    time gsql -g $xgraph "set query_timeout=240000000 run query loadgraph_cosinesim_ss_fpga()"
+    time gsql -g $xgraph "set query_timeout=240000000 run query loadgraph_cosinesim_ss_fpga(2)"
 fi
 
 LIMIT=1

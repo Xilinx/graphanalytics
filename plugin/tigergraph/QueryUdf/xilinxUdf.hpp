@@ -27,6 +27,10 @@
 #include "codevector.hpp"
 #include <algorithm>
 
+// Error codes from L3 starts from -1
+// Error codes from UDF starts from -1001
+#define XF_GRAPH_UDF_GRAPH_PARTITION_ERROR -1001
+
 namespace UDIMPL {
 
 /* Start Xilinx UDF additions */
@@ -267,19 +271,21 @@ inline int udf_loadgraph_cosinesim_ss_fpga(int64_t numVertices,
     const int32_t nullVal = 0;  
 
     int32_t edgeAlign8 = ((numEdges + channelW - 1) / channelW) * channelW;
-    int general = ((numVertices + deviceNeeded * cuNm * splitNm * channelsPU - 1) /
-                  (deviceNeeded * cuNm * splitNm * channelsPU)) * channelsPU;
-    // int general = ((numVertices + deviceNeeded * cuNm * splitNm - 1) /
-    //                (deviceNeeded * cuNm * splitNm));
-
+    // All channels need to have equal number of vertices except the last channel
+    // The formula is to make sure the last channel always has data to process.
+    // The last chanel may be assigned more data than other channels.
+    int general = ((numVertices - (deviceNeeded * cuNm * splitNm * channelsPU + 1)) /
+                   (deviceNeeded * cuNm * splitNm * channelsPU)) * channelsPU;
     int rest = numVertices - general * (deviceNeeded * cuNm * splitNm - 1);
     std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
               << " numVertices=" << numVertices << ", general=" << general 
-              << ", rest=" << rest 
-              << ", split=" << deviceNeeded * cuNm * splitNm << std::endl;
+              << ", Vertices PU 0-" << deviceNeeded*cuNm*splitNm-2 << ": "
+              << general << ", total=" << general*(deviceNeeded*cuNm*splitNm-1)
+              << ", last PU " << deviceNeeded*cuNm*splitNm-1 << ": " << rest
+              << std::endl;
 
     if (rest < 0) {
-        return -7;
+        return XF_GRAPH_UDF_GRAPH_PARTITION_ERROR;
     }
     int32_t** numVerticesPU = new int32_t*[deviceNeeded * cuNm]; // vertex numbers in each PU
     int32_t** numEdgesPU = new int32_t*[deviceNeeded * cuNm];    // edge numbers in each PU
@@ -334,7 +340,6 @@ inline int udf_loadgraph_cosinesim_ss_fpga(int64_t numVertices,
             for (int j = 0; j < numVerticesPU[m][i]; ++j) {
                 int64_t lsb32 = oldVectors.get(offset).get(1);
                 int64_t msb32 = oldVectors.get(offset).get(2);
-                std::cout << "DEBUG: offset=" << offset << std::endl;
                 uint64_t fullID = ((msb32 << 32) & 0xFFFFFFF00000000) | (lsb32 & 0x00000000FFFFFFFF);
                 xai::IDMap.push_back(fullID);
                 for (int k = 3; k < vecLength; ++k) {
@@ -367,22 +372,22 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     const int32_t nullVal = 0;  // value to use for padding.  0 appears to be safe for cosine sim computation
 
     int32_t edgeAlign8 = ((numEdges + channelW - 1) / channelW) * channelW;
-    int general = ((numVertices + deviceNeeded * cuNm * splitNm * channelsPU - 1) /
-                   (deviceNeeded * cuNm * splitNm * channelsPU)) *
-                  channelsPU;
+    //int general = ((numVertices + deviceNeeded * cuNm * splitNm * channelsPU - 1) /
+    //               (deviceNeeded * cuNm * splitNm * channelsPU)) * channelsPU;
+    // All channels need to have equal number of vertices except the last channel
+    // The formula is to make sure the last channel always has data to process.
+    // The last chanel may be assigned more data than other channels.
+    int general = ((numVertices - (deviceNeeded * cuNm * splitNm * channelsPU + 1)) /
+                  (deviceNeeded * cuNm * splitNm * channelsPU)) * channelsPU;
     int rest = numVertices - general * (deviceNeeded * cuNm * splitNm - 1);
-    if (rest < 0) {
-        exit(1);
-    }
-    // int general = ((numVertices + deviceNeeded * cuNm * splitNm - 1) /
-    //                (deviceNeeded * cuNm * splitNm));
-
-    // int rest = numVertices - general * (deviceNeeded * cuNm * splitNm - 1);
     std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
-              << " numVertices=" << numVertices << ", general=" << general 
-              << ", rest=" << rest 
-              << ", split=" << deviceNeeded * cuNm * splitNm << std::endl;
-
+            << " numVertices=" << numVertices << ", general=" << general 
+            << ", rest=" << rest 
+            << ", split=" << deviceNeeded * cuNm * splitNm << std::endl;
+    if (rest < 0) {
+        //result += testResults(VERTEX(-7), -7)
+        return result;
+    }
 
     int32_t** numVerticesPU = new int32_t*[deviceNeeded * cuNm]; // vertex numbers in each PU
     int32_t** numEdgesPU = new int32_t*[deviceNeeded * cuNm];    // edge numbers in each PU
@@ -441,7 +446,9 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     memset(similarity, 0, topK * sizeof(float));
 
     //---------------- Run L3 API -----------------------------------
-    int ret = cosinesim_ss_dense_fpga(deviceNeeded * cuNm, sourceLen, sourceWeight, topK, g, resultID, similarity);
+    int ret = cosinesim_ss_dense_fpga(
+                  deviceNeeded * cuNm, sourceLen, sourceWeight, topK, g, 
+                  resultID, similarity);
 
     for (unsigned int k = 0; k < topK; k++) {
         result += testResults(VERTEX(xai::IDMap[resultID[k]]), similarity[k]);

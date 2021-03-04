@@ -269,7 +269,7 @@ int Handle::setUp() {
                 std::cout << "ERROR: Current node does not have requested device count." 
                     << "Requested: " << deviceCounter + boardNm 
                     << "Available: " << numDevices << std::endl;
-                return XF_GRAPH_L3_HANDLE_NOT_ENOUGH_DEVICES;
+                return XF_GRAPH_L3_ERROR_NOT_ENOUGH_DEVICES;
             }
             std::thread thUn[boardNm];
             for (int j = 0; j < boardNm; ++j) {
