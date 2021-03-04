@@ -45,7 +45,7 @@ do
     echo "Run query cosinesim_ss_tg"
     time gsql -g $xgraph "set query_timeout=240000000 run query cosinesim_ss_tg(\"$PWD/log/tg.txt\")"
     echo "Run query cosinesim_ss_fpga"
-    time gsql -g $xgraph "set query_timeout=240000000 run query cosinesim_ss_fpga(\"$PWD/log/fpga.txt\")"
+    time gsql -g $xgraph "set query_timeout=240000000 run query cosinesim_ss_fpga(\"$PWD/log/fpga.txt\", 1)"
 done
 echo "Run query close_fpga"
 time gsql -g $xgraph "set query_timeout=240000000 run query close_fpga()"

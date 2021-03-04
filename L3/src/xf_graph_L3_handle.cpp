@@ -273,6 +273,7 @@ int Handle::setUp() {
             }
             std::thread thUn[boardNm];
             for (int j = 0; j < boardNm; ++j) {
+                std::cout << "DEBUG: unloadXclbinNonBlock board " << j << std::endl;
                 thUn[j] = xrm->unloadXclbinNonBlock(deviceCounter + j);
             }
             for (int j = 0; j < boardNm; ++j) {
@@ -280,6 +281,7 @@ int Handle::setUp() {
             }
             std::future<int> th[boardNm];
             for (int j = 0; j < boardNm; ++j) {
+                std::cout << "DEBUG: loadXclbinAsync board " << j << std::endl;
                 th[j] = loadXclbinAsync(deviceCounter + j, ops[i].xclbinFile);
             }
             for (int j = 0; j < boardNm; ++j) {

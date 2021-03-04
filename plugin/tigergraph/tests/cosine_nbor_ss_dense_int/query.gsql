@@ -84,10 +84,10 @@ create query cosinesim_ss_tg(string log_file) for graph @graph {
     end;
 }
 
-create query loadgraph_cosinesim_ss_fpga(int device_needed) for graph @graph {
+create query loadgraph_cosinesim_ss_fpga(int devices_needed) for graph @graph {
     STRING status;
     INT ret;
-    ret = loadgraph_cosinesim_ss_fpga_core(device_needed);
+    ret = loadgraph_cosinesim_ss_fpga_core(devices_needed);
     print ret;
     IF ret == 0 THEN
         status = "FPGA loaded successfully";
@@ -107,7 +107,7 @@ create query loadgraph_cosinesim_ss_fpga(int device_needed) for graph @graph {
     PRINT status;
 }
 
-create query cosinesim_ss_fpga(string log_file1) for graph @graph {
+create query cosinesim_ss_fpga(string log_file1, int devices_needed) for graph @graph {
     uint topK;
     vertex<patients> newPatient;
     ListAccum<testResults> @@result;
@@ -125,7 +125,7 @@ create query cosinesim_ss_fpga(string log_file1) for graph @graph {
         ACCUM newPatient = p;
 # Cosine Similarity using TigerGraph
     udf_reset_timer(true);
-    @@result = cosinesim_ss_fpga_core(newPatient, topK);
+    @@result = cosinesim_ss_fpga_core(newPatient, topK, devices_needed);
     run_time = udf_elapsed_time(true);
     print "Xilinx Alveo U50" AS ComputationTechnique;
     print newPatient.FIRST_NAME + " " + newPatient.LAST_NAME AS Patient;
@@ -155,7 +155,8 @@ create query cosinesim_ss_fpga(string log_file1) for graph @graph {
     end;
 }
 
-create query cosinesim_ss_test_fpga_consistency(string log_file1, string log_file2) for graph @graph {
+create query cosinesim_ss_test_fpga_consistency(
+    string log_file1, string log_file2, int devices_needed) for graph @graph {
     uint topK;
     vertex<patients> newPatient;
     ListAccum<testResults> @@result;
@@ -174,8 +175,8 @@ create query cosinesim_ss_test_fpga_consistency(string log_file1, string log_fil
         ACCUM newPatient = p;
     print newPatient;
 # Cosine Similarity using TigerGraph
-    @@result = cosinesim_ss_fpga_core(newPatient, topK);
-    @@result2 = cosinesim_ss_fpga_core(newPatient, topK);
+    @@result = cosinesim_ss_fpga_core(newPatient, topK, devices_needed);
+    @@result2 = cosinesim_ss_fpga_core(newPatient, topK, devices_needed);
     print @@result2;
     print "Cosine Sim using Xilinx Alveo U50";
     file1.println("SCORE", "FIRST_NAME", "LAST_NAME", "AGE", "RACE", "ETHNICITY", "GENDER",

@@ -799,6 +799,7 @@ extern "C" int loadgraph_cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
     
     //---------------- Run Load Graph -----------------------------------
     for (int i = 0; i < deviceNeeded * cuNm; ++i) {
+        std::cout << "DEBUG: loadGraphMultiCardNonBlocking " << i << std::endl;
         (handle0->opsimdense)->loadGraphMultiCardNonBlocking(i / cuNm, i % cuNm, g[i][0]);
     }
 
@@ -814,7 +815,7 @@ extern "C" int loadgraph_cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
     return 0;
 }
 
-extern "C" void cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
+extern "C" void cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
                                         int32_t sourceLen,
                                         int32_t* sourceWeight,
                                         int32_t topK,
@@ -826,11 +827,9 @@ extern "C" void cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
     std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
     handle0->debug();
     int32_t requestNm = 1;
-    //    int ret = xf::graph::L3::cosineSimilaritySSDenseMultiCard(handle0, deviceNeeded, sourceLen, sourceWeight,
-    //    topK, g,
-    //                                                              resultID, similarity);
-    int32_t hwNm = deviceNeeded;
-    std::cout << "hwNm = " << hwNm << std::endl;
+    int32_t hwNm = devicesNeeded;
+    std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__ 
+              << "hwNm = " << hwNm << std::endl;
     std::vector<xf::graph::L3::event<int> > eventQueue[requestNm];
     float** similarity0[requestNm];
     int32_t** resultID0[requestNm];
