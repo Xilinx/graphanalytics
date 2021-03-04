@@ -43,17 +43,17 @@ public:
     ColIndex getVectorLength() const { return vecLength_; }
     
     void openFpga() {}
-    void startLoadOldVectors() { numRows_ = 0; }
-    Value *getOldVectorBuffer(RowIndex &rowIndex) {
+    void startLoadPopulation() { numRows_ = 0; }
+    Value *getPopulationVectorBuffer(RowIndex &rowIndex) {
         static std::vector<Value> s_buf;
         s_buf.resize(vecLength_, 0);
         rowIndex = numRows_++;
         return s_buf.data();
     }
-    void finishCurrentOldVector() {}
-    void finishLoadOldVectors() {}
+    void finishCurrentPopulationVector() {}
+    void finishLoadPopulation() {}
     
-    std::vector<Result> matchNewVector(unsigned numResults, const Value *elements) { return std::vector<Result>(); }
+    std::vector<Result> matchTargetVector(unsigned numResults, const Value *elements) { return std::vector<Result>(); }
     void closeFpga() {}
     
 private:
@@ -91,10 +91,10 @@ int main(int argc, char **argv) {
     
     std::cout << "Loading old vectors into Alveo card..." << std::endl;
     cosineSim.openFpga();
-    cosineSim.startLoadOldVectors();
+    cosineSim.startLoadPopulation();
     for (unsigned vecNum = 0; vecNum < NumVectors; ++vecNum) {
         CosineSim::RowIndex rowIndex = 0;
-        CosineSim::ValueType *pBuf = cosineSim.getOldVectorBuffer(rowIndex);
+        CosineSim::ValueType *pBuf = cosineSim.getPopulationVectorBuffer(rowIndex);
         for (unsigned eltNum = 0; eltNum < VectorLength; ++eltNum) {
             const CosineSim::ValueType value = CosineSim::ValueType(std::rand() % MaxValue - (MaxValue / 2));
             *pBuf++ = value;
@@ -103,14 +103,14 @@ int main(int argc, char **argv) {
             if (vecNum == testVectorIndex)
                 testVector.push_back(value);
         }
-        cosineSim.finishCurrentOldVector();
+        cosineSim.finishCurrentPopulationVector();
     }
-    cosineSim.finishLoadOldVectors();
+    cosineSim.finishLoadPopulation();
     
     // Run the match in the FPGA
     
     std::cout << "Running match for test vector #" << testVectorIndex << "..." << std::endl;
-    std::vector<CosineSim::Result> results = cosineSim.matchNewVector(10, testVector.data());
+    std::vector<CosineSim::Result> results = cosineSim.matchTargetVector(10, testVector.data());
     
     // Display the results
     
