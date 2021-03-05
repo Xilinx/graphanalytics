@@ -545,9 +545,9 @@ inline void worker(queue& q,
         }
 
 #ifdef __DEBUG__
-        std::cout << "INFO: Allocated deviceID = " << deviceID << "\t cuID = " << cuID << "\t channelID = " << channelID
-                  << "\t instance name = " << instanceName << "\t request ID = " << requestCnt << "\t number per while "
-                  << requestNm << std::endl;
+        //std::cout << "INFO: Allocated deviceID = " << deviceID << "\t cuID = " << cuID << "\t channelID = " << channelID
+        //          << "\t instance name = " << instanceName << "\t request ID = " << requestCnt << "\t number per while "
+        //         << requestNm << std::endl;
 #endif
 
         for (int i = 0; i < requestNm; i++) {
@@ -642,9 +642,9 @@ inline void worker2(queue& q,
         }
         requestCnt++;
 #ifdef __DEBUG__
-        std::cout << "INFO: Allocated deviceID = " << deviceID << "\t cuID = " << cuID << "\t channelID = " << channelID
-                  << "\t instance name = " << instanceName << "\t request ID = " << requestCnt << "\t number per while "
-                  << requestNm << std::endl;
+        //std::cout << "INFO: Allocated deviceID = " << deviceID << "\t cuID = " << cuID << "\t channelID = " << channelID
+        //          << "\t instance name = " << instanceName << "\t request ID = " << requestCnt << "\t number per while "
+        //          << requestNm << std::endl;
         std::chrono::time_point<std::chrono::high_resolution_clock> l_tp_compute_time2 =
             std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> l_durationSec2 = l_tp_compute_time2 - l_tp_start_compute2;

@@ -40,8 +40,9 @@ function usage() {
     echo "Optional options:"
     echo "  -c 0|1    0=Do not load cache; 1=Load cache(default)"
     echo "  -d devices-needed   : number of FPGAs needed (default=1)"
-    echo "  -g graph-name"
-    echo "  -s data-source-directory"
+    echo "  -n iterations       : number of iterations to run (default=3)"
+    echo "  -g graph-name       : graph name (default=xgraph_<username>"
+    echo "  -s data-source-path : path containing input data. default=./1000_patients/csv"
     echo "  -c 0|1              : 0=Do not load cache; 1=Load cache(default)"
     echo "  -h                  : Print this help message"
 }
@@ -50,12 +51,14 @@ function usage() {
 data_root="./1000_patients/csv"
 load_cache=1
 devices_needed=1
-while getopts ":u:p:s:g:c:d:h" opt
+iterations=3
+while getopts ":u:p:s:g:c:d:n:h" opt
 do
 case $opt in
     c) load_cache=$OPTARG;;
     d) devices_needed=$OPTARG;;
     g) xgraph=$OPTARG;;
+    n) iterations=$OPTARG;;
     p) password=$OPTARG;;
     s) data_root=$OPTARG;;
     u) username=$OPTARG;;
@@ -76,11 +79,12 @@ if [ -z "$xgraph" ]; then
 fi
 
 echo "INFO: username=$username"
-echo "INFO: password=$password"
-echo "INFO: data_root=$data_root"
-echo "INFO: xgraph=$xgraph"
-echo "INFO: load_cache=$load_cache"
-echo "INFO: devices_needed=$devices_needed"
+echo "      password=$password"
+echo "      data_root=$data_root"
+echo "      xgraph=$xgraph"
+echo "      load_cache=$load_cache"
+echo "      devices_needed=$devices_needed"
+echo "      iterations=$iterations"
 
 if [ ! -f "$HOME/gsql-client/gsql_client.jar" ]; then
     mkdir -p $HOME/gsql-client

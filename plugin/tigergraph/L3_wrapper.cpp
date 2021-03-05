@@ -19,6 +19,7 @@
 #ifndef _L3_WRAPPER_CPP_
 #define _L3_WRAPPER_CPP_
 
+#include <cstdlib>
 #include "L3_wrapper.hpp"
 
 namespace xf {
@@ -326,9 +327,8 @@ int cosineSimilaritySSDenseMultiCard(std::shared_ptr<xf::graph::L3::Handle>& han
         memset(similarity0[i], 0, topK * sizeof(float));
     }
     for (int i = 0; i < deviceNm; ++i) {
-        eventQueue.push_back(
-            (handle->opsimdense)
-                ->addworkInt(1, 0, sourceNUM, sourceWeights, topK, g[i][0], resultID0[i], similarity0[i]));
+        eventQueue.push_back((handle->opsimdense)->addworkInt(
+            1, 0, sourceNUM, sourceWeights, topK, g[i][0], resultID0[i], similarity0[i]));
     }
     int ret = 0;
     for (int i = 0; i < eventQueue.size(); ++i) {
@@ -823,7 +823,8 @@ extern "C" void cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
                                         int32_t* resultID,
                                         float* similarity) {
     //---------------- Run Load Graph -----------------------------------
-    std::cout << "INFO: L3_wrapper::cosinesim_ss_dense_fpga starting..." << std::endl;
+    std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
+              << " XRT_INI_PATH=" << std::getenv("XRT_INI_PATH") << std::endl;
     std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
     handle0->debug();
     int32_t requestNm = 1;

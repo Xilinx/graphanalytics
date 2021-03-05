@@ -30,28 +30,15 @@ clean=0
 # will not reset TG engines when dev_mode=1
 dev_mode=0
 
-while getopts ":r:m:df" opt
+while getopts ":r:m:dfg" opt
 do
 case $opt in
-    r)
-    xrtPath=$OPTARG
-    echo "INFO: XRT path set to $xrtPath"
-    ;;
-    m)
-    xrmPath=$OPTARG
-    echo "INFO: XRM path set to $xrmPath"
-    ;;
-    f)
-    clean=1
-    echo "INFO: Option set: Force rebuidling plugin libraries"
-    ;;
-    d)
-    dev_mode=1
-    echo "INFO: Option set: Install plugin in development mode"
-    ;;
-    ?)
-    echo "unknown"
-    exit 1;;
+    r) xrtPath=$OPTARG; echo "INFO: XRT path set to $xrtPath";;
+    m) xrmPath=$OPTARG; echo "INFO: XRM path set to $xrmPath";;
+    f) clean=1; echo "INFO: Option set: Force rebuidling plugin libraries";;
+    d) dev_mode=1; echo "INFO: Option set: Install plugin in development mode";;
+    g) debug_flag="DEBUG=1"; echo "INFO: debug_mode=$debug";;
+    ?) echo "unknown"; exit 1;;
     esac
 done
 
@@ -119,7 +106,8 @@ then
     cd $SCRIPTPATH && make TigerGraphPath=$tg_root_dir TigerGraphTemp=$tg_temp_root clean
 fi
 
-cd $SCRIPTPATH && make TigerGraphPath=$tg_root_dir TigerGraphTemp=$tg_temp_root libgraphL3wrapper
+cd $SCRIPTPATH && make $debug_flag TigerGraphPath=$tg_root_dir \
+                       TigerGraphTemp=$tg_temp_root libgraphL3wrapper
 
 # copy files to $tg_rrot_dir UDF area
 mkdir -p $tg_temp_root/gsql/codegen/udf
@@ -155,7 +143,7 @@ if [ "$dev_mode" -eq 0 ]
 then
     echo "INFO: Apply environment changes to TigerGraph installation"
     gadmin start all
-    gadmin config set GPE.BasicConfig.Env "LD_PRELOAD=\$LD_PRELOAD; LD_LIBRARY_PATH=$HOME/libstd:/opt/xilinx/xrt/lib:/opt/xilinx/xrm/lib:/usr/lib/x86_64-linux-gnu/:\$LD_LIBRARY_PATH; CPUPROFILE=/tmp/tg_cpu_profiler; CPUPROFILESIGNAL=12; MALLOC_CONF=prof:true,prof_active:false; XILINX_XRT=/opt/xilinx/xrt; XILINX_XRM=/opt/xilinx/xrm"
+    gadmin config set GPE.BasicConfig.Env "LD_PRELOAD=\$LD_PRELOAD; LD_LIBRARY_PATH=$HOME/libstd:/opt/xilinx/xrt/lib:/opt/xilinx/xrm/lib:/usr/lib/x86_64-linux-gnu/:\$LD_LIBRARY_PATH; CPUPROFILE=/tmp/tg_cpu_profiler; CPUPROFILESIGNAL=12; MALLOC_CONF=prof:true,prof_active:false; XILINX_XRT=/opt/xilinx/xrt; XILINX_XRM=/opt/xilinx/xrm;XRT_INI_PATH=/tmp"
 
     echo "Apply the new configurations"
     gadmin config apply -y

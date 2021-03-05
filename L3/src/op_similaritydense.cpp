@@ -890,8 +890,8 @@ event<int> opSimilarityDense::addworkInt(int32_t similarityType,
                                          xf::graph::Graph<int32_t, int32_t> g,
                                          int32_t* resultID,
                                          float* similarity) {
-    return createL3(task_queue[0], &(computeInt), handles, similarityType, dataType, sourceNUM, sourceWeight, topK, g,
-                    resultID, similarity);
+    return createL3(task_queue[0], &(computeInt), handles, similarityType, 
+        dataType, sourceNUM, sourceWeight, topK, g, resultID, similarity);
 };
 
 event<int> opSimilarityDense::addworkKNN(uint32_t similarityType,
