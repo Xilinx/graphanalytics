@@ -23,10 +23,10 @@ endif
 XILINX_XRM=/opt/xilinx/xrm
 
 
-.PHONY: all javaApi javaApiJar javaTest cppBuild cppBuild2
+.PHONY: all javaApi javaApiJar javaTest cppBuild cppBuild2 fill_example_stage
 
-#all: javaApi cppBuild javaTest
-all: cppBuild
+#all: javaApi cppBuild javaTest stage
+all: cppBuild stage
 
 
 #
@@ -159,7 +159,76 @@ ifeq ($(MAKECMDGOALS),cppBuild2)
 endif
 
 #
-# Java Demos
+# Packaging
+#
+
+STAGE_DIR = staging
+
+# Files to be direct-copied from source tree to staging area
+
+STAGE_COPY_FILES = \
+    include/cosinesim.hpp \
+    src/cosinesim_loader.cpp
+
+define STAGE_COPY_RULE
+$$(STAGE_DIR)/$(1): $(1)
+	cp -f $(1) $$(STAGE_DIR)/$(1)
+endef
+$(foreach f,$(STAGE_COPY_FILES),$(eval $(call STAGE_COPY_RULE,$(f))))
+
+# Binary (C++) files
+
+STAGE_LIB_FILES = \
+    $(LIB_NAME) \
+    $(LOADER_NAME)
+
+define STAGE_LIB_RULE
+$$(STAGE_DIR)/lib/$(1): $$(CPP_BUILD_DIR)/$(1)
+	cp -f $$^ $$@
+endef
+$(foreach f,$(STAGE_LIB_FILES),$(eval $(call STAGE_LIB_RULE,$(f))))
+
+# Example files - need to be zipped up
+
+STAGE_EXAMPLE_ZIP = examples.zip
+STAGE_EXAMPLE_FILE_NAMES = \
+    cppdemo/cppdemo.cpp
+STAGE_EXAMPLE_FILES = $(addprefix examples/,$(STAGE_EXAMPLE_FILE_NAMES))
+STAGE_STAGED_EXAMPLE_FILES = $(addprefix $(STAGE_DIR)/,$(STAGE_EXAMPLE_FILES))
+
+$(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP): $(STAGE_EXAMPLE_FILES)
+	mkdir -p $(sort $(dir $(STAGE_STAGED_EXAMPLE_FILES)))
+	@make fill_example_stage
+	@cd $(STAGE_DIR) ; \
+	zip -r $(STAGE_EXAMPLE_ZIP) examples
+	rm -rf $(STAGE_DIR)/examples
+
+fill_example_stage: $(STAGE_STAGED_EXAMPLE_FILES)
+	
+$(STAGE_STAGED_EXAMPLE_FILES):
+	cp -f $(patsubst $(STAGE_DIR)/%,%,$@) $@
+	
+
+# XCLBIN file
+
+# TODO: make from L2 sources
+
+# Top-level packaging rule
+
+STAGE_SUBDIR_NAMES = include lib src xclbin
+STAGE_SUBDIRS = $(addprefix $(STAGE_DIR)/,$(STAGE_SUBDIR_NAMES))
+STAGE_ALL_FILES = \
+    $(addprefix $(STAGE_DIR)/,$(STAGE_COPY_FILES)) \
+    $(addprefix $(STAGE_DIR)/lib/,$(STAGE_LIB_FILES)) \
+    $(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP) \
+
+stage: $(STAGE_SUBDIRS) $(STAGE_ALL_FILES)
+
+$(STAGE_SUBDIRS):
+	mkdir -p $@
+
+#
+# Java Tests
 #
 
 javaTest:
@@ -171,5 +240,5 @@ javaTest:
 
 #### Clean target deletes all generated files ####
 clean:
-	rm -rf Debug Release $(JAVA_LIB_DIR) $(JAVA_BUILD_DIR)
+	rm -rf Debug Release $(JAVA_LIB_DIR) $(JAVA_BUILD_DIR) $(STAGE_DIR)
 
