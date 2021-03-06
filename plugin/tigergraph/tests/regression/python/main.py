@@ -33,7 +33,7 @@ if __name__ == '__main__':
     hostName = "xsjfislx14"
     userName = "sachink"
     passWord = "Xilinx123"
-    graphName = "xgraph_sachink_1K_4"
+    graphName = "xgraph_sachink_1K"
     initScript = "./init_graph.sh"
     dataLocation = "/proj/gdba/datasets/synthea/1000_patients/csv"
     scriptLocation = "../../cosine_nbor_ss_dense_int"
@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
     # initialize the graph
     if doInit:
-        cmd = [initScript, userName, passWord, "default", graphName, dataLocation]
+        cmd = [initScript, "-u " + userName, "-p " + passWord, "-g " + graphName, "-s " + dataLocation]
         os.chdir(scriptLocation)
         sp.run(cmd)
         os.chdir(pwd)
@@ -61,10 +61,10 @@ if __name__ == '__main__':
     printResults(conn, resultSw)
     print()
     print('Hw data load...')
-    resultLoad = conn.runInstalledQuery('client_cosinesim_load_alveo')
+    resultLoad = conn.runInstalledQuery('client_cosinesim_load_alveo', {'numDevices': 1})
     print()
     print('HW query...')
-    resultHw = conn.runInstalledQuery('client_cosinesim_match_alveo', {'newPatient': newPatient['v_id'], 'topK': 10})
+    resultHw = conn.runInstalledQuery('client_cosinesim_match_alveo', {'newPatient': newPatient['v_id'], 'topK': 10, 'numDevices': 1})
     printResults(conn, resultHw)
 
     print()
