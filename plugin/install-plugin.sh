@@ -23,24 +23,48 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 ###############################################################################
+
+function usage() {
+    echo "Usage: $0 [optional options]"
+    echo "Optional options:"
+    echo "  -d               : Install plugin in development mode and bypass resetting Tigergraph services."
+    echo "  -f               : Force cleaning plugin libraries"
+    echo "  -g               : Build plugin libraries with __DEBUG__"
+    echo "  -m xrm-lib-path  : Path to XRM libraries. default=/opt/xilinx/xrm"
+    echo "  -p               : Turn on XRT profiling and timetrace"
+    echo "  -r xrt-lib-path  : Path to XRT libraries. default=/opt/xilinx/xrt"
+    echo "  -h               : Print this help message"
+}
+
 # script options processing
 xrtPath=/opt/xilinx/xrt
 xrmPath=/opt/xilinx/xrm
-clean=0
-# will not reset TG engines when dev_mode=1
+force_clean=0
+xrt_profiling=0
 dev_mode=0
 
-while getopts ":r:m:dfg" opt
+while getopts ":r:m:dfghp" opt
 do
 case $opt in
-    r) xrtPath=$OPTARG; echo "INFO: XRT path set to $xrtPath";;
-    m) xrmPath=$OPTARG; echo "INFO: XRM path set to $xrmPath";;
-    f) clean=1; echo "INFO: Option set: Force rebuidling plugin libraries";;
     d) dev_mode=1; echo "INFO: Option set: Install plugin in development mode";;
-    g) debug_flag="DEBUG=1"; echo "INFO: debug_mode=$debug";;
-    ?) echo "unknown"; exit 1;;
-    esac
+    f) force_clean=1; echo "INFO: Option set: Force rebuidling plugin libraries";;
+    g) debug_flag="DEBUG=1"; echo "INFO: debug_flag=$debug_flag";;
+    m) xrmPath=$OPTARG;;
+    r) xrtPath=$OPTARG;;
+    p) xrt_profiling=1;;
+    h) usage; exit 1;;
+    ?) echo "ERROR: Unknown option: -$OPTARG"; usage; exit 1;;
+esac
 done
+
+echo "INFO: Script is running with the settings below:"
+echo "      xrtPath=$xrtPath"
+echo "      xrmPath=$xrmPath"
+echo "      force_clean=$force_clean"
+echo "      debug_flag=$debug_flag"
+echo "      xrt_profiling=$xrt_profiling"
+
+###############################################################################
 
 echo "INFO: Checking TigerGraph installation version and directory"
 if ! [ -x "$(command -v jq)" ]; then
@@ -100,7 +124,7 @@ source $xrtPath/setup.sh
 source $xrmPath/setup.sh
 
 # make L3 wrapper library
-if [ "$clean" -eq 1 ]
+if [ "$force_clean" -eq 1 ]
 then
     echo "INFO: make TigerGraphPath=$tg_root_dir TigerGraphTemp=$tg_temp_root clean"
     cd $SCRIPTPATH && make TigerGraphPath=$tg_root_dir TigerGraphTemp=$tg_temp_root clean
@@ -139,11 +163,15 @@ for f in $tg_root_dir/dev/gdk/gsql/src/QueryUdf/*.json; do
 done
 sed -i "s|TG_ROOT_DIR|$tg_root_dir|" $tg_root_dir/dev/gdk/MakeUdf 
 
-if [ "$dev_mode" -eq 0 ]
-then
+if [ "$dev_mode" -eq 0 ]; then
     echo "INFO: Apply environment changes to TigerGraph installation"
     gadmin start all
-    gadmin config set GPE.BasicConfig.Env "LD_PRELOAD=\$LD_PRELOAD; LD_LIBRARY_PATH=$HOME/libstd:/opt/xilinx/xrt/lib:/opt/xilinx/xrm/lib:/usr/lib/x86_64-linux-gnu/:\$LD_LIBRARY_PATH; CPUPROFILE=/tmp/tg_cpu_profiler; CPUPROFILESIGNAL=12; MALLOC_CONF=prof:true,prof_active:false; XILINX_XRT=/opt/xilinx/xrt; XILINX_XRM=/opt/xilinx/xrm;XRT_INI_PATH=/tmp"
+    if [ "$xrt_profiling" -eq 1 ]; then
+        gpe_config="LD_PRELOAD=\$LD_PRELOAD;LD_LIBRARY_PATH=$HOME/libstd:/opt/xilinx/xrt/lib:/opt/xilinx/xrm/lib:/usr/lib/x86_64-linux-gnu/:\$LD_LIBRARY_PATH;CPUPROFILE=/tmp/tg_cpu_profiler;CPUPROFILESIGNAL=12;MALLOC_CONF=prof:true,prof_active:false;XILINX_XRT=/opt/xilinx/xrt;XILINX_XRM=/opt/xilinx/xrm;XRT_INI_PATH=$PWD/../scripts/debug/xrt-profile.ini"
+    else
+        gpe_config="LD_PRELOAD=\$LD_PRELOAD;LD_LIBRARY_PATH=$HOME/libstd:/opt/xilinx/xrt/lib:/opt/xilinx/xrm/lib:/usr/lib/x86_64-linux-gnu/:\$LD_LIBRARY_PATH;CPUPROFILE=/tmp/tg_cpu_profiler;CPUPROFILESIGNAL=12;MALLOC_CONF=prof:true,prof_active:false;XILINX_XRT=/opt/xilinx/xrt;XILINX_XRM=/opt/xilinx/xrm"
+    fi
+    gadmin config set GPE.BasicConfig.Env "$gpe_config"
 
     echo "Apply the new configurations"
     gadmin config apply -y

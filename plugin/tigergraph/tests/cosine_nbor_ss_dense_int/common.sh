@@ -64,7 +64,7 @@ case $opt in
     u) username=$OPTARG;;
     h) usage; exit 1;;
     ?) echo "ERROR: Unknown option: -$OPTARG"; usage; exit 1;;
-    esac
+esac
 done
 
 if [ -z "$username" ] || [ -z "$password" ]; then

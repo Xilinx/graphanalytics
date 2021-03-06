@@ -20,6 +20,7 @@
 #define _L3_WRAPPER_CPP_
 
 #include <cstdlib>
+#include <chrono>
 #include "L3_wrapper.hpp"
 
 namespace xf {
@@ -367,6 +368,7 @@ std::vector<event<int> > cosineSimilaritySSDenseMultiCard(std::shared_ptr<xf::gr
                                                           int32_t** resultID,
                                                           float** similarity) {
     std::vector<event<int> > eventQueue;
+    
     for (int i = 0; i < deviceNm; ++i) {
         eventQueue.push_back(
             (handle->opsimdense)
@@ -825,12 +827,19 @@ extern "C" void cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
     //---------------- Run Load Graph -----------------------------------
     std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
               << " XRT_INI_PATH=" << std::getenv("XRT_INI_PATH") << std::endl;
-    std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
+
+    std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time =
+            std::chrono::high_resolution_clock::now();
+    std::cout << "DEBUG: " << __FUNCTION__ << " start=" << l_start_time.time_since_epoch().count() 
+              << std::endl;
+
+    std::shared_ptr<xf::graph::L3::Handle> handle0 = 
+                        sharedHandlesCosSimDense::instance().handlesMap[0];
     handle0->debug();
     int32_t requestNm = 1;
     int32_t hwNm = devicesNeeded;
     std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__ 
-              << "hwNm = " << hwNm << std::endl;
+              << " hwNm=" << hwNm << std::endl;
     std::vector<xf::graph::L3::event<int> > eventQueue[requestNm];
     float** similarity0[requestNm];
     int32_t** resultID0[requestNm];
@@ -885,6 +894,12 @@ extern "C" void cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
         delete[] similarity0[m];
         delete[] resultID0[m];
     }
+    std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time =
+            std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> l_durationSec = l_end_time - l_start_time;
+    double l_timeMs = l_durationSec.count() * 1e3;
+    std::cout << "PROFILING: " << __FUNCTION__ << " runtime msec=  " 
+              << std::fixed << std::setprecision(6) << l_timeMs << std::endl;
 }
 
 extern "C" void close_fpga() {

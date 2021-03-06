@@ -507,34 +507,23 @@ inline void worker(queue& q,
                    unsigned int cuNm) {
     int requestNm = deviceNm * cuNm;
     xrmCuResource* resR[requestNm];
+
 #ifdef __DEBUG__
     int requestCnt = 0;
 #endif
     while (true) {
-#ifdef __DEBUG__
-        std::chrono::time_point<std::chrono::high_resolution_clock> l_tp_start_compute =
-            std::chrono::high_resolution_clock::now();
-#endif
         class task t[requestNm];
         for (int i = 0; i < requestNm; ++i) {
+            // q.getWork is blocking until it has a job
             t[i] = q.getWork();
             resR[i] = (xrmCuResource*)malloc(sizeof(xrmCuResource));
             memset(resR[i], 0, sizeof(xrmCuResource));
         }
-
         bool toStop = false;
         for (int i = 0; i < requestNm; ++i) {
             if (!t[i].valid()) toStop = true;
         }
         if (toStop) break;
-#ifdef __DEBUG__
-        std::chrono::time_point<std::chrono::high_resolution_clock> l_tp_compute_time =
-            std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> l_durationSec = l_tp_compute_time - l_tp_start_compute;
-        double l_timeMs = l_durationSec.count() * 1e3;
-        std::cout << "INFO: getwork time =  " << std::fixed << std::setprecision(6) << l_timeMs << " msec" << std::endl;
-        std::cout << "-----------------------------------------------" << std::endl;
-#endif
 
 #ifdef __DEBUG__
         std::chrono::time_point<std::chrono::high_resolution_clock> l_tp_start_compute2 =
@@ -572,7 +561,7 @@ inline void worker(queue& q,
             std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> l_durationSec2 = l_tp_compute_time2 - l_tp_start_compute2;
         double l_timeMs2 = l_durationSec2.count() * 1e3;
-        std::cout << "INFO: Cu allocation time =  " << std::fixed << std::setprecision(6) << l_timeMs2 << " msec"
+        std::cout << "PROFILING: Cu allocation time =  " << std::fixed << std::setprecision(6) << l_timeMs2 << " msec"
                   << std::endl;
         std::cout << "-----------------------------------------------" << std::endl;
 #endif
