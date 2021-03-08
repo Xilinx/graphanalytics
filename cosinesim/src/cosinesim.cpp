@@ -29,7 +29,24 @@ public:
 	//xf::graph::Graph<int32_t, int32_t>** g = new xf::graph::Graph<int32_t, int32_t>*[deviceNeeded * cuNm];
 	std::vector<xf::graph::Graph<int32_t, int32_t>*> g;
 
-	PrivateImpl(){
+private:
+	CosineSimBase* cosinesimPtr;
+
+public:
+	PrivateImpl(CosineSimBase* ptr){
+		cosinesimPtr = ptr;
+		indexDeviceCuNm=0;
+		indexSplitNm=0;
+		indexNumVertices=0;
+		indexVecLength=3;
+		oldVectorRowIndex=0;
+		vecLength = ptr->getOptions().vecLength;
+		numEdges = vecLength - 3;
+		numVertices =ptr->getOptions().numVertices;
+	}
+
+	~PrivateImpl(){}
+	void startLoadPopulation(){
 		indexDeviceCuNm=0;
 		indexSplitNm=0;
 		indexNumVertices=0;
@@ -44,8 +61,8 @@ public:
 		loadPopulationCnt.resize(channelsPU);
 		g.resize(deviceNeeded*cuNm);
 
-		for(auto item: loadPopulationCnt){
-			item = 0;
+		for(auto& cnt: loadPopulationCnt){
+			cnt = 0;
 		}
 		int general = ((numVertices + deviceNeeded * cuNm * splitNm * channelsPU - 1)/(deviceNeeded * cuNm * splitNm * channelsPU)) * channelsPU;
 		int rest = numVertices - general * (deviceNeeded * cuNm * splitNm - 1);
@@ -59,13 +76,12 @@ public:
 		for(int i=0;i<deviceNeeded*cuNm; i++){
 			g[i] = new xf::graph::Graph<int32_t, int32_t>("Dense", 4 * splitNm, numEdges, numVerticesPU[i]);
 		}
-		//TODO: make it option var
-		vecLength = 200;
+
+		vecLength = cosinesimPtr->getOptions().vecLength;
 		numEdges = vecLength - 3;
-		numVertices =200;
+		numVertices = cosinesimPtr->getOptions().numVertices;
 	}
 
-	~PrivateImpl(){}
 	void *getPopulationVectorBuffer(RowIndex &rowIndex){
 
 
@@ -107,8 +123,8 @@ public:
 
 
 extern "C" {
-    ImplBase *createImpl(){
-    	return new PrivateImpl();
+    ImplBase *createImpl(CosineSimBase* ptr){
+    	return new PrivateImpl(ptr);
     }
 
     void destroyImpl(ImplBase *pImpl){

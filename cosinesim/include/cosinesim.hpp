@@ -31,6 +31,10 @@ namespace cosinesim {
 using RowIndex = std::int64_t;
 using ColIndex = std::int32_t;
 
+class CosineSimBase;
+template <typename Value>
+class CosineSim;
+
 class ImplBase {
 public:
 	virtual ~ImplBase(){};
@@ -38,12 +42,28 @@ public:
 };
 
 extern "C" {
-    ImplBase *createImpl();
+    ImplBase *createImpl(CosineSimBase* ptr);
     void destroyImpl(ImplBase *pImpl);
 }
 
+class CosineSimBase {
+public:
+    struct Options {
+    	ColIndex vecLength;
+    	int64_t numVertices;
+    };
+    Options getOptions() {return options_;};
+
+    CosineSimBase( const Options &options) : options_(options){};
+private:
+    Options options_;
+    ColIndex vecLength_ = 0;
+    RowIndex numRows_ = 0;
+
+};
+
 template <typename Value>
-class CosineSim {
+class CosineSim : public CosineSimBase{
 public:
     
 
@@ -57,12 +77,12 @@ public:
         }
     };
     
-    struct Options {
-        
-    };
+
     
 
-    CosineSim(ColIndex vecLength, const Options &options) : vecLength_(vecLength), options_(options), pImpl_(createImpl()) {};
+    CosineSim( const Options &options) :CosineSimBase(options), pImpl_(createImpl(this)) {
+
+    };
     ColIndex getVectorLength() const { return vecLength_; }
     
     void openFpga(...);
@@ -90,10 +110,12 @@ public:
     std::vector<Result> matchTargetVector(unsigned numResults, const Value *elements);
     void closeFpga();
     
+
+
 private:
-    Options options_;
-    ColIndex vecLength_ = 0;
-    RowIndex numRows_ = 0;
+    //Options options_;
+    //ColIndex vecLength_ = 0;
+    //RowIndex numRows_ = 0;
     std::unique_ptr<ImplBase> pImpl_;
     /*
     int CosineSim<Value>::loadgraph_cosinesim_ss_dense_fpga(uint32_t deviceNeeded, uint32_t cuNm,
