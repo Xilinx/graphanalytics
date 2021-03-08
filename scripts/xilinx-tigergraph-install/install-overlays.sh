@@ -27,7 +27,3 @@ cp $SCRIPTPATH/overlays/cosineSimilaritySSDenseIntBench/xilinx_u50_gen3x16_xdma_
 
 echo "XCLBIN files are copied to $tg_root_dir/dev/gdk/gsql/src/QueryUdf/xclbin"
 
-#copy the standard libstdc++ to $HOME/libstd
-mkdir -p $HOME/libstd
-cp /usr/lib64/libstdc++.so.6* $HOME/libstd
-

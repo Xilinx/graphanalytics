@@ -45,6 +45,9 @@ endif
 
 CXXFLAGS += -D USE_HBM
 CXXFLAGS += -D TIGERGRAPH_PATH=\"$(TigerGraphPath)\"
+ifdef DEBUG
+    CXXFLAGS += -D __DEBUG__
+endif
 
 ############################## Setting Rules for so (Building Dynamic Library) ##############################
 libGRAPHL3WRAPPER = $(TigerGraphTemp)/QueryUdf/libgraphL3wrapper.so

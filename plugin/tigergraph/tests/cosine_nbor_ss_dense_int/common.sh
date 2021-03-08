@@ -35,25 +35,56 @@ function gsql () {
         -u $username -p $password "$@"
 }
 
-if [ "$#" -lt 2 ]; then
-    echo "Usage: $0 TG-username TG-password [load-option graph-name data-root]"
-    exit 1
+function usage() {
+    echo "Usage: $0 -u TG-username -p TG-password [optional options]"
+    echo "Optional options:"
+    echo "  -c 0|1    0=Do not load cache; 1=Load cache(default)"
+    echo "  -d devices-needed   : number of FPGAs needed (default=1)"
+    echo "  -n iterations       : number of iterations to run (default=3)"
+    echo "  -g graph-name       : graph name (default=xgraph_<username>"
+    echo "  -s data-source-path : path containing input data. default=./1000_patients/csv"
+    echo "  -c 0|1              : 0=Do not load cache; 1=Load cache(default)"
+    echo "  -h                  : Print this help message"
+}
+
+# default values for optional options
+data_root="./1000_patients/csv"
+load_cache=1
+devices_needed=1
+iterations=3
+while getopts ":u:p:s:g:c:d:n:h" opt
+do
+case $opt in
+    c) load_cache=$OPTARG;;
+    d) devices_needed=$OPTARG;;
+    g) xgraph=$OPTARG;;
+    n) iterations=$OPTARG;;
+    p) password=$OPTARG;;
+    s) data_root=$OPTARG;;
+    u) username=$OPTARG;;
+    h) usage; exit 1;;
+    ?) echo "ERROR: Unknown option: -$OPTARG"; usage; exit 1;;
+esac
+done
+
+if [ -z "$username" ] || [ -z "$password" ]; then
+    echo "ERROR: username and password are required."
+    usage
+    exit 2
 fi
-username=$1
-password=$2
-# $3 is -noload or default
+
 # $4 graph-name
-if [ "$#" -gt 3 ]; then
-    xgraph=$4
-else
+if [ -z "$xgraph" ]; then
     xgraph="xgraph_$username"
 fi
-if [ "$#" -gt 4 ]; then
-    data_root=$5
-else
-    data_root="./1000_patients/csv"
-fi
-echo "INFO: data_root=$data_root"
+
+echo "INFO: username=$username"
+echo "      password=$password"
+echo "      data_root=$data_root"
+echo "      xgraph=$xgraph"
+echo "      load_cache=$load_cache"
+echo "      devices_needed=$devices_needed"
+echo "      iterations=$iterations"
 
 if [ ! -f "$HOME/gsql-client/gsql_client.jar" ]; then
     mkdir -p $HOME/gsql-client

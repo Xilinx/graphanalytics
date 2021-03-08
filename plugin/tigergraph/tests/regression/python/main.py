@@ -4,6 +4,8 @@
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
 import pyTigerGraph as tg
+import subprocess as sp
+import os
 
 
 def getPatient(conn, id):
@@ -26,18 +28,43 @@ def printResults(conn, result):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-#    conn = tg.TigerGraphConnection(host='http://xsjfislx11',graphname='xgraph')
-    conn = tg.TigerGraphConnection(host='http://xsjkumar50', graphname='xgraph_dliddell', username='dliddell', password='Xilinx123')
+
+    # Setup
+    hostName = "xsjfislx14"
+    userName = "sachink"
+    passWord = "Xilinx123"
+    graphName = "xgraph_sachink_1K"
+    initScript = "./init_graph.sh"
+    dataLocation = "/proj/gdba/datasets/synthea/1000_patients/csv"
+    scriptLocation = "../../cosine_nbor_ss_dense_int"
+    pwd = "../regression/python"
+    doInit = True
+
+    # initialize the graph
+    if doInit:
+        cmd = [initScript, "-u " + userName, "-p " + passWord, "-g " + graphName, "-s " + dataLocation]
+        os.chdir(scriptLocation)
+        sp.run(cmd)
+        os.chdir(pwd)
+
+    conn = tg.TigerGraphConnection(host='http://' + hostName, graphname=graphName, username=userName, password=passWord)
     patients = conn.getVertices('patients', limit=10)
     for p in patients:
         print(f'{p["v_id"]} {getPatientName(p)}')
     newPatient = patients[0]
+    print()
+    print('SW Caching...')
+    resultSw = conn.runInstalledQuery('client_cosinesim_load_cache')
+    print()
     print('SW query...')
     resultSw = conn.runInstalledQuery('client_cosinesim_match_sw', {'newPatient': newPatient['v_id'], 'topK': 10})
     printResults(conn, resultSw)
     print()
+    print('Hw data load...')
+    resultLoad = conn.runInstalledQuery('client_cosinesim_load_alveo', {'numDevices': 1})
+    print()
     print('HW query...')
-    resultHw = conn.runInstalledQuery('client_cosinesim_match_alveo', {'newPatient': newPatient['v_id'], 'topK': 10})
+    resultHw = conn.runInstalledQuery('client_cosinesim_match_alveo', {'newPatient': newPatient['v_id'], 'topK': 10, 'numDevices': 1})
     printResults(conn, resultHw)
 
     print()

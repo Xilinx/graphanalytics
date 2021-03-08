@@ -19,6 +19,10 @@
 #ifndef _XF_GRAPH_L3_HANDLE_HPP_
 #define _XF_GRAPH_L3_HANDLE_HPP_
 
+#define XF_GRAPH_L3_ERROR_CONFIG_FILE_NOT_EXIST -2
+#define XF_GRAPH_L3_ERROR_XCLBIN_FILE_NOT_EXIST -3
+#define XF_GRAPH_L3_ERROR_NOT_ENOUGH_DEVICES -6
+
 #include "op_pagerank.hpp"
 #include "op_sp.hpp"
 #include "op_trianglecount.hpp"
@@ -59,7 +63,6 @@ class Handle {
         char* kernelAlias;   // user defined kernel names
         unsigned int requestLoad = 100;
         char* xclbinFile;                    // xclbin full path
-        char* xclbinFile2;                   // xclbin full path
         unsigned int deviceNeeded = 0;       // requested FPGA device number
         unsigned int cuPerBoard = 1;         // requested FPGA device number
         std::vector<unsigned int> deviceIDs; // deviceID
@@ -243,7 +246,6 @@ class Handle {
 
     void initOpSimDenseInt(const char* kernelName,
                            char* xclbinFile,
-                           char* xclbinFile2,
                            char* kernelAlias,
                            unsigned int requestLoad,
                            unsigned int deviceNeeded,

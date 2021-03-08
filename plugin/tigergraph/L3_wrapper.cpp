@@ -19,6 +19,8 @@
 #ifndef _L3_WRAPPER_CPP_
 #define _L3_WRAPPER_CPP_
 
+#include <cstdlib>
+#include <chrono>
 #include "L3_wrapper.hpp"
 
 namespace xf {
@@ -326,9 +328,8 @@ int cosineSimilaritySSDenseMultiCard(std::shared_ptr<xf::graph::L3::Handle>& han
         memset(similarity0[i], 0, topK * sizeof(float));
     }
     for (int i = 0; i < deviceNm; ++i) {
-        eventQueue.push_back(
-            (handle->opsimdense)
-                ->addworkInt(1, 0, sourceNUM, sourceWeights, topK, g[i][0], resultID0[i], similarity0[i]));
+        eventQueue.push_back((handle->opsimdense)->addworkInt(
+            1, 0, sourceNUM, sourceWeights, topK, g[i][0], resultID0[i], similarity0[i]));
     }
     int ret = 0;
     for (int i = 0; i < eventQueue.size(); ++i) {
@@ -367,6 +368,7 @@ std::vector<event<int> > cosineSimilaritySSDenseMultiCard(std::shared_ptr<xf::gr
                                                           int32_t** resultID,
                                                           float** similarity) {
     std::vector<event<int> > eventQueue;
+    
     for (int i = 0; i < deviceNm; ++i) {
         eventQueue.push_back(
             (handle->opsimdense)
@@ -736,7 +738,6 @@ extern "C" int loadgraph_cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
     std::string kernelName;
     int requestLoad;
     std::string xclbinPath;
-    std::string xclbinPath2;
 
     std::string basePath = TIGERGRAPH_PATH;
     std::string jsonFilePath = basePath + "/dev/gdk/gsql/src/QueryUdf/config_cosinesim_ss_dense_fpga.json";
@@ -763,40 +764,27 @@ extern "C" int loadgraph_cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
                 token = strtok(NULL, "\"\t ,}:{\n");
                 std::string tmpStr = token;
                 xclbinPath = tmpStr;
-            } else if (!std::strcmp(token, "xclbinPath2")) {
-                token = strtok(NULL, "\"\t ,}:{\n");
-                std::string tmpStr2 = token;
-                xclbinPath2 = tmpStr2;
-            } else if (!std::strcmp(token, "deviceNeeded")) {
-                token = strtok(NULL, "\"\t ,}:{\n");
-                //             deviceNeeded = std::atoi(token);
-            }
+            } 
             token = strtok(NULL, "\"\t ,}:{\n");
         }
     }
     userInput.close();
 
-    //----------------- Setup shortestPathFloat thread ---------
+    //----------------- Setup denseSimilarityKernel thread ---------
     xf::graph::L3::Handle::singleOP op0;
     op0.operationName = (char*)opName.c_str();
     op0.setKernelName((char*)kernelName.c_str());
     op0.requestLoad = requestLoad;
     op0.xclbinFile = (char*)xclbinPath.c_str();
-    op0.xclbinFile2 = (char*)xclbinPath2.c_str();
     op0.deviceNeeded = deviceNeeded;
     op0.cuPerBoard = cuNm;
     
     std::fstream xclbinFS(xclbinPath, std::ios::in);
     if (!xclbinFS) {
         std::cout << "Error : xclbinFile doesn't exist: " << xclbinPath << std::endl;
-        return -3;
+        return XF_GRAPH_L3_ERROR_XCLBIN_FILE_NOT_EXIST;
     }
 
-    std::fstream xclbinFS2(xclbinPath2, std::ios::in);
-    if (deviceNeeded > 1 && !xclbinFS2) {
-        std::cout << "Error : xclbinFile2 doesn't exist: " << xclbinPath2 << std::endl;
-        return XF_GRAPH_L3_ERROR_XCLBIN2_FILE_NOT_EXIST;
-    }
     std::shared_ptr<xf::graph::L3::Handle> handleInstance(new xf::graph::L3::Handle);
     sharedHandlesCosSimDense::instance().handlesMap[0] = handleInstance;
     std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
@@ -813,6 +801,7 @@ extern "C" int loadgraph_cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
     
     //---------------- Run Load Graph -----------------------------------
     for (int i = 0; i < deviceNeeded * cuNm; ++i) {
+        std::cout << "DEBUG: loadGraphMultiCardNonBlocking " << i << std::endl;
         (handle0->opsimdense)->loadGraphMultiCardNonBlocking(i / cuNm, i % cuNm, g[i][0]);
     }
 
@@ -828,7 +817,7 @@ extern "C" int loadgraph_cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
     return 0;
 }
 
-extern "C" void cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
+extern "C" void cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
                                         int32_t sourceLen,
                                         int32_t* sourceWeight,
                                         int32_t topK,
@@ -836,15 +825,21 @@ extern "C" void cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
                                         int32_t* resultID,
                                         float* similarity) {
     //---------------- Run Load Graph -----------------------------------
-    std::cout << "INFO: L3_wrapper::cosinesim_ss_dense_fpga starting..." << std::endl;
-    std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
+    std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
+              << " XRT_INI_PATH=" << std::getenv("XRT_INI_PATH") << std::endl;
+
+    std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time =
+            std::chrono::high_resolution_clock::now();
+    std::cout << "DEBUG: " << __FUNCTION__ << " start=" << l_start_time.time_since_epoch().count() 
+              << std::endl;
+
+    std::shared_ptr<xf::graph::L3::Handle> handle0 = 
+                        sharedHandlesCosSimDense::instance().handlesMap[0];
     handle0->debug();
     int32_t requestNm = 1;
-    //    int ret = xf::graph::L3::cosineSimilaritySSDenseMultiCard(handle0, deviceNeeded, sourceLen, sourceWeight,
-    //    topK, g,
-    //                                                              resultID, similarity);
-    int32_t hwNm = deviceNeeded;
-    std::cout << "hwNm = " << hwNm << std::endl;
+    int32_t hwNm = devicesNeeded;
+    std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__ 
+              << " hwNm=" << hwNm << std::endl;
     std::vector<xf::graph::L3::event<int> > eventQueue[requestNm];
     float** similarity0[requestNm];
     int32_t** resultID0[requestNm];
@@ -862,8 +857,9 @@ extern "C" void cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
     }
     //---------------- Run L3 API -----------------------------------
     for (int m = 0; m < requestNm; ++m) {
-        eventQueue[m] = xf::graph::L3::cosineSimilaritySSDenseMultiCard(handle0, hwNm, sourceLen, sourceWeight, topK, g,
-                                                                        resultID0[m], similarity0[m]);
+        eventQueue[m] = xf::graph::L3::cosineSimilaritySSDenseMultiCard(
+            handle0, hwNm, sourceLen, sourceWeight, topK, g,
+            resultID0[m], similarity0[m]);
     }
 
     int ret = 0;
@@ -898,6 +894,12 @@ extern "C" void cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
         delete[] similarity0[m];
         delete[] resultID0[m];
     }
+    std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time =
+            std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> l_durationSec = l_end_time - l_start_time;
+    double l_timeMs = l_durationSec.count() * 1e3;
+    std::cout << "PROFILING: " << __FUNCTION__ << " runtime msec=  " 
+              << std::fixed << std::setprecision(6) << l_timeMs << std::endl;
 }
 
 extern "C" void close_fpga() {

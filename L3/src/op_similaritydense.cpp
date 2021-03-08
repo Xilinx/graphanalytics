@@ -19,6 +19,7 @@
 
 #include "op_similaritydense.hpp"
 #include <unordered_map>
+#include <chrono>
 
 namespace xf {
 namespace graph {
@@ -99,7 +100,6 @@ void opSimilarityDense::init(
 
 void opSimilarityDense::initInt(char* kernelName,
                                 char* xclbinFile,
-                                char* xclbinFile2,
                                 uint32_t* deviceIDs,
                                 uint32_t* cuIDs,
                                 unsigned int requestLoad) {
@@ -121,11 +121,8 @@ void opSimilarityDense::initInt(char* kernelName,
         handles[i].deviceID = deviceIDs[i];
         handles[i].cuID = cuIDs[i];
         handles[i].dupID = i % dupNmSimDense;
-        if (deviceIDs[i] == 1) {
-            createHandleSimDense(handles[i], kernelName, xclbinFile2, deviceIDs[i]);
-        } else {
-            createHandleSimDense(handles[i], kernelName, xclbinFile, deviceIDs[i]);
-        }
+
+        createHandleSimDense(handles[i], kernelName, xclbinFile, deviceIDs[i]);
         handles[i].buffer = new cl::Buffer[bufferNm];
         if (deviceIDs[i] != prev) {
             prev = deviceIDs[i];
@@ -315,7 +312,8 @@ void opSimilarityDense::loadGraphMultiCardBlocking(int deviceID, int cuID, xf::g
     }
 };
 
-void opSimilarityDense::loadGraphMultiCardNonBlocking(int deviceID, int cuID, xf::graph::Graph<int32_t, int32_t> g) {
+void opSimilarityDense::loadGraphMultiCardNonBlocking(
+    int deviceID, int cuID, xf::graph::Graph<int32_t, int32_t> g) {
     int nnz = g.edgeNum;
     int nrows = g.nodeNum;
     bool freed[maxCU];
@@ -378,6 +376,10 @@ void opSimilarityDense::bufferInit(clHandle* hds,
                                    cl::Kernel& kernel0,
                                    std::vector<cl::Memory>& ob_in,
                                    std::vector<cl::Memory>& ob_out) {
+    std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__ 
+              << " sourceNUM=" << sourceNUM 
+              << std::endl;
+
     cl::Device device = hds[0].device;
 
     const char* instanceName = instanceName0.c_str();
@@ -472,6 +474,10 @@ void opSimilarityDense::bufferInitInt(clHandle* hds,
                                       std::vector<cl::Memory>& ob_in,
                                       std::vector<cl::Memory>& ob_out) {
     cl::Device device = hds[0].device;
+
+    std::cout << __FILE__ << "::" << __FUNCTION__ 
+              << " sourceNUM=" << sourceNUM << " cuID=" << cuID 
+              << std::endl;
 
     instanceName0 = "denseSimilarityKernel:{" + instanceName0 + "}";
     //    if (cuID == 0) {
@@ -650,6 +656,11 @@ int opSimilarityDense::computeInt(unsigned int deviceID,
                                   xf::graph::Graph<int32_t, int32_t> g,
                                   int32_t* resultID,
                                   float* similarity) {
+    std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time =
+        std::chrono::high_resolution_clock::now();
+    std::cout << "DEBUG: " << __FUNCTION__ << " start=" << l_start_time.time_since_epoch().count() 
+              << std::endl;
+
     clHandle* hds = &handles[channelID + cuID * dupNmSimDense + deviceID * dupNmSimDense * cuPerBoardSimDense];
     cl::Kernel kernel0;
     std::vector<cl::Memory> ob_in;
@@ -678,6 +689,14 @@ int opSimilarityDense::computeInt(unsigned int deviceID,
     cuRelease(ctx, resR);
 
     free(config);
+
+    std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time =
+        std::chrono::high_resolution_clock::now();
+
+    std::chrono::duration<double> l_durationSec = l_end_time - l_start_time;
+    double l_timeMs = l_durationSec.count() * 1e3;
+    std::cout << "PROFILING: " << __FUNCTION__ << " runtime msec=  " 
+              << std::fixed << std::setprecision(6) << l_timeMs << std::endl;
 
     return ret;
 };
@@ -893,8 +912,8 @@ event<int> opSimilarityDense::addworkInt(int32_t similarityType,
                                          xf::graph::Graph<int32_t, int32_t> g,
                                          int32_t* resultID,
                                          float* similarity) {
-    return createL3(task_queue[0], &(computeInt), handles, similarityType, dataType, sourceNUM, sourceWeight, topK, g,
-                    resultID, similarity);
+    return createL3(task_queue[0], &(computeInt), handles, similarityType, 
+        dataType, sourceNUM, sourceWeight, topK, g, resultID, similarity);
 };
 
 event<int> opSimilarityDense::addworkKNN(uint32_t similarityType,

@@ -428,7 +428,8 @@ std::vector<CosineVecValue> makeCosineVector(SnomedConcept concept,
 
 }  // namespace xai
 
-int loadgraph_cosinesim_ss_dense_fpga_wrapper(uint32_t deviceNeeded, uint32_t cuNm, xf::graph::Graph<int32_t, int32_t>** g) {
+int loadgraph_cosinesim_ss_dense_fpga_wrapper(
+    uint32_t devicesNeeded, uint32_t cuNm, xf::graph::Graph<int32_t, int32_t>** g) {
     Lock lock(getMutex());
     int status = 0;
     std::cout << "INFO: Running Load Graph for Single Source Cosine Similarity Dense API" << std::endl;
@@ -466,7 +467,7 @@ int loadgraph_cosinesim_ss_dense_fpga_wrapper(uint32_t deviceNeeded, uint32_t cu
 
     // use it to do the calculation
     std::cout << "INFO: Calling 'loadgraph_cosinesim_ss_dense_fpga'...\n";
-    status = runT(deviceNeeded, cuNm, g);
+    status = runT(devicesNeeded, cuNm, g);
 
     // close the library
     std::cout << "INFO: core::loadgraph_cosinesim_ss_dense_fpga_wrapper status=" << status << std::endl;
@@ -474,7 +475,7 @@ int loadgraph_cosinesim_ss_dense_fpga_wrapper(uint32_t deviceNeeded, uint32_t cu
     return status;
 }
 
-int cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
+int cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
                             int32_t sourceLen,
                             int32_t* sourceWeight,
                             int32_t topK,
@@ -503,8 +504,8 @@ int cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
 
     // load the symbol
     std::cout << "INFO: core.cpp Loading symbol cosinesim_ss_dense_fpga...\n";
-    typedef void (*runKernel_t)(uint32_t, int32_t, int32_t*, int32_t, xf::graph::Graph<int32_t, int32_t>**, int32_t*,
-                                float*);
+    typedef void (*runKernel_t)(uint32_t, int32_t, int32_t*, int32_t, 
+        xf::graph::Graph<int32_t, int32_t>**, int32_t*, float*);
 
     // reset errors
     dlerror();
@@ -519,7 +520,7 @@ int cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
 
     // use it to do the calculation
     std::cout << "INFO: Calling 'cosinesim_ss_dense_fpga'...\n";
-    runT(deviceNeeded, sourceLen, sourceWeight, topK, g, resultID, similarity);
+    runT(devicesNeeded, sourceLen, sourceWeight, topK, g, resultID, similarity);
 
     // close the library
     //std::cout << "INFO: Closing library...\n";

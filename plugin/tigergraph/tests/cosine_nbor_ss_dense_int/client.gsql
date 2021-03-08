@@ -24,12 +24,12 @@ CREATE QUERY client_cosinesim_match_sw(VERTEX<patients> newPatient, UINT topK) F
 }
 
 
-CREATE QUERY client_cosinesim_load_alveo() FOR GRAPH @graph {
+CREATE QUERY client_cosinesim_load_alveo(INT numDevices) FOR GRAPH @graph {
     DOUBLE run_time;
     STRING status;
     INT ret;
     udf_reset_timer(true);
-    ret = loadgraph_cosinesim_ss_fpga_core();
+    ret = loadgraph_cosinesim_ss_fpga_core(numDevices);
     run_time = udf_elapsed_time(true);
     IF ret == 0 THEN
         status = "FPGA loaded successfully";
@@ -48,11 +48,11 @@ CREATE QUERY client_cosinesim_load_alveo() FOR GRAPH @graph {
 }
 
 
-CREATE QUERY client_cosinesim_match_alveo(VERTEX<patients> newPatient, UINT topK) FOR GRAPH @graph {
+CREATE QUERY client_cosinesim_match_alveo(VERTEX<patients> newPatient, UINT topK, INT numDevices) FOR GRAPH @graph {
     DOUBLE run_time;
     ListAccum<testResults> @@result;
     udf_reset_timer(true);
-    @@result = cosinesim_ss_fpga_core(newPatient, topK);
+    @@result = cosinesim_ss_fpga_core(newPatient, topK, numDevices);
     run_time = udf_elapsed_time(true);
     PRINT "Xilinx Alveo U50" AS ComputationTechnique, newPatient.FIRST_NAME + " " + newPatient.LAST_NAME AS Patient,
         run_time AS ExecTimeInMs, @@result AS Matches;

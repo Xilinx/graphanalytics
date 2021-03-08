@@ -286,7 +286,8 @@ FOR GRAPH @graph RETURNS (ListAccum<testResults>) {
 }
 
 
-create query loadgraph_cosinesim_ss_fpga_core() for graph @graph returns (int) {
+create query loadgraph_cosinesim_ss_fpga_core(int device_needed) 
+    for graph @graph returns (int) {
 
 	ListAccum<ListAccum<int> > @@patientsAll;
 	int ret;
@@ -295,23 +296,24 @@ create query loadgraph_cosinesim_ss_fpga_core() for graph @graph returns (int) {
 	patientList = select p from population:p
 		ACCUM @@patientsAll += p.COSINE_SIM_VECTOR;
 
-	ret = udf_loadgraph_cosinesim_ss_fpga(population.size(), 200, @@patientsAll);
+	ret = udf_loadgraph_cosinesim_ss_fpga(population.size(), 200, 
+                                          @@patientsAll, device_needed);
 
     return ret;
 }
 
-create query cosinesim_ss_fpga_core (vertex<patients> source, uint topK) 
-for graph @graph returns (ListAccum<testResults>) {
+create query cosinesim_ss_fpga_core (vertex<patients> source, uint topK, 
+    int devices_needed) for graph @graph returns (ListAccum<testResults>) {
 
 	ListAccum<testResults> @@topK_result_fpga;
-
 	ListAccum<int> @@newPatientVector;
 
 	population = {patients.*};
 
 	@@newPatientVector = patient_vector(source);
 
-	@@topK_result_fpga = udf_cosinesim_ss_fpga(topK, population.size(), 200, @@newPatientVector);
+	@@topK_result_fpga = udf_cosinesim_ss_fpga(topK, population.size(), 200, 
+        @@newPatientVector, devices_needed);
 	return @@topK_result_fpga;
 
 }
@@ -325,5 +327,5 @@ create query close_fpga () for graph @graph {
 
 install query patient_age, patient_race, patient_gender, patient_ethnicity, 
               patient_vector, cosinesim_cache_to_vertices, cos_theta_tigergraph, 
-			  cosinesim_match_sw, loadgraph_cosinesim_ss_fpga_core , 
+			  cosinesim_match_sw, loadgraph_cosinesim_ss_fpga_core, 
 			  cosinesim_ss_fpga_core, close_fpga
