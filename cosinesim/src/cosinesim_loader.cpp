@@ -58,7 +58,7 @@ namespace cosinesim {
 
 extern "C" {
 
-ImplBase *createImpl() {
+ImplBase *createImpl(CosineSimBase* ptr) {
     typedef ImplBase * (*CreateFunc)();
     CreateFunc pCreateFunc = (CreateFunc) getDynamicFunction("createImpl");
     if (pCreateFunc == nullptr)
