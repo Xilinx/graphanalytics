@@ -13,22 +13,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-############################### Setting up Project Variables ##############################
 
 ifndef XILINX_XRT
-  XILINX_XRT = /opt/xilinx/xrt
-  export XILINX_XRT
+    XILINX_XRT = /opt/xilinx/xrt
+    export XILINX_XRT
 endif
 
-XILINX_XRM=/opt/xilinx/xrm
+ifndef XILINX_XRM
+    XILINX_XRM=/opt/xilinx/xrm
+    export XILINX_XRM
+endif
 
+ifndef XILINX_PLATFORMS
+    XILINX_PLATFORMS = /opt/xilinx/platforms
+    export XILINX_PLATFORMS
+endif
 
-.PHONY: all javaApi javaApiJar javaTest cppBuild cppBuild2 fill_example_stage
+.DELETE_ON_ERROR:
+.PHONY: all
 
 #all: javaApi cppBuild javaTest stage
 all: cppBuild stage
 
+#
+# Global Definitions
+#
 
+## Location of graphanalytics project
+GRAPH_ANALYTICS_DIR = ..
+
+#######################################################################################################################
 #
 # Java API
 #
@@ -40,6 +54,8 @@ JAVA_API_JAR = $(JAVA_LIB_DIR)/xilinxCosineSimApi-0.1.jar
 JAVA_API_DOC_JAR = $(JAVA_LIB_DIR)/xilinxCosineSimApi-0.1-javadoc.jar
 JAVA_JNI_HEADER = $(JAVA_BUILD_DIR)/api/c-headers/com_xilinx_xf_IntCosineSim.h
 
+.PHONY: javaApi javaApiJar
+	
 javaApi: javaApiJar $(JAVA_API_DOC_JAR)
 	
 javaApiJar:
@@ -48,12 +64,11 @@ javaApiJar:
 $(JAVA_API_DOC_JAR): $(JAVA_API_JAR)
 	cd java && ant docs
 
-#
-# C++ JNI Library (.so) to be dynamically loaded from the Java API
-#
 
-## Location of graphanalytics project
-GRAPH_ANALYTICS_DIR = ..
+#######################################################################################################################
+#
+# C++ API Library
+#
 
 CCC = g++
 CXX = g++
@@ -72,7 +87,6 @@ endif
 
 ## Target: libCosineSim.so
 INCLUDES_libCosineSim = \
-	-I$(XRM_DIR)/include \
 	-I$(XILINX_XRT)/include \
 	-I$(XILINX_XRM)/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L2/include \
@@ -98,9 +112,12 @@ SRCS_top = $(filter-out $(SRCS_loader),$(wildcard src/*.cpp))
 OBJS_top = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_top:.cpp=.o)))
 
 SRCS_all = $(SRCS_L3) $(SRCS_top) $(SRCS_loader)
+OBJS_all = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_all:.cpp=.o)))
+DEPS_all = $(OBJS_all:.o=.d)
 
 OBJS_libCosineSim = $(OBJS_L3) $(OBJS_top) 
-DEPS_libCosineSim = $(OBJS_libCosineSim:.o=.d)
+
+.PHONY: cppBuild cppBuild2
 
 # Make in a child process so that we can isolate the run that includes automatic header dependencies
 cppBuild: $(CPP_BUILD_DIR)
@@ -132,17 +149,15 @@ $(CPP_BUILD_DIR)/$(LOADER_NAME): $(OBJS_loader) $(DEPLIBS_loader)
 # Macro to create a .o rule and a .d rule for each .cpp
 
 define BUILD_CPP_RULE
-OBJ_FILE := $(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o)
-DEP_FILE := $$(OBJ_FILE:.o=.d)
 
-$$(OBJ_FILE): $(1)
+$(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o): $(1)
 	$(COMPILE.cc) $(INCLUDES_libCosineSim) -o $$@ $$<
 
-$$(DEP_FILE): $(1)
+$(CPP_BUILD_DIR)/$(notdir $(basename $(1)).d): $(1)
 	@set -e; \
 	rm -f $$@; \
-	$(COMPILE.cc) -MM -MT $$(OBJ_FILE) $(INCLUDES_libCosineSim) -MF $$@.$$$$$$$$ $$<; \
-        sed 's,\($$*\)\.o[ :]*,\1.o $$@ : ,g' < $$@.$$$$$$$$ > $$@; \
+	$(COMPILE.cc) -MM -MT $(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o) $(INCLUDES_libCosineSim) -MF $$@.$$$$$$$$ $$<; \
+        sed 's,\($(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o)\)[ :]*,\1 $$@ : ,g' < $$@.$$$$$$$$ > $$@; \
 	rm -f $$@.$$$$$$$$
 
 endef
@@ -155,11 +170,39 @@ $(foreach src,$(SRCS_all),$(eval $(call BUILD_CPP_RULE,$(src))))
 # (This restriction prevents problems with the dependency on the Java API for the JNI header.)
 
 ifeq ($(MAKECMDGOALS),cppBuild2)
--include $(DEPS_libCosineSim)
+-include $(DEPS_all)
 endif
 
+
+#######################################################################################################################
 #
-# Packaging
+# XCLBIN
+#
+
+
+L2_TOP_DIR = $(GRAPH_ANALYTICS_DIR)/L2/dense_similarity_multi_kernel
+L2_XDEVICE = xilinx_u50_gen3x16_xdma_201920_3
+L2_BUILD_DIR = $(L2_TOP_DIR)/build_dir.hw.$(L2_XDEVICE)
+XCLBIN_NAME = denseSimilarityKernel.xclbin
+XCLBIN_FILE = $(L2_BUILD_DIR)/$(XCLBIN_NAME)
+
+.PHONY: xclbin
+
+xclbin: $(XCLBIN_FILE)
+	@cd $(L2_MAKE_DIR); \
+	@source $(XILINX_XRT)/setup.sh; \
+	@export PLATFORM_REPO_PATHS=$(XILINX_PLATFORMS); \
+	@make build TARGET=hw
+	
+$(XCLBIN_FILE):
+	@echo "ERROR: The XCLBIN file $(XCLBIN_FILE) is missing."
+	@echo "Because building an XCLBIN file can be an all-day proposition, you have two choices for completing this build:"
+	@echo "1. Copy a pre-built XCLBIN to the target location above.  (Recommended for developers)"
+	@echo "2. Do 'make xclbin' and go for a very long coffee break.  (Recommended for build automation)"; false
+
+#######################################################################################################################
+#
+# Staging
 #
 
 STAGE_DIR = staging
@@ -196,14 +239,16 @@ STAGE_EXAMPLE_FILE_NAMES = \
 STAGE_EXAMPLE_FILES = $(addprefix examples/,$(STAGE_EXAMPLE_FILE_NAMES))
 STAGE_STAGED_EXAMPLE_FILES = $(addprefix $(STAGE_DIR)/,$(STAGE_EXAMPLE_FILES))
 
+.PHONY: stage fill-example-stage
+
 $(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP): $(STAGE_EXAMPLE_FILES)
 	mkdir -p $(sort $(dir $(STAGE_STAGED_EXAMPLE_FILES)))
-	@make fill_example_stage
+	@make fill-example-stage
 	@cd $(STAGE_DIR) ; \
 	zip -r $(STAGE_EXAMPLE_ZIP) examples
 	rm -rf $(STAGE_DIR)/examples
 
-fill_example_stage: $(STAGE_STAGED_EXAMPLE_FILES)
+fill-example-stage: $(STAGE_STAGED_EXAMPLE_FILES)
 	
 $(STAGE_STAGED_EXAMPLE_FILES):
 	cp -f $(patsubst $(STAGE_DIR)/%,%,$@) $@
@@ -211,7 +256,11 @@ $(STAGE_STAGED_EXAMPLE_FILES):
 
 # XCLBIN file
 
-# TODO: make from L2 sources
+STAGE_XCLBIN_NAME = cosinesim_32bit_$(L2_XDEVICE).xclbin
+STAGE_XCLBIN_FILE = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME)
+
+$(STAGE_XCLBIN_FILE): $(XCLBIN_FILE)
+	cp -f $^ $@
 
 # Top-level packaging rule
 
@@ -220,6 +269,7 @@ STAGE_SUBDIRS = $(addprefix $(STAGE_DIR)/,$(STAGE_SUBDIR_NAMES))
 STAGE_ALL_FILES = \
     $(addprefix $(STAGE_DIR)/,$(STAGE_COPY_FILES)) \
     $(addprefix $(STAGE_DIR)/lib/,$(STAGE_LIB_FILES)) \
+    $(STAGE_XCLBIN_FILE) \
     $(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP) \
 
 stage: $(STAGE_SUBDIRS) $(STAGE_ALL_FILES)
@@ -227,18 +277,27 @@ stage: $(STAGE_SUBDIRS) $(STAGE_ALL_FILES)
 $(STAGE_SUBDIRS):
 	mkdir -p $@
 
+#######################################################################################################################
 #
 # Java Tests
 #
 
+.PHONY: javaTest
+
 javaTest:
 	cd test/java && ant
 
+#######################################################################################################################
 #
 # Clean
 #
 
 #### Clean target deletes all generated files ####
+.PHONY: clean clean-xclbin
+
 clean:
 	rm -rf Debug Release $(JAVA_LIB_DIR) $(JAVA_BUILD_DIR) $(STAGE_DIR)
-
+	@echo "Note: because the XCLBIN file takes so long to generate, it is not removed with this 'clean' target."
+	@echo "To clean the XCLBIN, use 'make clean-xclbin'"
+	
+clean-xclbin:
