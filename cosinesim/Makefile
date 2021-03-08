@@ -188,11 +188,11 @@ XCLBIN_FILE = $(L2_BUILD_DIR)/$(XCLBIN_NAME)
 
 .PHONY: xclbin
 
-xclbin: $(XCLBIN_FILE)
-	@cd $(L2_MAKE_DIR); \
-	@source $(XILINX_XRT)/setup.sh; \
-	@export PLATFORM_REPO_PATHS=$(XILINX_PLATFORMS); \
-	@make build TARGET=hw
+xclbin:
+	cd $(L2_TOP_DIR); \
+	source $(XILINX_XRT)/setup.sh; \
+	export PLATFORM_REPO_PATHS=$(XILINX_PLATFORMS); \
+	make build TARGET=hw
 	
 $(XCLBIN_FILE):
 	@echo "ERROR: The XCLBIN file $(XCLBIN_FILE) is missing."
@@ -301,3 +301,4 @@ clean:
 	@echo "To clean the XCLBIN, use 'make clean-xclbin'"
 	
 clean-xclbin:
+	rm -f $(XCLBIN_FILE)
