@@ -258,6 +258,7 @@ inline int udf_loadgraph_cosinesim_ss_fpga(int64_t numVertices,
                                            int64_t vecLength,
                                            ListAccum<ListAccum<int64_t> >& oldVectors,
                                            int devicesNeeded) {
+    xai::Lock lock(xai::getMutex());
     xai::IDMap.clear();
     ListAccum<testResults> result;
     int32_t numEdges = vecLength - 3;
@@ -309,7 +310,8 @@ inline int udf_loadgraph_cosinesim_ss_fpga(int64_t numVertices,
     }
     numVerticesPU[devicesNeeded * cuNm - 1][splitNm - 1] = rest;
 
-    xf::graph::Graph<int32_t, int32_t>** g = new xf::graph::Graph<int32_t, int32_t>*[devicesNeeded * cuNm];
+    xf::graph::Graph<int32_t, int32_t>** g = 
+        new xf::graph::Graph<int32_t, int32_t>*[devicesNeeded * cuNm];
     int fpgaNodeNm = 0;
     for (int i = 0; i < devicesNeeded * cuNm; ++i) {
         g[i] = new xf::graph::Graph<int32_t, int32_t>("Dense", 4 * splitNm, numEdges, numVerticesPU[i]);
@@ -360,7 +362,9 @@ inline int udf_loadgraph_cosinesim_ss_fpga(int64_t numVertices,
 
 inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     int64_t numVertices, int64_t vecLength, ListAccum<int64_t>& newVector,
-    int devicesNeeded) {
+    int devicesNeeded)
+{
+    xai::Lock lock(xai::getMutex());
     ListAccum<testResults> result;
     int32_t numEdges = vecLength - 3;
     const int splitNm = 3;    // kernel has 4 PUs, the input data should be splitted into 4 parts
@@ -387,6 +391,14 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
         return result;
     }
 
+    //-------------------------------------------------------------------------
+    std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time =
+            std::chrono::high_resolution_clock::now();
+    std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
+              << " preprocessing start=" << l_start_time.time_since_epoch().count() 
+              << std::endl;
+    //-------------------------------------------------------------------------
+
     int32_t** numVerticesPU = new int32_t*[devicesNeeded * cuNm]; // vertex numbers in each PU
     int32_t** numEdgesPU = new int32_t*[devicesNeeded * cuNm];    // edge numbers in each PU
 
@@ -412,7 +424,7 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     xf::graph::Graph<int32_t, int32_t>** g = new xf::graph::Graph<int32_t, int32_t>*[devicesNeeded * cuNm];
     int fpgaNodeNm = 0;
     for (int i = 0; i < devicesNeeded * cuNm; ++i) {
-        g[i] = new xf::graph::Graph<int32_t, int32_t>("Dense", 4 * splitNm, numEdges, numVerticesPU[i]);
+        g[i] = new xf::graph::Graph<int32_t, int32_t>("Dense", 4 * splitNm);
         g[i][0].numEdgesPU = new int32_t[splitNm];
         g[i][0].numVerticesPU = new int32_t[splitNm];
         g[i][0].edgeNum = numEdges;
@@ -443,21 +455,58 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     memset(resultID, 0, topK * sizeof(int32_t));
     memset(similarity, 0, topK * sizeof(float));
 
+    //---------------------------------------------------------------------------
+    std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time =
+            std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> l_durationSec = l_end_time - l_start_time;
+    double l_timeMs = l_durationSec.count() * 1e3;
+    std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
+              << " preprocessing runtime msec=  " << std::fixed << std::setprecision(6) 
+              << l_timeMs << std::endl;
+    //---------------------------------------------------------------------------
+
     //---------------- Run L3 API -----------------------------------
+    //-------------------------------------------------------------------------
+    std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time1 =
+            std::chrono::high_resolution_clock::now();
+    std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
+              << " cosinesim_ss_dense_fpga start=" << l_start_time1.time_since_epoch().count() << std::endl;
+    //-------------------------------------------------------------------------
+
     int ret = cosinesim_ss_dense_fpga(
                   devicesNeeded * cuNm, sourceLen, sourceWeight, topK, g, 
                   resultID, similarity);
+    //---------------------------------------------------------------------------
+    std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time1 =
+            std::chrono::high_resolution_clock::now();
+    l_durationSec = l_end_time1 - l_start_time1;
+    l_timeMs = l_durationSec.count() * 1e3;
+    std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
+              << " cosinesim_ss_dense_fpga runtime msec=  " << std::fixed << std::setprecision(6) 
+              << l_timeMs << std::endl;
+    //---------------------------------------------------------------------------
+
+    //-------------------------------------------------------------------------
+    std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time2 =
+            std::chrono::high_resolution_clock::now();
+    std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
+              << " postprocessing start=" << l_start_time2.time_since_epoch().count() << std::endl;
+    //-------------------------------------------------------------------------
 
     for (unsigned int k = 0; k < topK; k++) {
         result += testResults(VERTEX(xai::IDMap[resultID[k]]), similarity[k]);
     }
+    //---------------------------------------------------------------------------
+    std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time2 =
+            std::chrono::high_resolution_clock::now();
+    l_durationSec = l_end_time2 - l_start_time2;
+    l_timeMs = l_durationSec.count() * 1e3;
+    std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
+              << " postprocessing runtime msec=  " << std::fixed << std::setprecision(6) 
+              << l_timeMs << std::endl;
+    //---------------------------------------------------------------------------
 
     return result;
-}
-
-inline double udf_close_fpga() {
-    close_fpga();
-    return 0;
 }
 
 /* End Xilinx Cosine Similarity Additions */

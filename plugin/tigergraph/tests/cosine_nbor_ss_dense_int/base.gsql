@@ -318,14 +318,8 @@ create query cosinesim_ss_fpga_core (vertex<patients> source, uint topK,
 
 }
 
-create query close_fpga () for graph @graph {
-
-	double ret;
-	ret = udf_close_fpga();
-}
-
 
 install query patient_age, patient_race, patient_gender, patient_ethnicity, 
               patient_vector, cosinesim_cache_to_vertices, cos_theta_tigergraph, 
 			  cosinesim_match_sw, loadgraph_cosinesim_ss_fpga_core, 
-			  cosinesim_ss_fpga_core, close_fpga
+			  cosinesim_ss_fpga_core

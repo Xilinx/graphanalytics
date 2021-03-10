@@ -40,7 +40,7 @@ fi
 
 echo "Run query loadgraph_cosinesim_ss_fpga"
 time gsql -g $xgraph "set query_timeout=240000000 run query loadgraph_cosinesim_ss_fpga($devices_needed)"
-for j in {1..$iterations}
+for ((j = 0 ; j < $iterations ; ++j))
 do
     echo "------ iteration $j --------"
     echo "Run query cosinesim_ss_tg"
@@ -48,5 +48,7 @@ do
     echo "Run query cosinesim_ss_fpga"
     time gsql -g $xgraph "set query_timeout=240000000 run query cosinesim_ss_fpga(\"$PWD/log/fpga.txt\", $devices_needed)"
 done
-echo "Run query close_fpga"
-time gsql -g $xgraph "set query_timeout=240000000 run query close_fpga()"
+
+# basic checking of the result
+diff log/fpga.txt log/tg.txt
+

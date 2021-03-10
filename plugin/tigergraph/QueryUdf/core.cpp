@@ -19,21 +19,23 @@
 #include <iostream>
 #include "codevector.hpp"
 #include <mutex>
+#include <chrono>
+
 
 namespace {
 
 using namespace xai;
 
-using Mutex = std::mutex;
-using Lock = std::lock_guard<Mutex>;
-
-Mutex &getMutex() {
-    static Mutex *pMutex = nullptr;
-    if (pMutex == nullptr)
-        pMutex = new Mutex();
-    return *pMutex;
-}
-
+//using Mutex = std::mutex;
+//using Lock = std::lock_guard<Mutex>;
+//
+//Mutex &getMutex() {
+//    static Mutex *pMutex = nullptr;
+//    if (pMutex == nullptr)
+//        pMutex = new Mutex();
+//    return *pMutex;
+//}
+//
 
 // Cormen/Knuth hash algo
 //
@@ -430,7 +432,7 @@ std::vector<CosineVecValue> makeCosineVector(SnomedConcept concept,
 
 int loadgraph_cosinesim_ss_dense_fpga_wrapper(
     uint32_t devicesNeeded, uint32_t cuNm, xf::graph::Graph<int32_t, int32_t>** g) {
-    Lock lock(getMutex());
+//    Lock lock(getMutex());
     int status = 0;
     std::cout << "INFO: Running Load Graph for Single Source Cosine Similarity Dense API" << std::endl;
 
@@ -482,8 +484,13 @@ int cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
                             xf::graph::Graph<int32_t, int32_t>** g,
                             int32_t* resultID,
                             float* similarity) {
-    Lock lock(getMutex());
+//    Lock lock(getMutex());
     std::cout << "INFO: Running Single Source Cosine Similarity Dense API\n\n";
+    
+    std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time =
+            std::chrono::high_resolution_clock::now();
+    std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
+              << " start=" << l_start_time.time_since_epoch().count() << std::endl;
 
     // open the library
     std::cout << "INFO: Opening libgraphL3wrapper.so...\n";
@@ -525,6 +532,13 @@ int cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
     // close the library
     //std::cout << "INFO: Closing library...\n";
     //dlclose(handle);
+    std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time =
+            std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> l_durationSec = l_end_time - l_start_time;
+    double l_timeMs = l_durationSec.count() * 1e3;
+    std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
+              << " runtime msec=  " << std::fixed << std::setprecision(6) 
+              << l_timeMs << std::endl;
     return 0;
 }
 
