@@ -43,6 +43,17 @@ extern CodeToIdMap* pMap;
 extern const unsigned int startPropertyIndex;
 extern std::vector<uint64_t> IDMap;
 
+using Mutex = std::mutex;
+using Lock = std::lock_guard<Mutex>;
+
+static Mutex &getMutex() {
+    static Mutex *pMutex = nullptr;
+    if (pMutex == nullptr)
+        pMutex = new Mutex();
+    return *pMutex;
+}
+
+
 typedef std::int32_t CosineVecValue; ///< A value for an element of a cosine similarity vector
 typedef std::uint64_t SnomedCode;    ///< A SNOMED CT medical code
 typedef std::uint64_t SnomedId;  ///< SNOMED CT code as a hashed int (to distribute SNOMED codes uniformly)

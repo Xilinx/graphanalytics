@@ -258,6 +258,7 @@ inline int udf_loadgraph_cosinesim_ss_fpga(int64_t numVertices,
                                            int64_t vecLength,
                                            ListAccum<ListAccum<int64_t> >& oldVectors,
                                            int devicesNeeded) {
+    xai::Lock lock(xai::getMutex());
     xai::IDMap.clear();
     ListAccum<testResults> result;
     int32_t numEdges = vecLength - 3;
@@ -361,7 +362,9 @@ inline int udf_loadgraph_cosinesim_ss_fpga(int64_t numVertices,
 
 inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     int64_t numVertices, int64_t vecLength, ListAccum<int64_t>& newVector,
-    int devicesNeeded) {
+    int devicesNeeded)
+{
+    xai::Lock lock(xai::getMutex());
     ListAccum<testResults> result;
     int32_t numEdges = vecLength - 3;
     const int splitNm = 3;    // kernel has 4 PUs, the input data should be splitted into 4 parts

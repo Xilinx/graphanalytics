@@ -26,16 +26,16 @@ namespace {
 
 using namespace xai;
 
-using Mutex = std::mutex;
-using Lock = std::lock_guard<Mutex>;
-
-Mutex &getMutex() {
-    static Mutex *pMutex = nullptr;
-    if (pMutex == nullptr)
-        pMutex = new Mutex();
-    return *pMutex;
-}
-
+//using Mutex = std::mutex;
+//using Lock = std::lock_guard<Mutex>;
+//
+//Mutex &getMutex() {
+//    static Mutex *pMutex = nullptr;
+//    if (pMutex == nullptr)
+//        pMutex = new Mutex();
+//    return *pMutex;
+//}
+//
 
 // Cormen/Knuth hash algo
 //
@@ -432,7 +432,7 @@ std::vector<CosineVecValue> makeCosineVector(SnomedConcept concept,
 
 int loadgraph_cosinesim_ss_dense_fpga_wrapper(
     uint32_t devicesNeeded, uint32_t cuNm, xf::graph::Graph<int32_t, int32_t>** g) {
-    Lock lock(getMutex());
+//    Lock lock(getMutex());
     int status = 0;
     std::cout << "INFO: Running Load Graph for Single Source Cosine Similarity Dense API" << std::endl;
 
@@ -484,7 +484,7 @@ int cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
                             xf::graph::Graph<int32_t, int32_t>** g,
                             int32_t* resultID,
                             float* similarity) {
-    Lock lock(getMutex());
+//    Lock lock(getMutex());
     std::cout << "INFO: Running Single Source Cosine Similarity Dense API\n\n";
     
     std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time =
