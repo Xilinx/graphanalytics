@@ -509,11 +509,6 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     return result;
 }
 
-inline double udf_close_fpga() {
-    close_fpga();
-    return 0;
-}
-
 /* End Xilinx Cosine Similarity Additions */
 }
 
