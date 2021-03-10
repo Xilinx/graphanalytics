@@ -898,8 +898,9 @@ extern "C" void cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
             std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> l_durationSec = l_end_time - l_start_time;
     double l_timeMs = l_durationSec.count() * 1e3;
-    std::cout << "PROFILING: " << __FUNCTION__ << " runtime msec=  " 
-              << std::fixed << std::setprecision(6) << l_timeMs << std::endl;
+    std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
+              << " runtime msec=  " << std::fixed << std::setprecision(6) 
+              << l_timeMs << std::endl;
 }
 
 extern "C" void close_fpga() {

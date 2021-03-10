@@ -19,6 +19,8 @@
 #include <iostream>
 #include "codevector.hpp"
 #include <mutex>
+#include <chrono>
+
 
 namespace {
 
@@ -484,6 +486,11 @@ int cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
                             float* similarity) {
     Lock lock(getMutex());
     std::cout << "INFO: Running Single Source Cosine Similarity Dense API\n\n";
+    
+    std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time =
+            std::chrono::high_resolution_clock::now();
+    std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
+              << " start=" << l_start_time.time_since_epoch().count() << std::endl;
 
     // open the library
     std::cout << "INFO: Opening libgraphL3wrapper.so...\n";
@@ -525,6 +532,13 @@ int cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
     // close the library
     //std::cout << "INFO: Closing library...\n";
     //dlclose(handle);
+    std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time =
+            std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> l_durationSec = l_end_time - l_start_time;
+    double l_timeMs = l_durationSec.count() * 1e3;
+    std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
+              << " runtime msec=  " << std::fixed << std::setprecision(6) 
+              << l_timeMs << std::endl;
     return 0;
 }
 

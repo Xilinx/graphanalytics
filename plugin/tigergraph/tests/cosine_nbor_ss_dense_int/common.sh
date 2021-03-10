@@ -38,10 +38,11 @@ function gsql () {
 function usage() {
     echo "Usage: $0 -u TG-username -p TG-password [optional options]"
     echo "Optional options:"
-    echo "  -c 0|1    0=Do not load cache; 1=Load cache(default)"
+    echo "  -c 0|1              : 0=Do not load cache; 1=Load cache(default)"
     echo "  -d devices-needed   : number of FPGAs needed (default=1)"
     echo "  -n iterations       : number of iterations to run (default=3)"
     echo "  -g graph-name       : graph name (default=xgraph_<username>"
+    echo "  -l 0|1              : 0: Do not load FPGA; 1: Load FPGA(default)>"
     echo "  -s data-source-path : path containing input data. default=./1000_patients/csv"
     echo "  -c 0|1              : 0=Do not load cache; 1=Load cache(default)"
     echo "  -h                  : Print this help message"
@@ -50,14 +51,16 @@ function usage() {
 # default values for optional options
 data_root="./1000_patients/csv"
 load_cache=1
+load_fpga=1
 devices_needed=1
 iterations=3
-while getopts ":u:p:s:g:c:d:n:h" opt
+while getopts ":c:d:g:l:n:p:s:u:h" opt
 do
 case $opt in
     c) load_cache=$OPTARG;;
     d) devices_needed=$OPTARG;;
     g) xgraph=$OPTARG;;
+    l) load_fpga=$OPTARG;;
     n) iterations=$OPTARG;;
     p) password=$OPTARG;;
     s) data_root=$OPTARG;;
@@ -83,6 +86,7 @@ echo "      password=$password"
 echo "      data_root=$data_root"
 echo "      xgraph=$xgraph"
 echo "      load_cache=$load_cache"
+echo "      load_fpga=$load_fpga"
 echo "      devices_needed=$devices_needed"
 echo "      iterations=$iterations"
 

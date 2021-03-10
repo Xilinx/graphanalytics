@@ -124,6 +124,19 @@ class Graph {
     ID_T* numVerticesPU;
     bool splitted = 0;
 
+   // ----------- construction with axim only w/o memory allocation ------------
+    /**
+     * @brief Constructor of class dense Graph
+     *
+     * @param axis axi numbers
+    */
+
+    Graph(std::string type, ID_T axis) {
+        if (type == "Dense") {
+            axiNm = axis;
+        }
+    }
+
     // ---------------- construction with numVertices and numEdges ----------------
     /**
      * @brief Constructor of class dense Graph
