@@ -53,7 +53,7 @@ data_root="./1000_patients/csv"
 load_cache=1
 load_fpga=1
 devices_needed=1
-iterations=3
+iterations=1
 while getopts ":c:d:g:l:n:p:s:u:h" opt
 do
 case $opt in
