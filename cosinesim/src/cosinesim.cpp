@@ -4,9 +4,7 @@
 #include <cstring>
 #include <memory>
 #include <unordered_map>
-//#include "task.hpp"
 #include "cosinesim.hpp"
-//#include "xf_graph_L3_handle.hpp"
 #include "xf_graph_L3.hpp"
 
 
@@ -43,35 +41,40 @@ public:
 	std::vector<xf::graph::Graph<int32_t, int32_t>*> g;
 	//xf::graph::Graph<int32_t, int32_t>** g;
 
-	//TODO error code
 	// initial value is 0; means no errors;
-	CosineSimBase::ErrorCode errorCode_;
+	ErrorCode errorCode_;
+
+	//options
+	Options options_;
 
 private:
-	CosineSimBase* cosinesimPtr;
+	//CosineSimBase* cosinesimPtr;
 
 public:
-	PrivateImpl(CosineSimBase* ptr, unsigned valueSize){
-		errorCode_ = CosineSimBase::NoError;
+	//PrivateImpl(CosineSimBase* ptr, unsigned valueSize){
+	PrivateImpl(Options options, unsigned valueSize){
+		errorCode_ = NoError;
 		valueSize_ = valueSize;
-		cosinesimPtr = ptr;
+		//cosinesimPtr = ptr;
 		indexDeviceCuNm=0;
 		indexSplitNm=0;
 		indexNumVertices=0;
 		indexVecLength=3;
 		populationVectorRowNm=0;
 		subChNm = 1;
-		vecLength = ptr->getOptions().vecLength;
+		//vecLength = ptr->getOptions().vecLength;
+		vecLength = options.vecLength;
 		numEdges = vecLength - 3;
-		numVertices =ptr->getOptions().numVertices;
-		devicesNeeded = ptr->getOptions().devicesNeeded;
+		//numVertices =options.numVertices;
+		devicesNeeded = options.devicesNeeded;
+	    options_ = options;
 		edgeAlign8 = ((numEdges + channelW - 1) / channelW) * channelW;
 
 	}
 
 	~PrivateImpl(){}
 
-   virtual void startLoadPopulation(){
+   virtual void startLoadPopulation(std::int64_t numVertices){
 		indexDeviceCuNm=0;
 		indexSplitNm=0;
 		indexNumVertices=0;
@@ -79,9 +82,11 @@ public:
 		populationVectorRowNm=0;
 
 
-		vecLength = cosinesimPtr->getOptions().vecLength;
-		numEdges = vecLength - 3;
-		numVertices = cosinesimPtr->getOptions().numVertices;
+		vecLength = options_.vecLength;
+		numEdges = options_.vecLength - 3;
+		//numVertices = cosinesimPtr->getOptions().numVertices;
+		this->numVertices = numVertices;
+		devicesNeeded = options_.devicesNeeded;
 
 		loadPopulationCnt.resize(channelsPU,0);
 		g.resize(devicesNeeded*cuNm);
@@ -91,7 +96,7 @@ public:
 		int rest = numVertices - general * (devicesNeeded * cuNm * splitNm - 1);
 
 	    if (rest < 0) {
-	        errorCode_= CosineSimBase::ErrorGraphPartition;
+	        errorCode_= ErrorGraphPartition;
 	    }
 
 		for (int i = 0; i < devicesNeeded * cuNm; ++i) {
@@ -113,7 +118,7 @@ public:
 			//	g[i] = new xf::graph::Graph<int32_t, int64_t>("Dense", 4 * splitNm, numEdges, numVerticesPU[i]);
 
 			} else {
-				errorCode_ =  CosineSimBase::ErrorUnsupportedValueType;
+				errorCode_ =  ErrorUnsupportedValueType;
 			}
 			g[i]->numEdgesPU = new int32_t[splitNm];
 			g[i]->numVerticesPU = new int32_t[splitNm];
@@ -237,7 +242,7 @@ public:
 	        	//else if (valueSize_== 8)
 	        	//	sourceWeight[i] = (reinterpret_cast<int64_t*>(elements))[i + 3];
 	        	else {
-	        		errorCode_ =  CosineSimBase::ErrorUnsupportedValueType;
+	        		errorCode_ =  ErrorUnsupportedValueType;
 	        	}
 
 	        } else {
@@ -429,7 +434,7 @@ void PrivateImpl::loadgraph_cosinesim_ss_dense_fpga(unsigned deviceNeeded,
     std::fstream userInput(jsonFilePath, std::ios::in);
     if (!userInput) {
         std::cout << "Error : config file " << jsonFilePath << " doesn't exist !" << std::endl;
-        errorCode_ = CosineSimBase::ErrorConfigFileNotExist;
+        errorCode_ = ErrorConfigFileNotExist;
         return;
     }
     char line[1024] = {0};
@@ -476,7 +481,7 @@ void PrivateImpl::loadgraph_cosinesim_ss_dense_fpga(unsigned deviceNeeded,
     std::fstream xclbinFS(xclbinPath, std::ios::in);
     if (!xclbinFS) {
         std::cout << "Error : xclbinFile doesn't exist: " << xclbinPath << std::endl;
-        errorCode_ = CosineSimBase::ErrorXclbinNotExist;
+        errorCode_ = ErrorXclbinNotExist;
         return;
     }
 /*
@@ -493,7 +498,7 @@ void PrivateImpl::loadgraph_cosinesim_ss_dense_fpga(unsigned deviceNeeded,
     handle0->addOp(op0);
     int status = handle0->setUp();
     if (status < 0) {
-    	errorCode_ = CosineSimBase::ErrorFailFPGASetup;
+    	errorCode_ = ErrorFailFPGASetup;
         return;
     }
 
@@ -519,8 +524,8 @@ void PrivateImpl::loadgraph_cosinesim_ss_dense_fpga(unsigned deviceNeeded,
 } //loadgraph_cosinesim_ss_dense_fpga
 
 extern "C" {
-    ImplBase *createImpl(CosineSimBase* ptr, unsigned valueSize){
-    	return new PrivateImpl(ptr,valueSize);
+    ImplBase *createImpl(Options options, unsigned valueSize){
+    	return new PrivateImpl(options,valueSize);
     }
 
     void destroyImpl(ImplBase *pImpl){

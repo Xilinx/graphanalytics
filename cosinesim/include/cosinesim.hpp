@@ -40,14 +40,30 @@ struct Result {
         similarity_ = similarity;
     }
 };
+struct Options {
+	ColIndex vecLength;
+	//std::int64_t numVertices;
+	std::int64_t devicesNeeded;
+};
 
-class CosineSimBase;
+enum ErrorCode{
+	NoError =0,
+	ErrorGraphPartition,
+	ErrorUnsupportedValueType,
+	ErrorConfigFileNotExist,
+	ErrorXclbinNotExist,
+	ErrorXclbin2NotExist,
+	ErrorFailFPGASetup
+};
+
+//class CosineSimBase;
 template <typename Value>
 class CosineSim;
 
 class ImplBase {
 public:
 	virtual ~ImplBase(){};
+	virtual void startLoadPopulation(std::int64_t numVertices) = 0;
 	virtual void *getPopulationVectorBuffer(RowIndex &rowIndex) = 0;
 	virtual void finishCurrentPopulationVector() = 0;
 	virtual void finishLoadPopulationVectors() =0;
@@ -55,51 +71,26 @@ public:
 };
 
 extern "C" {
-    ImplBase *createImpl(CosineSimBase* ptr, unsigned valueSize);
+    //ImplBase *createImpl(CosineSimBase* ptr, unsigned valueSize);
+    ImplBase *createImpl(Options options, unsigned valueSize);
     void destroyImpl(ImplBase *pImpl);
 }
 
-class CosineSimBase {
 
-public:
-    struct Options {
-    	ColIndex vecLength;
-    	int64_t numVertices;
-    	int64_t devicesNeeded;
-    };
-
-
-    enum ErrorCode{
-    	NoError =0,
-		ErrorGraphPartition,
-		ErrorUnsupportedValueType,
-		ErrorConfigFileNotExist,
-		ErrorXclbinNotExist,
-		ErrorXclbin2NotExist,
-		ErrorFailFPGASetup
-    };
-    Options getOptions() {return options_;};
-
-    CosineSimBase( const Options &options) : options_(options){};
-
-private:
-    Options options_;
-    ColIndex vecLength_ = 0;
-    RowIndex numRows_ = 0;
-
-};
 
 template <typename Value>
-class CosineSim : public CosineSimBase{
+class CosineSim {
 public:
-    
-    CosineSim( const Options &options) :CosineSimBase(options), pImpl_(createImpl(this, sizeof(Value))) {
 
-    };
-    ColIndex getVectorLength() const { return vecLength_; }
+	const Options& getOptions() {return options_;};
+
+    //CosineSim( const Options &options) :CosineSimBase(options), pImpl_(createImpl(this, sizeof(Value))) {};
     
+	CosineSim( const Options &options) :options_(options), pImpl_(createImpl(options, sizeof(Value))) {};
+
+
     //oid openFpga(...);
-    void startLoadPopulation();  //
+    void startLoadPopulation(std::int64_t numVertices){pImpl_->startLoadPopulation(numVertices);}  //
 
     Value *getPopulationVectorBuffer(RowIndex &rowIndex) {
         // figure out where in weightDense to start writing
@@ -117,11 +108,11 @@ public:
     //void closeFpga();
     
 private:
-    //Options options_;
-    //ColIndex vecLength_ = 0;
-    //RowIndex numRows_ = 0;
     //std::unique_ptr<ImplBase> pImpl_;
     ImplBase *pImpl_ = nullptr;
+    Options options_;
+    //ColIndex vecLength_ = 0;
+    //RowIndex numRows_ = 0;
 
 };
 
