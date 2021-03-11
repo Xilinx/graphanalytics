@@ -26,6 +26,87 @@
 #include "loader.hpp"
 #include "codevector.hpp"
 #include <algorithm>
+// mergeHeaders 1 include start xilinxRecomEngine DO NOT REMOVE!
+#include "cosinesim.hpp"
+#include <cstdint>
+#include <vector>
+// mergeHeaders 1 include end xilinxRecomEngine DO NOT REMOVE!
+
+// mergeHeaders 1 header start xilinxRecomEngine DO NOT REMOVE!
+namespace xai {
+
+using CosineSim = xilinx_apps::cosinesim::CosineSim<std::int32_t>;
+
+class Context {
+public:
+    using IdMap = std::vector<std::uint64_t>;
+    
+private:
+    unsigned numDevices_ = 1;
+    CosineSim::ColIndex vectorLength_ = 0;
+    bool isInitialized_ = false;
+    CosineSim *pCosineSim_ = nullptr;
+    IdMap idMap_;  // maps from vector ID to FPGA row number
+public:
+    static Context *getInstance() {
+        static Context *s_pContext = nullptr;
+        if (s_pContext == nullptr)
+            s_pContext = new Context();
+        return s_pContext;
+    }
+    
+    Context() = default;
+    ~Context() { delete pCosineSim_; }
+    
+    void setNumDevices(unsigned numDevices) {
+        if (numDevices != numDevices_)
+            clear();
+        numDevices_ = numDevices;
+    }
+    
+    unsigned getNumDevices() const { return numDevices_; }
+    
+    void setVectorLength(CosineSim::ColIndex vectorLength) {
+        if (vectorLength != vectorLength_)
+            clear();
+        vectorLength_ = vectorLength;
+    }
+    
+    CosineSim::ColIndex getVectorLength() const { return vectorLength_; }
+    
+    CosineSim *getCosineSimObj() {
+        if (pCosineSim_ == nullptr) {
+            CosineSim::Options options;
+            options.vecLength = vectorLength_;
+            options.devicesNeeded = numDevices_;
+            pCosineSim_ = new CosineSim(options);
+        }
+        
+        return pCosineSim_;
+    }
+
+    IdMap &getIdMap() { return idMap_; }
+    
+    void setInitialized() { isInitialized_ = true; }
+    
+    bool isInitialized() const { return isInitialized_; }
+
+    void clear() {
+        isInitialized_ = false;
+        idMap_.clear();
+        delete pCosineSim_;
+        pCosineSim_ = nullptr;
+    }
+};
+static CosineSim *getCosineSimObj(unsigned vecLength) {
+    static CosineSim *s_cosineSimObj = nullptr;
+    if (s_cosineSimObj)
+    if (s_cosineSimObj == nullptr)
+        s_cosineSimObj = new CosineSim();
+}
+
+}
+// mergeHeaders 1 header end xilinxRecomEngine DO NOT REMOVE!
 
 // Error codes from L3 starts from -1
 // Error codes from UDF starts from -1001
@@ -254,111 +335,60 @@ inline ListAccum<int64_t> udf_get_similarity_vec(int64_t property,
     return result;
 }
 
+// mergeHeaders 1 body start xilinxRecomEngine DO NOT REMOVE!
+
+inline void udf_xilinx_recom_set_num_devices(std::int64_t numDevices) {
+    xai::Lock lock(xai::getMutex());
+    xai::Context *pContext = xai::Context::getInstance();
+    pContext->setNumDevices(unsigned(numDevices));
+}
+
+inline bool udf_xilinx_recom_is_initialized() {
+    xai::Lock lock(xai::getMutex());
+    xai::Context *pContext = xai::Context::getInstance();
+    return pContext->isInitialized();
+}
 inline int udf_loadgraph_cosinesim_ss_fpga(int64_t numVertices,
                                            int64_t vecLength,
                                            ListAccum<ListAccum<int64_t> >& oldVectors,
                                            int devicesNeeded) {
     xai::Lock lock(xai::getMutex());
-    xai::IDMap.clear();
-    ListAccum<testResults> result;
-    int32_t numEdges = vecLength - 3;
+    xai::Context *pContext = xai::Context::getInstance();
+    xai::Context::IdMap &idMap = pContext->getIdMap();
+    idMap.clear();
 
-    // kernel has 3 PUs, the input data should be splitted into 4 parts
-    const int splitNm = 3;    
-    const int channelsPU = 4; // each PU has 4 HBM channels
-    const int cuNm = 2;
-    const int channelW = 16;
-    // value to use for padding.  0 appears to be safe for cosine sim computation
-    const int32_t nullVal = 0;  
-
-    int32_t edgeAlign8 = ((numEdges + channelW - 1) / channelW) * channelW;
-    // All channels need to have equal number of vertices except the last channel
-    // The formula is to make sure the last channel always has data to process.
-    // The last chanel may be assigned more data than other channels.
-    int general = ((numVertices - (devicesNeeded * cuNm * splitNm * channelsPU + 1)) /
-                   (devicesNeeded * cuNm * splitNm * channelsPU)) * channelsPU;
-    int rest = numVertices - general * (devicesNeeded * cuNm * splitNm - 1);
-    std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
-              << " numVertices=" << numVertices << ", general=" << general 
-              << ", Vertices PU 0-" << devicesNeeded*cuNm*splitNm-2 << ": "
-              << general << ", total=" << general*(devicesNeeded*cuNm*splitNm-1)
-              << ", last PU " << devicesNeeded*cuNm*splitNm-1 << ": " << rest
-              << std::endl;
-
-    if (rest < 0) {
-        return XF_GRAPH_UDF_GRAPH_PARTITION_ERROR;
+    // If there are no vectors, consider the FPGA to be uninitialized
+    
+    xai::CosineSim::RowIndex numVectors = xai::CosineSim::RowIndex(oldVectors.size());
+    if (numVectors < 1) {
+        pContext->clear();
+        return 0;
     }
-    int32_t** numVerticesPU = new int32_t*[devicesNeeded * cuNm]; // vertex numbers in each PU
-    int32_t** numEdgesPU = new int32_t*[devicesNeeded * cuNm];    // edge numbers in each PU
-
-    int tmpID[devicesNeeded * cuNm * channelsPU * splitNm];
-    for (int i = 0; i < devicesNeeded * cuNm; ++i) {
-        numVerticesPU[i] = new int32_t[splitNm];
-        numEdgesPU[i] = new int32_t[splitNm];
-        for (int j = 0; j < splitNm; ++j) {
-            numEdgesPU[i][j] = numEdges;
-            for (int k = 0; k < channelsPU; ++k) {
-                tmpID[i * splitNm * channelsPU + j * channelsPU + k] = 0;
-            }
-        }
+    
+    idMap.resize(numVectors, 0);
+    xai::CosineSim::ColIndex vectorLength = xai::CosineSim::ColIndex(
+            xai::CosineSim::ColIndex(oldVectors.get(0).size()));
+    pContext->setVectorLength(vectorLength);
+    
+    xai::CosineSim *pCosineSim = pContext->getCosineSimObj();
+//    pCosineSim->openFpga();
+    pCosineSim->startLoadPopulation();
+    for (xai::CosineSim::RowIndex vecNum = 0; vecNum < numVectors; ++vecNum) {
+        ListAccum<int64_t> &curRowVec = oldVectors.get(vecNum);
+        CosineSim::RowIndex rowIndex = 0;
+        CosineSim::ValueType *pBuf = pCosineSim->getPopulationVectorBuffer(rowIndex);
+        for (xai::CosineSim::ColIndex eltNum = 0; eltNum < vectorLength; ++eltNum)
+            *pBuf++ = CosineSim::ValueType(curRowVec.get(eltNum));
+        pCosineSim->finishCurrentPopulationVector();
+        uint64_t vertexId = ((curRowVec.get(2) << 32) & 0xFFFFFFF00000000) | (curRowVec.get(1) & 0x00000000FFFFFFFF);
+        idMap[vecNum] = vertexId;
     }
-    //---------------- setup number of vertices in each PU ---------
-    for (int i = 0; i < devicesNeeded * cuNm; ++i) {
-        for (int j = 0; j < splitNm; ++j) {
-            numVerticesPU[i][j] = general;
-        }
-    }
-    numVerticesPU[devicesNeeded * cuNm - 1][splitNm - 1] = rest;
-
-    xf::graph::Graph<int32_t, int32_t>** g = 
-        new xf::graph::Graph<int32_t, int32_t>*[devicesNeeded * cuNm];
-    int fpgaNodeNm = 0;
-    for (int i = 0; i < devicesNeeded * cuNm; ++i) {
-        g[i] = new xf::graph::Graph<int32_t, int32_t>("Dense", 4 * splitNm, numEdges, numVerticesPU[i]);
-        g[i][0].numEdgesPU = new int32_t[splitNm];
-        g[i][0].numVerticesPU = new int32_t[splitNm];
-        g[i][0].edgeNum = numEdges;
-        g[i][0].nodeNum = numVertices;
-        g[i][0].splitNum = splitNm;
-        g[i][0].refID = fpgaNodeNm;
-        for (int j = 0; j < splitNm; ++j) {
-            fpgaNodeNm += numVerticesPU[i][j];
-            int depth = ((numVerticesPU[i][j] + channelsPU - 1) / channelsPU) * edgeAlign8;
-            g[i][0].numVerticesPU[j] = numVerticesPU[i][j];
-            g[i][0].numEdgesPU[j] = depth;
-            for (int l = 0; l < channelsPU; ++l) {
-                for (int k = 0; k < depth; ++k) {
-                    g[i][0].weightsDense[j * channelsPU + l][k] = nullVal;
-                }
-            }
-        }
-    }
-
-    int offset = 0;
-    for (int m = 0; m < devicesNeeded * cuNm; ++m) {
-        for (int i = 0; i < splitNm; ++i) {
-            int cnt[channelsPU] = {0};
-            int subChNm = (numVerticesPU[m][i] + channelsPU - 1) / channelsPU;
-            for (int j = 0; j < numVerticesPU[m][i]; ++j) {
-                int64_t lsb32 = oldVectors.get(offset).get(1);
-                int64_t msb32 = oldVectors.get(offset).get(2);
-                uint64_t fullID = ((msb32 << 32) & 0xFFFFFFF00000000) | (lsb32 & 0x00000000FFFFFFFF);
-                xai::IDMap.push_back(fullID);
-                for (int k = 3; k < vecLength; ++k) {
-                    g[m][0].weightsDense[i * channelsPU + j / subChNm][cnt[j / subChNm] * edgeAlign8 + k - 3] =
-                        oldVectors.get(offset).get(k);
-                }
-                cnt[j / subChNm] += 1;
-                offset++;
-            }
-        }
-    }
-
-    int ret = loadgraph_cosinesim_ss_dense_fpga_wrapper(devicesNeeded, cuNm, g);
-    std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__ 
-              << "ret = " << ret << std::endl;
-    return ret;
+    pCosineSim->finishLoadPopulationVectors();
+    return 0;
 }
+
+// Enable this to print profiling messages to the log (via stdout)
+#define XILINX_RECOM_PROFILE_ON
 
 inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     int64_t numVertices, int64_t vecLength, ListAccum<int64_t>& newVector,
@@ -366,96 +396,37 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
 {
     xai::Lock lock(xai::getMutex());
     ListAccum<testResults> result;
-    int32_t numEdges = vecLength - 3;
-    const int splitNm = 3;    // kernel has 4 PUs, the input data should be splitted into 4 parts
-    const int channelsPU = 4; // each PU has 4 HBM channels
-    const int cuNm = 2;
-    const int channelW = 16;
-    const int32_t nullVal = 0;  // value to use for padding.  0 appears to be safe for cosine sim computation
+    xai::Context *pContext = xai::Context::getInstance();
 
-    int32_t edgeAlign8 = ((numEdges + channelW - 1) / channelW) * channelW;
-    //int general = ((numVertices + deviceNeeded * cuNm * splitNm * channelsPU - 1) /
-    //               (deviceNeeded * cuNm * splitNm * channelsPU)) * channelsPU;
-    // All channels need to have equal number of vertices except the last channel
-    // The formula is to make sure the last channel always has data to process.
-    // The last chanel may be assigned more data than other channels.
-    int general = ((numVertices - (devicesNeeded * cuNm * splitNm * channelsPU + 1)) /
-                  (devicesNeeded * cuNm * splitNm * channelsPU)) * channelsPU;
-    int rest = numVertices - general * (devicesNeeded * cuNm * splitNm - 1);
-    std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
-            << " numVertices=" << numVertices << ", general=" << general 
-            << ", rest=" << rest 
-            << ", split=" << devicesNeeded * cuNm * splitNm << std::endl;
-    if (rest < 0) {
-        //result += testResults(VERTEX(-7), -7)
+    if (!pContext->isInitialized())
         return result;
-    }
+    
+    xai::Context::IdMap &idMap = pContext->getIdMap();
+
+//    std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
+//            << " numVertices=" << numVertices << ", general=" << general 
+//            << ", rest=" << rest 
+//            << ", split=" << devicesNeeded * cuNm * splitNm << std::endl;
 
     //-------------------------------------------------------------------------
+#ifdef XILINX_RECOM_PROFILE_ON
     std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time =
             std::chrono::high_resolution_clock::now();
     std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
               << " preprocessing start=" << l_start_time.time_since_epoch().count() 
               << std::endl;
+#endif
     //-------------------------------------------------------------------------
 
-    int32_t** numVerticesPU = new int32_t*[devicesNeeded * cuNm]; // vertex numbers in each PU
-    int32_t** numEdgesPU = new int32_t*[devicesNeeded * cuNm];    // edge numbers in each PU
-
-    int tmpID[devicesNeeded * cuNm * channelsPU * splitNm];
-    for (int i = 0; i < devicesNeeded * cuNm; ++i) {
-        numVerticesPU[i] = new int32_t[splitNm];
-        numEdgesPU[i] = new int32_t[splitNm];
-        for (int j = 0; j < splitNm; ++j) {
-            numEdgesPU[i][j] = numEdges;
-            for (int k = 0; k < channelsPU; ++k) {
-                tmpID[i * splitNm * channelsPU + j * channelsPU + k] = 0;
-            }
-        }
-    }
-    //---------------- setup number of vertices in each PU ---------
-    for (int i = 0; i < devicesNeeded * cuNm; ++i) {
-        for (int j = 0; j < splitNm; ++j) {
-            numVerticesPU[i][j] = general;
-        }
-    }
-    numVerticesPU[devicesNeeded * cuNm - 1][splitNm - 1] = rest;
-
-    xf::graph::Graph<int32_t, int32_t>** g = new xf::graph::Graph<int32_t, int32_t>*[devicesNeeded * cuNm];
-    int fpgaNodeNm = 0;
-    for (int i = 0; i < devicesNeeded * cuNm; ++i) {
-        g[i] = new xf::graph::Graph<int32_t, int32_t>("Dense", 4 * splitNm);
-        g[i][0].numEdgesPU = new int32_t[splitNm];
-        g[i][0].numVerticesPU = new int32_t[splitNm];
-        g[i][0].edgeNum = numEdges;
-        g[i][0].nodeNum = numVertices;
-        g[i][0].splitNum = splitNm;
-        g[i][0].refID = fpgaNodeNm;
-        for (int j = 0; j < splitNm; ++j) {
-            fpgaNodeNm += numVerticesPU[i][j];
-            int depth = ((numVerticesPU[i][j] + channelsPU - 1) / channelsPU) * edgeAlign8;
-            g[i][0].numVerticesPU[j] = numVerticesPU[i][j];
-            g[i][0].numEdgesPU[j] = depth;
-        }
-    }
-    //---------------- Generate Source Indice and Weight Array -------
-    unsigned int sourceLen = edgeAlign8; // sourceIndice array length
-    int32_t* sourceWeight =
-        xf::graph::internal::aligned_alloc<int32_t>(sourceLen); // weights of source vertex's out members
-    int32_t newVecLen = newVector.size() - 3;
-    for (int i = 0; i < sourceLen; i++) {
-        if (i < newVecLen) {
-            sourceWeight[i] = newVector.get(i + 3);
-        } else {
-            sourceWeight[i] = nullVal;
-        }
-    }
-    float* similarity = xf::graph::internal::aligned_alloc<float>(topK);
-    int32_t* resultID = xf::graph::internal::aligned_alloc<int32_t>(topK);
-    memset(resultID, 0, topK * sizeof(int32_t));
-    memset(similarity, 0, topK * sizeof(float));
+    std::vector<xai::CosineSim::ValueType> nativeTargetVector;
+    const xai::CosineSim::ColIndex vectorLength = pContext->getVectorLength();
+    nativeTargetVector.reserve(vectorLength);
+    for (xai::CosineSim::ColIndex eltNum = 0; eltNum < vectorLength; ++eltNum)
+        nativeTargetVector.push_back(newVector.get(eltNum));
+    xai::CosineSim *pCosineSim = pContext->getCosineSimObj();
 
     //---------------------------------------------------------------------------
+#ifdef XILINX_RECOM_PROFILE_ON
     std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time =
             std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> l_durationSec = l_end_time - l_start_time;
@@ -463,20 +434,23 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
               << " preprocessing runtime msec=  " << std::fixed << std::setprecision(6) 
               << l_timeMs << std::endl;
+#endif
     //---------------------------------------------------------------------------
 
     //---------------- Run L3 API -----------------------------------
     //-------------------------------------------------------------------------
+#ifdef XILINX_RECOM_PROFILE_ON
     std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time1 =
             std::chrono::high_resolution_clock::now();
     std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
               << " cosinesim_ss_dense_fpga start=" << l_start_time1.time_since_epoch().count() << std::endl;
+#endif
     //-------------------------------------------------------------------------
 
-    int ret = cosinesim_ss_dense_fpga(
-                  devicesNeeded * cuNm, sourceLen, sourceWeight, topK, g, 
-                  resultID, similarity);
+    std::vector<xai::CosineSim::Result> apiResults = pCosineSim->matchTargetVector(topK, nativeTargetVector.data());
+    
     //---------------------------------------------------------------------------
+#ifdef XILINX_RECOM_PROFILE_ON
     std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time1 =
             std::chrono::high_resolution_clock::now();
     l_durationSec = l_end_time1 - l_start_time1;
@@ -484,19 +458,26 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
               << " cosinesim_ss_dense_fpga runtime msec=  " << std::fixed << std::setprecision(6) 
               << l_timeMs << std::endl;
+#endif
     //---------------------------------------------------------------------------
 
     //-------------------------------------------------------------------------
+#ifdef XILINX_RECOM_PROFILE_ON
     std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time2 =
             std::chrono::high_resolution_clock::now();
     std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
               << " postprocessing start=" << l_start_time2.time_since_epoch().count() << std::endl;
+#endif
     //-------------------------------------------------------------------------
 
-    for (unsigned int k = 0; k < topK; k++) {
-        result += testResults(VERTEX(xai::IDMap[resultID[k]]), similarity[k]);
+    for (xai::CosineSim::Result &apiResult : apiResults) {
+        if (apiResult.index_ < 0 || apiResult.index_ >= idMap.size())
+            continue;
+        result += testResults(VERTEX(idMap[apiResult.index_]), apiResult.similarity_);
     }
+
     //---------------------------------------------------------------------------
+#ifdef XILINX_RECOM_PROFILE_ON
     std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time2 =
             std::chrono::high_resolution_clock::now();
     l_durationSec = l_end_time2 - l_start_time2;
@@ -504,12 +485,15 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
               << " postprocessing runtime msec=  " << std::fixed << std::setprecision(6) 
               << l_timeMs << std::endl;
+#endif
     //---------------------------------------------------------------------------
 
     return result;
 }
 
 /* End Xilinx Cosine Similarity Additions */
+// mergeHeaders 1 body end xilinxRecomEngine DO NOT REMOVE!
+
 }
 
 #endif /* EXPRFUNCTIONS_HPP_ */
