@@ -286,6 +286,22 @@ FOR GRAPH @graph RETURNS (ListAccum<testResults>) {
 }
 
 
+CREATE QUERY cosinesim_set_num_devices(UINT num_devices) FOR GRAPH @graph {
+    udf_xilinx_recom_set_num_devices(num_devices);
+}
+
+CREATE QUERY cosinesim_get_num_devices() FOR GRAPH @graph RETURNS (UINT) {
+    UINT ret;
+    ret = udf_xilinx_recom_get_num_devices();
+    return ret;
+}
+
+CREATE QUERY cosinesim_is_fpga_initialized() FOR GRAPH @graph RETURNS (BOOL) {
+    BOOL ret;
+    ret = udf_xilinx_recom_is_initialized();
+    RETURN ret;
+}
+
 create query loadgraph_cosinesim_ss_fpga_core(int device_needed) 
     for graph @graph returns (int) {
 
@@ -320,6 +336,6 @@ create query cosinesim_ss_fpga_core (vertex<patients> source, uint topK,
 
 
 install query patient_age, patient_race, patient_gender, patient_ethnicity, 
-              patient_vector, cosinesim_cache_to_vertices, cos_theta_tigergraph, 
-			  cosinesim_match_sw, loadgraph_cosinesim_ss_fpga_core, 
-			  cosinesim_ss_fpga_core
+    patient_vector, cosinesim_cache_to_vertices, cos_theta_tigergraph, 
+    cosinesim_match_sw, cosinesim_set_num_devices, udf_loadgraph_cosinesim_ss_fpga,
+    loadgraph_cosinesim_ss_fpga_core, cosinesim_ss_fpga_core

@@ -24,6 +24,20 @@ CREATE QUERY client_cosinesim_match_sw(VERTEX<patients> newPatient, UINT topK) F
 }
 
 
+CREATE QUERY client_cosinesim_set_num_devices(UINT num_devices) FOR GRAPH @graph {
+    cosinesim_set_num_devices(num_devices);
+}
+
+
+CREATE QUERY client_cosinesim_get_alveo_status() FOR GRAPH @graph {
+    BOOL is_initialized;
+    UINT num_devices;
+    is_initialized = cosinesim_is_fpga_initialized();
+    num_devices = cosinesim_get_num_devices():
+    PRINT is_initialized AS IsInitialized, num_devces AS NumDevices;
+}
+
+
 CREATE QUERY client_cosinesim_load_alveo(INT numDevices) FOR GRAPH @graph {
     DOUBLE run_time;
     STRING status;

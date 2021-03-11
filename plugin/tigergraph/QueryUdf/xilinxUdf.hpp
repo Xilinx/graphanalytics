@@ -337,10 +337,17 @@ inline ListAccum<int64_t> udf_get_similarity_vec(int64_t property,
 
 // mergeHeaders 1 body start xilinxRecomEngine DO NOT REMOVE!
 
-inline void udf_xilinx_recom_set_num_devices(std::int64_t numDevices) {
+inline int udf_xilinx_recom_set_num_devices(std::int64_t numDevices) {
     xai::Lock lock(xai::getMutex());
     xai::Context *pContext = xai::Context::getInstance();
     pContext->setNumDevices(unsigned(numDevices));
+    return 0;
+}
+
+inline unsigned udf_xilinx_recom_get_num_devices() {
+    xai::Lock lock(xai::getMutex());
+    xai::Context *pContext = xai::Context::getInstance();
+    return pContext->getNumDevices();
 }
 
 inline bool udf_xilinx_recom_is_initialized() {
@@ -348,6 +355,7 @@ inline bool udf_xilinx_recom_is_initialized() {
     xai::Context *pContext = xai::Context::getInstance();
     return pContext->isInitialized();
 }
+
 inline int udf_loadgraph_cosinesim_ss_fpga(int64_t numVertices,
                                            int64_t vecLength,
                                            ListAccum<ListAccum<int64_t> >& oldVectors,
