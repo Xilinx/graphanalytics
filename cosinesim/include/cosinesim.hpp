@@ -56,7 +56,6 @@ enum ErrorCode{
 	ErrorFailFPGASetup
 };
 
-//class CosineSimBase;
 template <typename Value>
 class CosineSim;
 
@@ -71,8 +70,7 @@ public:
 };
 
 extern "C" {
-    //ImplBase *createImpl(CosineSimBase* ptr, unsigned valueSize);
-    ImplBase *createImpl(Options options, unsigned valueSize);
+    ImplBase *createImpl(const Options& options, unsigned valueSize);
     void destroyImpl(ImplBase *pImpl);
 }
 
@@ -81,7 +79,7 @@ extern "C" {
 template <typename Value>
 class CosineSim {
 public:
-
+	using ValueType = Value;
 	const Options& getOptions() {return options_;};
 
     //CosineSim( const Options &options) :CosineSimBase(options), pImpl_(createImpl(this, sizeof(Value))) {};
