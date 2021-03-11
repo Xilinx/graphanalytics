@@ -95,7 +95,12 @@ public:
 		                   (devicesNeeded * cuNm * splitNm * channelsPU)) * channelsPU;
 		int rest = numVertices - general * (devicesNeeded * cuNm * splitNm - 1);
 
-	    if (rest < 0) {
+		std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
+	            << " numVertices=" << numVertices << ", general=" << general
+	            << ", rest=" << rest
+	            << ", split=" << devicesNeeded * cuNm * splitNm << std::endl;
+
+		if (rest < 0) {
 	        errorCode_= ErrorGraphPartition;
 	    }
 
@@ -524,7 +529,7 @@ void PrivateImpl::loadgraph_cosinesim_ss_dense_fpga(unsigned deviceNeeded,
 } //loadgraph_cosinesim_ss_dense_fpga
 
 extern "C" {
-    ImplBase *createImpl(Options options, unsigned valueSize){
+    ImplBase *createImpl(const Options& options, unsigned valueSize){
     	return new PrivateImpl(options,valueSize);
     }
 
