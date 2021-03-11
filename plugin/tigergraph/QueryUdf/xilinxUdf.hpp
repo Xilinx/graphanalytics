@@ -76,7 +76,7 @@ public:
     
     CosineSim *getCosineSimObj() {
         if (pCosineSim_ == nullptr) {
-            CosineSim::Options options;
+            xilinx_apps::cosinesim::Options options;
             options.vecLength = vectorLength_;
             options.devicesNeeded = numDevices_;
             pCosineSim_ = new CosineSim(options);
@@ -447,7 +447,8 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
 #endif
     //-------------------------------------------------------------------------
 
-    std::vector<xai::CosineSim::Result> apiResults = pCosineSim->matchTargetVector(topK, nativeTargetVector.data());
+    std::vector<xilinx_apps::cosinesim::Result> apiResults
+            = pCosineSim->matchTargetVector(topK, nativeTargetVector.data());
     
     //---------------------------------------------------------------------------
 #ifdef XILINX_RECOM_PROFILE_ON
@@ -470,7 +471,7 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
 #endif
     //-------------------------------------------------------------------------
 
-    for (xai::CosineSim::Result &apiResult : apiResults) {
+    for (xilinx_apps::cosinesim::Result &apiResult : apiResults) {
         if (apiResult.index_ < 0 || apiResult.index_ >= idMap.size())
             continue;
         result += testResults(VERTEX(idMap[apiResult.index_]), apiResult.similarity_);
