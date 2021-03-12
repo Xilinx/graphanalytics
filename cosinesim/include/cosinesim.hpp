@@ -66,7 +66,7 @@ public:
 	virtual void *getPopulationVectorBuffer(RowIndex &rowIndex) = 0;
 	virtual void finishCurrentPopulationVector() = 0;
 	virtual void finishLoadPopulationVectors() =0;
-	virtual std::vector<Result> matchTargetVector(unsigned numResults,void *elements) = 0;
+	virtual std::vector<Result> matchTargetVector(unsigned numResults, void *elements) = 0;
 };
 
 extern "C" {
@@ -100,8 +100,8 @@ public:
     void finishLoadPopulationVectors(){pImpl_->finishLoadPopulationVectors();}
 
     
-    std::vector<Result> matchTargetVector(unsigned numResults, const Value *elements) {
-    	return pImpl_->matchTargetVector(numResults, reinterpret_cast<void *> (elements) );
+    std::vector<Result> matchTargetVector(unsigned numResults, void *elements) {
+    	return pImpl_->matchTargetVector(numResults, elements);
     }
     //void closeFpga();
     
