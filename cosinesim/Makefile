@@ -101,7 +101,7 @@ LDLIBS_libCosineSim = \
 LIB_NAME = libXilinxCosineSim.so
 LOADER_NAME = libXilinxCosineSim_loader.a
 
-SRCS_L3 = $(wildcard $(GRAPH_ANALYTICS_DIR)/L3/src/*.cpp)
+SRCS_L3 = $(wildcard $(GRAPH_ANALYTICS_DIR)/L3/src/*.cpp) $(GRAPH_ANALYTICS_DIR)/ext/xcl2/xcl2.cpp
 OBJS_L3 = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_L3:.cpp=.o)))
 
 SRCS_loader = src/cosinesim_loader.cpp
