@@ -1,7 +1,9 @@
 {
-    "note": "stub file for large file",
     "tags": [
         "xilinx_u50_gen3x16_xdma_201920_3",
-        "u50"
-    ]
+        "vitis-2020.2"
+    ],
+    "sha256sum": "892d3ed8a7a7a42c6d8793d667e840ab0831dca1044db1dda981165c461add5f",
+    "filename": "denseSimilarityKernel.xclbin",
+    "note": "stub file for large file"
 }
