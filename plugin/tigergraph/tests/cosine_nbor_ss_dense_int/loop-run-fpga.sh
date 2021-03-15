@@ -4,8 +4,7 @@ set -x
 
 . common.sh
 
-if [ "$load_fpga" -eq 1 ]
-then
+if [ "$load_fpga" -eq 1 ]; then
     echo "Load FPGA with accelerators"
     time gsql -g $xgraph "set query_timeout=240000000 run query loadgraph_cosinesim_ss_fpga($devices_needed)"
 fi

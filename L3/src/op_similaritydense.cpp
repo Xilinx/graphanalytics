@@ -25,7 +25,11 @@ namespace xf {
 namespace graph {
 namespace L3 {
 
-void createHandleSimDense(clHandle& handle, const char* kernelName, const char* pXclbin, int32_t IDDevice) {
+// currently used
+void createHandleSimDense(class openXRM* xrm, clHandle& handle, 
+                          std::string kernelName, std::string kernelAlias,
+                          const char* pXclbin, int32_t IDDevice, 
+                          unsigned int requestLoad) {
     // Platform related operations
     std::vector<cl::Device> devices = xcl::get_xil_devices();
     handle.device = devices[IDDevice];
@@ -33,11 +37,35 @@ void createHandleSimDense(clHandle& handle, const char* kernelName, const char* 
     handle.q = cl::CommandQueue(handle.context, handle.device,
                                 CL_QUEUE_PROFILING_ENABLE | CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE);
     std::string devName = handle.device.getInfo<CL_DEVICE_NAME>();
-    printf("INFO: Found Device=%s\n", devName.c_str());
+    std::cout << "INFO:" << __FILE__ << "::" << __FUNCTION__ 
+              << "INFO: Found Device ID " << IDDevice << "=" << devName 
+              << " CommandQueue =" << &handle.q << std::endl;
     handle.xclBins = xcl::import_binary_file(pXclbin);
     std::vector<cl::Device> devices2;
     devices2.push_back(handle.device);
     handle.program = cl::Program(handle.context, devices2, handle.xclBins);
+    std::cout << "INFO:" << __FUNCTION__ 
+              << " kernelName=" << kernelName << " kernelAlias=" << kernelAlias 
+              << std::endl;
+
+    xrmCuResource* resR;
+    handle.resR = (xrmCuResource*)malloc(sizeof(xrmCuResource));
+    memset(handle.resR, 0, sizeof(xrmCuResource));
+    xrm->allocCU(handle.resR, kernelName.c_str(), kernelAlias.c_str(), requestLoad);
+    std::cout << "INFO:" << __FUNCTION__ 
+              << " resR.deviceId=" << handle.resR->deviceId 
+              << " resR.cuId=" << handle.resR->cuId
+              << " resR.channelID=" << handle.resR->channelId 
+              << " resR.instanceName=" << handle.resR->instanceName
+              << std::endl;
+
+    std::string instanceName0 = handle.resR->instanceName;
+    instanceName0 = "denseSimilarityKernel:{" + instanceName0 + "}";
+
+    const char* instanceName = instanceName0.c_str();
+    handle.kernel = cl::Kernel(handle.program, instanceName);
+    std::cout << "INFO: " << __FUNCTION__ 
+              << " Kernel=" << instanceName0 <<  " created" << std::endl;
 }
 
 uint32_t opSimilarityDense::cuPerBoardSimDense;
@@ -51,25 +79,38 @@ void opSimilarityDense::setHWInfo(uint32_t numDev, uint32_t CUmax) {
     handles = new clHandle[CUmax];
 };
 
-void opSimilarityDense::freeSimDense() {
-    // simDenseThread.join();
+void opSimilarityDense::freeSimDense(xrmContext* ctx) {
+    std::cout << "DEBUG: " << __FUNCTION__ << std::endl;
+
     for (unsigned int i = 0; i < maxCU; ++i) {
         delete[] handles[i].buffer;
+        int deviceId = handles[i].resR->deviceId;
+        int cuId = handles[i].resR->cuId;
+        std::cout << "INFO:" << __FUNCTION__ 
+              << " resR.deviceId=" << handles[i].resR->deviceId 
+              << " resR.cuId=" << handles[i].resR->cuId
+              << " resR.channelID=" << handles[i].resR->channelId 
+              << " resR.instanceName=" << handles[i].resR->instanceName
+              << std::endl;
+        if (!xrmCuRelease(ctx, handles[i].resR)) {
+            std::cout << "ERROR:" << __FUNCTION__ 
+                      << " xrmCuRelease failed: deviceId=" << deviceId
+                      << " cuId=" << cuId << std::endl;
+        };
     }
     delete[] handles;
 };
 
 void opSimilarityDense::cuRelease(xrmContext* ctx, xrmCuResource* resR) {
-    // while (!xrmCuRelease(ctx, &resR)) {
     while (!xrmCuRelease(ctx, resR)) {
     };
-    // std::cout<<"before free cuResource"<<std::endl;
-    // free(resR);
-    // std::cout<<"after free cuResource"<<std::endl;
 };
 
-void opSimilarityDense::init(
-    char* kernelName, char* xclbinFile, uint32_t* deviceIDs, uint32_t* cuIDs, unsigned int requestLoad) {
+// Currently active for cosine similarity
+void opSimilarityDense::init(class openXRM* xrm, std::string kernelName, 
+                             std::string kernelAlias, char* xclbinFile, 
+                             uint32_t* deviceIDs, uint32_t* cuIDs, 
+                             unsigned int requestLoad) {
     dupNmSimDense = 100 / requestLoad;
     cuPerBoardSimDense /= dupNmSimDense;
     uint32_t bufferNm = 20;
@@ -80,7 +121,8 @@ void opSimilarityDense::init(
     handles[0].cuID = cuIDs[0];
     handles[0].dupID = 0;
     std::thread th[maxCU];
-    createHandleSimDense(handles[cnt], kernelName, xclbinFile, deviceIDs[cnt]);
+    createHandleSimDense(xrm, handles[cnt], kernelName, kernelAlias, xclbinFile, 
+                         deviceIDs[cnt], requestLoad);
     handles[cnt].buffer = new cl::Buffer[bufferNm];
     unsigned int prev = deviceIDs[0];
     deviceOffset.push_back(0);
@@ -88,20 +130,21 @@ void opSimilarityDense::init(
         handles[i].deviceID = deviceIDs[i];
         handles[i].cuID = cuIDs[i];
         handles[i].dupID = i % dupNmSimDense;
-        createHandleSimDense(handles[i], kernelName, xclbinFile, deviceIDs[i]);
+        createHandleSimDense(xrm, handles[i], kernelName, kernelAlias, xclbinFile, 
+                             deviceIDs[i], requestLoad);
         handles[i].buffer = new cl::Buffer[bufferNm];
         if (deviceIDs[i] != prev) {
             prev = deviceIDs[i];
             deviceOffset.push_back(i);
         }
     }
+
     delete[] handleID;
 }
 
-void opSimilarityDense::initInt(char* kernelName,
-                                char* xclbinFile,
-                                uint32_t* deviceIDs,
-                                uint32_t* cuIDs,
+void opSimilarityDense::initInt(class openXRM* xrm, char* kernelName, 
+                                std::string kernelAlias, char* xclbinFile,
+                                uint32_t* deviceIDs, uint32_t* cuIDs, 
                                 unsigned int requestLoad) {
     dupNmSimDense = 100 / requestLoad;
     cuPerBoardSimDense /= dupNmSimDense;
@@ -113,7 +156,8 @@ void opSimilarityDense::initInt(char* kernelName,
     handles[0].cuID = cuIDs[0];
     handles[0].dupID = 0;
     std::thread th[maxCU];
-    createHandleSimDense(handles[cnt], kernelName, xclbinFile, deviceIDs[cnt]);
+    createHandleSimDense(xrm, handles[cnt], kernelName, kernelAlias, xclbinFile, 
+                         deviceIDs[cnt], requestLoad);
     handles[cnt].buffer = new cl::Buffer[bufferNm];
     unsigned int prev = deviceIDs[0];
     deviceOffset.push_back(0);
@@ -122,7 +166,8 @@ void opSimilarityDense::initInt(char* kernelName,
         handles[i].cuID = cuIDs[i];
         handles[i].dupID = i % dupNmSimDense;
 
-        createHandleSimDense(handles[i], kernelName, xclbinFile, deviceIDs[i]);
+        createHandleSimDense(xrm, handles[i], kernelName, kernelAlias, xclbinFile, 
+                             deviceIDs[i], requestLoad);
         handles[i].buffer = new cl::Buffer[bufferNm];
         if (deviceIDs[i] != prev) {
             prev = deviceIDs[i];
@@ -391,6 +436,7 @@ void opSimilarityDense::bufferInit(clHandle* hds,
     std::vector<cl::Device> devices;
     devices.push_back(hds[0].device);
     cl::Program program = hds[0].program;
+    // clCreateKernel
     kernel0 = cl::Kernel(program, instanceName);
     std::cout << "INFO: Kernel has been created" << std::endl;
 
@@ -458,6 +504,7 @@ void opSimilarityDense::bufferInit(clHandle* hds,
     std::cout << "INFO: Kernel Start" << std::endl;
 };
 
+// currently used
 void opSimilarityDense::bufferInitInt(clHandle* hds,
                                       std::string instanceName0,
                                       xf::graph::Graph<int32_t, int32_t> g,
@@ -470,32 +517,16 @@ void opSimilarityDense::bufferInitInt(clHandle* hds,
                                       uint32_t* config,
                                       int32_t* resultID,
                                       float* similarity,
-                                      cl::Kernel& kernel0,
+                                      //cl::Kernel& kernel0,
                                       std::vector<cl::Memory>& ob_in,
                                       std::vector<cl::Memory>& ob_out) {
     cl::Device device = hds[0].device;
-
-    std::cout << __FILE__ << "::" << __FUNCTION__ 
-              << " sourceNUM=" << sourceNUM << " cuID=" << cuID 
-              << std::endl;
-
-    instanceName0 = "denseSimilarityKernel:{" + instanceName0 + "}";
-    //    if (cuID == 0) {
-    //        instanceName0 = "denseSimilarityKernel_0:{" + instanceName0 + "}";
-    //    } else {
-    //        instanceName0 = "denseSimilarityKernel_1:{" + instanceName0 + "}";
-    //    }
-    const char* instanceName = instanceName0.c_str();
     // Creating Context and Command Queue for selected Device
     cl::Context context = hds[0].context;
     cl::CommandQueue q = hds[0].q;
-    std::string devName = device.getInfo<CL_DEVICE_NAME>();
-    printf("INFO: Found Device=%s\n", devName.c_str());
-    std::vector<cl::Device> devices;
-    devices.push_back(hds[0].device);
     cl::Program program = hds[0].program;
-    kernel0 = cl::Kernel(program, instanceName);
-    std::cout << "INFO: Kernel has been created" << std::endl;
+    //kernel0 = cl::Kernel(program, instanceName);
+    cl::Kernel kernel0 = hds[0].kernel;
 
     int32_t splitNm = g.splitNum;
     int32_t CHANNEL_NUMBER = 16;
@@ -564,9 +595,6 @@ void opSimilarityDense::bufferInitInt(clHandle* hds,
     }
     kernel0.setArg(14, hds[0].buffer[18]); // resultID
     kernel0.setArg(15, hds[0].buffer[19]); // similarity
-
-    // launch kernel and calculate kernel execution time
-    std::cout << "INFO: Kernel Start" << std::endl;
 };
 
 int opSimilarityDense::cuExecute(
@@ -641,6 +669,7 @@ int opSimilarityDense::compute(unsigned int deviceID,
     return ret;
 };
 
+// currently used
 int opSimilarityDense::computeInt(unsigned int deviceID,
                                   unsigned int cuID,
                                   unsigned int channelID,
@@ -656,13 +685,20 @@ int opSimilarityDense::computeInt(unsigned int deviceID,
                                   xf::graph::Graph<int32_t, int32_t> g,
                                   int32_t* resultID,
                                   float* similarity) {
+    std::thread::id this_id = std::this_thread::get_id();
     std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time =
         std::chrono::high_resolution_clock::now();
-    std::cout << "DEBUG: " << __FUNCTION__ << " start=" << l_start_time.time_since_epoch().count() 
+    std::cout << "LOG2TIMELINE: " << this_id << "::" << __FUNCTION__ 
+              << " start=" << l_start_time.time_since_epoch().count() << std::endl;
+    std::cout << "DEBUG: " << __FUNCTION__          
+              << " deviceID" << deviceID << " cuID=" << cuID << " channelID=" << channelID  
+              << " dupNmSimDense=" << dupNmSimDense << " cuPerBoardSimDense=" << cuPerBoardSimDense
+              << " handles index=" << channelID + cuID * dupNmSimDense + deviceID * dupNmSimDense * cuPerBoardSimDense
+              << " instanceName=" << instanceName
               << std::endl;
 
     clHandle* hds = &handles[channelID + cuID * dupNmSimDense + deviceID * dupNmSimDense * cuPerBoardSimDense];
-    cl::Kernel kernel0;
+    cl::Kernel kernel0 = hds[0].kernel;
     std::vector<cl::Memory> ob_in;
     std::vector<cl::Memory> ob_out;
 
@@ -675,8 +711,10 @@ int opSimilarityDense::computeInt(unsigned int deviceID,
     std::vector<cl::Event> events_kernel(num_runs);
     std::vector<cl::Event> events_read(1);
 
-    bufferInitInt(hds, instanceName, g, cuID, similarityType, dataType, topK, sourceNUM, sourceWeight, config, resultID,
-                  similarity, kernel0, ob_in, ob_out);
+    // inside computeInt function
+    bufferInitInt(hds, instanceName, g, cuID, similarityType, dataType, topK, 
+                  sourceNUM, sourceWeight, config, resultID, similarity, /*kernel0,*/ 
+                  ob_in, ob_out);
 
     migrateMemObj(hds, 0, num_runs, ob_in, nullptr, &events_write[0]);
 
@@ -686,16 +724,18 @@ int opSimilarityDense::computeInt(unsigned int deviceID,
 
     events_read[0].wait();
 
-    cuRelease(ctx, resR);
+    //cuRelease(ctx, resR);
 
     free(config);
 
     std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time =
         std::chrono::high_resolution_clock::now();
+    std::cout << "LOG2TIMELINE: " << this_id << "::" << __FUNCTION__ << " end=" 
+              << l_end_time.time_since_epoch().count() << std::endl;
 
     std::chrono::duration<double> l_durationSec = l_end_time - l_start_time;
     double l_timeMs = l_durationSec.count() * 1e3;
-    std::cout << "PROFILING: " << __FUNCTION__ << " runtime msec=  " 
+    std::cout << "LOG2TIMELINE: " << __FUNCTION__ << " runtime=" 
               << std::fixed << std::setprecision(6) << l_timeMs << std::endl;
 
     return ret;

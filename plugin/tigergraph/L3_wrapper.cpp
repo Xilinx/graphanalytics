@@ -327,6 +327,7 @@ int cosineSimilaritySSDenseMultiCard(std::shared_ptr<xf::graph::L3::Handle>& han
         memset(resultID0[i], 0, topK * sizeof(int32_t));
         memset(similarity0[i], 0, topK * sizeof(float));
     }
+
     for (int i = 0; i < deviceNm; ++i) {
         eventQueue.push_back((handle->opsimdense)->addworkInt(
             1, 0, sourceNUM, sourceWeights, topK, g[i][0], resultID0[i], similarity0[i]));
@@ -368,8 +369,14 @@ std::vector<event<int> > cosineSimilaritySSDenseMultiCard(std::shared_ptr<xf::gr
                                                           int32_t** resultID,
                                                           float** similarity) {
     std::vector<event<int> > eventQueue;
-    
+    std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time;
+
     for (int i = 0; i < deviceNm; ++i) {
+        l_start_time = std::chrono::high_resolution_clock::now();
+        std::cout << "LOG2TIMELINE: " << __FUNCTION__ 
+                  << "::addworkInt" << i << " start=" << l_start_time.time_since_epoch().count() 
+                  << std::endl;
+
         eventQueue.push_back(
             (handle->opsimdense)
                 ->addworkInt(1, 0, sourceNUM, sourceWeights, topK, g[i][0], resultID[i], similarity[i]));
@@ -396,6 +403,8 @@ class sharedHandlesSSSP {
         return theInstance;
     }
 };
+
+// persistent storge for L3::Handle that is shared by L3 functions
 class sharedHandlesCosSimDense {
    public:
     std::unordered_map<unsigned int, std::shared_ptr<xf::graph::L3::Handle> > handlesMap;
@@ -785,6 +794,18 @@ extern "C" int loadgraph_cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
         return XF_GRAPH_L3_ERROR_XCLBIN_FILE_NOT_EXIST;
     }
 
+    std::cout << "DEBUG: " << __FUNCTION__ 
+              << " sharedHandlesCosSimDense.handlesMap.empty=" 
+              << sharedHandlesCosSimDense::instance().handlesMap.empty() << std::endl;
+         
+    // return right away if the handle has already been created
+    if (!sharedHandlesCosSimDense::instance().handlesMap.empty()) {
+        std::cout << "INFO: " << __FUNCTION__ << " skipped:"
+              << " sharedHandlesCosSimDense.handlesMap.empty=" 
+              << sharedHandlesCosSimDense::instance().handlesMap.empty() << std::endl;
+       
+        return XF_GRAPH_L3_SUCCESS;
+    }
     std::shared_ptr<xf::graph::L3::Handle> handleInstance(new xf::graph::L3::Handle);
     sharedHandlesCosSimDense::instance().handlesMap[0] = handleInstance;
     std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
@@ -801,7 +822,6 @@ extern "C" int loadgraph_cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
     
     //---------------- Run Load Graph -----------------------------------
     for (int i = 0; i < deviceNeeded * cuNm; ++i) {
-        std::cout << "DEBUG: loadGraphMultiCardNonBlocking " << i << std::endl;
         (handle0->opsimdense)->loadGraphMultiCardNonBlocking(i / cuNm, i % cuNm, g[i][0]);
     }
 
@@ -830,7 +850,7 @@ extern "C" void cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
 
     std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time =
             std::chrono::high_resolution_clock::now();
-    std::cout << "DEBUG: " << __FUNCTION__ << " start=" << l_start_time.time_since_epoch().count() 
+    std::cout << "LOG2TIMELINE: " << __FUNCTION__ << " time0=" << l_start_time.time_since_epoch().count() 
               << std::endl;
 
     std::shared_ptr<xf::graph::L3::Handle> handle0 = 
@@ -896,16 +916,24 @@ extern "C" void cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
     }
     std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time =
             std::chrono::high_resolution_clock::now();
+    std::cout << "LOG2TIMELINE: " << __FUNCTION__ 
+              << " end=" << l_end_time.time_since_epoch().count() << std::endl;
     std::chrono::duration<double> l_durationSec = l_end_time - l_start_time;
     double l_timeMs = l_durationSec.count() * 1e3;
-    std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
-              << " runtime msec=  " << std::fixed << std::setprecision(6) 
-              << l_timeMs << std::endl;
+    std::cout << "LOG2TIMELINE: " << __FUNCTION__ 
+              << " runtime= " << std::fixed << std::setprecision(6) << l_timeMs << std::endl;
 }
 
 extern "C" void close_fpga() {
-    //---------------- Run Load Graph -----------------------------------
-    std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
-    handle0->free();
+    //---------------- close_fpga -----------------------------------
+    if (!sharedHandlesCosSimDense::instance().handlesMap.empty()) {
+        // free the object stored in handlsMap[0] and erase handlsMap[0] 
+        std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
+        handle0->free();
+        sharedHandlesCosSimDense::instance().handlesMap.erase(0);
+    }
+    std::cout << __FUNCTION__ << " completed. sharedHandlesCosSimDense.handlesMap.empty=" <<
+              sharedHandlesCosSimDense::instance().handlesMap.empty() << std::endl;
+
 }
 #endif

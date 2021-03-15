@@ -41,7 +41,7 @@ namespace L3 {
 
 class openXRM {
    public:
-    xrmCuGroupResource** resR;
+    //xrmCuGroupResource** resR;
     char** udfCuGroupName;
     openXRM() {
         ctx = (xrmContext*)xrmCreateContext(XRM_API_VERSION_1);
@@ -49,60 +49,6 @@ class openXRM {
         assert(isRight);
     };
 
-    //  void freeCuGroup(unsigned int deviceNm){
-    //      int ret = 0;
-    //      for(int i = 0; i< deviceNm; ++i){
-    //          ret = xrmUdfCuGroupUndeclare(ctx, udfCuGroupName[i]);
-    //          if (ret == XRM_SUCCESS){
-    //              printf("INFO: User defined cu group from same device undeclaration success\n");
-    //          }else{
-    //              printf("ERROR: User defined cu group from same device undeclaration fail\n");
-    //              exit(1);
-    //          }
-    //          delete[] udfCuGroupName[i];
-    //      }
-    //      delete[] resR;
-    //      delete[] udfCuGroupName;
-    //  }
-
-    //  void setUpCuGroup(unsigned int deviceNm, unsigned int cuNm, std::string kernelName, std::string kernelAlias,
-    //  unsigned int requestLoad){
-    //      resR = new xrmCuGroupResource*[deviceNm];
-    //      udfCuGroupName = new char* [deviceNm];
-    //     // xrmCuGroupResource* resR[deviceNm];
-    //     // char udfCuGroupName[deviceNm][XRM_MAX_NAME_LEN];
-    //      xrmUdfCuGroupProperty* udfCuGroupProp[deviceNm];
-    //      std::string baseName = "udfCuGroupSameDevice";
-    //      xrmUdfCuListProperty* udfCuListProp;
-    //      xrmUdfCuProperty* udfCuProp;
-    //      for(int i = 0; i < deviceNm; ++i){
-    //          udfCuGroupName[i] = new char [XRM_MAX_NAME_LEN];
-    //          udfCuGroupProp[i] = (xrmUdfCuGroupProperty*)malloc(sizeof(xrmUdfCuGroupProperty));
-    //          memset(udfCuGroupProp[i], 0, sizeof(xrmUdfCuGroupProperty));
-    //          strcpy(udfCuGroupName[i], (baseName+std::to_string(i)).c_str());
-    //          udfCuGroupProp[i]->optionUdfCuListNum = 1;
-    //          udfCuListProp = &udfCuGroupProp[i]->optionUdfCuListProps[0];
-    //          udfCuListProp->cuNum = cuNm;
-    //          udfCuListProp->sameDevice = true;
-    //          for (int32_t cuIdx = 0; cuIdx < udfCuListProp->cuNum; cuIdx++) {
-    //              std::string cuName0 = kernelName + ":" + kernelName + "_" + std::to_string(i*udfCuListProp->cuNum +
-    //              cuIdx);
-    //              //std::string cuName0 = kernelName + ":" + kernelName + "_" + std::to_string(cuIdx);
-    //              udfCuProp = &udfCuListProp->udfCuProps[cuIdx];
-    //              strcpy(udfCuProp->cuName, cuName0.c_str());
-    //              udfCuProp->devExcl = false;
-    //              udfCuProp->requestLoad = requestLoad;
-    //          }
-    //          int ret = xrmUdfCuGroupDeclare(ctx, udfCuGroupProp[i], udfCuGroupName[i]);
-    //          if (ret == XRM_SUCCESS){
-    //              printf("INFO: User defined cu group from same device undeclaration success\n");
-    //          }else{
-    //              printf("ERROR: User defined cu group from same device undeclaration fail\n");
-    //              exit(1);
-    //          }
-    //          free(udfCuGroupProp[i]);
-    //      }
-    //  }
     void freeCuGroup(unsigned int deviceNm) {
         int ret = 0;
         for (int i = 0; i < 1; ++i) {
@@ -498,6 +444,7 @@ auto createL3(Q& q, F&& f, Args&&... args) -> event<int> {
     return e;
 }
 
+// currently used
 inline void worker(queue& q,
                    class openXRM* xrm,
                    std::string kernelName,
@@ -510,12 +457,19 @@ inline void worker(queue& q,
 
 #ifdef __DEBUG__
     int requestCnt = 0;
+    std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time;
 #endif
+
     while (true) {
         class task t[requestNm];
         for (int i = 0; i < requestNm; ++i) {
             // q.getWork is blocking until it has a job
             t[i] = q.getWork();
+            l_start_time = std::chrono::high_resolution_clock::now();
+            std::cout << "LOG2TIMELINE: " << __FUNCTION__ 
+                      << " start=" << l_start_time.time_since_epoch().count() 
+                      << std::endl;
+
             resR[i] = (xrmCuResource*)malloc(sizeof(xrmCuResource));
             memset(resR[i], 0, sizeof(xrmCuResource));
         }
@@ -529,19 +483,16 @@ inline void worker(queue& q,
         std::chrono::time_point<std::chrono::high_resolution_clock> l_tp_start_compute2 =
             std::chrono::high_resolution_clock::now();
 #endif
-        for (int i = 0; i < requestNm; ++i) {
-            xrm->allocCU(resR[i], kernelName.c_str(), kernelAlias.c_str(), requestLoad);
-        }
-
-#ifdef __DEBUG__
-        //std::cout << "INFO: Allocated deviceID = " << deviceID << "\t cuID = " << cuID << "\t channelID = " << channelID
-        //          << "\t instance name = " << instanceName << "\t request ID = " << requestCnt << "\t number per while "
-        //         << requestNm << std::endl;
-#endif
+        //for (int i = 0; i < requestNm; ++i) {
+        //    xrm->allocCU(resR[i], kernelName.c_str(), kernelAlias.c_str(), requestLoad);
+        //}
 
         for (int i = 0; i < requestNm; i++) {
             unsigned int deviceID = i / cuNm;
             unsigned int cuID = i % cuNm;
+            unsigned int channelID = 0;
+            std::string instanceName = "PLACEHOLDER";
+            /*
             unsigned int ID;
             for (int j = 0; j < requestNm; ++j) {
                 if ((deviceID == resR[j][0].deviceId) && (cuID == resR[j][0].cuId)) {
@@ -550,7 +501,19 @@ inline void worker(queue& q,
             }
             unsigned int channelID = resR[ID][0].channelId;
             std::string instanceName = resR[ID][0].instanceName;
-            t[i].execute(deviceID, cuID, channelID, xrm, resR[ID], instanceName);
+            */
+#ifdef __DEBUG__
+            std::cout << "INFO: " << __FILE__ << "::" << __FUNCTION__ 
+                    << " Allocated deviceID=" << deviceID << " cuID =" << cuID 
+                    << " channelID=" << channelID << " instance name=" 
+                    << instanceName << " request ID=" << requestCnt 
+                    << " requestNm=" << requestNm << " cuNm=" << cuNm 
+                    << std::endl;
+#endif
+
+            //t[i].execute(deviceID, cuID, channelID, xrm, resR[ID], instanceName);
+            t[i].execute(deviceID, cuID, channelID, xrm, resR[i], instanceName);
+
         }
 #ifdef __DEBUG__
         requestCnt++;
