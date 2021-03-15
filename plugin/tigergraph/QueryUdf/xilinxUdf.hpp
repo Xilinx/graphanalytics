@@ -385,7 +385,7 @@ inline int udf_loadgraph_cosinesim_ss_fpga(int64_t numVertices,
         ListAccum<int64_t> &curRowVec = oldVectors.get(vecNum);
         CosineSim::RowIndex rowIndex = 0;
         CosineSim::ValueType *pBuf = pCosineSim->getPopulationVectorBuffer(rowIndex);
-        for (xai::CosineSim::ColIndex eltNum = 0; eltNum < vectorLength; ++eltNum)
+        for (xai::CosineSim::ColIndex eltNum = 3; eltNum < vectorLength; ++eltNum)
             *pBuf++ = CosineSim::ValueType(curRowVec.get(eltNum));
         pCosineSim->finishCurrentPopulationVector();
         uint64_t vertexId = ((curRowVec.get(2) << 32) & 0xFFFFFFF00000000) | (curRowVec.get(1) & 0x00000000FFFFFFFF);
@@ -429,7 +429,7 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     std::vector<xai::CosineSim::ValueType> nativeTargetVector;
     const xai::CosineSim::ColIndex vectorLength = pContext->getVectorLength();
     nativeTargetVector.reserve(vectorLength);
-    for (xai::CosineSim::ColIndex eltNum = 0; eltNum < vectorLength; ++eltNum)
+    for (xai::CosineSim::ColIndex eltNum = 3; eltNum < vectorLength; ++eltNum)
         nativeTargetVector.push_back(newVector.get(eltNum));
     xai::CosineSim *pCosineSim = pContext->getCosineSimObj();
 
