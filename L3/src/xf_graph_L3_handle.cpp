@@ -153,6 +153,7 @@ void Handle::initOpPageRank(const char* kernelName,
     delete[] deviceID;
 };
 
+// currently used for cosine similarity
 void Handle::initOpSimDense(const char* kernelName,
                             char* xclbinFile,
                             char* kernelAlias,
@@ -163,7 +164,8 @@ void Handle::initOpSimDense(const char* kernelName,
     uint32_t* cuID;
     xrm->fetchCuInfo(kernelName, kernelAlias, requestLoad, deviceNm, maxChannelSize, maxCU, &deviceID, &cuID);
     opsimdense->setHWInfo(deviceNm, maxCU);
-    opsimdense->init((char*)kernelName, xclbinFile, deviceID, cuID, requestLoad);
+    opsimdense->init(xrm, kernelName, kernelAlias, xclbinFile, deviceID, 
+                     cuID, requestLoad);
     opsimdense->initThread(xrm, kernelName, kernelAlias, requestLoad, deviceNeeded, cuPerBoard);
     delete[] cuID;
     delete[] deviceID;
@@ -179,7 +181,8 @@ void Handle::initOpSimDenseInt(const char* kernelName,
     uint32_t* cuID;
     xrm->fetchCuInfo(kernelName, kernelAlias, requestLoad, deviceNm, maxChannelSize, maxCU, &deviceID, &cuID);
     opsimdense->setHWInfo(deviceNm, maxCU);
-    opsimdense->initInt((char*)kernelName, xclbinFile, deviceID, cuID, requestLoad);
+    opsimdense->initInt(xrm, (char*)kernelName, kernelAlias, xclbinFile, 
+                        deviceID, cuID, requestLoad);
     opsimdense->initThreadInt(xrm, kernelName, kernelAlias, requestLoad, deviceNeeded, cuPerBoard);
     delete[] cuID;
     delete[] deviceID;
@@ -202,7 +205,6 @@ void Handle::initOpSimSparse(const char* kernelName,
 };
 
 void Handle::addOp(singleOP op) {
-    std::cout << "handle::addOp" << std::endl;
     ops.push_back(op);
 }
 
@@ -261,6 +263,7 @@ int Handle::setUp() {
                      ops[i].requestLoad, ops[i].deviceNeeded,
                      ops[i].cuPerBoard);
         } else if (ops[i].operationName == "similarityDense") {
+            // currently active
             std::cout << "INFO: " << __FILE__ << "::" << __FUNCTION__ 
                 << ": operation " << i << "=similarityDense" << std::endl;
 
@@ -287,7 +290,7 @@ int Handle::setUp() {
             for (int j = 0; j < boardNm; ++j) {
                 auto loadedDevId = th[j].get();
                 if (loadedDevId < 0) {
-                    std::cout << "ERROR: failed to load " << ops[i].xclbinFile << 
+                        std::cout << "ERROR: failed to load " << ops[i].xclbinFile << 
                         "(Status=" << loadedDevId << "). Please check if it is " <<
                         "created for the Xilinx Acceleration card installed on " <<
                         "the server." << std::endl;
@@ -295,8 +298,9 @@ int Handle::setUp() {
                 }
             }
             deviceCounter += boardNm;
+
             initOpSimDense(ops[i].kernelName, ops[i].xclbinFile, ops[i].kernelAlias, ops[i].requestLoad,
-                           ops[i].deviceNeeded, ops[i].cuPerBoard);
+                            ops[i].deviceNeeded, ops[i].cuPerBoard);
         } else if (ops[i].operationName == "similarityDenseInt") {
             std::cout << "INFO: " << __FILE__ << "::" << __FUNCTION__ 
                 << ": operation " << i << "=similarityDenseInt" << std::endl;
@@ -550,7 +554,6 @@ void Handle::free() {
     unsigned int opNm = ops.size();
     unsigned int deviceCounter = 0;
     for (int i = 0; i < opNm; ++i) {
-        std::cout << "INFO: Handle::free operationName=" << ops[i].operationName << std::endl;
         if (ops[i].operationName == "pagerank") {
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];
@@ -574,7 +577,9 @@ void Handle::free() {
             deviceCounter += boardNm;
             opsp->freeSP();
         } else if (ops[i].operationName == "similarityDense") {
-            std::cout << "l3-hanle similaritydense entering" << std::endl;
+            //-----------------------------------------------------------------
+            std::cout << "DEBUG: " << __FUNCTION__ << " op=similarityDense" << std::endl;
+            opsimdense->freeSimDense(xrm->ctx);            
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];
             for (int j = 0; j < boardNm; ++j) {
@@ -583,9 +588,7 @@ void Handle::free() {
             for (int j = 0; j < boardNm; ++j) {
                 thUn[j].join();
             }
-            std::cout << "l3-hanle similaritydense after join" << std::endl;
             deviceCounter += boardNm;
-            opsimdense->freeSimDense();
         } else if (ops[i].operationName == "similarityDenseInt") {
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];
@@ -596,7 +599,7 @@ void Handle::free() {
                 thUn[j].join();
             }
             deviceCounter += boardNm;
-            opsimdense->freeSimDense();
+            opsimdense->freeSimDense(xrm->ctx);
             xrm->freeCuGroup(boardNm);
         } else if (ops[i].operationName == "similaritySparse") {
             unsigned int boardNm = ops[i].deviceNeeded;
@@ -677,6 +680,7 @@ void Handle::free() {
             opconvertcsrcsc->freeConvertCsrCsc();
         }
     }
+    //TODO: the following line crashes GPE.
     //xrm->freeXRM();
 };
 

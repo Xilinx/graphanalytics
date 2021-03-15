@@ -111,25 +111,43 @@ create query cosinesim_ss_fpga(string log_file1, int devices_needed) for graph @
     uint topK;
     vertex<patients> newPatient;
     ListAccum<testResults> @@result;
+   	ListAccum<int> @@newPatientVector;
+
     double score;
     DOUBLE run_time;
     FILE file1 (log_file1);
     topK = 100;
+
 # Patient Population
+    udf_reset_timer(true);
+    
     population = {patients.*};
+    
 # Pick one random patient
     randomPatient = select p from population:p 
         Limit 10;
 # Assign to a patient vertex
     randomPatient = select p from randomPatient:p
         ACCUM newPatient = p;
+
+	@@newPatientVector = patient_vector(newPatient);
+    run_time1 = udf_elapsed_time(true);
+    print run_time1 AS ExecTimeInMsLoadPopulation;
+
 # Cosine Similarity using TigerGraph
+    #############################################################
     udf_reset_timer(true);
-    @@result = cosinesim_ss_fpga_core(newPatient, topK, devices_needed);
+
+@@result = udf_cosinesim_ss_fpga(topK, population.size(), 200, 
+        @@newPatientVector, devices_needed);
+
+    #@@result = cosinesim_ss_fpga_core(newPatient, topK, devices_needed);
     run_time = udf_elapsed_time(true);
+    print run_time AS ExecTimeInMsCompute;
+
+
     print "Xilinx Alveo U50" AS ComputationTechnique;
     print newPatient.FIRST_NAME + " " + newPatient.LAST_NAME AS Patient;
-    print run_time AS ExecTimeInMs;
     file1.println("SCORE", "FIRST_NAME", "LAST_NAME", "AGE", "RACE", "ETHNICITY", "GENDER",
             "#immunization", "immunizations",
             "#allergy", "allergies",
