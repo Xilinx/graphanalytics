@@ -403,6 +403,8 @@ class sharedHandlesSSSP {
         return theInstance;
     }
 };
+
+// persistent storge for L3::Handle that is shared by L3 functions
 class sharedHandlesCosSimDense {
    public:
     std::unordered_map<unsigned int, std::shared_ptr<xf::graph::L3::Handle> > handlesMap;
@@ -792,9 +794,18 @@ extern "C" int loadgraph_cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
         return XF_GRAPH_L3_ERROR_XCLBIN_FILE_NOT_EXIST;
     }
 
-    std::cout << __FUNCTION__ << " sharedHandlesCosSimDense.handlesMap.empty=" <<
-              sharedHandlesCosSimDense::instance().handlesMap.empty() << std::endl;
-              
+    std::cout << "DEBUG: " << __FUNCTION__ 
+              << " sharedHandlesCosSimDense.handlesMap.empty=" 
+              << sharedHandlesCosSimDense::instance().handlesMap.empty() << std::endl;
+         
+    // return right away if the handle has already been created
+    if (!sharedHandlesCosSimDense::instance().handlesMap.empty()) {
+        std::cout << "INFO: " << __FUNCTION__ << " skipped:"
+              << " sharedHandlesCosSimDense.handlesMap.empty=" 
+              << sharedHandlesCosSimDense::instance().handlesMap.empty() << std::endl;
+       
+        return XF_GRAPH_L3_SUCCESS;
+    }
     std::shared_ptr<xf::graph::L3::Handle> handleInstance(new xf::graph::L3::Handle);
     sharedHandlesCosSimDense::instance().handlesMap[0] = handleInstance;
     std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
@@ -915,13 +926,13 @@ extern "C" void cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
 
 extern "C" void close_fpga() {
     //---------------- close_fpga -----------------------------------
-    std::cout << __FUNCTION__ << " before close sharedHandlesCosSimDense.handlesMap.empty=" <<
-              sharedHandlesCosSimDense::instance().handlesMap.empty() << std::endl;
-
-    std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
-    handle0->free();
-    
-    std::cout << __FUNCTION__ << " after close sharedHandlesCosSimDense.handlesMap.empty=" <<
+    if (!sharedHandlesCosSimDense::instance().handlesMap.empty()) {
+        // free the object stored in handlsMap[0] and erase handlsMap[0] 
+        std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
+        handle0->free();
+        sharedHandlesCosSimDense::instance().handlesMap.erase(0);
+    }
+    std::cout << __FUNCTION__ << " completed. sharedHandlesCosSimDense.handlesMap.empty=" <<
               sharedHandlesCosSimDense::instance().handlesMap.empty() << std::endl;
 
 }
