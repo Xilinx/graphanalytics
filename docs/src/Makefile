@@ -27,7 +27,7 @@ install: .stamp/sphinx
 ifeq (, $(HTML_DEST_DIR))
 	@echo "ERROR: HTML_DEST_DIR is not set." && false
 endif
-	rsync -av --delete --exclude .git --exclude .nojekyll --exclude .buildinfo \
+	rsync -av --delete --exclude .git --exclude .buildinfo \
 		 _build/html/ $(HTML_DEST_DIR) 1>/dev/null
 
 .stamp/sphinx: check_tools
