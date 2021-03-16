@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 
+DEBUG :=1 
 ifndef XILINX_XRT
     XILINX_XRT = /opt/xilinx/xrt
     export XILINX_XRT

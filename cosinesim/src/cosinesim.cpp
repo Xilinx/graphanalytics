@@ -24,7 +24,7 @@ public:
 	int valueSize_;
 	int64_t devicesNeeded;
 	int populationVectorRowNm;
-	int32_t** numVerticesPU = new int32_t*[devicesNeeded * cuNm]; // vertex numbers in each PU
+	int32_t** numVerticesPU ; // vertex numbers in each PU
 
 
 	int32_t numEdges;
@@ -32,7 +32,7 @@ public:
 	int64_t numVertices;
 	int32_t edgeAlign8;
 	int subChNm;
-
+    int lastPopulationCnt;
 	//std::vector<int> loadOldVectorCnt(channelsPU,0);
 	std::vector<int> loadPopulationCnt;
 
@@ -64,11 +64,25 @@ public:
 		subChNm = 1;
 		//vecLength = ptr->getOptions().vecLength;
 		vecLength = options.vecLength;
-		numEdges = vecLength - 3;
+		//numEdges = vecLength - 3;
+		numEdges = vecLength;
 		//numVertices =options.numVertices;
 		devicesNeeded = options.devicesNeeded;
 	    options_ = options;
 		edgeAlign8 = ((numEdges + channelW - 1) / channelW) * channelW;
+
+		numVerticesPU  = new int32_t*[devicesNeeded * cuNm];
+		for (int i = 0; i < devicesNeeded * cuNm; ++i) {
+		        numVerticesPU[i] = new int32_t[splitNm];
+		}
+
+	    edgeAlign8 = ((numEdges + channelW - 1) / channelW) * channelW;
+
+		loadPopulationCnt.resize(channelsPU,0);
+		g.resize(devicesNeeded*cuNm);
+
+
+
 
 	}
 
@@ -88,9 +102,7 @@ public:
 		this->numVertices = numVertices;
 		devicesNeeded = options_.devicesNeeded;
 
-		loadPopulationCnt.resize(channelsPU,0);
-		g.resize(devicesNeeded*cuNm);
-
+		//the following calculation and assignment is based on numVertices
 		int general = ((numVertices - (devicesNeeded * cuNm * splitNm * channelsPU + 1)) /
 		                   (devicesNeeded * cuNm * splitNm * channelsPU)) * channelsPU;
 		int rest = numVertices - general * (devicesNeeded * cuNm * splitNm - 1);
@@ -110,7 +122,6 @@ public:
 			}
 		}
 		numVerticesPU[devicesNeeded * cuNm - 1][splitNm - 1] = rest;
-
 		//initialize graph properties
 		int fpgaNodeNm = 0;
 		for(int i=0;i<devicesNeeded*cuNm; i++){
@@ -118,10 +129,9 @@ public:
 			//g[i] = new xf::graph::Graph<int32_t, int32_t>("Dense", 4 * splitNm, numEdges, numVerticesPU[i]);
 
 			if(valueSize_ == 4) {
-				g[i] = new xf::graph::Graph<int32_t, int32_t>("Dense", 4 * splitNm, numEdges, numVerticesPU[i]);
+				g[i] = new xf::graph::Graph<int32_t, int32_t>("Dense", 4 * splitNm, numEdges,  numVerticesPU[i]);
 			//} else if(valueSize_ == 8) {
 			//	g[i] = new xf::graph::Graph<int32_t, int64_t>("Dense", 4 * splitNm, numEdges, numVerticesPU[i]);
-
 			} else {
 				errorCode_ =  ErrorUnsupportedValueType;
 			}
@@ -146,59 +156,87 @@ public:
 	        }
 		}
 
+
+
 	}
    void loadgraph_cosinesim_ss_dense_fpga(unsigned deviceNeeded,unsigned cuNm, xf::graph::Graph<int32_t, int32_t>** g) ;
 
    virtual void *getPopulationVectorBuffer(RowIndex &rowIndex){
-		int32_t edgeAlign8 = ((numEdges + channelW - 1) / channelW) * channelW;
 
+	   void * pbuf;
+
+	   if(indexDeviceCuNm == devicesNeeded * cuNm)
+		   return nullptr;
+	   subChNm = (numVerticesPU[indexDeviceCuNm][indexSplitNm] + channelsPU - 1) / channelsPU;
+
+	   pbuf = &(g[indexDeviceCuNm]->weightsDense[indexSplitNm * channelsPU + indexNumVertices / subChNm][loadPopulationCnt[indexNumVertices / subChNm] * edgeAlign8]);
+
+	  loadPopulationCnt[indexNumVertices / subChNm] += 1;
+	  lastPopulationCnt = loadPopulationCnt[indexNumVertices / subChNm];
+	   indexNumVertices++;
+	   if(indexNumVertices ==numVerticesPU[indexDeviceCuNm][indexSplitNm] ) {
+		   indexSplitNm++;
+		   indexNumVertices=0;
+		   std::fill(loadPopulationCnt.begin(),loadPopulationCnt.end(),0);
+		   if(indexSplitNm == splitNm) {
+			   indexDeviceCuNm++;
+			   indexSplitNm = 0;
+		   }
+	   }
+	   /*
 		if(indexDeviceCuNm < devicesNeeded * cuNm) {
 			//int subChNm;
 			indexDeviceCuNm = indexSplitNm == splitNm ? ++indexDeviceCuNm : indexDeviceCuNm;
-			if(indexSplitNm == splitNm)  indexSplitNm =0;
-			else {
-				if(indexNumVertices==numVerticesPU[indexDeviceCuNm][indexSplitNm]){
-					//inner loop has finished.
-					indexSplitNm++;
-					indexNumVertices =0;
-				} else {
-					if(indexVecLength == vecLength) {
-						indexNumVertices++;
-						indexVecLength =0;
-					} else {
-						indexVecLength++;
-					}
-
-
-				}
+			if(indexSplitNm == splitNm)  {
+				indexSplitNm =0;
+			} else {
+				indexSplitNm = (indexNumVertices == numVerticesPU[indexDeviceCuNm][indexSplitNm]) ? ++indexSplitNm : indexSplitNm;
 			}
+			//else {
 			subChNm = (numVerticesPU[indexDeviceCuNm][indexSplitNm] + channelsPU - 1) / channelsPU;
+			if(indexNumVertices < numVerticesPU[indexDeviceCuNm][indexSplitNm]){
+				pbuf=&(g[indexDeviceCuNm]->weightsDense[indexSplitNm * channelsPU + indexNumVertices / subChNm][loadPopulationCnt[indexNumVertices / subChNm] * edgeAlign8]);
+				indexNumVertices++;
+			} else {
+				//inner loop has finished.
+				//indexSplitNm++;
+				indexNumVertices =0;
+				//start new 4 HBM channels assignment
+				std::fill(loadPopulationCnt.begin(),loadPopulationCnt.end(),0);
+				pbuf=&(g[indexDeviceCuNm]->weightsDense[indexSplitNm * channelsPU + indexNumVertices / subChNm][loadPopulationCnt[indexNumVertices / subChNm] * edgeAlign8]);
+			}
 
+*/
+			//}
 
 			rowIndex = populationVectorRowNm++;
-			loadPopulationCnt[indexNumVertices / subChNm] += 1;
-			return &(g[indexDeviceCuNm]->weightsDense[indexSplitNm * channelsPU + indexNumVertices / subChNm][loadPopulationCnt[indexNumVertices / subChNm] * edgeAlign8 + indexVecLength - 3]);
-		}
-		return nullptr;
+			return pbuf;
+
 	}
 
-	virtual void finishCurrentPopulationVector(){
-		int depth = ((numVerticesPU[indexDeviceCuNm][indexSplitNm] + channelsPU - 1) / channelsPU) * edgeAlign8;
+	virtual void finishCurrentPopulationVector(void * pbuf){
+		//int depth = ((numVerticesPU[indexDeviceCuNm][indexSplitNm] + channelsPU - 1) / channelsPU) * edgeAlign8;
 
-		for (int k = indexSplitNm ; k < depth; ++k) {
-			g[indexDeviceCuNm]->weightsDense[indexSplitNm * channelsPU + indexNumVertices / subChNm][k] = nullVal;
-		}
+		//int userLastloc=  lastPopulationCnt * edgeAlign8 + vecLength;
+		//int alignedloc = userLastloc + edgeAlign8 - vecLength;
+		//for (int k = userLastloc ; k < alignedloc; ++k) {
+			//g[indexDeviceCuNm]->weightsDense[indexSplitNm * channelsPU + indexNumVertices / subChNm][k] = nullVal;
+			//if(valueSize_ == 4) {
+			  memset(pbuf+vecLength*valueSize_, 0, ( edgeAlign8 - vecLength)*valueSize_ );
+			//}
+		//}
 
 	}
 
 	//padding the row and loadgraph
 	virtual void finishLoadPopulationVectors() {
-		int depth = ((numVerticesPU[indexDeviceCuNm][indexSplitNm] + channelsPU - 1) / channelsPU) * edgeAlign8;
-		for (int l = numVerticesPU[indexDeviceCuNm][indexSplitNm] +1 ; l < channelsPU; ++l) {
-			for (int k = 0; k < depth; ++k) {
-				g[indexDeviceCuNm]->weightsDense[ indexSplitNm * channelsPU + l][k] = nullVal;
-			}
+		//for the last PU, the last channels may need to padded as the row will be the multiple of channelsPU
+		int paddingDepth = ((numVerticesPU[indexDeviceCuNm-1][indexSplitNm-1] + channelsPU - 1) / channelsPU)*channelsPU - numVerticesPU[indexDeviceCuNm-1][indexSplitNm-1] ;
+		int startPaddingDepth = numVerticesPU[indexDeviceCuNm-1][indexSplitNm-1] * edgeAlign8;
+		for (int k = startPaddingDepth; k < paddingDepth*edgeAlign8; ++k) {
+			g[indexDeviceCuNm]->weightsDense[ (indexSplitNm-1) * channelsPU + 3][k] = nullVal;
 		}
+
 
 		loadgraph_cosinesim_ss_dense_fpga(devicesNeeded, cuNm, g.data());
 
@@ -243,9 +281,9 @@ public:
 	        	//sourceWeight[i] = elements[i + 3];
 
 	        	if(valueSize_ == 4)
-	        		sourceWeight[i] = (reinterpret_cast<int32_t*>(elements))[i + 3];
+	        		sourceWeight[i] = (reinterpret_cast<int32_t*>(elements))[i];
 	        	//else if (valueSize_== 8)
-	        	//	sourceWeight[i] = (reinterpret_cast<int64_t*>(elements))[i + 3];
+	        	//	sourceWeight[i] = (reinterpret_cast<int64_t*>(elements))[i];
 	        	else {
 	        		errorCode_ =  ErrorUnsupportedValueType;
 	        	}

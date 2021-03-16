@@ -64,7 +64,7 @@ public:
 	virtual ~ImplBase(){};
 	virtual void startLoadPopulation(std::int64_t numVertices) = 0;
 	virtual void *getPopulationVectorBuffer(RowIndex &rowIndex) = 0;
-	virtual void finishCurrentPopulationVector() = 0;
+	virtual void finishCurrentPopulationVector(void * pbuf) = 0;
 	virtual void finishLoadPopulationVectors() =0;
 	virtual std::vector<Result> matchTargetVector(unsigned numResults, void *elements) = 0;
 };
@@ -96,7 +96,7 @@ public:
         // return pointer into weightDense
          return reinterpret_cast<Value *>(pImpl_->getPopulationVectorBuffer(rowIndex));
     }
-    void finishCurrentPopulationVector(){pImpl_->finishCurrentPopulationVector();}
+    void finishCurrentPopulationVector(Value *pbuf){pImpl_->finishCurrentPopulationVector(pbuf);}
     void finishLoadPopulationVectors(){pImpl_->finishLoadPopulationVectors();}
 
     
