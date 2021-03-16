@@ -33,3 +33,8 @@
 
    running-demo.rst
 
+   .. toctree::
+   :caption: Vitis Development Flow
+   :maxdepth: 1
+
+   vitis-dev-flow.rst
