@@ -56,8 +56,7 @@
   <link rel="stylesheet" href="_static/css/pro.min.css" media="all" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Vitis Development Flow" href="vitis-dev-flow.html" />
-    <link rel="prev" title="Xilinx Alveo Graph Analytics Products" href="overview.html" /> 
+    <link rel="prev" title="Running Cosine Similarity Acceleration Demo" href="running-demo.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -336,12 +335,15 @@
 </ul>
 <p class="caption"><span class="caption-text">Running Alveo Demo</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Running Cosine Similarity Acceleration Demo</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#install-xrt-xrm-u50-shells">Install XRT/XRM/U50 shells</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#porting-cosine-similarity-function-to-tigergraph-framework">Porting cosine similarity function to TigerGraph framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="running-demo.html">Running Cosine Similarity Acceleration Demo</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Vitis Development Flow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#downloading-software">Downloading Software</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#programming-model">Programming Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#optimizing-for-performance">Optimizing for Performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#next-step">Next Step</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#license">License</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="vitis-dev-flow.html">Vitis Development Flow</a></li>
 </ul>
 
             
@@ -394,7 +396,7 @@
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Running Cosine Similarity Acceleration Demo</li>
+      <li>Vitis Development Flow</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -411,43 +413,139 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="running-cosine-similarity-acceleration-demo">
-<h1>Running Cosine Similarity Acceleration Demo<a class="headerlink" href="#running-cosine-similarity-acceleration-demo" title="Permalink to this headline">¶</a></h1>
-<p>This page describes the necessary steps to run the cosine similarity acceleration demo.
-In a nutshell you will be installing TigerGraph software,
-necessary Xilinx software, port the Xilinx graph library to Tigergraph
-environment, and then run cosine similarity computation running on Alveo U50
-card integated into the HPE server.</p>
-<p>For more detail information on Xilinx environment and how Xilinx
-functions are ported to Tigergraph environment, check [page](targeting_alveo.md).</p>
-<div class="section" id="install-xrt-xrm-u50-shells">
-<h2>Install XRT/XRM/U50 shells<a class="headerlink" href="#install-xrt-xrm-u50-shells" title="Permalink to this headline">¶</a></h2>
-<ol class="arabic simple">
-<li><p>Plug in U50</p></li>
-<li><p>Install <a class="reference external" href="https://info.tigergraph.com/enterprise-free">TigerGraph Enterprise version 3.1</a>
-with all the default settings like user name, passwords, directories.</p></li>
-<li><p>Get the installation package from <a class="reference external" href="https://www.xilinx.com/member/dba_poc.html">Database Analytics POC Secure Site</a></p></li>
-<li><p>tar xzf xilinx-tigergraph-install.tar.gz</p></li>
-<li><p><cite>cd xilinx-tigergraph-install &amp;&amp; ./install.sh</cite></p></li>
-<li><p>flash the card and cold-reboot (as shown in the log message of the script output)</p></li>
-<li><p>Now you should have XRT/XRM/U50 shell installed and xclbin copied to
-TigerGraph install directory</p></li>
-</ol>
+  <div class="section" id="vitis-development-flow">
+<h1>Vitis Development Flow<a class="headerlink" href="#vitis-development-flow" title="Permalink to this headline">¶</a></h1>
+<p>In this section we will cover the development flow for users who wants to create
+their own application to run on Alveo.</p>
+<a class="reference internal image-reference" href="_images/fig_dev_dep.jpg"><img alt="_images/fig_dev_dep.jpg" class="align-center" src="_images/fig_dev_dep.jpg" style="width: 525.6px; height: 205.79999999999998px;" /></a>
+<div class="section" id="downloading-software">
+<h2>Downloading Software<a class="headerlink" href="#downloading-software" title="Permalink to this headline">¶</a></h2>
+<p>As far as the required software goes, for deployment use you need to install:
+XRT, XRM and deployment shell, as you have done in the previous sections.
+For development use, you need to install Vitis software and development shell
+in addition to those. You can find all these from <a class="reference external" href="https://www.xilinx.com/products/boards-and-kits/alveo/u50.html#gettingStarted">Alveo U50 web page</a>.</p>
+<a class="reference internal image-reference" href="_images/fig_downloadVitis.jpg"><img alt="_images/fig_downloadVitis.jpg" class="align-center" src="_images/fig_downloadVitis.jpg" style="width: 456.59999999999997px; height: 218.4px;" /></a>
 </div>
-<div class="section" id="porting-cosine-similarity-function-to-tigergraph-framework">
-<h2>Porting cosine similarity function to TigerGraph framework<a class="headerlink" href="#porting-cosine-similarity-function-to-tigergraph-framework" title="Permalink to this headline">¶</a></h2>
-<ol class="arabic simple">
-<li><p>Open a shell as the user created during Tigergraph installation. e.g. <cite>su - tigergraph</cite></p></li>
-<li><p>Run the commands below to install the plugin and run the demo</p></li>
-</ol>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/Xilinx/graphanalytics.git
-<span class="nb">cd</span> graphanalytics/plugin
-./install-plugin.sh
-
-<span class="nb">cd</span> graphanalytics/plugin/tigergraph/tests/cosine_nbor_ss_dense_int
-./run.sh
-</pre></div>
+<div class="section" id="programming-model">
+<h2>Programming Model<a class="headerlink" href="#programming-model" title="Permalink to this headline">¶</a></h2>
+<p>There are two parts in creating applications for Alveo. One involves programming
+the host application, which runs on x86 processor; and the second one is the FPGA
+application, which is the function we want to accelerate. The programming model is
+quite different between the two.</p>
+<p>Developing host applications is similar to any software development. You use C/C++
+but the unique part is that you use OpenCL API, to perform all the tasks necessary
+to utilize functions running on FPGA, such as scheduling tasks to run in FPGA, moving
+data between host and FPGA, and programming FPGA, etc. You use gcc/g++ tools to
+develope and produce executables.</p>
+<p>In this programming model, being able to program FPGA on the fly is a big advantage.
+As you complete certain tasks where youno longer need them, you can swap the
+content of of the FPGA to a different task;thus, economizing the FPGA resources
+by not having to store all the tasks/compute units in the FPGA all the time.</p>
+<p>Developing application for FPGA can be a daunting task. Design entry is
+done typically using Verilog or VHDL -  commonly referred to as RTL (register transfer
+language) which is a low level description language. In Vitis design
+environment, users can use C/C++/OpenCL C to describe and design functions,
+which we call kernels;then, High Level Synthesis (HLS or vitis_hls) tool transforms
+this high level abstraction code to RTL. This is what enables software developer to
+utilize FPGA for acceleration without knowing FPGA implementation techniques.</p>
+<p>Once the kernel is in RTL, the rest of the process - all the way to programming
+the FPGA, is done autonomously in Vitis development environment. During this
+process RTL code is synthesized - mapped to FPGA resources and wired properly, then
+bitstream containing these programming information is created into a container file
+called <em>xclbin</em>.</p>
+<a class="reference internal image-reference" href="_images/fig_cpu_fpga_vitis.jpg"><img alt="_images/fig_cpu_fpga_vitis.jpg" class="align-center" src="_images/fig_cpu_fpga_vitis.jpg" style="width: 412.2px; height: 253.2px;" /></a>
+<p>One caveat to be aware is that FPGA implementation task can take a long time -
+multiple hours. So before you commit to FPGA implementation task, you want to
+make sure your design is functionally correct and the performance estimate meets
+the requirements. CPU emulation, HW emulation and reports from HLS tools in Vitis
+environment can help you do that without having to complete the implementation.</p>
+<p>In many use cases, a user will have access to the kernel library and the
+<em>xclbin</em> is provided, then his job would be simply to develop SW application
+utilizing those FPGA accelerator functions available in <em>xclbin</em> and does not have
+to deal with FPGA implementation tasks. In this case it becomes a pure SW application
+development flow, where user simply calls those functions thru API in his host codes.</p>
+<a class="reference internal image-reference" href="_images/fig_vitisFlow.jpg"><img alt="_images/fig_vitisFlow.jpg" class="align-center" src="_images/fig_vitisFlow.jpg" style="width: 153.0px; height: 272.4px;" /></a>
 </div>
+<div class="section" id="optimizing-for-performance">
+<h2>Optimizing for Performance<a class="headerlink" href="#optimizing-for-performance" title="Permalink to this headline">¶</a></h2>
+<p>The basic concepts of parallel programming applies to programming Alveo to get
+the optimum performance, such as:
+- Distribution of workload: how to best distribute the workload over the available</p>
+<blockquote>
+<div><p>processing elements (we call them compute units - CU, or kernel), similar to ND
+partitioning in OpenCL paradigm. Some algorithms works out better in this regard
+than others. For cosine similarity computation, we can easily distribute the
+workload over the available compute units.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>What hits the fan first: identifying what is the limiting factor as we try to
+increase the performance.  Is it data bandwidth or computation resources?</p></li>
+<li><p>Data movement: how does the data flow among PCIe, DDR/FPGA, network interface,
+FPGA to FPGA (in multiple FPGA case) and where is the bottleneck?</p></li>
+<li><p>Kernel optimization: Once we figure out how data gets to the kernel, we need
+the best kernel performance possible. This is where HLS tools (vitis_hls) comes
+in. You can “guide” HLS by applying/embedding pragmas in the source codes
+(C, C++ or OpenCL C). You can iterate - apply pragmas, synthesize, check out
+the performance, where each iteration can be done fairly quickly, until you
+reach the performance goal.</p></li>
+</ul>
+</div>
+<div class="section" id="next-step">
+<h2>Next Step<a class="headerlink" href="#next-step" title="Permalink to this headline">¶</a></h2>
+<p>There are several resources to help you get started with creating your own
+accelerator functions.</p>
+<ul>
+<li><p><a class="reference external" href="https://github.com/Xilinx/Vitis-Tutorials">Vitis Tutorial</a>
+This covers overview/introduction of Vitis development flow, build/run designs
+and analyze results.</p>
+<img alt="_images/fig_vitis101.jpg" src="_images/fig_vitis101.jpg" />
+<dl class="field-list simple">
+<dt class="field-odd">scale</dt>
+<dd class="field-odd"><p>60%</p>
+</dd>
+<dt class="field-even">align</dt>
+<dd class="field-even"><p>center</p>
+</dd>
+</dl>
+</li>
+<li><p><a class="reference external" href="https://github.com/Xilinx/Vitis_Accel_Examples">Examples</a>
+Some times you just want to see an example that works rather than reading thru one
+document after another. Using such an example, you can understand the concept and use
+that to start your own design. You will see many bite-sized examples on
+optimization techniques for HLS and Vitis here.</p></li>
+<li><p><a class="reference external" href="https://github.com/Xilinx/Vitis_Libraries">Vitis Library</a>
+You have seen this already. This has several domain specific libraries of
+functions that you can use to compile/build your own applications</p>
+<img alt="_images/fig_library.jpg" src="_images/fig_library.jpg" />
+<dl class="field-list simple">
+<dt class="field-odd">scale</dt>
+<dd class="field-odd"><p>60%</p>
+</dd>
+<dt class="field-even">align</dt>
+<dd class="field-even"><p>center</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="license">
+<h2>License<a class="headerlink" href="#license" title="Permalink to this headline">¶</a></h2>
+<p>Licensed using the [Apache 2.0 license](<a class="reference external" href="https://www.apache.org/licenses/LICENSE-2.0">https://www.apache.org/licenses/LICENSE-2.0</a>).</p>
+<blockquote>
+<div><p>Copyright 2020-2021 Xilinx, Inc.</p>
+<p>Licensed under the Apache License, Version 2.0 (the “License”);
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at</p>
+<blockquote>
+<div><p><a class="reference external" href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a></p>
+</div></blockquote>
+<p>Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an “AS IS” BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+Copyright 2020-2021 Xilinx, Inc.</p>
+</div></blockquote>
 </div>
 </div>
 
@@ -467,10 +565,8 @@ TigerGraph install directory</p></li>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="vitis-dev-flow.html" class="btn btn-neutral float-right" title="Vitis Development Flow" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
-      
-        <a href="overview.html" class="btn btn-neutral float-left" title="Xilinx Alveo Graph Analytics Products" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="running-demo.html" class="btn btn-neutral float-left" title="Running Cosine Similarity Acceleration Demo" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
