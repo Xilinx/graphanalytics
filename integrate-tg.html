@@ -56,7 +56,8 @@
   <link rel="stylesheet" href="_static/css/pro.min.css" media="all" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Integration with TigerGraph" href="integrate-tg.html" /> 
+    <link rel="next" title="Vitis Development Flow" href="vitis-dev-flow.html" />
+    <link rel="prev" title="Running Cosine Similarity Acceleration Demo" href="running-demo.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -338,18 +339,19 @@
 <li class="toctree-l1"><a class="reference internal" href="running-demo.html">Running Cosine Similarity Acceleration Demo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Integrate with TigerGraph</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="integrate-tg.html">Integration with TigerGraph</a></li>
-</ul>
-<p class="caption"><span class="caption-text">Vitis Development Flow</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Vitis Development Flow</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#downloading-software">Downloading Software</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#programming-model">Programming Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#optimizing-for-performance">Optimizing for Performance</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Integration with TigerGraph</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#tigergraph-user-defined-functions-udf">TigerGraph User-Defined Functions (UDF)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#udf-example">UDF Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-install-sh">Running <em>install.sh</em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#benchmark-results">Benchmark Results</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#next-step">Next Step</a></li>
 </ul>
 </li>
+</ul>
+<p class="caption"><span class="caption-text">Vitis Development Flow</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="vitis-dev-flow.html">Vitis Development Flow</a></li>
 </ul>
 
             
@@ -402,7 +404,7 @@
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Vitis Development Flow</li>
+      <li>Integration with TigerGraph</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -419,120 +421,90 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="vitis-development-flow">
-<h1>Vitis Development Flow<a class="headerlink" href="#vitis-development-flow" title="Permalink to this headline">¶</a></h1>
-<p>In this section we will cover the development flow for users who wants to create
-their own application to run on Alveo.</p>
-<a class="reference internal image-reference" href="_images/fig_dev_dep.jpg"><img alt="_images/fig_dev_dep.jpg" class="align-center" src="_images/fig_dev_dep.jpg" style="width: 525.6px; height: 205.79999999999998px;" /></a>
-<div class="section" id="downloading-software">
-<h2>Downloading Software<a class="headerlink" href="#downloading-software" title="Permalink to this headline">¶</a></h2>
-<p>As far as the required software goes, for deployment use you need to install:
-XRT, XRM and deployment shell, as you have done in the previous sections.
-For development use, you need to install Vitis software and development shell
-in addition to those. You can find all these from <a class="reference external" href="https://www.xilinx.com/products/boards-and-kits/alveo/u50.html#gettingStarted">Alveo U50 web page</a>.</p>
-<a class="reference internal image-reference" href="_images/fig_downloadVitis.jpg"><img alt="_images/fig_downloadVitis.jpg" class="align-center" src="_images/fig_downloadVitis.jpg" style="width: 456.59999999999997px; height: 218.4px;" /></a>
-</div>
-<div class="section" id="programming-model">
-<h2>Programming Model<a class="headerlink" href="#programming-model" title="Permalink to this headline">¶</a></h2>
-<p>There are two parts in creating applications for Alveo. One involves programming
-the host application, which runs on x86 processor; and the second one is the FPGA
-application, which is the function we want to accelerate. The programming model is
-quite different between the two.</p>
-<p>Developing host applications is similar to any software development. You use C/C++
-but the unique part is that you use OpenCL API, to perform all the tasks necessary
-to utilize functions running on FPGA, such as scheduling tasks to run in FPGA, moving
-data between host and FPGA, and programming FPGA, etc. You use gcc/g++ tools to
-develope and produce executables.</p>
-<p>In this programming model, being able to program FPGA on the fly is a big advantage.
-As you complete certain tasks where youno longer need them, you can swap the
-content of of the FPGA to a different task;thus, economizing the FPGA resources
-by not having to store all the tasks/compute units in the FPGA all the time.</p>
-<p>Developing application for FPGA can be a daunting task. Design entry is
-done typically using Verilog or VHDL -  commonly referred to as RTL (register transfer
-language) which is a low level description language. In Vitis design
-environment, users can use C/C++/OpenCL C to describe and design functions,
-which we call kernels;then, High Level Synthesis (HLS or vitis_hls) tool transforms
-this high level abstraction code to RTL. This is what enables software developer to
-utilize FPGA for acceleration without knowing FPGA implementation techniques.</p>
-<p>Once the kernel is in RTL, the rest of the process - all the way to programming
-the FPGA, is done autonomously in Vitis development environment. During this
-process RTL code is synthesized - mapped to FPGA resources and wired properly, then
-bitstream containing these programming information is created into a container file
-called <em>xclbin</em>.</p>
-<a class="reference internal image-reference" href="_images/fig_cpu_fpga_vitis.jpg"><img alt="_images/fig_cpu_fpga_vitis.jpg" class="align-center" src="_images/fig_cpu_fpga_vitis.jpg" style="width: 412.2px; height: 253.2px;" /></a>
-<p>One caveat to be aware is that FPGA implementation task can take a long time -
-multiple hours. So before you commit to FPGA implementation task, you want to
-make sure your design is functionally correct and the performance estimate meets
-the requirements. CPU emulation, HW emulation and reports from HLS tools in Vitis
-environment can help you do that without having to complete the implementation.</p>
-<p>In many use cases, a user will have access to the kernel library and the
-<em>xclbin</em> is provided, then his job would be simply to develop SW application
-utilizing those FPGA accelerator functions available in <em>xclbin</em> and does not have
-to deal with FPGA implementation tasks. In this case it becomes a pure SW application
-development flow, where user simply calls those functions thru API in his host codes.</p>
-<a class="reference internal image-reference" href="_images/fig_vitisFlow.jpg"><img alt="_images/fig_vitisFlow.jpg" class="align-center" src="_images/fig_vitisFlow.jpg" style="width: 153.0px; height: 272.4px;" /></a>
-</div>
-<div class="section" id="optimizing-for-performance">
-<h2>Optimizing for Performance<a class="headerlink" href="#optimizing-for-performance" title="Permalink to this headline">¶</a></h2>
-<p>The basic concepts of parallel programming applies to programming Alveo to get
-the optimum performance, such as:
-- Distribution of workload: how to best distribute the workload over the available</p>
-<blockquote>
-<div><p>processing elements (we call them compute units - CU, or kernel), similar to ND
-partitioning in OpenCL paradigm. Some algorithms works out better in this regard
-than others. For cosine similarity computation, we can easily distribute the
-workload over the available compute units.</p>
-</div></blockquote>
-<ul class="simple">
-<li><p>What hits the fan first: identifying what is the limiting factor as we try to
-increase the performance.  Is it data bandwidth or computation resources?</p></li>
-<li><p>Data movement: how does the data flow among PCIe, DDR/FPGA, network interface,
-FPGA to FPGA (in multiple FPGA case) and where is the bottleneck?</p></li>
-<li><p>Kernel optimization: Once we figure out how data gets to the kernel, we need
-the best kernel performance possible. This is where HLS tools (vitis_hls) comes
-in. You can “guide” HLS by applying/embedding pragmas in the source codes
-(C, C++ or OpenCL C). You can iterate - apply pragmas, synthesize, check out
-the performance, where each iteration can be done fairly quickly, until you
-reach the performance goal.</p></li>
+  <div class="section" id="integration-with-tigergraph">
+<h1>Integration with TigerGraph<a class="headerlink" href="#integration-with-tigergraph" title="Permalink to this headline">¶</a></h1>
+<p>If you have gone thru <em>Targeting Alveo in HPE server</em> section, you have installed
+all the necessary software to start the integration of Xilinx Graph Library IP with
+Tigergraph software. This section explains how L3 Vitis Graph Library function is
+ported into TigerGraph SW framework, and finally running the application on Alveo by
+calling GSQL query from TigerGraph SW.</p>
+<a class="reference internal image-reference" href="_images/fig_TG_top.jpg"><img alt="_images/fig_TG_top.jpg" class="align-center" src="_images/fig_TG_top.jpg" style="width: 619.8px; height: 284.4px;" /></a>
+<div class="section" id="tigergraph-user-defined-functions-udf">
+<h2>TigerGraph <a class="reference external" href="https://docs.tigergraph.com/dev/gsql-ref/querying/operators-functions-and-expressions#user-defined-functions">User-Defined Functions</a> (UDF)<a class="headerlink" href="#tigergraph-user-defined-functions-udf" title="Permalink to this headline">¶</a></h2>
+<p>You can create your own custom GSQL function in TigerGraph using C++. You can define a top level function in <em>&lt;tigergraph.root.dir&gt;/dev/gdk/gsql/src/QueryUdf/ExprFunctions.hpp</em>. It is this UDF mechanism that enables porting of Xilinx Graph Library IP into TigerGraph SW. All the files necessary to make this porting is included in the Graph Library, as shown below in <em>graph/plugin</em> directory.  Important files/directories are:</p>
+<ul>
+<li><p>install.sh*: is a script to automate the porting. It updates the <em>ExprFunctions.hpp</em>
+with the top level functions of Graph Library defined in <em>tigergraph/QueryUdf/xilinxUdf.hpp</em></p></li>
+<li><p>tigergraph/QueryUdf*: Once all the files in this directory is updated, it replaces
+the <em>QueryUdf</em> directory in TigerGraph install directory
+(<em>~tigergraph/dev/gdk/gsql/src/QueryUdf</em>)</p></li>
+<li><p>tigergraph/tests/cosine_nbor_ss_dense_int*: has all the GSQL scripts that you
+can use to test the newely created UDFs</p></li>
+<li><p>tigergraph/tests/cosine_nbor_ss_dense_int/1K_patiensts*: has all the patient
+data set used for Cosine Similarity query testing</p>
+<a class="reference internal image-reference" href="images/fig_plugin.jpg.jpg"><img alt="images/fig_plugin.jpg.jpg" class="align-center" src="images/fig_plugin.jpg.jpg" /></a>
+</li>
 </ul>
+</div>
+<div class="section" id="udf-example">
+<h2>UDF Example<a class="headerlink" href="#udf-example" title="Permalink to this headline">¶</a></h2>
+<p>This section shows how a custom GSQL function is created using
+<em>udf_loadgraph_cosinesim_ss_fpga()</em> as an example. The table below should help
+you navigate the source files used in creating this UDF. They are listed in the
+order of abstraction level - high to low level.</p>
+<ul class="simple">
+<li><p>udf_loadgrpah_cosinesim_ss_fpga() : this UDF is called in <em>base.gsql</em> script (in plugin/tigergraph/tests/cosine_nbor_ss_dense_int)</p></li>
+<li><p>udf_loadgrpah_cosinesim_ss_fpga() : defined in xilinxUdf.hpp (in plugin/tigergraph/QueryUdf)
+and copied to ExprFunctions.hpp in TigerGraph install directory by install.sh.
+It calls the function below</p></li>
+<li><p>loadgrpah_cosinesim_ss_dense_fpga() : defined in core.cpp and its prototype
+is in loader.hpp (plugin/tigergraph/QueryUdf). This function opens
+libgraphL3wrap.so library, which is built from L3_wrapp.cpp (in plugin/tigergraph),
+and loads <em>loadgraph_cosine_ss_dense_fpga()</em></p></li>
+<li><p>config_cosinesim_ss_dense_fpga.json : <em>loadgraph_cosinesim_ss_dense_fpga</em> in
+L3_wrapp.cpp calls this json file which specifies the location/name of xclbin
+file, among other settings. It also calls <em>xf::graph::L3::Handle</em> defined in
+xf_graph_L3_handle.hpp (in graph/L3/include) used for XRM</p></li>
+</ul>
+</div>
+<div class="section" id="running-install-sh">
+<h2>Running <em>install.sh</em><a class="headerlink" href="#running-install-sh" title="Permalink to this headline">¶</a></h2>
+<p>This is the script that automate the exporting of Graph Library functions into
+custom TigerGraph GSQL functions. Make sure you download the xclbin file you
+need during this process from [DBA lounge](<a class="reference external" href="https://www.xilinx.com/member/dba_poc.html">https://www.xilinx.com/member/dba_poc.html</a>) befor you start.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="m">1</span><span class="o">)</span> Integrate Xilinx graph library to TigerGraph framework as UDF
+su - tigergraph
+<span class="nb">cd</span> &lt;lib dir&gt;/plugin
+./install.sh
+
+<span class="m">2</span><span class="o">)</span> check to make sure Alveo U50 is alive and working
+xbutil query
+
+<span class="m">3</span><span class="o">)</span> Copy the xclbin file to &lt;lib dir&gt;/plugin. Make sure the xclbin is owned by
+TigerGraph user
+
+<span class="m">4</span><span class="o">)</span> Move the xclbin file to TigerGraph install directory by
+./install-xclbin.sh
+
+<span class="m">5</span><span class="o">)</span> start XRM <span class="o">(</span>Xilinx Resource Manager<span class="o">)</span> daemon <span class="k">in</span> a separate terminal
+sudo /opt/xilinx/xrm/tools/restart_xrmd.sh
+
+<span class="m">6</span><span class="o">)</span> run cosine similarity poc
+<span class="nb">cd</span> &lt;vitis lib dir&gt;/graph/plugin/tigergraph/tests/cosine_nbor_ss_dense_int
+./run.sh
+</pre></div>
+</div>
+<p>If it has ran sucessfully you should see the following log message:</p>
+<a class="reference internal image-reference" href="images/fig_run_tg.jpg"><img alt="images/fig_run_tg.jpg" class="align-center" src="images/fig_run_tg.jpg" /></a>
+</div>
+<div class="section" id="benchmark-results">
+<h2>Benchmark Results<a class="headerlink" href="#benchmark-results" title="Permalink to this headline">¶</a></h2>
+<p>Update this section with the latest results using 10M patient data set.</p>
 </div>
 <div class="section" id="next-step">
 <h2>Next Step<a class="headerlink" href="#next-step" title="Permalink to this headline">¶</a></h2>
-<p>There are several resources to help you get started with creating your own
-accelerator functions.</p>
-<ul>
-<li><p><a class="reference external" href="https://github.com/Xilinx/Vitis-Tutorials">Vitis Tutorial</a>
-This covers overview/introduction of Vitis development flow, build/run designs
-and analyze results.</p>
-<img alt="_images/fig_vitis101.jpg" src="_images/fig_vitis101.jpg" />
-<dl class="field-list simple">
-<dt class="field-odd">scale</dt>
-<dd class="field-odd"><p>60%</p>
-</dd>
-<dt class="field-even">align</dt>
-<dd class="field-even"><p>center</p>
-</dd>
-</dl>
-</li>
-<li><p><a class="reference external" href="https://github.com/Xilinx/Vitis_Accel_Examples">Examples</a>
-Some times you just want to see an example that works rather than reading thru one
-document after another. Using such an example, you can understand the concept and use
-that to start your own design. You will see many bite-sized examples on
-optimization techniques for HLS and Vitis here.</p></li>
-<li><p><a class="reference external" href="https://github.com/Xilinx/Vitis_Libraries">Vitis Library</a>
-You have seen this already. This has several domain specific libraries of
-functions that you can use to compile/build your own applications</p>
-<img alt="_images/fig_library.jpg" src="_images/fig_library.jpg" />
-<dl class="field-list simple">
-<dt class="field-odd">scale</dt>
-<dd class="field-odd"><p>60%</p>
-</dd>
-<dt class="field-even">align</dt>
-<dd class="field-even"><p>center</p>
-</dd>
-</dl>
-</li>
-</ul>
+<p>If you want to create your own accelerator function to run on Alveo, please see
+the the next section [Vitis Development Flow](./vitis_dev_flow.md). &lt;br/&gt;</p>
 </div>
 </div>
 
@@ -552,8 +524,10 @@ functions that you can use to compile/build your own applications</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
+        <a href="vitis-dev-flow.html" class="btn btn-neutral float-right" title="Vitis Development Flow" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
-        <a href="integrate-tg.html" class="btn btn-neutral float-left" title="Integration with TigerGraph" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+        <a href="running-demo.html" class="btn btn-neutral float-left" title="Running Cosine Similarity Acceleration Demo" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
