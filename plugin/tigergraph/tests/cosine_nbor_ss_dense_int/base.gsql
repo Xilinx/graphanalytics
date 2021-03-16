@@ -285,8 +285,17 @@ FOR GRAPH @graph RETURNS (ListAccum<testResults>) {
     RETURN @@topK;
 }
 
+# The query below loads XCLBIN, allocates CU, sets up kernels/buffers
+create query load_cu_cosinesim_ss_fpga_core(int device_needed) 
+    for graph @graph returns (int) 
+{
+	int ret;
+	ret = udf_load_cu_cosinesim_ss_fpga(device_needed);
+    return ret;
+}
 
-create query loadgraph_cosinesim_ss_fpga_core(int device_needed) 
+# The query below loads the graph data only
+create query load_graph_cosinesim_ss_fpga_core(int device_needed) 
     for graph @graph returns (int) {
 
 	ListAccum<ListAccum<int> > @@patientsAll;
@@ -296,8 +305,8 @@ create query loadgraph_cosinesim_ss_fpga_core(int device_needed)
 	patientList = select p from population:p
 		ACCUM @@patientsAll += p.COSINE_SIM_VECTOR;
 
-	ret = udf_loadgraph_cosinesim_ss_fpga(population.size(), 200, 
-                                          @@patientsAll, device_needed);
+	ret = udf_load_graph_cosinesim_ss_fpga(population.size(), 200, 
+                                           @@patientsAll, device_needed);
 
     return ret;
 }
@@ -321,5 +330,5 @@ create query cosinesim_ss_fpga_core (vertex<patients> source, uint topK,
 
 install query patient_age, patient_race, patient_gender, patient_ethnicity, 
               patient_vector, cosinesim_cache_to_vertices, cos_theta_tigergraph, 
-			  cosinesim_match_sw, loadgraph_cosinesim_ss_fpga_core, 
-			  cosinesim_ss_fpga_core
+			  cosinesim_match_sw, load_graph_cosinesim_ss_fpga_core, 
+              load_cu_cosinesim_ss_fpga_core, cosinesim_ss_fpga_core

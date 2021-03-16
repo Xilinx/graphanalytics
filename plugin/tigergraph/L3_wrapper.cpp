@@ -739,9 +739,14 @@ extern "C" void cosine_nbor_ss_fpga(uint32_t topK,
     // g.freeBuffers();
 }
 
-extern "C" int loadgraph_cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
-                                                  uint32_t cuNm,
-                                                  xf::graph::Graph<int32_t, int32_t>** g) {
+//-----------------------------------------------------------------------------
+// Perform the tasks below
+// * Load xclbin
+// * Allocate CUs
+// * Set up kernels
+//-----------------------------------------------------------------------------
+extern "C" int load_cu_cosinesim_ss_dense_fpga(uint32_t deviceNeeded, uint32_t cuNm) 
+{
     //----------------- Text Parser --------------------------
     std::string opName;
     std::string kernelName;
@@ -812,31 +817,51 @@ extern "C" int loadgraph_cosinesim_ss_dense_fpga(uint32_t deviceNeeded,
 
     handle0->addOp(op0);
     int status = handle0->setUp();
-    if (status < 0)
-        return status;
+    return status;
+}
 
-    //-------------------------
-    std::shared_ptr<xf::graph::L3::Handle> handle1 = sharedHandlesCosSimDense::instance().handlesMap[0];
-    handle1->debug();
-    //------------------------
+//-----------------------------------------------------------------------------
+// Load the graph data onto FPGA
+//-----------------------------------------------------------------------------
+extern "C" int load_graph_cosinesim_ss_dense_fpga(
+    uint32_t deviceNeeded, uint32_t cuNm, xf::graph::Graph<int32_t, int32_t>** graph) 
+{
+    std::cout << "DEBUG: " << __FUNCTION__ 
+              << " deviceNeeded=" << deviceNeeded << " cuNm=" << cuNm 
+              << " sharedHandlesCosSimDense.handlesMap.empty=" 
+              << sharedHandlesCosSimDense::instance().handlesMap.empty() << std::endl;
+         
+    // return right away if the handle has already been created
+    if (sharedHandlesCosSimDense::instance().handlesMap.empty()) {
+        std::cout << "ERROR: " << __FUNCTION__ << " CUs need to be set up first:"
+              << " sharedHandlesCosSimDense.handlesMap.empty=" 
+              << sharedHandlesCosSimDense::instance().handlesMap.empty() << std::endl;
+       
+        return XF_GRAPH_L3_ERROR_CU_NOT_SETUP;
+    }
     
+    std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
+
     //---------------- Run Load Graph -----------------------------------
     for (int i = 0; i < deviceNeeded * cuNm; ++i) {
-        (handle0->opsimdense)->loadGraphMultiCardNonBlocking(i / cuNm, i % cuNm, g[i][0]);
+        (handle0->opsimdense)->loadGraphMultiCardNonBlocking(i / cuNm, i % cuNm, graph[i][0]);
     }
 
     //--------------- Free and delete -----------------------------------
 
     for (int i = 0; i < deviceNeeded * cuNm; ++i) {
-        g[i]->freeBuffers();
-        delete[] g[i]->numEdgesPU;
-        delete[] g[i]->numVerticesPU;
+        graph[i]->freeBuffers();
+        delete[] graph[i]->numEdgesPU;
+        delete[] graph[i]->numVerticesPU;
     }
-    delete[] g;
+    delete[] graph;
     
-    return 0;
+    return XF_GRAPH_L3_SUCCESS;
 }
 
+//-----------------------------------------------------------------------------
+// Execute kernel to compte cosine similarity and return topK values
+//-----------------------------------------------------------------------------
 extern "C" void cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
                                         int32_t sourceLen,
                                         int32_t* sourceWeight,

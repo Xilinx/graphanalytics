@@ -578,6 +578,7 @@ void Handle::free() {
             opsp->freeSP();
         } else if (ops[i].operationName == "similarityDense") {
             //-----------------------------------------------------------------
+            //-----------------------------------------------------------------
             std::cout << "DEBUG: " << __FUNCTION__ << " op=similarityDense" << std::endl;
             opsimdense->freeSimDense(xrm->ctx);            
             unsigned int boardNm = ops[i].deviceNeeded;

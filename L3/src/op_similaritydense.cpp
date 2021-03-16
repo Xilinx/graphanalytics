@@ -358,9 +358,10 @@ void opSimilarityDense::loadGraphMultiCardBlocking(int deviceID, int cuID, xf::g
 };
 
 void opSimilarityDense::loadGraphMultiCardNonBlocking(
-    int deviceID, int cuID, xf::graph::Graph<int32_t, int32_t> g) {
-    int nnz = g.edgeNum;
-    int nrows = g.nodeNum;
+    int deviceID, int cuID, xf::graph::Graph<int32_t, int32_t> graph) {
+
+    int nnz = graph.edgeNum;
+    int nrows = graph.nodeNum;
     bool freed[maxCU];
 
     std::thread* th = new std::thread[maxCU];
@@ -373,7 +374,7 @@ void opSimilarityDense::loadGraphMultiCardNonBlocking(
             std::packaged_task<void(clHandle*, int, int, int, xf::graph::Graph<int32_t, int32_t>)> t(
                 loadGraphCoreSimDenseInt);
             fut[j] = t.get_future();
-            th[j] = std::thread(std::move(t), &handles[j], nrows, nnz, cuID, g);
+            th[j] = std::thread(std::move(t), &handles[j], nrows, nnz, cuID, graph);
         }
         freed[j] = 0;
     }
@@ -386,7 +387,7 @@ void opSimilarityDense::loadGraphMultiCardNonBlocking(
                     th[cnt].join();
                     freed[cnt] = 1;
                 }
-                for (unsigned int i = 0; i < (unsigned int)(g.splitNum * 4); i++) {
+                for (unsigned int i = 0; i < (unsigned int)(graph.splitNum * 4); i++) {
                     handles[j].buffer[2 + i] = handles[cnt].buffer[2 + i];
                 }
             } else {

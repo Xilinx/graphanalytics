@@ -31,25 +31,28 @@
 #
 # common.sh sets up gsql client, gets username, passowrd, xgraph name
 . common.sh
-set -x 
 if [ "$load_cache" -eq 1 ]
 then
     echo "Caching cosine similarity vectors to patient vertices..."
-    time gsql -g $xgraph "set query_timeout=240000000 run query cosinesim_cache_to_vertices()"
+    gsql -g $xgraph "set query_timeout=240000000 run query cosinesim_cache_to_vertices()"
 fi
 
 if [ "$load_fpga" -eq 1 ]; then
-    echo "Run query loadgraph_cosinesim_ss_fpga"
-    time gsql -g $xgraph "set query_timeout=240000000 run query loadgraph_cosinesim_ss_fpga($devices_needed)"
+    echo "Run query load_cu_cosinesim_ss_fpga and load_graph_cosinesim_ss_fpga"
+    gsql -g $xgraph "run query load_cu_cosinesim_ss_fpga($devices_needed)"
+    gsql -g $xgraph "run query load_graph_cosinesim_ss_fpga($devices_needed)"
 fi
 
 for ((j = 0 ; j < $iterations ; ++j))
 do
+    rm log/fpga.txt log/tg.txt
+
     echo "------ iteration $j --------"
     echo "Run query cosinesim_ss_tg"
-    time gsql -g $xgraph "set query_timeout=240000000 run query cosinesim_ss_tg(\"$PWD/log/tg.txt\")"
+    gsql -g $xgraph "run query cosinesim_ss_tg(\"$PWD/log/tg.txt\")"
     echo "Run query cosinesim_ss_fpga"
-    time gsql -g $xgraph "set query_timeout=240000000 run query cosinesim_ss_fpga(\"$PWD/log/fpga.txt\", $devices_needed)"
+    gsql -g $xgraph "run query cosinesim_ss_fpga(\"$PWD/log/fpga.txt\", $devices_needed)"
+    
     # basic checking of the result
     diff log/fpga.txt log/tg.txt
 done

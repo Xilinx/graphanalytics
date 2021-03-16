@@ -465,11 +465,12 @@ inline void worker(queue& q,
         for (int i = 0; i < requestNm; ++i) {
             // q.getWork is blocking until it has a job
             t[i] = q.getWork();
+#ifdef __DEBUG__
             l_start_time = std::chrono::high_resolution_clock::now();
             std::cout << "LOG2TIMELINE: " << __FUNCTION__ 
                       << " start=" << l_start_time.time_since_epoch().count() 
                       << std::endl;
-
+#endif
             resR[i] = (xrmCuResource*)malloc(sizeof(xrmCuResource));
             memset(resR[i], 0, sizeof(xrmCuResource));
         }

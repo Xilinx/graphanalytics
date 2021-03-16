@@ -77,7 +77,7 @@ event<int> cosineSimilaritySSDense(std::shared_ptr<xf::graph::L3::Handle>& handl
                                    uint32_t sourceNUM,
                                    uint32_t* sourceWeights,
                                    uint32_t topK,
-                                   xf::graph::Graph<uint32_t, float> g,
+                                   xf::graph::Graph<uint32_t, float> graph,
                                    uint32_t* resultID,
                                    float* similarity);
 

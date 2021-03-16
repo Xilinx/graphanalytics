@@ -13,12 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-set query_timeout = 600000
 use graph @graph
-drop query cosinesim_ss_tg, loadgraph_cosinesim_ss_fpga, cosinesim_ss_fpga, 
-           cosinesim_ss_test_fpga_consistency, code_str
+drop query cosinesim_ss_tg, load_cu_cosinesim_ss_fpga, load_graph_cosinesim_ss_fpga, 
+           cosinesim_ss_fpga, cosinesim_ss_test_fpga_consistency, code_str
 
-create query code_str(vertex<patients> p, string e_str, int num) for graph @graph returns (string){
+create query code_str(vertex<patients> p, string e_str, int num) for graph @graph 
+    returns (string)
+{
     string res;
     ListAccum<uint> @@code_list;
     patientList = {p};
@@ -84,23 +85,34 @@ create query cosinesim_ss_tg(string log_file) for graph @graph {
     end;
 }
 
-create query loadgraph_cosinesim_ss_fpga(int devices_needed) for graph @graph {
+create query load_cu_cosinesim_ss_fpga(int devices_needed) for graph @graph {
     STRING status;
     INT ret;
-    ret = loadgraph_cosinesim_ss_fpga_core(devices_needed);
+    ret = load_cu_cosinesim_ss_fpga_core(devices_needed);
     print ret;
     IF ret == 0 THEN
-        status = "FPGA loaded successfully";
+        status = "Loaded XCLBIN and allocated CUs successfully";
     ELSE IF ret == -1 THEN
-        status = "xclbin loading failed";
+        status = "XCLBIN loading failed";
     ELSE IF ret == -2 THEN
         status = "config_cosinesim_ss_dense_fpga.json does not exit";
     ELSE IF ret == -3 THEN
-        status = "xclbin does not exist";
+        status = "XCLBIN does not exist";
     ELSE IF ret == -5 THEN
         status = "Shared library loading failed";
     ELSE IF ret == -6 THEN
         status = "Not enough devices";
+    END;
+    PRINT status;
+}
+
+create query load_graph_cosinesim_ss_fpga(int devices_needed) for graph @graph {
+    STRING status;
+    INT ret;
+    ret = load_graph_cosinesim_ss_fpga_core(devices_needed);
+    print ret;
+    IF ret == 0 THEN
+        status = "Graph data loaded successfully";
     ELSE IF ret == -1001 THEN
         status = "Vertices distribution error";
     END;
@@ -221,5 +233,5 @@ create query cosinesim_ss_test_fpga_consistency(
 }
 
 
-install query code_str, cosinesim_ss_tg, loadgraph_cosinesim_ss_fpga, 
-              cosinesim_ss_fpga, cosinesim_ss_test_fpga_consistency
+install query code_str, cosinesim_ss_tg, load_cu_cosinesim_ss_fpga,
+    load_graph_cosinesim_ss_fpga,  cosinesim_ss_fpga, cosinesim_ss_test_fpga_consistency

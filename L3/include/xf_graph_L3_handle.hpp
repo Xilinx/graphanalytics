@@ -22,7 +22,8 @@
 #define XF_GRAPH_L3_SUCCESS 0
 #define XF_GRAPH_L3_ERROR_CONFIG_FILE_NOT_EXIST -2
 #define XF_GRAPH_L3_ERROR_XCLBIN_FILE_NOT_EXIST -3
-#define XF_GRAPH_L3_ERROR_NOT_ENOUGH_DEVICES -6
+#define XF_GRAPH_L3_ERROR_NOT_ENOUGH_DEVICES    -6
+#define XF_GRAPH_L3_ERROR_CU_NOT_SETUP          -7
 
 #include "op_pagerank.hpp"
 #include "op_sp.hpp"
