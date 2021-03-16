@@ -33,8 +33,17 @@
 
    running-demo.rst
 
-   .. toctree::
+.. toctree::
+   :caption: Integrate with TigerGraph
+   :maxdepth: 1
+
+   integrate-tg.rst
+
+
+
+.. toctree::
    :caption: Vitis Development Flow
    :maxdepth: 1
 
    vitis-dev-flow.rst
+
