@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 
-DEBUG :=1 
 ifndef XILINX_XRT
     XILINX_XRT = /opt/xilinx/xrt
     export XILINX_XRT
@@ -34,7 +33,7 @@ endif
 .PHONY: all
 
 #all: javaApi cppBuild javaTest stage
-all: cppBuild stage
+all: cppBuild cppTest stage
 
 #
 # Global Definitions
@@ -99,7 +98,8 @@ INCLUDES_libCosineSim = \
 
 LDLIBS_libCosineSim = \
 	
-LIB_NAME = libXilinxCosineSim.so
+LIB_SHORT_NAME = XilinxCosineSim
+LIB_NAME = lib$(LIB_SHORT_NAME).so
 LOADER_NAME = libXilinxCosineSim_loader.a
 
 SRCS_L3 = $(wildcard $(GRAPH_ANALYTICS_DIR)/L3/src/*.cpp) $(GRAPH_ANALYTICS_DIR)/ext/xcl2/xcl2.cpp
@@ -136,7 +136,7 @@ $(CPP_BUILD_DIR):
 
 LDFLAGS += -L$(XILINX_XRT)/lib -lOpenCL -lpthread -lrt -Wno-unused-label -Wno-narrowing -DVERBOSE -L$(XILINX_XRM)/lib -lxrm
 # SHAREDLIB_FLAGS_libCosineSim = -shared
-SHAREDLIB_FLAGS_libCosineSim = -fPIC -rdynamic -shared $(LDFLAGS) -w -Wl,--export-dynamic
+SHAREDLIB_FLAGS_libCosineSim = -fPIC -rdynamic -shared -w -Wl,--export-dynamic
 
 $(CPP_BUILD_DIR)/$(LIB_NAME): $(OBJS_libCosineSim) $(DEPLIBS_libCosineSim)
 	$(LINK.cc) -o $@ $(OBJS_libCosineSim) $(SHAREDLIB_FLAGS_libCosineSim) $(LDLIBS_libCosineSim)
@@ -172,6 +172,80 @@ $(foreach src,$(SRCS_all),$(eval $(call BUILD_CPP_RULE,$(src))))
 
 ifeq ($(MAKECMDGOALS),cppBuild2)
 -include $(DEPS_all)
+endif
+
+
+#######################################################################################################################
+#
+# C++ Tests
+#
+
+TEST_DIR = tests
+
+INCLUDES_test = \
+	-I$(XILINX_XRT)/include \
+	-I$(XILINX_XRM)/include \
+	-I$(GRAPH_ANALYTICS_DIR)/L2/include \
+	-I$(GRAPH_ANALYTICS_DIR)/L3/include \
+	-I$(GRAPH_ANALYTICS_DIR)/ext/xcl2 \
+	-Iinclude
+
+LDLIBS_test = \
+	
+
+SRC_FILE_NAMES_test = \
+    cosinesim_test.cpp
+
+SRCS_test = $(addprefix $(TEST_DIR)/,$(SRC_FILE_NAMES_test))
+OBJS_test = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_test:.cpp=.o)))
+DEPS_test = $(OBJS_test:.o=.d)
+
+# List of all test executables to build
+EXEC_FILE_NAMES_test = \
+    cosinesim_test
+
+EXECS_test = $(addprefix $(CPP_BUILD_DIR)/,$(EXEC_FILE_NAMES_test))
+
+.PHONY: cppTest cppTest2
+
+# Make in a child process so that we can isolate the run that includes automatic header dependencies
+cppTest: $(CPP_BUILD_DIR) $(CPP_BUILD_DIR)/$(LIB_NAME) $(CPP_BUILD_DIR)/$(LOADER_NAME)
+	@make cppTest2
+
+cppTest2: $(EXECS_test)
+
+# Test executables
+
+SHAREDLIB_FLAGS_test = -fPIC -w -L $(CPP_BUILD_DIR) -l$(LIB_SHORT_NAME)
+
+$(CPP_BUILD_DIR)/cosinesim_test: $(CPP_BUILD_DIR)/cosinesim_test.o
+	$(LINK.cc) -o $@ $^ $(SHAREDLIB_FLAGS_test)
+
+# Macro to create a .o rule and a .d rule for each .cpp
+
+define BUILD_CPP_RULE
+
+$(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o): $(1)
+	$(COMPILE.cc) $(INCLUDES_test) -o $$@ $$<
+
+$(CPP_BUILD_DIR)/$(notdir $(basename $(1)).d): $(1)
+	@set -e; \
+	rm -f $$@; \
+	$(COMPILE.cc) -MM -MT $(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o) $(INCLUDES_test) -MF $$@.$$$$$$$$ $$<; \
+        sed 's,\($(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o)\)[ :]*,\1 $$@ : ,g' < $$@.$$$$$$$$ > $$@; \
+	rm -f $$@.$$$$$$$$
+
+endef
+
+# Expand the macro for each source file
+
+$(foreach src,$(SRCS_test),$(eval $(call BUILD_CPP_RULE,$(src))))
+
+# Include generated header dependency rules, but only if building the JNI .so
+# (This restriction prevents problems with the dependency on the Java API for the JNI header.)
+
+ifeq ($(MAKECMDGOALS),cppTest2)
+-include $(DEPS_test)
 endif
 
 
@@ -236,7 +310,8 @@ $(foreach f,$(STAGE_LIB_FILES),$(eval $(call STAGE_LIB_RULE,$(f))))
 
 STAGE_EXAMPLE_ZIP = examples.zip
 STAGE_EXAMPLE_FILE_NAMES = \
-    cppdemo/cosinesim_test.cpp
+    cppdemo/cppdemo.cpp cppdemo/Makefile
+
 STAGE_EXAMPLE_FILES = $(addprefix examples/,$(STAGE_EXAMPLE_FILE_NAMES))
 STAGE_STAGED_EXAMPLE_FILES = $(addprefix $(STAGE_DIR)/,$(STAGE_EXAMPLE_FILES))
 
