@@ -30,7 +30,8 @@ endif
 	rsync -av --delete --exclude .git --exclude .nojekyll --exclude .buildinfo \
 		 _build/html/ $(HTML_DEST_DIR) 1>/dev/null
 
-.stamp/sphinx: Makefile-sphinx.mk | check_tools
+.stamp/sphinx: check_tools
+	mkdir -p .stamp
 	make -f Makefile-sphinx.mk html
 	touch .stamp/sphinx
 
@@ -46,4 +47,4 @@ cleanhtml:
 	rm -rf .stamp/sphinx _build/html _build/doctrees
 
 cleanall:
-	rm -rf .stamp xml xml_2 xml_3 rst rst_2 rst_3 _build/html _build/doctrees
+	rm -rf .stamp _build/html _build/doctrees

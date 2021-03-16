@@ -22,24 +22,14 @@
 .. include:: overview.rst
 
 .. toctree::
-   :caption: Library Overview
+   :caption: Overview
    :maxdepth: 1
 
    overview.rst
-   release.rst
-   requirements.rst
-   design_flows.rst
 
 .. toctree::
-   :caption: User Guide
-   :maxdepth: 2
-
-   guide/L1.rst
-   gqe_guide/L2.rst
-   gqe_guide/L3.rst
-
-.. toctree::
-   :caption: Benchmark Result
+   :caption: Running Alveo Demo
    :maxdepth: 1
 
-   benchmark/benchmark.rst
+   running-demo.rst
+
