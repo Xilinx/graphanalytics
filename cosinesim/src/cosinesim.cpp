@@ -80,7 +80,7 @@ public:
 
 		loadPopulationCnt.resize(channelsPU,0);
 		g.resize(devicesNeeded*cuNm);
-
+        // g = new xf::graph::Graph<int32_t, int32_t>*[devicesNeeded * cuNm];
 
 
 
@@ -164,15 +164,14 @@ public:
    virtual void *getPopulationVectorBuffer(RowIndex &rowIndex){
 
 	   void * pbuf;
-
 	   if(indexDeviceCuNm == devicesNeeded * cuNm)
 		   return nullptr;
 	   subChNm = (numVerticesPU[indexDeviceCuNm][indexSplitNm] + channelsPU - 1) / channelsPU;
 
 	   pbuf = &(g[indexDeviceCuNm]->weightsDense[indexSplitNm * channelsPU + indexNumVertices / subChNm][loadPopulationCnt[indexNumVertices / subChNm] * edgeAlign8]);
 
-	  loadPopulationCnt[indexNumVertices / subChNm] += 1;
-	  lastPopulationCnt = loadPopulationCnt[indexNumVertices / subChNm];
+	   loadPopulationCnt[indexNumVertices / subChNm] += 1;
+	   lastPopulationCnt = loadPopulationCnt[indexNumVertices / subChNm];
 	   indexNumVertices++;
 	   if(indexNumVertices ==numVerticesPU[indexDeviceCuNm][indexSplitNm] ) {
 		   indexSplitNm++;
@@ -183,48 +182,15 @@ public:
 			   indexSplitNm = 0;
 		   }
 	   }
-	   /*
-		if(indexDeviceCuNm < devicesNeeded * cuNm) {
-			//int subChNm;
-			indexDeviceCuNm = indexSplitNm == splitNm ? ++indexDeviceCuNm : indexDeviceCuNm;
-			if(indexSplitNm == splitNm)  {
-				indexSplitNm =0;
-			} else {
-				indexSplitNm = (indexNumVertices == numVerticesPU[indexDeviceCuNm][indexSplitNm]) ? ++indexSplitNm : indexSplitNm;
-			}
-			//else {
-			subChNm = (numVerticesPU[indexDeviceCuNm][indexSplitNm] + channelsPU - 1) / channelsPU;
-			if(indexNumVertices < numVerticesPU[indexDeviceCuNm][indexSplitNm]){
-				pbuf=&(g[indexDeviceCuNm]->weightsDense[indexSplitNm * channelsPU + indexNumVertices / subChNm][loadPopulationCnt[indexNumVertices / subChNm] * edgeAlign8]);
-				indexNumVertices++;
-			} else {
-				//inner loop has finished.
-				//indexSplitNm++;
-				indexNumVertices =0;
-				//start new 4 HBM channels assignment
-				std::fill(loadPopulationCnt.begin(),loadPopulationCnt.end(),0);
-				pbuf=&(g[indexDeviceCuNm]->weightsDense[indexSplitNm * channelsPU + indexNumVertices / subChNm][loadPopulationCnt[indexNumVertices / subChNm] * edgeAlign8]);
-			}
 
-*/
-			//}
-
-			rowIndex = populationVectorRowNm++;
-			return pbuf;
+	   rowIndex = populationVectorRowNm++;
+	   return pbuf;
 
 	}
 
 	virtual void finishCurrentPopulationVector(void * pbuf){
-		//int depth = ((numVerticesPU[indexDeviceCuNm][indexSplitNm] + channelsPU - 1) / channelsPU) * edgeAlign8;
+		memset(pbuf+vecLength*valueSize_, 0, ( edgeAlign8 - vecLength)*valueSize_ );
 
-		//int userLastloc=  lastPopulationCnt * edgeAlign8 + vecLength;
-		//int alignedloc = userLastloc + edgeAlign8 - vecLength;
-		//for (int k = userLastloc ; k < alignedloc; ++k) {
-			//g[indexDeviceCuNm]->weightsDense[indexSplitNm * channelsPU + indexNumVertices / subChNm][k] = nullVal;
-			//if(valueSize_ == 4) {
-			  memset(pbuf+vecLength*valueSize_, 0, ( edgeAlign8 - vecLength)*valueSize_ );
-			//}
-		//}
 
 	}
 
@@ -298,6 +264,7 @@ public:
 	    std::memset(similarity, 0, numResults * sizeof(float));
 
 	    //---------------- Run L3 API -----------------------------------
+
 	    cosinesim_ss_dense_fpga(devicesNeeded * cuNm, sourceLen, sourceWeight, numResults, g.data(),resultID, similarity);
 
 	    for (unsigned int k = 0; k < numResults; k++) {
@@ -339,9 +306,8 @@ int PrivateImpl::cosineSimilaritySSDenseMultiCard(std::shared_ptr<xf::graph::L3:
         memset(similarity0[i], 0, topK * sizeof(float));
     }
     for (int i = 0; i < deviceNm; ++i) {
-        eventQueue.push_back(
-            (handle->opsimdense)
-                ->addworkInt(1, 0, sourceNUM, sourceWeights, topK, g[i][0], resultID0[i], similarity0[i]));
+        eventQueue.push_back((handle->opsimdense)->addworkInt(
+            1, 0, sourceNUM, sourceWeights, topK, g[i][0], resultID0[i], similarity0[i]));
     }
     int ret = 0;
     for (int i = 0; i < eventQueue.size(); ++i) {
@@ -369,9 +335,9 @@ int PrivateImpl::cosineSimilaritySSDenseMultiCard(std::shared_ptr<xf::graph::L3:
     delete[] similarity0;
     delete[] resultID0;
     return ret;
-}
+};
 
-std::vector<::xf::graph::L3::event<int> > PrivateImpl::cosineSimilaritySSDenseMultiCard(std::shared_ptr<xf::graph::L3::Handle>& handle,
+std::vector<xf::graph::L3::event<int> > PrivateImpl::cosineSimilaritySSDenseMultiCard(std::shared_ptr<xf::graph::L3::Handle>& handle,
                                                           int32_t deviceNm,
                                                           int32_t sourceNUM,
                                                           int32_t* sourceWeights,
@@ -380,86 +346,106 @@ std::vector<::xf::graph::L3::event<int> > PrivateImpl::cosineSimilaritySSDenseMu
                                                           int32_t** resultID,
                                                           float** similarity) {
     std::vector<xf::graph::L3::event<int> > eventQueue;
+
     for (int i = 0; i < deviceNm; ++i) {
         eventQueue.push_back(
             (handle->opsimdense)
                 ->addworkInt(1, 0, sourceNUM, sourceWeights, topK, g[i][0], resultID[i], similarity[i]));
     }
     return eventQueue;
-}
+};
 
-void PrivateImpl::cosinesim_ss_dense_fpga(int32_t deviceNeeded,
-        int32_t sourceLen,
-        int32_t* sourceWeight,
-        int32_t topK,
-        xf::graph::Graph<int32_t, int32_t>** g,
-        int32_t* resultID,
-        float* similarity) {
-//---------------- Run Load Graph -----------------------------------
-std::cout << "INFO: L3_wrapper::cosinesim_ss_dense_fpga starting..." << std::endl;
-std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
-handle0->debug();
-int32_t requestNm = 1;
-//    int ret = xf::graph::L3::cosineSimilaritySSDenseMultiCard(handle0, deviceNeeded, sourceLen, sourceWeight,
-//    topK, g,
-//                                                              resultID, similarity);
-int32_t hwNm = deviceNeeded;
-std::cout << "hwNm = " << hwNm << std::endl;
-std::vector<xf::graph::L3::event<int> > eventQueue[requestNm];
-float** similarity0[requestNm];
-int32_t** resultID0[requestNm];
-int counter[requestNm][hwNm];
-for (int m = 0; m < requestNm; ++m) {
-    similarity0[m] = new float*[hwNm];
-    resultID0[m] = new int32_t*[hwNm];
-    for (int i = 0; i < hwNm; ++i) {
-        counter[m][i] = 0;
-        similarity0[m][i] = xf::graph::internal::aligned_alloc<float>(topK);
-        resultID0[m][i] = xf::graph::internal::aligned_alloc<int32_t>(topK);
-        memset(resultID0[m][i], 0, topK * sizeof(int32_t));
-        memset(similarity0[m][i], 0, topK * sizeof(float));
-    }
-}
-//---------------- Run L3 API -----------------------------------
-for (int m = 0; m < requestNm; ++m) {
-    eventQueue[m] = cosineSimilaritySSDenseMultiCard(handle0, hwNm, sourceLen, sourceWeight, topK, g,
-                                                                    resultID0[m], similarity0[m]);
-}
+void PrivateImpl::cosinesim_ss_dense_fpga(int32_t devicesNeeded,
+                                        int32_t sourceLen,
+                                        int32_t* sourceWeight,
+                                        int32_t topK,
+                                        xf::graph::Graph<int32_t, int32_t>** g,
+                                        int32_t* resultID,
+                                        float* similarity) {
+    //---------------- Run Load Graph -----------------------------------
+    //std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
+    //          << " XRT_INI_PATH=" << std::getenv("XRT_INI_PATH") << std::endl;
 
-int ret = 0;
-for (int m = 0; m < requestNm; ++m) {
-    for (int i = 0; i < eventQueue[m].size(); ++i) {
-        ret += eventQueue[m][i].wait();
+    std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time =
+            std::chrono::high_resolution_clock::now();
+    std::cout << "DEBUG: " << __FUNCTION__ << " start=" << l_start_time.time_since_epoch().count()
+              << std::endl;
+
+    std::shared_ptr<xf::graph::L3::Handle> handle0 =
+                        sharedHandlesCosSimDense::instance().handlesMap[0];
+    handle0->debug();
+    int32_t requestNm = 1;
+    int32_t hwNm = devicesNeeded;
+    std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
+              << " hwNm=" << hwNm << std::endl;
+    std::vector<xf::graph::L3::event<int> > eventQueue[requestNm];
+    float** similarity0[requestNm];
+    int32_t** resultID0[requestNm];
+    int counter[requestNm][hwNm];
+    for (int m = 0; m < requestNm; ++m) {
+        similarity0[m] = new float*[hwNm];
+        resultID0[m] = new int32_t*[hwNm];
+        for (int i = 0; i < hwNm; ++i) {
+            counter[m][i] = 0;
+            similarity0[m][i] = xf::graph::internal::aligned_alloc<float>(topK);
+            resultID0[m][i] = xf::graph::internal::aligned_alloc<int32_t>(topK);
+            memset(resultID0[m][i], 0, topK * sizeof(int32_t));
+            memset(similarity0[m][i], 0, topK * sizeof(float));
+        }
     }
-}
-for (int m = 0; m < requestNm; ++m) {
-    for (int i = 0; i < topK; ++i) {
-        similarity[i] = similarity0[m][0][counter[m][0]];
-        int32_t prev = 0;
-        resultID[i] = resultID0[m][0][counter[m][0]];
-        counter[m][0]++;
-        for (int j = 1; j < hwNm; ++j) {
-            if (similarity[i] < similarity0[m][j][counter[m][j]]) {
-                similarity[i] = similarity0[m][j][counter[m][j]];
-                resultID[i] = resultID0[m][j][counter[m][j]];
-                counter[m][prev]--;
-                prev = j;
-                counter[m][j]++;
+    //---------------- Run L3 API -----------------------------------
+    std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
+             << " sourceLen=" << sourceLen << ", topK=" << topK
+             << ", sourceWeight=" ;
+     for(int i=0;i<sourceLen; i++){
+     	std::cout <<i<< " : " << sourceWeight[i]<<std::endl;
+     }
+    for (int m = 0; m < requestNm; ++m) {
+        eventQueue[m] = cosineSimilaritySSDenseMultiCard(
+            handle0, hwNm, sourceLen, sourceWeight, topK, g,
+            resultID0[m], similarity0[m]);
+    }
+
+    int ret = 0;
+    for (int m = 0; m < requestNm; ++m) {
+        for (int i = 0; i < eventQueue[m].size(); ++i) {
+            ret += eventQueue[m][i].wait();
+        }
+    }
+    for (int m = 0; m < requestNm; ++m) {
+        for (int i = 0; i < topK; ++i) {
+            similarity[i] = similarity0[m][0][counter[m][0]];
+            int32_t prev = 0;
+            resultID[i] = resultID0[m][0][counter[m][0]];
+            counter[m][0]++;
+            for (int j = 1; j < hwNm; ++j) {
+                if (similarity[i] < similarity0[m][j][counter[m][j]]) {
+                    similarity[i] = similarity0[m][j][counter[m][j]];
+                    resultID[i] = resultID0[m][j][counter[m][j]];
+                    counter[m][prev]--;
+                    prev = j;
+                    counter[m][j]++;
+                }
             }
         }
     }
-}
 
-for (int m = 0; m < requestNm; ++m) {
-    for (int i = 0; i < hwNm; ++i) {
-        free(similarity0[m][i]);
-        free(resultID0[m][i]);
+    for (int m = 0; m < requestNm; ++m) {
+        for (int i = 0; i < hwNm; ++i) {
+            free(similarity0[m][i]);
+            free(resultID0[m][i]);
+        }
+        delete[] similarity0[m];
+        delete[] resultID0[m];
     }
-    delete[] similarity0[m];
-    delete[] resultID0[m];
+    std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time =
+            std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> l_durationSec = l_end_time - l_start_time;
+    double l_timeMs = l_durationSec.count() * 1e3;
+    std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__
+              << " runtime msec=  " << std::fixed << std::setprecision(6)
+              << l_timeMs << std::endl;
 }
-}
-
 
 void PrivateImpl::loadgraph_cosinesim_ss_dense_fpga(unsigned deviceNeeded,
                                                   unsigned cuNm,
@@ -469,10 +455,8 @@ void PrivateImpl::loadgraph_cosinesim_ss_dense_fpga(unsigned deviceNeeded,
     std::string kernelName;
     int requestLoad;
     std::string xclbinPath;
-    std::string xclbinPath2;
 
-   // std::string basePath = TIGERGRAPH_PATH;
-   // std::string jsonFilePath = basePath + "/dev/gdk/gsql/src/QueryUdf/config_cosinesim_ss_dense_fpga.json";
+
     std::string jsonFilePath = "./config_cosinesim_ss_dense_fpga.json";
     std::fstream userInput(jsonFilePath, std::ios::in);
     if (!userInput) {
@@ -498,26 +482,18 @@ void PrivateImpl::loadgraph_cosinesim_ss_dense_fpga(unsigned deviceNeeded,
                 token = strtok(NULL, "\"\t ,}:{\n");
                 std::string tmpStr = token;
                 xclbinPath = tmpStr;
-            } else if (!std::strcmp(token, "xclbinPath2")) {
-                token = strtok(NULL, "\"\t ,}:{\n");
-                std::string tmpStr2 = token;
-                xclbinPath2 = tmpStr2;
-            } else if (!std::strcmp(token, "deviceNeeded")) {
-                token = strtok(NULL, "\"\t ,}:{\n");
-                //             deviceNeeded = std::atoi(token);
             }
             token = strtok(NULL, "\"\t ,}:{\n");
         }
     }
     userInput.close();
 
-    //----------------- Setup shortestPathFloat thread ---------
+    //----------------- Setup denseSimilarityKernel thread ---------
     xf::graph::L3::Handle::singleOP op0;
     op0.operationName = (char*)opName.c_str();
     op0.setKernelName((char*)kernelName.c_str());
     op0.requestLoad = requestLoad;
     op0.xclbinFile = (char*)xclbinPath.c_str();
-    //op0.xclbinFile2 = (char*)xclbinPath2.c_str();
     op0.deviceNeeded = deviceNeeded;
     op0.cuPerBoard = cuNm;
 
@@ -527,13 +503,7 @@ void PrivateImpl::loadgraph_cosinesim_ss_dense_fpga(unsigned deviceNeeded,
         errorCode_ = ErrorXclbinNotExist;
         return;
     }
-/*
-    std::fstream xclbinFS2(xclbinPath2, std::ios::in);
-    if (deviceNeeded > 1 && !xclbinFS2) {
-        std::cout << "Error : xclbinFile2 doesn't exist: " << xclbinPath2 << std::endl;
-        errorCode_ = CosineSimBase::ErrorXclbin2NotExist;
-        return ;
-    }*/
+
     std::shared_ptr<xf::graph::L3::Handle> handleInstance(new xf::graph::L3::Handle);
     sharedHandlesCosSimDense::instance().handlesMap[0] = handleInstance;
     std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
@@ -542,7 +512,7 @@ void PrivateImpl::loadgraph_cosinesim_ss_dense_fpga(unsigned deviceNeeded,
     int status = handle0->setUp();
     if (status < 0) {
     	errorCode_ = ErrorFailFPGASetup;
-        return;
+    	return;
     }
 
     //-------------------------
@@ -552,6 +522,7 @@ void PrivateImpl::loadgraph_cosinesim_ss_dense_fpga(unsigned deviceNeeded,
 
     //---------------- Run Load Graph -----------------------------------
     for (int i = 0; i < deviceNeeded * cuNm; ++i) {
+        std::cout << "DEBUG: loadGraphMultiCardNonBlocking " << i << std::endl;
         (handle0->opsimdense)->loadGraphMultiCardNonBlocking(i / cuNm, i % cuNm, g[i][0]);
     }
 
@@ -564,7 +535,7 @@ void PrivateImpl::loadgraph_cosinesim_ss_dense_fpga(unsigned deviceNeeded,
     }
     //delete[] g;
 
-} //loadgraph_cosinesim_ss_dense_fpga
+}
 
 extern "C" {
     ImplBase *createImpl(const Options& options, unsigned valueSize){
