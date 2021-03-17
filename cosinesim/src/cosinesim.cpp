@@ -97,7 +97,7 @@ public:
 
 
 		vecLength = options_.vecLength;
-		numEdges = options_.vecLength - 3;
+		numEdges = options_.vecLength;
 		//numVertices = cosinesimPtr->getOptions().numVertices;
 		this->numVertices = numVertices;
 		devicesNeeded = options_.devicesNeeded;
