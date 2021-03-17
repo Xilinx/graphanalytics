@@ -122,7 +122,7 @@ int main(int argc, char **argv) {
     std::cout << "Similarity   Vector #" << std::endl;
     std::cout << "----------   --------" << std::endl;
     for (xilinx_apps::cosinesim::Result &result : results)
-        std::cout << result.similarity_ << "       " << result.index_;
+        std::cout << result.similarity_ << "       " << result.index_ << std::endl;
     
     return 0;
 }

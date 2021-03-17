@@ -196,14 +196,22 @@ public:
 
 	//padding the row and loadgraph
 	virtual void finishLoadPopulationVectors() {
+
 		//for the last PU, the last channels may need to padded as the row will be the multiple of channelsPU
 		int paddingDepth = ((numVerticesPU[indexDeviceCuNm-1][indexSplitNm-1] + channelsPU - 1) / channelsPU)*channelsPU - numVerticesPU[indexDeviceCuNm-1][indexSplitNm-1] ;
 		int startPaddingDepth = numVerticesPU[indexDeviceCuNm-1][indexSplitNm-1] * edgeAlign8;
 		for (int k = startPaddingDepth; k < paddingDepth*edgeAlign8; ++k) {
 			g[indexDeviceCuNm]->weightsDense[ (indexSplitNm-1) * channelsPU + 3][k] = nullVal;
 		}
-
-
+/*
+		unsigned depth = g[cuNm - 1]->numEdgesPU[splitNm - 1];  // reserved space for each channel of last PU
+		unsigned totalPURows = depth / edgeAlign8 * channelsPU;  // reserved rows for all 4 channels of last PU
+		unsigned lastPUNumVectors = numVerticesPU[devicesNeeded * cuNm - 1][splitNm - 1];  // # vecs in last PU
+		unsigned numPadRows =  totalPURows - lastPUNumVectors;  // how many rows need to be padded
+		for (unsigned chan = channelsPU - numPadRows; chan < channelsPU; ++chan)
+		    for (unsigned k = 0; k < edgeAlign8; ++k)
+		        g[cuNm - 1]->weightsDense[(splitNm - 1) * chan][depth - edgeAlign8 + k] = 0;
+*/
 		loadgraph_cosinesim_ss_dense_fpga(devicesNeeded, cuNm, g.data());
 
 	}
@@ -271,6 +279,16 @@ public:
 	        //result += testResults(VERTEX(xai::IDMap[resultID[k]]), similarity[k]);
 	    	result.push_back(Result(resultID[k], similarity[k]));
 	    }
+
+	    //--------------- Free and delete -----------------------------------
+
+	    for (int i = 0; i < devicesNeeded * cuNm; ++i) {
+	    	g[i]->freeBuffers();
+	    	delete[] g[i]->numEdgesPU;
+	    	delete[] g[i]->numVerticesPU;
+	    }
+	    //delete[] g;
+
 
 	    return result;
 	}
@@ -525,15 +543,6 @@ void PrivateImpl::loadgraph_cosinesim_ss_dense_fpga(unsigned deviceNeeded,
         std::cout << "DEBUG: loadGraphMultiCardNonBlocking " << i << std::endl;
         (handle0->opsimdense)->loadGraphMultiCardNonBlocking(i / cuNm, i % cuNm, g[i][0]);
     }
-
-    //--------------- Free and delete -----------------------------------
-
-    for (int i = 0; i < deviceNeeded * cuNm; ++i) {
-        g[i]->freeBuffers();
-        delete[] g[i]->numEdgesPU;
-        delete[] g[i]->numVerticesPU;
-    }
-    //delete[] g;
 
 }
 
