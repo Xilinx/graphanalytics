@@ -194,7 +194,8 @@ LDLIBS_test = \
 	
 
 SRC_FILE_NAMES_test = \
-    cosinesim_test.cpp
+    cosinesim_test.cpp \
+    fakeudf.cpp
 
 SRCS_test = $(addprefix $(TEST_DIR)/,$(SRC_FILE_NAMES_test))
 OBJS_test = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_test:.cpp=.o)))
@@ -202,7 +203,8 @@ DEPS_test = $(OBJS_test:.o=.d)
 
 # List of all test executables to build
 EXEC_FILE_NAMES_test = \
-    cosinesim_test
+    cosinesim_test \
+    fakeudf
 
 EXECS_test = $(addprefix $(CPP_BUILD_DIR)/,$(EXEC_FILE_NAMES_test))
 
@@ -216,10 +218,16 @@ cppTest2: $(EXECS_test)
 
 # Test executables
 
-SHAREDLIB_FLAGS_test = -fPIC -w -L $(CPP_BUILD_DIR) -l$(LIB_SHORT_NAME)
+LDFLAGS_test = -fPIC -w -L $(CPP_BUILD_DIR) -l$(LIB_SHORT_NAME)
 
 $(CPP_BUILD_DIR)/cosinesim_test: $(CPP_BUILD_DIR)/cosinesim_test.o
-	$(LINK.cc) -o $@ $^ $(SHAREDLIB_FLAGS_test)
+	$(LINK.cc) -o $@ $^ $(LDFLAGS_test)
+
+#LDFLAGS_fakeudf = -fPIC -w -L /scratch/tigergraph/tigergraph/app/3.1.0/dev/gdk/gsql/src/QueryUdf -lgraphL3wrapper -ldl
+LDFLAGS_fakeudf = -fPIC -w -L $(CPP_BUILD_DIR) -l$(LIB_SHORT_NAME)
+
+$(CPP_BUILD_DIR)/fakeudf: $(CPP_BUILD_DIR)/fakeudf.o
+	$(LINK.cc) -o $@ $^ $(LDFLAGS_fakeudf)
 
 # Macro to create a .o rule and a .d rule for each .cpp
 
