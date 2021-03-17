@@ -514,6 +514,17 @@ const unsigned VectorLength = 200;
 const unsigned NumVectors = 5000;
 const int MaxValue = 16383;
 
+
+void dumpVector(const ListAccum<int64_t> &vec) {
+    for (unsigned i = 0, end = vec.size(); i < end; ++i) {
+        if (i % 10 == 0)
+            std::cout << std::endl << i << ": ";
+        std::cout << vec.get(i) << ' ';
+    }
+    std::cout << std::endl;
+}
+
+
 int main(int argc, char **argv) {
     std::srand(0x12345);
     ListAccum<int64_t> testVector;
@@ -542,12 +553,15 @@ int main(int argc, char **argv) {
                 testVector.get(eltNum + 3) = value;
         }
     }
-    udf_load_graph_cosinesim_ss_fpga(NumVectors, VectorLength, population, 1);
+    udf_load_graph_cosinesim_ss_fpga(NumVectors, VectorLength + 3, population, 1);
+//    dumpVector(testVector);
+    
     
     // Run the match in the FPGA
     
     std::cout << "Running match for test vector #" << testVectorIndex << "..." << std::endl;
-    ListAccum<testResults> results = udf_cosinesim_ss_fpga(10, NumVectors, VectorLength, testVector, 1);
+//    ListAccum<testResults> results = udf_cosinesim_ss_fpga(10, NumVectors, VectorLength, testVector, 1);
+    ListAccum<testResults> results = udf_cosinesim_ss_fpga(10, NumVectors, VectorLength + 3, population.get(testVectorIndex), 1);
     
     // Display the results
     
