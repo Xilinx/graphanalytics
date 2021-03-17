@@ -89,6 +89,22 @@ public:
 	~PrivateImpl(){}
 
    virtual void startLoadPopulation(std::int64_t numVertices){
+	    //--------------- Free and delete -----------------------------------
+
+	    for (int i = 0; i < devicesNeeded * cuNm; ++i) {
+                if (!g[i])
+                    continue;
+	    	g[i]->freeBuffers();
+	    	delete[] g[i]->numEdgesPU;
+	    	g[i]->numEdgesPU = nullptr;
+	    	delete[] g[i]->numVerticesPU;
+	    	g[i]->numVerticesPU = nullptr;
+                delete g[i];
+                g[i] = nullptr;
+	    }
+	    //delete[] g;
+
+       
 		indexDeviceCuNm=0;
 		indexSplitNm=0;
 		indexNumVertices=0;
@@ -279,15 +295,6 @@ public:
 	        //result += testResults(VERTEX(xai::IDMap[resultID[k]]), similarity[k]);
 	    	result.push_back(Result(resultID[k], similarity[k]));
 	    }
-
-	    //--------------- Free and delete -----------------------------------
-
-	    for (int i = 0; i < devicesNeeded * cuNm; ++i) {
-	    	g[i]->freeBuffers();
-	    	delete[] g[i]->numEdgesPU;
-	    	delete[] g[i]->numVerticesPU;
-	    }
-	    //delete[] g;
 
 
 	    return result;

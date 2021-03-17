@@ -115,6 +115,8 @@ int main(int argc, char **argv) {
     
     std::cout << "Running match for test vector #" << testVectorIndex << "..." << std::endl;
     std::vector<xilinx_apps::cosinesim::Result> results = cosineSim.matchTargetVector(10, testVector.data());
+    results.clear();
+    results = cosineSim.matchTargetVector(10, testVector.data());
     
     // Display the results
     
