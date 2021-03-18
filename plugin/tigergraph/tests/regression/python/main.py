@@ -37,7 +37,7 @@ extraK = 80                                         # Total of topK + extraK are
                                                     #   if mismatches occur for same patient for all Clients, try increasing this value and try again
 matchPrecision = 6                                  # Number of decimal points to compare SW and HW results up to
                                                     #   if set too low, more extraK padding might be needed to avoid false mismatches
-graphName = f'xgraph_{userName}_{populationSize}_4'   # TG graph name
+graphName = f'xgraph_{userName}_{populationSize}'   # TG graph name
 
 # connect to TG server
 conn = tg.TigerGraphConnection(host='http://' + hostName, graphname=graphName, username=userName, password=passWord)
@@ -153,12 +153,12 @@ if __name__ == '__main__':
         print(f'completed in {time.perf_counter() - tStart:.4f} sec')
         os.chdir(pwd)
 
-        print('SW Caching...')
+        print('\nSW Caching...')
         tStart = time.perf_counter()
         resultSwCache = conn.runInstalledQuery('client_cosinesim_load_cache', timeout=240000000)
         print(f'completed in {time.perf_counter() - tStart:.4f} sec')
 
-        print('Hw data load...')
+        print('\nHw data load...')
         tStart = time.perf_counter()
         resultHwLoad = conn.runInstalledQuery('client_cosinesim_load_alveo', {'numDevices': numDevices}, timeout=240000000)
         print(f'completed in {time.perf_counter() - tStart:.4f} sec\n')

@@ -32,17 +32,27 @@ CREATE QUERY client_cosinesim_load_alveo(INT numDevices) FOR GRAPH @graph {
     ret = load_cu_cosinesim_ss_fpga_core(numDevices);
     run_time = udf_elapsed_time(true);
     IF ret == 0 THEN
-        status = "FPGA loaded successfully";
+        status = "Loaded XCLBIN and allocated CUs successfully";
     ELSE IF ret == -1 THEN
-        status = "xclbin loading failed";
+        status = "XCLBIN loading failed";
     ELSE IF ret == -2 THEN
         status = "config_cosinesim_ss_dense_fpga.json does not exit";
     ELSE IF ret == -3 THEN
-        status = "xclbin does not exist";
-    ELSE IF ret == -4 THEN
-        status = "xclbin2 does not exist";
+        status = "XCLBIN does not exist";
     ELSE IF ret == -5 THEN
         status = "Shared library loading failed";
+    ELSE IF ret == -6 THEN
+        status = "Not enough devices";
+    END;
+    PRINT ret AS ErrorCode, status AS ErrorMessage, run_time AS ExecTimeInMs;
+
+    udf_reset_timer(true);
+    ret = load_graph_cosinesim_ss_fpga_core(numDevices);
+    run_time = udf_elapsed_time(true);
+    IF ret == 0 THEN
+        status = "Graph data loaded successfully";
+    ELSE IF ret == -1001 THEN
+        status = "Vertices distribution error";
     END;
     PRINT ret AS ErrorCode, status AS ErrorMessage, run_time AS ExecTimeInMs;
 }
