@@ -41,19 +41,19 @@ struct Result {
     }
 };
 struct Options {
-	ColIndex vecLength;
-	//std::int64_t numVertices;
-	std::int64_t devicesNeeded;
+    ColIndex vecLength;
+    //std::int64_t numVertices;
+    std::int64_t devicesNeeded;
 };
 
 enum ErrorCode{
-	NoError =0,
-	ErrorGraphPartition,
-	ErrorUnsupportedValueType,
-	ErrorConfigFileNotExist,
-	ErrorXclbinNotExist,
-	ErrorXclbin2NotExist,
-	ErrorFailFPGASetup
+    NoError =0,
+    ErrorGraphPartition,
+    ErrorUnsupportedValueType,
+    ErrorConfigFileNotExist,
+    ErrorXclbinNotExist,
+    ErrorXclbin2NotExist,
+    ErrorFailFPGASetup
 };
 
 template <typename Value>
@@ -61,17 +61,18 @@ class CosineSim;
 
 class ImplBase {
 public:
-	virtual ~ImplBase(){};
-	virtual void startLoadPopulation(std::int64_t numVertices) = 0;
-	virtual void *getPopulationVectorBuffer(RowIndex &rowIndex) = 0;
-	virtual void finishCurrentPopulationVector(void * pbuf) = 0;
-	virtual void finishLoadPopulationVectors() =0;
-	virtual std::vector<Result> matchTargetVector(unsigned numResults, void *elements) = 0;
+    virtual ~ImplBase(){};
+    virtual void startLoadPopulation(std::int64_t numVertices) = 0;
+    virtual void *getPopulationVectorBuffer(RowIndex &rowIndex) = 0;
+    virtual void finishCurrentPopulationVector(void * pbuf) = 0;
+    virtual void finishLoadPopulationVectors() =0;
+    virtual std::vector<Result> matchTargetVector(unsigned numResults, void *elements) = 0;
+    virtual void cleanGraph() =0;
 };
 
 extern "C" {
-    ImplBase *createImpl(const Options& options, unsigned valueSize);
-    void destroyImpl(ImplBase *pImpl);
+ImplBase *createImpl(const Options& options, unsigned valueSize);
+void destroyImpl(ImplBase *pImpl);
 }
 
 
@@ -79,14 +80,16 @@ extern "C" {
 template <typename Value>
 class CosineSim {
 public:
-	using ValueType = Value;
-	const Options& getOptions() {return options_;};
+    using ValueType = Value;
+    const Options& getOptions() {return options_;};
 
     //CosineSim( const Options &options) :CosineSimBase(options), pImpl_(createImpl(this, sizeof(Value))) {};
-    
-	CosineSim( const Options &options) :options_(options), pImpl_(createImpl(options, sizeof(Value))) {};
 
+    CosineSim( const Options &options) :options_(options), pImpl_(createImpl(options, sizeof(Value))) {};
 
+    ~CosineSim() {
+        pImpl_->cleanGraph();
+    }
     //oid openFpga(...);
     void startLoadPopulation(std::int64_t numVertices){pImpl_->startLoadPopulation(numVertices);}  //
 
@@ -94,17 +97,17 @@ public:
         // figure out where in weightDense to start writing
         // memset vector padding (8 bytes for example) to 0
         // return pointer into weightDense
-         return reinterpret_cast<Value *>(pImpl_->getPopulationVectorBuffer(rowIndex));
+        return reinterpret_cast<Value *>(pImpl_->getPopulationVectorBuffer(rowIndex));
     }
     void finishCurrentPopulationVector(Value *pbuf){pImpl_->finishCurrentPopulationVector(pbuf);}
     void finishLoadPopulationVectors(){pImpl_->finishLoadPopulationVectors();}
 
-    
+
     std::vector<Result> matchTargetVector(unsigned numResults, void *elements) {
-    	return pImpl_->matchTargetVector(numResults, elements);
+        return pImpl_->matchTargetVector(numResults, elements);
     }
     //void closeFpga();
-    
+
 private:
     //std::unique_ptr<ImplBase> pImpl_;
     ImplBase *pImpl_ = nullptr;

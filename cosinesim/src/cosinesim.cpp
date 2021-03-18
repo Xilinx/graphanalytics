@@ -14,296 +14,293 @@ namespace cosinesim {
 class PrivateImpl : public ImplBase {
 
 public:
-	int indexDeviceCuNm, indexSplitNm, indexNumVertices, indexVecLength;
-	const int splitNm = 3;    // kernel has 4 PUs, the input data should be splitted into 4 parts
-	const int channelsPU = 4; // each PU has 4 HBM channels
-	const int cuNm = 2;
-	const int channelW = 16;
-	const int32_t nullVal = 0;
+    int indexDeviceCuNm, indexSplitNm, indexNumVertices, indexVecLength;
+    const int splitNm = 3;    // kernel has 4 PUs, the input data should be splitted into 4 parts
+    const int channelsPU = 4; // each PU has 4 HBM channels
+    const int cuNm = 2;
+    const int channelW = 16;
+    const int32_t nullVal = 0;
 
-	int valueSize_;
-	int64_t devicesNeeded;
-	int populationVectorRowNm;
-	int32_t** numVerticesPU ; // vertex numbers in each PU
+    int valueSize_;
+    int64_t devicesNeeded;
+    int populationVectorRowNm;
+    int32_t** numVerticesPU ; // vertex numbers in each PU
 
 
-	int32_t numEdges;
-	int vecLength;
-	int64_t numVertices;
-	int32_t edgeAlign8;
-	int subChNm;
+    int32_t numEdges;
+    int vecLength;
+    int64_t numVertices;
+    int32_t edgeAlign8;
+    int subChNm;
     int lastPopulationCnt;
-	//std::vector<int> loadOldVectorCnt(channelsPU,0);
-	std::vector<int> loadPopulationCnt;
+    //std::vector<int> loadOldVectorCnt(channelsPU,0);
+    std::vector<int> loadPopulationCnt;
 
-	//xf::graph::Graph<int32_t, int32_t>** g = new xf::graph::Graph<int32_t, int32_t>*[deviceNeeded * cuNm];
-	//currently only support int32_t graph
-	std::vector<xf::graph::Graph<int32_t, int32_t>*> g;
-	//xf::graph::Graph<int32_t, int32_t>** g;
+    //xf::graph::Graph<int32_t, int32_t>** g = new xf::graph::Graph<int32_t, int32_t>*[deviceNeeded * cuNm];
+    //currently only support int32_t graph
+    std::vector<xf::graph::Graph<int32_t, int32_t>*> g;
+    //xf::graph::Graph<int32_t, int32_t>** g;
 
-	// initial value is 0; means no errors;
-	ErrorCode errorCode_;
+    // initial value is 0; means no errors;
+    ErrorCode errorCode_;
 
-	//options
-	Options options_;
+    //options
+    Options options_;
 
 private:
-	//CosineSimBase* cosinesimPtr;
+    //CosineSimBase* cosinesimPtr;
 
 public:
-	//PrivateImpl(CosineSimBase* ptr, unsigned valueSize){
-	PrivateImpl(Options options, unsigned valueSize){
-		errorCode_ = NoError;
-		valueSize_ = valueSize;
-		//cosinesimPtr = ptr;
-		indexDeviceCuNm=0;
-		indexSplitNm=0;
-		indexNumVertices=0;
-		indexVecLength=3;
-		populationVectorRowNm=0;
-		subChNm = 1;
-		//vecLength = ptr->getOptions().vecLength;
-		vecLength = options.vecLength;
-		//numEdges = vecLength - 3;
-		numEdges = vecLength;
-		//numVertices =options.numVertices;
-		devicesNeeded = options.devicesNeeded;
-	    options_ = options;
-		edgeAlign8 = ((numEdges + channelW - 1) / channelW) * channelW;
+    //PrivateImpl(CosineSimBase* ptr, unsigned valueSize){
+    PrivateImpl(Options options, unsigned valueSize){
+        errorCode_ = NoError;
+        valueSize_ = valueSize;
+        //cosinesimPtr = ptr;
+        indexDeviceCuNm=0;
+        indexSplitNm=0;
+        indexNumVertices=0;
+        indexVecLength=3;
+        populationVectorRowNm=0;
+        subChNm = 1;
+        //vecLength = ptr->getOptions().vecLength;
+        vecLength = options.vecLength;
+        //numEdges = vecLength - 3;
+        numEdges = vecLength;
+        //numVertices =options.numVertices;
+        devicesNeeded = options.devicesNeeded;
+        options_ = options;
+        edgeAlign8 = ((numEdges + channelW - 1) / channelW) * channelW;
 
-		numVerticesPU  = new int32_t*[devicesNeeded * cuNm];
-		for (int i = 0; i < devicesNeeded * cuNm; ++i) {
-		        numVerticesPU[i] = new int32_t[splitNm];
-		}
+        numVerticesPU  = new int32_t*[devicesNeeded * cuNm];
+        for (int i = 0; i < devicesNeeded * cuNm; ++i) {
+            numVerticesPU[i] = new int32_t[splitNm];
+        }
 
-	    edgeAlign8 = ((numEdges + channelW - 1) / channelW) * channelW;
+        edgeAlign8 = ((numEdges + channelW - 1) / channelW) * channelW;
 
-		loadPopulationCnt.resize(channelsPU,0);
-		g.resize(devicesNeeded*cuNm);
+        loadPopulationCnt.resize(channelsPU,0);
+        g.resize(devicesNeeded*cuNm);
         // g = new xf::graph::Graph<int32_t, int32_t>*[devicesNeeded * cuNm];
 
 
 
-	}
+    }
 
-	~PrivateImpl(){}
+    ~PrivateImpl(){}
 
-   virtual void startLoadPopulation(std::int64_t numVertices){
-	    //--------------- Free and delete -----------------------------------
+    virtual void startLoadPopulation(std::int64_t numVertices){
+        //--------------- Free and delete -----------------------------------
 
-	    for (int i = 0; i < devicesNeeded * cuNm; ++i) {
-                if (!g[i])
-                    continue;
-	    	g[i]->freeBuffers();
-	    	delete[] g[i]->numEdgesPU;
-	    	g[i]->numEdgesPU = nullptr;
-	    	delete[] g[i]->numVerticesPU;
-	    	g[i]->numVerticesPU = nullptr;
-                delete g[i];
-                g[i] = nullptr;
-	    }
-	    //delete[] g;
+        cleanGraph();
 
-       
-		indexDeviceCuNm=0;
-		indexSplitNm=0;
-		indexNumVertices=0;
-		indexVecLength=3;
-		populationVectorRowNm=0;
+        indexDeviceCuNm=0;
+        indexSplitNm=0;
+        indexNumVertices=0;
+        indexVecLength=3;
+        populationVectorRowNm=0;
 
 
-		vecLength = options_.vecLength;
-		numEdges = options_.vecLength;
-		//numVertices = cosinesimPtr->getOptions().numVertices;
-		this->numVertices = numVertices;
-		devicesNeeded = options_.devicesNeeded;
+        vecLength = options_.vecLength;
+        numEdges = options_.vecLength;
+        //numVertices = cosinesimPtr->getOptions().numVertices;
+        this->numVertices = numVertices;
+        devicesNeeded = options_.devicesNeeded;
 
-		//the following calculation and assignment is based on numVertices
-		int general = ((numVertices - (devicesNeeded * cuNm * splitNm * channelsPU + 1)) /
-		                   (devicesNeeded * cuNm * splitNm * channelsPU)) * channelsPU;
-		int rest = numVertices - general * (devicesNeeded * cuNm * splitNm - 1);
+        //the following calculation and assignment is based on numVertices
+        int general = ((numVertices - (devicesNeeded * cuNm * splitNm * channelsPU + 1)) /
+                (devicesNeeded * cuNm * splitNm * channelsPU)) * channelsPU;
+        int rest = numVertices - general * (devicesNeeded * cuNm * splitNm - 1);
 
-		std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
-	            << " numVertices=" << numVertices << ", general=" << general
-	            << ", rest=" << rest
-	            << ", split=" << devicesNeeded * cuNm * splitNm << std::endl;
+        std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
+                << " numVertices=" << numVertices << ", general=" << general
+                << ", rest=" << rest
+                << ", split=" << devicesNeeded * cuNm * splitNm << std::endl;
 
-		if (rest < 0) {
-	        errorCode_= ErrorGraphPartition;
-	    }
+        if (rest < 0) {
+            errorCode_= ErrorGraphPartition;
+        }
 
-		for (int i = 0; i < devicesNeeded * cuNm; ++i) {
-			for (int j = 0; j < splitNm; ++j) {
-				numVerticesPU[i][j] = general;
-			}
-		}
-		numVerticesPU[devicesNeeded * cuNm - 1][splitNm - 1] = rest;
-		//initialize graph properties
-		int fpgaNodeNm = 0;
-		for(int i=0;i<devicesNeeded*cuNm; i++){
-			//TODO change to Value
-			//g[i] = new xf::graph::Graph<int32_t, int32_t>("Dense", 4 * splitNm, numEdges, numVerticesPU[i]);
+        for (int i = 0; i < devicesNeeded * cuNm; ++i) {
+            for (int j = 0; j < splitNm; ++j) {
+                numVerticesPU[i][j] = general;
+            }
+        }
+        numVerticesPU[devicesNeeded * cuNm - 1][splitNm - 1] = rest;
+        //initialize graph properties
+        int fpgaNodeNm = 0;
+        for(int i=0;i<devicesNeeded*cuNm; i++){
+            //TODO change to Value
+            //g[i] = new xf::graph::Graph<int32_t, int32_t>("Dense", 4 * splitNm, numEdges, numVerticesPU[i]);
 
-			if(valueSize_ == 4) {
-				g[i] = new xf::graph::Graph<int32_t, int32_t>("Dense", 4 * splitNm, numEdges,  numVerticesPU[i]);
-			//} else if(valueSize_ == 8) {
-			//	g[i] = new xf::graph::Graph<int32_t, int64_t>("Dense", 4 * splitNm, numEdges, numVerticesPU[i]);
-			} else {
-				errorCode_ =  ErrorUnsupportedValueType;
-			}
-			g[i]->numEdgesPU = new int32_t[splitNm];
-			g[i]->numVerticesPU = new int32_t[splitNm];
-			g[i]->edgeNum = numEdges;
-			g[i]->nodeNum = numVertices;
-			g[i]->splitNum = splitNm;
-			g[i]->refID = fpgaNodeNm;
-	        for (int j = 0; j < splitNm; ++j) {
-	            fpgaNodeNm += numVerticesPU[i][j];
-	            int depth = ((numVerticesPU[i][j] + channelsPU - 1) / channelsPU) * edgeAlign8;
-	            g[i]->numVerticesPU[j] = numVerticesPU[i][j];
-	            g[i]->numEdgesPU[j] = depth;
-	            //row padding move to finishCurrentPopulationVector()
-	            /*
+            if(valueSize_ == 4) {
+                g[i] = new xf::graph::Graph<int32_t, int32_t>("Dense", 4 * splitNm, numEdges,  numVerticesPU[i]);
+                //} else if(valueSize_ == 8) {
+                //	g[i] = new xf::graph::Graph<int32_t, int64_t>("Dense", 4 * splitNm, numEdges, numVerticesPU[i]);
+            } else {
+                errorCode_ =  ErrorUnsupportedValueType;
+            }
+            g[i]->numEdgesPU = new int32_t[splitNm];
+            g[i]->numVerticesPU = new int32_t[splitNm];
+            g[i]->edgeNum = numEdges;
+            g[i]->nodeNum = numVertices;
+            g[i]->splitNum = splitNm;
+            g[i]->refID = fpgaNodeNm;
+            for (int j = 0; j < splitNm; ++j) {
+                fpgaNodeNm += numVerticesPU[i][j];
+                int depth = ((numVerticesPU[i][j] + channelsPU - 1) / channelsPU) * edgeAlign8;
+                g[i]->numVerticesPU[j] = numVerticesPU[i][j];
+                g[i]->numEdgesPU[j] = depth;
+                //row padding move to finishCurrentPopulationVector()
+                /*
 	            for (int l = 0; l < channelsPU; ++l) {
 	                for (int k = 0; k < depth; ++k) {
 	                    g[i][0].weightsDense[j * channelsPU + l][k] = nullVal;
 	                }
 	            }*/
-	        }
-		}
+            }
+        }
 
 
 
-	}
-   void loadgraph_cosinesim_ss_dense_fpga(unsigned deviceNeeded,unsigned cuNm, xf::graph::Graph<int32_t, int32_t>** g) ;
+    }
+    void loadgraph_cosinesim_ss_dense_fpga(unsigned deviceNeeded,unsigned cuNm, xf::graph::Graph<int32_t, int32_t>** g) ;
 
-   virtual void *getPopulationVectorBuffer(RowIndex &rowIndex){
+    virtual void *getPopulationVectorBuffer(RowIndex &rowIndex){
 
-	   void * pbuf;
-	   if(indexDeviceCuNm == devicesNeeded * cuNm)
-		   return nullptr;
-	   subChNm = (numVerticesPU[indexDeviceCuNm][indexSplitNm] + channelsPU - 1) / channelsPU;
+        void * pbuf;
+        if(indexDeviceCuNm == devicesNeeded * cuNm)
+            return nullptr;
+        subChNm = (numVerticesPU[indexDeviceCuNm][indexSplitNm] + channelsPU - 1) / channelsPU;
 
-	   pbuf = &(g[indexDeviceCuNm]->weightsDense[indexSplitNm * channelsPU + indexNumVertices / subChNm][loadPopulationCnt[indexNumVertices / subChNm] * edgeAlign8]);
+        pbuf = &(g[indexDeviceCuNm]->weightsDense[indexSplitNm * channelsPU + indexNumVertices / subChNm][loadPopulationCnt[indexNumVertices / subChNm] * edgeAlign8]);
 
-	   loadPopulationCnt[indexNumVertices / subChNm] += 1;
-	   lastPopulationCnt = loadPopulationCnt[indexNumVertices / subChNm];
-	   indexNumVertices++;
-	   if(indexNumVertices ==numVerticesPU[indexDeviceCuNm][indexSplitNm] ) {
-		   indexSplitNm++;
-		   indexNumVertices=0;
-		   std::fill(loadPopulationCnt.begin(),loadPopulationCnt.end(),0);
-		   if(indexSplitNm == splitNm) {
-			   indexDeviceCuNm++;
-			   indexSplitNm = 0;
-		   }
-	   }
+        loadPopulationCnt[indexNumVertices / subChNm] += 1;
+        lastPopulationCnt = loadPopulationCnt[indexNumVertices / subChNm];
+        indexNumVertices++;
+        if(indexNumVertices ==numVerticesPU[indexDeviceCuNm][indexSplitNm] ) {
+            indexSplitNm++;
+            indexNumVertices=0;
+            std::fill(loadPopulationCnt.begin(),loadPopulationCnt.end(),0);
+            if(indexSplitNm == splitNm) {
+                indexDeviceCuNm++;
+                indexSplitNm = 0;
+            }
+        }
 
-	   rowIndex = populationVectorRowNm++;
-	   return pbuf;
+        rowIndex = populationVectorRowNm++;
+        return pbuf;
 
-	}
+    }
 
-	virtual void finishCurrentPopulationVector(void * pbuf){
-		memset(pbuf+vecLength*valueSize_, 0, ( edgeAlign8 - vecLength)*valueSize_ );
-
-
-	}
-
-	//padding the row and loadgraph
-	virtual void finishLoadPopulationVectors() {
-
-		//for the last PU, the last channels may need to padded as the row will be the multiple of channelsPU
-		int paddingDepth = ((numVerticesPU[indexDeviceCuNm-1][indexSplitNm-1] + channelsPU - 1) / channelsPU)*channelsPU - numVerticesPU[indexDeviceCuNm-1][indexSplitNm-1] ;
-		int startPaddingDepth = numVerticesPU[indexDeviceCuNm-1][indexSplitNm-1] * edgeAlign8;
-		for (int k = startPaddingDepth; k < paddingDepth*edgeAlign8; ++k) {
-			g[indexDeviceCuNm]->weightsDense[ (indexSplitNm-1) * channelsPU + 3][k] = nullVal;
-		}
-/*
-		unsigned depth = g[cuNm - 1]->numEdgesPU[splitNm - 1];  // reserved space for each channel of last PU
-		unsigned totalPURows = depth / edgeAlign8 * channelsPU;  // reserved rows for all 4 channels of last PU
-		unsigned lastPUNumVectors = numVerticesPU[devicesNeeded * cuNm - 1][splitNm - 1];  // # vecs in last PU
-		unsigned numPadRows =  totalPURows - lastPUNumVectors;  // how many rows need to be padded
-		for (unsigned chan = channelsPU - numPadRows; chan < channelsPU; ++chan)
-		    for (unsigned k = 0; k < edgeAlign8; ++k)
-		        g[cuNm - 1]->weightsDense[(splitNm - 1) * chan][depth - edgeAlign8 + k] = 0;
-*/
-		loadgraph_cosinesim_ss_dense_fpga(devicesNeeded, cuNm, g.data());
-
-	}
+    virtual void finishCurrentPopulationVector(void * pbuf){
+        memset(pbuf+vecLength*valueSize_, 0, ( edgeAlign8 - vecLength)*valueSize_ );
 
 
-	void cosinesim_ss_dense_fpga(int32_t deviceNeeded,int32_t sourceLen,int32_t* sourceWeight,
-	        int32_t topK,xf::graph::Graph<int32_t, int32_t>** g,int32_t* resultID,
-	        float* similarity) ;
+    }
 
-	int cosineSimilaritySSDenseMultiCard(std::shared_ptr<xf::graph::L3::Handle>& handle,
-	                                     int32_t deviceNm,
-	                                     int32_t sourceNUM,
-	                                     int32_t* sourceWeights,
-	                                     int32_t topK,
-	                                     xf::graph::Graph<int32_t, int32_t>** g,
-	                                     int32_t* resultID,
-	                                     float* similarity);
+    //padding the row and loadgraph
+    virtual void finishLoadPopulationVectors() {
 
-	std::vector<xf::graph::L3::event<int> > cosineSimilaritySSDenseMultiCard(std::shared_ptr<xf::graph::L3::Handle>& handle,
-	                                                          int32_t deviceNm,
-	                                                          int32_t sourceNUM,
-	                                                          int32_t* sourceWeights,
-	                                                          int32_t topK,
-	                                                          xf::graph::Graph<int32_t, int32_t>** g,
-	                                                          int32_t** resultID,
-	                                                          float** similarity);
+        //for the last PU, the last channels may need to padded as the row will be the multiple of channelsPU
+        int paddingDepth = ((numVerticesPU[indexDeviceCuNm-1][indexSplitNm-1] + channelsPU - 1) / channelsPU)*channelsPU - numVerticesPU[indexDeviceCuNm-1][indexSplitNm-1] ;
+        int startPaddingDepth = numVerticesPU[indexDeviceCuNm-1][indexSplitNm-1] * edgeAlign8;
+        for (int k = startPaddingDepth; k < paddingDepth*edgeAlign8; ++k) {
+            g[indexDeviceCuNm]->weightsDense[ (indexSplitNm-1) * channelsPU + 3][k] = nullVal;
+        }
 
+        loadgraph_cosinesim_ss_dense_fpga(devicesNeeded, cuNm, g.data());
 
+    }
 
-	virtual std::vector<Result> matchTargetVector(unsigned numResults, void *elements){
+    virtual void cleanGraph() {
 
-		std::vector<Result> result;
-	    //---------------- Generate Source Indice and Weight Array -------
-	    int sourceLen = edgeAlign8; // sourceIndice array length
-	    int32_t* sourceWeight =
-	        xf::graph::internal::aligned_alloc<int32_t>(sourceLen); // weights of source vertex's out members
-	    //int32_t newVecLen = newVector.size() - 3;
+        for (int i = 0; i < devicesNeeded * cuNm; ++i) {
+            if (!g[i])
+                continue;
 
-	    for (int i = 0; i < sourceLen; i++) {
-	        if (i < vecLength) {
-	        	//sourceWeight[i] = elements[i + 3];
+            g[i]->freeBuffers();
+            delete[] g[i]->numEdgesPU;
+            g[i]->numEdgesPU = nullptr;
+            delete[] g[i]->numVerticesPU;
+            g[i]->numVerticesPU = nullptr;
+            delete g[i];
+            g[i] = nullptr;
 
-	        	if(valueSize_ == 4)
-	        		sourceWeight[i] = (reinterpret_cast<int32_t*>(elements))[i];
-	        	//else if (valueSize_== 8)
-	        	//	sourceWeight[i] = (reinterpret_cast<int64_t*>(elements))[i];
-	        	else {
-	        		errorCode_ =  ErrorUnsupportedValueType;
-	        	}
+        }
 
-	        } else {
-	            sourceWeight[i] = nullVal;
-	        }
-	    }
-	    float* similarity = xf::graph::internal::aligned_alloc<float>(numResults);
-	    int32_t* resultID = xf::graph::internal::aligned_alloc<int32_t>(numResults);
-	    std::memset(resultID, 0, numResults * sizeof(int32_t));
-	    std::memset(similarity, 0, numResults * sizeof(float));
+    }
 
-	    //---------------- Run L3 API -----------------------------------
+    void cosinesim_ss_dense_fpga(int32_t deviceNeeded,int32_t sourceLen,int32_t* sourceWeight,
+            int32_t topK,xf::graph::Graph<int32_t, int32_t>** g,int32_t* resultID,
+            float* similarity) ;
 
-	    cosinesim_ss_dense_fpga(devicesNeeded * cuNm, sourceLen, sourceWeight, numResults, g.data(),resultID, similarity);
+    int cosineSimilaritySSDenseMultiCard(std::shared_ptr<xf::graph::L3::Handle>& handle,
+            int32_t deviceNm,
+            int32_t sourceNUM,
+            int32_t* sourceWeights,
+            int32_t topK,
+            xf::graph::Graph<int32_t, int32_t>** g,
+            int32_t* resultID,
+            float* similarity);
 
-	    for (unsigned int k = 0; k < numResults; k++) {
-	        //result += testResults(VERTEX(xai::IDMap[resultID[k]]), similarity[k]);
-	    	result.push_back(Result(resultID[k], similarity[k]));
-	    }
+    std::vector<xf::graph::L3::event<int> > cosineSimilaritySSDenseMultiCard(std::shared_ptr<xf::graph::L3::Handle>& handle,
+            int32_t deviceNm,
+            int32_t sourceNUM,
+            int32_t* sourceWeights,
+            int32_t topK,
+            xf::graph::Graph<int32_t, int32_t>** g,
+            int32_t** resultID,
+            float** similarity);
 
 
-	    return result;
-	}
+
+    virtual std::vector<Result> matchTargetVector(unsigned numResults, void *elements){
+
+        std::vector<Result> result;
+        //---------------- Generate Source Indice and Weight Array -------
+        int sourceLen = edgeAlign8; // sourceIndice array length
+        int32_t* sourceWeight =
+                xf::graph::internal::aligned_alloc<int32_t>(sourceLen); // weights of source vertex's out members
+                //int32_t newVecLen = newVector.size() - 3;
+
+                for (int i = 0; i < sourceLen; i++) {
+                    if (i < vecLength) {
+                        //sourceWeight[i] = elements[i + 3];
+
+                        if(valueSize_ == 4)
+                            sourceWeight[i] = (reinterpret_cast<int32_t*>(elements))[i];
+                        //else if (valueSize_== 8)
+                        //	sourceWeight[i] = (reinterpret_cast<int64_t*>(elements))[i];
+                        else {
+                            errorCode_ =  ErrorUnsupportedValueType;
+                        }
+
+                    } else {
+                        sourceWeight[i] = nullVal;
+                    }
+                }
+                float* similarity = xf::graph::internal::aligned_alloc<float>(numResults);
+                int32_t* resultID = xf::graph::internal::aligned_alloc<int32_t>(numResults);
+                std::memset(resultID, 0, numResults * sizeof(int32_t));
+                std::memset(similarity, 0, numResults * sizeof(float));
+
+                //---------------- Run L3 API -----------------------------------
+
+                cosinesim_ss_dense_fpga(devicesNeeded * cuNm, sourceLen, sourceWeight, numResults, g.data(),resultID, similarity);
+
+                for (unsigned int k = 0; k < numResults; k++) {
+                    //result += testResults(VERTEX(xai::IDMap[resultID[k]]), similarity[k]);
+                    result.push_back(Result(resultID[k], similarity[k]));
+                }
+
+
+                return result;
+    }
 
 }; // class PrivateImpl
 
 class sharedHandlesCosSimDense {
-   public:
+public:
     std::unordered_map<unsigned int, std::shared_ptr<xf::graph::L3::Handle> > handlesMap;
     static sharedHandlesCosSimDense& instance() {
         static sharedHandlesCosSimDense theInstance;
@@ -312,13 +309,13 @@ class sharedHandlesCosSimDense {
 };
 
 int PrivateImpl::cosineSimilaritySSDenseMultiCard(std::shared_ptr<xf::graph::L3::Handle>& handle,
-                                     int32_t deviceNm,
-                                     int32_t sourceNUM,
-                                     int32_t* sourceWeights,
-                                     int32_t topK,
-                                     xf::graph::Graph<int32_t, int32_t>** g,
-                                     int32_t* resultID,
-                                     float* similarity) {
+        int32_t deviceNm,
+        int32_t sourceNUM,
+        int32_t* sourceWeights,
+        int32_t topK,
+        xf::graph::Graph<int32_t, int32_t>** g,
+        int32_t* resultID,
+        float* similarity) {
     std::vector<xf::graph::L3::event<int> > eventQueue;
     float** similarity0 = new float*[deviceNm];
     int32_t** resultID0 = new int32_t*[deviceNm];
@@ -332,7 +329,7 @@ int PrivateImpl::cosineSimilaritySSDenseMultiCard(std::shared_ptr<xf::graph::L3:
     }
     for (int i = 0; i < deviceNm; ++i) {
         eventQueue.push_back((handle->opsimdense)->addworkInt(
-            1, 0, sourceNUM, sourceWeights, topK, g[i][0], resultID0[i], similarity0[i]));
+                1, 0, sourceNUM, sourceWeights, topK, g[i][0], resultID0[i], similarity0[i]));
     }
     int ret = 0;
     for (int i = 0; i < eventQueue.size(); ++i) {
@@ -363,30 +360,30 @@ int PrivateImpl::cosineSimilaritySSDenseMultiCard(std::shared_ptr<xf::graph::L3:
 };
 
 std::vector<xf::graph::L3::event<int> > PrivateImpl::cosineSimilaritySSDenseMultiCard(std::shared_ptr<xf::graph::L3::Handle>& handle,
-                                                          int32_t deviceNm,
-                                                          int32_t sourceNUM,
-                                                          int32_t* sourceWeights,
-                                                          int32_t topK,
-                                                          xf::graph::Graph<int32_t, int32_t>** g,
-                                                          int32_t** resultID,
-                                                          float** similarity) {
+        int32_t deviceNm,
+        int32_t sourceNUM,
+        int32_t* sourceWeights,
+        int32_t topK,
+        xf::graph::Graph<int32_t, int32_t>** g,
+        int32_t** resultID,
+        float** similarity) {
     std::vector<xf::graph::L3::event<int> > eventQueue;
 
     for (int i = 0; i < deviceNm; ++i) {
         eventQueue.push_back(
-            (handle->opsimdense)
+                (handle->opsimdense)
                 ->addworkInt(1, 0, sourceNUM, sourceWeights, topK, g[i][0], resultID[i], similarity[i]));
     }
     return eventQueue;
 };
 
 void PrivateImpl::cosinesim_ss_dense_fpga(int32_t devicesNeeded,
-                                        int32_t sourceLen,
-                                        int32_t* sourceWeight,
-                                        int32_t topK,
-                                        xf::graph::Graph<int32_t, int32_t>** g,
-                                        int32_t* resultID,
-                                        float* similarity) {
+        int32_t sourceLen,
+        int32_t* sourceWeight,
+        int32_t topK,
+        xf::graph::Graph<int32_t, int32_t>** g,
+        int32_t* resultID,
+        float* similarity) {
     //---------------- Run Load Graph -----------------------------------
     //std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
     //          << " XRT_INI_PATH=" << std::getenv("XRT_INI_PATH") << std::endl;
@@ -394,15 +391,15 @@ void PrivateImpl::cosinesim_ss_dense_fpga(int32_t devicesNeeded,
     std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time =
             std::chrono::high_resolution_clock::now();
     std::cout << "DEBUG: " << __FUNCTION__ << " start=" << l_start_time.time_since_epoch().count()
-              << std::endl;
+                      << std::endl;
 
     std::shared_ptr<xf::graph::L3::Handle> handle0 =
-                        sharedHandlesCosSimDense::instance().handlesMap[0];
+            sharedHandlesCosSimDense::instance().handlesMap[0];
     handle0->debug();
     int32_t requestNm = 1;
     int32_t hwNm = devicesNeeded;
     std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
-              << " hwNm=" << hwNm << std::endl;
+            << " hwNm=" << hwNm << std::endl;
     std::vector<xf::graph::L3::event<int> > eventQueue[requestNm];
     float** similarity0[requestNm];
     int32_t** resultID0[requestNm];
@@ -420,15 +417,15 @@ void PrivateImpl::cosinesim_ss_dense_fpga(int32_t devicesNeeded,
     }
     //---------------- Run L3 API -----------------------------------
     std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
-             << " sourceLen=" << sourceLen << ", topK=" << topK
-             << ", sourceWeight=" ;
-     for(int i=0;i<sourceLen; i++){
-     	std::cout <<i<< " : " << sourceWeight[i]<<std::endl;
-     }
+            << " sourceLen=" << sourceLen << ", topK=" << topK
+            << ", sourceWeight=" ;
+    for(int i=0;i<sourceLen; i++){
+        std::cout <<i<< " : " << sourceWeight[i]<<std::endl;
+    }
     for (int m = 0; m < requestNm; ++m) {
         eventQueue[m] = cosineSimilaritySSDenseMultiCard(
-            handle0, hwNm, sourceLen, sourceWeight, topK, g,
-            resultID0[m], similarity0[m]);
+                handle0, hwNm, sourceLen, sourceWeight, topK, g,
+                resultID0[m], similarity0[m]);
     }
 
     int ret = 0;
@@ -468,13 +465,13 @@ void PrivateImpl::cosinesim_ss_dense_fpga(int32_t devicesNeeded,
     std::chrono::duration<double> l_durationSec = l_end_time - l_start_time;
     double l_timeMs = l_durationSec.count() * 1e3;
     std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__
-              << " runtime msec=  " << std::fixed << std::setprecision(6)
-              << l_timeMs << std::endl;
+            << " runtime msec=  " << std::fixed << std::setprecision(6)
+    << l_timeMs << std::endl;
 }
 
 void PrivateImpl::loadgraph_cosinesim_ss_dense_fpga(unsigned deviceNeeded,
-                                                  unsigned cuNm,
-                                                  xf::graph::Graph<int32_t, int32_t>** g) {
+        unsigned cuNm,
+        xf::graph::Graph<int32_t, int32_t>** g) {
     //----------------- Text Parser --------------------------
     std::string opName;
     std::string kernelName;
@@ -536,8 +533,8 @@ void PrivateImpl::loadgraph_cosinesim_ss_dense_fpga(unsigned deviceNeeded,
     handle0->addOp(op0);
     int status = handle0->setUp();
     if (status < 0) {
-    	errorCode_ = ErrorFailFPGASetup;
-    	return;
+        errorCode_ = ErrorFailFPGASetup;
+        return;
     }
 
     //-------------------------
@@ -554,13 +551,13 @@ void PrivateImpl::loadgraph_cosinesim_ss_dense_fpga(unsigned deviceNeeded,
 }
 
 extern "C" {
-    ImplBase *createImpl(const Options& options, unsigned valueSize){
-    	return new PrivateImpl(options,valueSize);
-    }
+ImplBase *createImpl(const Options& options, unsigned valueSize){
+    return new PrivateImpl(options,valueSize);
+}
 
-    void destroyImpl(ImplBase *pImpl){
-    	delete pImpl;
-    }
+void destroyImpl(ImplBase *pImpl){
+    delete pImpl;
+}
 }
 
 
