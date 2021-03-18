@@ -86,7 +86,11 @@ public:
 
     }
 
-    ~PrivateImpl(){}
+    ~PrivateImpl(){
+      for (int i = 0; i < devicesNeeded * cuNm; ++i)
+            delete[] numVerticesPU[i];
+      delete[] numVerticesPU;
+    }
 
     virtual void startLoadPopulation(std::int64_t numVertices){
         //--------------- Free and delete -----------------------------------
@@ -293,7 +297,9 @@ public:
                     result.push_back(Result(resultID[k], similarity[k]));
                 }
 
-
+                delete[] sourceWeight;
+                delete[] similarity;
+                delete[] resultID;
                 return result;
     }
 

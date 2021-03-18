@@ -89,8 +89,9 @@ public:
 
     ~CosineSim() {
         pImpl_->cleanGraph();
+        destroyImpl(pImpl_);
     }
-    //oid openFpga(...);
+    //void openFpga(...);
     void startLoadPopulation(std::int64_t numVertices){pImpl_->startLoadPopulation(numVertices);}  //
 
     Value *getPopulationVectorBuffer(RowIndex &rowIndex) {
