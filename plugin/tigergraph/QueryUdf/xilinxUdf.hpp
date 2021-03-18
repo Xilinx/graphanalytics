@@ -27,86 +27,10 @@
 #include "codevector.hpp"
 #include <algorithm>
 // mergeHeaders 1 include start xilinxRecomEngine DO NOT REMOVE!
-#include "cosinesim.hpp"
+#include "xilinxRecomEngine.hpp"
 #include <cstdint>
 #include <vector>
 // mergeHeaders 1 include end xilinxRecomEngine DO NOT REMOVE!
-
-// mergeHeaders 1 header start xilinxRecomEngine DO NOT REMOVE!
-namespace xai {
-
-using CosineSim = xilinx_apps::cosinesim::CosineSim<std::int32_t>;
-
-class Context {
-public:
-    using IdMap = std::vector<std::uint64_t>;
-    
-private:
-    unsigned numDevices_ = 1;
-    xilinx_apps::cosinesim::ColIndex vectorLength_ = 0;
-    bool isInitialized_ = false;
-    CosineSim *pCosineSim_ = nullptr;
-    IdMap idMap_;  // maps from vector ID to FPGA row number
-public:
-    static Context *getInstance() {
-        static Context *s_pContext = nullptr;
-        if (s_pContext == nullptr)
-            s_pContext = new Context();
-        return s_pContext;
-    }
-    
-    Context() = default;
-    ~Context() { delete pCosineSim_; }
-    
-    void setNumDevices(unsigned numDevices) {
-        if (numDevices != numDevices_)
-            clear();
-        numDevices_ = numDevices;
-    }
-    
-    unsigned getNumDevices() const { return numDevices_; }
-    
-    void setVectorLength(xilinx_apps::cosinesim::ColIndex vectorLength) {
-        if (vectorLength != vectorLength_)
-            clear();
-        vectorLength_ = vectorLength;
-    }
-    
-    xilinx_apps::cosinesim::ColIndex getVectorLength() const { return vectorLength_; }
-    
-    CosineSim *getCosineSimObj() {
-        if (pCosineSim_ == nullptr) {
-            xilinx_apps::cosinesim::Options options;
-            options.vecLength = vectorLength_;
-            options.devicesNeeded = numDevices_;
-            pCosineSim_ = new CosineSim(options);
-        }
-        
-        return pCosineSim_;
-    }
-
-    IdMap &getIdMap() { return idMap_; }
-    
-    void setInitialized() { isInitialized_ = true; }
-    
-    bool isInitialized() const { return isInitialized_; }
-
-    void clear() {
-        isInitialized_ = false;
-        idMap_.clear();
-        delete pCosineSim_;
-        pCosineSim_ = nullptr;
-    }
-};
-static CosineSim *getCosineSimObj(unsigned vecLength) {
-    static CosineSim *s_cosineSimObj = nullptr;
-    if (s_cosineSimObj)
-    if (s_cosineSimObj == nullptr)
-        s_cosineSimObj = new CosineSim();
-}
-
-}
-// mergeHeaders 1 header end xilinxRecomEngine DO NOT REMOVE!
 
 // Error codes from L3 starts from -1
 // Error codes from UDF starts from -1001

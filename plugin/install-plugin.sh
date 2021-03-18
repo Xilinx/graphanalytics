@@ -118,7 +118,9 @@ fi
 cp $tg_root_dir/dev/gdk/gsql/src/QueryUdf.orig/ExprFunctions.hpp $tg_temp_root/QueryUdf/tgFunctions.hpp
 cp $tg_root_dir/dev/gdk/gsql/src/QueryUdf.orig/ExprUtil.hpp $tg_temp_root/QueryUdf/
 cp $SCRIPTPATH/tigergraph/QueryUdf/xilinxUdf.hpp $tg_temp_root/QueryUdf/ExprFunctions.hpp
+cp $SCRIPTPATH/tigergraph/QueryUdf/xilinxRecomEngine.hpp $tg_temp_root/QueryUdf/
 cp $SCRIPTPATH/../L3/include/graph.hpp $tg_temp_root/QueryUdf/
+cp $SCRIPTPATH/../cosinesim/include/cosinesim.hpp $tg_temp_root/QueryUdf/
 
 source $xrtPath/setup.sh
 source $xrmPath/setup.sh
@@ -144,15 +146,20 @@ cp $SCRIPTPATH/tigergraph/QueryUdf/codevector.hpp $tg_root_dir/dev/gdk/gsql/src/
 cp $SCRIPTPATH/tigergraph/QueryUdf/loader.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
 cp $tg_temp_root/QueryUdf/tgFunctions.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
 cp $tg_temp_root/QueryUdf/graph.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+cp $tg_temp_root/QueryUdf/cosinesim.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
 cp $SCRIPTPATH/tigergraph/QueryUdf/core.cpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+cp $SCRIPTPATH/tigergraph/QueryUdf/xilinxRecomEngine.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
 
 cp $tg_temp_root/QueryUdf/tgFunctions.hpp $tg_temp_root/gsql/codegen/udf
 cp $SCRIPTPATH/tigergraph/QueryUdf/loader.hpp $tg_temp_root/gsql/codegen/udf
 cp $tg_temp_root/QueryUdf/graph.hpp $tg_temp_root/gsql/codegen/udf
+cp $tg_temp_root/QueryUdf/cosinesim.hpp $tg_temp_root/gsql/codegen/udf
 cp $SCRIPTPATH/tigergraph/QueryUdf/codevector.hpp $tg_temp_root/gsql/codegen/udf
+cp $SCRIPTPATH/tigergraph/QueryUdf/xilinxRecomEngine.hpp $tg_temp_root/gsql/codegen/udf
 
 cp $SCRIPTPATH/tigergraph/QueryUdf/*.json $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
 cp $tg_temp_root/QueryUdf/libgraphL3wrapper.so $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+cp $SCRIPTPATH/../cosinesim/staging/lib/libXilinxCosineSim.so $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
 cp $tg_root_dir/dev/gdk/MakeUdf $tg_root_dir/dev/gdk/MakeUdf-$timestamp
 cp $SCRIPTPATH/tigergraph/MakeUdf $tg_root_dir/dev/gdk/
 
