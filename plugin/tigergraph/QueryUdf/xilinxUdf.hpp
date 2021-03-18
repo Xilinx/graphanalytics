@@ -254,10 +254,24 @@ inline ListAccum<int64_t> udf_get_similarity_vec(int64_t property,
     return result;
 }
 
-inline int udf_loadgraph_cosinesim_ss_fpga(int64_t numVertices,
-                                           int64_t vecLength,
-                                           ListAccum<ListAccum<int64_t> >& oldVectors,
-                                           int devicesNeeded) {
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+inline int udf_load_cu_cosinesim_ss_fpga(int devicesNeeded) 
+{
+    const int cuNm = 2;
+    int ret = load_cu_cosinesim_ss_dense_fpga_wrapper(devicesNeeded, cuNm);
+    return ret;
+}
+
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+inline int udf_load_graph_cosinesim_ss_fpga(int64_t numVertices,
+                                            int64_t vecLength,
+                                            ListAccum<ListAccum<int64_t> >& oldVectors,
+                                            int devicesNeeded) 
+{
     xai::Lock lock(xai::getMutex());
     xai::IDMap.clear();
     ListAccum<testResults> result;
@@ -278,7 +292,7 @@ inline int udf_loadgraph_cosinesim_ss_fpga(int64_t numVertices,
     int general = ((numVertices - (devicesNeeded * cuNm * splitNm * channelsPU + 1)) /
                    (devicesNeeded * cuNm * splitNm * channelsPU)) * channelsPU;
     int rest = numVertices - general * (devicesNeeded * cuNm * splitNm - 1);
-    std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
+    std::cout << "DEBUG: " << __FUNCTION__
               << " numVertices=" << numVertices << ", general=" << general 
               << ", Vertices PU 0-" << devicesNeeded*cuNm*splitNm-2 << ": "
               << general << ", total=" << general*(devicesNeeded*cuNm*splitNm-1)
@@ -354,9 +368,7 @@ inline int udf_loadgraph_cosinesim_ss_fpga(int64_t numVertices,
         }
     }
 
-    int ret = loadgraph_cosinesim_ss_dense_fpga_wrapper(devicesNeeded, cuNm, g);
-    std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__ 
-              << "ret = " << ret << std::endl;
+    int ret = load_graph_cosinesim_ss_dense_fpga_wrapper(devicesNeeded, cuNm, g);
     return ret;
 }
 

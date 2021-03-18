@@ -39,19 +39,18 @@ class opSimilarityDense : public opBase {
 
     class clHandle* handles;
 
-    opSimilarityDense() : opBase(){};
+    opSimilarityDense() : opBase() {};
 
     void setHWInfo(uint32_t numDev, uint32_t CUmax);
 
-    void freeSimDense();
+    void freeSimDense(xrmContext* ctx);
 
-    void init(char* kernelName, char* xclbinFile, uint32_t* deviceIDs, 
-              uint32_t* cuIDs, unsigned int requestLoad);
+    void init(class openXRM* xrm, std::string kernelName, std::string kernelAlias, 
+              char* xclbinFile,  uint32_t* deviceIDs, uint32_t* cuIDs, 
+              unsigned int requestLoad);
 
-    void initInt(char* kernelName,
-                 char* xclbinFile,
-                 uint32_t* deviceIDs,
-                 uint32_t* cuIDs,
+    void initInt(class openXRM* xrm, char* kernelName, std::string kernelAlias, 
+                 char* xclbinFile, uint32_t* deviceIDs, uint32_t* cuIDs, 
                  unsigned int requestLoad);
 
     void loadGraph(xf::graph::Graph<uint32_t, float> g); // loadGraph only support loading of CSR format graph
@@ -215,7 +214,7 @@ class opSimilarityDense : public opBase {
                               uint32_t* config,
                               int32_t* resultID,
                               float* similarity,
-                              cl::Kernel& kernel0,
+                              //cl::Kernel& kernel0,
                               std::vector<cl::Memory>& ob_in,
                               std::vector<cl::Memory>& ob_out);
 

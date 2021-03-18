@@ -29,7 +29,7 @@ CREATE QUERY client_cosinesim_load_alveo(INT numDevices) FOR GRAPH @graph {
     STRING status;
     INT ret;
     udf_reset_timer(true);
-    ret = loadgraph_cosinesim_ss_fpga_core(numDevices);
+    ret = load_cu_cosinesim_ss_fpga_core(numDevices);
     run_time = udf_elapsed_time(true);
     IF ret == 0 THEN
         status = "FPGA loaded successfully";
