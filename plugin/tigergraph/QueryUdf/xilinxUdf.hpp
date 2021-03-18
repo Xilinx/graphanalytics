@@ -23,7 +23,7 @@
 #define _XILINXUDF_HPP_
 
 #include "tgFunctions.hpp"
-#include "loader.hpp"
+//#include "loader.hpp"
 #include "codevector.hpp"
 #include <algorithm>
 // mergeHeaders 1 include start xilinxRecomEngine DO NOT REMOVE!
@@ -43,7 +43,7 @@ public:
     
 private:
     unsigned numDevices_ = 1;
-    CosineSim::ColIndex vectorLength_ = 0;
+    xilinx_apps::cosinesim::ColIndex vectorLength_ = 0;
     bool isInitialized_ = false;
     CosineSim *pCosineSim_ = nullptr;
     IdMap idMap_;  // maps from vector ID to FPGA row number
@@ -66,13 +66,13 @@ public:
     
     unsigned getNumDevices() const { return numDevices_; }
     
-    void setVectorLength(CosineSim::ColIndex vectorLength) {
+    void setVectorLength(xilinx_apps::cosinesim::ColIndex vectorLength) {
         if (vectorLength != vectorLength_)
             clear();
         vectorLength_ = vectorLength;
     }
     
-    CosineSim::ColIndex getVectorLength() const { return vectorLength_; }
+    xilinx_apps::cosinesim::ColIndex getVectorLength() const { return vectorLength_; }
     
     CosineSim *getCosineSimObj() {
         if (pCosineSim_ == nullptr) {
@@ -367,25 +367,25 @@ inline int udf_loadgraph_cosinesim_ss_fpga(int64_t numVertices,
 
     // If there are no vectors, consider the FPGA to be uninitialized
     
-    xai::CosineSim::RowIndex numVectors = xai::CosineSim::RowIndex(oldVectors.size());
+    xilinx_apps::cosinesim::RowIndex numVectors = xilinx_apps::cosinesim::RowIndex(oldVectors.size());
     if (numVectors < 1) {
         pContext->clear();
         return 0;
     }
     
     idMap.resize(numVectors, 0);
-    xai::CosineSim::ColIndex vectorLength = xai::CosineSim::ColIndex(
-            xai::CosineSim::ColIndex(oldVectors.get(0).size()));
+    xilinx_apps::cosinesim::ColIndex vectorLength = xilinx_apps::cosinesim::ColIndex(
+            xilinx_apps::cosinesim::ColIndex(oldVectors.get(0).size()));
     pContext->setVectorLength(vectorLength);
     
     xai::CosineSim *pCosineSim = pContext->getCosineSimObj();
 //    pCosineSim->openFpga();
     pCosineSim->startLoadPopulation();
-    for (xai::CosineSim::RowIndex vecNum = 0; vecNum < numVectors; ++vecNum) {
+    for (xilinx_apps::cosinesim::RowIndex vecNum = 0; vecNum < numVectors; ++vecNum) {
         ListAccum<int64_t> &curRowVec = oldVectors.get(vecNum);
-        CosineSim::RowIndex rowIndex = 0;
+        xilinx_apps::cosinesim::RowIndex rowIndex = 0;
         CosineSim::ValueType *pBuf = pCosineSim->getPopulationVectorBuffer(rowIndex);
-        for (xai::CosineSim::ColIndex eltNum = 3; eltNum < vectorLength; ++eltNum)
+        for (xilinx_apps::cosinesim::ColIndex eltNum = 3; eltNum < vectorLength; ++eltNum)
             *pBuf++ = CosineSim::ValueType(curRowVec.get(eltNum));
         pCosineSim->finishCurrentPopulationVector();
         uint64_t vertexId = ((curRowVec.get(2) << 32) & 0xFFFFFFF00000000) | (curRowVec.get(1) & 0x00000000FFFFFFFF);
@@ -427,9 +427,9 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     //-------------------------------------------------------------------------
 
     std::vector<xai::CosineSim::ValueType> nativeTargetVector;
-    const xai::CosineSim::ColIndex vectorLength = pContext->getVectorLength();
+    const xilinx_apps::cosinesim::ColIndex vectorLength = pContext->getVectorLength();
     nativeTargetVector.reserve(vectorLength);
-    for (xai::CosineSim::ColIndex eltNum = 3; eltNum < vectorLength; ++eltNum)
+    for (xilinx_apps::cosinesim::ColIndex eltNum = 3; eltNum < vectorLength; ++eltNum)
         nativeTargetVector.push_back(newVector.get(eltNum));
     xai::CosineSim *pCosineSim = pContext->getCosineSimObj();
 
