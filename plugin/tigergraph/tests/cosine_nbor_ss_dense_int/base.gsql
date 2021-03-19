@@ -337,5 +337,5 @@ create query cosinesim_ss_fpga_core (vertex<patients> source, uint topK,
 
 install query patient_age, patient_race, patient_gender, patient_ethnicity, 
     patient_vector, cosinesim_cache_to_vertices, cos_theta_tigergraph, 
-    cosinesim_match_sw, cosinesim_set_num_devices, udf_loadgraph_cosinesim_ss_fpga,
+    cosinesim_match_sw, cosinesim_set_num_devices, cosinesim_get_num_devices, cosinesim_is_fpga_initialized,
     loadgraph_cosinesim_ss_fpga_core, cosinesim_ss_fpga_core

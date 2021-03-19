@@ -1,7 +1,8 @@
 
 USE GRAPH @graph
 SET query_timeout = 600000
-DROP QUERY client_cosinesim_load_cache, client_cosinesim_match_sw, client_cosinesim_load_alveo, client_cosinesim_match_alveo
+DROP QUERY client_cosinesim_load_cache, client_cosinesim_match_sw, client_cosinesim_set_num_devices,
+    client_cosinesim_get_alveo_status, client_cosinesim_load_alveo, client_cosinesim_match_alveo
 
 
 CREATE QUERY client_cosinesim_load_cache() FOR GRAPH @graph {
@@ -33,8 +34,8 @@ CREATE QUERY client_cosinesim_get_alveo_status() FOR GRAPH @graph {
     BOOL is_initialized;
     UINT num_devices;
     is_initialized = cosinesim_is_fpga_initialized();
-    num_devices = cosinesim_get_num_devices():
-    PRINT is_initialized AS IsInitialized, num_devces AS NumDevices;
+    num_devices = cosinesim_get_num_devices();
+    PRINT is_initialized AS IsInitialized, num_devices AS NumDevices;
 }
 
 
@@ -73,5 +74,5 @@ CREATE QUERY client_cosinesim_match_alveo(VERTEX<patients> newPatient, UINT topK
 }
 
 
-INSTALL QUERY client_cosinesim_load_cache, client_cosinesim_match_sw, 
-              client_cosinesim_load_alveo, client_cosinesim_match_alveo
+INSTALL QUERY client_cosinesim_load_cache, client_cosinesim_match_sw, client_cosinesim_set_num_devices,
+              client_cosinesim_get_alveo_status, client_cosinesim_load_alveo, client_cosinesim_match_alveo

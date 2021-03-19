@@ -84,15 +84,11 @@ public:
         pCosineSim_ = nullptr;
     }
 };
-static CosineSim *getCosineSimObj(unsigned vecLength) {
-    static CosineSim *s_cosineSimObj = nullptr;
-    if (s_cosineSimObj)
-    if (s_cosineSimObj == nullptr)
-        s_cosineSimObj = new CosineSim();
-}
+
 
 }  // namespace xai
 
+#include "cosinesim_loader.cpp"
 
 #endif /* XILINXRECOMENGINE_HPP */
 
