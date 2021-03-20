@@ -22,6 +22,20 @@
 #include <string>
 #include <memory>
 
+namespace xilinx_apps
+{
+namespace cosinesim
+{
+struct Options;
+class ImplBase;
+}
+
+}
+
+extern "C" {
+xilinx_apps::cosinesim::ImplBase *xilinx_cosinesim_createImpl(const xilinx_apps::cosinesim::Options& options, unsigned valueSize);
+void xilinx_cosinesim_destroyImpl(xilinx_apps::cosinesim::ImplBase *pImpl);
+}
 
 namespace xilinx_apps {
 namespace cosinesim {
@@ -70,10 +84,7 @@ public:
     virtual void cleanGraph() =0;
 };
 
-extern "C" {
-ImplBase *createImpl(const Options& options, unsigned valueSize);
-void destroyImpl(ImplBase *pImpl);
-}
+
 
 
 
@@ -85,11 +96,11 @@ public:
 
     //CosineSim( const Options &options) :CosineSimBase(options), pImpl_(createImpl(this, sizeof(Value))) {};
 
-    CosineSim( const Options &options) :options_(options), pImpl_(createImpl(options, sizeof(Value))) {};
+    CosineSim( const Options &options) :options_(options), pImpl_(::xilinx_cosinesim_createImpl(options, sizeof(Value))) {};
 
     ~CosineSim() {
         pImpl_->cleanGraph();
-        destroyImpl(pImpl_);
+        ::xilinx_cosinesim_destroyImpl(pImpl_);
     }
     //void openFpga(...);
     void startLoadPopulation(std::int64_t numVertices){pImpl_->startLoadPopulation(numVertices);}  //

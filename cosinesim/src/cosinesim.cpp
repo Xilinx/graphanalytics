@@ -556,16 +556,19 @@ void PrivateImpl::loadgraph_cosinesim_ss_dense_fpga(unsigned deviceNeeded,
 
 }
 
-extern "C" {
-ImplBase *createImpl(const Options& options, unsigned valueSize){
-    return new PrivateImpl(options,valueSize);
-}
 
-void destroyImpl(ImplBase *pImpl){
-    delete pImpl;
-}
-}
 
 
 } //cosinesim
 } //xilinx_app
+
+
+extern "C" {
+xilinx_apps::cosinesim::ImplBase *xilinx_cosinesim_createImpl(const xilinx_apps::cosinesim::Options& options, unsigned valueSize){
+    return new xilinx_apps::cosinesim::PrivateImpl(options,valueSize);
+}
+
+void xilinx_cosinesim_destroyImpl( xilinx_apps::cosinesim::ImplBase *pImpl){
+    delete pImpl;
+}
+}
