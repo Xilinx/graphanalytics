@@ -155,11 +155,14 @@ cp $SCRIPTPATH/tigergraph/QueryUdf/xilinxRecomEngine.hpp $tg_root_dir/dev/gdk/gs
 cp $cosineSimPath/include/cosinesim.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
 cp $cosineSimPath/src/cosinesim_loader.cpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
 
+# Include files for TigerGraph to build the UDF library
 cp $tg_temp_root/QueryUdf/tgFunctions.hpp $tg_temp_root/gsql/codegen/udf
-cp $SCRIPTPATH/tigergraph/QueryUdf/loader.hpp $tg_temp_root/gsql/codegen/udf
-cp $tg_temp_root/QueryUdf/graph.hpp $tg_temp_root/gsql/codegen/udf
+##cp $SCRIPTPATH/tigergraph/QueryUdf/loader.hpp $tg_temp_root/gsql/codegen/udf
+#cp $tg_temp_root/QueryUdf/graph.hpp $tg_temp_root/gsql/codegen/udf
 cp $tg_temp_root/QueryUdf/cosinesim.hpp $tg_temp_root/gsql/codegen/udf
 cp $SCRIPTPATH/tigergraph/QueryUdf/codevector.hpp $tg_temp_root/gsql/codegen/udf
+cp $cosineSimPath/src/cosinesim_loader.cpp $tg_temp_root/gsql/codegen/udf
+cp $SCRIPTPATH/tigergraph/QueryUdf/xilinxRecomEngine.hpp $tg_temp_root/gsql/codegen/udf
 
 cp $SCRIPTPATH/tigergraph/QueryUdf/*.json $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
 cp $tg_temp_root/QueryUdf/libgraphL3wrapper.so $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
