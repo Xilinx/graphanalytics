@@ -159,7 +159,7 @@ cp $cosineSimPath/src/cosinesim_loader.cpp $tg_root_dir/dev/gdk/gsql/src/QueryUd
 cp $tg_temp_root/QueryUdf/tgFunctions.hpp $tg_temp_root/gsql/codegen/udf
 ##cp $SCRIPTPATH/tigergraph/QueryUdf/loader.hpp $tg_temp_root/gsql/codegen/udf
 #cp $tg_temp_root/QueryUdf/graph.hpp $tg_temp_root/gsql/codegen/udf
-cp $tg_temp_root/QueryUdf/cosinesim.hpp $tg_temp_root/gsql/codegen/udf
+cp $cosineSimPath/include/cosinesim.hpp $tg_temp_root/gsql/codegen/udf
 cp $SCRIPTPATH/tigergraph/QueryUdf/codevector.hpp $tg_temp_root/gsql/codegen/udf
 cp $cosineSimPath/src/cosinesim_loader.cpp $tg_temp_root/gsql/codegen/udf
 cp $SCRIPTPATH/tigergraph/QueryUdf/xilinxRecomEngine.hpp $tg_temp_root/gsql/codegen/udf
@@ -168,9 +168,7 @@ cp $SCRIPTPATH/tigergraph/QueryUdf/*.json $tg_root_dir/dev/gdk/gsql/src/QueryUdf
 cp $tg_temp_root/QueryUdf/libgraphL3wrapper.so $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
 cp $cosineSimPath/lib/libXilinxCosineSim.so $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
 
-if [ -f "$tg_root_dir/dev/gdk/MakeUdf" ]; then
-    mv $tg_root_dir/dev/gdk/MakeUdf $tg_root_dir/dev/gdk/MakeUdf-$timestamp
-fi
+# Use default MakeUdf since we have no .o's to include
 ## cp $tg_root_dir/dev/gdk/MakeUdf $tg_root_dir/dev/gdk/MakeUdf-$timestamp
 ## cp $SCRIPTPATH/tigergraph/MakeUdf $tg_root_dir/dev/gdk/
 
@@ -185,9 +183,9 @@ if [ "$dev_mode" -eq 0 ]; then
     echo "INFO: Apply environment changes to TigerGraph installation"
     gadmin start all
     if [ "$xrt_profiling" -eq 1 ]; then
-        gpe_config="LD_PRELOAD=\$LD_PRELOAD;LD_LIBRARY_PATH=$HOME/libstd:/opt/xilinx/xrt/lib:/opt/xilinx/xrm/lib:/usr/lib/x86_64-linux-gnu/:\$LD_LIBRARY_PATH;CPUPROFILE=/tmp/tg_cpu_profiler;CPUPROFILESIGNAL=12;MALLOC_CONF=prof:true,prof_active:false;XILINX_XRT=/opt/xilinx/xrt;XILINX_XRM=/opt/xilinx/xrm;XRT_INI_PATH=$PWD/../scripts/debug/xrt-profile.ini"
+        gpe_config="LD_PRELOAD=\$LD_PRELOAD;LD_LIBRARY_PATH=$HOME/libstd:$tg_root_dir/dev/gdk/gsql/src/QueryUdf/:/opt/xilinx/xrt/lib:/opt/xilinx/xrm/lib:/usr/lib/x86_64-linux-gnu/:\$LD_LIBRARY_PATH;CPUPROFILE=/tmp/tg_cpu_profiler;CPUPROFILESIGNAL=12;MALLOC_CONF=prof:true,prof_active:false;XILINX_XRT=/opt/xilinx/xrt;XILINX_XRM=/opt/xilinx/xrm;XRT_INI_PATH=$PWD/../scripts/debug/xrt-profile.ini"
     else
-        gpe_config="LD_PRELOAD=\$LD_PRELOAD;LD_LIBRARY_PATH=$HOME/libstd:/opt/xilinx/xrt/lib:/opt/xilinx/xrm/lib:/usr/lib/x86_64-linux-gnu/:\$LD_LIBRARY_PATH;CPUPROFILE=/tmp/tg_cpu_profiler;CPUPROFILESIGNAL=12;MALLOC_CONF=prof:true,prof_active:false;XILINX_XRT=/opt/xilinx/xrt;XILINX_XRM=/opt/xilinx/xrm"
+        gpe_config="LD_PRELOAD=\$LD_PRELOAD;LD_LIBRARY_PATH=$HOME/libstd:$tg_root_dir/dev/gdk/gsql/src/QueryUdf/:/opt/xilinx/xrt/lib:/opt/xilinx/xrm/lib:/usr/lib/x86_64-linux-gnu/:\$LD_LIBRARY_PATH;CPUPROFILE=/tmp/tg_cpu_profiler;CPUPROFILESIGNAL=12;MALLOC_CONF=prof:true,prof_active:false;XILINX_XRT=/opt/xilinx/xrt;XILINX_XRM=/opt/xilinx/xrm"
     fi
     gadmin config set GPE.BasicConfig.Env "$gpe_config"
 

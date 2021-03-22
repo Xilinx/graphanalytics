@@ -17,6 +17,8 @@
 #ifndef XILINXRECOMENGINE_HPP
 #define XILINXRECOMENGINE_HPP
 
+// Use inline definitions for dynamic loading functions
+#define XILINX_COSINESIM_INLINE_IMPL
 #include "cosinesim.hpp"
 
 namespace xai {

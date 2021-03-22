@@ -53,28 +53,33 @@ void *getDynamicFunction(const std::string &funcName) {
 
 //#####################################################################################################################
 
-namespace xilinx_apps {
-namespace cosinesim {
-
 extern "C" {
 
-ImplBase *createImpl(const Options& options, unsigned valueSize) {
-    typedef ImplBase * (*CreateFunc)();
-    CreateFunc pCreateFunc = (CreateFunc) getDynamicFunction("createImpl");
+#ifdef XILINX_COSINESIM_INLINE_IMPL
+#define XILINX_COSINESIM_IMPL_DEF inline
+#else
+#define XILINX_COSINESIM_IMPL_DEF
+#endif
+    
+XILINX_COSINESIM_IMPL_DEF
+xilinx_apps::cosinesim::ImplBase *xilinx_cosinesim_createImpl(const xilinx_apps::cosinesim::Options& options,
+        unsigned valueSize)
+{
+    typedef xilinx_apps::cosinesim::ImplBase * (*CreateFunc)();
+    CreateFunc pCreateFunc = (CreateFunc) getDynamicFunction("xilinx_cosinesim_createImpl");
     if (pCreateFunc == nullptr)
         return nullptr;  // TODO: throw exception?
     return pCreateFunc();
 }
 
-void destroyImpl(ImplBase *pImpl) {
-    typedef ImplBase * (*DestroyFunc)(ImplBase *);
-    DestroyFunc pDestroyFunc = (DestroyFunc) getDynamicFunction("destroyImpl");
+XILINX_COSINESIM_IMPL_DEF
+void xilinx_cosinesim_destroyImpl(xilinx_apps::cosinesim::ImplBase *pImpl) {
+    typedef xilinx_apps::cosinesim::ImplBase * (*DestroyFunc)(xilinx_apps::cosinesim::ImplBase *);
+    DestroyFunc pDestroyFunc = (DestroyFunc) getDynamicFunction("xilinx_cosinesim_destroyImpl");
     if (pDestroyFunc == nullptr)
         return;
     pDestroyFunc(pImpl);
 }
 
 }  // extern "C"
-}  // namespace cosinesim
-}  // namespace xilinx_apps
 

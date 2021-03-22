@@ -24,8 +24,11 @@
 
 #include "tgFunctions.hpp"
 //#include "loader.hpp"
+// mergeHeaders 1 include start syntheaDemo DO NOT REMOVE!
 #include "codevector.hpp"
 #include <algorithm>
+// mergeHeaders 1 include end syntheaDemo DO NOT REMOVE!
+
 // mergeHeaders 1 include start xilinxRecomEngine DO NOT REMOVE!
 #include "xilinxRecomEngine.hpp"
 #include <cstdint>
@@ -40,6 +43,7 @@ namespace UDIMPL {
 
 /* Start Xilinx UDF additions */
 
+// mergeHeaders 1 body start syntheaDemo DO NOT REMOVE!
 
 inline bool concat_uint64_to_str(string& ret_val, uint64_t val) {
     (ret_val += " ") += std::to_string(val);
@@ -77,13 +81,13 @@ inline bool udf_setcode(int property, uint64_t startCode, uint64_t endCode, int6
 }
 
 inline bool udf_reset_timer(bool dummy) {
-    xai::timer_start_time = std::chrono::high_resolution_clock::now();
+    xai::getTimerStartTime() = std::chrono::high_resolution_clock::now();
     return true;
 }
 
 inline double udf_elapsed_time(bool dummy) {
     xai::t_time_point cur_time = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> l_durationSec = cur_time - xai::timer_start_time;
+    std::chrono::duration<double> l_durationSec = cur_time - xai::getTimerStartTime();
     double l_timeMs = l_durationSec.count() * 1e3;
     return l_timeMs;
 }
@@ -121,6 +125,9 @@ inline ListAccum<int64_t> udf_get_similarity_vec(int64_t property,
     }
     return result;
 }
+
+// mergeHeaders 1 body end syntheaDemo DO NOT REMOVE!
+
 
 // mergeHeaders 1 body start xilinxRecomEngine DO NOT REMOVE!
 

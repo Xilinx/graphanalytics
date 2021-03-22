@@ -32,8 +32,19 @@ class ImplBase;
 
 }
 
+// Define this macro to make functions in cosinesim_loader.cpp inline instead of extern.  You would use this macro
+// when including cosinesim_loader.cpp in a header file, as opposed to linking with libXilinxCosineSim_loader.a.
+#ifdef XILINX_COSINESIM_INLINE_IMPL
+#define XILINX_COSINESIM_IMPL_DECL inline
+#else
+#define XILINX_COSINESIM_IMPL_DECL extern
+#endif
+
 extern "C" {
+XILINX_COSINESIM_IMPL_DECL
 xilinx_apps::cosinesim::ImplBase *xilinx_cosinesim_createImpl(const xilinx_apps::cosinesim::Options& options, unsigned valueSize);
+
+XILINX_COSINESIM_IMPL_DECL
 void xilinx_cosinesim_destroyImpl(xilinx_apps::cosinesim::ImplBase *pImpl);
 }
 

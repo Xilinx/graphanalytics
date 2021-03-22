@@ -39,7 +39,7 @@ then
 fi
 
 echo "Run query loadgraph_cosinesim_ss_fpga"
-gsql -g $xgraph "cosinesim_set_num_devices($devices_needed)"
+gsql -g $xgraph "run query cosinesim_set_num_devices($devices_needed)"
 time gsql -g $xgraph "set query_timeout=240000000 run query loadgraph_cosinesim_ss_fpga($devices_needed)"
 for ((j = 0 ; j < $iterations ; ++j))
 do
