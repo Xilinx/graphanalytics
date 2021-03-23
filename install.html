@@ -57,7 +57,7 @@
   <link rel="stylesheet" href="_static/css/pro.min.css" media="all" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Integration with TigerGraph" href="integrate-tg.html" />
+    <link rel="next" title="Run Demo in Jupyter Notebook" href="run-demo-jupyter.html" />
     <link rel="prev" title="Xilinx Alveo Graph Analytics Products" href="overview.html" /> 
 	</head>
 	<body>
@@ -335,13 +335,15 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Xilinx Alveo Graph Analytics Products</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Running Alveo Demo</span></p>
+<p class="caption"><span class="caption-text">Installation</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Running Cosine Similarity Acceleration Demo</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#install-xrt-xrm-u50-shells">Install XRT/XRM/U50 shells</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#porting-cosine-similarity-function-to-tigergraph-framework">Porting cosine similarity function to TigerGraph framework</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Install XRT and XRM libraries and U50 platform</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#install-xilinx-alveo-plugin-for-tigergraph">Install Xilinx Alveo Plugin for TigerGraph</a></li>
 </ul>
-</li>
+<p class="caption"><span class="caption-text">Run Alveo Demo</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="run-demo-jupyter.html">Run Demo in Jupyter Notebook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-demo-script.html">Run demo using script</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Integrate with TigerGraph</span></p>
 <ul>
@@ -402,7 +404,7 @@
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Running Cosine Similarity Acceleration Demo</li>
+      <li>Install XRT and XRM libraries and U50 platform</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -419,17 +421,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="running-cosine-similarity-acceleration-demo">
-<h1>Running Cosine Similarity Acceleration Demo<a class="headerlink" href="#running-cosine-similarity-acceleration-demo" title="Permalink to this headline">¶</a></h1>
-<p>This page describes the necessary steps to run the cosine similarity acceleration demo.
-In a nutshell you will be installing TigerGraph software,
-necessary Xilinx software, port the Xilinx graph library to Tigergraph
-environment, and then run cosine similarity computation running on Alveo U50
-card integated into the HPE server.</p>
-<p>For more detail information on Xilinx environment and how Xilinx
-functions are ported to Tigergraph environment, check [page](targeting_alveo.md).</p>
-<div class="section" id="install-xrt-xrm-u50-shells">
-<h2>Install XRT/XRM/U50 shells<a class="headerlink" href="#install-xrt-xrm-u50-shells" title="Permalink to this headline">¶</a></h2>
+  <div class="section" id="install-xrt-and-xrm-libraries-and-u50-platform">
+<h1>Install XRT and XRM libraries and U50 platform<a class="headerlink" href="#install-xrt-and-xrm-libraries-and-u50-platform" title="Permalink to this headline">¶</a></h1>
 <ol class="arabic simple">
 <li><p>Plug in U50</p></li>
 <li><p>Install <a class="reference external" href="https://info.tigergraph.com/enterprise-free">TigerGraph Enterprise version 3.1</a>
@@ -442,20 +435,21 @@ with all the default settings like user name, passwords, directories.</p></li>
 TigerGraph install directory</p></li>
 </ol>
 </div>
-<div class="section" id="porting-cosine-similarity-function-to-tigergraph-framework">
-<h2>Porting cosine similarity function to TigerGraph framework<a class="headerlink" href="#porting-cosine-similarity-function-to-tigergraph-framework" title="Permalink to this headline">¶</a></h2>
-<ol class="arabic simple">
-<li><p>Open a shell as the user created during Tigergraph installation. e.g. <cite>su - tigergraph</cite></p></li>
-<li><p>Run the commands below to install the plugin and run the demo</p></li>
-</ol>
+<div class="section" id="install-xilinx-alveo-plugin-for-tigergraph">
+<h1>Install Xilinx Alveo Plugin for TigerGraph<a class="headerlink" href="#install-xilinx-alveo-plugin-for-tigergraph" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p>Clone graphanalytics repository using your username</p></li>
+</ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/Xilinx/graphanalytics.git
-<span class="nb">cd</span> graphanalytics/plugin
-./install-plugin.sh
-
-<span class="nb">cd</span> graphanalytics/plugin/tigergraph/tests/cosine_nbor_ss_dense_int
-./run.sh
 </pre></div>
 </div>
+<ul class="simple">
+<li><p>Run the commands below to install the plugin as the user “tigergraph”</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>su - tigergraph
+<span class="nb">cd</span> graphanalytics/plugin
+./install-plugin.sh
+</pre></div>
 </div>
 </div>
 
@@ -475,7 +469,7 @@ TigerGraph install directory</p></li>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="integrate-tg.html" class="btn btn-neutral float-right" title="Integration with TigerGraph" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="run-demo-jupyter.html" class="btn btn-neutral float-right" title="Run Demo in Jupyter Notebook" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="overview.html" class="btn btn-neutral float-left" title="Xilinx Alveo Graph Analytics Products" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -488,7 +482,7 @@ TigerGraph install directory</p></li>
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 22, 2021.
+        Last updated on March 23, 2021.
       </span>
 
     </p>
