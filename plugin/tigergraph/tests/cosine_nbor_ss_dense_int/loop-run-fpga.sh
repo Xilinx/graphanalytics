@@ -11,7 +11,7 @@ fi
 
 for ((i=1; i <= $iterations ; i++)); do
     echo "------------------ iteration $i -------------------------------"
-    for ((u=1; u <= 16; u++)); do
+    for ((u=1; u <= 8; u++)); do
         echo "################ user $u ################"
         gsql -g $xgraph "set query_timeout=240000000 run query cosinesim_ss_fpga(\"$PWD/log/fpgai$u.txt\", $devices_needed)" &
     done

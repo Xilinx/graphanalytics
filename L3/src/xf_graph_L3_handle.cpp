@@ -213,7 +213,6 @@ int Handle::setUp() {
     unsigned int opNm = ops.size();
     unsigned int deviceCounter = 0;
     for (int i = 0; i < opNm; ++i) {
-        std::cout << "INFO: Handle::setUp operationName=" << ops[i].operationName << std::endl;
         if (ops[i].operationName == "pagerank") {
             unsigned int boardNm = ops[i].deviceNeeded;
             if (deviceCounter + boardNm > numDevices) {
@@ -264,9 +263,6 @@ int Handle::setUp() {
                      ops[i].cuPerBoard);
         } else if (ops[i].operationName == "similarityDense") {
             // currently active
-            std::cout << "INFO: " << __FILE__ << "::" << __FUNCTION__ 
-                << ": operation " << i << "=similarityDense" << std::endl;
-
             unsigned int boardNm = ops[i].deviceNeeded;
             if (deviceCounter + boardNm > numDevices) {
                 std::cout << "ERROR: Current node does not have requested device count." 
@@ -276,7 +272,6 @@ int Handle::setUp() {
             }
             std::thread thUn[boardNm];
             for (int j = 0; j < boardNm; ++j) {
-                std::cout << "DEBUG: unloadXclbinNonBlock board " << j << std::endl;
                 thUn[j] = xrm->unloadXclbinNonBlock(deviceCounter + j);
             }
             for (int j = 0; j < boardNm; ++j) {
@@ -284,7 +279,6 @@ int Handle::setUp() {
             }
             std::future<int> th[boardNm];
             for (int j = 0; j < boardNm; ++j) {
-                std::cout << "DEBUG: loadXclbinAsync board " << j << std::endl;
                 th[j] = loadXclbinAsync(deviceCounter + j, ops[i].xclbinFile);
             }
             for (int j = 0; j < boardNm; ++j) {
@@ -302,8 +296,6 @@ int Handle::setUp() {
             initOpSimDense(ops[i].kernelName, ops[i].xclbinFile, ops[i].kernelAlias, ops[i].requestLoad,
                             ops[i].deviceNeeded, ops[i].cuPerBoard);
         } else if (ops[i].operationName == "similarityDenseInt") {
-            std::cout << "INFO: " << __FILE__ << "::" << __FUNCTION__ 
-                << ": operation " << i << "=similarityDenseInt" << std::endl;
             unsigned int boardNm = ops[i].deviceNeeded;
             if (deviceCounter + boardNm > numDevices) {
                 std::cout << "Error: Need more devices" << std::endl;
@@ -525,7 +517,6 @@ void Handle::getEnv() {
     numDevices = devices0.size();
     devices = (cl_device_id*)malloc(sizeof(cl_device_id) * numDevices);
     err2 = clGetDeviceIDs(platforms[platformID], CL_DEVICE_TYPE_ALL, numDevices, devices, NULL);
-    std::cout << "INFO: num devices = " << numDevices << std::endl;
     size_t valueSize;
     char* value;
     for (int i = 0; i < numDevices; ++i) {
@@ -578,8 +569,6 @@ void Handle::free() {
             opsp->freeSP();
         } else if (ops[i].operationName == "similarityDense") {
             //-----------------------------------------------------------------
-            //-----------------------------------------------------------------
-            std::cout << "DEBUG: " << __FUNCTION__ << " op=similarityDense" << std::endl;
             opsimdense->freeSimDense(xrm->ctx);            
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];

@@ -825,12 +825,7 @@ extern "C" int load_cu_cosinesim_ss_dense_fpga(uint32_t deviceNeeded, uint32_t c
 //-----------------------------------------------------------------------------
 extern "C" int load_graph_cosinesim_ss_dense_fpga(
     uint32_t deviceNeeded, uint32_t cuNm, xf::graph::Graph<int32_t, int32_t>** graph) 
-{
-    std::cout << "DEBUG: " << __FUNCTION__ 
-              << " deviceNeeded=" << deviceNeeded << " cuNm=" << cuNm 
-              << " sharedHandlesCosSimDense.handlesMap.empty=" 
-              << sharedHandlesCosSimDense::instance().handlesMap.empty() << std::endl;
-         
+{         
     // return right away if the handle has already been created
     if (sharedHandlesCosSimDense::instance().handlesMap.empty()) {
         std::cout << "ERROR: " << __FUNCTION__ << " CUs need to be set up first:"
@@ -870,21 +865,17 @@ extern "C" void cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
                                         int32_t* resultID,
                                         float* similarity) {
     //---------------- Run Load Graph -----------------------------------
-    std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
-              << " XRT_INI_PATH=" << std::getenv("XRT_INI_PATH") << std::endl;
-
+#ifdef __PROFILING__
     std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time =
             std::chrono::high_resolution_clock::now();
     std::cout << "LOG2TIMELINE: " << __FUNCTION__ << " time0=" << l_start_time.time_since_epoch().count() 
               << std::endl;
-
+#endif
     std::shared_ptr<xf::graph::L3::Handle> handle0 = 
                         sharedHandlesCosSimDense::instance().handlesMap[0];
     handle0->debug();
     int32_t requestNm = 1;
     int32_t hwNm = devicesNeeded;
-    std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__ 
-              << " hwNm=" << hwNm << std::endl;
     std::vector<xf::graph::L3::event<int> > eventQueue[requestNm];
     float** similarity0[requestNm];
     int32_t** resultID0[requestNm];
@@ -939,6 +930,7 @@ extern "C" void cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
         delete[] similarity0[m];
         delete[] resultID0[m];
     }
+#ifdef __PROFILING__
     std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time =
             std::chrono::high_resolution_clock::now();
     std::cout << "LOG2TIMELINE: " << __FUNCTION__ 
@@ -947,6 +939,7 @@ extern "C" void cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
     double l_timeMs = l_durationSec.count() * 1e3;
     std::cout << "LOG2TIMELINE: " << __FUNCTION__ 
               << " runtime= " << std::fixed << std::setprecision(6) << l_timeMs << std::endl;
+#endif
 }
 
 extern "C" void close_fpga() {

@@ -27,16 +27,17 @@ lock_wait_times = []
 for line in log_lines:
     m = re_cureport.match(line)
     if m:
-        if first_cu_line:
-            prev_lock_tick_ms = int(m.group(4))/1000000
-            first_cu_line = False
-            continue
 
         req_tick_ms = int(m.group(3))/1000000
         bucket_sec = req_tick_ms//1000
 
         lock_tick_ms = int(m.group(4))/1000000
-        idle_time = lock_tick_ms - prev_lock_tick_ms
+        if first_cu_line:
+            idle_time = 0
+            first_cu_line = False
+        else:
+            idle_time = lock_tick_ms - prev_lock_tick_ms
+
         release_tick_ms = int(m.group(5))/1000000
 
         req_dt = datetime.fromtimestamp( req_tick_ms / 1000)
@@ -52,6 +53,8 @@ for line in log_lines:
         else:
             runtime_buckets[bucket_sec] += runtime_ms
 
+        prev_lock_tick_ms = lock_tick_ms
+
 time_hist = []
 cu_util_hist = []
 for k in sorted(runtime_buckets):
@@ -60,7 +63,7 @@ for k in sorted(runtime_buckets):
 
 print('INFO: minimum wait time:', min(lock_wait_times))
 print('INFO: average wait time:', sum(lock_wait_times)/len(lock_wait_times))
-print('INFO: max wait time:', max(lock_wait_times))
+print('INFO: maximum wait time:', max(lock_wait_times))
 
 
 root_window = tk.Tk()

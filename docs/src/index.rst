@@ -28,10 +28,18 @@
    overview.rst
 
 .. toctree::
-   :caption: Running Alveo Demo
+   :caption: Installation
    :maxdepth: 1
 
-   running-demo.rst
+   install.rst
+
+.. toctree::
+   :caption: Run Alveo Demo
+   :maxdepth: 2
+
+   run-demo-jupyter.rst
+   run-demo-script.rst
+
 
 .. toctree::
    :caption: Integrate with TigerGraph
