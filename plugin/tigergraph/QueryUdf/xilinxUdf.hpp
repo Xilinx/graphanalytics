@@ -21,6 +21,7 @@
 
 #ifndef _XILINXUDF_HPP_
 #define _XILINXUDF_HPP_
+#define __PROFILING__
 
 #include "tgFunctions.hpp"
 #include "loader.hpp"
@@ -376,7 +377,19 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     int64_t numVertices, int64_t vecLength, ListAccum<int64_t>& newVector,
     int devicesNeeded)
 {
+    std::chrono::time_point<std::chrono::high_resolution_clock> 
+        l_mutex_req, l_mutex_lock, l_mutex_release;
+    l_mutex_req  = std::chrono::high_resolution_clock::now();
     xai::Lock lock(xai::getMutex());
+    l_mutex_lock  = std::chrono::high_resolution_clock::now();
+
+#ifdef __PROFILING__
+    std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time =
+            std::chrono::high_resolution_clock::now();
+    std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
+              << " preprocessing start=" << l_start_time.time_since_epoch().count() 
+              << std::endl;
+#endif
     ListAccum<testResults> result;
     int32_t numEdges = vecLength - 3;
     const int splitNm = 3;    // kernel has 4 PUs, the input data should be splitted into 4 parts
@@ -403,12 +416,6 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
         return result;
     }
 
-    //-------------------------------------------------------------------------
-    std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time =
-            std::chrono::high_resolution_clock::now();
-    std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
-              << " preprocessing start=" << l_start_time.time_since_epoch().count() 
-              << std::endl;
     //-------------------------------------------------------------------------
 
     int32_t** numVerticesPU = new int32_t*[devicesNeeded * cuNm]; // vertex numbers in each PU
@@ -467,7 +474,7 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     memset(resultID, 0, topK * sizeof(int32_t));
     memset(similarity, 0, topK * sizeof(float));
 
-    //---------------------------------------------------------------------------
+#ifdef __PROFILING__
     std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time =
             std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> l_durationSec = l_end_time - l_start_time;
@@ -475,20 +482,21 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
               << " preprocessing runtime msec=  " << std::fixed << std::setprecision(6) 
               << l_timeMs << std::endl;
-    //---------------------------------------------------------------------------
+#endif
 
     //---------------- Run L3 API -----------------------------------
-    //-------------------------------------------------------------------------
+#ifdef __PROFILING__
     std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time1 =
             std::chrono::high_resolution_clock::now();
     std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
               << " cosinesim_ss_dense_fpga start=" << l_start_time1.time_since_epoch().count() << std::endl;
-    //-------------------------------------------------------------------------
+#endif
 
     int ret = cosinesim_ss_dense_fpga(
                   devicesNeeded * cuNm, sourceLen, sourceWeight, topK, g, 
                   resultID, similarity);
-    //---------------------------------------------------------------------------
+
+#ifdef __PROFILING__
     std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time1 =
             std::chrono::high_resolution_clock::now();
     l_durationSec = l_end_time1 - l_start_time1;
@@ -496,19 +504,20 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
               << " cosinesim_ss_dense_fpga runtime msec=  " << std::fixed << std::setprecision(6) 
               << l_timeMs << std::endl;
-    //---------------------------------------------------------------------------
+#endif
 
-    //-------------------------------------------------------------------------
+#ifdef __PROFILING__
     std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time2 =
             std::chrono::high_resolution_clock::now();
     std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
               << " postprocessing start=" << l_start_time2.time_since_epoch().count() << std::endl;
-    //-------------------------------------------------------------------------
+#endif
 
     for (unsigned int k = 0; k < topK; k++) {
         result += testResults(VERTEX(xai::IDMap[resultID[k]]), similarity[k]);
     }
-    //---------------------------------------------------------------------------
+
+#ifdef __PROFILING__
     std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time2 =
             std::chrono::high_resolution_clock::now();
     l_durationSec = l_end_time2 - l_start_time2;
@@ -516,7 +525,14 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
               << " postprocessing runtime msec=  " << std::fixed << std::setprecision(6) 
               << l_timeMs << std::endl;
-    //---------------------------------------------------------------------------
+#endif
+
+    l_mutex_release = std::chrono::high_resolution_clock::now();
+    std::cout << "CuReport: " << std::this_thread::get_id() << "::" << __FUNCTION__     
+              << " req=" << l_mutex_req.time_since_epoch().count()
+              << " lock=" << l_mutex_lock.time_since_epoch().count()
+              << " release=" << l_mutex_release.time_since_epoch().count()
+              << std::endl;
 
     return result;
 }
