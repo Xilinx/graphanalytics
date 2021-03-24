@@ -17,7 +17,7 @@ RM := rm -rf
 
 RPM:$(PKGDIR)
 	cd $(PKGDIR); \
-	cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/opt/xilinx  ..;\
+	cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/opt/xilinx/apps/graphanalytics/  ..;\
 	cmake --build .;\
 	cpack --verbose -G RPM;\
 	mv *.rpm ..; \
@@ -26,7 +26,7 @@ RPM:$(PKGDIR)
 
 DEB:$(PKGDIR)
 	cd $(PKGDIR); \
-	cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/opt/xilinx ..; \
+	cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/opt/xilinx/apps/graphanalytics/ ..; \
 	cmake --build .; \
 	cpack --verbose -G DEB ; \
 	mv *.deb ..; \

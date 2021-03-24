@@ -83,7 +83,9 @@ int main(int argc, char **argv) {
     xilinx_apps::cosinesim::Options options;
     options.vecLength = VectorLength;
     options.devicesNeeded = 1;
-    // options.readJson("options.json");  // Just an idea, if the team thinks we should keep JSON support
+    //user can set xclbinPath through jsonPath
+    //options.jsonPath = "Debug/config_cosinesim_ss_dense_fpga.json";
+
     xilinx_apps::cosinesim::CosineSim<std::int32_t> cosineSim(options);
     
     // Pick an index at random out of all the old vectors to use as the test vector to match

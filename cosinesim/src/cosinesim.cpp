@@ -52,7 +52,7 @@ private:
 
 public:
     //PrivateImpl(CosineSimBase* ptr, unsigned valueSize){
-    PrivateImpl(Options options, unsigned valueSize){
+    PrivateImpl(const Options options, unsigned valueSize){
         errorCode_ = NoError;
         valueSize_ = valueSize;
         //cosinesimPtr = ptr;
@@ -82,6 +82,17 @@ public:
         g.resize(devicesNeeded*cuNm);
         // g = new xf::graph::Graph<int32_t, int32_t>*[devicesNeeded * cuNm];
 
+        //check if jsonPath in options is empty. if not empty, call parse jason file.
+        //otherwise it will load from options variable.
+
+        if(!options.jsonPath.empty()){
+            parsejsonFile();
+        } else if (!options.xclbinPath.empty()){
+            options_.xclbinPath = options.xclbinPath;
+        } else {
+            options_.xclbinPath = "/opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin";
+        }
+        std::cout << "INFO: xclbinPath set to" << options_.xclbinPath<<std::endl;
 
 
     }
@@ -92,6 +103,30 @@ public:
       delete[] numVerticesPU;
     }
 
+    void parsejsonFile(){
+
+        std::string jsonFilePath = options_.jsonPath;
+        std::fstream userInput(jsonFilePath, std::ios::in);
+        if (!userInput) {
+            std::cout << "Error : config file " << jsonFilePath << " doesn't exist !" << std::endl;
+            errorCode_ = ErrorConfigFileNotExist;
+            return;
+        }
+        char line[1024] = {0};
+        char* token;
+        while (userInput.getline(line, sizeof(line))) {
+            token = strtok(line, "\"\t ,}:{\n");
+            while (token != NULL) {
+                 if (!std::strcmp(token, "xclbinPath")) {
+                    token = strtok(NULL, "\"\t ,}:{\n");
+                    std::string tmpStr = token;
+                    options_.xclbinPath = tmpStr;
+                }
+                token = strtok(NULL, "\"\t ,}:{\n");
+            }
+        }
+        userInput.close();
+    }
     virtual void startLoadPopulation(std::int64_t numVertices){
         //--------------- Free and delete -----------------------------------
 
@@ -156,13 +191,7 @@ public:
                 int depth = ((numVerticesPU[i][j] + channelsPU - 1) / channelsPU) * edgeAlign8;
                 g[i]->numVerticesPU[j] = numVerticesPU[i][j];
                 g[i]->numEdgesPU[j] = depth;
-                //row padding move to finishCurrentPopulationVector()
-                /*
-	            for (int l = 0; l < channelsPU; ++l) {
-	                for (int k = 0; k < depth; ++k) {
-	                    g[i][0].weightsDense[j * channelsPU + l][k] = nullVal;
-	                }
-	            }*/
+
             }
         }
 
@@ -324,6 +353,7 @@ int PrivateImpl::cosineSimilaritySSDenseMultiCard(std::shared_ptr<xf::graph::L3:
         xf::graph::Graph<int32_t, int32_t>** g,
         int32_t* resultID,
         float* similarity) {
+
     std::vector<xf::graph::L3::event<int> > eventQueue;
     float** similarity0 = new float*[deviceNm];
     int32_t** resultID0 = new int32_t*[deviceNm];
@@ -424,12 +454,13 @@ void PrivateImpl::cosinesim_ss_dense_fpga(int32_t devicesNeeded,
         }
     }
     //---------------- Run L3 API -----------------------------------
+    /*
     std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
             << " sourceLen=" << sourceLen << ", topK=" << topK
             << ", sourceWeight=" ;
     for(int i=0;i<sourceLen; i++){
         std::cout <<i<< " : " << sourceWeight[i]<<std::endl;
-    }
+    }*/
     for (int m = 0; m < requestNm; ++m) {
         eventQueue[m] = cosineSimilaritySSDenseMultiCard(
                 handle0, hwNm, sourceLen, sourceWeight, topK, g,
@@ -480,56 +511,27 @@ void PrivateImpl::cosinesim_ss_dense_fpga(int32_t devicesNeeded,
 void PrivateImpl::loadgraph_cosinesim_ss_dense_fpga(unsigned deviceNeeded,
         unsigned cuNm,
         xf::graph::Graph<int32_t, int32_t>** g) {
-    //----------------- Text Parser --------------------------
-    std::string opName;
-    std::string kernelName;
-    int requestLoad;
-    std::string xclbinPath;
 
+      std::string opName = "similarityDense";
+      std::string kernelName = "denseSimilarityKernel";
+      //TODO check if requestLoad need to bring up to options for user to set
+      int requestLoad = 100;
+      //std::string xclbinPath;
 
-    std::string jsonFilePath = "./config_cosinesim_ss_dense_fpga.json";
-    std::fstream userInput(jsonFilePath, std::ios::in);
-    if (!userInput) {
-        std::cout << "Error : config file " << jsonFilePath << " doesn't exist !" << std::endl;
-        errorCode_ = ErrorConfigFileNotExist;
-        return;
-    }
-    char line[1024] = {0};
-    char* token;
-    while (userInput.getline(line, sizeof(line))) {
-        token = strtok(line, "\"\t ,}:{\n");
-        while (token != NULL) {
-            if (!std::strcmp(token, "operationName")) {
-                token = strtok(NULL, "\"\t ,}:{\n");
-                opName = token;
-            } else if (!std::strcmp(token, "kernelName")) {
-                token = strtok(NULL, "\"\t ,}:{\n");
-                kernelName = token;
-            } else if (!std::strcmp(token, "requestLoad")) {
-                token = strtok(NULL, "\"\t ,}:{\n");
-                requestLoad = std::atoi(token);
-            } else if (!std::strcmp(token, "xclbinPath")) {
-                token = strtok(NULL, "\"\t ,}:{\n");
-                std::string tmpStr = token;
-                xclbinPath = tmpStr;
-            }
-            token = strtok(NULL, "\"\t ,}:{\n");
-        }
-    }
-    userInput.close();
 
     //----------------- Setup denseSimilarityKernel thread ---------
     xf::graph::L3::Handle::singleOP op0;
     op0.operationName = (char*)opName.c_str();
     op0.setKernelName((char*)kernelName.c_str());
     op0.requestLoad = requestLoad;
-    op0.xclbinFile = (char*)xclbinPath.c_str();
+    //op0.xclbinFile = (char*)xclbinPath.c_str();
+    op0.xclbinFile = (char*)options_.xclbinPath.c_str();
     op0.deviceNeeded = deviceNeeded;
     op0.cuPerBoard = cuNm;
 
-    std::fstream xclbinFS(xclbinPath, std::ios::in);
+    std::fstream xclbinFS(options_.xclbinPath, std::ios::in);
     if (!xclbinFS) {
-        std::cout << "Error : xclbinFile doesn't exist: " << xclbinPath << std::endl;
+        std::cout << "Error : xclbinFile doesn't exist: " << options_.xclbinPath << std::endl;
         errorCode_ = ErrorXclbinNotExist;
         return;
     }

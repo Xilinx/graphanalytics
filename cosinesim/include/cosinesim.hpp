@@ -65,10 +65,13 @@ struct Result {
         similarity_ = similarity;
     }
 };
+
 struct Options {
     ColIndex vecLength;
     //std::int64_t numVertices;
     std::int64_t devicesNeeded;
+    std::string xclbinPath;
+    std::string jsonPath;
 };
 
 enum ErrorCode{
@@ -105,8 +108,6 @@ public:
     using ValueType = Value;
     const Options& getOptions() {return options_;};
 
-    //CosineSim( const Options &options) :CosineSimBase(options), pImpl_(createImpl(this, sizeof(Value))) {};
-
     CosineSim( const Options &options) :options_(options), pImpl_(::xilinx_cosinesim_createImpl(options, sizeof(Value))) {};
 
     ~CosineSim() {
@@ -135,8 +136,6 @@ private:
     //std::unique_ptr<ImplBase> pImpl_;
     ImplBase *pImpl_ = nullptr;
     Options options_;
-    //ColIndex vecLength_ = 0;
-    //RowIndex numRows_ = 0;
 
 };
 
