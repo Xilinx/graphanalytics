@@ -100,7 +100,8 @@ LDLIBS_libCosineSim = \
 	
 LIB_SHORT_NAME = XilinxCosineSim
 LIB_NAME = lib$(LIB_SHORT_NAME).so
-LOADER_NAME = libXilinxCosineSim_loader.a
+LOADER_SHORT_NAME = XilinxCosineSim_loader
+LOADER_NAME = lib$(LOADER_SHORT_NAME).a
 
 SRCS_L3 = $(wildcard $(GRAPH_ANALYTICS_DIR)/L3/src/*.cpp) $(GRAPH_ANALYTICS_DIR)/ext/xcl2/xcl2.cpp
 OBJS_L3 = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_L3:.cpp=.o)))
@@ -204,6 +205,7 @@ DEPS_test = $(OBJS_test:.o=.d)
 # List of all test executables to build
 EXEC_FILE_NAMES_test = \
     cosinesim_test \
+    cosinesim_dyn_test \
     fakeudf
 
 EXECS_test = $(addprefix $(CPP_BUILD_DIR)/,$(EXEC_FILE_NAMES_test))
@@ -222,6 +224,9 @@ LDFLAGS_test = -fPIC -w -L $(CPP_BUILD_DIR) -l$(LIB_SHORT_NAME)
 
 $(CPP_BUILD_DIR)/cosinesim_test: $(CPP_BUILD_DIR)/cosinesim_test.o
 	$(LINK.cc) -o $@ $^ $(LDFLAGS_test)
+
+$(CPP_BUILD_DIR)/cosinesim_dyn_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUILD_DIR)/$(LOADER_NAME)
+	$(LINK.cc) -o $@ $^ -fPIC -w -L $(CPP_BUILD_DIR) -l$(LOADER_SHORT_NAME) -ldl
 
 #LDFLAGS_fakeudf = -fPIC -w -L /scratch/tigergraph/tigergraph/app/3.1.0/dev/gdk/gsql/src/QueryUdf -lgraphL3wrapper -ldl
 LDFLAGS_fakeudf = -fPIC -w -L $(CPP_BUILD_DIR) -l$(LIB_SHORT_NAME)

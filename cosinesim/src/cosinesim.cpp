@@ -118,7 +118,8 @@ public:
         std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
                 << " numVertices=" << numVertices << ", general=" << general
                 << ", rest=" << rest
-                << ", split=" << devicesNeeded * cuNm * splitNm << std::endl;
+                << ", split=" << devicesNeeded * cuNm * splitNm 
+                << ", devicesNeeded=" << devicesNeeded << std::endl;
 
         if (rest < 0) {
             errorCode_= ErrorGraphPartition;
@@ -142,6 +143,7 @@ public:
                 //	g[i] = new xf::graph::Graph<int32_t, int64_t>("Dense", 4 * splitNm, numEdges, numVerticesPU[i]);
             } else {
                 errorCode_ =  ErrorUnsupportedValueType;
+                // TODO: must exit at this point, or else crash on next line.  Throw exception here?
             }
             g[i]->numEdgesPU = new int32_t[splitNm];
             g[i]->numVerticesPU = new int32_t[splitNm];

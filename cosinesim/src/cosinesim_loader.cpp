@@ -65,11 +65,11 @@ XILINX_COSINESIM_IMPL_DEF
 xilinx_apps::cosinesim::ImplBase *xilinx_cosinesim_createImpl(const xilinx_apps::cosinesim::Options& options,
         unsigned valueSize)
 {
-    typedef xilinx_apps::cosinesim::ImplBase * (*CreateFunc)();
+    typedef xilinx_apps::cosinesim::ImplBase * (*CreateFunc)(const xilinx_apps::cosinesim::Options &, unsigned);
     CreateFunc pCreateFunc = (CreateFunc) getDynamicFunction("xilinx_cosinesim_createImpl");
     if (pCreateFunc == nullptr)
         return nullptr;  // TODO: throw exception?
-    return pCreateFunc();
+    return pCreateFunc(options, valueSize);
 }
 
 XILINX_COSINESIM_IMPL_DEF

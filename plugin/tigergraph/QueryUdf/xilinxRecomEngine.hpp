@@ -21,6 +21,10 @@
 #define XILINX_COSINESIM_INLINE_IMPL
 #include "cosinesim.hpp"
 
+// Enable this to turn on debug output
+#define XILINX_RECOM_DEBUG_ON
+
+
 namespace xai {
 
 using CosineSim = xilinx_apps::cosinesim::CosineSim<std::int32_t>;
@@ -68,6 +72,11 @@ public:
             options.vecLength = vectorLength_;
             options.devicesNeeded = numDevices_;
             pCosineSim_ = new CosineSim(options);
+#ifdef XILINX_RECOM_DEBUG_ON
+            std::cout << "DEBUG: Created cosinesim object " << pCosineSim_
+                    << " with vecLength=" << options.vecLength
+                    << ", devicesNeeded=" << options.devicesNeeded << std::endl;
+#endif
         }
         
         return pCosineSim_;

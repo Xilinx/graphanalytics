@@ -170,11 +170,16 @@ inline int udf_loadgraph_cosinesim_ss_fpga(int64_t numVertices,
     idMap.resize(numVectors, 0);
     xilinx_apps::cosinesim::ColIndex vectorLength = xilinx_apps::cosinesim::ColIndex(
             xilinx_apps::cosinesim::ColIndex(oldVectors.get(0).size()));
-    pContext->setVectorLength(vectorLength);
+    pContext->setVectorLength(vectorLength - 3);
     
     xai::CosineSim *pCosineSim = pContext->getCosineSimObj();
+    std::cout << "UDF pConsineSim=" << pCosineSim
+            << ", numVertices=" << numVertices
+            << ", numVectors=" << numVectors
+            << std::endl;
 //    pCosineSim->openFpga();
     pCosineSim->startLoadPopulation(numVertices);
+    std::cout << "UDF after startLoadPopulation" << std::endl;
     for (xilinx_apps::cosinesim::RowIndex vecNum = 0; vecNum < numVectors; ++vecNum) {
         const ListAccum<int64_t> &curRowVec = oldVectors.get(vecNum);
         xilinx_apps::cosinesim::RowIndex rowIndex = 0;

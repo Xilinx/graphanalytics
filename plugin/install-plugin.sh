@@ -169,6 +169,8 @@ cp $tg_temp_root/QueryUdf/libgraphL3wrapper.so $tg_root_dir/dev/gdk/gsql/src/Que
 cp $cosineSimPath/lib/libXilinxCosineSim.so $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
 
 # Use default MakeUdf since we have no .o's to include
+# TODO: remove this after no branch is left that installs a custom MakeUdf
+cp $SCRIPTPATH/tigergraph/MakeUdf.orig $tg_root_dir/dev/gdk/MakeUdf
 ## cp $tg_root_dir/dev/gdk/MakeUdf $tg_root_dir/dev/gdk/MakeUdf-$timestamp
 ## cp $SCRIPTPATH/tigergraph/MakeUdf $tg_root_dir/dev/gdk/
 
