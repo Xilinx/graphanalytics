@@ -71,6 +71,7 @@ public:
             xilinx_apps::cosinesim::Options options;
             options.vecLength = vectorLength_;
             options.devicesNeeded = numDevices_;
+            options.xclbinPath = "TG_COSINESIM_XCLBIN";
             pCosineSim_ = new CosineSim(options);
 #ifdef XILINX_RECOM_DEBUG_ON
             std::cout << "DEBUG: Created cosinesim object " << pCosineSim_

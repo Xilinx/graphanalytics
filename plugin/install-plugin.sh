@@ -150,7 +150,9 @@ cp $tg_temp_root/QueryUdf/tgFunctions.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf
 cp $tg_temp_root/QueryUdf/graph.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
 cp $SCRIPTPATH/tigergraph/QueryUdf/core.cpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
 
+tg_xclbin_path=$tg_root_dir/dev/gdk/gsql/src/QueryUdf/xclbin/denseSimilarityKernel.xclbin
 cp $SCRIPTPATH/tigergraph/QueryUdf/xilinxRecomEngine.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+sed -i "s|TG_COSINESIM_XCLBIN|$tg_xclbin_path|" $tg_root_dir/dev/gdk/gsql/src/QueryUdf/xilinxRecomEngine.hpp
 
 cp $cosineSimPath/include/cosinesim.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
 cp $cosineSimPath/src/cosinesim_loader.cpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
@@ -163,6 +165,8 @@ cp $cosineSimPath/include/cosinesim.hpp $tg_temp_root/gsql/codegen/udf
 cp $SCRIPTPATH/tigergraph/QueryUdf/codevector.hpp $tg_temp_root/gsql/codegen/udf
 cp $cosineSimPath/src/cosinesim_loader.cpp $tg_temp_root/gsql/codegen/udf
 cp $SCRIPTPATH/tigergraph/QueryUdf/xilinxRecomEngine.hpp $tg_temp_root/gsql/codegen/udf
+sed -i "s|TG_COSINESIM_XCLBIN|$tg_xclbin_path|" $tg_temp_root/gsql/codegen/udf/xilinxRecomEngine.hpp
+
 
 cp $SCRIPTPATH/tigergraph/QueryUdf/*.json $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
 cp $tg_temp_root/QueryUdf/libgraphL3wrapper.so $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
