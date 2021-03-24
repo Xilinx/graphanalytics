@@ -171,14 +171,14 @@ class openXRM {
         return CuListRes;
     }
 
-    unsigned int fetchCuInfo(const char* kernelName,
-                             const char* kernelAlias,
-                             int requestLoad,
-                             unsigned int& deviceNm,
-                             uint64_t& maxChannelSize,
-                             unsigned int& maxCU,
-                             unsigned int** deviceID,
-                             unsigned int** cuID) {
+    int32_t fetchCuInfo(const char* kernelName,
+                        const char* kernelAlias,
+                        int requestLoad,
+                        unsigned int& deviceNm,
+                        uint64_t& maxChannelSize,
+                        unsigned int& maxCU,
+                        unsigned int** deviceID,
+                        unsigned int** cuID) {
         xrmCuProperty propR;
         memset(&propR, 0, sizeof(xrmCuProperty));
         strcpy(propR.kernelName, kernelName);
@@ -200,11 +200,14 @@ class openXRM {
             cuListPropR.cuProps[i].requestLoad = requestLoad;
             cuListPropR.cuProps[i].poolId = 0;
         }
-        uint32_t alloc0 = xrmCuListAlloc(ctx, &cuListPropR, &cuListResR);
+        int32_t alloc0 = xrmCuListAlloc(ctx, &cuListPropR, &cuListResR);
 
         deviceNm = 0;
         if (alloc0 != 0) {
-            printf("Error: Fail to alloc cu list (xrmCuListAlloc) \n");
+            std::cout << "ERROR: " << __FUNCTION__ 
+                      <<  "Fail to alloc cu list (xrmCuListAlloc): alloc0=" << alloc0 
+                      << std::endl;
+            return alloc0;
         } else {
             memBankSizeTransfer(cuListResR.cuResources[0].membankSize, maxChannelSize);
             for (int i = 0; i < cuListResR.cuNum; i++) {

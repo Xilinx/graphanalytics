@@ -102,6 +102,8 @@ create query load_cu_cosinesim_ss_fpga(int devices_needed) for graph @graph {
         status = "Shared library loading failed";
     ELSE IF ret == -6 THEN
         status = "Not enough devices";
+    ELSE IF ret == -8 THEN
+        status = "Unable to allocate CU";
     END;
     PRINT status;
 }
