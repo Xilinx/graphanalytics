@@ -126,6 +126,17 @@ inline ListAccum<int64_t> udf_get_similarity_vec(int64_t property,
     return result;
 }
 
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+inline int udf_load_cu_cosinesim_ss_fpga(int devicesNeeded) 
+{
+    const int cuNm = 2;
+    // TODO: replicate this functionality (separate Alveo init from load) in cosine sim API
+//    int ret = load_cu_cosinesim_ss_dense_fpga_wrapper(devicesNeeded, cuNm);
+    int ret = 0;
+    return ret;
+}
 // mergeHeaders 1 body end syntheaDemo DO NOT REMOVE!
 
 
@@ -150,7 +161,7 @@ inline bool udf_xilinx_recom_is_initialized() {
     return pContext->isInitialized();
 }
 
-inline int udf_loadgraph_cosinesim_ss_fpga(int64_t numVertices,
+inline int udf_load_graph_cosinesim_ss_fpga(int64_t numVertices,
                                            int64_t vecLength,
                                            ListAccum<ListAccum<int64_t> >& oldVectors,
                                            int devicesNeeded) {

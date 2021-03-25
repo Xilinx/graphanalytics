@@ -430,11 +430,13 @@ std::vector<CosineVecValue> makeCosineVector(SnomedConcept concept,
 
 }  // namespace xai
 
-int loadgraph_cosinesim_ss_dense_fpga_wrapper(
-    uint32_t devicesNeeded, uint32_t cuNm, xf::graph::Graph<int32_t, int32_t>** g) {
+int load_cu_cosinesim_ss_dense_fpga_wrapper(
+    uint32_t devicesNeeded, uint32_t cuNm) 
+{
+    std::cout << "INFO: Running " << __FUNCTION__ << std::endl;
+
 //    Lock lock(getMutex());
     int status = 0;
-    std::cout << "INFO: Running Load Graph for Single Source Cosine Similarity Dense API" << std::endl;
 
     // open the library
     std::cout << "INFO: Opening libgraphL3wrapper.so...\n" << std::endl;
@@ -453,29 +455,72 @@ int loadgraph_cosinesim_ss_dense_fpga_wrapper(
     }
 
     // load the symbol
-    std::cout << "INFO: Loading symbol loadgraph_cosinesim_ss_dense_fpga...\n";
-    typedef int (*load_t)(uint32_t, uint32_t, xf::graph::Graph<int32_t, int32_t>**);
+    std::cout << "INFO: Loading symbol load_cu_cosinesim_ss_dense_fpga...\n";
+    typedef int (*load_t)(uint32_t, uint32_t);
 
     // reset errors
     dlerror();
 
-    load_t runT = (load_t)dlsym(handle, "loadgraph_cosinesim_ss_dense_fpga");
+    load_t runT = (load_t)dlsym(handle, "load_cu_cosinesim_ss_dense_fpga");
     const char* dlsym_error2 = dlerror();
     if (dlsym_error2) {
-        std::cerr << "ERROR: Cannot load symbol 'loadgraph_cosinesim_ss_dense_fpga': " << dlsym_error2 << '\n';
+        std::cerr << "ERROR: Cannot load symbol 'load_cu_cosinesim_ss_dense_fpga': " 
+                  << dlsym_error2 << std::endl;
         dlclose(handle);
         return -6;
     }
 
     // use it to do the calculation
-    std::cout << "INFO: Calling 'loadgraph_cosinesim_ss_dense_fpga'...\n";
-    status = runT(devicesNeeded, cuNm, g);
-
-    // close the library
-    std::cout << "INFO: core::loadgraph_cosinesim_ss_dense_fpga_wrapper status=" << status << std::endl;
-    //dlclose(handle);
+    status = runT(devicesNeeded, cuNm);
     return status;
 }
+
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+int load_graph_cosinesim_ss_dense_fpga_wrapper(
+    uint32_t devicesNeeded, uint32_t cuNm, xf::graph::Graph<int32_t, int32_t>** g) 
+{
+    std::cout << "INFO: Running " << __FUNCTION__ << std::endl;
+
+//    Lock lock(getMutex());
+    int status = 0;
+    // open the library
+    std::cout << "INFO: Opening libgraphL3wrapper.so...\n" << std::endl;
+    std::string basePath = TIGERGRAPH_PATH;
+    std::string SOFILEPATH = basePath + "/dev/gdk/gsql/src/QueryUdf/libgraphL3wrapper.so";
+    void* handle = dlopen(SOFILEPATH.c_str(), RTLD_LAZY | RTLD_NOLOAD);
+    if (!handle) {
+        std::cout << "INFO: libgraphL3wrapper.so not loaded. Loading now..." << std::endl;
+        handle = dlopen(SOFILEPATH.c_str(), RTLD_LAZY | RTLD_GLOBAL);
+        if (!handle) {
+            std::cerr << "ERROR: Cannot open library: " << dlerror() << '\n';
+            return -5;
+        }
+    } else {
+        std::cout << "INFO: libgraphL3wrapper.so already loaded" << std::endl;
+    }
+
+    // load the symbol
+    std::cout << "INFO: Loading symbol load_graph_cosinesim_ss_dense_fpga...\n";
+    typedef int (*load_t)(uint32_t, uint32_t, xf::graph::Graph<int32_t, int32_t>**);
+
+    // reset errors
+    dlerror();
+
+    load_t runT = (load_t)dlsym(handle, "load_graph_cosinesim_ss_dense_fpga");
+    const char* dlsym_error2 = dlerror();
+    if (dlsym_error2) {
+        std::cerr << "ERROR: Cannot load symbol 'load_graph_cosinesim_ss_dense_fpga': " 
+                  << dlsym_error2 << std::endl;
+        dlclose(handle);
+        return -6;
+    }
+
+    status = runT(devicesNeeded, cuNm, g);
+    return status;
+}
+
 
 int cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
                             int32_t sourceLen,
