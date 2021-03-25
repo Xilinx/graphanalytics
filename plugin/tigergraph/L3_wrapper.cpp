@@ -739,6 +739,16 @@ extern "C" void cosine_nbor_ss_fpga(uint32_t topK,
     // g.freeBuffers();
 }
 
+void free_shared_handle() 
+{
+    if (!sharedHandlesCosSimDense::instance().handlesMap.empty()) {
+        // free the object stored in handlsMap[0] and erase handlsMap[0] 
+        std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
+        handle0->free();
+        sharedHandlesCosSimDense::instance().handlesMap.erase(0);
+    }
+}
+
 //-----------------------------------------------------------------------------
 // Perform the tasks below
 // * Load xclbin
@@ -799,10 +809,6 @@ extern "C" int load_cu_cosinesim_ss_dense_fpga(uint32_t deviceNeeded, uint32_t c
         return XF_GRAPH_L3_ERROR_XCLBIN_FILE_NOT_EXIST;
     }
 
-    std::cout << "DEBUG: " << __FUNCTION__ 
-              << " sharedHandlesCosSimDense.handlesMap.empty=" 
-              << sharedHandlesCosSimDense::instance().handlesMap.empty() << std::endl;
-         
     // return right away if the handle has already been created
     if (!sharedHandlesCosSimDense::instance().handlesMap.empty()) {
         std::cout << "INFO: " << __FUNCTION__ << " skipped:"
@@ -817,6 +823,9 @@ extern "C" int load_cu_cosinesim_ss_dense_fpga(uint32_t deviceNeeded, uint32_t c
 
     handle0->addOp(op0);
     int status = handle0->setUp();
+    if (status != 0)
+        free_shared_handle();
+
     return status;
 }
 
@@ -857,13 +866,13 @@ extern "C" int load_graph_cosinesim_ss_dense_fpga(
 //-----------------------------------------------------------------------------
 // Execute kernel to compte cosine similarity and return topK values
 //-----------------------------------------------------------------------------
-extern "C" void cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
-                                        int32_t sourceLen,
-                                        int32_t* sourceWeight,
-                                        int32_t topK,
-                                        xf::graph::Graph<int32_t, int32_t>** g,
-                                        int32_t* resultID,
-                                        float* similarity) {
+extern "C" int32_t cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
+                                           int32_t sourceLen,
+                                           int32_t* sourceWeight,
+                                           int32_t topK,
+                                           xf::graph::Graph<int32_t, int32_t>** g,
+                                           int32_t* resultID,
+                                           float* similarity) {
     //---------------- Run Load Graph -----------------------------------
 #ifdef __PROFILING__
     std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time =
@@ -871,6 +880,15 @@ extern "C" void cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
     std::cout << "LOG2TIMELINE: " << __FUNCTION__ << " time0=" << l_start_time.time_since_epoch().count() 
               << std::endl;
 #endif
+
+    if (sharedHandlesCosSimDense::instance().handlesMap.empty()) {
+        std::cout << "ERROR: " << __FUNCTION__ << " CUs need to be set up first:"
+              << " sharedHandlesCosSimDense.handlesMap.empty=" 
+              << sharedHandlesCosSimDense::instance().handlesMap.empty() << std::endl;
+       
+        return XF_GRAPH_L3_ERROR_CU_NOT_SETUP;
+    }
+
     std::shared_ptr<xf::graph::L3::Handle> handle0 = 
                         sharedHandlesCosSimDense::instance().handlesMap[0];
     handle0->debug();
@@ -942,14 +960,11 @@ extern "C" void cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
 #endif
 }
 
+//-----------------------------------------------------------------------------
+// close_fpga
+//-----------------------------------------------------------------------------
 extern "C" void close_fpga() {
-    //---------------- close_fpga -----------------------------------
-    if (!sharedHandlesCosSimDense::instance().handlesMap.empty()) {
-        // free the object stored in handlsMap[0] and erase handlsMap[0] 
-        std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
-        handle0->free();
-        sharedHandlesCosSimDense::instance().handlesMap.erase(0);
-    }
+    free_shared_handle();
     std::cout << __FUNCTION__ << " completed. sharedHandlesCosSimDense.handlesMap.empty=" <<
               sharedHandlesCosSimDense::instance().handlesMap.empty() << std::endl;
 
