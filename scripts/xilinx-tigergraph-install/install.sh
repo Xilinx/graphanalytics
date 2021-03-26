@@ -74,7 +74,7 @@ if [[ $OSDIST == "ubuntu" ]]; then
     sudo apt install $pkg_dir/deployment-shell/xilinx*.deb
 
     # install required package
-    sudo apt install jq -y
+    sudo apt install jq opencl-headers -y
 
     printf "\nINFO: install Xilinx overlaysas on TigerGraph installation\n"
     read -p "Enter username used for TigerGraph installation [default: tigergraph]:" tg_username
@@ -100,7 +100,7 @@ if [[ $OSDIST == "centos" ]]; then
     sudo yum install $pkg_dir/deployment-shell/xilinx*.rpm
 
     # install required package
-    sudo yum install jq -y
+    sudo yum install jq opencl-headers -y
 
     printf "\nINFO: install Xilinx overlaysas on TigerGraph installation\n"
     read -p "Enter username used for TigerGraph installation [default: tigergraph]:" tg_username

@@ -530,6 +530,7 @@ int cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
                             int32_t* resultID,
                             float* similarity) {
 //    Lock lock(getMutex());
+    int32_t status = 0;
     std::cout << "INFO: Running Single Source Cosine Similarity Dense API\n\n";
     
     std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time =
@@ -556,7 +557,7 @@ int cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
 
     // load the symbol
     std::cout << "INFO: core.cpp Loading symbol cosinesim_ss_dense_fpga...\n";
-    typedef void (*runKernel_t)(uint32_t, int32_t, int32_t*, int32_t, 
+    typedef int (*runKernel_t)(uint32_t, int32_t, int32_t*, int32_t, 
         xf::graph::Graph<int32_t, int32_t>**, int32_t*, float*);
 
     // reset errors
@@ -567,12 +568,12 @@ int cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
     if (dlsym_error2) {
         std::cerr << "ERROR: Cannot load symbol 'cosinesim_ss_dense_fpga': " << dlsym_error2 << '\n';
         dlclose(handle);
-        return 1;
+        return -9;
     }
 
     // use it to do the calculation
     std::cout << "INFO: Calling 'cosinesim_ss_dense_fpga'...\n";
-    runT(devicesNeeded, sourceLen, sourceWeight, topK, g, resultID, similarity);
+    status = runT(devicesNeeded, sourceLen, sourceWeight, topK, g, resultID, similarity);
 
     // close the library
     //std::cout << "INFO: Closing library...\n";
@@ -584,7 +585,7 @@ int cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
     std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
               << " runtime msec=  " << std::fixed << std::setprecision(6) 
               << l_timeMs << std::endl;
-    return 0;
+    return status;
 }
 
 int close_fpga() {
