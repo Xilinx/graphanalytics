@@ -72,7 +72,7 @@ $(JAVA_API_DOC_JAR): $(JAVA_API_JAR)
 
 CCC = g++
 CXX = g++
-CXXFLAGS = -std=c++11 -fPIC -Wall -Wno-unknown-pragmas -Wno-unused-label -D USE_HBM -fmessage-length=0
+CXXFLAGS = -std=c++11 -fPIC -Wall -Wno-unknown-pragmas -Wno-unused-label -Wno-narrowing -D USE_HBM -fmessage-length=0
 
 # Define the target directories.
 
@@ -134,13 +134,13 @@ $(CPP_BUILD_DIR):
 
 # .so
 
+LIB_DEPS = -L$(XILINX_XRT)/lib -lOpenCL -lpthread -lrt -Wno-unused-label -Wno-narrowing -DVERBOSE -L$(XILINX_XRM)/lib -lxrm
 
-LDFLAGS += -L$(XILINX_XRT)/lib -lOpenCL -lpthread -lrt -Wno-unused-label -Wno-narrowing -DVERBOSE -L$(XILINX_XRM)/lib -lxrm
 # SHAREDLIB_FLAGS_libCosineSim = -shared
 SHAREDLIB_FLAGS_libCosineSim = -fPIC -rdynamic -shared -w -Wl,--export-dynamic
 
 $(CPP_BUILD_DIR)/$(LIB_NAME): $(OBJS_libCosineSim) $(DEPLIBS_libCosineSim)
-	$(LINK.cc) -o $@ $(OBJS_libCosineSim) $(SHAREDLIB_FLAGS_libCosineSim) $(LDLIBS_libCosineSim)
+	$(LINK.cc) -o $@ $(OBJS_libCosineSim) $(SHAREDLIB_FLAGS_libCosineSim) $(LDLIBS_libCosineSim) $(LIB_DEPS)
 
 # loader .a
 
@@ -223,16 +223,16 @@ cppTest2: $(EXECS_test)
 LDFLAGS_test = -fPIC -w -L $(CPP_BUILD_DIR) -l$(LIB_SHORT_NAME)
 
 $(CPP_BUILD_DIR)/cosinesim_test: $(CPP_BUILD_DIR)/cosinesim_test.o
-	$(LINK.cc) -o $@ $^ $(LDFLAGS_test)
+	$(LINK.cc) -o $@ $^ $(LDFLAGS_test) $(LIB_DEPS)
 
 $(CPP_BUILD_DIR)/cosinesim_dyn_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUILD_DIR)/$(LOADER_NAME)
-	$(LINK.cc) -o $@ $^ -fPIC -w -L $(CPP_BUILD_DIR) -l$(LOADER_SHORT_NAME) -ldl
+	$(LINK.cc) -o $@ $^ -fPIC -w -L $(CPP_BUILD_DIR) -l$(LOADER_SHORT_NAME) -ldl $(LIB_DEPS)
 
 #LDFLAGS_fakeudf = -fPIC -w -L /scratch/tigergraph/tigergraph/app/3.1.0/dev/gdk/gsql/src/QueryUdf -lgraphL3wrapper -ldl
 LDFLAGS_fakeudf = -fPIC -w -L $(CPP_BUILD_DIR) -l$(LIB_SHORT_NAME)
 
 $(CPP_BUILD_DIR)/fakeudf: $(CPP_BUILD_DIR)/fakeudf.o
-	$(LINK.cc) -o $@ $^ $(LDFLAGS_fakeudf)
+	$(LINK.cc) -o $@ $^ $(LDFLAGS_fakeudf) $(LIB_DEPS)
 
 # Macro to create a .o rule and a .d rule for each .cpp
 
