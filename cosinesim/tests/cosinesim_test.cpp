@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
     
     xilinx_apps::cosinesim::Options options;
     options.vecLength = VectorLength;
-    options.devicesNeeded = 1;
+    options.numDevices = 1;
     //user can set xclbinPath through jsonPath
     //options.jsonPath = "Debug/config_cosinesim_ss_dense_fpga.json";
 

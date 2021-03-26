@@ -69,11 +69,12 @@ struct Result {
 struct Options {
     ColIndex vecLength;
     //std::int64_t numVertices;
-    std::int64_t devicesNeeded;
+    std::int32_t numDevices;
+    //std::string numDeivce
     std::string xclbinPath;
-    std::string jsonPath;
+    //std::string jsonPath;
 };
-
+/*
 enum ErrorCode{
     NoError =0,
     ErrorGraphPartition,
@@ -83,7 +84,7 @@ enum ErrorCode{
     ErrorXclbin2NotExist,
     ErrorFailFPGASetup
 };
-
+*/
 template <typename Value>
 class CosineSim;
 
@@ -100,7 +101,9 @@ public:
 
 
 
-
+//TODO
+//change numVertices->numVectors
+//error exception
 
 template <typename Value>
 class CosineSim {
@@ -115,11 +118,9 @@ public:
         ::xilinx_cosinesim_destroyImpl(pImpl_);
     }
     //void openFpga(...);
-    void startLoadPopulation(std::int64_t numVertices){pImpl_->startLoadPopulation(numVertices);}  //
+    void startLoadPopulation(std::int64_t numVectors){pImpl_->startLoadPopulation(numVectors);}  //
 
     Value *getPopulationVectorBuffer(RowIndex &rowIndex) {
-        // figure out where in weightDense to start writing
-        // memset vector padding (8 bytes for example) to 0
         // return pointer into weightDense
         return reinterpret_cast<Value *>(pImpl_->getPopulationVectorBuffer(rowIndex));
     }

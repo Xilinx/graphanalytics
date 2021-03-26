@@ -252,6 +252,7 @@ class openXRM {
         }
         std::cout << "INFO: Available device number = " << deviceNm << std::endl;
         std::cout << "INFO: Available CU number = " << maxCU << std::endl;
+        return 0;
     }
 
     void freeXRM() {
