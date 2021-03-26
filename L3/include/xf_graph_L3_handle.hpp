@@ -22,8 +22,12 @@
 #define XF_GRAPH_L3_SUCCESS 0
 #define XF_GRAPH_L3_ERROR_CONFIG_FILE_NOT_EXIST -2
 #define XF_GRAPH_L3_ERROR_XCLBIN_FILE_NOT_EXIST -3
+#define XF_GRAPH_L3_ERROR_DLOPEN                -5
 #define XF_GRAPH_L3_ERROR_NOT_ENOUGH_DEVICES    -6
 #define XF_GRAPH_L3_ERROR_CU_NOT_SETUP          -7
+#define XF_GRAPH_L3_ERROR_ALLOC_CU              -8
+#define XF_GRAPH_L3_ERROR_DLSYM                 -9
+
 
 #include "op_pagerank.hpp"
 #include "op_sp.hpp"
@@ -61,8 +65,8 @@ class Handle {
      */
     struct singleOP {
         std::string operationName; // for example, cosineSim
-        char* kernelName;    // user defined kernel names
-        char* kernelAlias;   // user defined kernel names
+        std::string kernelName;    // user defined kernel names
+        std::string kernelAlias;   // user defined kernel names
         unsigned int requestLoad = 100;
         char* xclbinFile;                    // xclbin full path
         unsigned int deviceNeeded = 0;       // requested FPGA device number
@@ -239,12 +243,12 @@ class Handle {
                          unsigned int deviceNeeded,
                          unsigned int cuPerBoard);
 
-    void initOpSimDense(const char* kernelName,
-                        char* xclbinFile,
-                        char* kernelAlias,
-                        unsigned int requestLoad,
-                        unsigned int deviceNeeded,
-                        unsigned int cuPerBoard);
+    int32_t initOpSimDense(std::string kernelName,
+                           char* xclbinFile,
+                           std::string kernelAlias,
+                           unsigned int requestLoad,
+                           unsigned int deviceNeeded,
+                           unsigned int cuPerBoard);
 
     void initOpSimDenseInt(const char* kernelName,
                            char* xclbinFile,

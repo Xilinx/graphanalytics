@@ -22,24 +22,36 @@
 .. include:: overview.rst
 
 .. toctree::
-   :caption: Library Overview
+   :caption: Overview
    :maxdepth: 1
 
    overview.rst
-   release.rst
-   requirements.rst
-   design_flows.rst
 
 .. toctree::
-   :caption: User Guide
-   :maxdepth: 2
-
-   guide/L1.rst
-   gqe_guide/L2.rst
-   gqe_guide/L3.rst
-
-.. toctree::
-   :caption: Benchmark Result
+   :caption: Installation
    :maxdepth: 1
 
-   benchmark/benchmark.rst
+   install.rst
+
+.. toctree::
+   :caption: Run Alveo Demo
+   :maxdepth: 2
+
+   run-demo-jupyter.rst
+   run-demo-script.rst
+
+
+.. toctree::
+   :caption: Integrate with TigerGraph
+   :maxdepth: 1
+
+   integrate-tg.rst
+
+
+
+.. toctree::
+   :caption: Vitis Development Flow
+   :maxdepth: 1
+
+   vitis-dev-flow.rst
+

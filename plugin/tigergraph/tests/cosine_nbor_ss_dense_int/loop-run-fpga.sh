@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -x
-
 . common.sh
 
 if [ "$load_fpga" -eq 1 ]; then
@@ -9,7 +7,13 @@ if [ "$load_fpga" -eq 1 ]; then
     time gsql -g $xgraph "set query_timeout=240000000 run query loadgraph_cosinesim_ss_fpga($devices_needed)"
 fi
 
-for ((a=1; a <= $iterations ; a++))
-do    
-    time gsql -g $xgraph "set query_timeout=240000000 run query cosinesim_ss_fpga(\"$PWD/log/fpga.txt\", $devices_needed)"
+# do a basic multi-user test
+
+for ((i=1; i <= $iterations ; i++)); do
+    echo "------------------ iteration $i -------------------------------"
+    for ((u=1; u <= 8; u++)); do
+        echo "################ user $u ################"
+        gsql -g $xgraph "set query_timeout=240000000 run query cosinesim_ss_fpga(\"$PWD/log/fpgai$u.txt\", $devices_needed)" &
+    done
+    wait
 done 
