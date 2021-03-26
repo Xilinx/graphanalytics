@@ -25,12 +25,12 @@ public:
     using ValueType = Value;
     
     struct Result {
-        RowIndex index_ = -1L;
-        double similarity_ = 0.0;
+        RowIndex index = -1L;
+        double similarity = 0.0;
         
         Result(RowIndex index, double similarity) {
-            index_ = index;
-            similarity_ = similarity;
+            index = index;
+            similarity = similarity;
         }
     };
     
@@ -126,7 +126,7 @@ int main(int argc, char **argv) {
     std::cout << "Similarity   Vector #" << std::endl;
     std::cout << "----------   --------" << std::endl;
     for (xilinx_apps::cosinesim::Result &result : results)
-        std::cout << result.similarity_ << "       " << result.index_ << std::endl;
+        std::cout << result.similarity << "       " << result.index << std::endl;
     
     return 0;
 }

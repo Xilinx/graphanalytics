@@ -57,34 +57,25 @@ using RowIndex = std::int64_t;
 using ColIndex = std::int32_t;
 
 struct Result {
-    RowIndex index_ = -1L;
-    double similarity_ = 0.0;
+    RowIndex index = -1L;
+    double similarity = 0.0;
 
     Result(RowIndex index, double similarity) {
-        index_ = index;
-        similarity_ = similarity;
+        this->index = index;
+        this->similarity = similarity;
     }
 };
 
 struct Options {
+    // vector length, default is 200.
     ColIndex vecLength;
-    //std::int64_t numVertices;
+    // number of devices, default is 1.
     std::int32_t numDevices;
-    //std::string numDeivce
+    // FPGA binary file Path. default is the package installation path
     std::string xclbinPath;
-    //std::string jsonPath;
 };
-/*
-enum ErrorCode{
-    NoError =0,
-    ErrorGraphPartition,
-    ErrorUnsupportedValueType,
-    ErrorConfigFileNotExist,
-    ErrorXclbinNotExist,
-    ErrorXclbin2NotExist,
-    ErrorFailFPGASetup
-};
-*/
+
+
 template <typename Value>
 class CosineSim;
 
@@ -100,11 +91,6 @@ public:
 };
 
 
-
-//TODO
-//change numVertices->numVectors
-//error exception
-
 template <typename Value>
 class CosineSim {
 public:
@@ -117,24 +103,27 @@ public:
         pImpl_->cleanGraph();
         ::xilinx_cosinesim_destroyImpl(pImpl_);
     }
-    //void openFpga(...);
+
+    // load population vectors initialization API. should be called once before user loads population vectors
     void startLoadPopulation(std::int64_t numVectors){pImpl_->startLoadPopulation(numVectors);}  //
 
+    // return pointer of weightDense buffer. user can use the pointer to write into population vector
     Value *getPopulationVectorBuffer(RowIndex &rowIndex) {
-        // return pointer into weightDense
         return reinterpret_cast<Value *>(pImpl_->getPopulationVectorBuffer(rowIndex));
     }
+
+    // should be called when each population vector loading finishes
     void finishCurrentPopulationVector(Value *pbuf){pImpl_->finishCurrentPopulationVector(pbuf);}
+
+    // should be called when the whole population vectors loading finishes
     void finishLoadPopulationVectors(){pImpl_->finishLoadPopulationVectors();}
 
-
+    // Match API
     std::vector<Result> matchTargetVector(unsigned numResults, void *elements) {
         return pImpl_->matchTargetVector(numResults, elements);
     }
-    //void closeFpga();
 
 private:
-    //std::unique_ptr<ImplBase> pImpl_;
     ImplBase *pImpl_ = nullptr;
     Options options_;
 
