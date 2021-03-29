@@ -314,10 +314,10 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     std::cout << "UDF results size=" << apiResults.size() << std::endl;
     std::cout << "UDF idMap size=" << idMap.size() << std::endl;
     for (xilinx_apps::cosinesim::Result &apiResult : apiResults) {
-        std::cout << "UDF apiResult.index=" << apiResult.index_ << std::endl;
-        if (apiResult.index_ < 0 || apiResult.index_ >= xilinx_apps::cosinesim::RowIndex(idMap.size()))
+        std::cout << "UDF apiResult.index=" << apiResult.index << std::endl;
+        if (apiResult.index < 0 || apiResult.index >= xilinx_apps::cosinesim::RowIndex(idMap.size()))
             continue;
-        result += testResults(VERTEX(idMap[apiResult.index_]), apiResult.similarity_);
+        result += testResults(VERTEX(idMap[apiResult.index]), apiResult.similarity);
     }
 
     //---------------------------------------------------------------------------
