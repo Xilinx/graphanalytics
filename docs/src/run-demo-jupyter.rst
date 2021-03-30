@@ -5,6 +5,9 @@ Run Demo in Jupyter Notebook
 Install Jupyter Notebook in a conda environment
 -----------------------------------------------
 
+NOTE: The Jupyter Notebook can be installed on any machine provided the machine
+can connect to TigerGraph server via HTTP connections.
+
 * Install conda by following instructions on 
   https://conda.io/projects/conda/en/latest/user-guide/install/index.html
 

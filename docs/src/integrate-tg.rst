@@ -13,10 +13,15 @@ calling GSQL query from TigerGraph SW.
    :align: center
 
 
-TigerGraph `User-Defined Functions <https://docs.tigergraph.com/dev/gsql-ref/querying/operators-functions-and-expressions#user-defined-functions>`_ (UDF)
------------------------------------------------------------
+TigerGraph User-Defined Functions (UDF)
+---------------------------------------
 
-You can create your own custom GSQL function in TigerGraph using C++. You can define a top level function in *<tigergraph.root.dir>/dev/gdk/gsql/src/QueryUdf/ExprFunctions.hpp*. It is this UDF mechanism that enables porting of Xilinx Graph Library IP into TigerGraph SW. All the files necessary to make this porting is included in the Graph Library, as shown below in *graph/plugin* directory.  Important files/directories are:
+You can create your own custom GSQL function as `UDF <https://docs.tigergraph.com/dev/gsql-ref/querying/operators-functions-and-expressions#user-defined-functions>`_ 
+ in TigerGraph using C++. You can define a top level function in 
+ *<tigergraph.root.dir>/dev/gdk/gsql/src/QueryUdf/ExprFunctions.hpp*. 
+ It is this UDF mechanism that enables porting of Xilinx Graph Library IP into 
+ TigerGraph SW. All the files necessary to make this porting is included in the
+ Graph Library, as shown below in *graph/plugin* directory.  Important files/directories are:
 
 * install.sh*: is a script to automate the porting. It updates the *ExprFunctions.hpp* 
   with the top level functions of Graph Library defined in *tigergraph/QueryUdf/xilinxUdf.hpp*
@@ -28,7 +33,7 @@ You can create your own custom GSQL function in TigerGraph using C++. You can de
 * tigergraph/tests/cosine_nbor_ss_dense_int/1K_patiensts*: has all the patient
   data set used for Cosine Similarity query testing
 
-  .. image:: /images/fig_plugin.jpg.jpg
+  .. image:: /images/fig_plugin.jpg
    :scale: 60%
    :align: center
 
@@ -54,52 +59,9 @@ order of abstraction level - high to low level.
   xf_graph_L3_handle.hpp (in graph/L3/include) used for XRM
 
 
-Running *install.sh*
------------------------------------------------------------
-
-This is the script that automate the exporting of Graph Library functions into 
-custom TigerGraph GSQL functions. Make sure you download the xclbin file you 
-need during this process from [DBA lounge](https://www.xilinx.com/member/dba_poc.html) befor you start.
-
-
-.. code-block:: bash
-
-    1) Integrate Xilinx graph library to TigerGraph framework as UDF 
-    su - tigergraph
-    cd <lib dir>/plugin  
-    ./install.sh
-
-    2) check to make sure Alveo U50 is alive and working
-    xbutil query
-
-    3) Copy the xclbin file to <lib dir>/plugin. Make sure the xclbin is owned by
-    TigerGraph user
-
-    4) Move the xclbin file to TigerGraph install directory by
-    ./install-xclbin.sh
-
-    5) start XRM (Xilinx Resource Manager) daemon in a separate terminal  
-    sudo /opt/xilinx/xrm/tools/restart_xrmd.sh
-
-    6) run cosine similarity poc  
-    cd <vitis lib dir>/graph/plugin/tigergraph/tests/cosine_nbor_ss_dense_int
-    ./run.sh
-
-If it has ran sucessfully you should see the following log message:
-
-.. image:: /images/fig_run_tg.jpg
-    :scale: 60%
-    :align: center
-
-
-Benchmark Results
------------------------------------------------------------
-Update this section with the latest results using 10M patient data set.
-
-
 Next Step
 -----------------------------------------------------------
 
 If you want to create your own accelerator function to run on Alveo, please see
-the the next section [Vitis Development Flow](./vitis_dev_flow.md). <br/>
+the the next section.
 

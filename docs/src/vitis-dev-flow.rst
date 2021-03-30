@@ -81,16 +81,20 @@ Optimizing for Performance
 -----------------------------------------------------------
 The basic concepts of parallel programming applies to programming Alveo to get
 the optimum performance, such as:
-- Distribution of workload: how to best distribute the workload over the available 
+
+* Distribution of workload: how to best distribute the workload over the available 
   processing elements (we call them compute units - CU, or kernel), similar to ND 
   partitioning in OpenCL paradigm. Some algorithms works out better in this regard 
   than others. For cosine similarity computation, we can easily distribute the 
   workload over the available compute units.
-- What hits the fan first: identifying what is the limiting factor as we try to
+
+* What hits the fan first: identifying what is the limiting factor as we try to 
   increase the performance.  Is it data bandwidth or computation resources?
-- Data movement: how does the data flow among PCIe, DDR/FPGA, network interface, 
+
+* Data movement: how does the data flow among PCIe, DDR/FPGA, network interface, 
   FPGA to FPGA (in multiple FPGA case) and where is the bottleneck?
-- Kernel optimization: Once we figure out how data gets to the kernel, we need
+
+* Kernel optimization: Once we figure out how data gets to the kernel, we need
   the best kernel performance possible. This is where HLS tools (vitis_hls) comes 
   in. You can "guide" HLS by applying/embedding pragmas in the source codes 
   (C, C++ or OpenCL C). You can iterate - apply pragmas, synthesize, check out 
@@ -109,8 +113,8 @@ accelerator functions.
   and analyze results.
 
   .. image:: /images/fig_vitis101.jpg
-  :scale: 60%
-  :align: center
+      :scale: 60%
+      :align: center
 
 * `Examples <https://github.com/Xilinx/Vitis_Accel_Examples>`_
   Some times you just want to see an example that works rather than reading thru one
@@ -123,6 +127,6 @@ accelerator functions.
   functions that you can use to compile/build your own applications
 
   .. image:: /images/fig_library.jpg
-  :scale: 60%
-  :align: center
+      :scale: 60%
+      :align: center
 

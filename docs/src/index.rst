@@ -14,12 +14,12 @@
    limitations under the License.
 
 .. meta::
-   :keywords: Vitis, Database, Vitis Database Library, Alveo
-   :description: Vitis Database Library is an open-sourced Vitis library written in C++ for accelerating database applications in a variety of use cases.
+   :keywords: Vitis, Graph Database, Alveo
+   :description: Vitis Graph Database Analytics Library is an open-sourced 
+                 Vitis library written in C++ for accelerating database applications in a 
+                 variety of use cases.
    :xlnxdocumentclass: Document
    :xlnxdocumenttype: Tutorials
-
-.. include:: overview.rst
 
 .. toctree::
    :caption: Overview

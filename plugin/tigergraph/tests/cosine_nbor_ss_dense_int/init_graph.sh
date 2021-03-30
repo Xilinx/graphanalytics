@@ -43,7 +43,8 @@ careplans_infile="$data_root/careplans.csv"
 
 time gsql "$(cat schema_xgraph.gsql | sed "s/@graph/$xgraph/")"
 time gsql "$(cat load_xgraph.gsql | sed "s/@graph/$xgraph/")"
-time gsql -g $xgraph "RUN LOADING JOB load_xgraph USING \
+# set timeout of loading job to 1 hour
+time gsql -g $xgraph "SET QUERY_TIMEOUT=3600000 RUN LOADING JOB load_xgraph USING \
                         patients_infile=\"$patients_infile\", \
                         immunizations_infile=\"$immunizations_infile\", \
                         allergies_infile=\"$allergies_infile\", \

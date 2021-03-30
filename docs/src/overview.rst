@@ -1,5 +1,5 @@
 .. 
-   Copyright 2019-2020 Xilinx, Inc.
+   Copyright 2021 Xilinx, Inc.
   
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -13,11 +13,6 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 
-.. meta::
-   :keywords: Vitis, Database, Vitis Database Library, Alveo
-   :description: Vitis Database Library is an open-sourced Vitis library written in C++ for accelerating database applications in a variety of use cases.
-   :xlnxdocumentclass: Document
-   :xlnxdocumenttype: Tutorials
 
 .. _brief:
 
@@ -38,7 +33,7 @@ Health and medical professionals are required to make predictions for diagnosis 
 Xilinx Graph Analytics library optimized for `Alveo Adaptable Accelerator Cards <https://www.xilinx.com/products/boards-and-kits/alveo.html>`_ 
 has been demonstrated on `Synthea <https://synthetichealth.github.io/synthea/>`_ generated 
 patient data to greatly reduce that computational burden and provide predication results 
-for patients more rapidly. Synthea<sup>TM</sup> is an open-source, synthetic patient 
+for patients more rapidly. Synthea is an open-source, synthetic patient 
 generator that models the medical history of synthetic patients and provides high-quality, 
 synthetic, realistic but not real, patient data and associated health records covering 
 every aspect of healthcare. 

@@ -12,11 +12,11 @@ import random as rand
 import concurrent.futures as cf
 import time
 import threading as th
+import argparse
+
+
 
 # Setup
-hostName = "xsjfislx14"                             # TG server hostname
-userName = "sachink"                                # TG user name
-passWord = "Xilinx123"                              # TG user password
 initScript = "./init_graph.sh"                      # Initialization script: loads graphs, installs queries and caches SW and HW data
 dataLocation = "/proj/gdba/datasets/synthea"        # Location of synthea generated data
 scriptLocation = "../../cosine_nbor_ss_dense_int"   # Location of initialization script
@@ -37,11 +37,6 @@ extraK = 80                                         # Total of topK + extraK are
                                                     #   if mismatches occur for same patient for all Clients, try increasing this value and try again
 matchPrecision = 6                                  # Number of decimal points to compare SW and HW results up to
                                                     #   if set too low, more extraK padding might be needed to avoid false mismatches
-graphName = f'xgraph_{userName}_{populationSize}'   # TG graph name
-
-# connect to TG server
-conn = tg.TigerGraphConnection(host='http://' + hostName, graphname=graphName, username=userName, password=passWord)
-
 
 def getPatient(id):
     patientList = conn.getVerticesById('patients', id)
@@ -139,6 +134,24 @@ def repeatedQueries(thId):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+    global conn, userName, graphName   # TG graph name
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--host', dest='host', default='localhost',
+                        help='Specify the hostname of TigerGraph server')
+    parser.add_argument('--user', dest='user', default='tigergraph',
+                        help='Specify username on TigerGraph server')                        
+    args = parser.parse_args()
+
+    hostName = args.host
+    userName = args.user
+    passWord = "Xilinx123"                              # TG user password
+    graphName = f'xgraph_{userName}_{populationSize}'   # TG graph name
+
+    # connect to TG server
+    conn = tg.TigerGraphConnection(host='http://' + hostName, graphname=graphName, username=userName, password=passWord)
+
+
     print(f'Data size: Total {populationSize} Patients')
     # initialize the graph, load queries,
     # cache SW vectors in vertices and Load FPGA memories
