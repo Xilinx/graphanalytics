@@ -39,6 +39,7 @@ fi
 
 if [ "$load_fpga" -eq 1 ]; then
     echo "Run query load_cu_cosinesim_ss_fpga and load_graph_cosinesim_ss_fpga"
+    gsql -g $xgraph "run query cosinesim_set_num_devices($devices_needed)"
     time gsql -g $xgraph "run query load_cu_cosinesim_ss_fpga($devices_needed)"
     time gsql -g $xgraph "run query load_graph_cosinesim_ss_fpga($devices_needed)"
 fi

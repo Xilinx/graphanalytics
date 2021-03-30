@@ -39,10 +39,14 @@ function usage() {
 # script options processing
 xrtPath=/opt/xilinx/xrt
 xrmPath=/opt/xilinx/xrm
+
+cosineSimPath=$SCRIPTPATH/../cosinesim/staging
+# TODO: add option to switch between local sandbox and official installation
+
 force_clean=0
 xrt_profiling=0
 dev_mode=0
-use_tcmalloc=1
+use_tcmalloc=0
 
 while getopts ":r:m:dfghp" opt
 do
@@ -147,22 +151,40 @@ cp $tg_temp_root/QueryUdf/tgFunctions.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf
 cp $tg_temp_root/QueryUdf/graph.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
 cp $SCRIPTPATH/tigergraph/QueryUdf/core.cpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
 
+tg_xclbin_path=$tg_root_dir/dev/gdk/gsql/src/QueryUdf/xclbin/denseSimilarityKernel.xclbin
+cp $SCRIPTPATH/tigergraph/QueryUdf/xilinxRecomEngine.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+sed -i "s|TG_COSINESIM_XCLBIN|$tg_xclbin_path|" $tg_root_dir/dev/gdk/gsql/src/QueryUdf/xilinxRecomEngine.hpp
+
+cp $cosineSimPath/include/cosinesim.hpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+cp $cosineSimPath/src/cosinesim_loader.cpp $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+
+# Include files for TigerGraph to build the UDF library
 cp $tg_temp_root/QueryUdf/tgFunctions.hpp $tg_temp_root/gsql/codegen/udf
-cp $SCRIPTPATH/tigergraph/QueryUdf/loader.hpp $tg_temp_root/gsql/codegen/udf
-cp $tg_temp_root/QueryUdf/graph.hpp $tg_temp_root/gsql/codegen/udf
+##cp $SCRIPTPATH/tigergraph/QueryUdf/loader.hpp $tg_temp_root/gsql/codegen/udf
+#cp $tg_temp_root/QueryUdf/graph.hpp $tg_temp_root/gsql/codegen/udf
+cp $cosineSimPath/include/cosinesim.hpp $tg_temp_root/gsql/codegen/udf
 cp $SCRIPTPATH/tigergraph/QueryUdf/codevector.hpp $tg_temp_root/gsql/codegen/udf
+cp $cosineSimPath/src/cosinesim_loader.cpp $tg_temp_root/gsql/codegen/udf
+cp $SCRIPTPATH/tigergraph/QueryUdf/xilinxRecomEngine.hpp $tg_temp_root/gsql/codegen/udf
+sed -i "s|TG_COSINESIM_XCLBIN|$tg_xclbin_path|" $tg_temp_root/gsql/codegen/udf/xilinxRecomEngine.hpp
+
 
 cp $SCRIPTPATH/tigergraph/QueryUdf/*.json $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
 cp $tg_temp_root/QueryUdf/libgraphL3wrapper.so $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
-cp $tg_root_dir/dev/gdk/MakeUdf $tg_root_dir/dev/gdk/MakeUdf-$timestamp
-cp $SCRIPTPATH/tigergraph/MakeUdf $tg_root_dir/dev/gdk/
+cp $cosineSimPath/lib/libXilinxCosineSim.so $tg_root_dir/dev/gdk/gsql/src/QueryUdf/
+
+# Use default MakeUdf since we have no .o's to include
+# TODO: remove this after no branch is left that installs a custom MakeUdf
+cp $SCRIPTPATH/tigergraph/MakeUdf.orig $tg_root_dir/dev/gdk/MakeUdf
+## cp $tg_root_dir/dev/gdk/MakeUdf $tg_root_dir/dev/gdk/MakeUdf-$timestamp
+## cp $SCRIPTPATH/tigergraph/MakeUdf $tg_root_dir/dev/gdk/
 
 # update files with tg_root_dir
 for f in $tg_root_dir/dev/gdk/gsql/src/QueryUdf/*.json; do
     # use | as the demiliter since tg_root_dir has / in it
     sed -i "s|TG_ROOT_DIR|$tg_root_dir|" $f 
 done
-sed -i "s|TG_ROOT_DIR|$tg_root_dir|" $tg_root_dir/dev/gdk/MakeUdf 
+## sed -i "s|TG_ROOT_DIR|$tg_root_dir|" $tg_root_dir/dev/gdk/MakeUdf 
 
 if [ "$dev_mode" -eq 0 ]; then
     echo "INFO: Apply environment changes to TigerGraph installation"
@@ -172,7 +194,7 @@ if [ "$dev_mode" -eq 0 ]; then
         ld_preload="$tg_root_dir/dev/gdk/gsdk/include/thirdparty/prebuilt/dynamic_libs/gmalloc/tcmalloc/libtcmalloc.so"
     fi
 
-    ld_lib_path="$HOME/libstd:/opt/xilinx/xrt/lib:/opt/xilinx/xrm/lib:/usr/lib/x86_64-linux-gnu/"
+    ld_lib_path="$HOME/libstd:$tg_root_dir/dev/gdk/gsql/src/QueryUdf:/opt/xilinx/xrt/lib:/opt/xilinx/xrm/lib:/usr/lib/x86_64-linux-gnu/"
 
     if [ "$xrt_profiling" -eq 1 ]; then
         gpe_config="LD_PRELOAD=\$LD_PRELOAD:$ld_preload;LD_LIBRARY_PATH=$ld_lib_path:\$LD_LIBRARY_PATH;CPUPROFILE=/tmp/tg_cpu_profiler;CPUPROFILESIGNAL=12;MALLOC_CONF=prof:true,prof_active:false;XILINX_XRT=/opt/xilinx/xrt;XILINX_XRM=/opt/xilinx/xrm;XRT_INI_PATH=$PWD/../scripts/debug/xrt-profile.ini"
