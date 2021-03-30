@@ -38,7 +38,7 @@ namespace xai {
 typedef std::chrono::time_point<std::chrono::high_resolution_clock> t_time_point, *pt_time_point; 
 //extern t_time_point timer_start_time;
 
-static t_time_point &getTimerStartTime() {
+inline t_time_point &getTimerStartTime() {
     static t_time_point s_startTime;
     return s_startTime;
 }
@@ -53,9 +53,25 @@ const unsigned int startPropertyIndex = 3; // Start index of property in the
 //extern std::vector<uint64_t> IDMap;
 
 using Mutex = std::mutex;
-using Lock = std::lock_guard<Mutex>;
 
-static Mutex &getMutex() {
+//#define XILINX_RECOM_DEBUG_MUTEX
+
+#ifdef XILINX_RECOM_DEBUG_MUTEX
+struct Lock {
+    using RealLock = std::lock_guard<Mutex>;
+    RealLock lock_;
+    
+    Lock(Mutex &m) 
+    : lock_(m)
+    {
+        std::cout << "MUTEX: " << (void *) (&m) << std::endl;
+    }
+};
+#else
+using Lock = std::lock_guard<Mutex>;
+#endif
+
+inline Mutex &getMutex() {
     static Mutex *pMutex = nullptr;
     if (pMutex == nullptr)
         pMutex = new Mutex();
