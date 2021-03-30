@@ -188,22 +188,12 @@ inline int udf_load_graph_cosinesim_ss_fpga(int64_t numVertices,
     xai::Context::IdMap &idMap = pContext->getIdMap();
     idMap.clear();
     idMap.resize(numVectors, 0);
-    std::cout << "UDF after idMap resize: numVectors=" << numVectors << ", idMap.size=" << idMap.size() << std::endl;
-    std::cout << "UDF load point 1, idMap.size=" << idMap.size() << std::endl;
-    std::cout << "UDF load point 2, idMap.size=" << idMap.size() << std::endl;
     
     // Fill the FPGA(s) with vectors
     
     xai::CosineSim *pCosineSim = pContext->getCosineSimObj();
-    std::cout << "UDF pConsineSim=" << pCosineSim
-            << ", numVertices=" << numVertices
-            << ", numVectors=" << numVectors
-            << std::endl;
-    std::cout << "UDF load point 3, idMap.size=" << idMap.size() << std::endl;
 //    pCosineSim->openFpga();
     pCosineSim->startLoadPopulation(numVectors);
-    std::cout << "UDF after startLoadPopulation" << std::endl;
-    std::cout << "UDF load point 4, idMap.size=" << idMap.size() << std::endl;
     for (xilinx_apps::cosinesim::RowIndex vecNum = 0; vecNum < numVectors; ++vecNum) {
         const ListAccum<int64_t> &curRowVec = oldVectors.get(vecNum);
         xilinx_apps::cosinesim::RowIndex rowIndex = 0;
@@ -212,15 +202,9 @@ inline int udf_load_graph_cosinesim_ss_fpga(int64_t numVertices,
             *pBuf++ = xai::CosineSim::ValueType(curRowVec.get(eltNum + 3));
         pCosineSim->finishCurrentPopulationVector(pBuf);
         uint64_t vertexId = ((curRowVec.get(2) << 32) & 0xFFFFFFF00000000) | (curRowVec.get(1) & 0x00000000FFFFFFFF);
-        std::cout << "UDF load loop: rowIndex=" << rowIndex << ", vertexId=" << vertexId << "idMap.size:before="
-                << idMap.size();
         idMap[rowIndex] = vertexId;
-        std::cout << ", idMap.size:after=" << idMap.size() << std::endl;
     }
-    std::cout << "UDF before finishLoadPopulationVectors, idMap.size=" << idMap.size() << std::endl;
     pCosineSim->finishLoadPopulationVectors();
-    std::cout << "UDF after finishLoadPopulationVectors, idMap.size=" << idMap.size()
-            << ", idMap=" << (void *)(&idMap) << std::endl;
     pContext->setInitialized();  // FPGA(s) now ready to match
     return 0;
 }
@@ -234,14 +218,11 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
 {
     xai::Lock lock(xai::getMutex());
     ListAccum<testResults> result;
-    std::cout << "UDF start match" << std::endl;
     xai::Context *pContext = xai::Context::getInstance();
 
     if (!pContext->isInitialized())
         return result;
-    std::cout << "UDF after isInitialized" << std::endl;
     xai::Context::IdMap &idMap = pContext->getIdMap();
-    std::cout << "UDF match idMap.size=" << idMap.size() << ", idMap=" << (void *)(&idMap) << std::endl;
 
 //    std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
 //            << " numVertices=" << numVertices << ", general=" << general 
@@ -311,10 +292,7 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
 #endif
     //-------------------------------------------------------------------------
 
-    std::cout << "UDF results size=" << apiResults.size() << std::endl;
-    std::cout << "UDF idMap size=" << idMap.size() << std::endl;
     for (xilinx_apps::cosinesim::Result &apiResult : apiResults) {
-        std::cout << "UDF apiResult.index=" << apiResult.index << std::endl;
         if (apiResult.index < 0 || apiResult.index >= xilinx_apps::cosinesim::RowIndex(idMap.size()))
             continue;
         result += testResults(VERTEX(idMap[apiResult.index]), apiResult.similarity);
