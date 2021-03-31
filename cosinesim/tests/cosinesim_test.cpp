@@ -106,7 +106,7 @@ int main(int argc, char **argv) {
             *p++ = value;
             
             // If we've reached the index we've chosen as the test vector, save the test vector values
-            if (vecNum == testVectorIndex)
+            if ((int)vecNum == testVectorIndex)
                 testVector.push_back(value);
         }
         cosineSim.finishCurrentPopulationVector(pBuf);

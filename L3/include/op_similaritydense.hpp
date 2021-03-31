@@ -57,7 +57,7 @@ class opSimilarityDense : public opBase {
 
     void loadGraphMultiCardNonBlocking(int deviceID, int cuID, xf::graph::Graph<int32_t, int32_t> g);
 
-    void loadGraphMultiCardBlocking(int deviceID, int cuID, xf::graph::Graph<int32_t, int32_t> g);
+    void loadGraphMultiCardBlocking(unsigned int deviceID, unsigned int cuID, xf::graph::Graph<int32_t, int32_t> g);
 
     static int compute(unsigned int deviceID,
                        unsigned int cuID,

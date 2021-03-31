@@ -14,11 +14,6 @@
  * limitations under the License.
 */
 
-#pragma once
-
-#ifndef _XF_GRAPH_L3_OP_CONVERTCSRCSC_CPP_
-#define _XF_GRAPH_L3_OP_CONVERTCSRCSC_CPP_
-
 #include "op_convertcsrcsc.hpp"
 
 namespace xf {
@@ -52,7 +47,7 @@ void opConvertCsrCsc::setHWInfo(uint32_t numDev, uint32_t CUmax) {
 };
 
 void opConvertCsrCsc::freeConvertCsrCsc() {
-    for (int i = 0; i < maxCU; ++i) {
+    for (uint32_t i = 0; i < maxCU; ++i) {
         delete[] handles[i].buffer;
     }
     delete[] handles;
@@ -70,7 +65,7 @@ void opConvertCsrCsc::init(
     cuPerBoardConvertCsrCsc /= dupNmConvertCsrCsc;
     uint32_t bufferNm = 6;
     unsigned int cnt = 0;
-    unsigned int cntCU = 0;
+    //unsigned int cntCU = 0;
     unsigned int* handleID = new unsigned int[maxCU];
     handleID[0] = cnt;
     handles[0].deviceID = deviceIDs[0];
@@ -81,9 +76,9 @@ void opConvertCsrCsc::init(
     createHandleConvertCsrCsc(handles[cnt], kernelName, xclbinFile, deviceIDs[cnt]);
     handles[cnt].buffer = new cl::Buffer[bufferNm];
     unsigned int prev = deviceIDs[0];
-    unsigned int prevCU = cuIDs[0];
+    //unsigned int prevCU = cuIDs[0];
     deviceOffset.push_back(0);
-    for (int i = 1; i < maxCU; ++i) {
+    for (uint32_t i = 1; i < maxCU; ++i) {
         handles[i].deviceID = deviceIDs[i];
         handles[i].cuID = cuIDs[i];
         handles[i].dupID = i % dupNmConvertCsrCsc;
@@ -104,7 +99,7 @@ void opConvertCsrCsc::migrateMemObj(clHandle* hds,
                                     std::vector<cl::Memory>& ob,
                                     std::vector<cl::Event>* evIn,
                                     cl::Event* evOut) {
-    for (int i = 0; i < num_runs; ++i) {
+    for (unsigned int i = 0; i < num_runs; ++i) {
         hds[0].q.enqueueMigrateMemObjects(ob, type, evIn, evOut); // 0 : migrate from host to dev
     }
 };
@@ -139,8 +134,8 @@ void opConvertCsrCsc::bufferInit(clHandle* hds,
     mext_in[4] = {(unsigned int)(6) | XCL_MEM_TOPOLOGY, degree, kernel0()};
     mext_in[5] = {(unsigned int)(7) | XCL_MEM_TOPOLOGY, offsetsCSC2, kernel0()};
 
-    uint32_t numVertices = g.nodeNum;
-    uint32_t numEdges = g.edgeNum;
+    //uint32_t numVertices = g.nodeNum;
+    //uint32_t numEdges = g.edgeNum;
     // create device buffer and map dev buf to host buf
     uint32_t V = 16 * 800000;
     uint32_t E = 16 * 800000;
@@ -180,7 +175,7 @@ void opConvertCsrCsc::bufferInit(clHandle* hds,
 
 int opConvertCsrCsc::cuExecute(
     clHandle* hds, cl::Kernel& kernel0, unsigned int num_runs, std::vector<cl::Event>* evIn, cl::Event* evOut) {
-    for (int i = 0; i < num_runs; ++i) {
+    for (unsigned int i = 0; i < num_runs; ++i) {
         hds[0].q.enqueueTask(kernel0, evIn, evOut);
     }
     return 0;
@@ -203,7 +198,7 @@ int opConvertCsrCsc::compute(unsigned int deviceID,
 
     unsigned int num_runs = 1;
     uint32_t maxVertices = 16 * 800000;
-    uint32_t maxEdges = 16 * 800000;
+    //uint32_t maxEdges = 16 * 800000;
 
     uint32_t* offsetsCSC2 = aligned_alloc<uint32_t>(maxVertices);
     uint32_t* degree = aligned_alloc<uint32_t>(maxVertices);
@@ -237,4 +232,3 @@ event<int> opConvertCsrCsc::addwork(xf::graph::Graph<uint32_t, uint32_t> g, xf::
 } // L3
 } // graph
 } // xf
-#endif

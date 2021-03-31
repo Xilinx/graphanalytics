@@ -14,10 +14,6 @@
  * limitations under the License.
 */
 
-#pragma once
-
-#ifndef _XF_GRAPH_L3_OP_PAGERANK_CPP_
-#define _XF_GRAPH_L3_OP_PAGERANK_CPP_
 
 #include "op_pagerank.hpp"
 
@@ -52,7 +48,7 @@ void opPageRank::setHWInfo(uint32_t numDev, uint32_t CUmax) {
 };
 
 void opPageRank::freePG() {
-    for (int i = 0; i < maxCU; ++i) {
+    for (uint32_t i = 0; i < maxCU; ++i) {
         delete[] handles[i].buffer;
     }
     delete[] handles;
@@ -70,7 +66,7 @@ void opPageRank::init(
     cuPerBoardPG /= dupNmPG;
     uint32_t bufferNm = 9;
     unsigned int cnt = 0;
-    unsigned int cntCU = 0;
+    //unsigned int cntCU = 0;
     unsigned int* handleID = new unsigned int[maxCU];
     handleID[0] = cnt;
     std::thread th[maxCU];
@@ -78,12 +74,12 @@ void opPageRank::init(
     createHandlePG(handles[cnt], kernelName, xclbinFile, deviceIDs[cnt]);
     handles[cnt].buffer = new cl::Buffer[bufferNm];
     unsigned int prev = deviceIDs[0];
-    unsigned int prevCU = cuIDs[0];
+    //unsigned int prevCU = cuIDs[0];
     deviceOffset.push_back(0);
     handles[0].deviceID = deviceIDs[0];
     handles[0].cuID = cuIDs[0];
     handles[0].dupID = 0 % dupNmPG;
-    for (int i = 1; i < maxCU; ++i) {
+    for (uint32_t i = 1; i < maxCU; ++i) {
         handles[i].deviceID = deviceIDs[i];
         handles[i].cuID = cuIDs[i];
         handles[i].dupID = i % dupNmPG;
@@ -107,7 +103,7 @@ void opPageRank::migrateMemObj(clHandle* hds,
                                std::vector<cl::Memory>& ob,
                                std::vector<cl::Event>* evIn,
                                cl::Event* evOut) {
-    for (int i = 0; i < num_runs; ++i) {
+    for (unsigned int i = 0; i < num_runs; ++i) {
         hds[0].q.enqueueMigrateMemObjects(ob, type, evIn, evOut); // 0 : migrate from host to dev
     }
 };
@@ -171,7 +167,7 @@ void opPageRank::loadGraph(xf::graph::Graph<uint32_t, float> g) {
     std::thread* th = new std::thread[maxCU];
     std::future<void>* fut = new std::future<void>[ maxCU ];
     int cnt = 0;
-    for (int j = 0; j < maxCU; ++j) {
+    for (unsigned int j = 0; j < maxCU; ++j) {
         if ((handles[j].cuID == 0) && (handles[j].dupID == 0)) {
             cnt = j;
             std::packaged_task<void(clHandle*, int, int, xf::graph::Graph<uint32_t, float>)> t(loadGraphCorePG);
@@ -181,7 +177,7 @@ void opPageRank::loadGraph(xf::graph::Graph<uint32_t, float> g) {
         freed[j] = 0;
     }
     cnt = 0;
-    for (int j = 0; j < maxCU; ++j) {
+    for (uint32_t j = 0; j < maxCU; ++j) {
         if (!((handles[j].cuID == 0) && (handles[j].dupID == 0))) {
             if (freed[cnt] == 0) {
                 fut[cnt].get();
@@ -195,7 +191,7 @@ void opPageRank::loadGraph(xf::graph::Graph<uint32_t, float> g) {
             cnt = j;
         }
     }
-    for (int j = 0; j < maxCU; ++j) {
+    for (uint32_t j = 0; j < maxCU; ++j) {
         if ((handles[j].cuID == 0) && (handles[j].dupID == 0)) {
             if (freed[j] == 0) {
                 fut[j].get();
@@ -321,7 +317,7 @@ void opPageRank::bufferInit(clHandle* hds,
 
 int opPageRank::cuExecute(
     clHandle* hds, cl::Kernel& kernel0, unsigned int num_runs, std::vector<cl::Event>* evIn, cl::Event* evOut) {
-    for (int i = 0; i < num_runs; ++i) {
+    for (unsigned int i = 0; i < num_runs; ++i) {
         hds[0].q.enqueueTask(kernel0, evIn, evOut);
     }
     return 0;
@@ -329,13 +325,13 @@ int opPageRank::cuExecute(
 
 void opPageRank::postProcess(int nrows, int* resultInfo, uint32_t* buffPing, uint32_t* buffPong, float* pagerank) {
     bool resultinPong = (bool)(*resultInfo);
-    int iterations = (int)(*(resultInfo + 1));
+    //int iterations = (int)(*(resultInfo + 1));
     int unrollNm2 = (sizeof(float) == 4) ? 16 : 8;
     int iteration2 = ((nrows + unrollNm2 - 1) / unrollNm2) * unrollNm2;
 
     int cnt = 0;
     const int sizeT = sizeof(float);
-    const int widthT = sizeof(float) * 8;
+    //const int widthT = sizeof(float) * 8;
     for (int i = 0; i < iteration2; ++i) {
         f_cast<float> tt;
         uint32_t tmp11 = resultinPong ? buffPong[i] : buffPing[i]; // pagerank1[i];
@@ -377,7 +373,7 @@ int opPageRank::compute(unsigned int deviceID,
     uint32_t* degreeCSR;
     uint32_t* orderUnroll;
 
-    int nnz = g.edgeNum;
+    //int nnz = g.edgeNum;
 
     int unrollNm2 = (sizeof(float) == 4) ? 16 : 8;
     int iteration2 = ((nrows + unrollNm2 - 1) / unrollNm2) * unrollNm2;
@@ -433,4 +429,3 @@ event<int> opPageRank::addwork(
 } // L3
 } // graph
 } // xf
-#endif

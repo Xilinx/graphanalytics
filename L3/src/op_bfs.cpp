@@ -14,10 +14,6 @@
  * limitations under the License.
 */
 
-#pragma once
-
-#ifndef _XF_GRAPH_L3_OP_BFS_CPP_
-#define _XF_GRAPH_L3_OP_BFS_CPP_
 
 #include "op_bfs.hpp"
 
@@ -52,7 +48,7 @@ void opBFS::setHWInfo(uint32_t numDev, uint32_t CUmax) {
 };
 
 void opBFS::freeBFS() {
-    for (int i = 0; i < maxCU; ++i) {
+    for (uint32_t i = 0; i < maxCU; ++i) {
         delete[] handles[i].buffer;
     }
     delete[] handles;
@@ -69,7 +65,7 @@ void opBFS::init(char* kernelName, char* xclbinFile, uint32_t* deviceIDs, uint32
     cuPerBoardBFS /= dupNmBFS;
     uint32_t bufferNm = 7;
     unsigned int cnt = 0;
-    unsigned int cntCU = 0;
+    //unsigned int cntCU = 0;
     unsigned int* handleID = new unsigned int[maxCU];
     handleID[0] = cnt;
     handles[0].deviceID = deviceIDs[0];
@@ -79,9 +75,9 @@ void opBFS::init(char* kernelName, char* xclbinFile, uint32_t* deviceIDs, uint32
     createHandleBFS(handles[cnt], kernelName, xclbinFile, deviceIDs[cnt]);
     handles[cnt].buffer = new cl::Buffer[bufferNm];
     unsigned int prev = deviceIDs[0];
-    unsigned int prevCU = cuIDs[0];
+    //unsigned int prevCU = cuIDs[0];
     deviceOffset.push_back(0);
-    for (int i = 1; i < maxCU; ++i) {
+    for (uint32_t i = 1; i < maxCU; ++i) {
         handles[i].deviceID = deviceIDs[i];
         handles[i].cuID = cuIDs[i];
         handles[i].dupID = i % dupNmBFS;
@@ -102,7 +98,7 @@ void opBFS::migrateMemObj(clHandle* hds,
                           std::vector<cl::Memory>& ob,
                           std::vector<cl::Event>* evIn,
                           cl::Event* evOut) {
-    for (int i = 0; i < num_runs; ++i) {
+    for (unsigned int i = 0; i < num_runs; ++i) {
         hds[0].q.enqueueMigrateMemObjects(ob, type, evIn, evOut); // 0 : migrate from host to dev
     }
 };
@@ -186,7 +182,7 @@ void opBFS::bufferInit(clHandle* hds,
 
 int opBFS::cuExecute(
     clHandle* hds, cl::Kernel& kernel0, unsigned int num_runs, std::vector<cl::Event>* evIn, cl::Event* evOut) {
-    for (int i = 0; i < num_runs; ++i) {
+    for (unsigned int i = 0; i < num_runs; ++i) {
         hds[0].q.enqueueTask(kernel0, evIn, evOut);
     }
     return 0;
@@ -248,4 +244,3 @@ event<int> opBFS::addwork(uint32_t sourceID,
 } // L3
 } // graph
 } // xf
-#endif

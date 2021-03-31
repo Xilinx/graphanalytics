@@ -282,7 +282,7 @@ public:
                 1, 0, sourceNUM, sourceWeights, topK, g[i][0], resultID0[i], similarity0[i]));
         }
         int ret = 0;
-        for (int i = 0; i < eventQueue.size(); ++i) {
+        for (unsigned int i = 0; i < eventQueue.size(); ++i) {
             ret += eventQueue[i].wait();
         }
         for (int i = 0; i < topK; ++i) {
@@ -493,7 +493,7 @@ void PrivateImpl::load_graph_cosinesim_ss_dense_fpga(
     std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
 
     //---------------- Run Load Graph -----------------------------------
-    for (int i = 0; i < deviceNeeded * cuNm; ++i) {
+    for (uint32_t i = 0; i < deviceNeeded * cuNm; ++i) {
         (handle0->opsimdense)->loadGraphMultiCardNonBlocking(i / cuNm, i % cuNm, graph[i][0]);
     }
 
@@ -558,7 +558,7 @@ void PrivateImpl::cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
 
     int ret = 0;
     for (int m = 0; m < requestNm; ++m) {
-        for (int i = 0; i < eventQueue[m].size(); ++i) {
+        for (unsigned int i = 0; i < eventQueue[m].size(); ++i) {
             ret += eventQueue[m][i].wait();
         }
     }

@@ -80,7 +80,7 @@ extern "C" int load_graph_cosinesim_ss_dense_fpga_wrapper(uint32_t deviceNeeded,
     //----------------- Text Parser --------------------------
     std::string opName;
     std::string kernelName;
-    int requestLoad;
+    int requestLoad = 100;
     std::string xclbinPath;
 
     std::string basePath = TIGERGRAPH_PATH;
@@ -144,14 +144,14 @@ extern "C" int load_graph_cosinesim_ss_dense_fpga_wrapper(uint32_t deviceNeeded,
     //------------------------
     
     //---------------- Run Load Graph -----------------------------------
-    for (int i = 0; i < deviceNeeded * cuNm; ++i) {
+    for (uint32_t i = 0; i < deviceNeeded * cuNm; ++i) {
         std::cout << "DEBUG: loadGraphMultiCardNonBlocking " << i << std::endl;
         (handle0->opsimdense)->loadGraphMultiCardNonBlocking(i / cuNm, i % cuNm, g[i][0]);
     }
 
     //--------------- Free and delete -----------------------------------
 
-    for (int i = 0; i < deviceNeeded * cuNm; ++i) {
+    for (uint32_t i = 0; i < deviceNeeded * cuNm; ++i) {
         g[i]->freeBuffers();
         delete[] g[i]->numEdgesPU;
         delete[] g[i]->numVerticesPU;
@@ -208,7 +208,7 @@ extern "C" void cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
 
     int ret = 0;
     for (int m = 0; m < requestNm; ++m) {
-        for (int i = 0; i < eventQueue[m].size(); ++i) {
+        for (unsigned int i = 0; i < eventQueue[m].size(); ++i) {
             ret += eventQueue[m][i].wait();
         }
     }
@@ -290,14 +290,14 @@ inline int udf_load_graph_cosinesim_ss_fpga(int64_t numVertices,
     int32_t** numVerticesPU = new int32_t*[devicesNeeded * cuNm]; // vertex numbers in each PU
     int32_t** numEdgesPU = new int32_t*[devicesNeeded * cuNm];    // edge numbers in each PU
 
-    int tmpID[devicesNeeded * cuNm * channelsPU * splitNm];
+    //int tmpID[devicesNeeded * cuNm * channelsPU * splitNm];
     for (int i = 0; i < devicesNeeded * cuNm; ++i) {
         numVerticesPU[i] = new int32_t[splitNm];
         numEdgesPU[i] = new int32_t[splitNm];
         for (int j = 0; j < splitNm; ++j) {
             numEdgesPU[i][j] = numEdges;
             for (int k = 0; k < channelsPU; ++k) {
-                tmpID[i * splitNm * channelsPU + j * channelsPU + k] = 0;
+                //tmpID[i * splitNm * channelsPU + j * channelsPU + k] = 0;
             }
         }
     }
@@ -401,14 +401,14 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     int32_t** numVerticesPU = new int32_t*[devicesNeeded * cuNm]; // vertex numbers in each PU
     int32_t** numEdgesPU = new int32_t*[devicesNeeded * cuNm];    // edge numbers in each PU
 
-    int tmpID[devicesNeeded * cuNm * channelsPU * splitNm];
+    //int tmpID[devicesNeeded * cuNm * channelsPU * splitNm];
     for (int i = 0; i < devicesNeeded * cuNm; ++i) {
         numVerticesPU[i] = new int32_t[splitNm];
         numEdgesPU[i] = new int32_t[splitNm];
         for (int j = 0; j < splitNm; ++j) {
             numEdgesPU[i][j] = numEdges;
             for (int k = 0; k < channelsPU; ++k) {
-                tmpID[i * splitNm * channelsPU + j * channelsPU + k] = 0;
+                //tmpID[i * splitNm * channelsPU + j * channelsPU + k] = 0;
             }
         }
     }
@@ -442,7 +442,7 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     int32_t* sourceWeight =
         xf::graph::internal::aligned_alloc<int32_t>(sourceLen); // weights of source vertex's out members
     int32_t newVecLen = newVector.size() - 3;
-    for (int i = 0; i < sourceLen; i++) {
+    for (int i = 0; i < (int)sourceLen; i++) {
         if (i < newVecLen) {
             sourceWeight[i] = newVector.get(i + 3);
         } else {

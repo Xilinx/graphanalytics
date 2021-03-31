@@ -48,7 +48,7 @@ void createHandleSimDense(class openXRM* xrm, clHandle& handle,
               << " kernelName=" << kernelName << " kernelAlias=" << kernelAlias 
               << std::endl;
 
-    xrmCuResource* resR;
+    //xrmCuResource* resR;
     handle.resR = (xrmCuResource*)malloc(sizeof(xrmCuResource));
     memset(handle.resR, 0, sizeof(xrmCuResource));
     xrm->allocCU(handle.resR, kernelName.c_str(), kernelAlias.c_str(), requestLoad);
@@ -196,7 +196,7 @@ void loadGraphCoreSimDense(clHandle* hds, int nrows, int nnz, xf::graph::Graph<u
     uint32_t CHANNEL_NUMBER = 8;
     // declare map of host buffers
     std::vector<cl_mem_ext_ptr_t> mext_o(4 * splitNm);
-    for (int i = 0; i < splitNm; i++) {
+    for (uint32_t i = 0; i < splitNm; i++) {
         mext_o[4 * i + 0] = {(uint32_t)(8 * i) | XCL_MEM_TOPOLOGY, g.weightsDense[4 * i], 0};
         mext_o[4 * i + 1] = {(uint32_t)(8 * i + 1) | XCL_MEM_TOPOLOGY, g.weightsDense[4 * i + 1], 0};
         mext_o[4 * i + 2] = {(uint32_t)(8 * i + 2) | XCL_MEM_TOPOLOGY, g.weightsDense[4 * i + 2], 0};
@@ -204,7 +204,7 @@ void loadGraphCoreSimDense(clHandle* hds, int nrows, int nnz, xf::graph::Graph<u
     }
 
     // declare cl::buffers
-    for (int i = 0; i < 4 * splitNm; i++) {
+    for (uint32_t i = 0; i < 4 * splitNm; i++) {
         int sizeW = g.numVerticesPU[i / 4] * g.edgeNum;
         hds[0].buffer[2 + i] = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
                                           sizeof(uint32_t) * (sizeW + CHANNEL_NUMBER), &mext_o[i]);
@@ -213,7 +213,7 @@ void loadGraphCoreSimDense(clHandle* hds, int nrows, int nnz, xf::graph::Graph<u
     // add buffers to migrate
     std::vector<cl::Memory> init;
     std::vector<cl::Memory> ob_in;
-    for (int i = 0; i < 4 * splitNm; i++) {
+    for (uint32_t i = 0; i < 4 * splitNm; i++) {
         init.push_back(hds[0].buffer[2 + i]);
         ob_in.push_back(hds[0].buffer[2 + i]);
     }
@@ -333,7 +333,7 @@ void opSimilarityDense::loadGraph(xf::graph::Graph<uint32_t, float> g) {
     delete[] fut;
 };
 
-void opSimilarityDense::loadGraphMultiCardBlocking(int deviceID, int cuID, xf::graph::Graph<int32_t, int32_t> g) {
+void opSimilarityDense::loadGraphMultiCardBlocking(unsigned int deviceID, unsigned int cuID, xf::graph::Graph<int32_t, int32_t> g) {
     int nnz = g.edgeNum;
     int nrows = g.nodeNum;
     int cnt = 0;
@@ -445,7 +445,7 @@ void opSimilarityDense::bufferInit(clHandle* hds,
     uint32_t CHANNEL_NUMBER = 8;
     uint32_t startID[splitNm];
     uint32_t tmp = 0;
-    for (int i = 0; i < splitNm - 1; i++) { // calculate multi PU start address
+    for (uint32_t i = 0; i < splitNm - 1; i++) { // calculate multi PU start address
         startID[i] = tmp;
         tmp += 4 * g.numVerticesPU[i];
     }
@@ -455,7 +455,7 @@ void opSimilarityDense::bufferInit(clHandle* hds,
     config[2] = similarityType;
     config[3] = dataType;
 
-    for (int j = 0; j < splitNm; j++) {
+    for (uint32_t j = 0; j < splitNm; j++) {
         config[4 + j] = startID[j];
         config[4 + splitNm + j] = g.numVerticesPU[j];
         config[4 + 2 * splitNm + j] = g.numEdgesPU[j];
@@ -495,7 +495,7 @@ void opSimilarityDense::bufferInit(clHandle* hds,
     // set kernel args
     kernel0.setArg(0, hds[0].buffer[0]); // config
     kernel0.setArg(1, hds[0].buffer[1]); // source weight
-    for (int k = 0; k < 4 * splitNm; k++) {
+    for (uint32_t k = 0; k < 4 * splitNm; k++) {
         kernel0.setArg(2 + k, hds[0].buffer[2 + k]); // weights
     }
     kernel0.setArg(18, hds[0].buffer[18]); // resultID

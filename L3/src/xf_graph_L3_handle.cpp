@@ -14,11 +14,6 @@
  * limitations under the License.
 */
 
-#pragma once
-
-#ifndef _XF_GRAPH_L3_HANDLE_CPP_
-#define _XF_GRAPH_L3_HANDLE_CPP_
-
 #include "xf_graph_L3_handle.hpp"
 
 namespace xf {
@@ -221,7 +216,7 @@ int Handle::setUp() {
     unsigned int deviceCounter = 0;
     int32_t status = 0;
 
-    for (int i = 0; i < opNm; ++i) {
+    for (unsigned int i = 0; i < opNm; ++i) {
         if (ops[i].operationName == "pagerank") {
             /*unsigned int boardNm = ops[i].deviceNeeded;
             if (deviceCounter + boardNm > numDevices) {
@@ -280,25 +275,25 @@ int Handle::setUp() {
                 return XF_GRAPH_L3_ERROR_NOT_ENOUGH_DEVICES;
             }
             std::thread thUn[boardNm];
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
 #ifdef __DEBUG__
                 std::cout << __FUNCTION__ << ": xrm->unloadXclbinNonBlock " 
                           << deviceCounter + j << std::endl;
 #endif
                 thUn[j] = xrm->unloadXclbinNonBlock(deviceCounter + j);
             }
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
                 thUn[j].join();
             }
             std::future<int> th[boardNm];
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
 #ifdef __DEBUG__
                 std::cout << __FUNCTION__ << ": xrm->loadXclbinAsync " 
                           << deviceCounter + j << std::endl;
 #endif
                 th[j] = loadXclbinAsync(deviceCounter + j, ops[i].xclbinFile);
             }
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
                 auto loadedDevId = th[j].get();
                 if (loadedDevId < 0) {
                         std::cout << "ERROR: failed to load " << ops[i].xclbinFile << 
@@ -508,7 +503,7 @@ int Handle::setUp() {
 }
 
 void Handle::getEnv() {
-    cl_uint platformID = NULL;
+    cl_uint platformID = 0;
     cl_platform_id* platforms = NULL;
     char vendor_name[128] = {0};
     cl_uint num_platforms = 0;
@@ -539,7 +534,7 @@ void Handle::getEnv() {
     err2 = clGetDeviceIDs(platforms[platformID], CL_DEVICE_TYPE_ALL, numDevices, devices, NULL);
     size_t valueSize;
     char* value;
-    for (int i = 0; i < numDevices; ++i) {
+    for (uint32_t i = 0; i < numDevices; ++i) {
         // print device name
         clGetDeviceInfo(devices[i], CL_DEVICE_NAME, 0, NULL, &valueSize);
         value = new char[valueSize];
@@ -552,7 +547,7 @@ void Handle::getEnv() {
 
 void Handle::debug() {
     unsigned int opNm = ops.size();
-    for (int i = 0; i < opNm; ++i) {
+    for (unsigned int i = 0; i < opNm; ++i) {
         std::cout << "INFO: Handle::debug opNm=" << opNm << 
             " operationName=" << ops[i].operationName << 
             " kernelname=" << ops[i].kernelName << 
@@ -565,14 +560,14 @@ void Handle::debug() {
 void Handle::free() {
     unsigned int opNm = ops.size();
     unsigned int deviceCounter = 0;
-    for (int i = 0; i < opNm; ++i) {
+    for (unsigned int i = 0; i < opNm; ++i) {
         if (ops[i].operationName == "pagerank") {
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
                 thUn[j] = xrm->unloadXclbinNonBlock(deviceCounter + j);
             }
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
                 thUn[j].join();
             }
             deviceCounter += boardNm;
@@ -580,10 +575,10 @@ void Handle::free() {
         } else if (ops[i].operationName == "shortestPathFloat") {
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
                 thUn[j] = xrm->unloadXclbinNonBlock(deviceCounter + j);
             }
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
                 thUn[j].join();
             }
             deviceCounter += boardNm;
@@ -593,20 +588,20 @@ void Handle::free() {
             opsimdense->freeSimDense(xrm->ctx);            
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
                 thUn[j] = xrm->unloadXclbinNonBlock(deviceCounter + j);
             }
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
                 thUn[j].join();
             }
             deviceCounter += boardNm;
         } else if (ops[i].operationName == "similarityDenseInt") {
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
                 thUn[j] = xrm->unloadXclbinNonBlock(deviceCounter + j);
             }
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
                 thUn[j].join();
             }
             deviceCounter += boardNm;
@@ -615,10 +610,10 @@ void Handle::free() {
         } else if (ops[i].operationName == "similaritySparse") {
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
                 thUn[j] = xrm->unloadXclbinNonBlock(deviceCounter + j);
             }
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
                 thUn[j].join();
             }
             deviceCounter += boardNm;
@@ -626,10 +621,10 @@ void Handle::free() {
         } else if (ops[i].operationName == "triangleCount") {
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
                 thUn[j] = xrm->unloadXclbinNonBlock(deviceCounter + j);
             }
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
                 thUn[j].join();
             }
             deviceCounter += boardNm;
@@ -637,10 +632,10 @@ void Handle::free() {
         } else if (ops[i].operationName == "labelPropagation") {
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
                 thUn[j] = xrm->unloadXclbinNonBlock(deviceCounter + j);
             }
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
                 thUn[j].join();
             }
             deviceCounter += boardNm;
@@ -648,10 +643,10 @@ void Handle::free() {
         } else if (ops[i].operationName == "BFS") {
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
                 thUn[j] = xrm->unloadXclbinNonBlock(deviceCounter + j);
             }
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
                 thUn[j].join();
             }
             deviceCounter += boardNm;
@@ -659,10 +654,10 @@ void Handle::free() {
         } else if (ops[i].operationName == "WCC") {
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
                 thUn[j] = xrm->unloadXclbinNonBlock(deviceCounter + j);
             }
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
                 thUn[j].join();
             }
             deviceCounter += boardNm;
@@ -670,10 +665,10 @@ void Handle::free() {
         } else if (ops[i].operationName == "SCC") {
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
                 thUn[j] = xrm->unloadXclbinNonBlock(deviceCounter + j);
             }
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
                 thUn[j].join();
             }
             deviceCounter += boardNm;
@@ -681,10 +676,10 @@ void Handle::free() {
         } else if (ops[i].operationName == "convertCsrCsc") {
             unsigned int boardNm = ops[i].deviceNeeded;
             std::thread thUn[boardNm];
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
                 thUn[j] = xrm->unloadXclbinNonBlock(deviceCounter + j);
             }
-            for (int j = 0; j < boardNm; ++j) {
+            for (unsigned int j = 0; j < boardNm; ++j) {
                 thUn[j].join();
             }
             deviceCounter += boardNm;
@@ -710,4 +705,3 @@ std::future<int> Handle::loadXclbinAsync(unsigned int deviceId, char* xclbinName
 } // L3
 } // graph
 } // xf
-#endif

@@ -141,7 +141,7 @@ class openXRM {
         // uint64_t interval = 0; // to use the XRM default interval
         uint64_t interval = 4000; // to use the XRM default interval
 
-        int ret = xrmCuGroupBlockingAlloc(ctx, &cuGroupProp, interval, resR);
+        xrmCuGroupBlockingAlloc(ctx, &cuGroupProp, interval, resR);
     }
 
     xrmCuListResource allocMultiCU(
@@ -588,7 +588,7 @@ inline void worker2(queue& q,
         }
 
         for (int i = 0; i < 1; ++i) {
-            for (int j = 0; j < cuNm * deviceNm; ++j) {
+            for (unsigned int j = 0; j < cuNm * deviceNm; ++j) {
                 cuRes[j + i * cuNm] = &(resR[requestCnt % iteration][i]->cuResources[j]);
                 unsigned int deviceID = cuRes[j + i * cuNm]->deviceId;
                 unsigned int cuID = cuRes[j + i * cuNm]->cuId;

@@ -14,12 +14,8 @@
  * limitations under the License.
 */
 
-#pragma once
-
-#ifndef _XF_GRAPH_L3_OP_SIMILARITYSPARSE_CPP_
-#define _XF_GRAPH_L3_OP_SIMILARITYSPARSE_CPP_
-
 #include "op_similaritysparse.hpp"
+
 #include <unordered_map>
 
 namespace xf {
@@ -54,7 +50,7 @@ void opSimilaritySparse::setHWInfo(uint32_t numDev, uint32_t CUmax) {
 
 void opSimilaritySparse::freeSimSparse() {
     simSparseThread.join();
-    for (int i = 0; i < maxCU; ++i) {
+    for (uint32_t i = 0; i < maxCU; ++i) {
         delete[] handles[i].buffer;
     }
     delete[] handles;
@@ -72,7 +68,7 @@ void opSimilaritySparse::init(
     cuPerBoardSimSparse /= dupNmSimSparse;
     uint32_t bufferNm = 29;
     unsigned int cnt = 0;
-    unsigned int cntCU = 0;
+    //unsigned int cntCU = 0;
     unsigned int* handleID = new unsigned int[maxCU];
     handleID[0] = cnt;
     handles[0].deviceID = deviceIDs[0];
@@ -83,9 +79,9 @@ void opSimilaritySparse::init(
     createHandleSimSparse(handles[cnt], kernelName, xclbinFile, deviceIDs[cnt]);
     handles[cnt].buffer = new cl::Buffer[bufferNm];
     unsigned int prev = deviceIDs[0];
-    unsigned int prevCU = cuIDs[0];
+    //unsigned int prevCU = cuIDs[0];
     deviceOffset.push_back(0);
-    for (int i = 1; i < maxCU; ++i) {
+    for (uint32_t i = 1; i < maxCU; ++i) {
         handles[i].deviceID = deviceIDs[i];
         handles[i].cuID = cuIDs[i];
         handles[i].dupID = i % dupNmSimSparse;
@@ -109,7 +105,7 @@ void opSimilaritySparse::migrateMemObj(clHandle* hds,
                                        std::vector<cl::Memory>& ob,
                                        std::vector<cl::Event>* evIn,
                                        cl::Event* evOut) {
-    for (int i = 0; i < num_runs; ++i) {
+    for (unsigned int i = 0; i < num_runs; ++i) {
         hds[0].q.enqueueMigrateMemObjects(ob, type, evIn, evOut); // 0 : migrate from host to dev
     }
 };
@@ -122,14 +118,14 @@ void loadGraphCoreSimSparse(clHandle* hds, int nrows, int nnz, xf::graph::Graph<
     uint32_t CHANNEL_NUMBER = 4;
     // declare map of host buffers
     std::vector<cl_mem_ext_ptr_t> mext_o(3 * splitNm);
-    for (int i = 0; i < splitNm; i++) {
+    for (uint32_t i = 0; i < splitNm; i++) {
         mext_o[3 * i + 0] = {(uint32_t)(3 * i) | XCL_MEM_TOPOLOGY, g.offsetsSplitted[i], 0};
         mext_o[3 * i + 1] = {(uint32_t)(3 * i + 1) | XCL_MEM_TOPOLOGY, g.indicesSplitted[i], 0};
         mext_o[3 * i + 2] = {(uint32_t)(3 * i + 2) | XCL_MEM_TOPOLOGY, g.weightsSplitted[i], 0};
     }
 
     // declare cl::buffers
-    for (int i = 0; i < splitNm; i++) {
+    for (uint32_t i = 0; i < splitNm; i++) {
         hds[0].buffer[3 * i + 3] =
             cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
                        sizeof(uint32_t) * (g.numVerticesPU[i] + CHANNEL_NUMBER), &mext_o[3 * i + 0]);
@@ -143,7 +139,7 @@ void loadGraphCoreSimSparse(clHandle* hds, int nrows, int nnz, xf::graph::Graph<
     // add buffers to migrate
     std::vector<cl::Memory> init;
     std::vector<cl::Memory> ob_in;
-    for (int i = 0; i < splitNm; i++) {
+    for (uint32_t i = 0; i < splitNm; i++) {
         init.push_back(hds[0].buffer[3 * i + 3]);
         init.push_back(hds[0].buffer[3 * i + 4]);
         init.push_back(hds[0].buffer[3 * i + 5]);
@@ -171,7 +167,7 @@ void opSimilaritySparse::loadGraph(xf::graph::Graph<uint32_t, float> g) {
     std::thread* th = new std::thread[maxCU];
     std::future<void>* fut = new std::future<void>[ maxCU ];
     int cnt = 0;
-    for (int j = 0; j < maxCU; ++j) {
+    for (uint32_t j = 0; j < maxCU; ++j) {
         if ((handles[j].cuID == 0) && (handles[j].dupID == 0)) {
             cnt = j;
             std::packaged_task<void(clHandle*, int, int, xf::graph::Graph<uint32_t, float>)> t(loadGraphCoreSimSparse);
@@ -181,21 +177,21 @@ void opSimilaritySparse::loadGraph(xf::graph::Graph<uint32_t, float> g) {
         freed[j] = 0;
     }
     cnt = 0;
-    for (int j = 0; j < maxCU; ++j) {
+    for (uint32_t j = 0; j < maxCU; ++j) {
         if (!((handles[j].cuID == 0) && (handles[j].dupID == 0))) {
             if (freed[cnt] == 0) {
                 fut[cnt].get();
                 th[cnt].join();
                 freed[cnt] = 1;
             }
-            for (int i = 0; i < g.splitNum * 4; i++) {
+            for (uint32_t i = 0; i < g.splitNum * 4; i++) {
                 handles[j].buffer[3 + i] = handles[cnt].buffer[3 + i];
             }
         } else {
             cnt = j;
         }
     }
-    for (int j = 0; j < maxCU; ++j) {
+    for (uint32_t j = 0; j < maxCU; ++j) {
         if ((handles[j].cuID == 0) && (handles[j].dupID == 0)) {
             if (freed[j] == 0) {
                 fut[j].get();
@@ -240,7 +236,7 @@ void opSimilaritySparse::bufferInit(clHandle* hds,
     uint32_t CHANNEL_NUMBER = 4;
     uint32_t startID[splitNm];
     uint32_t tmp = 0;
-    for (int i = 0; i < splitNm - 1; i++) { // calculate multi PU start address
+    for (uint32_t i = 0; i < splitNm - 1; i++) { // calculate multi PU start address
         startID[i] = tmp;
         tmp += g.numVerticesPU[i];
     }
@@ -250,7 +246,7 @@ void opSimilaritySparse::bufferInit(clHandle* hds,
     config[2] = similarityType;
     config[3] = dataType;
 
-    for (int j = 0; j < splitNm; j++) {
+    for (uint32_t j = 0; j < splitNm; j++) {
         config[4 + j] = startID[j];
         config[4 + splitNm + j] = g.numVerticesPU[j];
         config[4 + 2 * splitNm + j] = g.numEdgesPU[j];
@@ -298,7 +294,7 @@ void opSimilaritySparse::bufferInit(clHandle* hds,
     kernel0.setArg(0, hds[0].buffer[0]); // config
     kernel0.setArg(1, hds[0].buffer[1]); // sourceIndice
     kernel0.setArg(2, hds[0].buffer[2]); // sourceWeight
-    for (int k = 0; k < splitNm; k++) {
+    for (uint32_t k = 0; k < splitNm; k++) {
         kernel0.setArg(3 * k + 3, hds[0].buffer[3 * k + 3]); // offsets
         kernel0.setArg(3 * k + 4, hds[0].buffer[3 * k + 4]); // indices
         kernel0.setArg(3 * k + 5, hds[0].buffer[3 * k + 5]); // weights
@@ -312,7 +308,7 @@ void opSimilaritySparse::bufferInit(clHandle* hds,
 
 int opSimilaritySparse::cuExecute(
     clHandle* hds, cl::Kernel& kernel0, unsigned int num_runs, std::vector<cl::Event>* evIn, cl::Event* evOut) {
-    for (int i = 0; i < num_runs; ++i) {
+    for (unsigned int i = 0; i < num_runs; ++i) {
         hds[0].q.enqueueTask(kernel0, evIn, evOut);
     }
     return 0;
@@ -321,7 +317,7 @@ int opSimilaritySparse::cuExecute(
 void opSimilaritySparse::postProcessKNN(
     uint32_t topK, std::string* knownLabels, uint32_t* resultID, float* similarity, std::string* label) {
     std::unordered_map<std::string, int> map;
-    for (int i = 0; i < topK; ++i) {
+    for (uint32_t i = 0; i < topK; ++i) {
         if (similarity[i] > 0) {
             map[knownLabels[resultID[i]]]++;
         }
@@ -462,11 +458,11 @@ int opSimilaritySparse::computeAP(unsigned int deviceID,
     uint32_t* sourceIndice;
     uint32_t* sourceWeight;
     f_cast<float> tmp0;
-    uint32_t cnt = 0;
+    //uint32_t cnt = 0;
     uint32_t prev = 0;
     uint32_t cur;
     uint32_t offset = 0;
-    for (int i = 0; i < splitNm; ++i) {
+    for (uint32_t i = 0; i < splitNm; ++i) {
         cur = prev + g.numVerticesPU[i];
         if ((sourceID < cur) && (sourceID >= prev)) {
             uint32_t start = g.offsetsSplitted[i][sourceID - prev];
@@ -474,7 +470,7 @@ int opSimilaritySparse::computeAP(unsigned int deviceID,
             sourceNUM = end - start;
             sourceIndice = aligned_alloc<uint32_t>(sourceNUM);
             sourceWeight = aligned_alloc<uint32_t>(sourceNUM);
-            for (int k = 0; k < (end - start); ++k) {
+            for (uint32_t k = 0; k < (end - start); ++k) {
                 sourceIndice[k] = g.indicesSplitted[i][start - offset + k];
                 tmp0.f = g.weightsSplitted[i][start - offset + k];
                 sourceWeight[k] = tmp0.i;
@@ -541,11 +537,11 @@ int opSimilaritySparse::computeAPKNN(unsigned int deviceID,
     uint32_t* sourceIndice;
     uint32_t* sourceWeight;
     f_cast<float> tmp0;
-    uint32_t cnt = 0;
+    //uint32_t cnt = 0;
     uint32_t prev = 0;
     uint32_t cur;
     uint32_t offset = 0;
-    for (int i = 0; i < splitNm; ++i) {
+    for (uint32_t i = 0; i < splitNm; ++i) {
         cur = prev + g.numVerticesPU[i];
         if ((sourceID < cur) && (sourceID >= prev)) {
             uint32_t start = g.offsetsSplitted[i][sourceID - prev];
@@ -553,7 +549,7 @@ int opSimilaritySparse::computeAPKNN(unsigned int deviceID,
             sourceNUM = end - start;
             sourceIndice = aligned_alloc<uint32_t>(sourceNUM);
             sourceWeight = aligned_alloc<uint32_t>(sourceNUM);
-            for (int k = 0; k < (end - start); ++k) {
+            for (uint32_t k = 0; k < (end - start); ++k) {
                 sourceIndice[k] = g.indicesSplitted[i][start - offset + k];
                 tmp0.f = g.weightsSplitted[i][start - offset + k];
                 sourceWeight[k] = tmp0.i;
@@ -644,4 +640,3 @@ event<int> opSimilaritySparse::addworkAPKNN(uint32_t similarityType,
 } // L3
 } // graph
 } // xf
-#endif

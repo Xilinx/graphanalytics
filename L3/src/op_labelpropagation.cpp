@@ -14,11 +14,6 @@
  * limitations under the License.
 */
 
-#pragma once
-
-#ifndef _XF_GRAPH_L3_OP_LABELPROPAGATION_CPP_
-#define _XF_GRAPH_L3_OP_LABELPROPAGATION_CPP_
-
 #include "op_labelpropagation.hpp"
 
 namespace xf {
@@ -52,7 +47,7 @@ void opLabelPropagation::setHWInfo(uint32_t numDev, uint32_t CUmax) {
 };
 
 void opLabelPropagation::freeLabelPropagation() {
-    for (int i = 0; i < maxCU; ++i) {
+    for (uint32_t i = 0; i < maxCU; ++i) {
         delete[] handles[i].buffer;
     }
     delete[] handles;
@@ -70,7 +65,7 @@ void opLabelPropagation::init(
     cuPerBoardLabelPropagation /= dupNmLabelPropagation;
     uint32_t bufferNm = 8;
     unsigned int cnt = 0;
-    unsigned int cntCU = 0;
+    //unsigned int cntCU = 0;
     unsigned int* handleID = new unsigned int[maxCU];
     handleID[0] = cnt;
     handles[0].deviceID = deviceIDs[0];
@@ -82,9 +77,9 @@ void opLabelPropagation::init(
     createHandleLabelPropagation(handles[cnt], kernelName, xclbinFile, deviceIDs[cnt]);
     handles[cnt].buffer = new cl::Buffer[bufferNm];
     unsigned int prev = deviceIDs[0];
-    unsigned int prevCU = cuIDs[0];
+    //unsigned int prevCU = cuIDs[0];
     deviceOffset.push_back(0);
-    for (int i = 1; i < maxCU; ++i) {
+    for (uint32_t i = 1; i < maxCU; ++i) {
         handles[i].deviceID = deviceIDs[i];
         handles[i].cuID = cuIDs[i];
         handles[i].dupID = i % dupNmLabelPropagation;
@@ -106,7 +101,7 @@ void opLabelPropagation::migrateMemObj(clHandle* hds,
                                        std::vector<cl::Memory>& ob,
                                        std::vector<cl::Event>* evIn,
                                        cl::Event* evOut) {
-    for (int i = 0; i < num_runs; ++i) {
+    for (unsigned int i = 0; i < num_runs; ++i) {
         hds[0].q.enqueueMigrateMemObjects(ob, type, evIn, evOut); // 0 : migrate from host to dev
     }
 };
@@ -207,7 +202,7 @@ void opLabelPropagation::bufferInit(clHandle* hds,
 
 int opLabelPropagation::cuExecute(
     clHandle* hds, cl::Kernel& kernel0, unsigned int num_runs, std::vector<cl::Event>* evIn, cl::Event* evOut) {
-    for (int i = 0; i < num_runs; ++i) {
+    for (unsigned int i = 0; i < num_runs; ++i) {
         hds[0].q.enqueueTask(kernel0, evIn, evOut);
     }
     return 0;
@@ -269,4 +264,3 @@ event<int> opLabelPropagation::addwork(uint32_t maxIter, xf::graph::Graph<uint32
 } // L3
 } // graph
 } // xf
-#endif
