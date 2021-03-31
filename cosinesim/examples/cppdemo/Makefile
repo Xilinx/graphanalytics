@@ -47,6 +47,7 @@ ifeq ($(wildcard $(LIB_PATH)/*.so),)
     INCLUDE_PATH = $(XILINX_COSINESIM)/include
 endif
 
+
 CXXFLAGS = -std=c++11 -fPIC -pthread -I$(INCLUDE_PATH) -Wall -Wextra -Wno-unknown-pragmas -Wno-unused-label \
     -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers -Wno-deprecated-declarations
 
@@ -60,6 +61,9 @@ endif
 LDFLAGS = -L$(LIB_PATH) -lXilinxCosineSim -lpthread -m64
 
 #$(info PROJ_ROOT="$(XF_PROJ_ROOT)")
+#$(info LIB_PATH="$(LIB_PATH)")
+#$(info INCLUDE_PATH="$(INCLUDE_PATH)")
+
 
 
 all: cppdemo
@@ -74,7 +78,7 @@ run:
 	. $(XILINX_XRT)/setup.sh; \
 	. $(XILINX_XRM)/setup.sh; \
 	export LD_LIBRARY_PATH=$(LIB_PATH):$$LD_LIBRARY_PATH; \
-	cppdemo
+	./cppdemo
 
 clean:
 	rm -f cppdemo *txt *log
