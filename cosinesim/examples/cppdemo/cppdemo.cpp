@@ -15,21 +15,20 @@
  */
 
 
-
-#include "cosinesim.hpp"
 #include <cstdlib>
 #include <cstdint>
 #include <vector>
 #include <iostream>
+#include "cosinesim.hpp"
 
-
-const unsigned VectorLength = 200;
-const unsigned NumVectors = 5000;
-const int MaxValue = 16383;
-
-using CosineSim = xilinx_apps::cosinesim::CosineSim<std::int32_t>;
 
 int main(int argc, char **argv) {
+    const unsigned VectorLength = 200;
+    const unsigned NumVectors = 5000;
+    const int MaxValue = 16383;
+
+    using CosineSim = xilinx_apps::cosinesim::CosineSim<std::int32_t>;
+
     std::srand(0x12345);
     std::vector<CosineSim::ValueType> testVector;  // "new vector" to match
     
@@ -43,7 +42,7 @@ int main(int argc, char **argv) {
     
     // Pick an index at random out of all the old vectors to use as the test vector to match
     
-    const int testVectorIndex = std::rand() % NumVectors;
+    const unsigned testVectorIndex = std::rand() % NumVectors;
     
     // Generate random vectors, writing each into the Alveo card
     

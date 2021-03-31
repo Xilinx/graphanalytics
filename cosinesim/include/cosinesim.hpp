@@ -124,8 +124,8 @@ public:
     }
 
 private:
-    ImplBase *pImpl_ = nullptr;
     Options options_;
+    ImplBase *pImpl_ = nullptr;
 
 };
 
