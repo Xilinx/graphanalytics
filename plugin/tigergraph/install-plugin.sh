@@ -172,9 +172,6 @@ cp $tg_udf_dir/cosinesim_loader.cpp $tg_temp_include_dir
 cp $tg_udf_dir/codevector.hpp $tg_temp_include_dir
 cp $tg_udf_dir/xilinxRecomEngine.hpp $tg_temp_include_dir
 
-# Use default MakeUdf since we have no .o's to include
-# TODO: remove this after no branch is left that installs a custom MakeUdf
-cp $SCRIPTPATH/MakeUdf.orig $tg_root_dir/dev/gdk/MakeUdf
 
 # Remove old objects
 # TODO: remove this after all Xilinx lab machines have been updated with this new install script
