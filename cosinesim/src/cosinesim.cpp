@@ -22,7 +22,7 @@ public:
     const int32_t nullVal = 0;
 
     int valueSize_;
-    int64_t devicesNeeded;
+    uint32_t numDevices;
     int populationVectorRowNm;
     int32_t** numVerticesPU ; // vertex numbers in each PU
 
@@ -54,12 +54,12 @@ public:
 
 
     void cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
-                                               int32_t sourceLen,
-                                               int32_t* sourceWeight,
-                                               int32_t topK,
-                                               xf::graph::Graph<int32_t, int32_t>** g,
-                                               int32_t* resultID,
-                                               float* similarity);
+                                 int32_t sourceLen,
+                                 int32_t* sourceWeight,
+                                 int32_t topK,
+                                 xf::graph::Graph<int32_t, int32_t>** g,
+                                 int32_t* resultID,
+                                 float* similarity);
 
     //PrivateImpl(CosineSimBase* ptr, unsigned valueSize){
     PrivateImpl(const Options options, unsigned valueSize){
@@ -76,9 +76,9 @@ public:
         if(options.vecLength > 0)
             vecLength = options.vecLength;
 
-        devicesNeeded = 1;
+        numDevices = 1;
         if(options.numDevices > 0)
-            devicesNeeded = options.numDevices;
+            numDevices = options.numDevices;
 
         xclbinPath = "/opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin";
         if (!options.xclbinPath.empty()){
@@ -91,15 +91,15 @@ public:
         //options_ = options;
         edgeAlign8 = ((numEdges + channelW - 1) / channelW) * channelW;
 
-        numVerticesPU  = new int32_t*[devicesNeeded * cuNm];
-        for (int i = 0; i < devicesNeeded * cuNm; ++i) {
+        numVerticesPU  = new int32_t*[numDevices * cuNm];
+        for (int i = 0; i < numDevices * cuNm; ++i) {
             numVerticesPU[i] = new int32_t[splitNm];
         }
 
         edgeAlign8 = ((numEdges + channelW - 1) / channelW) * channelW;
 
         loadPopulationCnt.resize(channelsPU,0);
-        g.resize(devicesNeeded*cuNm);
+        g.resize(numDevices*cuNm);
         // g = new xf::graph::Graph<int32_t, int32_t>*[devicesNeeded * cuNm];
 
 
@@ -110,7 +110,7 @@ public:
     }
 
     ~PrivateImpl(){
-      for (int i = 0; i < devicesNeeded * cuNm; ++i)
+      for (int i = 0; i < numDevices * cuNm; ++i)
             delete[] numVerticesPU[i];
       delete[] numVerticesPU;
     }
@@ -134,16 +134,17 @@ public:
         //devicesNeeded = options_.numDevices;
 
         //the following calculation and assignment is based on numVertices
-        int general = ((numVertices - (devicesNeeded * cuNm * splitNm * channelsPU + 1)) /
-                (devicesNeeded * cuNm * splitNm * channelsPU)) * channelsPU;
-        int rest = numVertices - general * (devicesNeeded * cuNm * splitNm - 1);
+        int general = ((numVertices - (numDevices * cuNm * splitNm * channelsPU + 1)) /
+                (numDevices * cuNm * splitNm * channelsPU)) * channelsPU;
+        int rest = numVertices - general * (numDevices * cuNm * splitNm - 1);
 
+#ifdef __DEBUG__
         std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
                 << " numVertices=" << numVertices << ", general=" << general
                 << ", rest=" << rest
-                << ", split=" << devicesNeeded * cuNm * splitNm 
-                << ", devicesNeeded=" << devicesNeeded << std::endl;
-
+                << ", split=" << numDevices * cuNm * splitNm 
+                << ", numDevices=" << numDevices << std::endl;
+#endif
 
         if (rest < 0) {
 //            errorCode_= ErrorGraphPartition;
@@ -151,15 +152,15 @@ public:
             return;
         }
 
-        for (int i = 0; i < devicesNeeded * cuNm; ++i) {
+        for (int i = 0; i < numDevices * cuNm; ++i) {
             for (int j = 0; j < splitNm; ++j) {
                 numVerticesPU[i][j] = general;
             }
         }
-        numVerticesPU[devicesNeeded * cuNm - 1][splitNm - 1] = rest;
+        numVerticesPU[numDevices * cuNm - 1][splitNm - 1] = rest;
         //initialize graph properties
         int fpgaNodeNm = 0;
-        for(int i=0;i<devicesNeeded*cuNm; i++){
+        for(int i=0;i<numDevices*cuNm; i++){
             //TODO change to Value
             //g[i] = new xf::graph::Graph<int32_t, int32_t>("Dense", 4 * splitNm, numEdges, numVerticesPU[i]);
 
@@ -194,7 +195,7 @@ public:
     virtual void *getPopulationVectorBuffer(RowIndex &rowIndex){
 
         void * pbuf;
-        if(indexDeviceCuNm == devicesNeeded * cuNm)
+        if(indexDeviceCuNm == numDevices * cuNm)
             return nullptr;
         subChNm = (numVerticesPU[indexDeviceCuNm][indexSplitNm] + channelsPU - 1) / channelsPU;
 
@@ -234,13 +235,13 @@ public:
             g[indexDeviceCuNm]->weightsDense[ (indexSplitNm-1) * channelsPU + 3][k] = nullVal;
         }
 
-        load_graph_cosinesim_ss_dense_fpga(devicesNeeded, cuNm, g.data());
+        load_graph_cosinesim_ss_dense_fpga(numDevices, cuNm, g.data());
 
     }
 
     virtual void cleanGraph() {
 
-        for (int i = 0; i < devicesNeeded * cuNm; ++i) {
+        for (int i = 0; i < numDevices * cuNm; ++i) {
             if (!g[i])
                 continue;
 
@@ -372,7 +373,7 @@ public:
 
                 //---------------- Run L3 API -----------------------------------
 
-                cosinesim_ss_dense_fpga(devicesNeeded * cuNm, sourceLen, sourceWeight, numResults, g.data(),resultID, similarity);
+                cosinesim_ss_dense_fpga(numDevices * cuNm, sourceLen, sourceWeight, numResults, g.data(),resultID, similarity);
 
                 for (unsigned int k = 0; k < numResults; k++) {
                     //result += testResults(VERTEX(xai::IDMap[resultID[k]]), similarity[k]);
@@ -431,7 +432,7 @@ void PrivateImpl::load_cu_cosinesim_ss_dense_fpga()
   op0.requestLoad = requestLoad;
   //op0.xclbinFile = (char*)xclbinPath.c_str();
   op0.xclbinFile = (char*)xclbinPath.c_str();
-  op0.deviceNeeded = devicesNeeded;
+  op0.deviceNeeded = numDevices;
   op0.cuPerBoard = cuNm;
 
   std::fstream xclbinFS(xclbinPath, std::ios::in);
