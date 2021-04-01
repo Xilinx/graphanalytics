@@ -22,18 +22,18 @@
 #ifndef _XILINXUDF_HPP_
 #define _XILINXUDF_HPP_
 
-#include "tgFunctions.hpp"
-//#include "loader.hpp"
-// mergeHeaders 1 include start syntheaDemo DO NOT REMOVE!
+// mergeHeaders 1 name xilinxRecomEngine
+
+// mergeHeaders 1 section include start xilinxRecomEngine DO NOT REMOVE!
 #include "codevector.hpp"
 #include <algorithm>
-// mergeHeaders 1 include end syntheaDemo DO NOT REMOVE!
+// mergeHeaders 1 section include end xilinxRecomEngine DO NOT REMOVE!
 
-// mergeHeaders 1 include start xilinxRecomEngine DO NOT REMOVE!
+// mergeHeaders 1 section include start xilinxRecomEngine DO NOT REMOVE!
 #include "xilinxRecomEngine.hpp"
 #include <cstdint>
 #include <vector>
-// mergeHeaders 1 include end xilinxRecomEngine DO NOT REMOVE!
+// mergeHeaders 1 section include end xilinxRecomEngine DO NOT REMOVE!
 
 // Error codes from L3 starts from -1
 // Error codes from UDF starts from -1001
@@ -43,7 +43,7 @@ namespace UDIMPL {
 
 /* Start Xilinx UDF additions */
 
-// mergeHeaders 1 body start syntheaDemo DO NOT REMOVE!
+// mergeHeaders 1 section body start xilinxRecomEngine DO NOT REMOVE!
 
 inline bool concat_uint64_to_str(string& ret_val, uint64_t val) {
     (ret_val += " ") += std::to_string(val);
@@ -137,10 +137,10 @@ inline int udf_load_cu_cosinesim_ss_fpga(int devicesNeeded)
     int ret = 0;
     return ret;
 }
-// mergeHeaders 1 body end syntheaDemo DO NOT REMOVE!
+// mergeHeaders 1 section body end xilinxRecomEngine DO NOT REMOVE!
 
 
-// mergeHeaders 1 body start xilinxRecomEngine DO NOT REMOVE!
+// mergeHeaders 1 section body start xilinxRecomEngine DO NOT REMOVE!
 
 inline int udf_xilinx_recom_set_num_devices(std::uint64_t numDevices) {
     xai::Lock lock(xai::getMutex());
@@ -314,7 +314,7 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
 }
 
 /* End Xilinx Cosine Similarity Additions */
-// mergeHeaders 1 body end xilinxRecomEngine DO NOT REMOVE!
+// mergeHeaders 1 section body end xilinxRecomEngine DO NOT REMOVE!
 
 }
 

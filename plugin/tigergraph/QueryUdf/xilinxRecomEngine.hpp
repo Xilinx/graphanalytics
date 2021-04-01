@@ -72,6 +72,11 @@ public:
             options.vecLength = vectorLength_;
             options.numDevices = numDevices_;
             options.xclbinPath = "TG_COSINESIM_XCLBIN";
+#ifdef XILINX_RECOM_DEBUG_ON
+            std::cout << "DEBUG: cosinesim options: vecLength=" << options.vecLength
+                    << ", numDevices=" << options.numDevices
+                    << ", xclbinPath=" << options.xclbinPath << std::endl;
+#endif
             pCosineSim_ = new CosineSim(options);
 #ifdef XILINX_RECOM_DEBUG_ON
             std::cout << "DEBUG: Created cosinesim object " << pCosineSim_
