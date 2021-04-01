@@ -62,7 +62,7 @@ public:
                                                float* similarity);
 
     //PrivateImpl(CosineSimBase* ptr, unsigned valueSize){
-    PrivateImpl(const Options options, unsigned valueSize){
+    PrivateImpl(const Options &options, unsigned valueSize){
         //errorCode_ = NoError;
         valueSize_ = valueSize;
         //cosinesimPtr = ptr;
@@ -81,7 +81,9 @@ public:
             devicesNeeded = options.numDevices;
 
         xclbinPath = "/opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin";
-        if (!options.xclbinPath.empty()){
+        if (options.xclbinPathCStr != nullptr)
+            xclbinPath = options.xclbinPathCStr;
+        else if (!options.xclbinPath.empty()){
            xclbinPath = options.xclbinPath;
         }
         std::cout << "INFO: xclbinPath set to " <<xclbinPath<<std::endl;
@@ -219,7 +221,7 @@ public:
     }
 
     virtual void finishCurrentPopulationVector(void * pbuf){
-        memset(pbuf+vecLength*valueSize_, 0, ( edgeAlign8 - vecLength)*valueSize_ );
+        memset((unsigned char *)pbuf+vecLength*valueSize_, 0, ( edgeAlign8 - vecLength)*valueSize_ );
 
 
     }
@@ -617,6 +619,7 @@ void close_fpga() {
 
 extern "C" {
 xilinx_apps::cosinesim::ImplBase *xilinx_cosinesim_createImpl(const xilinx_apps::cosinesim::Options& options, unsigned valueSize){
+    std::cout << "DEBUG: inside .so xilinx_cosinesim_createImpl" << std::endl;
     return new xilinx_apps::cosinesim::PrivateImpl(options,valueSize);
 }
 

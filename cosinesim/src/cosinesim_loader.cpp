@@ -21,6 +21,7 @@
 #include <string>
 #include <dlfcn.h>
 #include <iostream>
+#include <sstream>
 
 namespace {
 
@@ -32,20 +33,34 @@ void *getDynamicFunction(const std::string &funcName) {
     if (handle == nullptr) {
         std::cout << "INFO: " << SOFILEPATH << " not loaded. Loading now..." << std::endl;
         handle = dlopen(SOFILEPATH.c_str(), RTLD_LAZY | RTLD_GLOBAL);
+        std::cout << "DEBUG: after dlopen" << std::endl;
         if (handle == nullptr) {
-            std::cerr << "ERROR: Cannot open library: " << dlerror() << '\n';
-            return nullptr;
+            std::cout << "DEBUG: inside handle==nullptr" << std::endl;
+            std::ostringstream oss;
+            oss << "Cannot open library " << SOFILEPATH << ": " << dlerror()
+                    << ".  Please ensure that the library's path is in LD_LIBRARY_PATH."  << std::endl;
+            std::cout << "DEBUG: after oss filling" << std::endl;
+            throw xilinx_apps::cosinesim::Exception(oss.str());
         }
     }
 
     // load the symbol
+    std::cout << "DEBUG: after handle==nullptr check" << std::endl;
     dlerror();  // reset errors
+    std::cout << "DEBUG: before dlsym" << std::endl;
     void *pFunc = dlsym(handle, funcName.c_str());
+    std::cout << "DEBUG: after dlsym" << std::endl;
     const char* dlsym_error2 = dlerror();
     if (dlsym_error2) {
-        std::cerr << "ERROR: Cannot load symbol '" << funcName << "': " << dlsym_error2 << std::endl;
-        return nullptr;
+        std::cout << "DEBUG: inside dlsym_error2" << std::endl;
+        std::ostringstream oss;
+        oss << "Cannot load symbol '" << funcName << "': " << dlsym_error2
+                << ".  Possibly an older version of library " << SOFILEPATH
+                << " is in use.  Please install the correct version." << std::endl;
+        std::cout << "DEBUG: after 2nd oss filling" << std::endl;
+        throw xilinx_apps::cosinesim::Exception(oss.str());
     }
+    std::cout << "DEBUG: before return" << std::endl;
     return pFunc;
 }
 
@@ -67,8 +82,7 @@ xilinx_apps::cosinesim::ImplBase *xilinx_cosinesim_createImpl(const xilinx_apps:
 {
     typedef xilinx_apps::cosinesim::ImplBase * (*CreateFunc)(const xilinx_apps::cosinesim::Options &, unsigned);
     CreateFunc pCreateFunc = (CreateFunc) getDynamicFunction("xilinx_cosinesim_createImpl");
-    if (pCreateFunc == nullptr)
-        return nullptr;  // TODO: throw exception?
+    std::cout << "DEBUG: createImpl handle " << (void *) pCreateFunc << std::endl;
     return pCreateFunc(options, valueSize);
 }
 
@@ -76,8 +90,6 @@ XILINX_COSINESIM_IMPL_DEF
 void xilinx_cosinesim_destroyImpl(xilinx_apps::cosinesim::ImplBase *pImpl) {
     typedef xilinx_apps::cosinesim::ImplBase * (*DestroyFunc)(xilinx_apps::cosinesim::ImplBase *);
     DestroyFunc pDestroyFunc = (DestroyFunc) getDynamicFunction("xilinx_cosinesim_destroyImpl");
-    if (pDestroyFunc == nullptr)
-        return;
     pDestroyFunc(pImpl);
 }
 

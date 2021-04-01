@@ -21,6 +21,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <exception>
 
 namespace xilinx_apps
 {
@@ -51,10 +52,17 @@ void xilinx_cosinesim_destroyImpl(xilinx_apps::cosinesim::ImplBase *pImpl);
 namespace xilinx_apps {
 namespace cosinesim {
 
-
-
 using RowIndex = std::int64_t;
 using ColIndex = std::int32_t;
+
+
+class Exception : public std::exception {
+    std::string message;
+public:
+    Exception(const std::string &msg) : message(msg) {}
+    virtual const char* what() const noexcept override { return message.c_str(); }
+};
+
 
 struct Result {
     RowIndex index = -1L;
@@ -73,6 +81,9 @@ struct Options {
     std::int32_t numDevices;
     // FPGA binary file Path. default is the package installation path
     std::string xclbinPath;
+    
+    // Work around g++ version compatibility problems (use this instead of xclbinPath)
+    const char *xclbinPathCStr = nullptr;
 };
 
 
@@ -97,7 +108,14 @@ public:
     using ValueType = Value;
     const Options& getOptions() {return options_;};
 
-    CosineSim( const Options &options) :options_(options), pImpl_(::xilinx_cosinesim_createImpl(options, sizeof(Value))) {};
+    CosineSim( const Options &options) :options_(options), pImpl_(::xilinx_cosinesim_createImpl(options, sizeof(Value)))
+    {
+        // Copy C string to std::string, as C string may go away
+        if (options_.xclbinPathCStr != nullptr) {
+            options_.xclbinPath = options_.xclbinPathCStr;
+            options_.xclbinPathCStr = nullptr;
+        }
+    };
 
     ~CosineSim() {
         pImpl_->cleanGraph();

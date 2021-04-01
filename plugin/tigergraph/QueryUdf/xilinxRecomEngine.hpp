@@ -39,6 +39,8 @@ private:
     bool isInitialized_ = false;
     CosineSim *pCosineSim_ = nullptr;
     IdMap idMap_;  // maps from vector ID to FPGA row number
+    std::string errorMessage_;
+    
 public:
     static Context *getInstance() {
         static Context *s_pContext = nullptr;
@@ -71,7 +73,7 @@ public:
             xilinx_apps::cosinesim::Options options;
             options.vecLength = vectorLength_;
             options.numDevices = numDevices_;
-            options.xclbinPath = "TG_COSINESIM_XCLBIN";
+            options.xclbinPathCStr = "TG_COSINESIM_XCLBIN";
 #ifdef XILINX_RECOM_DEBUG_ON
             std::cout << "DEBUG: cosinesim options: vecLength=" << options.vecLength
                     << ", numDevices=" << options.numDevices
@@ -100,6 +102,10 @@ public:
         delete pCosineSim_;
         pCosineSim_ = nullptr;
     }
+    
+    void clearErrorMessage() { errorMessage_.clear(); }
+    void setErrorMessage(const std::string &message) { errorMessage_ = message; }
+    const std::string &getErrorMessage() const { return errorMessage_; }
 };
 
 
