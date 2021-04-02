@@ -184,8 +184,9 @@ if [ "$dev_mode" -eq 0 ]; then
     echo "INFO: Apply environment changes to TigerGraph installation"
     gadmin start all
 
+    ld_preload="$tg_udf_dir/libXilinxCosineSim.so"
     if [ "$use_tcmalloc" -eq 1 ]; then
-        ld_preload="$tg_root_dir/dev/gdk/gsdk/include/thirdparty/prebuilt/dynamic_libs/gmalloc/tcmalloc/libtcmalloc.so"
+        ld_preload="$ld_preload:$tg_root_dir/dev/gdk/gsdk/include/thirdparty/prebuilt/dynamic_libs/gmalloc/tcmalloc/libtcmalloc.so"
     fi
 
     ld_lib_path="$HOME/libstd:$tg_udf_dir:/opt/xilinx/xrt/lib:/opt/xilinx/xrm/lib:/usr/lib/x86_64-linux-gnu/"

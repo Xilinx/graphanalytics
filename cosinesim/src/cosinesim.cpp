@@ -14,12 +14,11 @@ namespace cosinesim {
 class PrivateImpl : public ImplBase {
 
 public:
-    int indexDeviceCuNm, indexSplitNm, indexNumVertices, indexVecLength;
-    const int splitNm = 3;    // kernel has 4 PUs, the input data should be splitted into 4 parts
-    const int channelsPU = 4; // each PU has 4 HBM channels
-    const int cuNm = 2;
-    const int channelW = 16;
-    const int32_t nullVal = 0;
+    unsigned indexDeviceCuNm, indexSplitNm, indexNumVertices;
+    const unsigned splitNm = 3;    // kernel has 4 PUs, the input data should be splitted into 4 parts
+    const unsigned channelsPU = 4; // each PU has 4 HBM channels
+    const unsigned cuNm = 2;
+    const unsigned channelW = 16;
 
     int valueSize_;
     uint32_t numDevices;
@@ -69,7 +68,6 @@ public:
         indexDeviceCuNm=0;
         indexSplitNm=0;
         indexNumVertices=0;
-        indexVecLength=3;
         populationVectorRowNm=0;
         subChNm = 1;
         vecLength = 200;
@@ -94,7 +92,7 @@ public:
         edgeAlign8 = ((numEdges + channelW - 1) / channelW) * channelW;
 
         numVerticesPU  = new int32_t*[numDevices * cuNm];
-        for (int i = 0; i < numDevices * cuNm; ++i) {
+        for (unsigned i = 0; i < numDevices * cuNm; ++i) {
             numVerticesPU[i] = new int32_t[splitNm];
         }
 
@@ -112,7 +110,7 @@ public:
     }
 
     ~PrivateImpl(){
-      for (int i = 0; i < numDevices * cuNm; ++i)
+      for (unsigned i = 0; i < numDevices * cuNm; ++i)
             delete[] numVerticesPU[i];
       delete[] numVerticesPU;
     }
@@ -125,7 +123,6 @@ public:
         indexDeviceCuNm=0;
         indexSplitNm=0;
         indexNumVertices=0;
-        indexVecLength=3;
         populationVectorRowNm=0;
 
 
@@ -154,15 +151,15 @@ public:
             return;
         }
 
-        for (int i = 0; i < numDevices * cuNm; ++i) {
-            for (int j = 0; j < splitNm; ++j) {
+        for (unsigned i = 0; i < numDevices * cuNm; ++i) {
+            for (unsigned j = 0; j < splitNm; ++j) {
                 numVerticesPU[i][j] = general;
             }
         }
         numVerticesPU[numDevices * cuNm - 1][splitNm - 1] = rest;
         //initialize graph properties
         int fpgaNodeNm = 0;
-        for(int i=0;i<numDevices*cuNm; i++){
+        for(unsigned i=0;i<numDevices*cuNm; i++){
             //TODO change to Value
             //g[i] = new xf::graph::Graph<int32_t, int32_t>("Dense", 4 * splitNm, numEdges, numVerticesPU[i]);
 
@@ -180,7 +177,7 @@ public:
             g[i]->nodeNum = numVertices;
             g[i]->splitNum = splitNm;
             g[i]->refID = fpgaNodeNm;
-            for (int j = 0; j < splitNm; ++j) {
+            for (unsigned j = 0; j < splitNm; ++j) {
                 fpgaNodeNm += numVerticesPU[i][j];
                 int depth = ((numVerticesPU[i][j] + channelsPU - 1) / channelsPU) * edgeAlign8;
                 g[i]->numVerticesPU[j] = numVerticesPU[i][j];
@@ -206,7 +203,7 @@ public:
         loadPopulationCnt[indexNumVertices / subChNm] += 1;
         lastPopulationCnt = loadPopulationCnt[indexNumVertices / subChNm];
         indexNumVertices++;
-        if(indexNumVertices ==numVerticesPU[indexDeviceCuNm][indexSplitNm] ) {
+        if(indexNumVertices == unsigned(numVerticesPU[indexDeviceCuNm][indexSplitNm])) {
             indexSplitNm++;
             indexNumVertices=0;
             std::fill(loadPopulationCnt.begin(),loadPopulationCnt.end(),0);
@@ -231,10 +228,12 @@ public:
     virtual void finishLoadPopulationVectors() {
 
         //for the last PU, the last channels may need to padded as the row will be the multiple of channelsPU
-        int paddingDepth = ((numVerticesPU[indexDeviceCuNm-1][indexSplitNm-1] + channelsPU - 1) / channelsPU)*channelsPU - numVerticesPU[indexDeviceCuNm-1][indexSplitNm-1] ;
-        int startPaddingDepth = numVerticesPU[indexDeviceCuNm-1][indexSplitNm-1] * edgeAlign8;
+        const unsigned numCus = numDevices * cuNm;
+        int paddingDepth = ((numVerticesPU[numCus - 1][splitNm - 1] + channelsPU - 1) / channelsPU) * channelsPU
+                - numVerticesPU[numCus - 1][splitNm - 1];
+        int startPaddingDepth = numVerticesPU[numCus - 1][splitNm - 1] * edgeAlign8;
         for (int k = startPaddingDepth; k < paddingDepth*edgeAlign8; ++k) {
-            g[indexDeviceCuNm]->weightsDense[ (indexSplitNm-1) * channelsPU + 3][k] = nullVal;
+            g[indexDeviceCuNm]->weightsDense[ (indexSplitNm-1) * channelsPU + 3][k] = 0;
         }
 
         load_graph_cosinesim_ss_dense_fpga(numDevices, cuNm, g.data());
@@ -243,7 +242,7 @@ public:
 
     virtual void cleanGraph() {
 
-        for (int i = 0; i < numDevices * cuNm; ++i) {
+        for (unsigned i = 0; i < numDevices * cuNm; ++i) {
             if (!g[i])
                 continue;
 
@@ -365,7 +364,7 @@ public:
                     }
 
                     } else {
-                        sourceWeight[i] = nullVal;
+                        sourceWeight[i] = 0;
                     }
                 }
                 float* similarity = xf::graph::internal::aligned_alloc<float>(numResults);
