@@ -231,6 +231,9 @@ $(CPP_BUILD_DIR)/cosinesim_dyn_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUI
 run-test: cppTest
 	LD_LIBRARY_PATH=$(LD_LIBRARAY_PATH):$(PWD)/$(CPP_BUILD_DIR) $(CPP_BUILD_DIR)/cosinesim_test
 
+run-dyn-test: cppTest
+	LD_LIBRARY_PATH=$(LD_LIBRARAY_PATH):$(PWD)/$(CPP_BUILD_DIR) $(CPP_BUILD_DIR)/cosinesim_dyn_test
+
 #LDFLAGS_fakeudf = -fPIC -w -L /scratch/tigergraph/tigergraph/app/3.1.0/dev/gdk/gsql/src/QueryUdf -lgraphL3wrapper -ldl
 LDFLAGS_fakeudf = -fPIC -w -L $(CPP_BUILD_DIR) -l$(LIB_SHORT_NAME)
 
