@@ -81,11 +81,11 @@ public:
             devicesNeeded = options.numDevices;
 
         xclbinPath = "/opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin";
-        if (options.xclbinPathCStr != nullptr)
-            xclbinPath = options.xclbinPathCStr;
-        else if (!options.xclbinPath.empty()){
-           xclbinPath = options.xclbinPath;
-        }
+//        if (options.xclbinPathCStr != nullptr)
+//            xclbinPath = options.xclbinPathCStr;
+//        else if (!options.xclbinPath.empty()){
+//           xclbinPath = options.xclbinPath;
+//        }
         std::cout << "INFO: xclbinPath set to " <<xclbinPath<<std::endl;
 
         numEdges = vecLength;

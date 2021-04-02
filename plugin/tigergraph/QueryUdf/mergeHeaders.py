@@ -35,7 +35,7 @@ class MergeException(Exception):
 
     @staticmethod
     def make_error_string(message, file_name, line_num):
-        return f'{file_name}:{line_num}: error: {message}'
+        return file_name + ':' + line_num + ':' + 'error: ' + message
 
 
 class VarProcessor:
@@ -148,7 +148,7 @@ class Tag:
         tokens = tag_str.split()
         version, tokens = self.get_token(tokens, src_file_name, src_line_num)
         if version != '1':
-            raise MergeException(f'mergeHeaders version "{version}" is not supported', src_file_name, src_line_num)
+            raise MergeException('mergeHeaders version "' + version + '" is not supported', src_file_name, src_line_num)
         self.tag_type, tokens = self.get_token(tokens, src_file_name, src_line_num)
 
         # logical name tag
@@ -164,14 +164,14 @@ class Tag:
             self.file_name, tokens = self.get_token(tokens, src_file_name, src_line_num)
 
         else:
-            raise MergeException(f'Unrecognized tag type {self.tag_type}', src_file_name, src_line_num)
+            raise MergeException('Unrecognized tag type ' + self.tag_type, src_file_name, src_line_num)
         self.is_valid = True
 
     @staticmethod
     def get_token(tokens, src_file_name, src_line_num, is_required=True):
         if len(tokens) < 1:
             if is_required:
-                raise MergeException(f'Missing tag token', src_file_name, src_line_num)
+                raise MergeException('Missing tag token', src_file_name, src_line_num)
             return '', tokens
         else:
             return tokens[0], tokens[1:]
@@ -280,7 +280,7 @@ class MergeFile:
                         # If tag is a name tag, set the logical name of this file to that of the tag
                         if tag.is_name():
                             if self.has_logical_name:
-                                self.emit_error(f'File already has a name tag')
+                                self.emit_error('File already has a name tag')
                             else:
                                 self.logical_name = tag.file_name
                                 self.has_logical_name = True
@@ -288,8 +288,8 @@ class MergeFile:
                         # Not a name tag: make sure any other kind of tag has a matching name, and process that tag
                         else:
                             if not is_template and tag.file_name != self.logical_name:
-                                self.emit_error(f"Section file name {tag.file_name} does not match file's logical name"
-                                        f" {self.logical_name}")
+                                self.emit_error("Section file name " + tag.file_name
+                                        + " does not match file's logical name " + self.logical_name)
 
                             # If start tag found, try to start a new section
                             if tag.is_start():
@@ -339,7 +339,7 @@ class MergeFile:
 
             template_file.close()
         except OSError as ex:
-            eprint(f"Couldn't open file {file_name} for reading: {ex.strerror}")
+            eprint("Couldn't open file " + file_name + " for reading: " + ex.strerror)
             self.is_valid = False
 
     def emit_error(self, message):
@@ -397,7 +397,7 @@ def install(template: MergeFile, files: MergeFileSet, emit_func) -> bool:
                 # section.  Otherwise, just emit the template file's section
                 if isinstance(group_item, Section):
                     if group_item.get_file_name() in files.file_dict:
-                        mf: MergeFile = files.file_dict[group_item.get_file_name()]
+                        mf = files.file_dict[group_item.get_file_name()]
                         replacement_section = mf.contents.get_subsection_by_tag(group_item.tag)
                         if replacement_section:
                             emit_section(replacement_section, emit_func)
@@ -411,7 +411,6 @@ def install(template: MergeFile, files: MergeFileSet, emit_func) -> bool:
 
             # For any merging file sections yet to be added to this group, install (for the first time) the files
             # by emitting the sections in file order
-            file: MergeFile
             for file in files.file_list:
                 section = file.contents.get_subsection(item.get_section_type(), file.logical_name)
                 if section and not section.is_emitted:
@@ -592,8 +591,8 @@ The resulting file will be:
     args = argParser.parse_args()
 
     # Separate file names from variable definitions
-    file_names: List[str] = []
-    var_defs: List[str] = []
+    file_names = []
+    var_defs = []
     for item in args.args:
         if item.find('=') >= 0:
             var_defs.append(item)

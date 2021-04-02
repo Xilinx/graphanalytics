@@ -144,9 +144,9 @@ source $xrmPath/setup.sh
 
 # Install plugin to ExprFunctions.hpp file
 
-if [ ! -f "$tg_udf_dir/mergeHeaders.py" ]; then
+#if [ ! -f "$tg_udf_dir/mergeHeaders.py" ]; then
     cp $plugin_src_dir/mergeHeaders.py $tg_udf_dir
-fi
+#fi
 mv $tg_udf_dir/ExprFunctions.hpp $tg_udf_dir/ExprFunctions.hpp.prev
 python3 $tg_udf_dir/mergeHeaders.py $tg_udf_dir/ExprFunctions.hpp.prev $plugin_src_dir/xilinxUdf.hpp \
      > $tg_udf_dir/ExprFunctions.hpp
