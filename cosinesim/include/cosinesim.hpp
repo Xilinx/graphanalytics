@@ -101,23 +101,17 @@ public:
     virtual void cleanGraph() =0;
 };
 
-
-template <typename Value>
-class CosineSim {
+class CosineSimBase {
 public:
-    using ValueType = Value;
-    const Options& getOptions() {return options_;};
-
-    CosineSim( const Options &options) :options_(options), pImpl_(::xilinx_cosinesim_createImpl(options, sizeof(Value)))
-    {
+    CosineSimBase(const Options &options, unsigned valueSize) : pImpl_(::xilinx_cosinesim_createImpl(options, valueSize)) {
         // Copy C string to std::string, as C string may go away
         if (options_.xclbinPathCStr != nullptr) {
             options_.xclbinPath = options_.xclbinPathCStr;
             options_.xclbinPathCStr = nullptr;
         }
-    };
+    }
 
-    ~CosineSim() {
+    ~CosineSimBase() {
         pImpl_->cleanGraph();
         ::xilinx_cosinesim_destroyImpl(pImpl_);
     }
@@ -126,12 +120,12 @@ public:
     void startLoadPopulation(std::int64_t numVectors){pImpl_->startLoadPopulation(numVectors);}  //
 
     // return pointer of weightDense buffer. user can use the pointer to write into population vector
-    Value *getPopulationVectorBuffer(RowIndex &rowIndex) {
-        return reinterpret_cast<Value *>(pImpl_->getPopulationVectorBuffer(rowIndex));
+    void *getPopulationVectorBuffer(RowIndex &rowIndex) {
+        return pImpl_->getPopulationVectorBuffer(rowIndex);
     }
 
     // should be called when each population vector loading finishes
-    void finishCurrentPopulationVector(Value *pbuf){pImpl_->finishCurrentPopulationVector(pbuf);}
+    void finishCurrentPopulationVector(void *pbuf){pImpl_->finishCurrentPopulationVector(pbuf);}
 
     // should be called when the whole population vectors loading finishes
     void finishLoadPopulationVectors(){pImpl_->finishLoadPopulationVectors();}
@@ -140,6 +134,30 @@ public:
     std::vector<Result> matchTargetVector(unsigned numResults, void *elements) {
         return pImpl_->matchTargetVector(numResults, elements);
     }
+
+private:
+    Options options_;
+    ImplBase *pImpl_ = nullptr;
+};
+
+template <typename Value>
+class CosineSim : public CosineSimBase {
+public:
+    using ValueType = Value;
+    const Options& getOptions() {return options_;};
+
+   // CosineSim( const Options &options) :options_(options), pImpl_(::xilinx_cosinesim_createImpl(options, sizeof(Value)))
+    CosineSim(const Options &options) : CosineSimBase(options, sizeof(Value)) {};
+
+
+    // return pointer of weightDense buffer. user can use the pointer to write into population vector
+    Value *getPopulationVectorBuffer(RowIndex &rowIndex) {
+        return reinterpret_cast<Value *>(CosineSimBase::getPopulationVectorBuffer(rowIndex));
+    }
+
+
+    // should be called when each population vector loading finishes
+    void finishCurrentPopulationVector(Value *pbuf){CosineSimBase::finishCurrentPopulationVector(pbuf);}
 
 private:
     Options options_;
