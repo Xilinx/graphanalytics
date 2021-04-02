@@ -161,6 +161,12 @@ inline bool udf_xilinx_recom_is_initialized() {
     return pContext->isInitialized();
 }
 
+inline string udf_xilinx_recom_get_error_message() {
+    xai::Lock lock(xai::getMutex());
+    xai::Context *pContext = xai::Context::getInstance();
+    return pContext->getErrorMessage();
+}
+
 inline int udf_load_graph_cosinesim_ss_fpga(int64_t numVertices,
                                            int64_t vecLength,
                                            ListAccum<ListAccum<int64_t> >& oldVectors,
@@ -191,22 +197,30 @@ inline int udf_load_graph_cosinesim_ss_fpga(int64_t numVertices,
     
     // Fill the FPGA(s) with vectors
     
-    xai::CosineSim *pCosineSim = pContext->getCosineSimObj();
-//    pCosineSim->openFpga();
-    pCosineSim->startLoadPopulation(numVectors);
-    for (xilinx_apps::cosinesim::RowIndex vecNum = 0; vecNum < numVectors; ++vecNum) {
-        const ListAccum<int64_t> &curRowVec = oldVectors.get(vecNum);
-        xilinx_apps::cosinesim::RowIndex rowIndex = 0;
-        xai::CosineSim::ValueType *pBuf = pCosineSim->getPopulationVectorBuffer(rowIndex);
-        for (xilinx_apps::cosinesim::ColIndex eltNum = 0; eltNum < vectorLength; ++eltNum)
-            *pBuf++ = xai::CosineSim::ValueType(curRowVec.get(eltNum + 3));
-        pCosineSim->finishCurrentPopulationVector(pBuf);
-        uint64_t vertexId = ((curRowVec.get(2) << 32) & 0xFFFFFFF00000000) | (curRowVec.get(1) & 0x00000000FFFFFFFF);
-        idMap[rowIndex] = vertexId;
+    try {
+        pContext->clearErrorMessage();
+        xai::CosineSim *pCosineSim = pContext->getCosineSimObj();
+    //    pCosineSim->openFpga();
+        pCosineSim->startLoadPopulation(numVectors);
+        for (xilinx_apps::cosinesim::RowIndex vecNum = 0; vecNum < numVectors; ++vecNum) {
+            const ListAccum<int64_t> &curRowVec = oldVectors.get(vecNum);
+            xilinx_apps::cosinesim::RowIndex rowIndex = 0;
+            xai::CosineSim::ValueType *pBuf = pCosineSim->getPopulationVectorBuffer(rowIndex);
+            for (xilinx_apps::cosinesim::ColIndex eltNum = 0; eltNum < vectorLength; ++eltNum)
+                *pBuf++ = xai::CosineSim::ValueType(curRowVec.get(eltNum + 3));
+            pCosineSim->finishCurrentPopulationVector(pBuf);
+            uint64_t vertexId = ((curRowVec.get(2) << 32) & 0xFFFFFFF00000000) | (curRowVec.get(1) & 0x00000000FFFFFFFF);
+            idMap[rowIndex] = vertexId;
+        }
+        pCosineSim->finishLoadPopulationVectors();
+        pContext->setInitialized();  // FPGA(s) now ready to match
+        return 0;
     }
-    pCosineSim->finishLoadPopulationVectors();
-    pContext->setInitialized();  // FPGA(s) now ready to match
-    return 0;
+    catch (const xilinx_apps::cosinesim::Exception &ex) {
+        pContext->setErrorMessage(ex.what());
+        pContext->clear();
+        return -1;
+    }
 }
 
 // Enable this to print profiling messages to the log (via stdout)
@@ -244,72 +258,80 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     nativeTargetVector.reserve(vectorLength);
     for (xilinx_apps::cosinesim::ColIndex eltNum = 0; eltNum < vectorLength; ++eltNum)
         nativeTargetVector.push_back(newVector.get(eltNum + 3));
-    xai::CosineSim *pCosineSim = pContext->getCosineSimObj();
+    
+    try {
+        pContext->clearErrorMessage();
+        xai::CosineSim *pCosineSim = pContext->getCosineSimObj();
 
     //---------------------------------------------------------------------------
 #ifdef XILINX_RECOM_PROFILE_ON
-    std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time =
-            std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> l_durationSec = l_end_time - l_start_time;
-    double l_timeMs = l_durationSec.count() * 1e3;
-    std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
-              << " preprocessing runtime msec=  " << std::fixed << std::setprecision(6) 
-              << l_timeMs << std::endl;
+        std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time =
+                std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> l_durationSec = l_end_time - l_start_time;
+        double l_timeMs = l_durationSec.count() * 1e3;
+        std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
+                  << " preprocessing runtime msec=  " << std::fixed << std::setprecision(6) 
+                  << l_timeMs << std::endl;
 #endif
     //---------------------------------------------------------------------------
 
     //---------------- Run L3 API -----------------------------------
     //-------------------------------------------------------------------------
 #ifdef XILINX_RECOM_PROFILE_ON
-    std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time1 =
-            std::chrono::high_resolution_clock::now();
-    std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
-              << " cosinesim_ss_dense_fpga start=" << l_start_time1.time_since_epoch().count() << std::endl;
+        std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time1 =
+                std::chrono::high_resolution_clock::now();
+        std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
+                  << " cosinesim_ss_dense_fpga start=" << l_start_time1.time_since_epoch().count() << std::endl;
 #endif
     //-------------------------------------------------------------------------
 
-    std::vector<xilinx_apps::cosinesim::Result> apiResults
-            = pCosineSim->matchTargetVector(topK, nativeTargetVector.data());
+        std::vector<xilinx_apps::cosinesim::Result> apiResults
+                = pCosineSim->matchTargetVector(topK, nativeTargetVector.data());
     
     //---------------------------------------------------------------------------
 #ifdef XILINX_RECOM_PROFILE_ON
-    std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time1 =
-            std::chrono::high_resolution_clock::now();
-    l_durationSec = l_end_time1 - l_start_time1;
-    l_timeMs = l_durationSec.count() * 1e3;
-    std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
-              << " cosinesim_ss_dense_fpga runtime msec=  " << std::fixed << std::setprecision(6) 
-              << l_timeMs << std::endl;
+        std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time1 =
+                std::chrono::high_resolution_clock::now();
+        l_durationSec = l_end_time1 - l_start_time1;
+        l_timeMs = l_durationSec.count() * 1e3;
+        std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
+                  << " cosinesim_ss_dense_fpga runtime msec=  " << std::fixed << std::setprecision(6) 
+                  << l_timeMs << std::endl;
 #endif
     //---------------------------------------------------------------------------
 
     //-------------------------------------------------------------------------
 #ifdef XILINX_RECOM_PROFILE_ON
-    std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time2 =
-            std::chrono::high_resolution_clock::now();
-    std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
-              << " postprocessing start=" << l_start_time2.time_since_epoch().count() << std::endl;
+        std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time2 =
+                std::chrono::high_resolution_clock::now();
+        std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
+                  << " postprocessing start=" << l_start_time2.time_since_epoch().count() << std::endl;
 #endif
     //-------------------------------------------------------------------------
 
-    for (xilinx_apps::cosinesim::Result &apiResult : apiResults) {
-        if (apiResult.index < 0 || apiResult.index >= xilinx_apps::cosinesim::RowIndex(idMap.size()))
-            continue;
-        result += testResults(VERTEX(idMap[apiResult.index]), apiResult.similarity);
+        for (xilinx_apps::cosinesim::Result &apiResult : apiResults) {
+            if (apiResult.index < 0 || apiResult.index >= xilinx_apps::cosinesim::RowIndex(idMap.size()))
+                continue;
+            result += testResults(VERTEX(idMap[apiResult.index]), apiResult.similarity);
+        }
+
+    //---------------------------------------------------------------------------
+#ifdef XILINX_RECOM_PROFILE_ON
+        std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time2 =
+                std::chrono::high_resolution_clock::now();
+        l_durationSec = l_end_time2 - l_start_time2;
+        l_timeMs = l_durationSec.count() * 1e3;
+        std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
+                  << " postprocessing runtime msec=  " << std::fixed << std::setprecision(6) 
+                  << l_timeMs << std::endl;
+#endif
+    //---------------------------------------------------------------------------
+
     }
-
-    //---------------------------------------------------------------------------
-#ifdef XILINX_RECOM_PROFILE_ON
-    std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time2 =
-            std::chrono::high_resolution_clock::now();
-    l_durationSec = l_end_time2 - l_start_time2;
-    l_timeMs = l_durationSec.count() * 1e3;
-    std::cout << "PROFILING: " << __FILE__ << "::" << __FUNCTION__ 
-              << " postprocessing runtime msec=  " << std::fixed << std::setprecision(6) 
-              << l_timeMs << std::endl;
-#endif
-    //---------------------------------------------------------------------------
-
+    catch (const xilinx_apps::cosinesim::Exception &ex) {
+        pContext->setErrorMessage(ex.what());
+//        pContext->clear();  // maybe don't do this if problem is transient
+    }
     return result;
 }
 

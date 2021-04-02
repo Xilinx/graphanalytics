@@ -3,20 +3,22 @@
 #include <iostream>
 
 class Impl : public ImplBase {
-    int arg1_ = 0;
+    Options arg1_;
 public:
 
-    Impl(int arg1) : arg1_(arg1) {}
+    Impl(const Options &arg1) : arg1_(arg1) {}
 
     virtual void func() {
-        std::cout << "Arg1 is " << arg1_ << std::endl;
+        std::cout << "intOpt is " << arg1_.intOpt
+                << " and strOpt is " << arg1_.strOpt
+                << std::endl;
     }
 };
 
 
 extern "C" {
 
-ImplBase *createImpl(int arg1) {
+ImplBase *createImpl(const Options &arg1) {
     return new Impl(arg1);
 }
 

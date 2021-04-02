@@ -35,16 +35,24 @@ void *getDynamicFunction(const std::string &funcName) {
 
 //#####################################################################################################################
 
+#ifdef API_INLINE_IMPL
+#define API_IMPL_DEF inline
+#else
+#define API_IMPL_DEF
+#endif
+
 extern "C" {
 
-ImplBase *createImpl(int arg1) {
-    typedef ImplBase * (*CreateFunc)(int);
+API_IMPL_DEF
+ImplBase *createImpl(const Options &arg1) {
+    typedef ImplBase * (*CreateFunc)(const Options &);
     CreateFunc pCreateFunc = (CreateFunc) getDynamicFunction("createImpl");
     if (pCreateFunc == nullptr)
         return nullptr;
     return pCreateFunc(arg1);
 }
 
+API_IMPL_DEF
 void destroyImpl(ImplBase *pImpl) {
     typedef ImplBase * (*DestroyFunc)(ImplBase *);
     DestroyFunc pDestroyFunc = (DestroyFunc) getDynamicFunction("destroyImpl");

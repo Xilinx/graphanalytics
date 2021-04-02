@@ -39,6 +39,8 @@ private:
     bool isInitialized_ = false;
     CosineSim *pCosineSim_ = nullptr;
     IdMap idMap_;  // maps from vector ID to FPGA row number
+    std::string errorMessage_;
+    
 public:
     static Context *getInstance() {
         static Context *s_pContext = nullptr;
@@ -100,6 +102,10 @@ public:
         delete pCosineSim_;
         pCosineSim_ = nullptr;
     }
+    
+    void clearErrorMessage() { errorMessage_.clear(); }
+    void setErrorMessage(const std::string &message) { errorMessage_ = message; }
+    const std::string &getErrorMessage() const { return errorMessage_; }
 };
 
 

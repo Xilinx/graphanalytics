@@ -144,9 +144,9 @@ source $xrmPath/setup.sh
 
 # Install plugin to ExprFunctions.hpp file
 
-if [ ! -f "$tg_udf_dir/mergeHeaders.py" ]; then
+#if [ ! -f "$tg_udf_dir/mergeHeaders.py" ]; then
     cp $plugin_src_dir/mergeHeaders.py $tg_udf_dir
-fi
+#fi
 mv $tg_udf_dir/ExprFunctions.hpp $tg_udf_dir/ExprFunctions.hpp.prev
 python3 $tg_udf_dir/mergeHeaders.py $tg_udf_dir/ExprFunctions.hpp.prev $plugin_src_dir/xilinxUdf.hpp \
      > $tg_udf_dir/ExprFunctions.hpp
@@ -172,9 +172,6 @@ cp $tg_udf_dir/cosinesim_loader.cpp $tg_temp_include_dir
 cp $tg_udf_dir/codevector.hpp $tg_temp_include_dir
 cp $tg_udf_dir/xilinxRecomEngine.hpp $tg_temp_include_dir
 
-# Use default MakeUdf since we have no .o's to include
-# TODO: remove this after no branch is left that installs a custom MakeUdf
-cp $SCRIPTPATH/MakeUdf.orig $tg_root_dir/dev/gdk/MakeUdf
 
 # Remove old objects
 # TODO: remove this after all Xilinx lab machines have been updated with this new install script
