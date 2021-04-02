@@ -4,6 +4,8 @@
 #include <cstring>
 #include <memory>
 #include <unordered_map>
+#include <iostream>
+#include <sstream>
 #include "cosinesim.hpp"
 #include "xf_graph_L3.hpp"
 
@@ -65,6 +67,14 @@ public:
     PrivateImpl(const Options &options, unsigned valueSize){
         //errorCode_ = NoError;
         valueSize_ = valueSize;
+       if(valueSize_ != 4) {
+            std::cout << "DEBUG: valueType is not supported" << std::endl;
+            std::ostringstream oss;
+            oss << "the only Value size currently supported is 32 bits.  Please ensure that you have constructed the CosineSim object with a 32-bit template parameter" <<std::endl;
+            throw xilinx_apps::cosinesim::Exception(oss.str());
+        }
+
+
         //cosinesimPtr = ptr;
         indexDeviceCuNm=0;
         indexSplitNm=0;
