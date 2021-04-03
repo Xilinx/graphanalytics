@@ -40,7 +40,7 @@ function usage() {
     echo "Optional options:"
     echo "  -c 0|1              : 0=Do not load cache; 1=Load cache(default)"
     echo "  -d devices-needed   : number of FPGAs needed (default=1)"
-    echo "  -n iterations       : number of iterations to run (default=3)"
+    echo "  -n iterations       : number of iterations to run (default=1)"
     echo "  -g graph-name       : graph name (default=xgraph_<username>"
     echo "  -l 0|1              : 0: Do not load FPGA; 1: Load FPGA(default)>"
     echo "  -s data-source-path : path containing input data. default=./1000_patients/csv"

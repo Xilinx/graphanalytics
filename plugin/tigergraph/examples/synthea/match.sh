@@ -30,7 +30,7 @@
 # limitations under the License.
 #
 # common.sh sets up gsql client, gets username, passowrd, xgraph name
-. common.sh
+. bin/common.sh
 if [ "$load_cache" -eq 1 ]
 then
     echo "Caching cosine similarity vectors to patient vertices..."

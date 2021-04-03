@@ -30,6 +30,6 @@
 # limitations under the License.
 #
 # common.sh sets up gsql client and gets username and passowrd
-. common.sh
+. bin/common.sh
 ./init_graph.sh $@
 ./match.sh $@
