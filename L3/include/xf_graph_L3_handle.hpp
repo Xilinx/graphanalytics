@@ -64,12 +64,12 @@ class Handle {
      *
      */
     struct singleOP {
-        std::string operationName; // for example, cosineSim
-        std::string kernelName;    // user defined kernel names
-        std::string kernelAlias;   // user defined kernel names
+        std::string operationName;           // for example, cosineSim
+        std::string kernelName;              // user defined kernel names
+        std::string kernelAlias;             // user defined kernel names
         unsigned int requestLoad = 100;
-        char* xclbinFile;                    // xclbin full path
-        unsigned int numDevices = 0;       // requested FPGA device number
+        std::string xclbinPath;              // xclbin full path
+        unsigned int numDevices = 0;         // requested FPGA device number
         unsigned int cuPerBoard = 1;         // requested FPGA device number
         std::vector<unsigned int> deviceIDs; // deviceID
         void setKernelName(char* input) {
@@ -156,7 +156,7 @@ class Handle {
 
     void free();
 
-    void debug();
+    void showHandleInfo();
 
     int setUp();
 
@@ -164,10 +164,12 @@ class Handle {
 
     void addOp(singleOP op);
 
-   private:
-    uint32_t maxCU;
+    uint32_t getNumDevices() {return numDevices_;}
 
-    uint32_t deviceNm;
+   private:
+    uint32_t maxCU_;
+
+    uint32_t numDevices_;
 
     uint32_t totalDevices;
 
@@ -178,7 +180,7 @@ class Handle {
     void loadXclbin(unsigned int deviceId, char* xclbinName);
 
     std::thread loadXclbinNonBlock(unsigned int deviceId, char* xclbinName);
-    std::future<int> loadXclbinAsync(unsigned int deviceId, char* xclbinName);
+    std::future<int> loadXclbinAsync(unsigned int deviceId, std::string& xclbinName);
 /*
     void initOpPageRank(const char* kernelName,
                         char* xclbinFile,
@@ -244,7 +246,7 @@ class Handle {
                          unsigned int cuPerBoard);
 */
     int32_t initOpSimDense(std::string kernelName,
-                           char* xclbinFile,
+                           std::string xclbinFile,
                            std::string kernelAlias,
                            unsigned int requestLoad,
                            unsigned int numDevices,

@@ -28,7 +28,7 @@ namespace L3 {
 // currently used
 void createHandleSimDense(class openXRM* xrm, clHandle& handle, 
                           std::string kernelName, std::string kernelAlias,
-                          const char* pXclbin, int32_t IDDevice, 
+                          std::string xclbinFile, int32_t IDDevice, 
                           unsigned int requestLoad) {
     // Platform related operations
     std::vector<cl::Device> devices = xcl::get_xil_devices();
@@ -37,63 +37,73 @@ void createHandleSimDense(class openXRM* xrm, clHandle& handle,
     handle.q = cl::CommandQueue(handle.context, handle.device,
                                 CL_QUEUE_PROFILING_ENABLE | CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE);
     std::string devName = handle.device.getInfo<CL_DEVICE_NAME>();
-    std::cout << "INFO:" << __FILE__ << "::" << __FUNCTION__ 
-              << "INFO: Found Device ID " << IDDevice << "=" << devName 
-              << " CommandQueue =" << &handle.q << std::endl;
-    handle.xclBins = xcl::import_binary_file(pXclbin);
+    handle.xclBins = xcl::import_binary_file(xclbinFile);
     std::vector<cl::Device> devices2;
     devices2.push_back(handle.device);
     handle.program = cl::Program(handle.context, devices2, handle.xclBins);
-    std::cout << "INFO:" << __FUNCTION__ 
-              << " kernelName=" << kernelName << " kernelAlias=" << kernelAlias 
-              << std::endl;
 
     //xrmCuResource* resR;
     handle.resR = (xrmCuResource*)malloc(sizeof(xrmCuResource));
     memset(handle.resR, 0, sizeof(xrmCuResource));
     xrm->allocCU(handle.resR, kernelName.c_str(), kernelAlias.c_str(), requestLoad);
-    std::cout << "INFO:" << __FUNCTION__ 
+    std::string instanceName0 = handle.resR->instanceName;
+    instanceName0 = "denseSimilarityKernel:{" + instanceName0 + "}";
+
+    const char* instanceName = instanceName0.c_str();
+    handle.kernel = cl::Kernel(handle.program, instanceName);
+
+#ifndef NDEBUG    
+    std::cout << "DEBUG:" << __FUNCTION__ 
+              << " IDDevice=" << IDDevice << "=" << devName 
+              << " CommandQueue=" << &handle.q << std::endl;
+
+    std::cout << "DEBUG:" << __FUNCTION__ 
+              << " kernelName=" << kernelName << " kernelAlias=" << kernelAlias 
+              << std::endl;
+
+    std::cout << "DEBUG:" << __FUNCTION__ 
               << " resR.deviceId=" << handle.resR->deviceId 
               << " resR.cuId=" << handle.resR->cuId
               << " resR.channelID=" << handle.resR->channelId 
               << " resR.instanceName=" << handle.resR->instanceName
               << std::endl;
 
-    std::string instanceName0 = handle.resR->instanceName;
-    instanceName0 = "denseSimilarityKernel:{" + instanceName0 + "}";
+    std::cout << "DEBUG: " << __FUNCTION__ 
+              << " instanceName0=" << instanceName0 <<  " created" << std::endl;
 
-    const char* instanceName = instanceName0.c_str();
-    handle.kernel = cl::Kernel(handle.program, instanceName);
-    std::cout << "INFO: " << __FUNCTION__ 
-              << " Kernel=" << instanceName0 <<  " created" << std::endl;
+#endif
+
 }
 
 uint32_t opSimilarityDense::cuPerBoardSimDense;
 
 uint32_t opSimilarityDense::dupNmSimDense;
 
-void opSimilarityDense::setHWInfo(uint32_t numDev, uint32_t CUmax) {
-    std::cout << "DEBUG: " << __FUNCTION__ << " numDev=" << numDev << " CUmax=" << CUmax << std::endl;
-
-    maxCU = CUmax;
-    deviceNm = numDev;
-    cuPerBoardSimDense = maxCU / deviceNm;
-    handles = new clHandle[CUmax];
+void opSimilarityDense::setHWInfo(uint32_t numDevices, uint32_t maxCU) {
+#ifndef NDEBUG    
+    std::cout << "DEBUG: " << __FUNCTION__ << " numDev=" << numDevices << " maxCU=" << maxCU << std::endl;
+#endif
+    maxCU_ = maxCU;
+    numDevices_ = numDevices;
+    cuPerBoardSimDense = maxCU_ / numDevices_;
+    handles = new clHandle[maxCU_];
 };
 
 void opSimilarityDense::freeSimDense(xrmContext* ctx) {
-    std::cout << "DEBUG: " << __FUNCTION__ << std::endl;
+    std::cout << "INFO: " << __FUNCTION__ << std::endl;
 
-    for (unsigned int i = 0; i < maxCU; ++i) {
+    for (unsigned int i = 0; i < maxCU_; ++i) {
         delete[] handles[i].buffer;
         int deviceId = handles[i].resR->deviceId;
         int cuId = handles[i].resR->cuId;
-        std::cout << "INFO:" << __FUNCTION__ 
+#ifndef NDEBUG        
+        std::cout << "DEBUG:" << __FUNCTION__ 
               << " resR.deviceId=" << handles[i].resR->deviceId 
               << " resR.cuId=" << handles[i].resR->cuId
               << " resR.channelID=" << handles[i].resR->channelId 
               << " resR.instanceName=" << handles[i].resR->instanceName
               << std::endl;
+#endif              
         if (!xrmCuRelease(ctx, handles[i].resR)) {
             std::cout << "ERROR:" << __FUNCTION__ 
                       << " xrmCuRelease failed: deviceId=" << deviceId
@@ -110,25 +120,25 @@ void opSimilarityDense::cuRelease(xrmContext* ctx, xrmCuResource* resR) {
 
 // Currently active for cosine similarity
 void opSimilarityDense::init(class openXRM* xrm, std::string kernelName, 
-                             std::string kernelAlias, char* xclbinFile, 
+                             std::string kernelAlias, std::string xclbinFile, 
                              uint32_t* deviceIDs, uint32_t* cuIDs, 
                              unsigned int requestLoad) {
     dupNmSimDense = 100 / requestLoad;
     cuPerBoardSimDense /= dupNmSimDense;
     uint32_t bufferNm = 20;
     unsigned int cnt = 0;
-    unsigned int* handleID = new unsigned int[maxCU];
+    unsigned int* handleID = new unsigned int[maxCU_];
     handleID[0] = cnt;
     handles[0].deviceID = deviceIDs[0];
     handles[0].cuID = cuIDs[0];
     handles[0].dupID = 0;
-    std::thread th[maxCU];
+    std::thread th[maxCU_];
     createHandleSimDense(xrm, handles[cnt], kernelName, kernelAlias, xclbinFile, 
                          deviceIDs[cnt], requestLoad);
     handles[cnt].buffer = new cl::Buffer[bufferNm];
     unsigned int prev = deviceIDs[0];
     deviceOffset.push_back(0);
-    for (unsigned int i = 1; i < maxCU; ++i) {
+    for (unsigned int i = 1; i < maxCU_; ++i) {
         handles[i].deviceID = deviceIDs[i];
         handles[i].cuID = cuIDs[i];
         handles[i].dupID = i % dupNmSimDense;
@@ -152,18 +162,18 @@ void opSimilarityDense::initInt(class openXRM* xrm, char* kernelName,
     cuPerBoardSimDense /= dupNmSimDense;
     uint32_t bufferNm = 20;
     unsigned int cnt = 0;
-    unsigned int* handleID = new unsigned int[maxCU];
+    unsigned int* handleID = new unsigned int[maxCU_];
     handleID[0] = cnt;
     handles[0].deviceID = deviceIDs[0];
     handles[0].cuID = cuIDs[0];
     handles[0].dupID = 0;
-    std::thread th[maxCU];
+    std::thread th[maxCU_];
     createHandleSimDense(xrm, handles[cnt], kernelName, kernelAlias, xclbinFile, 
                          deviceIDs[cnt], requestLoad);
     handles[cnt].buffer = new cl::Buffer[bufferNm];
     unsigned int prev = deviceIDs[0];
     deviceOffset.push_back(0);
-    for (unsigned int i = 1; i < maxCU; ++i) {
+    for (unsigned int i = 1; i < maxCU_; ++i) {
         handles[i].deviceID = deviceIDs[i];
         handles[i].cuID = cuIDs[i];
         handles[i].dupID = i % dupNmSimDense;
@@ -294,12 +304,12 @@ void loadGraphCoreSimDenseInt(clHandle* hds, int nrows, int nnz, int cuID, xf::g
 void opSimilarityDense::loadGraph(xf::graph::Graph<uint32_t, float> g) {
     int nnz = g.edgeNum;
     int nrows = g.nodeNum;
-    bool freed[maxCU];
+    bool freed[maxCU_];
 
-    std::thread* th = new std::thread[maxCU];
-    std::future<void>* fut = new std::future<void>[ maxCU ];
+    std::thread* th = new std::thread[maxCU_];
+    std::future<void>* fut = new std::future<void>[maxCU_];
     int cnt = 0;
-    for (unsigned int j = 0; j < maxCU; ++j) {
+    for (unsigned int j = 0; j < maxCU_; ++j) {
         if ((handles[j].cuID == 0) && (handles[j].dupID == 0)) {
             cnt = j;
             std::packaged_task<void(clHandle*, int, int, xf::graph::Graph<uint32_t, float>)> t(loadGraphCoreSimDense);
@@ -309,7 +319,7 @@ void opSimilarityDense::loadGraph(xf::graph::Graph<uint32_t, float> g) {
         freed[j] = 0;
     }
     cnt = 0;
-    for (unsigned int j = 0; j < maxCU; ++j) {
+    for (unsigned int j = 0; j < maxCU_; ++j) {
         if (!((handles[j].cuID == 0) && (handles[j].dupID == 0))) {
             if (freed[cnt] == 0) {
                 fut[cnt].get();
@@ -323,7 +333,7 @@ void opSimilarityDense::loadGraph(xf::graph::Graph<uint32_t, float> g) {
             cnt = j;
         }
     }
-    for (unsigned int j = 0; j < maxCU; ++j) {
+    for (unsigned int j = 0; j < maxCU_; ++j) {
         if ((handles[j].cuID == 0) && (handles[j].dupID == 0)) {
             if (freed[j] == 0) {
                 fut[j].get();
@@ -339,14 +349,14 @@ void opSimilarityDense::loadGraphMultiCardBlocking(unsigned int deviceID, unsign
     int nnz = g.edgeNum;
     int nrows = g.nodeNum;
     int cnt = 0;
-    for (unsigned int j = 0; j < maxCU; ++j) {
+    for (unsigned int j = 0; j < maxCU_; ++j) {
         if ((handles[j].deviceID == (unsigned int)deviceID) && (handles[j].cuID == cuID) && (handles[j].dupID == 0)) {
             cnt = j;
             loadGraphCoreSimDenseInt(&handles[j], nrows, nnz, cuID, g);
         }
     }
     cnt = 0;
-    for (unsigned int j = 0; j < maxCU; ++j) {
+    for (unsigned int j = 0; j < maxCU_; ++j) {
         if ((handles[j].deviceID == (unsigned int)deviceID) && (handles[j].cuID == (unsigned int)cuID)) {
             if (handles[j].dupID != 0) {
                 for (unsigned int i = 0; i < (unsigned int)(g.splitNum * 4); i++) {
@@ -364,12 +374,12 @@ void opSimilarityDense::loadGraphMultiCardNonBlocking(
 
     int nnz = graph.edgeNum;
     int nrows = graph.nodeNum;
-    bool freed[maxCU];
+    bool freed[maxCU_];
 
-    std::thread* th = new std::thread[maxCU];
-    std::future<void>* fut = new std::future<void>[ maxCU ];
+    std::thread* th = new std::thread[maxCU_];
+    std::future<void>* fut = new std::future<void>[ maxCU_ ];
     int cnt = 0;
-    for (unsigned int j = 0; j < maxCU; ++j) {
+    for (unsigned int j = 0; j < maxCU_; ++j) {
         if ((handles[j].deviceID == (unsigned int)deviceID) && (handles[j].cuID == (unsigned int)cuID) &&
             (handles[j].dupID == 0)) {
             cnt = j;
@@ -381,7 +391,7 @@ void opSimilarityDense::loadGraphMultiCardNonBlocking(
         freed[j] = 0;
     }
     cnt = 0;
-    for (unsigned int j = 0; j < maxCU; ++j) {
+    for (unsigned int j = 0; j < maxCU_; ++j) {
         if ((handles[j].deviceID == (unsigned int)deviceID) && (handles[j].cuID == (unsigned int)cuID)) {
             if (handles[j].dupID != 0) {
                 if (freed[cnt] == 0) {
@@ -397,7 +407,7 @@ void opSimilarityDense::loadGraphMultiCardNonBlocking(
             }
         }
     }
-    for (unsigned int j = 0; j < maxCU; ++j) {
+    for (unsigned int j = 0; j < maxCU_; ++j) {
         if ((handles[j].deviceID == (unsigned int)deviceID) && (handles[j].cuID == (unsigned int)cuID) &&
             (handles[j].dupID == 0)) {
             if (freed[j] == 0) {

@@ -119,7 +119,7 @@ extern "C" int load_graph_cosinesim_ss_dense_fpga_wrapper(uint32_t numDevices,
     op0.operationName = (char*)opName.c_str();
     op0.setKernelName((char*)kernelName.c_str());
     op0.requestLoad = requestLoad;
-    op0.xclbinFile = (char*)xclbinPath.c_str();
+    op0.xclbinPath = xclbinPath;
     op0.numDevices = numDevices;
     op0.cuPerBoard = cuNm;
     
@@ -140,7 +140,7 @@ extern "C" int load_graph_cosinesim_ss_dense_fpga_wrapper(uint32_t numDevices,
 
     //-------------------------
     std::shared_ptr<xf::graph::L3::Handle> handle1 = sharedHandlesCosSimDense::instance().handlesMap[0];
-    handle1->debug();
+    handle1->showHandleInfo(); // no-op in Release build
     //------------------------
     
     //---------------- Run Load Graph -----------------------------------
@@ -179,7 +179,7 @@ extern "C" void cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
 
     std::shared_ptr<xf::graph::L3::Handle> handle0 = 
                         sharedHandlesCosSimDense::instance().handlesMap[0];
-    handle0->debug();
+    handle0->showHandleInfo(); // no-op in Release build
     int32_t requestNm = 1;
     int32_t hwNm = devicesNeeded;
     std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__ 

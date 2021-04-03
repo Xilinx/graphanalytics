@@ -148,7 +148,7 @@ public:
                 (numDevices * cuNm * splitNm * channelsPU)) * channelsPU;
         int rest = numVertices - general * (numDevices * cuNm * splitNm - 1);
 
-#ifdef __DEBUG__
+#ifndef NDEBUG
         std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
                 << " numVertices=" << numVertices << ", general=" << general
                 << ", rest=" << rest
@@ -200,7 +200,6 @@ public:
 
 
     }
-    //void loadgraph_cosinesim_ss_dense_fpga(unsigned deviceNeeded,unsigned cuNm, xf::graph::Graph<int32_t, int32_t>** g)
 
     virtual void *getPopulationVectorBuffer(RowIndex &rowIndex){
 
@@ -271,7 +270,7 @@ public:
 
 
     int cosineSimilaritySSDenseMultiCard(std::shared_ptr<xf::graph::L3::Handle>& handle,
-                                         int32_t deviceNm,
+                                         int32_t numDevices,
                                          int32_t sourceNUM,
                                          int32_t* sourceWeights,
                                          int32_t topK,
@@ -279,10 +278,10 @@ public:
                                          int32_t* resultID,
                                          float* similarity) {
         std::vector<xf::graph::L3::event<int> > eventQueue;
-        float** similarity0 = new float*[deviceNm];
-        int32_t** resultID0 = new int32_t*[deviceNm];
-        int counter[deviceNm];
-        for (int i = 0; i < deviceNm; ++i) {
+        float** similarity0 = new float*[numDevices];
+        int32_t** resultID0 = new int32_t*[numDevices];
+        int counter[numDevices];
+        for (int i = 0; i < numDevices; ++i) {
             counter[i] = 0;
             similarity0[i] = xf::graph::internal::aligned_alloc<float>(topK);
             resultID0[i] = xf::graph::internal::aligned_alloc<int32_t>(topK);
@@ -290,7 +289,7 @@ public:
             memset(similarity0[i], 0, topK * sizeof(float));
         }
 
-        for (int i = 0; i < deviceNm; ++i) {
+        for (int i = 0; i < numDevices; ++i) {
             eventQueue.push_back((handle->opsimdense)->addworkInt(
                 1, 0, sourceNUM, sourceWeights, topK, g[i][0], resultID0[i], similarity0[i]));
         }
@@ -303,7 +302,7 @@ public:
             int32_t prev = 0;
             resultID[i] = resultID0[0][counter[0]];
             counter[0]++;
-            for (int j = 1; j < deviceNm; ++j) {
+            for (int j = 1; j < numDevices; ++j) {
                 if (similarity[i] < similarity0[j][counter[j]]) {
                     similarity[i] = similarity0[j][counter[j]];
                     resultID[i] = resultID0[j][counter[j]];
@@ -313,7 +312,7 @@ public:
                 }
             }
         }
-        for (int i = 0; i < deviceNm; ++i) {
+        for (int i = 0; i < numDevices; ++i) {
             free(similarity0[i]);
             free(resultID0[i]);
         }
@@ -323,7 +322,7 @@ public:
     };
 
     std::vector<xf::graph::L3::event<int> > cosineSimilaritySSDenseMultiCard(std::shared_ptr<xf::graph::L3::Handle>& handle,
-                                                              int32_t deviceNm,
+                                                              int32_t numDevices,
                                                               int32_t sourceNUM,
                                                               int32_t* sourceWeights,
                                                               int32_t topK,
@@ -333,7 +332,7 @@ public:
         std::vector<xf::graph::L3::event<int> > eventQueue;
         std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time;
 
-        for (int i = 0; i < deviceNm; ++i) {
+        for (int i = 0; i < numDevices; ++i) {
             l_start_time = std::chrono::high_resolution_clock::now();
             std::cout << "LOG2TIMELINE: " << __FUNCTION__
                       << "::addworkInt" << i << " start=" << l_start_time.time_since_epoch().count()
@@ -413,15 +412,44 @@ class sharedHandlesCosSimDense {
     }
 };
 
-void free_shared_handle()
+void freeSharedHandle()
 {
     if (!sharedHandlesCosSimDense::instance().handlesMap.empty()) {
         // free the object stored in handlsMap[0] and erase handlsMap[0]
+        std::cout << "INFO: " << __FUNCTION__ << std::endl;
         std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
         handle0->free();
         sharedHandlesCosSimDense::instance().handlesMap.erase(0);
     }
 }
+
+// create a new shared handle if
+// 1. The shared handle does not exist or
+// 2. The numDevices option changes
+void createSharedHandle(uint32_t numDevices)
+{
+    // return right away if the handle has already been created
+    if (!sharedHandlesCosSimDense::instance().handlesMap.empty()) {
+        std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
+
+        std::cout << "DEBUG: " << __FUNCTION__ << "numDevices=" << handle0->getNumDevices() << std::endl;
+        handle0->showHandleInfo();
+        if (numDevices != handle0->getNumDevices()) {
+            std::cout << "INFO: " << __FUNCTION__ << "numDevices changed. Creating a new handle." 
+                      << " numDevices loaded=" << handle0->getNumDevices()
+                      << " numDevices requested=" << numDevices << std::endl;
+            freeSharedHandle();
+        } else {
+            std::cout << "INFO: " << __FUNCTION__ << " Using exsiting handle with "
+                     << handle0->getNumDevices() << " devices loaded." << std::endl;
+            return;
+        }
+    }
+    std::cout << "INFO: " << __FUNCTION__ << std::endl;
+    std::shared_ptr<xf::graph::L3::Handle> handleInstance(new xf::graph::L3::Handle);
+    sharedHandlesCosSimDense::instance().handlesMap[0] = handleInstance;
+}
+
 
 //-----------------------------------------------------------------------------
 // Perform the tasks below
@@ -443,12 +471,10 @@ void PrivateImpl::load_cu_cosinesim_ss_dense_fpga()
     op0.setKernelName((char*)kernelName.c_str());
     op0.requestLoad = requestLoad;
     //op0.xclbinFile = (char*)xclbinPath.c_str();
-    op0.xclbinFile = (char*)xclbinPath.c_str();
+    op0.xclbinPath = xclbinPath;
     op0.numDevices = numDevices;
     op0.cuPerBoard = cuNm;
   
-    std::cout << "DEBUG: " << __FUNCTION__ << " op0.numDevices=" << op0.numDevices << " " << numDevices << std::endl;
-
     std::fstream xclbinFS(xclbinPath, std::ios::in);
     try {
         if (!xclbinFS) {
@@ -459,29 +485,18 @@ void PrivateImpl::load_cu_cosinesim_ss_dense_fpga()
         }
     }
     catch(...) {
-        std::cout << "Error : xclbinFile doesn't exist: " << xclbinPath << std::endl;
+        std::cout << "ERROR : xclbinFile doesn't exist: " << xclbinPath << std::endl;
         return;
     }
 
-    // return right away if the handle has already been created
-    if (!sharedHandlesCosSimDense::instance().handlesMap.empty()) {
-        std::cout << "INFO: " << __FUNCTION__ << " skipped:"
-              << " sharedHandlesCosSimDense.handlesMap.empty="
-              << sharedHandlesCosSimDense::instance().handlesMap.empty() << std::endl;
-
-        return;
-        //return XF_GRAPH_L3_SUCCESS;
-    }
-    std::shared_ptr<xf::graph::L3::Handle> handleInstance(new xf::graph::L3::Handle);
-    sharedHandlesCosSimDense::instance().handlesMap[0] = handleInstance;
+    createSharedHandle(numDevices);
     std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
 
     handle0->addOp(op0);
     int status = handle0->setUp();
     if (status != 0) {
         std::cout<< "ERROR: FPGA is not setup properly. free the handle! status:"<<status<<std::endl;
-        free_shared_handle();
-
+        freeSharedHandle();
     }
     return;
     //TODO throw exceptions
@@ -546,7 +561,7 @@ void PrivateImpl::cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
 
     std::shared_ptr<xf::graph::L3::Handle> handle0 =
                         sharedHandlesCosSimDense::instance().handlesMap[0];
-    handle0->debug();
+    handle0->showHandleInfo();  // no-op in Release
     int32_t requestNm = 1;
     int32_t hwNm = devicesNeeded;
     std::vector<xf::graph::L3::event<int> > eventQueue[requestNm];
@@ -618,8 +633,9 @@ void PrivateImpl::cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
 //-----------------------------------------------------------------------------
 // close_fpga
 //-----------------------------------------------------------------------------
-void close_fpga() {
-    free_shared_handle();
+void close_fpga() 
+{
+    freeSharedHandle();
     std::cout << __FUNCTION__ << " completed. sharedHandlesCosSimDense.handlesMap.empty=" <<
               sharedHandlesCosSimDense::instance().handlesMap.empty() << std::endl;
 

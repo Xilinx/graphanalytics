@@ -72,6 +72,7 @@ void Handle::initOpLabelPropagation(const char* kernelName,
     delete[] cuID;
     delete[] deviceID;
 };
+*/
 
 /*
 void Handle::initOpBFS(const char* kernelName,
@@ -165,7 +166,7 @@ void Handle::initOpPageRank(const char* kernelName,
 
 // currently used for cosine similarity
 int32_t Handle::initOpSimDense(std::string kernelName,
-                               char* xclbinFile,
+                               std::string xclbinFile,
                                std::string kernelAlias,
                                unsigned int requestLoad,
                                unsigned int numDevices,
@@ -174,13 +175,14 @@ int32_t Handle::initOpSimDense(std::string kernelName,
     uint32_t* cuID;
     int32_t status = 0;
 
-    status = xrm->fetchCuInfo(kernelName.c_str(), kernelAlias.c_str(), requestLoad, deviceNm, 
-                              maxChannelSize, maxCU, &deviceID, &cuID);
+    // fetchCuInfo will scan all available devices/CUs. 
+    numDevices_ = numDevices; // set initial requested number of devices
+    status = xrm->fetchCuInfo(kernelName.c_str(), kernelAlias.c_str(), requestLoad, numDevices_, 
+                              maxChannelSize, maxCU_, &deviceID, &cuID);
     if (status < 0)
         return status;
-    opsimdense->setHWInfo(deviceNm, maxCU);
-    opsimdense->init(xrm, kernelName, kernelAlias, xclbinFile, deviceID, 
-                     cuID, requestLoad);
+    opsimdense->setHWInfo(numDevices_, maxCU_);
+    opsimdense->init(xrm, kernelName, kernelAlias, xclbinFile, deviceID, cuID, requestLoad);
     opsimdense->initThread(xrm, kernelName, kernelAlias, requestLoad, numDevices, cuPerBoard);
     delete[] cuID;
     delete[] deviceID;
@@ -286,7 +288,6 @@ int Handle::setUp() {
                      ops[i].cuPerBoard);*/
         } else if (ops[i].operationName == "similarityDense") {
             // currently active
-            std::cout << "DEBUG: ops " << i << " numDevices=" << ops[i].numDevices << std::endl;
             unsigned int boardNm = ops[i].numDevices;
             if (deviceCounter + boardNm > totalDevices) {
                 std::cout << "ERROR: Current node does not have requested device count." 
@@ -297,7 +298,7 @@ int Handle::setUp() {
             std::thread thUn[boardNm];
             for (unsigned int j = 0; j < boardNm; ++j) {
 #ifndef NDEBUG__
-                std::cout << __FUNCTION__ << ": xrm->unloadXclbinNonBlock " 
+                std::cout << "DEBUG: " << __FUNCTION__ << ": xrm->unloadXclbinNonBlock " 
                           << deviceCounter + j << std::endl;
 #endif
                 thUn[j] = xrm->unloadXclbinNonBlock(deviceCounter + j);
@@ -308,15 +309,16 @@ int Handle::setUp() {
             std::future<int> th[boardNm];
             for (unsigned int j = 0; j < boardNm; ++j) {
 #ifndef NDEBUG__
-                std::cout << __FUNCTION__ << ": xrm->loadXclbinAsync " 
-                          << deviceCounter + j << std::endl;
+                std::cout << "DEBUG: " << __FUNCTION__ << ": xrm->loadXclbinAsync " 
+                          << deviceCounter + j 
+                          << " ops[i].xclbinPath=" << ops[i].xclbinPath << std::endl;
 #endif
-                th[j] = loadXclbinAsync(deviceCounter + j, ops[i].xclbinFile);
+                th[j] = loadXclbinAsync(deviceCounter + j, ops[i].xclbinPath);
             }
             for (unsigned int j = 0; j < boardNm; ++j) {
                 auto loadedDevId = th[j].get();
                 if (loadedDevId < 0) {
-                        std::cout << "ERROR: failed to load " << ops[i].xclbinFile << 
+                        std::cout << "ERROR: failed to load " << ops[i].xclbinPath << 
                         "(Status=" << loadedDevId << "). Please check if it is " <<
                         "created for the Xilinx Acceleration card installed on " <<
                         "the server." << std::endl;
@@ -325,7 +327,7 @@ int Handle::setUp() {
             }
             deviceCounter += boardNm;
 
-            status = initOpSimDense(ops[i].kernelName.c_str(), ops[i].xclbinFile, 
+            status = initOpSimDense(ops[i].kernelName.c_str(), ops[i].xclbinPath, 
                                     ops[i].kernelAlias.c_str(), ops[i].requestLoad,
                                     ops[i].numDevices, ops[i].cuPerBoard);
             if (status < 0)
@@ -565,16 +567,19 @@ void Handle::getEnv() {
     }
 }
 
-void Handle::debug() {
+void Handle::showHandleInfo() {
+#ifndef NDEBUG    
+    std::cout << "INFO: " << __FUNCTION__ << " numDevices_=" << numDevices_ 
+              << " maxCU_=" << maxCU_ << std::endl;
     unsigned int opNm = ops.size();
     for (unsigned int i = 0; i < opNm; ++i) {
-        std::cout << "INFO: Handle::debug opNm=" << opNm << 
+        std::cout << "INFO: " << __FUNCTION__ << 
             " operationName=" << ops[i].operationName << 
             " kernelname=" << ops[i].kernelName << 
             " requestLoad=" << ops[i].requestLoad << 
-            " xclbinFile=" << ops[i].xclbinFile << 
-            std::endl;
+            " xclbinFile=" << ops[i].xclbinPath << std::endl;
     }
+#endif    
 }
 
 void Handle::free() {
@@ -718,8 +723,9 @@ std::thread Handle::loadXclbinNonBlock(unsigned int deviceId, char* xclbinName) 
     return xrm->loadXclbinNonBlock(deviceId, xclbinName);
 };
 
-std::future<int> Handle::loadXclbinAsync(unsigned int deviceId, char* xclbinName) {
-    return xrm->loadXclbinAsync(deviceId, xclbinName);
+std::future<int> Handle::loadXclbinAsync(unsigned int deviceId, std::string& xclbinPath) {
+    std::cout << "DEBUG: " << __FUNCTION__ << " xclbinPath=" << xclbinPath << std::endl;
+    return xrm->loadXclbinAsync(deviceId, xclbinPath);
 };
 
 } // L3

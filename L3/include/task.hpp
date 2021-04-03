@@ -45,8 +45,7 @@ class openXRM {
     char** udfCuGroupName;
     openXRM() {
         ctx = (xrmContext*)xrmCreateContext(XRM_API_VERSION_1);
-        bool isRight = !(ctx == NULL);
-        assert(isRight);
+        assert(!(ctx == NULL));
     };
 
     void freeCuGroup(unsigned int deviceNm) {
@@ -110,8 +109,10 @@ class openXRM {
     std::thread loadXclbinNonBlock(unsigned int deviceId, char* xclbinName) {
         return std::thread(xrmLoadOneDevice, ctx, deviceId, xclbinName);
     }
-    std::future<int> loadXclbinAsync(unsigned int deviceId, char* xclbinName) {
-        std::future<int> ret = std::async(&xrmLoadOneDevice, ctx, deviceId, xclbinName);
+    std::future<int> loadXclbinAsync(unsigned int deviceId, std::string& xclbinPath) {
+        std::cout << "DEBUG: " << __FUNCTION__ << " xclbinPath=" << xclbinPath << std::endl;
+        std::future<int> ret = std::async(&xrmLoadOneDevice, ctx, deviceId, (char*)xclbinPath.c_str());
+        
         return ret;
     }
 
@@ -174,7 +175,7 @@ class openXRM {
     int32_t fetchCuInfo(const char* kernelName,
                         const char* kernelAlias,
                         int requestLoad,
-                        unsigned int& deviceNm,
+                        unsigned int& numDevices,
                         uint64_t& maxChannelSize,
                         unsigned int& maxCU,
                         unsigned int** deviceID,
@@ -186,12 +187,12 @@ class openXRM {
         propR.devExcl = false;
         propR.requestLoad = requestLoad;
         propR.poolId = 0;
-        maxCU = xrmCheckCuAvailableNum(ctx, &propR);
+        unsigned int availMaxCU = xrmCheckCuAvailableNum(ctx, &propR);
         xrmCuListProperty cuListPropR;
         xrmCuListResource cuListResR;
-        cuListPropR.cuNum = maxCU;
-        unsigned int* devices = new unsigned int[maxCU];
-        unsigned int* cus = new unsigned int[maxCU];
+        cuListPropR.cuNum = availMaxCU;
+        unsigned int* devices = new unsigned int[availMaxCU];
+        unsigned int* cus = new unsigned int[availMaxCU];
 
         for (int i = 0; i < cuListPropR.cuNum; i++) {
             strcpy(cuListPropR.cuProps[i].kernelName, kernelName);
@@ -202,7 +203,7 @@ class openXRM {
         }
         int32_t alloc0 = xrmCuListAlloc(ctx, &cuListPropR, &cuListResR);
 
-        deviceNm = 0;
+        uint32_t availNumDevices = 0;
         if (alloc0 != 0) {
             std::cout << "ERROR: " << __FUNCTION__ 
                       <<  "Fail to alloc cu list (xrmCuListAlloc): alloc0=" << alloc0 
@@ -241,27 +242,31 @@ class openXRM {
                     }
                 }
                 if (flag == false) {
-                    deviceNm += 1;
+                    availNumDevices += 1;
                 }
             }
             *cuID = cus;
             *deviceID = devices;
-            assert(deviceNm != 0);
+            assert(availNumDevices != 0);
             if (xrmCuListRelease(ctx, &cuListResR))
-                printf("INFO: Success to release cu list\n");
+                std::cout << "INFO: Success to release cu list\n" << std::endl;
             else
-                printf("Error: Fail to release cu list\n");
+                std::cout << "Error: Fail to release cu list\n" << std::endl;
         }
-        std::cout << "INFO: Available device number = " << deviceNm << std::endl;
-        std::cout << "INFO: Available CU number = " << maxCU << std::endl;
+        std::cout << "INFO: Available device number = " << availNumDevices << std::endl;
+        std::cout << "INFO: Available CU number = " << availMaxCU << std::endl;
+        if (availNumDevices >= numDevices) {
+            // has sufficient devices. adjust maxCU based on requested numDevices
+            maxCU = numDevices*availMaxCU/availNumDevices;
+        }
         return 0;
     }
 
     void freeXRM() {
         if (xrmDestroyContext(ctx) != XRM_SUCCESS)
-            printf("INFO: Destroy context failed\n");
+            std::cout << "INFO: Destroy context failed\n" << std::endl;
         else
-            printf("INFO: Destroy context success\n");
+            std::cout << "INFO: Destroy context success\n" << std::endl;
     };
 
     xrmContext* ctx;
@@ -456,9 +461,9 @@ inline void worker(queue& q,
                    std::string kernelName,
                    std::string kernelAlias,
                    unsigned int requestLoad,
-                   unsigned int deviceNm,
+                   unsigned int numDevices,
                    unsigned int cuNm) {
-    int requestNm = deviceNm * cuNm;
+    int requestNm = numDevices * cuNm;
     xrmCuResource* resR[requestNm];
 
 #ifdef __DEBUG__
