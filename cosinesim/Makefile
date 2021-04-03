@@ -33,7 +33,7 @@ endif
 .PHONY: all
 
 #all: javaApi cppBuild javaTest stage
-all: cppBuild cppTest stage
+all: stage
 
 #
 # Global Definitions
@@ -213,7 +213,7 @@ EXECS_test = $(addprefix $(CPP_BUILD_DIR)/,$(EXEC_FILE_NAMES_test))
 .PHONY: cppTest cppTest2
 
 # Make in a child process so that we can isolate the run that includes automatic header dependencies
-cppTest: $(CPP_BUILD_DIR) $(CPP_BUILD_DIR)/$(LIB_NAME) $(CPP_BUILD_DIR)/$(LOADER_NAME)
+cppTest: cppBuild
 	@make cppTest2
 
 cppTest2: $(EXECS_test)
@@ -222,11 +222,11 @@ cppTest2: $(EXECS_test)
 
 LDFLAGS_test = -fPIC -w -L $(CPP_BUILD_DIR) -l$(LIB_SHORT_NAME)
 
-$(CPP_BUILD_DIR)/cosinesim_test: $(CPP_BUILD_DIR)/cosinesim_test.o
-	$(LINK.cc) -o $@ $^ $(LDFLAGS_test) $(LIB_DEPS)
+$(CPP_BUILD_DIR)/cosinesim_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUILD_DIR)/$(LIB_NAME)
+	$(LINK.cc) -o $@ $< $(LDFLAGS_test) $(LIB_DEPS)
 
-$(CPP_BUILD_DIR)/cosinesim_dyn_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUILD_DIR)/$(LOADER_NAME)
-	$(LINK.cc) -o $@ $^ -fPIC -w -L $(CPP_BUILD_DIR) -l$(LOADER_SHORT_NAME) -ldl $(LIB_DEPS)
+$(CPP_BUILD_DIR)/cosinesim_dyn_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUILD_DIR)/$(LOADER_NAME) $(CPP_BUILD_DIR)/$(LIB_NAME)
+	$(LINK.cc) -o $@ $< -fPIC -w -L $(CPP_BUILD_DIR) -l$(LOADER_SHORT_NAME) -ldl $(LIB_DEPS)
 
 run-test: cppTest
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) $(CPP_BUILD_DIR)/cosinesim_test
@@ -368,7 +368,7 @@ STAGE_ALL_FILES = \
     $(STAGE_XCLBIN_FILE) \
     $(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP) \
 
-stage: $(STAGE_SUBDIRS) $(STAGE_ALL_FILES)
+stage: cppTest $(STAGE_SUBDIRS) $(STAGE_ALL_FILES)
 
 $(STAGE_SUBDIRS):
 	mkdir -p $@
@@ -386,7 +386,7 @@ else ifeq ($(OSDIST),CentOS)
     DIST_TARGET = RPM
 endif
 
-dist:
+dist: stage
 	@cd package; \
 	if [ "$(DIST_TARGET)" == "" ]; then \
 	    echo "Packaging is supported for only Ubuntu and CentOS."; \
