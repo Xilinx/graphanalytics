@@ -375,6 +375,29 @@ $(STAGE_SUBDIRS):
 
 #######################################################################################################################
 #
+# Packaging
+#
+
+OSDIST = $(shell lsb_release -si)
+DIST_TARGET =
+ifeq ($(OSDIST),Ubuntu)
+    DIST_TARGET = DEB
+else ifeq ($(OSDIST),CentOS)
+    DIST_TARGET = RPM
+endif
+
+dist:
+	@cd package; \
+	if [ "$(DIST_TARGET)" == "" ]; then \
+	    echo "Packaging is supported for only Ubuntu and CentOS."; \
+	else \
+	    echo "Packaging $(DIST_TARGET) for $(OSDIST)"; \
+	    make $(DIST_TARGET); \
+	fi
+
+
+#######################################################################################################################
+#
 # Java Tests
 #
 
