@@ -73,6 +73,8 @@ uint32_t opSimilarityDense::cuPerBoardSimDense;
 uint32_t opSimilarityDense::dupNmSimDense;
 
 void opSimilarityDense::setHWInfo(uint32_t numDev, uint32_t CUmax) {
+    std::cout << "DEBUG: " << __FUNCTION__ << " numDev=" << numDev << " CUmax=" << CUmax << std::endl;
+
     maxCU = CUmax;
     deviceNm = numDev;
     cuPerBoardSimDense = maxCU / deviceNm;

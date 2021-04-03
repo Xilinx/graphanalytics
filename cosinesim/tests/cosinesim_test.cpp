@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <vector>
 #include <iostream>
+#include <string>
 
 #ifdef USE_LOCAL_CLASS
 namespace xilinx_apps {
@@ -79,10 +80,16 @@ int main(int argc, char **argv) {
     std::vector<CosineSim::ValueType> testVector;  // "new vector" to match
     
     // Create the CosineSim object
-    
+
     xilinx_apps::cosinesim::Options options;
     options.vecLength = VectorLength;
-    options.numDevices = 1;
+    if (argc > 1)
+        options.numDevices = std::stoi(argv[1]);
+    else
+        options.numDevices = 1;
+
+    std::cout << "-------- START COSINESIME TEST numDevices=" << options.numDevices << "----------" << std::endl;
+
     //user can set xclbinPath through jsonPath
     //options.jsonPath = "Debug/config_cosinesim_ss_dense_fpga.json";
 
@@ -94,7 +101,7 @@ int main(int argc, char **argv) {
     
     // Generate random vectors, writing each into the Alveo card
     
-    std::cout << "Loading population vectors into Alveo card..." << std::endl;
+    std::cout << "INFO: Loading population vectors into Alveo card..." << std::endl;
     //cosineSim.openFpga();
     cosineSim.startLoadPopulation(NumVectors);
     for (unsigned vecNum = 0; vecNum < NumVectors; ++vecNum) {
@@ -115,15 +122,15 @@ int main(int argc, char **argv) {
     
     // Run the match in the FPGA
     
-    std::cout << "Running match for test vector #" << testVectorIndex << "..." << std::endl;
+    std::cout << "INFO: Running match for test vector #" << testVectorIndex << "..." << std::endl;
     std::vector<xilinx_apps::cosinesim::Result> results = cosineSim.matchTargetVector(10, testVector.data());
     results.clear();
     results = cosineSim.matchTargetVector(10, testVector.data());
     
     // Display the results
     
-    std::cout << "Results:" << std::endl;
-    std::cout << "Similarity   Vector #" << std::endl;
+    std::cout << "INFO: Results:" << std::endl;
+    std::cout << "INFO: Similarity   Vector #" << std::endl;
     std::cout << "----------   --------" << std::endl;
     for (xilinx_apps::cosinesim::Result &result : results)
         std::cout << result.similarity << "       " << result.index << std::endl;

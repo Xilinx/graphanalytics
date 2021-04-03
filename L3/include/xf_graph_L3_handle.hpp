@@ -59,7 +59,7 @@ class Handle {
      * computing unit are occupied. By using lower requestLoad, the hardware resources can be pipelined and higher
      * throughput can be achieved
      * \param xclbinFile xclbin file path
-     * \param deviceNeeded needed FPGA board number
+     * \param numDevices needed FPGA board number
      * \param deviceIDs FPGA board IDs
      *
      */
@@ -69,7 +69,7 @@ class Handle {
         std::string kernelAlias;   // user defined kernel names
         unsigned int requestLoad = 100;
         char* xclbinFile;                    // xclbin full path
-        unsigned int deviceNeeded = 0;       // requested FPGA device number
+        unsigned int numDevices = 0;       // requested FPGA device number
         unsigned int cuPerBoard = 1;         // requested FPGA device number
         std::vector<unsigned int> deviceIDs; // deviceID
         void setKernelName(char* input) {
@@ -169,7 +169,7 @@ class Handle {
 
     uint32_t deviceNm;
 
-    uint32_t numDevices;
+    uint32_t totalDevices;
 
     uint64_t maxChannelSize;
 
@@ -179,83 +179,84 @@ class Handle {
 
     std::thread loadXclbinNonBlock(unsigned int deviceId, char* xclbinName);
     std::future<int> loadXclbinAsync(unsigned int deviceId, char* xclbinName);
-
+/*
     void initOpPageRank(const char* kernelName,
                         char* xclbinFile,
                         char* kernelAlias,
                         unsigned int requestLoad,
-                        unsigned int deviceNeeded,
+                        unsigned int numDevices,
                         unsigned int cuPerBoard);
 
     void initOpSP(const char* kernelName,
                   char* xclbinFile,
                   char* kernelAlias,
                   unsigned int requestLoad,
-                  unsigned int deviceNeeded,
+                  unsigned int numDevices,
                   unsigned int cuPerBoard);
 
     void initOpTriangleCount(const char* kernelName,
                              char* xclbinFile,
                              char* kernelAlias,
                              unsigned int requestLoad,
-                             unsigned int deviceNeeded,
+                             unsigned int numDevices,
                              unsigned int cuPerBoard);
 
     void initOpLabelPropagation(const char* kernelName,
                                 char* xclbinFile,
                                 char* kernelAlias,
                                 unsigned int requestLoad,
-                                unsigned int deviceNeeded,
+                                unsigned int numDevices,
                                 unsigned int cuPerBoard);
 
     void initOpBFS(const char* kernelName,
                    char* xclbinFile,
                    char* kernelAlias,
                    unsigned int requestLoad,
-                   unsigned int deviceNeeded,
+                   unsigned int numDevices,
                    unsigned int cuPerBoard);
 
     void initOpWCC(const char* kernelName,
                    char* xclbinFile,
                    char* kernelAlias,
                    unsigned int requestLoad,
-                   unsigned int deviceNeeded,
+                   unsigned int numDevices,
                    unsigned int cuPerBoard);
 
     void initOpSCC(const char* kernelName,
                    char* xclbinFile,
                    char* kernelAlias,
                    unsigned int requestLoad,
-                   unsigned int deviceNeeded,
+                   unsigned int numDevices,
                    unsigned int cuPerBoard);
 
     void initOpConvertCsrCsc(const char* kernelName,
                              char* xclbinFile,
                              char* kernelAlias,
                              unsigned int requestLoad,
-                             unsigned int deviceNeeded,
+                             unsigned int numDevices,
                              unsigned int cuPerBoard);
 
     void initOpSimSparse(const char* kernelName,
                          char* xclbinFile,
                          char* kernelAlias,
                          unsigned int requestLoad,
-                         unsigned int deviceNeeded,
+                         unsigned int numDevices,
                          unsigned int cuPerBoard);
-
+*/
     int32_t initOpSimDense(std::string kernelName,
                            char* xclbinFile,
                            std::string kernelAlias,
                            unsigned int requestLoad,
-                           unsigned int deviceNeeded,
+                           unsigned int numDevices,
                            unsigned int cuPerBoard);
-
+/*
     void initOpSimDenseInt(const char* kernelName,
                            char* xclbinFile,
                            char* kernelAlias,
                            unsigned int requestLoad,
-                           unsigned int deviceNeeded,
+                           unsigned int numDevices,
                            unsigned int cuPerBoard);
+*/
 };
 } // L3
 } // graph

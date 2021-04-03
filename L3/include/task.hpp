@@ -211,6 +211,7 @@ class openXRM {
         } else {
             memBankSizeTransfer(cuListResR.cuResources[0].membankSize, maxChannelSize);
             for (int i = 0; i < cuListResR.cuNum; i++) {
+#ifndef NDEBUG                
                 printf("INFO: Allocated cu list: cu %d\n", i);
                 printf("   xclbinFileName is:  %s\n", cuListResR.cuResources[i].xclbinFileName);
                 printf("   kernelPluginFileName is:  %s\n", cuListResR.cuResources[i].kernelPluginFileName);
@@ -230,6 +231,7 @@ class openXRM {
                 printf("   allocServiceId is:  %lu\n", cuListResR.cuResources[i].allocServiceId);
                 printf("   poolId is:  %lu\n", cuListResR.cuResources[i].poolId);
                 printf("   channelLoad is:  %d\n", cuListResR.cuResources[i].channelLoad);
+#endif
                 cus[i] = cuListResR.cuResources[i].cuId;
                 devices[i] = cuListResR.cuResources[i].deviceId;
                 bool flag = false;

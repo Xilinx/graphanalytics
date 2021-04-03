@@ -81,7 +81,7 @@ CPP_BUILD_DIR = Debug
 CXXFLAGS += -O0 -g
 else
 CPP_BUILD_DIR = Release
-CXXFLAGS += -O3
+CXXFLAGS += -O3 -DNDEBUG
 endif
 
 
@@ -229,11 +229,11 @@ $(CPP_BUILD_DIR)/cosinesim_dyn_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUI
 	$(LINK.cc) -o $@ $^ -fPIC -w -L $(CPP_BUILD_DIR) -l$(LOADER_SHORT_NAME) -ldl $(LIB_DEPS)
 
 run-test: cppTest
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) $(CPP_BUILD_DIR)/cosinesim_test
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) $(CPP_BUILD_DIR)/cosinesim_test $(NUMDEVICES)
 
 run-dyn-test: cppTest
 	LD_PRELOAD=$(PWD)/$(CPP_BUILD_DIR)/$(LIB_NAME) LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) \
-	    $(CPP_BUILD_DIR)/cosinesim_dyn_test
+	    $(CPP_BUILD_DIR)/cosinesim_dyn_test $(NUMDEVICES)
 
 #LDFLAGS_fakeudf = -fPIC -w -L /scratch/tigergraph/tigergraph/app/3.1.0/dev/gdk/gsql/src/QueryUdf -lgraphL3wrapper -ldl
 LDFLAGS_fakeudf = -fPIC -w -L $(CPP_BUILD_DIR) -l$(LIB_SHORT_NAME)

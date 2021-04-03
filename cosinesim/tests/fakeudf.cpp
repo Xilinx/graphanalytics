@@ -74,7 +74,7 @@ class sharedHandlesCosSimDense {
     }
 };
 
-extern "C" int load_graph_cosinesim_ss_dense_fpga_wrapper(uint32_t deviceNeeded,
+extern "C" int load_graph_cosinesim_ss_dense_fpga_wrapper(uint32_t numDevices,
                                                   uint32_t cuNm,
                                                   xf::graph::Graph<int32_t, int32_t>** g) {
     //----------------- Text Parser --------------------------
@@ -120,7 +120,7 @@ extern "C" int load_graph_cosinesim_ss_dense_fpga_wrapper(uint32_t deviceNeeded,
     op0.setKernelName((char*)kernelName.c_str());
     op0.requestLoad = requestLoad;
     op0.xclbinFile = (char*)xclbinPath.c_str();
-    op0.deviceNeeded = deviceNeeded;
+    op0.numDevices = numDevices;
     op0.cuPerBoard = cuNm;
     
     std::fstream xclbinFS(xclbinPath, std::ios::in);
@@ -144,14 +144,14 @@ extern "C" int load_graph_cosinesim_ss_dense_fpga_wrapper(uint32_t deviceNeeded,
     //------------------------
     
     //---------------- Run Load Graph -----------------------------------
-    for (uint32_t i = 0; i < deviceNeeded * cuNm; ++i) {
+    for (uint32_t i = 0; i < numDevices * cuNm; ++i) {
         std::cout << "DEBUG: loadGraphMultiCardNonBlocking " << i << std::endl;
         (handle0->opsimdense)->loadGraphMultiCardNonBlocking(i / cuNm, i % cuNm, g[i][0]);
     }
 
     //--------------- Free and delete -----------------------------------
 
-    for (uint32_t i = 0; i < deviceNeeded * cuNm; ++i) {
+    for (uint32_t i = 0; i < numDevices * cuNm; ++i) {
         g[i]->freeBuffers();
         delete[] g[i]->numEdgesPU;
         delete[] g[i]->numVerticesPU;
@@ -373,8 +373,8 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     const int32_t nullVal = 0;  // value to use for padding.  0 appears to be safe for cosine sim computation
 
     int32_t edgeAlign8 = ((numEdges + channelW - 1) / channelW) * channelW;
-    //int general = ((numVertices + deviceNeeded * cuNm * splitNm * channelsPU - 1) /
-    //               (deviceNeeded * cuNm * splitNm * channelsPU)) * channelsPU;
+    //int general = ((numVertices + numDevices * cuNm * splitNm * channelsPU - 1) /
+    //               (numDevices * cuNm * splitNm * channelsPU)) * channelsPU;
     // All channels need to have equal number of vertices except the last channel
     // The formula is to make sure the last channel always has data to process.
     // The last chanel may be assigned more data than other channels.

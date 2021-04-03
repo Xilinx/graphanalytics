@@ -87,6 +87,7 @@ public:
 //           xclbinPath = options.xclbinPath;
 //        }
         std::cout << "INFO: xclbinPath set to " <<xclbinPath<<std::endl;
+        std::cout << "INFO: numDevices set to " <<numDevices<<std::endl;
 
         numEdges = vecLength;
 
@@ -427,29 +428,31 @@ void PrivateImpl::load_cu_cosinesim_ss_dense_fpga()
     //TODO check if requestLoad need to bring up to options for user to set
     int requestLoad = 100;
 
-  //----------------- Setup denseSimilarityKernel thread ---------
-  xf::graph::L3::Handle::singleOP op0;
-  op0.operationName = (char*)opName.c_str();
-  op0.setKernelName((char*)kernelName.c_str());
-  op0.requestLoad = requestLoad;
-  //op0.xclbinFile = (char*)xclbinPath.c_str();
-  op0.xclbinFile = (char*)xclbinPath.c_str();
-  op0.deviceNeeded = numDevices;
-  op0.cuPerBoard = cuNm;
+    //----------------- Setup denseSimilarityKernel thread ---------
+    xf::graph::L3::Handle::singleOP op0;
+    op0.operationName = (char*)opName.c_str();
+    op0.setKernelName((char*)kernelName.c_str());
+    op0.requestLoad = requestLoad;
+    //op0.xclbinFile = (char*)xclbinPath.c_str();
+    op0.xclbinFile = (char*)xclbinPath.c_str();
+    op0.numDevices = numDevices;
+    op0.cuPerBoard = cuNm;
+  
+    std::cout << "DEBUG: " << __FUNCTION__ << " op0.numDevices=" << op0.numDevices << " " << numDevices << std::endl;
 
-  std::fstream xclbinFS(xclbinPath, std::ios::in);
-  try {
-      if (!xclbinFS) {
-          //std::cout << "Error : xclbinFile doesn't exist: " << options_.xclbinPath << std::endl;
-          //errorCode_ = ErrorXclbinNotExist;
-          //return;
-          throw 2;
-      }
-  }
-  catch(...) {
-      std::cout << "Error : xclbinFile doesn't exist: " << xclbinPath << std::endl;
-      return;
-  }
+    std::fstream xclbinFS(xclbinPath, std::ios::in);
+    try {
+        if (!xclbinFS) {
+            //std::cout << "Error : xclbinFile doesn't exist: " << options_.xclbinPath << std::endl;
+            //errorCode_ = ErrorXclbinNotExist;
+            //return;
+            throw 2;
+        }
+    }
+    catch(...) {
+        std::cout << "Error : xclbinFile doesn't exist: " << xclbinPath << std::endl;
+        return;
+    }
 
     // return right away if the handle has already been created
     if (!sharedHandlesCosSimDense::instance().handlesMap.empty()) {
