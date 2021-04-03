@@ -30,7 +30,7 @@
 # limitations under the License.
 #
 # common.sh sets up gsql client and gets username and passowrd
-. common.sh
-time gsql "$(cat base.gsql | sed "s/@graph/$xgraph/")"
-time gsql "$(cat client.gsql | sed "s/@graph/$xgraph/")"
-time gsql "$(cat query.gsql | sed "s/@graph/$xgraph/")"
+. bin/common.sh
+time gsql "$(cat query/base.gsql | sed "s/@graph/$xgraph/")"
+time gsql "$(cat query/client.gsql | sed "s/@graph/$xgraph/")"
+time gsql "$(cat query/query.gsql | sed "s/@graph/$xgraph/")"

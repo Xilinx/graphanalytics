@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. common.sh
+. bin/common.sh
 
 if [ "$load_fpga" -eq 1 ]; then
     echo "Load FPGA with accelerators"

@@ -30,7 +30,7 @@
 # limitations under the License.
 #
 # common.sh sets up things like gsql client, username and passowrd, graph name, etc
-. common.sh
+. bin/common.sh
 
 echo "data_root=$data_root"
 patients_infile="$data_root/patients.csv"
@@ -41,8 +41,8 @@ imaging_studies_infile="$data_root/imaging_studies.csv"
 procedures_infile="$data_root/procedures.csv"
 careplans_infile="$data_root/careplans.csv"
 
-time gsql "$(cat schema_xgraph.gsql | sed "s/@graph/$xgraph/")"
-time gsql "$(cat load_xgraph.gsql | sed "s/@graph/$xgraph/")"
+time gsql "$(cat query/schema_xgraph.gsql | sed "s/@graph/$xgraph/")"
+time gsql "$(cat query/load_xgraph.gsql | sed "s/@graph/$xgraph/")"
 # set timeout of loading job to 1 hour
 time gsql -g $xgraph "SET QUERY_TIMEOUT=3600000 RUN LOADING JOB load_xgraph USING \
                         patients_infile=\"$patients_infile\", \
