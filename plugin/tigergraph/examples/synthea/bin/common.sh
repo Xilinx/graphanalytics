@@ -49,6 +49,8 @@ function usage() {
 }
 
 # default values for optional options
+username=$USER
+password=Xilinx123
 data_root="$script_dir/1000_patients/csv"
 load_cache=1
 load_fpga=1
