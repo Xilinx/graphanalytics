@@ -29,8 +29,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+script_dir=$(dirname "$0")
 # common.sh sets up gsql client, gets username, passowrd, xgraph name
-. bin/common.sh
+. $script_dir/bin/common.sh
+
+mkdir -p log
+if ! chmod 777 log ; then
+    echo "Unable to make a 'log' directory writable by all."
+    exit 1
+fi
+
+
 if [ "$load_cache" -eq 1 ]
 then
     echo "Caching cosine similarity vectors to patient vertices..."
@@ -46,7 +56,7 @@ fi
 
 for ((j = 0 ; j < $iterations ; ++j))
 do
-    rm log/fpga.txt log/tg.txt
+    rm -f log/fpga.txt log/tg.txt
 
     echo "------ iteration $j --------"
     echo "Run query cosinesim_ss_tg"

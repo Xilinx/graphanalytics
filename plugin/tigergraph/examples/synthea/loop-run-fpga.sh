@@ -1,6 +1,8 @@
 #!/bin/bash
 
-. bin/common.sh
+script_dir=$(dirname "$0")
+
+. $script_dir/bin/common.sh
 
 if [ "$load_fpga" -eq 1 ]; then
     echo "Load FPGA with accelerators"
