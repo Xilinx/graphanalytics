@@ -390,6 +390,8 @@ else ifeq ($(OSDIST),CentOS)
     DIST_TARGET = RPM
 endif
 
+.PHONY: dist
+
 dist: stage
 	@cd package; \
 	if [ "$(DIST_TARGET)" == "" ]; then \
