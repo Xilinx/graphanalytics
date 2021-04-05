@@ -31,6 +31,7 @@ NC='\033[0m' # No Color
 function usage() {
     echo "Usage: $0 [optional options]"
     echo "Optional options:"
+    echo "  -a mem_alloc     : Change memory allocator default=jemalloc. " 
     echo "  -d               : Install plugin in development mode and bypass resetting Tigergraph services."
     echo "  -f               : Force cleaning plugin libraries"
     echo "  -g               : Build plugin libraries with __DEBUG__"
@@ -51,11 +52,13 @@ force_clean=0
 xrt_profiling=0
 dev_mode=0
 use_tcmalloc=0
+mem_alloc="jemalloc"
 
-while getopts ":r:m:dfghp" opt
+while getopts ":r:m:a:dfghp" opt
 do
 case $opt in
-    d) dev_mode=1; echo "INFO: Option set: Install plugin in development mode";;
+    a) mem_alloc=$OPTARG;;
+    d) dev_mode=1;;
     f) force_clean=1; echo "INFO: Option set: Force rebuidling plugin libraries";;
     g) debug_flag="DEBUG=1"; echo "INFO: debug_flag=$debug_flag";;
     m) xrmPath=$OPTARG;;
@@ -67,6 +70,8 @@ esac
 done
 
 echo "INFO: Script is running with the settings below:"
+echo "      mem_alloc=$mem_alloc"
+echo "      dev_mode=$dev_mode"
 echo "      xrtPath=$xrtPath"
 echo "      xrmPath=$xrmPath"
 echo "      force_clean=$force_clean"
@@ -185,7 +190,7 @@ if [ "$dev_mode" -eq 0 ]; then
     gadmin start all
 
     ld_preload="$tg_udf_dir/libXilinxCosineSim.so"
-    if [ "$use_tcmalloc" -eq 1 ]; then
+    if [ "$mem_alloc" == "tcmalloc" ]; then
         ld_preload="$ld_preload:$tg_root_dir/dev/gdk/gsdk/include/thirdparty/prebuilt/dynamic_libs/gmalloc/tcmalloc/libtcmalloc.so"
     fi
 
@@ -196,9 +201,10 @@ if [ "$dev_mode" -eq 0 ]; then
     else
         gpe_config="LD_PRELOAD=\$LD_PRELOAD:$ld_preload;LD_LIBRARY_PATH=$ld_lib_path:\$LD_LIBRARY_PATH;CPUPROFILE=/tmp/tg_cpu_profiler;CPUPROFILESIGNAL=12;MALLOC_CONF=prof:true,prof_active:false;XILINX_XRT=/opt/xilinx/xrt;XILINX_XRM=/opt/xilinx/xrm"
     fi
+
     gadmin config set GPE.BasicConfig.Env "$gpe_config"
 
-    echo "Apply the new configurations"
+    echo "INFO: Apply the new configurations to $gpe_config"
     gadmin config apply -y
     gadmin restart gpe -y
     gadmin config get GPE.BasicConfig.Env
