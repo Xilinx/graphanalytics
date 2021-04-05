@@ -1,0 +1,22 @@
+set query_timeout = 600000
+use graph @graph
+
+DROP QUERY cosinesim_resume_cache_to_vertices, cosinesim_count_uncached_vertices
+
+CREATE QUERY cosinesim_resume_cache_to_vertices() FOR GRAPH @graph {
+    population = {patients.*};
+    UPDATE p FROM population:p
+        SET p.COSINE_SIM_VECTOR = patient_vector(p)
+        WHERE p.COSINE_SIM_VECTOR.size() < 1;
+}
+
+CREATE QUERY cosinesim_count_uncached_vertices() FOR GRAPH @graph {
+    SumAccum<INT> @@count;
+    population = {patients.*};
+    patientList = SELECT p FROM population:p
+        WHERE p.COSINE_SIM_VECTOR.size() < 1
+        ACCUM @@count += 1;
+    PRINT @@count AS NumPatientsWithoutVector;
+}
+
+INSTALL QUERY cosinesim_resume_cache_to_vertices, cosinesim_count_uncached_vertices
