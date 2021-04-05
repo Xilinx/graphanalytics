@@ -391,9 +391,10 @@ public:
                     result.push_back(Result(resultID[k], similarity[k]));
                 }
 
-                delete[] sourceWeight;
-                delete[] similarity;
-                delete[] resultID;
+                free(sourceWeight);
+                free(similarity);
+                free(resultID);
+
                 return result;
     }
 
