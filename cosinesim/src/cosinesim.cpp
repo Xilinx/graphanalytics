@@ -8,7 +8,7 @@
 #include <sstream>
 #include "cosinesim.hpp"
 #include "xf_graph_L3.hpp"
-
+#include <assert.h>
 
 
 namespace xilinx_apps {
@@ -43,12 +43,6 @@ public:
     std::vector<xf::graph::Graph<int32_t, int32_t>*> g;
     //xf::graph::Graph<int32_t, int32_t>** g;
 
-    // initial value is 0; means no errors;
-    //ErrorCode errorCode_;
-
-    //options
-    //Options options_;
-
     int load_xgraph_fpga(uint32_t numVertices, uint32_t numEdges, xf::graph::Graph<uint32_t, float> g);
     void load_cu_cosinesim_ss_dense_fpga();
     void load_graph_cosinesim_ss_dense_fpga(uint32_t deviceNeeded, uint32_t cuNm, xf::graph::Graph<int32_t, int32_t>** graph);
@@ -71,6 +65,8 @@ public:
             std::ostringstream oss;
             oss << "the only Value size currently supported is 32 bits.  Please ensure that you have constructed the CosineSim object with a 32-bit template parameter" <<std::endl;
             throw xilinx_apps::cosinesim::Exception(oss.str());
+            std::cerr << "ERROR: valueType is not supported" <<std::endl;
+            abort();
         }
 
 
@@ -135,14 +131,7 @@ public:
         indexSplitNm=0;
         indexNumVertices=0;
         populationVectorRowNm=0;
-
-
-        //vecLength = options_.vecLength;
-        //numEdges = options_.vecLength;
-        //numVertices = cosinesimPtr->getOptions().numVertices;
         this->numVertices = numVertices;
-        //devicesNeeded = options_.numDevices;
-
         //the following calculation and assignment is based on numVertices
         int general = ((numVertices - (numDevices * cuNm * splitNm * channelsPU + 1)) /
                 (numDevices * cuNm * splitNm * channelsPU)) * channelsPU;
@@ -156,10 +145,13 @@ public:
                 << ", numDevices=" << numDevices << std::endl;
 #endif
 
+        //assert((rest >= 0));
+
+
         if (rest < 0) {
-//            errorCode_= ErrorGraphPartition;
-//TODO assert
-            return;
+            std::cerr << "ERROR: Graph Partition is Failed." <<std::endl;
+            abort();
+
         }
 
         for (unsigned i = 0; i < numDevices * cuNm; ++i) {
@@ -179,8 +171,14 @@ public:
                 //} else if(valueSize_ == 8) {
                 //	g[i] = new xf::graph::Graph<int32_t, int64_t>("Dense", 4 * splitNm, numEdges, numVerticesPU[i]);
             } else {
-                //errorCode_ =  ErrorUnsupportedValueType;
-                // TODO: must exit at this point, or else crash on next line.  Throw exception here?
+                // must exit at this point, or else crash on next line.  Throw exception here.
+                std::cout << "DEBUG: valueType is not supported" << std::endl;
+                std::ostringstream oss;
+                oss << "the only Value size currently supported is 32 bits.  Please ensure that you have constructed the CosineSim object with a 32-bit template parameter" <<std::endl;
+                throw xilinx_apps::cosinesim::Exception(oss.str());
+                std::cerr << "ERROR: valueType is not supported." <<std::endl;
+                abort();
+
             }
             g[i]->numEdgesPU = new int32_t[splitNm];
             g[i]->numVerticesPU = new int32_t[splitNm];
@@ -358,22 +356,22 @@ public:
                     if (i < vecLength) {
                         //sourceWeight[i] = elements[i + 3];
 
-                        try {
-                            if(valueSize_ == 4)
-                                sourceWeight[i] = (reinterpret_cast<int32_t*>(elements))[i];
-                            //else if (valueSize_== 8)
-                            //	sourceWeight[i] = (reinterpret_cast<int64_t*>(elements))[i];
-                            else
-                              throw 1;
 
-                    }
-                    catch (...) {
+                if(valueSize_ == 4)
+                    sourceWeight[i] = (reinterpret_cast<int32_t*>(elements))[i];
+                //else if (valueSize_== 8)
+                //	sourceWeight[i] = (reinterpret_cast<int64_t*>(elements))[i];
+                else {
+                    // must exit at this point, or else crash on next line.  Throw exception here.
+                    std::cout << "DEBUG: valueType is not supported" << std::endl;
+                    std::ostringstream oss;
+                    oss << "the only Value size currently supported is 32 bits.  Please ensure that you have constructed the CosineSim object with a 32-bit template parameter" <<std::endl;
+                    throw xilinx_apps::cosinesim::Exception(oss.str());
+                    std::cerr << "ERROR: valueType is not supported." <<std::endl;
+                    abort();
 
-                        //std::cout << CosineSim::ValueType << " is not supported for now, Currently supports Value Type int32_t" <<std:endl;
-                        // errorCode_ =  ErrorUnsupportedValueType;
-                    }
-
-                    } else {
+                    } 
+                }else {
                         sourceWeight[i] = 0;
                     }
                 }
@@ -476,17 +474,13 @@ void PrivateImpl::load_cu_cosinesim_ss_dense_fpga()
     op0.cuPerBoard = cuNm;
   
     std::fstream xclbinFS(xclbinPath, std::ios::in);
-    try {
-        if (!xclbinFS) {
-            //std::cout << "Error : xclbinFile doesn't exist: " << options_.xclbinPath << std::endl;
-            //errorCode_ = ErrorXclbinNotExist;
-            //return;
-            throw 2;
-        }
-    }
-    catch(...) {
-        std::cout << "ERROR : xclbinFile doesn't exist: " << xclbinPath << std::endl;
-        return;
+
+    if (!xclbinFS) {
+        std::ostringstream oss;
+        oss << "xclbin file doesn't exist. Please ensure that you have set valid xclbinPath" <<std::endl;
+        throw xilinx_apps::cosinesim::Exception(oss.str());
+        std::cerr << "ERROR: xclbin file doesn't exist." <<std::endl;
+        abort();
     }
 
     createSharedHandle(numDevices);
@@ -495,12 +489,18 @@ void PrivateImpl::load_cu_cosinesim_ss_dense_fpga()
     handle0->addOp(op0);
     int status = handle0->setUp();
     if (status != 0) {
-        std::cout<< "ERROR: FPGA is not setup properly. free the handle! status:"<<status<<std::endl;
+       // std::cout<< "ERROR: FPGA is not setup properly. free the handle! status:"<<status<<std::endl;
         freeSharedHandle();
+        std::ostringstream oss;
+        oss << "FPGA is not setup properly. Try the following instructions to fix: " <<std::endl;
+        oss << "Try \'xbutil reset\' and run application again"<< std::endl;
+        oss << "If not working, seek help for Xilinx technical support " << std::endl;
+        throw xilinx_apps::cosinesim::Exception(oss.str());
+        std::cerr << "ERROR: FPGA is not setup properly." <<std::endl;
+        abort();
+
     }
     return;
-    //TODO throw exceptions
-    //return status;
 }
 
 //-----------------------------------------------------------------------------
@@ -512,12 +512,14 @@ void PrivateImpl::load_graph_cosinesim_ss_dense_fpga(
     // return right away if the handle has already been created
     if (sharedHandlesCosSimDense::instance().handlesMap.empty()) {
         std::cout << "ERROR: " << __FUNCTION__ << " CUs need to be set up first:"
-              << " sharedHandlesCosSimDense.handlesMap.empty="
-              << sharedHandlesCosSimDense::instance().handlesMap.empty() << std::endl;
+                << " sharedHandlesCosSimDense.handlesMap.empty="
+                << sharedHandlesCosSimDense::instance().handlesMap.empty() << std::endl;
 
-        //return XF_GRAPH_L3_ERROR_CU_NOT_SETUP;
-        //TODO throw exceptions
-        return;
+        std::ostringstream oss;
+        oss << "ERROR: " << __FUNCTION__ << " CUs need to be set up first:" <<std::endl;
+        throw xilinx_apps::cosinesim::Exception(oss.str());
+       //std::cerr << "ERROR: " << __FUNCTION__ << " CUs need to be set up first:" <<std::endl;
+        abort();
     }
 
     std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
@@ -527,7 +529,6 @@ void PrivateImpl::load_graph_cosinesim_ss_dense_fpga(
         (handle0->opsimdense)->loadGraphMultiCardNonBlocking(i / cuNm, i % cuNm, graph[i][0]);
     }
 
-    //return XF_GRAPH_L3_SUCCESS;
     return;
 }
 
@@ -554,9 +555,13 @@ void PrivateImpl::cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
               << " sharedHandlesCosSimDense.handlesMap.empty="
               << sharedHandlesCosSimDense::instance().handlesMap.empty() << std::endl;
 
-        //return XF_GRAPH_L3_ERROR_CU_NOT_SETUP;
-        //TODO throw exceptions
-        return;
+
+        std::ostringstream oss;
+        oss << "ERROR: " << __FUNCTION__ << " CUs need to be set up first:" <<std::endl;
+        throw xilinx_apps::cosinesim::Exception(oss.str());
+        //std::cerr << "ERROR: " << __FUNCTION__ << " CUs need to be set up first:" <<std::endl;
+        abort();
+
     }
 
     std::shared_ptr<xf::graph::L3::Handle> handle0 =
