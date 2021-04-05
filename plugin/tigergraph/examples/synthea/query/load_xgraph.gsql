@@ -14,8 +14,8 @@
 # limitations under the License.
 #
 USE GRAPH @graph
-set sys.data_root="./1000_patients/csv"
-#set sys.data_root="/proj/isimsj/graph_db/synthea/100K_patients"
+
+# Don't forget to do 'SET sys.data_root="..."' from the command line!
 
 BEGIN
     CREATE LOADING JOB load_xgraph FOR GRAPH @graph 

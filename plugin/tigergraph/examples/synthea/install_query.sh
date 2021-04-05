@@ -29,8 +29,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+script_dir=$(dirname "$0")
 # common.sh sets up gsql client and gets username and passowrd
-. bin/common.sh
-time gsql "$(cat query/base.gsql | sed "s/@graph/$xgraph/")"
-time gsql "$(cat query/client.gsql | sed "s/@graph/$xgraph/")"
-time gsql "$(cat query/query.gsql | sed "s/@graph/$xgraph/")"
+. $script_dir/bin/common.sh
+time gsql "$(cat $script_dir/query/base.gsql | sed "s/@graph/$xgraph/")"
+time gsql "$(cat $script_dir/query/client.gsql | sed "s/@graph/$xgraph/")"
+time gsql "$(cat $script_dir/query/query.gsql | sed "s/@graph/$xgraph/")"

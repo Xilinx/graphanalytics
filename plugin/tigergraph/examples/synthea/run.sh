@@ -29,7 +29,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+script_dir=$(dirname "$0")
+
 # common.sh sets up gsql client and gets username and passowrd
-. bin/common.sh
-./init_graph.sh $@
-./match.sh $@
+. $script_dir/bin/common.sh
+$script_dir/init_graph.sh $@
+$script_dir/match.sh $@
