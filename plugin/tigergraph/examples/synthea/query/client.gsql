@@ -1,6 +1,5 @@
 
 USE GRAPH @graph
-SET query_timeout = 600000
 DROP QUERY client_cosinesim_load_cache, client_cosinesim_match_sw, client_cosinesim_set_num_devices,
     client_cosinesim_get_alveo_status, client_cosinesim_load_alveo, client_cosinesim_match_alveo
 
@@ -25,8 +24,9 @@ CREATE QUERY client_cosinesim_match_sw(VERTEX<patients> newPatient, UINT topK) F
 }
 
 
-CREATE QUERY client_cosinesim_set_num_devices(UINT num_devices) FOR GRAPH @graph {
-    cosinesim_set_num_devices(num_devices);
+CREATE QUERY client_cosinesim_set_num_devices(UINT numDevices) FOR GRAPH @graph {
+    cosinesim_set_num_devices(numDevices);
+    PRINT numDevices AS NumDevices;
 }
 
 
@@ -39,45 +39,29 @@ CREATE QUERY client_cosinesim_get_alveo_status() FOR GRAPH @graph {
 }
 
 
-CREATE QUERY client_cosinesim_load_alveo(INT numDevices) FOR GRAPH @graph {
+CREATE QUERY client_cosinesim_load_alveo() FOR GRAPH @graph 
+{
     DOUBLE run_time;
     STRING status;
     INT ret;
-    udf_reset_timer(true);
-    ret = load_cu_cosinesim_ss_fpga_core(numDevices);
-    run_time = udf_elapsed_time(true);
-    IF ret == 0 THEN
-        status = "Loaded XCLBIN and allocated CUs successfully";
-    ELSE IF ret == -1 THEN
-        status = "XCLBIN loading failed";
-    ELSE IF ret == -2 THEN
-        status = "config_cosinesim_ss_dense_fpga.json does not exit";
-    ELSE IF ret == -3 THEN
-        status = "XCLBIN does not exist";
-    ELSE IF ret == -5 THEN
-        status = "Shared library loading failed";
-    ELSE IF ret == -6 THEN
-        status = "Not enough devices";
-    END;
-    PRINT ret AS ErrorCode, status AS ErrorMessage, run_time AS ExecTimeInMs;
 
     udf_reset_timer(true);
-    ret = load_graph_cosinesim_ss_fpga_core(numDevices);
+    ret = load_graph_cosinesim_ss_fpga_core();
     run_time = udf_elapsed_time(true);
     IF ret == 0 THEN
         status = "Graph data loaded successfully";
     ELSE IF ret == -1001 THEN
         status = "Vertices distribution error";
     END;
-    PRINT ret AS ErrorCode, status AS ErrorMessage, run_time AS ExecTimeInMs;
+    PRINT ret AS StatusCode, status AS StatusMessage, run_time AS ExecTimeInMs;
 }
 
 
-CREATE QUERY client_cosinesim_match_alveo(VERTEX<patients> newPatient, UINT topK, INT numDevices) FOR GRAPH @graph {
+CREATE QUERY client_cosinesim_match_alveo(VERTEX<patients> newPatient, UINT topK) FOR GRAPH @graph {
     DOUBLE run_time;
     ListAccum<testResults> @@result;
     udf_reset_timer(true);
-    @@result = cosinesim_ss_fpga_core(newPatient, topK, numDevices);
+    @@result = cosinesim_ss_fpga_core(newPatient, topK);
     run_time = udf_elapsed_time(true);
     PRINT "Xilinx Alveo U50" AS ComputationTechnique, newPatient.FIRST_NAME + " " + newPatient.LAST_NAME AS Patient,
         run_time AS ExecTimeInMs, @@result AS Matches;

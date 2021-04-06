@@ -44,6 +44,3 @@ time gsql "SET sys.data_root=\"$data_root\" $(cat $script_dir/query/load_xgraph.
 time gsql -g $xgraph "SET QUERY_TIMEOUT=3600000 SET sys.data_root=\"$data_root\" RUN LOADING JOB load_xgraph"
 time gsql -g $xgraph "DROP JOB load_xgraph"
 echo "INFO: -------- $(date) load_xgraph completed. --------"
-
-$script_dir/install_query.sh $@
-

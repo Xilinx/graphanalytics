@@ -14,8 +14,7 @@
 # limitations under the License.
 #
 use graph @graph
-drop query cosinesim_ss_tg, load_cu_cosinesim_ss_fpga, load_graph_cosinesim_ss_fpga, 
-           cosinesim_ss_fpga, cosinesim_ss_test_fpga_consistency, code_str
+drop query cosinesim_ss_tg, load_graph_cosinesim_ss_fpga, cosinesim_ss_fpga, code_str
 
 create query code_str(vertex<patients> p, string e_str, int num) for graph @graph 
     returns (string)
@@ -85,33 +84,11 @@ create query cosinesim_ss_tg(string log_file) for graph @graph {
     end;
 }
 
-create query load_cu_cosinesim_ss_fpga(int devices_needed) for graph @graph {
-    STRING status;
-    INT ret;
-    ret = load_cu_cosinesim_ss_fpga_core(devices_needed);
-    print ret;
-    IF ret == 0 THEN
-        status = "Loaded XCLBIN and allocated CUs successfully";
-    ELSE IF ret == -1 THEN
-        status = "XCLBIN loading failed";
-    ELSE IF ret == -2 THEN
-        status = "config_cosinesim_ss_dense_fpga.json does not exit";
-    ELSE IF ret == -3 THEN
-        status = "XCLBIN does not exist";
-    ELSE IF ret == -5 THEN
-        status = "Shared library loading failed";
-    ELSE IF ret == -6 THEN
-        status = "Not enough devices";
-    ELSE IF ret == -8 THEN
-        status = "Unable to allocate CU";
-    END;
-    PRINT status;
-}
 
-create query load_graph_cosinesim_ss_fpga(int devices_needed) for graph @graph {
+create query load_graph_cosinesim_ss_fpga() for graph @graph {
     STRING status;
     INT ret;
-    ret = load_graph_cosinesim_ss_fpga_core(devices_needed);
+    ret = load_graph_cosinesim_ss_fpga_core();
     print ret;
     IF ret == 0 THEN
         status = "Graph data loaded successfully";
@@ -121,7 +98,7 @@ create query load_graph_cosinesim_ss_fpga(int devices_needed) for graph @graph {
     PRINT status;
 }
 
-create query cosinesim_ss_fpga(string log_file1, int devices_needed) for graph @graph {
+create query cosinesim_ss_fpga(string log_file1) for graph @graph {
     uint topK;
     vertex<patients> newPatient;
     ListAccum<testResults> @@result;
@@ -139,7 +116,7 @@ create query cosinesim_ss_fpga(string log_file1, int devices_needed) for graph @
         ACCUM newPatient = p;
 # Cosine Similarity using TigerGraph
     udf_reset_timer(true);
-    @@result = cosinesim_ss_fpga_core(newPatient, topK, devices_needed);
+    @@result = cosinesim_ss_fpga_core(newPatient, topK);
     run_time = udf_elapsed_time(true);
     print "Xilinx Alveo U50" AS ComputationTechnique;
     print newPatient.FIRST_NAME + " " + newPatient.LAST_NAME AS Patient;
@@ -169,71 +146,4 @@ create query cosinesim_ss_fpga(string log_file1, int devices_needed) for graph @
     end;
 }
 
-create query cosinesim_ss_test_fpga_consistency(
-    string log_file1, string log_file2, int devices_needed) for graph @graph {
-    uint topK;
-    vertex<patients> newPatient;
-    ListAccum<testResults> @@result;
-    ListAccum<testResults> @@result2;
-    double score;
-    FILE file1 (log_file1);
-    FILE file2 (log_file2);
-    topK = 100;
-# Patient Population
-    population = {patients.*};
-# Pick one random patient
-    randomPatient = select p from population:p 
-        Limit 10;
-# Assign to a patient vertex
-    randomPatient = select p from randomPatient:p
-        ACCUM newPatient = p;
-    print newPatient;
-# Cosine Similarity using TigerGraph
-    @@result = cosinesim_ss_fpga_core(newPatient, topK, devices_needed);
-    @@result2 = cosinesim_ss_fpga_core(newPatient, topK, devices_needed);
-    print @@result2;
-    print "Cosine Sim using Xilinx Alveo U50";
-    file1.println("SCORE", "FIRST_NAME", "LAST_NAME", "AGE", "RACE", "ETHNICITY", "GENDER",
-            "#immunization", "immunizations",
-            "#allergy", "allergies",
-            "#condition", "conditions",
-            "#procedure", "procedures",
-            "#careplan", "careplans");
-    foreach topKP in @@result do
-        patientSet = select v from population:v
-        WHERE getvid(topKP.Id) == getvid(v)
-        ACCUM score = topKP.score
-        POST-ACCUM file1.println(score, v.FIRST_NAME, v.LAST_NAME, patient_age(v), v.RACE, v.ETHNICITY,v.GENDER,
-                v.outdegree("patient_HAD_immunization"), code_str(v, "patient_HAD_immunization", 3),
-                v.outdegree("patient_HAD_allergy"), code_str(v, "patient_HAD_allergy", 3),
-                v.outdegree("patient_HAD_condition"), 
-                #code_str(v, "patient_HAD_condition", 3),
-                v.outdegree("patient_HAD_procedure"), 
-                #code_str(v, "patient_HAD_procedure", 3),
-                v.outdegree("patient_HAD_careplan") 
-                #code_str(v, "patient_HAD_careplan", 3)
-                );
-    end;
-    file2.println("SCORE", "FIRST_NAME", "LAST_NAME", "AGE", "RACE", "ETHNICITY", "GENDER",
-            "#immunization", "immunizations",
-            "#allergy", "allergies",
-            "#condition", "conditions",
-            "#procedure", "procedures",
-            "#careplan", "careplans");
-    foreach topKP in @@result2 do
-        patientSet = select v from population:v
-        WHERE getvid(topKP.Id) == getvid(v)
-        ACCUM score = topKP.score
-        POST-ACCUM file2.println(score, v.FIRST_NAME, v.LAST_NAME, patient_age(v), v.RACE, v.ETHNICITY,v.GENDER,
-                v.outdegree("patient_HAD_immunization"), code_str(v, "patient_HAD_immunization", 3),
-                v.outdegree("patient_HAD_allergy"), code_str(v, "patient_HAD_allergy", 3),
-                v.outdegree("patient_HAD_condition"), code_str(v, "patient_HAD_condition", 3),
-                v.outdegree("patient_HAD_procedure"), code_str(v, "patient_HAD_procedure", 3),
-                v.outdegree("patient_HAD_careplan"), code_str(v, "patient_HAD_careplan", 3)
-                );
-    end;
-}
-
-
-install query code_str, cosinesim_ss_tg, load_cu_cosinesim_ss_fpga,
-    load_graph_cosinesim_ss_fpga,  cosinesim_ss_fpga, cosinesim_ss_test_fpga_consistency
+install query code_str, cosinesim_ss_tg, load_graph_cosinesim_ss_fpga,  cosinesim_ss_fpga

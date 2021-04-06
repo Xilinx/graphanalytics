@@ -48,10 +48,9 @@ then
 fi
 
 if [ "$load_fpga" -eq 1 ]; then
-    echo "Run query load_cu_cosinesim_ss_fpga and load_graph_cosinesim_ss_fpga"
-    gsql -g $xgraph "run query cosinesim_set_num_devices($devices_needed)"
-    time gsql -g $xgraph "run query load_cu_cosinesim_ss_fpga($devices_needed)"
-    time gsql -g $xgraph "run query load_graph_cosinesim_ss_fpga($devices_needed)"
+    echo "Run query load_graph_cosinesim_ss_fpga"
+    gsql -g $xgraph "run query cosinesim_set_num_devices($num_devices)"
+    time gsql -g $xgraph "run query load_graph_cosinesim_ss_fpga()"
 fi
 
 for ((j = 0 ; j < $iterations ; ++j))
@@ -62,7 +61,7 @@ do
     echo "Run query cosinesim_ss_tg"
     time gsql -g $xgraph "run query cosinesim_ss_tg(\"$PWD/log/tg.txt\")"
     echo "Run query cosinesim_ss_fpga"
-    time gsql -g $xgraph "run query cosinesim_ss_fpga(\"$PWD/log/fpga.txt\", $devices_needed)"
+    time gsql -g $xgraph "run query cosinesim_ss_fpga(\"$PWD/log/fpga.txt\")"
     
     # basic checking of the result
     diff log/fpga.txt log/tg.txt

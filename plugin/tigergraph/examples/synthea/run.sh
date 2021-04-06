@@ -35,4 +35,5 @@ script_dir=$(dirname "$0")
 # common.sh sets up gsql client and gets username and passowrd
 . $script_dir/bin/common.sh
 $script_dir/init_graph.sh $@
+$script_dir/install_query.sh $@
 $script_dir/match.sh $@

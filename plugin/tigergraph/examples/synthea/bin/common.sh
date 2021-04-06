@@ -54,13 +54,13 @@ password=Xilinx123
 data_root="$script_dir/1000_patients/csv"
 load_cache=1
 load_fpga=1
-devices_needed=1
+num_devices=1
 iterations=1
 while getopts ":c:d:g:l:n:p:s:u:h" opt
 do
 case $opt in
     c) load_cache=$OPTARG;;
-    d) devices_needed=$OPTARG;;
+    d) num_devices=$OPTARG;;
     g) xgraph=$OPTARG;;
     l) load_fpga=$OPTARG;;
     n) iterations=$OPTARG;;
@@ -89,7 +89,7 @@ echo "      data_root=$data_root"
 echo "      xgraph=$xgraph"
 echo "      load_cache=$load_cache"
 echo "      load_fpga=$load_fpga"
-echo "      devices_needed=$devices_needed"
+echo "      num_devices=$num_devices"
 echo "      iterations=$iterations"
 
 if [ ! -f "$HOME/gsql-client/gsql_client.jar" ]; then
