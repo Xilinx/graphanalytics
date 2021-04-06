@@ -148,7 +148,7 @@ source $xrmPath/setup.sh
     cp $plugin_src_dir/mergeHeaders.py $tg_udf_dir
 #fi
 mv $tg_udf_dir/ExprFunctions.hpp $tg_udf_dir/ExprFunctions.hpp.prev
-python3 $tg_udf_dir/mergeHeaders.py $tg_udf_dir/ExprFunctions.hpp.prev $plugin_src_dir/xilinxUdf.hpp \
+python3 $tg_udf_dir/mergeHeaders.py $tg_udf_dir/ExprFunctions.hpp.prev $plugin_src_dir/xilinxRecomEngineNew.hpp \
      > $tg_udf_dir/ExprFunctions.hpp
 
 # Copy files to TigerGraph UDF area
@@ -157,7 +157,7 @@ cp $cosineSimPath/lib/libXilinxCosineSim.so $tg_udf_dir
 cp $cosineSimPath/include/cosinesim.hpp $tg_udf_dir
 cp $cosineSimPath/src/cosinesim_loader.cpp $tg_udf_dir
 cp $plugin_src_dir/codevector.hpp $tg_udf_dir
-cp $plugin_src_dir/xilinxRecomEngine.hpp $tg_udf_dir
+cp $plugin_src_dir/xilinxRecomEngineImpl.hpp $tg_udf_dir
 
 tg_xclbin_path=$tg_udf_dir/xclbin/denseSimilarityKernel.xclbin
 sed -i "s|TG_COSINESIM_XCLBIN|$tg_xclbin_path|" $tg_udf_dir/xilinxRecomEngine.hpp
@@ -170,7 +170,7 @@ cp $tg_udf_dir/ExprUtil.hpp $tg_temp_include_dir
 cp $tg_udf_dir/cosinesim.hpp $tg_temp_include_dir
 cp $tg_udf_dir/cosinesim_loader.cpp $tg_temp_include_dir
 cp $tg_udf_dir/codevector.hpp $tg_temp_include_dir
-cp $tg_udf_dir/xilinxRecomEngine.hpp $tg_temp_include_dir
+cp $tg_udf_dir/xilinxRecomEngineImpl.hpp $tg_temp_include_dir
 
 
 # Remove old objects

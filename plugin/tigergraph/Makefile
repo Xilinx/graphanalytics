@@ -44,8 +44,9 @@ STAGE_COPY_FILES = \
     \
     $(UDF_DIR)/codevector.hpp \
     $(UDF_DIR)/mergeHeaders.py \
-    $(UDF_DIR)/xilinxRecomEngine.hpp \
-    $(UDF_DIR)/xilinxUdf.hpp \
+    $(UDF_DIR)/ExprFunctions.hpp \
+    $(UDF_DIR)/xilinxRecomEngineNew.hpp \
+    $(UDF_DIR)/xilinxRecomEngineImpl.hpp \
     \
     $(wildcard $(SYNTHEA_DIR)/1000_patients/csv/*.csv) \
     $(SYNTHEA_DIR)/bin/common.sh \

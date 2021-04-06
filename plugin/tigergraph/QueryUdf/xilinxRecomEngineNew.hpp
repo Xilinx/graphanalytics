@@ -30,7 +30,7 @@
 // mergeHeaders 1 section include end xilinxRecomEngine DO NOT REMOVE!
 
 // mergeHeaders 1 section include start xilinxRecomEngine DO NOT REMOVE!
-#include "xilinxRecomEngine.hpp"
+#include "xilinxRecomEngineImpl.hpp"
 #include <cstdint>
 #include <vector>
 // mergeHeaders 1 section include end xilinxRecomEngine DO NOT REMOVE!
