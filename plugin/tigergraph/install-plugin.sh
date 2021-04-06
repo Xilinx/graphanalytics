@@ -117,7 +117,7 @@ tg_udf_dir=$tg_root_dir/dev/gdk/gsql/src/QueryUdf
 tg_temp_include_dir=$tg_temp_root/gsql/codegen/udf
 
 # Source directory for TigerGraph plugin
-plugin_src_dir=$SCRIPTPATH/QueryUdf
+plugin_src_dir=$SCRIPTPATH/udf
 
 ###############################################################################
 echo "INFO: Checking Xilinx library installation"
@@ -153,7 +153,7 @@ source $xrmPath/setup.sh
     cp $plugin_src_dir/mergeHeaders.py $tg_udf_dir
 #fi
 mv $tg_udf_dir/ExprFunctions.hpp $tg_udf_dir/ExprFunctions.hpp.prev
-python3 $tg_udf_dir/mergeHeaders.py $tg_udf_dir/ExprFunctions.hpp.prev $plugin_src_dir/xilinxRecomEngineNew.hpp \
+python3 $tg_udf_dir/mergeHeaders.py $tg_udf_dir/ExprFunctions.hpp.prev $plugin_src_dir/xilinxRecomEngine.hpp \
      > $tg_udf_dir/ExprFunctions.hpp
 
 # Copy files to TigerGraph UDF area
