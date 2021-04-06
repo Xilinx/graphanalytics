@@ -136,6 +136,10 @@ $(CPP_BUILD_DIR):
 
 LIB_DEPS = -L$(XILINX_XRT)/lib -lOpenCL -lpthread -lrt -Wno-unused-label -Wno-narrowing -DVERBOSE -L$(XILINX_XRM)/lib -lxrm
 
+ifeq ($(MEMALLOC),tcmalloc)
+    LIB_DEPS += -ltcmalloc
+endif
+
 # SHAREDLIB_FLAGS_libCosineSim = -shared
 SHAREDLIB_FLAGS_libCosineSim = -fPIC -rdynamic -shared -w -Wl,--export-dynamic
 

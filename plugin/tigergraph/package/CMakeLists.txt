@@ -13,27 +13,21 @@
 # under the License.
 
 cmake_minimum_required(VERSION 2.8.11)
-project(xilinx-cosinesim)
+project(xilinx-recomengine-tigergraph)
 
 # Linking variables
 set (CMAKE_CXX_STANDARD 14)
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMake/")
+set(PROJ_FILE_PATH "${CMAKE_SOURCE_DIR}/../staging/")
 
-set(AML_FILE_PATH "${CMAKE_SOURCE_DIR}/../staging/") 
-install(FILES "${AML_FILE_PATH}/lib/libXilinxCosineSim_loader.a" DESTINATION ${CMAKE_INSTALL_PREFIX}/cosinesim/lib)
-install(FILES "${AML_FILE_PATH}/lib/libXilinxCosineSim.so" DESTINATION ${CMAKE_INSTALL_PREFIX}/cosinesim/lib)
-
-install(FILES "${AML_FILE_PATH}/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin" DESTINATION ${CMAKE_INSTALL_PREFIX}/cosinesim/xclbin)
-install(FILES "${AML_FILE_PATH}/include/cosinesim.hpp" DESTINATION ${CMAKE_INSTALL_PREFIX}/cosinesim/include)
-
-install(FILES "${AML_FILE_PATH}/src/cosinesim_loader.cpp" DESTINATION ${CMAKE_INSTALL_PREFIX}/cosinesim/src)
-install(FILES "${AML_FILE_PATH}/examples.zip" DESTINATION ${CMAKE_INSTALL_PREFIX}/cosinesim)
+install(DIRECTORY "${PROJ_FILE_PATH}/examples" DESTINATION ${CMAKE_INSTALL_PREFIX}/)
+install(DIRECTORY "${PROJ_FILE_PATH}/QueryUdf" DESTINATION ${CMAKE_INSTALL_PREFIX}/)
 
 
-set(CPACK_PACKAGE_NAME "xilinx-cosinesim")
+set(CPACK_PACKAGE_NAME "xilinx-recomengine-tigergraph")
 set(CPACK_PACKAGE_VERSION "1.0.0")
-set(CPACK_PACKAGE_CONTACT "Xilinx Cosinesim Development Team")
+set(CPACK_PACKAGE_CONTACT "Xilinx Recommendation Engine Development Team")
 set(CPACK_PACKAGE_VENDOR "Xilinx")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Xilinx Cosinesim Acceleration")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Xilinx Recommendation Engine for tigergraph plugin ")
 set(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION "/opt" "/opt/xilinx" "/usr/lib64" "/opt/xilinx/apps" "/opt/xilinx/apps/graphanalytics"  )
 include(CPack)
