@@ -13,7 +13,7 @@ import concurrent.futures as cf
 import time
 import threading as th
 import argparse
-
+import getpass
 
 
 # Setup
@@ -80,6 +80,8 @@ def checkResultLowPrecision(resSw, resHw):
 
 
 def runQuery(patients, pIdx, thId):
+    global verbose
+
     if debug:
         for p in patients:
             print(f'{p["v_id"]} {getPatientName(p)}')
@@ -106,6 +108,8 @@ def runQuery(patients, pIdx, thId):
 
 
 def repeatedQueries(thId, num_target_patients):
+    global verbose
+
     # thId = th.current_thread().ident
     # send repeated queries
     if num_target_patients < 0:
@@ -116,17 +120,18 @@ def repeatedQueries(thId, num_target_patients):
     if debug: 
         numTargetPatients = 4
 
-    print(f'INFO: Client {thId}: running Queries for {numTargetPatients} Patients')
+    print(f'INFO: Client {thId}: running Queries for {numTargetPatients} patients')
     targetPatients = conn.getVertices('patients', limit=numTargetPatients)  # get patients
     if not targetPatients:
-        print('Error: Target Patient list empty', file=sys.stderr)
+        print('ERROR: Target Patient list empty', file=sys.stderr)
         return
 
     checkFlag = True
     swTime = 0
     hwTime = 0
     for itr in range(numTargetPatients):
-        print(f'INFO:    Finding match for target pateint {itr} in SW and HW')
+        if verbose > 3:
+            print(f'INFO:    Finding match for target pateint {itr} in SW and HW')
         # run SW and HW queries
         (resultSw, resultHw) = runQuery(targetPatients, itr, thId)
         swTime += resultSw[0]["ExecTimeInMs"]
@@ -136,7 +141,8 @@ def repeatedQueries(thId, num_target_patients):
         #checkFlag = checkResult(resultSw[0]['Matches'], resultHw[0]['Matches'])
         checkFlag = checkResultLowPrecision(resultSw[0]['Matches'], resultHw[0]['Matches'])
         if checkFlag:
-            print('INFO:    SW and HW results match')
+            if verbose > 3:
+                print('INFO:    SW and HW results match')
         else:
             print(f'ERROR: Client {thId}: Results failed to match for {itr}th Patient Query', file=sys.stderr)
             break
@@ -144,19 +150,19 @@ def repeatedQueries(thId, num_target_patients):
 
     if checkFlag: 
         print(f'INFO Client {thId}: All {numTargetPatients} results match.' + \
-              f' SW: {swTime/numTargetPatients:.2f} ms/query, ' + \
-              f' HW: {hwTime/numTargetPatients:.2f} ms/query, ' + \
+              f' SW: {swTime/numTargetPatients:.2f} ms/query,' + \
+              f' HW: {hwTime/numTargetPatients:.2f} ms/query,' + \
               f' Speedup {swTime / hwTime:.2f}X')
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    global conn, userName, graphName
+    global conn, userName, graphName, verbose
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--host', dest='host', default='localhost',
                         help='Specify the hostname of TigerGraph server')
-    parser.add_argument('--user', dest='user', default='tigergraph',
+    parser.add_argument('--user', dest='user', default=None,
                         help='Specify username on TigerGraph server')
     parser.add_argument('--graph', dest='graphName', default=None,
                         help='Used to turn initialization on or off, can be set to false once data is loaded.')
@@ -171,11 +177,17 @@ if __name__ == '__main__':
     parser.add_argument('--numTargetPatients', dest='numTargetPatients', type=int, default=-1, 
                         help='Number of target patients')   
     parser.add_argument('--numDevices', dest='numDevices', type=int, default=1, 
-                        help='# Number of FPGA devices to distribute the queries to')                             
+                        help='Number of FPGA devices to distribute the queries to')
+    parser.add_argument('--verbose', dest='verbose', type=int, default=0, 
+                        help='Verbose level for messages')
+                             
     args = parser.parse_args()
 
     hostName = args.host
-    userName = args.user
+    if args.user is None:
+        userName = getpass.getuser()
+    else:
+        userName = args.user
     passWord = "Xilinx123"
     if args.graphName is None:
         graphName = f'xgraph_{userName}_{populationSize}'   # TG graph name
@@ -184,6 +196,9 @@ if __name__ == '__main__':
     maxClients = args.maxClients
     numTargetPatients = args.numTargetPatients
     numDevices = args.numDevices
+    verbose = args.verbose
+
+    print(f'INFO: Running queries as {userName}')
 
     # connect to TG server
     conn = tg.TigerGraphConnection(host='http://' + hostName, graphname=graphName, username=userName, password=passWord)
@@ -209,10 +224,10 @@ if __name__ == '__main__':
         print(f'INFO: Installing query completed in {time.perf_counter() - tStart:.4f} sec')
 
     if not args.noInitGraph:
-        print('\nSW Caching...')
+        print('\nINFO: SW caching...')
         tStart = time.perf_counter()
         resultSwCache = conn.runInstalledQuery('client_cosinesim_load_cache', timeout=240000000)
-        print(f'completed in {time.perf_counter() - tStart:.4f} sec')
+        print(f'INFO: SW caching completed in {time.perf_counter() - tStart:.4f} sec')
 
 
     print(f'INFO: Using graph {graphName}')
@@ -226,7 +241,11 @@ if __name__ == '__main__':
         print(f'INFO: Load graph completed in {resultHwLoad[0]["ExecTimeInMs"]/1000:.4f} sec\n')
     
     result = conn.runInstalledQuery('client_cosinesim_get_alveo_status')
-    print(result)
+    if result[0]['IsInitialized']:
+        print(f'INFO: {result[0]["NumDevices"]} FPGA devices initialized')
+    else:
+        print('ERROR: failed to initialize FPGA devices. Exiting...')
+        exit(-1)
 
     # Send repeated queries from different client threads
     numClients = rand.randint(1, maxClients)
