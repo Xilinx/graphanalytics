@@ -35,7 +35,7 @@ GRAPH_ANALYTICS_DIR = ../..
 
 STAGE_DIR = staging
 SYNTHEA_DIR = examples/synthea
-UDF_DIR = QueryUdf
+UDF_DIR = udf
 
 # Files to be direct-copied from source tree to staging area
 
@@ -45,7 +45,7 @@ STAGE_COPY_FILES = \
     $(UDF_DIR)/codevector.hpp \
     $(UDF_DIR)/mergeHeaders.py \
     $(UDF_DIR)/ExprFunctions.hpp \
-    $(UDF_DIR)/xilinxRecomEngineNew.hpp \
+    $(UDF_DIR)/xilinxRecomEngine.hpp \
     $(UDF_DIR)/xilinxRecomEngineImpl.hpp \
     \
     $(wildcard $(SYNTHEA_DIR)/1000_patients/csv/*.csv) \
