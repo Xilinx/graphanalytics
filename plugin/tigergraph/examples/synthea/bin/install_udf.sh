@@ -97,7 +97,7 @@ plugin_src_dir=$SCRIPTPATH/../udf
 #
 
 if [ $uninstall -eq 1 ]; then
-    echo "Uninstalling Synthea demo files as user tigergraph..."
+    echo "Uninstalling Synthea demo UDFs as user tigergraph..."
     su --login tigergraph -c "$SCRIPTPATH/install_udf_tg.sh -u $verbose_flag"
     exit 0
 fi
@@ -130,5 +130,5 @@ fi
 # Install the UDF files as user tigergraph
 #
 
-echo "Installing Synthea demo files as user tigergraph..."
+echo "Installing Synthea demo UDFs as user tigergraph..."
 su --login tigergraph -c "$SCRIPTPATH/install_udf_tg.sh $verbose_flag"

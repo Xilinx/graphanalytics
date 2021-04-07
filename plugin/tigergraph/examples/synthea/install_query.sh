@@ -33,6 +33,7 @@
 script_dir=$(dirname "$0")
 # common.sh sets up gsql client and gets username and passowrd
 . $script_dir/bin/common.sh
+$script_dir/bin/install_udf.sh
 time gsql "$(cat $script_dir/query/base.gsql | sed "s/@graph/$xgraph/")"
 time gsql "$(cat $script_dir/query/client.gsql | sed "s/@graph/$xgraph/")"
 time gsql "$(cat $script_dir/query/query.gsql | sed "s/@graph/$xgraph/")"
