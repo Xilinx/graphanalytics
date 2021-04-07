@@ -42,24 +42,29 @@ UDF_DIR = udf
 STAGE_COPY_FILES = \
     install-plugin.sh \
     \
-    $(UDF_DIR)/codevector.hpp \
-    $(UDF_DIR)/mergeHeaders.py \
     $(UDF_DIR)/ExprFunctions.hpp \
+    $(UDF_DIR)/mergeHeaders.py \
     $(UDF_DIR)/xilinxRecomEngine.hpp \
     $(UDF_DIR)/xilinxRecomEngineImpl.hpp \
     \
     $(wildcard $(SYNTHEA_DIR)/1000_patients/csv/*.csv) \
     $(SYNTHEA_DIR)/bin/common.sh \
+    $(SYNTHEA_DIR)/bin/install_udf.sh \
+    $(SYNTHEA_DIR)/bin/install_udf_tg.sh \
     $(SYNTHEA_DIR)/query/base.gsql \
     $(SYNTHEA_DIR)/query/client.gsql \
     $(SYNTHEA_DIR)/query/load_xgraph.gsql \
     $(SYNTHEA_DIR)/query/query.gsql \
     $(SYNTHEA_DIR)/query/schema_xgraph.gsql \
+    $(SYNTHEA_DIR)/udf/codevector.hpp \
+    $(SYNTHEA_DIR)/udf/syntheaDemo.hpp \
     $(SYNTHEA_DIR)/README.md \
     $(SYNTHEA_DIR)/init_graph.sh \
     $(SYNTHEA_DIR)/install_query.sh \
     $(SYNTHEA_DIR)/match.sh \
-    $(SYNTHEA_DIR)/run.sh
+    $(SYNTHEA_DIR)/run.sh \
+    \
+    jupyter-demo/TG_demo.ipynb
 
 define STAGE_COPY_RULE
 $$(STAGE_DIR)/$(1): $(1)

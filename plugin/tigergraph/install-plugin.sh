@@ -38,6 +38,8 @@ function usage() {
     echo "  -m xrm-lib-path  : Path to XRM libraries. default=/opt/xilinx/xrm"
     echo "  -p               : Turn on XRT profiling and timetrace"
     echo "  -r xrt-lib-path  : Path to XRT libraries. default=/opt/xilinx/xrt"
+    echo "  -u               : Uninstall Xilinx Recommendation Engine"
+    echo "  -v               : Verbose output"
     echo "  -h               : Print this help message"
 }
 
@@ -53,8 +55,10 @@ xrt_profiling=0
 dev_mode=0
 use_tcmalloc=0
 mem_alloc="jemalloc"
+uninstall=0
+verbose=0
 
-while getopts ":r:m:a:dfghp" opt
+while getopts ":r:m:a:dfghpuv" opt
 do
 case $opt in
     a) mem_alloc=$OPTARG;;
@@ -65,22 +69,28 @@ case $opt in
     r) xrtPath=$OPTARG;;
     p) xrt_profiling=1;;
     h) usage; exit 1;;
+    u) uninstall=1;;
+    v) verbose=1;;
     ?) echo "ERROR: Unknown option: -$OPTARG"; usage; exit 1;;
 esac
 done
 
-echo "INFO: Script is running with the settings below:"
-echo "      mem_alloc=$mem_alloc"
-echo "      dev_mode=$dev_mode"
-echo "      xrtPath=$xrtPath"
-echo "      xrmPath=$xrmPath"
-echo "      force_clean=$force_clean"
-echo "      debug_flag=$debug_flag"
-echo "      xrt_profiling=$xrt_profiling"
+if [ $verbose -eq 1 ]; then
+    echo "INFO: Script is running with the settings below:"
+    echo "      mem_alloc=$mem_alloc"
+    echo "      dev_mode=$dev_mode"
+    echo "      xrtPath=$xrtPath"
+    echo "      xrmPath=$xrmPath"
+    echo "      force_clean=$force_clean"
+    echo "      debug_flag=$debug_flag"
+    echo "      xrt_profiling=$xrt_profiling"
+fi
 
 ###############################################################################
 
-echo "INFO: Checking TigerGraph installation version and directory"
+if [ $verbose -eq 1 ]; then
+    echo "INFO: Checking TigerGraph installation version and directory"
+fi
 if ! [ -x "$(command -v jq)" ]; then
     echo "ERROR: The program jq is required. Please follow the instructions below to install it:"
     echo "       RedHat/CentOS: sudo yum install jq"
@@ -120,7 +130,50 @@ tg_temp_include_dir=$tg_temp_root/gsql/codegen/udf
 plugin_src_dir=$SCRIPTPATH/udf
 
 ###############################################################################
-echo "INFO: Checking Xilinx library installation"
+
+#
+# If uninstalling, remove UDFs from UDF file ExprFunctions.hpp and delete auxiliary files
+#
+
+if [ $uninstall -eq 1 ]; then
+    # If there are Recom Engine UDFs in the UDF file, uninstall them
+    if [ -f $tg_udf_dir/ExprFunctions.hpp ] \
+            && [ $(grep -c 'mergeHeaders.*xilinxRecomEngine' $tg_udf_dir/ExprFunctions.hpp) -gt 0 ]
+    then
+        if [ ! -f "$tg_udf_dir/mergeHeaders.py" ]; then
+            cp $plugin_src_dir/mergeHeaders.py $tg_udf_dir
+        fi
+        echo "INFO: Uninstalling Xilinx Recommendation Engine UDFs"
+        mv $tg_udf_dir/ExprFunctions.hpp $tg_udf_dir/ExprFunctions.hpp.prev
+        python3 $tg_udf_dir/mergeHeaders.py -u $tg_udf_dir/ExprFunctions.hpp.prev xilinxRecomEngine \
+             > $tg_udf_dir/ExprFunctions.hpp
+    else
+        if [ $verbose -eq 1 ]; then
+            echo "INFO: Xilinx Recommendation Engine UDFs not found in UDF file ExprFunctions.hpp"
+        fi
+    fi
+
+    echo "INFO: Uninstalling Xilinx Recommendation Engine auxiliary files"
+    rm -f $tg_udf_dir/libXilinxCosineSim.so
+    rm -f $tg_udf_dir/cosinesim.hpp
+    rm -f $tg_udf_dir/cosinesim_loader.cpp
+    rm -f $tg_udf_dir/xilinxRecomEngineImpl.hpp
+
+    rm -f $tg_temp_include_dir/ExprFunctions.hpp
+    rm -f $tg_temp_include_dir/ExprUtil.hpp
+    rm -f $tg_temp_include_dir/cosinesim.hpp
+    rm -f $tg_temp_include_dir/cosinesim_loader.cpp
+    rm -f $tg_temp_include_dir/xilinxRecomEngineImpl.hpp
+    
+    echo "INFO: Restarting GPE service"
+    gadmin restart gpe -y
+    exit 0
+fi
+
+
+if [ $verbose -eq 1 ]; then
+    echo "INFO: Checking Xilinx library installation"
+fi
 if [ ! -f "$tg_udf_dir/xclbin/denseSimilarityKernel.xclbin" ]; then
     printf "${RED}ERROR: Xilinx library and XCLBIN files not found.\n"
     printf "${YELLOW}INFO: Please download Xilinx library installation package "
@@ -133,13 +186,14 @@ echo "INFO: Found Xilinx XCLBIN files installed in $tg_udf_dir/xclbin/"
 
 if [ ! -d "$tg_udf_dir.orig" ]; then
     cp -r $tg_udf_dir $tg_udf_dir.orig
-    echo "Saved a copy of the original QueryUdf files in $tg_udf_dir.orig"
+    echo "INFO: Saved a copy of the original QueryUdf files in $tg_udf_dir.orig"
 fi
 
 # If the existing ExprFunctions.hpp has not been prepared for plugins, replace it
 # with the base prepared version (containing just TG-supplied UDFs)
 
 if [ ! -f $tg_udf_dir/ExprFunctions.hpp ] || [ $(grep -c mergeHeaders $tg_udf_dir/ExprFunctions.hpp) -eq 0 ]; then
+    echo "INFO: TigerGraph UDF file ExprFunctions.hpp has no plugin tags.  Installing base UDF file with tags"
     cp -f $plugin_src_dir/ExprFunctions.hpp $tg_udf_dir
 fi
 
@@ -149,6 +203,7 @@ source $xrmPath/setup.sh
 
 # Install plugin to ExprFunctions.hpp file
 
+echo "INFO: Installing Xilinx Recommendation Engine UDFs"
 #if [ ! -f "$tg_udf_dir/mergeHeaders.py" ]; then
     cp $plugin_src_dir/mergeHeaders.py $tg_udf_dir
 #fi
@@ -158,14 +213,14 @@ python3 $tg_udf_dir/mergeHeaders.py $tg_udf_dir/ExprFunctions.hpp.prev $plugin_s
 
 # Copy files to TigerGraph UDF area
 
+echo "INFO: Installing Xilinx Recommendation Engine auxiliary files"
 cp $cosineSimPath/lib/libXilinxCosineSim.so $tg_udf_dir
 cp $cosineSimPath/include/cosinesim.hpp $tg_udf_dir
 cp $cosineSimPath/src/cosinesim_loader.cpp $tg_udf_dir
-cp $plugin_src_dir/codevector.hpp $tg_udf_dir
 cp $plugin_src_dir/xilinxRecomEngineImpl.hpp $tg_udf_dir
 
 tg_xclbin_path=$tg_udf_dir/xclbin/denseSimilarityKernel.xclbin
-sed -i "s|TG_COSINESIM_XCLBIN|$tg_xclbin_path|" $tg_udf_dir/xilinxRecomEngine.hpp
+sed -i "s|TG_COSINESIM_XCLBIN|$tg_xclbin_path|" $tg_udf_dir/xilinxRecomEngineImpl.hpp
 
 # Copy include files used by UDFs to TG build directory for TigerGraph to build the UDF library
 
@@ -174,7 +229,6 @@ cp $tg_udf_dir/ExprFunctions.hpp $tg_temp_include_dir
 cp $tg_udf_dir/ExprUtil.hpp $tg_temp_include_dir
 cp $tg_udf_dir/cosinesim.hpp $tg_temp_include_dir
 cp $tg_udf_dir/cosinesim_loader.cpp $tg_temp_include_dir
-cp $tg_udf_dir/codevector.hpp $tg_temp_include_dir
 cp $tg_udf_dir/xilinxRecomEngineImpl.hpp $tg_temp_include_dir
 
 

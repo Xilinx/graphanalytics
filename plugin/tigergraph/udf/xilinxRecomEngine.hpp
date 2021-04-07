@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Xilinx, Inc.
+ * Copyright 2020-2021 Xilinx, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/**
- * @file graph.hpp
- * @brief  This files contains graph definition.
- */
 
-#ifndef _XILINXUDF_HPP_
-#define _XILINXUDF_HPP_
+#ifndef XILINX_RECOM_ENGINE_HPP
+#define XILINX_RECOM_ENGINE_HPP
 
 // mergeHeaders 1 name xilinxRecomEngine
-
-// mergeHeaders 1 section include start xilinxRecomEngine DO NOT REMOVE!
-#include "codevector.hpp"
-#include <algorithm>
-// mergeHeaders 1 section include end xilinxRecomEngine DO NOT REMOVE!
 
 // mergeHeaders 1 section include start xilinxRecomEngine DO NOT REMOVE!
 #include "xilinxRecomEngineImpl.hpp"
@@ -35,100 +26,11 @@
 #include <vector>
 // mergeHeaders 1 section include end xilinxRecomEngine DO NOT REMOVE!
 
-// Error codes from L3 starts from -1
-// Error codes from UDF starts from -1001
-#define XF_GRAPH_UDF_GRAPH_PARTITION_ERROR -1001
-
 namespace UDIMPL {
-
-/* Start Xilinx UDF additions */
 
 // mergeHeaders 1 section body start xilinxRecomEngine DO NOT REMOVE!
 
-inline bool concat_uint64_to_str(string& ret_val, uint64_t val) {
-    (ret_val += " ") += std::to_string(val);
-    return true;
-}
-
-inline int64_t float_to_int_xilinx(float val) {
-    return (int64_t)val;
-}
-
-inline int64_t udf_reinterpret_double_as_int64(double val) {
-    int64_t double_to_int64 = *(reinterpret_cast<int64_t*>(&val));
-    return double_to_int64;
-}
-
-inline double udf_reinterpret_int64_as_double(int64_t val) {
-    double int64_to_double = *(reinterpret_cast<double*>(&val));
-    return int64_to_double;
-}
-
-inline int64_t udf_lsb32bits(uint64_t val) {
-    return val & 0x00000000FFFFFFFF;
-}
-
-inline int64_t udf_msb32bits(uint64_t val) {
-    return (val >> 32) & 0x00000000FFFFFFFF;
-}
-
-inline VERTEX udf_getvertex(uint64_t vid) {
-    return VERTEX(vid);
-}
-
-inline bool udf_setcode(int property, uint64_t startCode, uint64_t endCode, int64_t size) {
-    return true;
-}
-
-inline bool udf_reset_timer(bool dummy) {
-    xai::getTimerStartTime() = std::chrono::high_resolution_clock::now();
-    return true;
-}
-
-inline double udf_elapsed_time(bool dummy) {
-    xai::t_time_point cur_time = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> l_durationSec = cur_time - xai::getTimerStartTime();
-    double l_timeMs = l_durationSec.count() * 1e3;
-    return l_timeMs;
-}
-
-inline double udf_cos_theta(ListAccum<int64_t> vec_A, ListAccum<int64_t> vec_B) {
-    double res;
-    int size = vec_A.size();
-    int64_t norm_A = vec_A.get(0);
-    double norm_d_A = *(reinterpret_cast<double*>(&norm_A));
-    int64_t norm_B = vec_B.get(0);
-    double norm_d_B = *(reinterpret_cast<double*>(&norm_B));
-    double prod = 0;
-    int i = xai::startPropertyIndex;
-    while (i < size) {
-        prod = prod + vec_A.get(i) * vec_B.get(i);
-        ++i;
-    }
-    res = prod / (norm_d_A * norm_d_B);
-    //std::cout << "val = " << res << std::endl;
-    return res;
-}
-
-inline ListAccum<int64_t> udf_get_similarity_vec(int64_t property,
-                                                 int64_t returnVecLength,
-                                                 ListAccum<uint64_t>& property_vector) {
-    ListAccum<uint64_t> result;
-    int64_t size = property_vector.size();
-    std::vector<uint64_t> codes;
-    for (uint64_t val : property_vector) {
-        codes.push_back(val);
-    }
-    std::vector<int> retcodes = xai::makeCosineVector(property, returnVecLength, codes);
-    for (int value : retcodes) {
-        result += value;
-    }
-    return result;
-}
-
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
+// Deprecated
 inline int udf_load_cu_cosinesim_ss_fpga(int devicesNeeded) 
 {
     const int cuNm = 2;
@@ -137,33 +39,30 @@ inline int udf_load_cu_cosinesim_ss_fpga(int devicesNeeded)
     int ret = 0;
     return ret;
 }
-// mergeHeaders 1 section body end xilinxRecomEngine DO NOT REMOVE!
 
-
-// mergeHeaders 1 section body start xilinxRecomEngine DO NOT REMOVE!
 
 inline int udf_xilinx_recom_set_num_devices(std::uint64_t numDevices) {
-    xai::Lock lock(xai::getMutex());
-    xai::Context *pContext = xai::Context::getInstance();
+    xilRecom::Lock lock(xilRecom::getMutex());
+    xilRecom::Context *pContext = xilRecom::Context::getInstance();
     pContext->setNumDevices(unsigned(numDevices));
     return 0;
 }
 
 inline uint64_t udf_xilinx_recom_get_num_devices() {
-    xai::Lock lock(xai::getMutex());
-    xai::Context *pContext = xai::Context::getInstance();
+    xilRecom::Lock lock(xilRecom::getMutex());
+    xilRecom::Context *pContext = xilRecom::Context::getInstance();
     return pContext->getNumDevices();
 }
 
 inline bool udf_xilinx_recom_is_initialized() {
-    xai::Lock lock(xai::getMutex());
-    xai::Context *pContext = xai::Context::getInstance();
+    xilRecom::Lock lock(xilRecom::getMutex());
+    xilRecom::Context *pContext = xilRecom::Context::getInstance();
     return pContext->isInitialized();
 }
 
 inline string udf_xilinx_recom_get_error_message() {
-    xai::Lock lock(xai::getMutex());
-    xai::Context *pContext = xai::Context::getInstance();
+    xilRecom::Lock lock(xilRecom::getMutex());
+    xilRecom::Context *pContext = xilRecom::Context::getInstance();
     return pContext->getErrorMessage();
 }
 
@@ -171,8 +70,8 @@ inline int udf_load_graph_cosinesim_ss_fpga(int64_t numVertices,
                                            int64_t vecLength,
                                            ListAccum<ListAccum<int64_t> >& oldVectors,
                                            int devicesNeeded) {
-    xai::Lock lock(xai::getMutex());
-    xai::Context *pContext = xai::Context::getInstance();
+    xilRecom::Lock lock(xilRecom::getMutex());
+    xilRecom::Context *pContext = xilRecom::Context::getInstance();
     
     // Set the vector length up front, as changing it causes the context to be invalidated
     
@@ -191,7 +90,7 @@ inline int udf_load_graph_cosinesim_ss_fpga(int64_t numVertices,
 
     // Prepare the FPGA row to vertex ID map
     
-    xai::Context::IdMap &idMap = pContext->getIdMap();
+    xilRecom::Context::IdMap &idMap = pContext->getIdMap();
     idMap.clear();
     idMap.resize(numVectors, 0);
     
@@ -199,15 +98,15 @@ inline int udf_load_graph_cosinesim_ss_fpga(int64_t numVertices,
     
     try {
         pContext->clearErrorMessage();
-        xai::CosineSim *pCosineSim = pContext->getCosineSimObj();
+        xilRecom::CosineSim *pCosineSim = pContext->getCosineSimObj();
     //    pCosineSim->openFpga();
         pCosineSim->startLoadPopulation(numVectors);
         for (xilinx_apps::cosinesim::RowIndex vecNum = 0; vecNum < numVectors; ++vecNum) {
             const ListAccum<int64_t> &curRowVec = oldVectors.get(vecNum);
             xilinx_apps::cosinesim::RowIndex rowIndex = 0;
-            xai::CosineSim::ValueType *pBuf = pCosineSim->getPopulationVectorBuffer(rowIndex);
+            xilRecom::CosineSim::ValueType *pBuf = pCosineSim->getPopulationVectorBuffer(rowIndex);
             for (xilinx_apps::cosinesim::ColIndex eltNum = 0; eltNum < vectorLength; ++eltNum)
-                *pBuf++ = xai::CosineSim::ValueType(curRowVec.get(eltNum + 3));
+                *pBuf++ = xilRecom::CosineSim::ValueType(curRowVec.get(eltNum + 3));
             pCosineSim->finishCurrentPopulationVector(pBuf);
             uint64_t vertexId = ((curRowVec.get(2) << 32) & 0xFFFFFFF00000000) | (curRowVec.get(1) & 0x00000000FFFFFFFF);
             idMap[rowIndex] = vertexId;
@@ -230,13 +129,13 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     int64_t numVertices, int64_t vecLength, ListAccum<int64_t>& newVector,
     int devicesNeeded)
 {
-    xai::Lock lock(xai::getMutex());
+    xilRecom::Lock lock(xilRecom::getMutex());
     ListAccum<testResults> result;
-    xai::Context *pContext = xai::Context::getInstance();
+    xilRecom::Context *pContext = xilRecom::Context::getInstance();
 
     if (!pContext->isInitialized())
         return result;
-    xai::Context::IdMap &idMap = pContext->getIdMap();
+    xilRecom::Context::IdMap &idMap = pContext->getIdMap();
 
 //    std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
 //            << " numVertices=" << numVertices << ", general=" << general 
@@ -253,7 +152,7 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
 #endif
     //-------------------------------------------------------------------------
 
-    std::vector<xai::CosineSim::ValueType> nativeTargetVector;
+    std::vector<xilRecom::CosineSim::ValueType> nativeTargetVector;
     const xilinx_apps::cosinesim::ColIndex vectorLength = pContext->getVectorLength();
     nativeTargetVector.reserve(vectorLength);
     for (xilinx_apps::cosinesim::ColIndex eltNum = 0; eltNum < vectorLength; ++eltNum)
@@ -261,7 +160,7 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     
     try {
         pContext->clearErrorMessage();
-        xai::CosineSim *pCosineSim = pContext->getCosineSimObj();
+        xilRecom::CosineSim *pCosineSim = pContext->getCosineSimObj();
 
     //---------------------------------------------------------------------------
 #ifdef XILINX_RECOM_PROFILE_ON

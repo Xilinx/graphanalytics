@@ -25,7 +25,34 @@
 #define XILINX_RECOM_DEBUG_ON
 
 
-namespace xai {
+namespace xilRecom {
+
+using Mutex = std::mutex;
+
+//#define XILINX_RECOM_DEBUG_MUTEX
+
+#ifdef XILINX_RECOM_DEBUG_MUTEX
+struct Lock {
+    using RealLock = std::lock_guard<Mutex>;
+    RealLock lock_;
+    
+    Lock(Mutex &m) 
+    : lock_(m)
+    {
+        std::cout << "MUTEX: " << (void *) (&m) << std::endl;
+    }
+};
+#else
+using Lock = std::lock_guard<Mutex>;
+#endif
+
+inline Mutex &getMutex() {
+    static Mutex *pMutex = nullptr;
+    if (pMutex == nullptr)
+        pMutex = new Mutex();
+    return *pMutex;
+}
+
 
 using CosineSim = xilinx_apps::cosinesim::CosineSim<std::int32_t>;
 
@@ -109,7 +136,7 @@ public:
 };
 
 
-}  // namespace xai
+}  // namespace xilRecom
 
 #include "cosinesim_loader.cpp"
 

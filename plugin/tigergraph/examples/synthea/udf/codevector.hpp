@@ -13,16 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * File:   CodeVector.hpp
- * Author: dliddell
- *
- * Created on December 24, 2019, 5:08 PM
- */
 
 #ifndef CODEVECTOR_HPP
 #define CODEVECTOR_HPP
 
+#include "xilinxRecomEngineImpl.hpp"
 #include <algorithm>
 #include <cstdint>
 #include <cstdlib>
@@ -33,7 +28,10 @@
 #include <cmath>
 #include <chrono>
 
-namespace xai {
+namespace syntheaDemo {
+
+using Mutex = xilRecom::Mutex;
+using Lock = xilRecom::Lock;
 
 typedef std::chrono::time_point<std::chrono::high_resolution_clock> t_time_point, *pt_time_point; 
 //extern t_time_point timer_start_time;
@@ -51,33 +49,6 @@ const unsigned int startPropertyIndex = 3; // Start index of property in the
                                            // for norm, id */
 
 //extern std::vector<uint64_t> IDMap;
-
-using Mutex = std::mutex;
-
-//#define XILINX_RECOM_DEBUG_MUTEX
-
-#ifdef XILINX_RECOM_DEBUG_MUTEX
-struct Lock {
-    using RealLock = std::lock_guard<Mutex>;
-    RealLock lock_;
-    
-    Lock(Mutex &m) 
-    : lock_(m)
-    {
-        std::cout << "MUTEX: " << (void *) (&m) << std::endl;
-    }
-};
-#else
-using Lock = std::lock_guard<Mutex>;
-#endif
-
-inline Mutex &getMutex() {
-    static Mutex *pMutex = nullptr;
-    if (pMutex == nullptr)
-        pMutex = new Mutex();
-    return *pMutex;
-}
-
 
 typedef std::int32_t CosineVecValue; ///< A value for an element of a cosine similarity vector
 typedef std::uint64_t SnomedCode;    ///< A SNOMED CT medical code
@@ -188,7 +159,7 @@ inline std::uint64_t hash(std::uint64_t x) {
 inline std::vector<CosineVecValue> makeCosineVector(SnomedConcept concept,
                                              unsigned vectorLength,
                                              const std::vector<SnomedCode>& codes) {
-    Lock lock(getMutex());
+    Lock lock(xilRecom::getMutex());
     std::vector<CosineVecValue> outVec;
     outVec.reserve(vectorLength);
     const SnomedId numIds = SnomedId(1) << SnomedIdNumBits;
@@ -209,7 +180,7 @@ inline std::vector<CosineVecValue> makeCosineVector(SnomedConcept concept,
 
     for (unsigned i = 0; i < codes.size(); ++i) {
         // Convert the code to an ID (small int)
-        SnomedId id = SnomedId(xai::hash(codes[i]));
+        SnomedId id = SnomedId(syntheaDemo::hash(codes[i]));
 
         // Determine which bucket the ID goes into.  If the ID is out of range
         // (because it wasn't accounted for when
