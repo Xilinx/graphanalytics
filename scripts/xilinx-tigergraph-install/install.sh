@@ -102,10 +102,10 @@ if [[ $OSDIST == "centos" ]]; then
     # install required package
     sudo yum install jq opencl-headers -y
 
-    printf "\nINFO: install Xilinx overlaysas on TigerGraph installation\n"
-    read -p "Enter username used for TigerGraph installation [default: tigergraph]:" tg_username
-    tg_username=${tg_username:-tigergraph}
-    su -c $SCRIPTPATH/install-overlays.sh - $tg_username
+    #printf "\nINFO: install Xilinx overlaysas on TigerGraph installation\n"
+    #read -p "Enter username used for TigerGraph installation [default: tigergraph]:" tg_username
+    #tg_username=${tg_username:-tigergraph}
+    #su -c $SCRIPTPATH/install-overlays.sh - $tg_username
 
     # only need to run this on CentOS
     #copy the standard libstdc++ to $HOME/libstd

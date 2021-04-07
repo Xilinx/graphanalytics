@@ -180,6 +180,8 @@ if __name__ == '__main__':
                         help='Number of FPGA devices to distribute the queries to')
     parser.add_argument('--verbose', dest='verbose', type=int, default=0, 
                         help='Verbose level for messages')
+    parser.add_argument('--dataSource', dest='dataSource', default=None, 
+                        help='Verbose level for messages')
                              
     args = parser.parse_args()
 
@@ -197,6 +199,10 @@ if __name__ == '__main__':
     numTargetPatients = args.numTargetPatients
     numDevices = args.numDevices
     verbose = args.verbose
+    if args.dataSource is None:
+        dataSource = dataLocation + "/" + str(populationSize) + "_patients/csv"
+    else:
+        dataSource = args.dataSource
 
     print(f'INFO: Running queries as {userName}')
 
@@ -209,16 +215,14 @@ if __name__ == '__main__':
     if not args.noInitGraph:
         print(f'INFO: Data size: Total {populationSize} Patients')
         print(f'INFO: Creating graph {graphName}...')
-        database = dataLocation + "/" + str(populationSize) + "_patients/csv"
-        cmd = [initGraphScript, "-u " + userName, "-p " + passWord, "-g " + graphName, "-s " + database]
+        cmd = [initGraphScript, "-u " + userName, "-p " + passWord, "-g " + graphName, "-s " + dataSource]
         tStart = time.perf_counter()
         sp.run(cmd)
         print(f'INFO: Creating graph completed in {time.perf_counter() - tStart:.4f} sec')
 
     if not args.noInstallQuery:
         print(f'INFO: Installing queries...')
-        database = dataLocation + "/" + str(populationSize) + "_patients/csv"
-        cmd = [installQueryScript, "-u " + userName, "-p " + passWord, "-g " + graphName, "-s " + database]
+        cmd = [installQueryScript, "-u " + userName, "-p " + passWord, "-g " + graphName, "-s " + dataSource]
         tStart = time.perf_counter()
         sp.run(cmd)
         print(f'INFO: Installing query completed in {time.perf_counter() - tStart:.4f} sec')
