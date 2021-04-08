@@ -30,9 +30,9 @@
 # limitations under the License.
 #
 
+gsql_command="java -DGSQL_CLIENT_VERSION=v3_1_0 -jar $HOME/gsql-client/gsql_client.jar"
 function gsql () {
-    java -DGSQL_CLIENT_VERSION=v3_1_0 -jar $HOME/gsql-client/gsql_client.jar \
-        -u $username -p $password "$@"
+     $gsql_command -u $username -p $password "$@"
 }
 
 function usage() {
@@ -76,6 +76,16 @@ if [ -z "$username" ] || [ -z "$password" ]; then
     echo "ERROR: username and password are required."
     usage
     exit 2
+fi
+
+if [ $($gsql_command "show user" | grep -c $username) -lt 1 ]; then
+    echo "ERROR: TigerGraph user $username does not exist."
+    echo "Please create the user by logging in as user tigergraph and doing:"
+    echo "    gsql \"create user\""
+    echo "supplying $username for User Name."
+    echo "Additionally, if you plan on creating graphs and installing queries, please also do:"
+    echo "    gsql \"grant role globaldesigner to $username\""
+    exit 3
 fi
 
 # $4 graph-name
