@@ -182,6 +182,74 @@ endif
 
 #######################################################################################################################
 #
+# python API wrapper
+#
+
+PYTHON = python3.6
+PYTHON_DIR = wrappers/python
+
+SRC_FILE_NAMES_python = pythonapi.cpp
+
+INCLUDES_python = \
+    `$(PYTHON) -m pybind11 --includes` \
+    -I/usr/include/python3.6 \
+    -Iinclude
+
+SRCS_python = $(addprefix $(PYTHON_DIR)/,$(SRC_FILE_NAMES_python))
+OBJS_python = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_python:.cpp=.o)))
+DEPS_python = $(OBJS_python:.o=.d)
+
+LIB_PATH = $(CPP_BUILD_DIR)
+PYTHON_LIB_NAME := xilCosineSim$(shell $(PYTHON)-config --extension-suffix)
+
+LDFLAGS_python = -L$(LIB_PATH) -l$(LIB_SHORT_NAME)
+
+SHAREDLIB_FLAGS_python = -shared
+
+.PHONY: pythonApi pythonApi2
+
+# Make in a child process so that we can isolate the run that includes automatic header dependencies
+pythonApi: cppBuild pybind11
+	@make pythonApi2
+
+pythonApi2: $(CPP_BUILD_DIR) $(CPP_BUILD_DIR)/$(PYTHON_LIB_NAME)
+
+$(CPP_BUILD_DIR)/$(PYTHON_LIB_NAME): $(OBJS_python)
+	$(LINK.cc) $^ -o $@ $(SHAREDLIB_FLAGS_python) $(LDFLAGS_python)
+
+pybind11:
+	$(PYTHON) -m pip install pybind11
+
+# Macro to create a .o rule and a .d rule for each .cpp
+
+define BUILD_CPP_RULE
+
+$(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o): $(1)
+	$(COMPILE.cc) $(INCLUDES_python) -o $$@ $$<
+
+$(CPP_BUILD_DIR)/$(notdir $(basename $(1)).d): $(1)
+	@set -e; \
+	rm -f $$@; \
+	$(COMPILE.cc) -MM -MT $(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o) $(INCLUDES_python) -MF $$@.$$$$$$$$ $$<; \
+        sed 's,\($(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o)\)[ :]*,\1 $$@ : ,g' < $$@.$$$$$$$$ > $$@; \
+	rm -f $$@.$$$$$$$$
+
+endef
+
+# Expand the macro for each source file
+
+$(foreach src,$(SRCS_python),$(eval $(call BUILD_CPP_RULE,$(src))))
+
+# Include generated header dependency rules, but only if building the JNI .so
+# (This restriction prevents problems with the dependency on the Java API for the JNI header.)
+
+ifeq ($(MAKECMDGOALS),pythonApi2)
+-include $(DEPS_python)
+endif
+
+
+#######################################################################################################################
+#
 # C++ Tests
 #
 
@@ -322,7 +390,8 @@ $(foreach f,$(STAGE_COPY_FILES),$(eval $(call STAGE_COPY_RULE,$(f))))
 
 STAGE_LIB_FILES = \
     $(LIB_NAME) \
-    $(LOADER_NAME)
+    $(LOADER_NAME) \
+    $(PYTHON_LIB_NAME)
 
 define STAGE_LIB_RULE
 $$(STAGE_DIR)/lib/$(1): $$(CPP_BUILD_DIR)/$(1)
@@ -334,7 +403,8 @@ $(foreach f,$(STAGE_LIB_FILES),$(eval $(call STAGE_LIB_RULE,$(f))))
 
 STAGE_EXAMPLE_ZIP = examples.zip
 STAGE_EXAMPLE_FILE_NAMES = \
-    cppdemo/cppdemo.cpp cppdemo/Makefile
+	cpp/cppdemo.cpp cpp/Makefile \
+	python/pythondemo.py python/run.sh
 
 STAGE_EXAMPLE_FILES = $(addprefix examples/,$(STAGE_EXAMPLE_FILE_NAMES))
 STAGE_STAGED_EXAMPLE_FILES = $(addprefix $(STAGE_DIR)/,$(STAGE_EXAMPLE_FILES))

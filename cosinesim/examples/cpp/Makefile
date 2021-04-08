@@ -37,7 +37,7 @@ endif
 # Location of Alveo product if installed from sources
 MK_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 CUR_DIR := $(patsubst %/,%,$(dir $(MK_PATH)))
-XF_PROJ_ROOT ?= $(shell bash -c 'export MK_PATH=$(MK_PATH); echo $${MK_PATH%/examples/cppdemo/Makefile}')
+XF_PROJ_ROOT ?= $(shell bash -c 'export MK_PATH=$(MK_PATH); echo $${MK_PATH%/examples/cpp/Makefile}')
 
 LIB_PATH = $(XF_PROJ_ROOT)/staging/lib
 INCLUDE_PATH = $(XF_PROJ_ROOT)/include
