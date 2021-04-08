@@ -15,23 +15,22 @@
 PKGDIR := PKG_Release
 RM := rm -rf
 
-RPM:$(PKGDIR)
+OSDIST = $(shell lsb_release -si)
+ifeq ($(OSDIST),Ubuntu)
+    DIST_TARGET = deb
+else ifeq ($(OSDIST),CentOS)
+    DIST_TARGET = rpm
+endif
+
+package:$(PKGDIR)
 	cd $(PKGDIR); \
 	cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/opt/xilinx/apps/graphanalytics/  ..;\
 	cmake --build .;\
-	cpack --verbose -G RPM;\
-	mv *.rpm ..; \
+	cpack --verbose ; \
+	mv *.${DIST_TARGET} .. ; \
 	cd ..; \
 	rm ${PKGDIR} -r; \
 
-DEB:$(PKGDIR)
-	cd $(PKGDIR); \
-	cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/opt/xilinx/apps/graphanalytics/ ..; \
-	cmake --build .; \
-	cpack --verbose -G DEB ; \
-	mv *.deb ..; \
-	cd ..; \
-	rm ${PKGDIR} -r; 
 
 $(PKGDIR):
 	mkdir $(PKGDIR); 

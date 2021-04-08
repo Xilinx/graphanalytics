@@ -30,8 +30,60 @@ install(FILES "${AML_FILE_PATH}/src/cosinesim_loader.cpp" DESTINATION ${CMAKE_IN
 install(FILES "${AML_FILE_PATH}/examples.zip" DESTINATION ${CMAKE_INSTALL_PREFIX}/cosinesim)
 
 
+#version 
+
 set(CPACK_PACKAGE_NAME "xilinx-cosinesim")
-set(CPACK_PACKAGE_VERSION "1.0.0")
+set(PROJ_VERSION_RELEASE "1.0.0")
+# --- LSB Release ---
+find_program(LSB_RELEASE lsb_release)
+find_program(UNAME uname)
+
+execute_process(
+    COMMAND ${LSB_RELEASE} -is
+    OUTPUT_VARIABLE LINUX_FLAVOR
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+execute_process(
+    COMMAND ${LSB_RELEASE} -rs
+    OUTPUT_VARIABLE CPACK_REL_VER
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+execute_process(
+    COMMAND ${UNAME} -r
+    OUTPUT_VARIABLE LINUX_KERNEL_VERSION
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+execute_process(
+    COMMAND ${UNAME} -m
+    OUTPUT_VARIABLE CPACK_ARCH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+if (${LINUX_FLAVOR} MATCHES "^(Ubuntu|Debian)")
+    set(CPACK_GENERATOR "DEB")
+    set(PACKAGE_KIND "DEB")
+    # Modify the package name for the xrm component
+    # Syntax is set(CPACK_<GENERATOR>_<COMPONENT>_PACKAGE_NAME "<name">)
+    set(CPACK_DEBIAN_XRM_PACKAGE_NAME "xilinx-cosinesim")
+
+elseif (${LINUX_FLAVOR} MATCHES "^(RedHat|CentOS|Amazon)")
+    set(CPACK_GENERATOR "RPM")
+    set(PACKAGE_KIND "RPM")
+    # Modify the package name for the xrm component
+    # Syntax is set(CPACK_<GENERATOR>_<COMPONENT>_PACKAGE_NAME "<name">)
+    set(CPACK_RPM_XRM_PACKAGE_NAME "xilinx-cosinesim")
+
+endif()
+
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${PROJ_VERSION_RELEASE}_${CPACK_REL_VER}-${CPACK_ARCH}")
+
+message("-- ${CMAKE_BUILD_TYPE} ${PACKAGE_KIND} package")
+
+set(CPACK_PACKAGE_NAME "xilinx-cosinesim")
+#set(CPACK_PACKAGE_VERSION "1.0.0_18.04-x86_64")
 set(CPACK_PACKAGE_CONTACT "Xilinx Cosinesim Development Team")
 set(CPACK_PACKAGE_VENDOR "Xilinx")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Xilinx Cosinesim Acceleration")

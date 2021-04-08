@@ -398,7 +398,7 @@ dist: stage
 	    echo "Packaging is supported for only Ubuntu and CentOS."; \
 	else \
 	    echo "Packaging $(DIST_TARGET) for $(OSDIST)"; \
-	    make $(DIST_TARGET); \
+	    make ; \
 	fi
 
 
