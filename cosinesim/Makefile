@@ -185,40 +185,46 @@ endif
 # python API wrapper
 #
 
-PYTHON = python3.6
+PYTHON = python3
+PYTHONENV = ./pyvenv/bin/python3
 PYTHON_DIR = wrappers/python
 
 SRC_FILE_NAMES_python = pythonapi.cpp
 
 INCLUDES_python = \
-    `$(PYTHON) -m pybind11 --includes` \
     -I/usr/include/python3.6 \
     -Iinclude
 
 SRCS_python = $(addprefix $(PYTHON_DIR)/,$(SRC_FILE_NAMES_python))
 OBJS_python = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_python:.cpp=.o)))
-DEPS_python = $(OBJS_python:.o=.d)
 
 LIB_PATH = $(CPP_BUILD_DIR)
-PYTHON_LIB_NAME := xilCosineSim$(shell $(PYTHON)-config --extension-suffix)
 
 LDFLAGS_python = -L$(LIB_PATH) -l$(LIB_SHORT_NAME)
+
+# Add pybind11 includes and set library name after setting virtual env
+ifeq ($(MAKECMDGOALS),pythonApi2)
+INCLUDES_python += $(shell $(PYTHONENV) -m pybind11 --includes)
+PYTHON_LIB_NAME := xilCosineSim.so #$(shell python-config --extension-suffix)
+endif
 
 SHAREDLIB_FLAGS_python = -shared
 
 .PHONY: pythonApi pythonApi2
 
 # Make in a child process so that we can isolate the run that includes automatic header dependencies
-pythonApi: cppBuild pybind11
+pythonApi: cppBuild pyvenv
 	@make pythonApi2
+
+pyvenv:
+	$(PYTHON) -m venv pyvenv;\
+	$(PYTHONENV) -m pip install pybind11
+#	$(PYTHONENV) -m pip install python-config
 
 pythonApi2: $(CPP_BUILD_DIR) $(CPP_BUILD_DIR)/$(PYTHON_LIB_NAME)
 
 $(CPP_BUILD_DIR)/$(PYTHON_LIB_NAME): $(OBJS_python)
 	$(LINK.cc) $^ -o $@ $(SHAREDLIB_FLAGS_python) $(LDFLAGS_python)
-
-pybind11:
-	$(PYTHON) -m pip install pybind11
 
 # Macro to create a .o rule and a .d rule for each .cpp
 
@@ -239,13 +245,6 @@ endef
 # Expand the macro for each source file
 
 $(foreach src,$(SRCS_python),$(eval $(call BUILD_CPP_RULE,$(src))))
-
-# Include generated header dependency rules, but only if building the JNI .so
-# (This restriction prevents problems with the dependency on the Java API for the JNI header.)
-
-ifeq ($(MAKECMDGOALS),pythonApi2)
--include $(DEPS_python)
-endif
 
 
 #######################################################################################################################
@@ -491,7 +490,7 @@ javaTest:
 .PHONY: clean clean-xclbin
 
 clean:
-	rm -rf Debug Release $(JAVA_LIB_DIR) $(JAVA_BUILD_DIR) $(STAGE_DIR)
+	rm -rf Debug Release $(JAVA_LIB_DIR) $(JAVA_BUILD_DIR) $(STAGE_DIR) pyvenv
 	@echo "Note: because the XCLBIN file takes so long to generate, it is not removed with this 'clean' target."
 	@echo "To clean the XCLBIN, use 'make clean-xclbin'"
 	

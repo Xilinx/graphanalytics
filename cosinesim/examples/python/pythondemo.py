@@ -11,7 +11,6 @@ if __name__ == '__main__':
     # Create options for cosine similarity
     opt = xcs.options()
     opt.vecLength = VectorLength
-    opt.xclbinPath = f"/proj/xsjhdstaff3/sachink/ghe/graphanalytics/cosinesim/staging/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin"
     testVecIdx = rand.randint(0, NumVectors - 1) # select one index as the test vector
 
     # Create cosinesim object, datatype is int, size 4 bytes
