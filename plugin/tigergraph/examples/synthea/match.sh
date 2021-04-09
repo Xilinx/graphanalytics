@@ -30,6 +30,7 @@
 # limitations under the License.
 #
 
+set -e
 script_dir=$(dirname "$0")
 # common.sh sets up gsql client, gets username, passowrd, xgraph name
 . $script_dir/bin/common.sh

@@ -44,14 +44,15 @@ CREATE QUERY client_cosinesim_load_alveo() FOR GRAPH @graph
     DOUBLE run_time;
     STRING status;
     INT ret;
+    EXCEPTION cosinesimLoadFailed(40001);
 
     udf_reset_timer(true);
     ret = load_graph_cosinesim_ss_fpga_core();
     run_time = udf_elapsed_time(true);
     IF ret == 0 THEN
         status = "Graph data loaded successfully";
-    ELSE IF ret == -1001 THEN
-        status = "Vertices distribution error";
+    ELSE
+        RAISE cosinesimLoadFailed("ERROR: Cosine Similarity load operation failed.  Please see the GPE log for details.");
     END;
     PRINT ret AS StatusCode, status AS StatusMessage, run_time AS ExecTimeInMs;
 }
@@ -60,9 +61,16 @@ CREATE QUERY client_cosinesim_load_alveo() FOR GRAPH @graph
 CREATE QUERY client_cosinesim_match_alveo(VERTEX<patients> newPatient, UINT topK) FOR GRAPH @graph {
     DOUBLE run_time;
     ListAccum<testResults> @@result;
+    EXCEPTION cosinesimMatchFailed(40002);
+
     udf_reset_timer(true);
     @@result = cosinesim_ss_fpga_core(newPatient, topK);
     run_time = udf_elapsed_time(true);
+
+    IF @@result.size() < 1 THEN
+        RAISE cosinesimMatchFailed("ERROR: Cosine Similarity match operation failed.  Please see the GPE log for details.");
+    END;
+
     PRINT "Xilinx Alveo U50" AS ComputationTechnique, newPatient.FIRST_NAME + " " + newPatient.LAST_NAME AS Patient,
         run_time AS ExecTimeInMs, @@result AS Matches;
 }

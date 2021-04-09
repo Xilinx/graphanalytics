@@ -301,39 +301,30 @@ CREATE QUERY cosinesim_is_fpga_initialized() FOR GRAPH @graph RETURNS (BOOL) {
     RETURN ret;
 }
 
-create query load_graph_cosinesim_ss_fpga_core() 
-    for graph @graph returns (int) {
+create query load_graph_cosinesim_ss_fpga_core() for graph @graph returns (int) {
+    ListAccum<ListAccum<int> > @@patientsAll;
+    int ret;
 
-	ListAccum<ListAccum<int> > @@patientsAll;
-	int ret;
-    int num_devices = 9999;
+    population = {patients.*};
+    patientList = select p from population:p
+        ACCUM @@patientsAll += p.COSINE_SIM_VECTOR;
 
-	population = {patients.*};
-	patientList = select p from population:p
-		ACCUM @@patientsAll += p.COSINE_SIM_VECTOR;
-
-	ret = udf_load_graph_cosinesim_ss_fpga(population.size(), 200, 
-                                           @@patientsAll, num_devices);
-
+    ret = udf_xilinx_recom_load_population_vectors(population.size(), @@patientsAll);
     return ret;
 }
 
 create query cosinesim_ss_fpga_core (vertex<patients> source, uint topK) for 
     graph @graph returns (ListAccum<testResults>) 
 {
+    ListAccum<testResults> @@topK_result_fpga;
+    ListAccum<int> @@newPatientVector;
 
-	ListAccum<testResults> @@topK_result_fpga;
-	ListAccum<int> @@newPatientVector;
-    int devices_needed = 9999;
-    
-	population = {patients.*};
+    population = {patients.*};
 
-	@@newPatientVector = patient_vector(source);
+    @@newPatientVector = patient_vector(source);
 
-	@@topK_result_fpga = udf_cosinesim_ss_fpga(topK, population.size(), 200, 
-        @@newPatientVector, devices_needed);
-	return @@topK_result_fpga;
-
+    @@topK_result_fpga = udf_xilinx_recom_match_target_vector(topK, @@newPatientVector);
+    return @@topK_result_fpga;
 }
 
 
