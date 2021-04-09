@@ -37,45 +37,50 @@ int main(int argc, char **argv) {
     xilinx_apps::cosinesim::Options options;
     options.vecLength = VectorLength;
     options.numDevices = 1;
-   
-    xilinx_apps::cosinesim::CosineSim<std::int32_t> cosineSim(options);
-    
-    // Pick an index at random out of all the old vectors to use as the test vector to match
-    
-    const unsigned testVectorIndex = std::rand() % NumVectors;
-    
-    // Generate random vectors, writing each into the Alveo card
-    
-    std::cout << "Loading population vectors into Alveo card..." << std::endl;
-    // Before loading population vector, call startLoadPopulation() to do the initialization;
-    cosineSim.startLoadPopulation(NumVectors);
-    // For each vector loading, call getPopulationVectorBuffer() to get the internal population vector buffer pointer and user write the vector into it;
-    // At the end of each vector loading, call finishCurrentPopulationVector() for padding.
-    for (unsigned vecNum = 0; vecNum < NumVectors; ++vecNum) {
-    	xilinx_apps::cosinesim::RowIndex rowIndex = 0;
-    	CosineSim::ValueType *pBuf = cosineSim.getPopulationVectorBuffer(rowIndex);
-    	CosineSim::ValueType *p = pBuf;
-        for (unsigned eltNum = 0; eltNum < VectorLength; ++eltNum) {
-            const CosineSim::ValueType value = CosineSim::ValueType(std::rand() % MaxValue - (MaxValue / 2));
-            *p++ = value;
-            
-            // If we've reached the index we've chosen as the test vector, save the test vector values
-            if (vecNum == testVectorIndex)
-                testVector.push_back(value);
-        }
-        cosineSim.finishCurrentPopulationVector(pBuf);
-    }
+    std::vector<xilinx_apps::cosinesim::Result> results;
+    try {
+        xilinx_apps::cosinesim::CosineSim<std::int32_t> cosineSim(options);
 
-    // After the whole population vectors loading finish, call finishLoadPopulationVectors();
-    cosineSim.finishLoadPopulationVectors();
-    
-    // Run the match in the FPGA
-    
-    std::cout << "Running match for test vector #" << testVectorIndex << "..." << std::endl;
-    std::vector<xilinx_apps::cosinesim::Result> results = cosineSim.matchTargetVector(10, testVector.data());
-    results.clear();
-    results = cosineSim.matchTargetVector(10, testVector.data());
-    
+        // Pick an index at random out of all the old vectors to use as the test vector to match
+
+        const unsigned testVectorIndex = std::rand() % NumVectors;
+
+        // Generate random vectors, writing each into the Alveo card
+
+        std::cout << "Loading population vectors into Alveo card..." << std::endl;
+        // Before loading population vector, call startLoadPopulation() to do the initialization;
+        cosineSim.startLoadPopulation(NumVectors);
+        // For each vector loading, call getPopulationVectorBuffer() to get the internal population vector buffer pointer and user write the vector into it;
+        // At the end of each vector loading, call finishCurrentPopulationVector() for padding.
+        for (unsigned vecNum = 0; vecNum < NumVectors; ++vecNum) {
+            xilinx_apps::cosinesim::RowIndex rowIndex = 0;
+            CosineSim::ValueType *pBuf = cosineSim.getPopulationVectorBuffer(rowIndex);
+            CosineSim::ValueType *p = pBuf;
+            for (unsigned eltNum = 0; eltNum < VectorLength; ++eltNum) {
+                const CosineSim::ValueType value = CosineSim::ValueType(std::rand() % MaxValue - (MaxValue / 2));
+                *p++ = value;
+
+                // If we've reached the index we've chosen as the test vector, save the test vector values
+                if (vecNum == testVectorIndex)
+                    testVector.push_back(value);
+            }
+            cosineSim.finishCurrentPopulationVector(pBuf);
+        }
+
+        // After the whole population vectors loading finish, call finishLoadPopulationVectors();
+        cosineSim.finishLoadPopulationVectors();
+
+        // Run the match in the FPGA
+
+        std::cout << "Running match for test vector #" << testVectorIndex << "..." << std::endl;
+        results = cosineSim.matchTargetVector(10, testVector.data());
+        results.clear();
+        results = cosineSim.matchTargetVector(10, testVector.data());
+    }
+    catch (const xilinx_apps::cosinesim::Exception &ex) {
+        std::cout << "Error during Cosinesim Running:" << ex.what() << std::endl;
+        return -1;
+    }
     // Display the results
     
     std::cout << "Results:" << std::endl;
