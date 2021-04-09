@@ -60,16 +60,7 @@ inline bool udf_xilinx_recom_is_initialized() {
     return pContext->isInitialized();
 }
 
-inline string udf_xilinx_recom_get_error_message() {
-    xilRecom::Lock lock(xilRecom::getMutex());
-    xilRecom::Context *pContext = xilRecom::Context::getInstance();
-    return pContext->getErrorMessage();
-}
-
-inline int udf_load_graph_cosinesim_ss_fpga(int64_t numVertices,
-                                           int64_t vecLength,
-                                           ListAccum<ListAccum<int64_t> >& oldVectors,
-                                           int devicesNeeded) {
+inline int udf_xilinx_recom_load_population_vectors(int64_t numVertices, ListAccum<ListAccum<int64_t> >& oldVectors) {
     xilRecom::Lock lock(xilRecom::getMutex());
     xilRecom::Context *pContext = xilRecom::Context::getInstance();
     
@@ -97,7 +88,6 @@ inline int udf_load_graph_cosinesim_ss_fpga(int64_t numVertices,
     // Fill the FPGA(s) with vectors
     
     try {
-        pContext->clearErrorMessage();
         xilRecom::CosineSim *pCosineSim = pContext->getCosineSimObj();
     //    pCosineSim->openFpga();
         pCosineSim->startLoadPopulation(numVectors);
@@ -116,8 +106,8 @@ inline int udf_load_graph_cosinesim_ss_fpga(int64_t numVertices,
         return 0;
     }
     catch (const xilinx_apps::cosinesim::Exception &ex) {
-        pContext->setErrorMessage(ex.what());
-        pContext->clear();
+        // Write actual error to GPE log
+        std::cout << "ERROR: xilinxRecomEngine: " << ex.what() << std::endl;
         return -1;
     }
 }
@@ -125,9 +115,7 @@ inline int udf_load_graph_cosinesim_ss_fpga(int64_t numVertices,
 // Enable this to print profiling messages to the log (via stdout)
 #define XILINX_RECOM_PROFILE_ON
 
-inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
-    int64_t numVertices, int64_t vecLength, ListAccum<int64_t>& newVector,
-    int devicesNeeded)
+inline ListAccum<testResults> udf_xilinx_recom_match_target_vector(int64_t topK, ListAccum<int64_t>& newVector)
 {
     xilRecom::Lock lock(xilRecom::getMutex());
     ListAccum<testResults> result;
@@ -159,7 +147,6 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
         nativeTargetVector.push_back(newVector.get(eltNum + 3));
     
     try {
-        pContext->clearErrorMessage();
         xilRecom::CosineSim *pCosineSim = pContext->getCosineSimObj();
 
     //---------------------------------------------------------------------------
@@ -228,7 +215,7 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
 
     }
     catch (const xilinx_apps::cosinesim::Exception &ex) {
-        pContext->setErrorMessage(ex.what());
+        std::cout << "ERROR: xilinxRecomEngine: " << ex.what() << std::endl;
 //        pContext->clear();  // maybe don't do this if problem is transient
     }
     return result;

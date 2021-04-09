@@ -88,12 +88,14 @@ create query cosinesim_ss_tg(string log_file) for graph @graph {
 create query load_graph_cosinesim_ss_fpga() for graph @graph {
     STRING status;
     INT ret;
+    EXCEPTION cosinesimLoadFailed(40001);
+
     ret = load_graph_cosinesim_ss_fpga_core();
     print ret;
     IF ret == 0 THEN
         status = "Graph data loaded successfully";
-    ELSE IF ret == -1001 THEN
-        status = "Vertices distribution error";
+    ELSE
+        RAISE cosinesimLoadFailed("ERROR: Cosine Similarity load operation failed.  Please see the GPE log for details.");
     END;
     PRINT status;
 }
@@ -105,6 +107,8 @@ create query cosinesim_ss_fpga(string log_file1) for graph @graph {
     double score;
     DOUBLE run_time;
     FILE file1 (log_file1);
+    EXCEPTION cosinesimMatchFailed(40002);
+
     topK = 100;
 # Patient Population
     population = {patients.*};
@@ -118,6 +122,11 @@ create query cosinesim_ss_fpga(string log_file1) for graph @graph {
     udf_reset_timer(true);
     @@result = cosinesim_ss_fpga_core(newPatient, topK);
     run_time = udf_elapsed_time(true);
+
+    IF @@result.size() < 1 THEN
+        RAISE cosinesimMatchFailed("ERROR: Cosine Similarity match operation failed.  Please see the GPE log for details.");
+    END;
+
     print "Xilinx Alveo U50" AS ComputationTechnique;
     print newPatient.FIRST_NAME + " " + newPatient.LAST_NAME AS Patient;
     print run_time AS ExecTimeInMs;
