@@ -103,7 +103,23 @@ LIB_NAME = lib$(LIB_SHORT_NAME).so
 LOADER_SHORT_NAME = XilinxCosineSim_loader
 LOADER_NAME = lib$(LOADER_SHORT_NAME).a
 
-SRCS_L3 = $(wildcard $(GRAPH_ANALYTICS_DIR)/L3/src/*.cpp) $(GRAPH_ANALYTICS_DIR)/ext/xcl2/xcl2.cpp
+#SRCS_L3 = $(wildcard $(GRAPH_ANALYTICS_DIR)/L3/src/*.cpp) $(GRAPH_ANALYTICS_DIR)/ext/xcl2/xcl2.cpp
+
+SRCS_L3_NAMES = \
+        op_bfs.cpp \
+	op_convertcsrcsc.cpp \
+	op_labelpropagation.cpp \
+	op_pagerank.cpp \
+	op_scc.cpp \
+	op_similaritydense.cpp \
+	op_similaritysparse.cpp \
+	op_trianglecount.cpp \
+	op_sp.cpp \
+	op_wcc.cpp \
+	xf_graph_L3.cpp \
+	xf_graph_L3_handle.cpp
+
+SRCS_L3 = $(addprefix $(GRAPH_ANALYTICS_DIR)/L3/src/,$(SRCS_L3_NAMES)) $(GRAPH_ANALYTICS_DIR)/ext/xcl2/xcl2.cpp
 OBJS_L3 = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_L3:.cpp=.o)))
 
 SRCS_loader = src/cosinesim_loader.cpp
