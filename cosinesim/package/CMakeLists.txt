@@ -65,16 +65,12 @@ execute_process(
 if (${LINUX_FLAVOR} MATCHES "^(Ubuntu|Debian)")
     set(CPACK_GENERATOR "DEB")
     set(PACKAGE_KIND "DEB")
-    # Modify the package name for the xrm component
-    # Syntax is set(CPACK_<GENERATOR>_<COMPONENT>_PACKAGE_NAME "<name">)
-    set(CPACK_DEBIAN_XRM_PACKAGE_NAME "xilinx-cosinesim")
+
 
 elseif (${LINUX_FLAVOR} MATCHES "^(RedHat|CentOS|Amazon)")
     set(CPACK_GENERATOR "RPM")
     set(PACKAGE_KIND "RPM")
-    # Modify the package name for the xrm component
-    # Syntax is set(CPACK_<GENERATOR>_<COMPONENT>_PACKAGE_NAME "<name">)
-    set(CPACK_RPM_XRM_PACKAGE_NAME "xilinx-cosinesim")
+ 
 
 endif()
 
