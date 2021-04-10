@@ -367,6 +367,7 @@ L2_XDEVICE = xilinx_u50_gen3x16_xdma_201920_3
 L2_BUILD_DIR = $(L2_TOP_DIR)/build_dir.hw.$(L2_XDEVICE)
 XCLBIN_NAME = denseSimilarityKernel.xclbin
 XCLBIN_FILE = $(L2_BUILD_DIR)/$(XCLBIN_NAME)
+XCLBIN_INSTALLED = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin
 
 .PHONY: xclbin
 
@@ -377,10 +378,16 @@ xclbin:
 	make build TARGET=hw
 	
 $(XCLBIN_FILE):
-	@echo "ERROR: The XCLBIN file $(XCLBIN_FILE) is missing."
-	@echo "Because building an XCLBIN file can be an all-day proposition, you have two choices for completing this build:"
-	@echo "1. Copy a pre-built XCLBIN to the target location above.  (Recommended for developers)"
-	@echo "2. Do 'make xclbin' and go for a very long coffee break.  (Recommended for build automation)"; false
+	@if [ -r $(XCLBIN_INSTALLED) ]; then \
+	    echo "INFO: The XCLBIN file $(XCLBIN_FILE) is missing.  Copying from installed area."; \
+	    cp -r $(XCLBIN_INSTALLED) $@; \
+	else \
+	    echo "ERROR: The XCLBIN file $(XCLBIN_FILE) is missing."; \
+	    echo "Because building an XCLBIN file can be an all-day proposition, you have two choices for completing this build:"; \
+	    echo "1. Copy a pre-built XCLBIN to the target location above.  (Recommended for developers)"; \
+	    echo "2. Do 'make xclbin' and go for a very long coffee break.  (Recommended for build automation)"; \
+	    false; \
+	fi
 
 #######################################################################################################################
 #
