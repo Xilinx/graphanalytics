@@ -31,7 +31,7 @@ BEGIN
         LOAD patients_infile
             #the last column is a placholder for cached vector data
             TO VERTEX patients VALUES($"Id", $"BIRTHDATE", $"DEATHDATE", $"SSN",
-                $"FIRST", $"LAST", $"MARITAL", $"RACE", $"ETHNICITY", $"GENDER", _) 
+                $"FIRST", $"LAST", $"MARITAL", $"RACE", $"ETHNICITY", $"GENDER", _, _) 
             USING header="true", separator=",";
 
         LOAD immunizations_infile 

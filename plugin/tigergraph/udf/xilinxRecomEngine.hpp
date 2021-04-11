@@ -60,25 +60,34 @@ inline bool udf_xilinx_recom_is_initialized() {
     return pContext->isInitialized();
 }
 
-inline int udf_xilinx_recom_load_population_vectors(int64_t numVertices, ListAccum<ListAccum<int64_t> >& oldVectors) {
+inline int udf_xilinx_recom_load_population_vectors(int64_t numVertices, ListAccum<ListAccum<int64_t> >& popVectors,
+        ListAccum<uint64_t> &ids) {
     xilRecom::Lock lock(xilRecom::getMutex());
     xilRecom::Context *pContext = xilRecom::Context::getInstance();
     
     // Set the vector length up front, as changing it causes the context to be invalidated
     
-    xilinx_apps::cosinesim::ColIndex inputVectorLength = xilinx_apps::cosinesim::ColIndex(
-            xilinx_apps::cosinesim::ColIndex(oldVectors.get(0).size()));
-    xilinx_apps::cosinesim::ColIndex vectorLength = inputVectorLength - 3;
+    xilinx_apps::cosinesim::ColIndex vectorLength = xilinx_apps::cosinesim::ColIndex(
+            xilinx_apps::cosinesim::ColIndex(popVectors.get(0).size()));
     pContext->setVectorLength(vectorLength);
     
     // If there are no vectors, consider the FPGA to be uninitialized
     
-    xilinx_apps::cosinesim::RowIndex numVectors = xilinx_apps::cosinesim::RowIndex(oldVectors.size());
+    xilinx_apps::cosinesim::RowIndex numVectors = xilinx_apps::cosinesim::RowIndex(popVectors.size());
     if (numVectors < 1) {
         pContext->clear();
         return 0;
     }
 
+    // Make sure that the number of vectors and number of IDs match.  Error out if not
+    
+    if (numVectors != ids.size()) {
+        std::cout << "ERROR: xilinxRecomEngine: number of population vectors " << vectorLength
+                << " does not match number of IDs " << ids.size() << " in udf_xilinx_recom_load_population_vectors"
+                << std::endl;
+        return -2;
+    }
+    
     // Prepare the FPGA row to vertex ID map
     
     xilRecom::Context::IdMap &idMap = pContext->getIdMap();
@@ -92,14 +101,13 @@ inline int udf_xilinx_recom_load_population_vectors(int64_t numVertices, ListAcc
     //    pCosineSim->openFpga();
         pCosineSim->startLoadPopulation(numVectors);
         for (xilinx_apps::cosinesim::RowIndex vecNum = 0; vecNum < numVectors; ++vecNum) {
-            const ListAccum<int64_t> &curRowVec = oldVectors.get(vecNum);
+            const ListAccum<int64_t> &curRowVec = popVectors.get(vecNum);
             xilinx_apps::cosinesim::RowIndex rowIndex = 0;
             xilRecom::CosineSim::ValueType *pBuf = pCosineSim->getPopulationVectorBuffer(rowIndex);
             for (xilinx_apps::cosinesim::ColIndex eltNum = 0; eltNum < vectorLength; ++eltNum)
-                *pBuf++ = xilRecom::CosineSim::ValueType(curRowVec.get(eltNum + 3));
+                *pBuf++ = xilRecom::CosineSim::ValueType(curRowVec.get(eltNum));
             pCosineSim->finishCurrentPopulationVector(pBuf);
-            uint64_t vertexId = ((curRowVec.get(2) << 32) & 0xFFFFFFF00000000) | (curRowVec.get(1) & 0x00000000FFFFFFFF);
-            idMap[rowIndex] = vertexId;
+            idMap[rowIndex] = ids.get(vecNum);
         }
         pCosineSim->finishLoadPopulationVectors();
         pContext->setInitialized();  // FPGA(s) now ready to match
@@ -115,10 +123,10 @@ inline int udf_xilinx_recom_load_population_vectors(int64_t numVertices, ListAcc
 // Enable this to print profiling messages to the log (via stdout)
 #define XILINX_RECOM_PROFILE_ON
 
-inline ListAccum<testResults> udf_xilinx_recom_match_target_vector(int64_t topK, ListAccum<int64_t>& newVector)
+inline ListAccum<XilCosinesimMatch> udf_xilinx_recom_match_target_vector(int64_t topK, ListAccum<int64_t>& targetVector)
 {
     xilRecom::Lock lock(xilRecom::getMutex());
-    ListAccum<testResults> result;
+    ListAccum<XilCosinesimMatch> result;
     xilRecom::Context *pContext = xilRecom::Context::getInstance();
 
     if (!pContext->isInitialized())
@@ -144,7 +152,7 @@ inline ListAccum<testResults> udf_xilinx_recom_match_target_vector(int64_t topK,
     const xilinx_apps::cosinesim::ColIndex vectorLength = pContext->getVectorLength();
     nativeTargetVector.reserve(vectorLength);
     for (xilinx_apps::cosinesim::ColIndex eltNum = 0; eltNum < vectorLength; ++eltNum)
-        nativeTargetVector.push_back(newVector.get(eltNum + 3));
+        nativeTargetVector.push_back(targetVector.get(eltNum));
     
     try {
         xilRecom::CosineSim *pCosineSim = pContext->getCosineSimObj();
@@ -198,7 +206,7 @@ inline ListAccum<testResults> udf_xilinx_recom_match_target_vector(int64_t topK,
         for (xilinx_apps::cosinesim::Result &apiResult : apiResults) {
             if (apiResult.index < 0 || apiResult.index >= xilinx_apps::cosinesim::RowIndex(idMap.size()))
                 continue;
-            result += testResults(VERTEX(idMap[apiResult.index]), apiResult.similarity);
+            result += XilCosinesimMatch(VERTEX(idMap[apiResult.index]), apiResult.similarity);
         }
 
     //---------------------------------------------------------------------------

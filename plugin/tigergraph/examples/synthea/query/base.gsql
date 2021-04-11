@@ -18,26 +18,26 @@ use graph @graph
 drop query all
 
 create query patient_age(vertex<patients> p) for graph @graph returns (int){ 
-	float age;
-	datetime deathdate;
-	datetime birthdate;
+    float age;
+    datetime deathdate;
+    datetime birthdate;
 
-	deathdate = to_datetime(p.DEATHDATE);
-	birthdate = to_datetime(p.BIRTHDATE);
+    deathdate = to_datetime(p.DEATHDATE);
+    birthdate = to_datetime(p.BIRTHDATE);
 
-	if (p.DEATHDATE == "") OR (p.DEATHDATE == "2999-12-31") then
-		age = datetime_diff( now(), birthdate) / (60 * 60 * 24 * 365);
+    if (p.DEATHDATE == "") OR (p.DEATHDATE == "2999-12-31") then
+        age = datetime_diff( now(), birthdate) / (60 * 60 * 24 * 365);
     else
-		age = datetime_diff( deathdate, birthdate) / (60 * 60 * 24 * 365);
-	end;
+        age = datetime_diff( deathdate, birthdate) / (60 * 60 * 24 * 365);
+    end;
 
-	if (age < 1.0 ) then
-		age = 1.0;
+    if (age < 1.0 ) then
+        age = 1.0;
     else if (age > 100.0 ) then
-		age = 100.0;
-	end;
+        age = 100.0;
+    end;
 
-	return float_to_int_xilinx(age);
+    return float_to_int(age);
 }
 
 create query patient_gender(vertex<patients> p) for graph @graph returns (int){ 
@@ -94,14 +94,13 @@ create query patient_vector(vertex<patients> targetPatient) for graph @graph ret
 # Unused fields are filled with zeros
 
 #    Range  : Count       : Information
-#    000-002: 03 * 1 = 03 : reseved for norm, vid lower 32 bit, vid upper 32 bit
-#    003-019: 17 * 1 = 17 : patient pesonal info (AGE, GENDER, RACE, ETHNICITY, <UNUSDED7-19>)
-#    020-039: 20 * 1 = 20 : immunizations (CODE)
-#    040-059: 20 * 1 = 20 : allergies (CODE)
-#    060-079: 50 * 1 = 50 : conditions (CODE)
-#    080-139: 20 * 1 = 20 : imaging_studies (BODYSITE)
-#    140-159: 50 * 1 = 50:  procedures (CODE)
-#    160-199: 20 * 1 = 20 : careplans (CODE)
+#    000-016: 17 * 1 = 17 : patient pesonal info (AGE, GENDER, RACE, ETHNICITY, <UNUSDED7-19>)
+#    017-036: 20 * 1 = 20 : immunizations (CODE)
+#    037-056: 20 * 1 = 20 : allergies (CODE)
+#    057-076: 50 * 1 = 50 : conditions (CODE)
+#    077-136: 20 * 1 = 20 : imaging_studies (BODYSITE)
+#    137-156: 50 * 1 = 50:  procedures (CODE)
+#    157-196: 20 * 1 = 20 : careplans (CODE)
 
 
 	// Locals
@@ -122,19 +121,7 @@ create query patient_vector(vertex<patients> targetPatient) for graph @graph ret
 	defaultValue = 1;
 
 
-	// Field:0: Norm, add 0 for now 
-	@@patientVector += 0;
-
-	// Get 64 bit VID of patient
-	patient_vid = getvid(targetPatient);
-
-	// Field 1:2: Store vid
-	// Store lower 32 bits of vid
-	@@patientVector += udf_lsb32bits(patient_vid);
-	// Store upper 32 bit of vid
-	@@patientVector += udf_msb32bits(patient_vid);
-
-	// Field 3-6: age, gender, race
+	// Field 0-3: age, gender, race
 	temp = patient_age(targetPatient);
 	@@patientVector += temp;
 	temp = patient_gender(targetPatient);
@@ -144,7 +131,7 @@ create query patient_vector(vertex<patients> targetPatient) for graph @graph ret
 	temp = patient_ethnicity(targetPatient);
 	@@patientVector += temp;
 
-	// Field 7-19: Empty for now, add additional fields in future
+	// Field 4-16: Empty for now, add additional fields in future
 	foreach i in RANGE[7,19] do
 		temp = defaultValue;
 	@@patientVector += temp;
@@ -204,81 +191,62 @@ create query patient_vector(vertex<patients> targetPatient) for graph @graph ret
 		ACCUM @@tempVec += a.CODE;
 	@@patientVector += udf_get_similarity_vec(5, 20, @@tempVec);
 
-	size = @@patientVector.size();
-	foreach i in RANGE[3, size -1] do
-		temp = @@patientVector.get(i);
-	norm = norm + temp * temp;
-	end;
-	norm = sqrt(norm);
-	@@patientVector.update(0, udf_reinterpret_double_as_int64(norm));
-	PRint @@patientVector;
 	return @@patientVector;
 }
 
-create query cos_theta_tigergraph(vertex<patients> p1, vertex<patients> p2) for 
-    graph @graph returns (double) 
-{
-	double result;
-	float resultf;
-	double dotProduct;
-	uint size;
-	double A;
-	double B;
-	int D;
-	int E;
-	float F, G;
-	ListAccum<int> @@newPatientVector;
-	ListAccum<int> @@oldPatientVector;
-	result = 0.0;
-	resultf = 0.0;
-	A = 0.0;
-	B = 0.0;
-	dotProduct = 0.0;
-	@@newPatientVector = patient_vector(p1);
-	@@oldPatientVector = patient_vector(p2);
-	size = @@newPatientVector.size();
-	foreach i in RANGE[3, size -1] do
-		D = @@newPatientVector.get(i);
-	E = @@oldPatientVector.get(i);
-	dotProduct = dotProduct + (D * E); 
-	end;
-	D = @@newPatientVector.get(0);
-	E = @@oldPatientVector.get(0);
-	A = udf_reinterpret_int64_as_double(D);
-	B = udf_reinterpret_int64_as_double(E);
-	F = A;
-	G = B;
-	resultf = dotProduct / ( F * G );
-	result = resultf;
-	return result;
+
+CREATE QUERY cosinesim_clear_embeddings() FOR GRAPH @graph {
+    ListAccum<INT> @@emptyVec;
+
+    population = {patients.*};
+    UPDATE p FROM population:p
+        SET p.COSINE_SIM_VECTOR = @@emptyVec;
+    UPDATE p FROM population:p
+        SET p.COSINE_SIM_NORMAL = 0;
 }
 
 
-CREATE QUERY cosinesim_cache_to_vertices() FOR GRAPH @graph {
-# Patient Population
+CREATE QUERY cosinesim_embed_vectors() FOR GRAPH @graph {
     population = {patients.*};
     UPDATE p FROM population:p
         SET p.COSINE_SIM_VECTOR = patient_vector(p);
 }
 
 
+CREATE QUERY cosinesim_embed_normals() FOR GRAPH @graph {
+    # Cache normals, just for software cosine similarity
+    population = {patients.*};
+    UPDATE p FROM population:p
+        SET p.COSINE_SIM_NORMAL = udf_calculate_normal(p.COSINE_SIM_VECTOR);
+}
+
+
+#CREATE QUERY cosinesim_cache_to_vertices() FOR GRAPH @graph {
+#    cosinesim_embed_vectors();
+#    cosinesim_embed_normals();
+#}
+
+
 CREATE QUERY cosinesim_match_sw(vertex<patients> source, uint topKID) 
-FOR GRAPH @graph RETURNS (ListAccum<testResults>) {
+FOR GRAPH @graph RETURNS (ListAccum<XilCosinesimMatch>) {
 
 # Heap with max size of topKID sorted decending by score then ascending last name
-    HeapAccum<testResults>(topKID, score DESC, Id ASC) @@topK_Heap;
-    ListAccum<testResults> @@topK;
+    HeapAccum<XilCosinesimMatch>(topKID, score DESC, Id ASC) @@topK_Heap;
+    ListAccum<XilCosinesimMatch> @@topK;
     ListAccum<vertex<patients>> @@plist;
-    ListAccum<INT> @@newPatientVector;
+    ListAccum<INT> @@targetPatientVector;
+    DOUBLE targetPatientNormal;
 
 # Patient Population
     population = {patients.*};
-    @@newPatientVector = patient_vector(source);
+    @@targetPatientVector = patient_vector(source);
+    targetPatientNormal = udf_calculate_normal(@@targetPatientVector);
 
     patientList = SELECT p FROM population:p
-        ACCUM @@topK_Heap += testResults(p, udf_cos_theta(p.COSINE_SIM_VECTOR, @@newPatientVector));
+        ACCUM @@topK_Heap += XilCosinesimMatch(p,
+            udf_cos_theta(p.COSINE_SIM_VECTOR, p.COSINE_SIM_NORMAL, @@targetPatientVector, targetPatientNormal));
 
-    FOREACH item IN @@topK_Heap do
+    FOREACH item IN @@topK_Heap DO
         @@topK += item; 
     END;
 
@@ -302,34 +270,35 @@ CREATE QUERY cosinesim_is_fpga_initialized() FOR GRAPH @graph RETURNS (BOOL) {
 }
 
 create query load_graph_cosinesim_ss_fpga_core() for graph @graph returns (int) {
-    ListAccum<ListAccum<int> > @@patientsAll;
+    ListAccum<ListAccum<int> > @@patientVectors;
+    ListAccum<UINT> @@patientIds;
     int ret;
 
     population = {patients.*};
     patientList = select p from population:p
-        ACCUM @@patientsAll += p.COSINE_SIM_VECTOR;
+        ACCUM @@patientVectors += p.COSINE_SIM_VECTOR, @@patientIds += getvid(p);
 
-    ret = udf_xilinx_recom_load_population_vectors(population.size(), @@patientsAll);
+    ret = udf_xilinx_recom_load_population_vectors(population.size(), @@patientVectors, @@patientIds);
     return ret;
 }
 
 create query cosinesim_ss_fpga_core (vertex<patients> source, uint topK) for 
-    graph @graph returns (ListAccum<testResults>) 
+    graph @graph returns (ListAccum<XilCosinesimMatch>) 
 {
-    ListAccum<testResults> @@topK_result_fpga;
-    ListAccum<int> @@newPatientVector;
+    ListAccum<XilCosinesimMatch> @@results;
+    ListAccum<int> @@targetPatientVector;
 
     population = {patients.*};
 
-    @@newPatientVector = patient_vector(source);
+    @@targetPatientVector = patient_vector(source);
 
-    @@topK_result_fpga = udf_xilinx_recom_match_target_vector(topK, @@newPatientVector);
-    return @@topK_result_fpga;
+    @@results = udf_xilinx_recom_match_target_vector(topK, @@targetPatientVector);
+    return @@results;
 }
 
 
 install query patient_age, patient_race, patient_gender, patient_ethnicity, 
-    patient_vector, cosinesim_cache_to_vertices, cos_theta_tigergraph, 
+    patient_vector, cosinesim_clear_embeddings, cosinesim_embed_vectors, cosinesim_embed_normals,
     cosinesim_match_sw, cosinesim_set_num_devices,
     cosinesim_get_num_devices, cosinesim_is_fpga_initialized,
     load_graph_cosinesim_ss_fpga_core, cosinesim_ss_fpga_core

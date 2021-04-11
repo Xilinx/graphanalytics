@@ -13,9 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Start clean
-#DROP TUPLE testResults
-TYPEDEF TUPLE<Id vertex, score double> testResults
+# This one should be moved to Recommendation Engine install script!
+#DROP TUPLE XilCosinesimMatch
+TYPEDEF TUPLE<Id VERTEX, score double> XilCosinesimMatch
 
 # Create Graph
 USE GRAPH @graph
@@ -40,7 +40,7 @@ CREATE SCHEMA_CHANGE JOB job_schema_change_local FOR GRAPH @graph {
     ADD VERTEX patients (PRIMARY_ID Id String, BIRTHDATE String, DEATHDATE String, 
                          SSN String, FIRST_NAME String, LAST_NAME String, 
                          MARITAL String, RACE String, ETHNICITY String, 
-                         GENDER String, COSINE_SIM_VECTOR LIST<INT>);
+                         GENDER String, COSINE_SIM_VECTOR LIST<INT>, COSINE_SIM_NORMAL DOUBLE);
 
     ADD DIRECTED EDGE patient_HAD_immunization (from patients, to immunizations);
     ADD DIRECTED EDGE patient_HAD_allergy (from patients, to allergies);
