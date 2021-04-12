@@ -215,7 +215,7 @@ create query patient_vector(vertex<patients> targetPatient) for graph @graph ret
 	return @@patientVector;
 }
 
-create query cos_theta_tigergraph(vertex<patients> p1, vertex<patients> p2) for 
+CREATE DISTRIBUTED QUERY cos_theta_tigergraph(vertex<patients> p1, vertex<patients> p2) for 
     graph @graph returns (double) 
 {
 	double result;
@@ -254,7 +254,7 @@ create query cos_theta_tigergraph(vertex<patients> p1, vertex<patients> p2) for
 }
 
 
-CREATE QUERY cosinesim_cache_to_vertices() FOR GRAPH @graph {
+CREATE DISTRIBUTED QUERY cosinesim_cache_to_vertices() FOR GRAPH @graph {
 # Patient Population
     population = {patients.*};
     UPDATE p FROM population:p
@@ -262,7 +262,7 @@ CREATE QUERY cosinesim_cache_to_vertices() FOR GRAPH @graph {
 }
 
 
-CREATE QUERY cosinesim_match_sw(vertex<patients> source, uint topKID) 
+CREATE DISTRIBUTED QUERY cosinesim_match_sw(vertex<patients> source, uint topKID) 
 FOR GRAPH @graph RETURNS (ListAccum<testResults>) {
 
 # Heap with max size of topKID sorted decending by score then ascending last name
@@ -285,23 +285,23 @@ FOR GRAPH @graph RETURNS (ListAccum<testResults>) {
     RETURN @@topK;
 }
 
-CREATE QUERY cosinesim_set_num_devices(UINT num_devices) FOR GRAPH @graph {
+CREATE DISTRIBUTED QUERY cosinesim_set_num_devices(UINT num_devices) FOR GRAPH @graph {
     udf_xilinx_recom_set_num_devices(num_devices);
 }
 
-CREATE QUERY cosinesim_get_num_devices() FOR GRAPH @graph RETURNS (UINT) {
+CREATE DISTRIBUTED QUERY cosinesim_get_num_devices() FOR GRAPH @graph RETURNS (UINT) {
     UINT ret;
     ret = udf_xilinx_recom_get_num_devices();
     return ret;
 }
 
-CREATE QUERY cosinesim_is_fpga_initialized() FOR GRAPH @graph RETURNS (BOOL) {
+CREATE DISTRIBUTED QUERY cosinesim_is_fpga_initialized() FOR GRAPH @graph RETURNS (BOOL) {
     BOOL ret;
     ret = udf_xilinx_recom_is_initialized();
     RETURN ret;
 }
 
-create query load_graph_cosinesim_ss_fpga_core() for graph @graph returns (int) {
+CREATE DISTRIBUTED QUERY load_graph_cosinesim_ss_fpga_core() for graph @graph returns (int) {
     ListAccum<ListAccum<int> > @@patientsAll;
     int ret;
 
@@ -313,7 +313,7 @@ create query load_graph_cosinesim_ss_fpga_core() for graph @graph returns (int) 
     return ret;
 }
 
-create query cosinesim_ss_fpga_core (vertex<patients> source, uint topK) for 
+CREATE DISTRIBUTED QUERY cosinesim_ss_fpga_core (vertex<patients> source, uint topK) for 
     graph @graph returns (ListAccum<testResults>) 
 {
     ListAccum<testResults> @@topK_result_fpga;
@@ -328,7 +328,7 @@ create query cosinesim_ss_fpga_core (vertex<patients> source, uint topK) for
 }
 
 
-install query patient_age, patient_race, patient_gender, patient_ethnicity, 
+INSTALL QUERY patient_age, patient_race, patient_gender, patient_ethnicity, 
     patient_vector, cosinesim_cache_to_vertices, cos_theta_tigergraph, 
     cosinesim_match_sw, cosinesim_set_num_devices,
     cosinesim_get_num_devices, cosinesim_is_fpga_initialized,

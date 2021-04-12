@@ -99,6 +99,7 @@ plugin_src_dir=$SCRIPTPATH/../udf
 if [ $uninstall -eq 1 ]; then
     echo "Uninstalling Synthea demo UDFs as user tigergraph..."
     su --login tigergraph -c "$SCRIPTPATH/install_udf_tg.sh -u $verbose_flag"
+    # tg: we get ips for all hosts in the cluster in .tg.cfg
     exit 0
 fi
 
@@ -131,4 +132,4 @@ fi
 #
 
 echo "Installing Synthea demo UDFs as user tigergraph..."
-su --login tigergraph -c "$SCRIPTPATH/install_udf_tg.sh $verbose_flag"
+$SCRIPTPATH/install_udf_tg.sh $verbose_flag
