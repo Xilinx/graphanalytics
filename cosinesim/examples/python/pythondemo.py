@@ -44,4 +44,4 @@ if __name__ == '__main__':
     print("Similarity   Vector #")
     print("----------   --------")
     for item in result:
-        print(f"{item.similarity:.6f}       {item.index}")
+        print('{:.6f}'.format(item.similarity) + "       " + str(item.index))

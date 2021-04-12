@@ -185,17 +185,19 @@ endif
 # python API wrapper
 #
 
-PYTHON = python3
-PYTHONENV = ./pyvenv/bin/python3
-PYTHON_DIR = wrappers/python
+PYTHON = python3.6
+PYTHON_DIR = /usr/include/$(PYTHON)
+PYTHONENV = ./pyvenv/bin/$(PYTHON)
+PYTHON_API_DIR = wrappers/python
+PYTHON_LIB_NAME := xilCosineSim.so #$(shell python-config --extension-suffix)
 
 SRC_FILE_NAMES_python = pythonapi.cpp
 
 INCLUDES_python = \
-    -I/usr/include/python3.6 \
+    -I$(PYTHON_DIR) \
     -Iinclude
 
-SRCS_python = $(addprefix $(PYTHON_DIR)/,$(SRC_FILE_NAMES_python))
+SRCS_python = $(addprefix $(PYTHON_API_DIR)/,$(SRC_FILE_NAMES_python))
 OBJS_python = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_python:.cpp=.o)))
 
 LIB_PATH = $(CPP_BUILD_DIR)
@@ -205,7 +207,6 @@ LDFLAGS_python = -L$(LIB_PATH) -l$(LIB_SHORT_NAME)
 # Add pybind11 includes and set library name after setting virtual env
 ifeq ($(MAKECMDGOALS),pythonApi2)
 INCLUDES_python += $(shell $(PYTHONENV) -m pybind11 --includes)
-PYTHON_LIB_NAME := xilCosineSim.so #$(shell python-config --extension-suffix)
 endif
 
 SHAREDLIB_FLAGS_python = -shared
@@ -389,8 +390,11 @@ $(foreach f,$(STAGE_COPY_FILES),$(eval $(call STAGE_COPY_RULE,$(f))))
 
 STAGE_LIB_FILES = \
     $(LIB_NAME) \
-    $(LOADER_NAME) \
-    $(PYTHON_LIB_NAME)
+    $(LOADER_NAME)
+
+ifneq ($(wildcard $(CPP_BUILD_DIR)/$(PYTHON_LIB_NAME)),)
+    STAGE_LIB_FILES += $(PYTHON_LIB_NAME)
+endif
 
 define STAGE_LIB_RULE
 $$(STAGE_DIR)/lib/$(1): $$(CPP_BUILD_DIR)/$(1)
