@@ -230,7 +230,8 @@ if __name__ == '__main__':
     if not args.noInitGraph:
         print('\nINFO: SW caching...')
         tStart = time.perf_counter()
-        resultSwCache = conn.runInstalledQuery('client_cosinesim_load_cache', timeout=240000000)
+        resultSwCache = conn.runInstalledQuery('client_cosinesim_embed_vectors', timeout=240000000)
+        resultSwCache = conn.runInstalledQuery('client_cosinesim_embed_normals', timeout=240000000)
         print(f'INFO: SW caching completed in {time.perf_counter() - tStart:.4f} sec')
 
 

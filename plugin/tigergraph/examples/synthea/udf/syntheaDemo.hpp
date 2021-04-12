@@ -22,7 +22,7 @@
 
 // mergeHeaders 1 section include start syntheaDemo DO NOT REMOVE!
 #include "codevector.hpp"
-#include <algorithm>
+#include <cmath>
 // mergeHeaders 1 section include end syntheaDemo DO NOT REMOVE!
 
 //#####################################################################################################################
@@ -33,36 +33,6 @@ namespace UDIMPL {
 
 inline bool concat_uint64_to_str(string& ret_val, uint64_t val) {
     (ret_val += " ") += std::to_string(val);
-    return true;
-}
-
-inline int64_t float_to_int_xilinx(float val) {
-    return (int64_t)val;
-}
-
-inline int64_t udf_reinterpret_double_as_int64(double val) {
-    int64_t double_to_int64 = *(reinterpret_cast<int64_t*>(&val));
-    return double_to_int64;
-}
-
-inline double udf_reinterpret_int64_as_double(int64_t val) {
-    double int64_to_double = *(reinterpret_cast<double*>(&val));
-    return int64_to_double;
-}
-
-inline int64_t udf_lsb32bits(uint64_t val) {
-    return val & 0x00000000FFFFFFFF;
-}
-
-inline int64_t udf_msb32bits(uint64_t val) {
-    return (val >> 32) & 0x00000000FFFFFFFF;
-}
-
-inline VERTEX udf_getvertex(uint64_t vid) {
-    return VERTEX(vid);
-}
-
-inline bool udf_setcode(int property, uint64_t startCode, uint64_t endCode, int64_t size) {
     return true;
 }
 
@@ -78,20 +48,22 @@ inline double udf_elapsed_time(bool dummy) {
     return l_timeMs;
 }
 
-inline double udf_cos_theta(ListAccum<int64_t> vec_A, ListAccum<int64_t> vec_B) {
-    double res;
-    int size = vec_A.size();
-    int64_t norm_A = vec_A.get(0);
-    double norm_d_A = *(reinterpret_cast<double*>(&norm_A));
-    int64_t norm_B = vec_B.get(0);
-    double norm_d_B = *(reinterpret_cast<double*>(&norm_B));
-    double prod = 0;
-    int i = syntheaDemo::startPropertyIndex;
-    while (i < size) {
-        prod = prod + vec_A.get(i) * vec_B.get(i);
-        ++i;
+inline double udf_calculate_normal(ListAccum<int64_t> vec) {
+    double norm = 0.0;
+    for (unsigned i =0, end = vec.size(); i < end; ++i) {
+        double elt = vec.get(i);
+        norm += elt * elt;
     }
-    res = prod / (norm_d_A * norm_d_B);
+    norm = std::sqrt(norm);
+//    std::cout << "udf_calculate_normal: size=" << vec.size() << ", norm=" << norm << std::endl;
+    return norm;
+}
+
+inline double udf_cos_theta(ListAccum<int64_t> vec_A, double norm_d_A, ListAccum<int64_t> vec_B, double norm_d_B) {
+    double prod = 0.0;
+    for (unsigned i = 0, end = vec_A.size(); i < end; ++i)
+        prod = prod + vec_A.get(i) * vec_B.get(i);
+    double res = prod / (norm_d_A * norm_d_B);
     //std::cout << "val = " << res << std::endl;
     return res;
 }

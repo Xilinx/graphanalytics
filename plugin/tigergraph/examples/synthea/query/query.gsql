@@ -41,7 +41,7 @@ create query cosinesim_ss_tg(string log_file) for graph @graph {
     double score;
     DOUBLE run_time;
     vertex<patients> newPatient;
-    ListAccum<testResults> @@result;
+    ListAccum<XilCosinesimMatch> @@result;
     FILE file1 (log_file);
     topK = 100;
 # Patient Population
@@ -103,7 +103,7 @@ create query load_graph_cosinesim_ss_fpga() for graph @graph {
 create query cosinesim_ss_fpga(string log_file1) for graph @graph {
     uint topK;
     vertex<patients> newPatient;
-    ListAccum<testResults> @@result;
+    ListAccum<XilCosinesimMatch> @@result;
     double score;
     DOUBLE run_time;
     FILE file1 (log_file1);
