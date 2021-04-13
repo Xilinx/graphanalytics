@@ -1,21 +1,40 @@
 
 USE GRAPH @graph
-DROP QUERY client_cosinesim_load_cache, client_cosinesim_match_sw, client_cosinesim_set_num_devices,
+DROP QUERY client_cosinesim_embed_vectors, client_cosinesim_embed_normals, client_cosinesim_match_sw,
+    client_cosinesim_set_num_devices,
     client_cosinesim_get_alveo_status, client_cosinesim_load_alveo, client_cosinesim_match_alveo
 
 
-CREATE QUERY client_cosinesim_load_cache() FOR GRAPH @graph {
+CREATE QUERY client_cosinesim_embed_vectors() FOR GRAPH @graph {
     DOUBLE run_time;
     udf_reset_timer(true);
-    cosinesim_cache_to_vertices();
+    cosinesim_embed_vectors();
     run_time = udf_elapsed_time(true);
     PRINT run_time AS ExecTimeInMs;
 }
 
 
+CREATE QUERY client_cosinesim_embed_normals() FOR GRAPH @graph {
+    DOUBLE run_time;
+    udf_reset_timer(true);
+    cosinesim_embed_normals();
+    run_time = udf_elapsed_time(true);
+    PRINT run_time AS ExecTimeInMs;
+}
+
+
+#CREATE QUERY client_cosinesim_load_cache() FOR GRAPH @graph {
+#    DOUBLE run_time;
+#    udf_reset_timer(true);
+#    cosinesim_cache_to_vertices();
+#    run_time = udf_elapsed_time(true);
+#    PRINT run_time AS ExecTimeInMs;
+#}
+
+
 CREATE QUERY client_cosinesim_match_sw(VERTEX<patients> newPatient, UINT topK) FOR GRAPH @graph {
     DOUBLE run_time;
-    ListAccum<testResults> @@result;
+    ListAccum<XilCosinesimMatch> @@result;
     udf_reset_timer(true);
     @@result = cosinesim_match_sw(newPatient, topK);
     run_time = udf_elapsed_time(true);
@@ -51,6 +70,8 @@ CREATE QUERY client_cosinesim_load_alveo() FOR GRAPH @graph
     run_time = udf_elapsed_time(true);
     IF ret == 0 THEN
         status = "Graph data loaded successfully";
+    ELSE IF ret == -2 THEN
+        RAISE cosinesimLoadFailed("ERROR: Cosine Similarity load operation failed.  Number of vectors does not match number of IDs.");
     ELSE
         RAISE cosinesimLoadFailed("ERROR: Cosine Similarity load operation failed.  Please see the GPE log for details.");
     END;
@@ -60,7 +81,7 @@ CREATE QUERY client_cosinesim_load_alveo() FOR GRAPH @graph
 
 CREATE QUERY client_cosinesim_match_alveo(VERTEX<patients> newPatient, UINT topK) FOR GRAPH @graph {
     DOUBLE run_time;
-    ListAccum<testResults> @@result;
+    ListAccum<XilCosinesimMatch> @@result;
     EXCEPTION cosinesimMatchFailed(40002);
 
     udf_reset_timer(true);
@@ -76,5 +97,6 @@ CREATE QUERY client_cosinesim_match_alveo(VERTEX<patients> newPatient, UINT topK
 }
 
 
-INSTALL QUERY client_cosinesim_load_cache, client_cosinesim_match_sw, client_cosinesim_set_num_devices,
+INSTALL QUERY client_cosinesim_embed_vectors, client_cosinesim_embed_normals, client_cosinesim_match_sw,
+              client_cosinesim_set_num_devices,
               client_cosinesim_get_alveo_status, client_cosinesim_load_alveo, client_cosinesim_match_alveo

@@ -202,8 +202,8 @@ if [ ! -f $tg_udf_dir/ExprFunctions.hpp ] || [ $(grep -c mergeHeaders $tg_udf_di
 fi
 
 
-source $xrtPath/setup.sh
-source $xrmPath/setup.sh
+#source $xrtPath/setup.sh
+#source $xrmPath/setup.sh
 
 # Install plugin to ExprFunctions.hpp file
 

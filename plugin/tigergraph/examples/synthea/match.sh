@@ -44,8 +44,12 @@ fi
 
 if [ "$load_cache" -eq 1 ]
 then
+    echo "Clearing embeddings..."
+    time gsql -g $xgraph "set query_timeout=240000000 run query cosinesim_clear_embeddings()"
     echo "Caching cosine similarity vectors to patient vertices..."
-    time gsql -g $xgraph "SET QUERY_TIMEOUT=240000000 RUN QUERY cosinesim_cache_to_vertices()"
+#    time gsql -g $xgraph "set query_timeout=240000000 run query cosinesim_cache_to_vertices()"
+    time gsql -g $xgraph "set query_timeout=240000000 run query cosinesim_embed_vectors()"
+    time gsql -g $xgraph "set query_timeout=240000000 run query cosinesim_embed_normals()"
 fi
 
 if [ "$load_fpga" -eq 1 ]; then

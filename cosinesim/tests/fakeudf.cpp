@@ -30,12 +30,12 @@ public:
     }
 };
 
-struct testResults {
-    VERTEX index_ = 0;
+struct XilCosinesimMatch {
+    int64_t index_ = 0;
     float similarity_ = 0.0;
     
-    testResults() = default;
-    testResults(VERTEX index, float similarity) : index_(index), similarity_(similarity) {}
+    XilCosinesimMatch() = default;
+    XilCosinesimMatch(VERTEX index, float similarity) : index_(index), similarity_(similarity) {}
 };
 
 const int XF_GRAPH_UDF_GRAPH_PARTITION_ERROR = -1;
@@ -259,7 +259,7 @@ inline int udf_load_graph_cosinesim_ss_fpga(int64_t numVertices,
 {
     xai::Lock lock(xai::getMutex());
     xai::IDMap.clear();
-    ListAccum<testResults> result;
+    ListAccum<XilCosinesimMatch> result;
     int32_t numEdges = vecLength - 3;
 
     // kernel has 3 PUs, the input data should be splitted into 4 parts
@@ -359,12 +359,12 @@ inline int udf_load_graph_cosinesim_ss_fpga(int64_t numVertices,
 
 
 
-inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
+inline ListAccum<XilCosinesimMatch> udf_cosinesim_ss_fpga(int64_t topK,
     int64_t numVertices, int64_t vecLength, ListAccum<int64_t>& newVector,
     int devicesNeeded)
 {
     xai::Lock lock(xai::getMutex());
-    ListAccum<testResults> result;
+    ListAccum<XilCosinesimMatch> result;
     int32_t numEdges = vecLength - 3;
     const int splitNm = 3;    // kernel has 4 PUs, the input data should be splitted into 4 parts
     const int channelsPU = 4; // each PU has 4 HBM channels
@@ -386,7 +386,7 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
             << ", rest=" << rest 
             << ", split=" << devicesNeeded * cuNm * splitNm << std::endl;
     if (rest < 0) {
-        //result += testResults(VERTEX(-7), -7)
+        //result += XilCosinesimMatch(VERTEX(-7), -7)
         return result;
     }
 
@@ -493,7 +493,7 @@ inline ListAccum<testResults> udf_cosinesim_ss_fpga(int64_t topK,
     //-------------------------------------------------------------------------
 
     for (unsigned int k = 0; k < topK; k++) {
-        result += testResults(VERTEX(xai::IDMap[resultID[k]]), similarity[k]);
+        result += XilCosinesimMatch(VERTEX(xai::IDMap[resultID[k]]), similarity[k]);
     }
     //---------------------------------------------------------------------------
     std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time2 =
@@ -560,8 +560,8 @@ int main(int argc, char **argv) {
     // Run the match in the FPGA
     
     std::cout << "Running match for test vector #" << testVectorIndex << "..." << std::endl;
-//    ListAccum<testResults> results = udf_cosinesim_ss_fpga(10, NumVectors, VectorLength, testVector, 1);
-    ListAccum<testResults> results = udf_cosinesim_ss_fpga(10, NumVectors, VectorLength + 3, population.get(testVectorIndex), 1);
+//    ListAccum<XilCosinesimMatch> results = udf_cosinesim_ss_fpga(10, NumVectors, VectorLength, testVector, 1);
+    ListAccum<XilCosinesimMatch> results = udf_cosinesim_ss_fpga(10, NumVectors, VectorLength + 3, population.get(testVectorIndex), 1);
     
     // Display the results
     
@@ -569,7 +569,7 @@ int main(int argc, char **argv) {
     std::cout << "Similarity   Vector #" << std::endl;
     std::cout << "----------   --------" << std::endl;
     for (auto &result : results)
-        std::cout << result.similarity_ << "       " << result.index_ << std::endl;
+        std::cout << result.similarity_ << "       " << VERTEX(result.index_) << std::endl;
     
     return 0;
 }
