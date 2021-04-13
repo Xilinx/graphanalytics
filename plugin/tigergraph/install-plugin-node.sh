@@ -172,15 +172,19 @@ fi
 
 
 if [ $verbose -eq 1 ]; then
-    echo "INFO: Checking Xilinx library installation"
+    echo "INFO: Checking Xilinx Cosine Similarity Alveo product installation..."
 fi
-if [ ! -f "$tg_udf_dir/xclbin/denseSimilarityKernel.xclbin" ]; then
-    printf "${RED}ERROR: Xilinx library and XCLBIN files not found.\n"
-    printf "${YELLOW}INFO: Please download Xilinx library installation package "
+if [ -f "$tg_udf_dir/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin" ]; then
+    echo "INFO: Found Xilinx XCLBIN files installed in $tg_udf_dir/xclbin/"
+elif [ -f "/opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin" ]; then
+    echo "INFO: Found Xilinx XCLBIN files installed in /opt/xilinx/apps/graphanalytics/cosinesim/"
+else
+    printf "${RED}ERROR: Xilinx Cosine Similarity Alveo product not found.\n"
+    printf "${YELLOW}INFO: Please download Xilinx Cosine Similarity Alveo product installation package "
     printf "from Xilinx Database PoC site: https://www.xilinx.com/member/dba_poc.html${NC}\n"
     exit 1
 fi
-echo "INFO: Found Xilinx XCLBIN files installed in $tg_udf_dir/xclbin/"
+
 
 # save a copy of the original UDF Files
 
@@ -198,8 +202,8 @@ if [ ! -f $tg_udf_dir/ExprFunctions.hpp ] || [ $(grep -c mergeHeaders $tg_udf_di
 fi
 
 
-source $xrtPath/setup.sh
-source $xrmPath/setup.sh
+#source $xrtPath/setup.sh
+#source $xrmPath/setup.sh
 
 # Install plugin to ExprFunctions.hpp file
 

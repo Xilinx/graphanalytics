@@ -16,6 +16,7 @@
 #
 
 set -e
+set -x 
 
 SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`
@@ -62,15 +63,14 @@ tg_temp_include_dir=$tg_temp_root/gsql/codegen/udf
 #
 # If uninstalling, clean up installed files and uninstall the demo UDFs
 #
-
 if [ $uninstall -eq 1 ]; then
     echo "INFO: Uninstalling Synthea demo UDFs"
     if [ -f $tg_udf_dir/ExprFunctions.hpp ] \
             && [ $(grep -c 'mergeHeaders.*syntheaDemo' $tg_udf_dir/ExprFunctions.hpp) -gt 0 ]
     then
         if [ -x $tg_udf_dir/mergeHeaders.py ]; then
-            mv $tg_udf_dir/ExprFunctions.hpp $tg_udf_dir/ExprFunctions.hpp.prev
-            python3 $tg_udf_dir/mergeHeaders.py -u $tg_udf_dir/ExprFunctions.hpp.prev syntheaDemo \
+            grun all mv $tg_udf_dir/ExprFunctions.hpp $tg_udf_dir/ExprFunctions.hpp.prev
+            grun all python3 $tg_udf_dir/mergeHeaders.py -u $tg_udf_dir/ExprFunctions.hpp.prev syntheaDemo \
                  > $tg_udf_dir/ExprFunctions.hpp
         else
             echo "ERROR: mergeHeaders.py is missing from $tg_udf_dir.  Can't uninstall UDFs."
@@ -91,20 +91,20 @@ fi
 #
 
 echo "INFO: Installing Synthea demo UDFs"
-mv $tg_udf_dir/ExprFunctions.hpp $tg_udf_dir/ExprFunctions.hpp.prev
-python3 $tg_udf_dir/mergeHeaders.py $tg_udf_dir/ExprFunctions.hpp.prev $plugin_src_dir/syntheaDemo.hpp \
-     > $tg_udf_dir/ExprFunctions.hpp
+grun all "mv $tg_udf_dir/ExprFunctions.hpp $tg_udf_dir/ExprFunctions.hpp.prev"
+grun all "python3 $tg_udf_dir/mergeHeaders.py $tg_udf_dir/ExprFunctions.hpp.prev $plugin_src_dir/syntheaDemo.hpp \
+     > $tg_udf_dir/ExprFunctions.hpp"
 
 #
 # Install other Synthea demo headers to TigerGraph installation
 #
 
 echo "INFO: Installing Synthea demo auxiliary files"
-cp -f $plugin_src_dir/codevector.hpp $tg_udf_dir
-cp -f $plugin_src_dir/syntheaDemo.hpp $tg_udf_dir
+grun all "cp -f $plugin_src_dir/codevector.hpp $tg_udf_dir"
+grun all "cp -f $plugin_src_dir/syntheaDemo.hpp $tg_udf_dir"
 
-mkdir -p $tg_temp_include_dir
-cp -f $tg_udf_dir/codevector.hpp $tg_temp_include_dir
+grun all "mkdir -p $tg_temp_include_dir"
+grun all "cp -f $tg_udf_dir/codevector.hpp $tg_temp_include_dir"
 
 #
 # Restart GPE to make sure changes go through

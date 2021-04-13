@@ -30,10 +30,14 @@
 # limitations under the License.
 #
 
-script_dir=$(dirname "$0")
+SCRIPT=$(readlink -f $0)
+SCRIPTPATH=`dirname $SCRIPT`
+
 # common.sh sets up gsql client and gets username and passowrd
-. $script_dir/bin/common.sh
-$script_dir/bin/install_udf.sh
-time gsql "$(cat $script_dir/query/base.gsql | sed "s/@graph/$xgraph/")"
-time gsql "$(cat $script_dir/query/client.gsql | sed "s/@graph/$xgraph/")"
-time gsql "$(cat $script_dir/query/query.gsql | sed "s/@graph/$xgraph/")"
+. $SCRIPTPATH/bin/common.sh
+# if -i option is set in common.sh, ssh_key_flag is set to -i $ssh_key, 
+# otherwise it's an empty string
+ssh $ssh_key_flag tigergraph@$hostname $SCRIPTPATH/bin/install_udf.sh $verbose_flag $force_clean_flag
+gsql "$(cat $SCRIPTPATH/query/base.gsql | sed "s/@graph/$xgraph/")"
+gsql "$(cat $SCRIPTPATH/query/client.gsql | sed "s/@graph/$xgraph/")"
+gsql "$(cat $SCRIPTPATH/query/query.gsql | sed "s/@graph/$xgraph/")"

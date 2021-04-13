@@ -253,17 +253,17 @@ FOR GRAPH @graph RETURNS (ListAccum<XilCosinesimMatch>) {
     RETURN @@topK;
 }
 
-CREATE QUERY cosinesim_set_num_devices(UINT num_devices) FOR GRAPH @graph {
+CREATE DISTRIBUTED QUERY cosinesim_set_num_devices(UINT num_devices) FOR GRAPH @graph {
     udf_xilinx_recom_set_num_devices(num_devices);
 }
 
-CREATE QUERY cosinesim_get_num_devices() FOR GRAPH @graph RETURNS (UINT) {
+CREATE DISTRIBUTED QUERY cosinesim_get_num_devices() FOR GRAPH @graph RETURNS (UINT) {
     UINT ret;
     ret = udf_xilinx_recom_get_num_devices();
     return ret;
 }
 
-CREATE QUERY cosinesim_is_fpga_initialized() FOR GRAPH @graph RETURNS (BOOL) {
+CREATE DISTRIBUTED QUERY cosinesim_is_fpga_initialized() FOR GRAPH @graph RETURNS (BOOL) {
     BOOL ret;
     ret = udf_xilinx_recom_is_initialized();
     RETURN ret;
