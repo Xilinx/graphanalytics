@@ -22,4 +22,4 @@ case $opt in
 esac
 done
 
-ssh $ssh_key_flag tigergraph@$hostname grun all /proj/gdba/ywu/ghe/graphanalytics/plugin/tigergraph/install-plugin.sh
+ssh $ssh_key_flag tigergraph@$hostname grun all /proj/gdba/ywu/ghe/graphanalytics/plugin/tigergraph/install-plugin-node.sh
