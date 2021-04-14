@@ -16,7 +16,6 @@
 #
 
 set -e
-set -x 
 
 SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`
@@ -25,16 +24,50 @@ SCRIPTPATH=`dirname $SCRIPT`
 # Process command line options
 #
 
+force_clean=0
 uninstall=0
 verbose=0
 while getopts "uv" opt
 do
 case $opt in
+    f) force_clean=1;;
     u) uninstall=1;;
     v) verbose=1;;
     ?) echo "ERROR: Unknown option: -$OPTARG"; exit 1;;
 esac
 done
+
+#
+# Check for prerequisite software and determine where TigerGraph is installed
+#
+
+if [ $verbose -eq 1 ]; then
+    echo "INFO: Checking TigerGraph installation version and directory"
+fi
+
+if ! [ -x "$(command -v jq)" ]; then
+    echo "ERROR: The program jq is required. Please follow the instructions below to install it:"
+    echo "       RedHat/CentOS: sudo yum install jq"
+    echo "       Ubuntu: sudo apt-get install jq"
+    exit 1
+fi
+
+if ! [ -x "$(command -v python3)" ]; then
+    echo "ERROR: Cannot find python3 in path."
+    exit 1
+fi
+
+TGHOME=~tigergraph
+
+if [ ! -f "$TGHOME/.tg.cfg" ]; then
+    echo "ERROR: This script only supports TigerGraph version 3.x"
+    exit 1
+fi
+
+if [ ! -r "$TGHOME/.tg.cfg" ]; then
+    echo "ERROR: TigerGraph configuration file $HOME/.tg.cfg is not readable"
+    exit 1
+fi
 
 if ! [ -x "$(command -v gadmin)" ]; then
     # Try picking up gadmin from .bashrc
@@ -50,6 +83,10 @@ fi
 
 tg_root_dir=$(cat $HOME/.tg.cfg | jq .System.AppRoot | tr -d \")
 tg_temp_root=$(cat $HOME/.tg.cfg | jq .System.TempRoot | tr -d \")
+if [ $verbose -eq 1 ]; then
+    echo "INFO: Found TigerGraph installation in $tg_root_dir"
+    echo "INFO: TigerGraph TEMP root is $tg_temp_root"
+fi
 
 # Install dir for TigerGraph plugins
 tg_udf_dir=$tg_root_dir/dev/gdk/gsql/src/QueryUdf
@@ -63,14 +100,15 @@ tg_temp_include_dir=$tg_temp_root/gsql/codegen/udf
 #
 # If uninstalling, clean up installed files and uninstall the demo UDFs
 #
+
 if [ $uninstall -eq 1 ]; then
-    echo "INFO: Uninstalling Synthea demo UDFs"
+    echo "INFO: Uninstalling Synthea demo UDFs from node $HOSTNAME"
     if [ -f $tg_udf_dir/ExprFunctions.hpp ] \
             && [ $(grep -c 'mergeHeaders.*syntheaDemo' $tg_udf_dir/ExprFunctions.hpp) -gt 0 ]
     then
         if [ -x $tg_udf_dir/mergeHeaders.py ]; then
-            grun all mv $tg_udf_dir/ExprFunctions.hpp $tg_udf_dir/ExprFunctions.hpp.prev
-            grun all python3 $tg_udf_dir/mergeHeaders.py -u $tg_udf_dir/ExprFunctions.hpp.prev syntheaDemo \
+            mv $tg_udf_dir/ExprFunctions.hpp $tg_udf_dir/ExprFunctions.hpp.prev
+            python3 $tg_udf_dir/mergeHeaders.py -u $tg_udf_dir/ExprFunctions.hpp.prev syntheaDemo \
                  > $tg_udf_dir/ExprFunctions.hpp
         else
             echo "ERROR: mergeHeaders.py is missing from $tg_udf_dir.  Can't uninstall UDFs."
@@ -81,34 +119,57 @@ if [ $uninstall -eq 1 ]; then
     rm -f $tg_udf_dir/codevector.hpp
     rm -f $tg_udf_dir/syntheaDemo.hpp
     rm -f $tg_temp_include_dir/codevector.hpp
-    echo "INFO: Restarting GPE service"
-    gadmin restart gpe -y
     exit 0
+fi
+
+#
+# Installation
+#
+
+#
+# Check that the Recommendation Engine is installed first, as the Synthea demo depends on it
+#
+
+if [ ! -f $tg_udf_dir/ExprFunctions.hpp ] \
+        || [ $(grep -c 'mergeHeaders.*xilinxRecomEngine' $tg_udf_dir/ExprFunctions.hpp) -eq 0 ] \
+        || [ ! -x $tg_udf_dir/mergeHeaders.py ]
+then
+    echo "ERROR: Xilinx Recommendation Engine appears not to be installed.  Please install that package first."
+    exit 1
+fi
+
+#
+# Check whether the Synthea demo UDF sources are newer than their installed counterparts.
+# If not, don't bother reinstalling
+#
+
+if [ $force_clean -eq 0 ]; then
+    if [ $verbose -eq 1 ]; then
+        echo "INFO: Forcing installation"
+    fi
+    if [ ! $plugin_src_dir/syntheaDemo.hpp -nt $tg_udf_dir/syntheaDemo.hpp ] \
+        && [ ! $plugin_src_dir/codevector.hpp -nt $tg_udf_dir/codevector.hpp ]; then
+        echo "INFO: Synthea demo UDFs are up to date.  Skipping installation."
+        exit 0
+    fi
 fi
 
 #
 # Install Synthea demo UDFs to ExprFunctions.hpp
 #
 
-echo "INFO: Installing Synthea demo UDFs"
-grun all "mv $tg_udf_dir/ExprFunctions.hpp $tg_udf_dir/ExprFunctions.hpp.prev"
-grun all "python3 $tg_udf_dir/mergeHeaders.py $tg_udf_dir/ExprFunctions.hpp.prev $plugin_src_dir/syntheaDemo.hpp \
-     > $tg_udf_dir/ExprFunctions.hpp"
+echo "INFO: Installing Synthea demo UDFs to node $HOSTNAME"
+mv $tg_udf_dir/ExprFunctions.hpp $tg_udf_dir/ExprFunctions.hpp.prev
+python3 $tg_udf_dir/mergeHeaders.py $tg_udf_dir/ExprFunctions.hpp.prev $plugin_src_dir/syntheaDemo.hpp \
+     > $tg_udf_dir/ExprFunctions.hpp
 
 #
 # Install other Synthea demo headers to TigerGraph installation
 #
 
 echo "INFO: Installing Synthea demo auxiliary files"
-grun all "cp -f $plugin_src_dir/codevector.hpp $tg_udf_dir"
-grun all "cp -f $plugin_src_dir/syntheaDemo.hpp $tg_udf_dir"
+cp -f $plugin_src_dir/codevector.hpp $tg_udf_dir
+cp -f $plugin_src_dir/syntheaDemo.hpp $tg_udf_dir
 
-grun all "mkdir -p $tg_temp_include_dir"
-grun all "cp -f $tg_udf_dir/codevector.hpp $tg_temp_include_dir"
-
-#
-# Restart GPE to make sure changes go through
-#
-
-echo "INFO: Restarting GPE service"
-gadmin restart gpe -y
+mkdir -p $tg_temp_include_dir
+cp -f $tg_udf_dir/codevector.hpp $tg_temp_include_dir
