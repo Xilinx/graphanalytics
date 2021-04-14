@@ -76,7 +76,9 @@ endif()
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${PROJ_VERSION_RELEASE}_${CPACK_REL_VER}-${CPACK_ARCH}")
 
 message("-- ${CMAKE_BUILD_TYPE} ${PACKAGE_KIND} package")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "xrt (>= 2.8.0),xrm (>= 1.2.0),python3 (>= 3.5.0)")
 
+set(CPACK_RPM_PACKAGE_DEPENDS "xrt (>= 2.8.0), xrm (>= 1.2.0),python3 (>= 3.5)")
 set(CPACK_PACKAGE_NAME "xilinx-cosinesim")
 #set(CPACK_PACKAGE_VERSION "1.0.0_18.04-x86_64")
 set(CPACK_PACKAGE_CONTACT "Xilinx Cosinesim Development Team")
