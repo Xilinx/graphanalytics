@@ -42,6 +42,8 @@ inline int udf_load_cu_cosinesim_ss_fpga(int devicesNeeded)
 
 
 inline int udf_xilinx_recom_set_num_devices(std::uint64_t numDevices) {
+    std::cout << __FUNCTION__ << " numDevices=" << numDevices << std::endl;
+    
     xilRecom::Lock lock(xilRecom::getMutex());
     xilRecom::Context *pContext = xilRecom::Context::getInstance();
     pContext->setNumDevices(unsigned(numDevices));
@@ -58,6 +60,12 @@ inline bool udf_xilinx_recom_is_initialized() {
     xilRecom::Lock lock(xilRecom::getMutex());
     xilRecom::Context *pContext = xilRecom::Context::getInstance();
     return pContext->isInitialized();
+}
+
+inline bool udf_xilinx_recom_start_population() {
+
+    std::cout << __FUNCTION__ << std::endl;
+    return true;
 }
 
 inline int udf_xilinx_recom_load_population_vectors(int64_t numVertices, ListAccum<ListAccum<int64_t> >& popVectors,
