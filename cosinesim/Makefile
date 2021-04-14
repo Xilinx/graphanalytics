@@ -203,7 +203,8 @@ endif
 
 PYTHON = python3.6
 PYTHON_DIR = /usr/include/$(PYTHON)
-PYTHONENV = ./pyvenv/bin/$(PYTHON)
+PYTHONENV_NAME = pyvenv
+PYTHONENV = ./$(PYTHONENV_NAME)/bin/$(PYTHON)
 PYTHON_API_DIR = wrappers/python
 PYTHON_LIB_NAME := xilCosineSim.so #$(shell python-config --extension-suffix)
 
@@ -230,11 +231,11 @@ SHAREDLIB_FLAGS_python = -shared
 .PHONY: pythonApi pythonApi2
 
 # Make in a child process so that we can isolate the run that includes automatic header dependencies
-pythonApi: cppBuild pyvenv
+pythonApi: cppBuild $(PYTHONENV_NAME)
 	@make pythonApi2
 
-pyvenv:
-	$(PYTHON) -m venv pyvenv;\
+$(PYTHONENV_NAME):
+	$(PYTHON) -m venv $(PYTHONENV_NAME);\
 	$(PYTHONENV) -m pip install pybind11
 #	$(PYTHONENV) -m pip install python-config
 
@@ -517,7 +518,7 @@ javaTest:
 .PHONY: clean clean-xclbin
 
 clean:
-	rm -rf Debug Release $(JAVA_LIB_DIR) $(JAVA_BUILD_DIR) $(STAGE_DIR) pyvenv
+	rm -rf Debug Release $(JAVA_LIB_DIR) $(JAVA_BUILD_DIR) $(STAGE_DIR)
 	@echo "Note: because the XCLBIN file takes so long to generate, it is not removed with this 'clean' target."
 	@echo "To clean the XCLBIN, use 'make clean-xclbin'"
 	
