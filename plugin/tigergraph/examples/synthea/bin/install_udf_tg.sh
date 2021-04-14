@@ -27,7 +27,7 @@ SCRIPTPATH=`dirname $SCRIPT`
 force_clean=0
 uninstall=0
 verbose=0
-while getopts "uv" opt
+while getopts "fuv" opt
 do
 case $opt in
     f) force_clean=1;;
@@ -143,10 +143,11 @@ fi
 # If not, don't bother reinstalling
 #
 
-if [ $force_clean -eq 0 ]; then
+if [ $force_clean -eq 1 ]; then
     if [ $verbose -eq 1 ]; then
         echo "INFO: Forcing installation"
     fi
+else
     if [ ! $plugin_src_dir/syntheaDemo.hpp -nt $tg_udf_dir/syntheaDemo.hpp ] \
         && [ ! $plugin_src_dir/codevector.hpp -nt $tg_udf_dir/codevector.hpp ]; then
         echo "INFO: Synthea demo UDFs are up to date.  Skipping installation."
