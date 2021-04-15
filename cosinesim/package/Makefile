@@ -14,7 +14,7 @@
 #
 PKGDIR := PKG_Release
 RM := rm -rf
-PROD_VERSION := 1.0
+PROD_VERSION := $(strip $(shell cat ../staging/VERSION))
 
 OSDIST = $(shell lsb_release -si)
 ifeq ($(OSDIST),Ubuntu)

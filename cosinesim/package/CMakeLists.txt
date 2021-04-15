@@ -28,7 +28,7 @@ install(FILES "${CS_FILE_PATH}/include/cosinesim.hpp" DESTINATION ${CMAKE_INSTAL
 
 install(FILES "${CS_FILE_PATH}/src/cosinesim_loader.cpp" DESTINATION ${CMAKE_INSTALL_PATH}/src)
 install(FILES "${CS_FILE_PATH}/examples.zip" DESTINATION ${CMAKE_INSTALL_PATH}/)
-
+install(FILES "${CS_FILE_PATH}/VERSION" DESTINATION ${CMAKE_INSTALL_PATH}/ )
 
 #version 
 
