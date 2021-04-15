@@ -28,52 +28,30 @@ NC='\033[0m' # No Color
 
 ###############################################################################
 
-function usage() {
-    echo "Usage: $0 [optional options]"
-    echo "Optional options:"
-    echo "  -a mem_alloc     : Change memory allocator default=jemalloc. " 
-    echo "  -d               : Install plugin in development mode and bypass resetting Tigergraph services."
-    echo "  -f               : Force cleaning plugin libraries"
-    echo "  -g               : Build plugin libraries with __DEBUG__"
-    echo "  -m xrm-lib-path  : Path to XRM libraries. default=/opt/xilinx/xrm"
-    echo "  -p               : Turn on XRT profiling and timetrace"
-    echo "  -r xrt-lib-path  : Path to XRT libraries. default=/opt/xilinx/xrt"
-    echo "  -u               : Uninstall Xilinx Recommendation Engine"
-    echo "  -v               : Verbose output"
-    echo "  -h               : Print this help message"
-}
-
 # script options processing
 xrtPath=/opt/xilinx/xrt
 xrmPath=/opt/xilinx/xrm
-
-cosineSimPath=$SCRIPTPATH/../../cosinesim/staging
-# TODO: add option to switch between local sandbox and official installation
-
 force_clean=0
-xrt_profiling=0
 dev_mode=0
 use_tcmalloc=0
-mem_alloc="jemalloc"
 uninstall=0
 verbose=0
 
-while getopts ":r:m:a:dfghpuv" opt
+while getopts ":r:m:dfghuv" opt
 do
 case $opt in
-    a) mem_alloc=$OPTARG;;
     d) dev_mode=1;;
     f) force_clean=1; echo "INFO: Option set: Force rebuidling plugin libraries";;
     g) debug_flag="DEBUG=1"; echo "INFO: debug_flag=$debug_flag";;
     m) xrmPath=$OPTARG;;
     r) xrtPath=$OPTARG;;
-    p) xrt_profiling=1;;
-    h) usage; exit 1;;
     u) uninstall=1;;
     v) verbose=1;;
-    ?) echo "ERROR: Unknown option: -$OPTARG"; usage; exit 1;;
+    ?) echo "ERROR: Unknown option: -$OPTARG"; exit 1;;
 esac
 done
+
+. $SCRIPTPATH/common.sh
 
 if [ $verbose -eq 1 ]; then
     echo "INFO: Script is running with the settings below:"
@@ -84,6 +62,7 @@ if [ $verbose -eq 1 ]; then
     echo "      force_clean=$force_clean"
     echo "      debug_flag=$debug_flag"
     echo "      xrt_profiling=$xrt_profiling"
+    echo "      uninstall=$uninstall"
 fi
 
 ###############################################################################
@@ -91,43 +70,12 @@ fi
 if [ $verbose -eq 1 ]; then
     echo "INFO: Checking TigerGraph installation version and directory"
 fi
-if ! [ -x "$(command -v jq)" ]; then
-    echo "ERROR: The program jq is required. Please follow the instructions below to install it:"
-    echo "       RedHat/CentOS: sudo yum install jq"
-    echo "       Ubuntu: sudo apt-get install jq"
-    exit 1
-fi
-
-if ! [ -x "$(command -v gadmin)" ]; then
-    echo "ERROR: Cannot find TigerGraph installation. Please run this install script as the user for the TigerGraph installation."
-    exit 1
-fi
-
-if ! [ -x "$(command -v python3)" ]; then
-    echo "ERROR: Cannot find python3 in path."
-    exit 1
-fi
-
-if [ ! -f "$HOME/.tg.cfg" ]; then
-    echo "ERROR: This script only supports TigerGraph version 3.x"
-    echo "INFO: Installed version:"
-    gadmin version | grep TigerGraph
-    exit 1
-fi
-tg_root_dir=$(cat $HOME/.tg.cfg | jq .System.AppRoot | tr -d \")
-tg_temp_root=$(cat $HOME/.tg.cfg | jq .System.TempRoot | tr -d \")
-echo "INFO: Found TigerGraph installation in $tg_root_dir"
-echo "INFO: TigerGraph TEMP root is $tg_temp_root"
-echo "INFO: Home is $HOME"
-
-# Install dir for TigerGraph plugins
-tg_udf_dir=$tg_root_dir/dev/gdk/gsql/src/QueryUdf
 
 # Temporary directory of include files to be included into main UDF header (ExprFunctions.hpp)
 tg_temp_include_dir=$tg_temp_root/gsql/codegen/udf
 
 # Source directory for TigerGraph plugin
-plugin_src_dir=$SCRIPTPATH/udf
+plugin_src_dir=$SCRIPTPATH/../udf
 
 ###############################################################################
 
@@ -158,6 +106,7 @@ if [ $uninstall -eq 1 ]; then
     rm -f $tg_udf_dir/cosinesim.hpp
     rm -f $tg_udf_dir/cosinesim_loader.cpp
     rm -f $tg_udf_dir/xilinxRecomEngineImpl.hpp
+    rm -rf $tg_udf_xclbin_dir
 
     rm -f $tg_temp_include_dir/ExprFunctions.hpp
     rm -f $tg_temp_include_dir/ExprUtil.hpp
@@ -165,26 +114,26 @@ if [ $uninstall -eq 1 ]; then
     rm -f $tg_temp_include_dir/cosinesim_loader.cpp
     rm -f $tg_temp_include_dir/xilinxRecomEngineImpl.hpp
     
-    echo "INFO: Restarting GPE service"
-    gadmin restart gpe -y
     exit 0
 fi
 
+###############################################################################
 
-if [ $verbose -eq 1 ]; then
-    echo "INFO: Checking Xilinx Cosine Similarity Alveo product installation..."
-fi
-if [ -f "$tg_udf_dir/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin" ]; then
-    echo "INFO: Found Xilinx XCLBIN files installed in $tg_udf_dir/xclbin/"
-elif [ -f "/opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin" ]; then
-    echo "INFO: Found Xilinx XCLBIN files installed in /opt/xilinx/apps/graphanalytics/cosinesim/"
-else
-    printf "${RED}ERROR: Xilinx Cosine Similarity Alveo product not found.\n"
-    printf "${YELLOW}INFO: Please download Xilinx Cosine Similarity Alveo product installation package "
-    printf "from Xilinx Database PoC site: https://www.xilinx.com/member/dba_poc.html${NC}\n"
-    exit 1
-fi
+#
+# Install the plugin files to the current TigerGraph node
+#
 
+
+# If the XCLBIN is from sandbox, copy it to TigerGraph
+
+if [ $cosinesimNeedsTgInstall -eq 1 ]; then
+    if [ $verbose -eq 1 ]; then
+        echo "INFO: Installing local CosineSim from $cosinesimPath into TigerGraph"
+    fi
+    mkdir -p $tg_udf_xclbin_dir
+    cp -f $xclbinPath $tg_udf_xclbin_dir
+    cp $cosineSimPath/lib/libXilinxCosineSim.so $tg_udf_dir
+fi
 
 # save a copy of the original UDF Files
 
@@ -208,9 +157,7 @@ fi
 # Install plugin to ExprFunctions.hpp file
 
 echo "INFO: Installing Xilinx Recommendation Engine UDFs"
-#if [ ! -f "$tg_udf_dir/mergeHeaders.py" ]; then
-    cp $plugin_src_dir/mergeHeaders.py $tg_udf_dir
-#fi
+cp $plugin_src_dir/mergeHeaders.py $tg_udf_dir
 mv $tg_udf_dir/ExprFunctions.hpp $tg_udf_dir/ExprFunctions.hpp.prev
 python3 $tg_udf_dir/mergeHeaders.py $tg_udf_dir/ExprFunctions.hpp.prev $plugin_src_dir/xilinxRecomEngine.hpp \
      > $tg_udf_dir/ExprFunctions.hpp
@@ -218,13 +165,12 @@ python3 $tg_udf_dir/mergeHeaders.py $tg_udf_dir/ExprFunctions.hpp.prev $plugin_s
 # Copy files to TigerGraph UDF area
 
 echo "INFO: Installing Xilinx Recommendation Engine auxiliary files"
-cp $cosineSimPath/lib/libXilinxCosineSim.so $tg_udf_dir
 cp $cosineSimPath/include/cosinesim.hpp $tg_udf_dir
 cp $cosineSimPath/src/cosinesim_loader.cpp $tg_udf_dir
 cp $plugin_src_dir/xilinxRecomEngineImpl.hpp $tg_udf_dir
 
 tg_xclbin_path=$tg_udf_dir/xclbin/denseSimilarityKernel.xclbin
-sed -i "s|TG_COSINESIM_XCLBIN|$tg_xclbin_path|" $tg_udf_dir/xilinxRecomEngineImpl.hpp
+sed -i "s|TG_COSINESIM_XCLBIN|$targetXclbinPath|" $tg_udf_dir/xilinxRecomEngineImpl.hpp
 
 # Copy include files used by UDFs to TG build directory for TigerGraph to build the UDF library
 
@@ -234,40 +180,4 @@ cp $tg_udf_dir/ExprUtil.hpp $tg_temp_include_dir
 cp $tg_udf_dir/cosinesim.hpp $tg_temp_include_dir
 cp $tg_udf_dir/cosinesim_loader.cpp $tg_temp_include_dir
 cp $tg_udf_dir/xilinxRecomEngineImpl.hpp $tg_temp_include_dir
-
-
-# Remove old objects
-# TODO: remove this after all Xilinx lab machines have been updated with this new install script
-#rm -f $tg_root_dir/dev/gdk/objs/gq_*.o
-#rm -f $tg_root_dir/bin/libudf/*.so
-#timestamp=$(date "+%Y%m%d-%H%M%S")
-
-
-if [ "$dev_mode" -eq 0 ]; then
-    echo "INFO: Apply environment changes to TigerGraph installation"
-    gadmin start all
-
-    ld_preload="$tg_udf_dir/libXilinxCosineSim.so"
-    if [ "$mem_alloc" == "tcmalloc" ]; then
-        ld_preload="$ld_preload:$tg_root_dir/dev/gdk/gsdk/include/thirdparty/prebuilt/dynamic_libs/gmalloc/tcmalloc/libtcmalloc.so"
-    fi
-
-    ld_lib_path="$HOME/libstd:$tg_udf_dir:/opt/xilinx/xrt/lib:/opt/xilinx/xrm/lib:/usr/lib/x86_64-linux-gnu/"
-
-    if [ "$xrt_profiling" -eq 1 ]; then
-        gpe_config="LD_PRELOAD=\$LD_PRELOAD:$ld_preload;LD_LIBRARY_PATH=$ld_lib_path:\$LD_LIBRARY_PATH;CPUPROFILE=/tmp/tg_cpu_profiler;CPUPROFILESIGNAL=12;MALLOC_CONF=prof:true,prof_active:false;XILINX_XRT=/opt/xilinx/xrt;XILINX_XRM=/opt/xilinx/xrm;XRT_INI_PATH=$PWD/../scripts/debug/xrt-profile.ini"
-    else
-        gpe_config="LD_PRELOAD=\$LD_PRELOAD:$ld_preload;LD_LIBRARY_PATH=$ld_lib_path:\$LD_LIBRARY_PATH;CPUPROFILE=/tmp/tg_cpu_profiler;CPUPROFILESIGNAL=12;MALLOC_CONF=prof:true,prof_active:false;XILINX_XRT=/opt/xilinx/xrt;XILINX_XRM=/opt/xilinx/xrm"
-    fi
-
-    gadmin config set GPE.BasicConfig.Env "$gpe_config"
-
-    echo "INFO: Apply the new configurations to $gpe_config"
-    gadmin config apply -y
-    gadmin restart gpe -y
-    gadmin config get GPE.BasicConfig.Env
-fi
-
-echo ""
-echo "INFO: Xilinx FPGA acceleration plugin for Tigergraph has been installed."
 
