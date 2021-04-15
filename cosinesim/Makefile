@@ -401,6 +401,7 @@ STAGE_DIR = staging
 # Files to be direct-copied from source tree to staging area
 
 STAGE_COPY_FILES = \
+    VERSION \
     include/cosinesim.hpp \
     src/cosinesim_loader.cpp
 

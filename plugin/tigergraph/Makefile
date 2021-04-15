@@ -39,6 +39,7 @@ SYNTHEA_DIR = examples/synthea
 # Files to be direct-copied from source tree to staging area
 
 STAGE_COPY_FILES = \
+    VERSION \
     install.sh \
     \
     bin/common.sh \
