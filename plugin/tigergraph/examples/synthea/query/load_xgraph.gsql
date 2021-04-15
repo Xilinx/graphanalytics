@@ -1,0 +1,77 @@
+#
+# Copyright 2020-2021 Xilinx, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+USE GRAPH @graph
+
+# Don't forget to do 'SET sys.data_root="..."' from the command line!
+
+BEGIN
+    CREATE LOADING JOB load_xgraph FOR GRAPH @graph 
+    {
+        DEFINE FILENAME patients_infile = "$sys.data_root/patients.csv";
+        DEFINE FILENAME immunizations_infile = "$sys.data_root/immunizations.csv";
+        DEFINE FILENAME allergies_infile = "$sys.data_root/allergies.csv";
+         DEFINE FILENAME conditions_infile = "$sys.data_root/conditions.csv";
+        DEFINE FILENAME imaging_studies_infile = "$sys.data_root/imaging_studies.csv";
+        DEFINE FILENAME procedures_infile = "$sys.data_root/procedures.csv";
+        DEFINE FILENAME careplans_infile = "$sys.data_root/careplans.csv";
+
+        LOAD patients_infile
+            #the last column is a placholder for cached vector data
+            TO VERTEX patients VALUES($"Id", $"BIRTHDATE", $"DEATHDATE", $"SSN",
+                $"FIRST", $"LAST", $"MARITAL", $"RACE", $"ETHNICITY", $"GENDER", _, _) 
+            USING header="true", separator=",";
+
+        LOAD immunizations_infile 
+            TO VERTEX immunizations VALUES(gsql_concat($"DATE", 
+                $"PATIENT", $"CODE"), $"DATE", $"PATIENT",$"CODE"),
+            TO EDGE patient_HAD_immunization VALUES($"PATIENT" patients, 
+                gsql_concat($"DATE", $"PATIENT", $"CODE") immunizations) 
+            USING header="true", separator=",";
+
+        LOAD allergies_infile
+            TO VERTEX allergies VALUES (gsql_concat($"START", $"PATIENT", $"CODE"), 
+                $"START",$"STOP",$"PATIENT",$"CODE"),
+            TO EDGE patient_HAD_allergy VALUES($"PATIENT" patients, 
+                gsql_concat($"START", $"PATIENT", $"CODE") allergies) 
+            USING header="true", separator=",";
+
+        LOAD conditions_infile
+            TO VERTEX conditions VALUES (gsql_concat($"START", $"PATIENT", $"CODE"), 
+                $"START", $"STOP", $"PATIENT", $"CODE"),
+            TO EDGE patient_HAD_condition VALUES($"PATIENT" patients, 
+                gsql_concat($"START", $"PATIENT", $"CODE") conditions) 
+            USING header="true", separator=",";
+
+        LOAD imaging_studies_infile
+            TO VERTEX imaging_studies VALUES ($"Id", $"DATE", $"PATIENT", 
+                                          $"BODYSITE_CODE", $"MODALITY_CODE"),
+            TO EDGE patient_HAD_imaging_study VALUES($"PATIENT" patients, $"Id" imaging_studies) 
+            USING header="true", separator=",";
+
+        LOAD procedures_infile
+            TO VERTEX procedures VALUES (gsql_concat($"DATE", $"PATIENT", $"CODE"), 
+                $"DATE",$"PATIENT",$"CODE"),
+            TO EDGE patient_HAD_procedure VALUES($"PATIENT" patients, 
+                gsql_concat($"DATE", $"PATIENT", $"CODE") procedures)
+            USING header="true", separator=",";
+
+        LOAD careplans_infile
+            TO vertex careplans VALUES ($"Id", $"START", $"STOP",$"PATIENT", $"CODE", 
+                $"REASONCODE"),
+            TO EDGE patient_HAD_careplan VALUES($"PATIENT" patients, $"Id" careplans) 
+            USING header="true", separator=",";
+    }
+END

@@ -100,7 +100,7 @@ class Graph {
 
     ID_T axiNm;
     ID_T refID = 0;
-    VALUE_T** weightsDense;
+    VALUE_T** weightsDense = nullptr;
 
     ID_T* rowsCOO;
     ID_T* colsCOO;
@@ -120,9 +120,22 @@ class Graph {
     ID_T** offsetsSplitted;
     ID_T** indicesSplitted;
     VALUE_T** weightsSplitted;
-    ID_T* numEdgesPU;
-    ID_T* numVerticesPU;
+    ID_T* numEdgesPU = nullptr;
+    ID_T* numVerticesPU = nullptr;
     bool splitted = 0;
+
+   // ----------- construction with axim only w/o memory allocation ------------
+    /**
+     * @brief Constructor of class dense Graph
+     *
+     * @param axis axi numbers
+    */
+
+    Graph(std::string type, ID_T axis) {
+        if (type == "Dense") {
+            axiNm = axis;
+        }
+    }
 
     // ---------------- construction with numVertices and numEdges ----------------
     /**
@@ -480,6 +493,8 @@ class Graph {
                 free(weightsDense[i]);
             }
             delete[] weightsDense;
+            weightsDense = nullptr;
+            allocatedDense = false;
         }
         if (splitted) {
             for (int i = 0; i < splitNum; i++) { // free splitted buffer

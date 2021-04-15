@@ -39,26 +39,25 @@ class opSimilarityDense : public opBase {
 
     class clHandle* handles;
 
-    opSimilarityDense() : opBase(){};
+    opSimilarityDense() : opBase() {};
 
-    void setHWInfo(uint32_t numDev, uint32_t CUmax);
+    void setHWInfo(uint32_t numDevices, uint32_t maxCU);
 
-    void freeSimDense();
+    void freeSimDense(xrmContext* ctx);
 
-    void init(char* kernelName, char* xclbinFile, uint32_t* deviceIDs, uint32_t* cuIDs, unsigned int requestLoad);
+    void init(class openXRM* xrm, std::string kernelName, std::string kernelAlias, 
+              std::string xclbinFile,  uint32_t* deviceIDs, uint32_t* cuIDs, 
+              unsigned int requestLoad);
 
-    void initInt(char* kernelName,
-                 char* xclbinFile,
-                 char* xclbinFile2,
-                 uint32_t* deviceIDs,
-                 uint32_t* cuIDs,
+    void initInt(class openXRM* xrm, char* kernelName, std::string kernelAlias, 
+                 char* xclbinFile, uint32_t* deviceIDs, uint32_t* cuIDs, 
                  unsigned int requestLoad);
 
     void loadGraph(xf::graph::Graph<uint32_t, float> g); // loadGraph only support loading of CSR format graph
 
     void loadGraphMultiCardNonBlocking(int deviceID, int cuID, xf::graph::Graph<int32_t, int32_t> g);
 
-    void loadGraphMultiCardBlocking(int deviceID, int cuID, xf::graph::Graph<int32_t, int32_t> g);
+    void loadGraphMultiCardBlocking(unsigned int deviceID, unsigned int cuID, xf::graph::Graph<int32_t, int32_t> g);
 
     static int compute(unsigned int deviceID,
                        unsigned int cuID,
@@ -183,10 +182,8 @@ class opSimilarityDense : public opBase {
 
    private:
     std::vector<int> deviceOffset;
-
-    uint32_t deviceNm;
-
-    uint32_t maxCU;
+    uint32_t numDevices_;
+    uint32_t maxCU_;
 
     static void bufferInit(clHandle* hds,
                            std::string instanceName0,
@@ -215,7 +212,7 @@ class opSimilarityDense : public opBase {
                               uint32_t* config,
                               int32_t* resultID,
                               float* similarity,
-                              cl::Kernel& kernel0,
+                              //cl::Kernel& kernel0,
                               std::vector<cl::Memory>& ob_in,
                               std::vector<cl::Memory>& ob_out);
 

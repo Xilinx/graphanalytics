@@ -54,11 +54,13 @@ else
     return 1
 fi
 
+echo "INFO: Installing packages on $OSDIST $OSREL"
+
 if [[ $OSDIST == "ubuntu" ]]; then
     read -p "XRT will be removed if present. Continue? (Y/N): " confirm && \
            [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]] || exit 1
 
-    printf "\nRemove XRT if present\n"
+    printf "\nRemove XRT if present. Enter sudo password below:\n"
     sudo apt remove xrt -y
 
     # install XRT/XRM/Deployment shell
@@ -72,7 +74,7 @@ if [[ $OSDIST == "ubuntu" ]]; then
     sudo apt install $pkg_dir/deployment-shell/xilinx*.deb
 
     # install required package
-    sudo apt install jq -y
+    sudo apt install jq opencl-headers -y
 
     printf "\nINFO: install Xilinx overlaysas on TigerGraph installation\n"
     read -p "Enter username used for TigerGraph installation [default: tigergraph]:" tg_username
@@ -84,7 +86,7 @@ if [[ $OSDIST == "centos" ]]; then
     read -p "XRT will be removed if present. Continue? (Y/N): " confirm && \
            [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]] || exit 1
 
-    printf "\nRemove XRT if present\n"
+    printf "\nRemove XRT if present. Enter sudo password below:\n"
     sudo yum remove xrt -y
 
     # install XRT/XRM/Deployment shell
@@ -98,12 +100,17 @@ if [[ $OSDIST == "centos" ]]; then
     sudo yum install $pkg_dir/deployment-shell/xilinx*.rpm
 
     # install required package
-    sudo yum install jq -y
+    sudo yum install jq opencl-headers -y
 
-    printf "\nINFO: install Xilinx overlaysas on TigerGraph installation\n"
-    read -p "Enter username used for TigerGraph installation [default: tigergraph]:" tg_username
-    tg_username=${tg_username:-tigergraph}
-    su -c $SCRIPTPATH/install-overlays.sh - $tg_username
+    #printf "\nINFO: install Xilinx overlaysas on TigerGraph installation\n"
+    #read -p "Enter username used for TigerGraph installation [default: tigergraph]:" tg_username
+    #tg_username=${tg_username:-tigergraph}
+    #su -c $SCRIPTPATH/install-overlays.sh - $tg_username
+
+    # only need to run this on CentOS
+    #copy the standard libstdc++ to $HOME/libstd
+    mkdir -p $HOME/libstd
+    cp /usr/lib64/libstdc++.so.6* $HOME/libstd
 fi
 
 

@@ -14,11 +14,6 @@
  * limitations under the License.
  */
 
-#pragma once
-
-#ifndef _XF_GRAPH_L3_COMMON_CPP_
-#define _XF_GRAPH_L3_COMMON_CPP_
-
 #include "common.hpp"
 
 namespace xf {
@@ -36,5 +31,3 @@ double showTimeData(std::string p_Task, TimePointType& t1, TimePointType& t2) {
 } // L3
 } // graph
 } // xf
-
-#endif

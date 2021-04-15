@@ -41,68 +41,13 @@ namespace L3 {
 
 class openXRM {
    public:
-    xrmCuGroupResource** resR;
+    //xrmCuGroupResource** resR;
     char** udfCuGroupName;
     openXRM() {
         ctx = (xrmContext*)xrmCreateContext(XRM_API_VERSION_1);
-        bool isRight = !(ctx == NULL);
-        assert(isRight);
+        assert(!(ctx == NULL));
     };
 
-    //  void freeCuGroup(unsigned int deviceNm){
-    //      int ret = 0;
-    //      for(int i = 0; i< deviceNm; ++i){
-    //          ret = xrmUdfCuGroupUndeclare(ctx, udfCuGroupName[i]);
-    //          if (ret == XRM_SUCCESS){
-    //              printf("INFO: User defined cu group from same device undeclaration success\n");
-    //          }else{
-    //              printf("ERROR: User defined cu group from same device undeclaration fail\n");
-    //              exit(1);
-    //          }
-    //          delete[] udfCuGroupName[i];
-    //      }
-    //      delete[] resR;
-    //      delete[] udfCuGroupName;
-    //  }
-
-    //  void setUpCuGroup(unsigned int deviceNm, unsigned int cuNm, std::string kernelName, std::string kernelAlias,
-    //  unsigned int requestLoad){
-    //      resR = new xrmCuGroupResource*[deviceNm];
-    //      udfCuGroupName = new char* [deviceNm];
-    //     // xrmCuGroupResource* resR[deviceNm];
-    //     // char udfCuGroupName[deviceNm][XRM_MAX_NAME_LEN];
-    //      xrmUdfCuGroupProperty* udfCuGroupProp[deviceNm];
-    //      std::string baseName = "udfCuGroupSameDevice";
-    //      xrmUdfCuListProperty* udfCuListProp;
-    //      xrmUdfCuProperty* udfCuProp;
-    //      for(int i = 0; i < deviceNm; ++i){
-    //          udfCuGroupName[i] = new char [XRM_MAX_NAME_LEN];
-    //          udfCuGroupProp[i] = (xrmUdfCuGroupProperty*)malloc(sizeof(xrmUdfCuGroupProperty));
-    //          memset(udfCuGroupProp[i], 0, sizeof(xrmUdfCuGroupProperty));
-    //          strcpy(udfCuGroupName[i], (baseName+std::to_string(i)).c_str());
-    //          udfCuGroupProp[i]->optionUdfCuListNum = 1;
-    //          udfCuListProp = &udfCuGroupProp[i]->optionUdfCuListProps[0];
-    //          udfCuListProp->cuNum = cuNm;
-    //          udfCuListProp->sameDevice = true;
-    //          for (int32_t cuIdx = 0; cuIdx < udfCuListProp->cuNum; cuIdx++) {
-    //              std::string cuName0 = kernelName + ":" + kernelName + "_" + std::to_string(i*udfCuListProp->cuNum +
-    //              cuIdx);
-    //              //std::string cuName0 = kernelName + ":" + kernelName + "_" + std::to_string(cuIdx);
-    //              udfCuProp = &udfCuListProp->udfCuProps[cuIdx];
-    //              strcpy(udfCuProp->cuName, cuName0.c_str());
-    //              udfCuProp->devExcl = false;
-    //              udfCuProp->requestLoad = requestLoad;
-    //          }
-    //          int ret = xrmUdfCuGroupDeclare(ctx, udfCuGroupProp[i], udfCuGroupName[i]);
-    //          if (ret == XRM_SUCCESS){
-    //              printf("INFO: User defined cu group from same device undeclaration success\n");
-    //          }else{
-    //              printf("ERROR: User defined cu group from same device undeclaration fail\n");
-    //              exit(1);
-    //          }
-    //          free(udfCuGroupProp[i]);
-    //      }
-    //  }
     void freeCuGroup(unsigned int deviceNm) {
         int ret = 0;
         for (int i = 0; i < 1; ++i) {
@@ -164,8 +109,10 @@ class openXRM {
     std::thread loadXclbinNonBlock(unsigned int deviceId, char* xclbinName) {
         return std::thread(xrmLoadOneDevice, ctx, deviceId, xclbinName);
     }
-    std::future<int> loadXclbinAsync(unsigned int deviceId, char* xclbinName) {
-        std::future<int> ret = std::async(&xrmLoadOneDevice, ctx, deviceId, xclbinName);
+    std::future<int> loadXclbinAsync(unsigned int deviceId, std::string& xclbinPath) {
+        std::cout << "DEBUG: " << __FUNCTION__ << " xclbinPath=" << xclbinPath << std::endl;
+        std::future<int> ret = std::async(&xrmLoadOneDevice, ctx, deviceId, (char*)xclbinPath.c_str());
+        
         return ret;
     }
 
@@ -195,7 +142,7 @@ class openXRM {
         // uint64_t interval = 0; // to use the XRM default interval
         uint64_t interval = 4000; // to use the XRM default interval
 
-        int ret = xrmCuGroupBlockingAlloc(ctx, &cuGroupProp, interval, resR);
+        xrmCuGroupBlockingAlloc(ctx, &cuGroupProp, interval, resR);
     }
 
     xrmCuListResource allocMultiCU(
@@ -225,14 +172,14 @@ class openXRM {
         return CuListRes;
     }
 
-    unsigned int fetchCuInfo(const char* kernelName,
-                             const char* kernelAlias,
-                             int requestLoad,
-                             unsigned int& deviceNm,
-                             uint64_t& maxChannelSize,
-                             unsigned int& maxCU,
-                             unsigned int** deviceID,
-                             unsigned int** cuID) {
+    int32_t fetchCuInfo(const char* kernelName,
+                        const char* kernelAlias,
+                        int requestLoad,
+                        unsigned int& numDevices,
+                        uint64_t& maxChannelSize,
+                        unsigned int& maxCU,
+                        unsigned int** deviceID,
+                        unsigned int** cuID) {
         xrmCuProperty propR;
         memset(&propR, 0, sizeof(xrmCuProperty));
         strcpy(propR.kernelName, kernelName);
@@ -240,12 +187,12 @@ class openXRM {
         propR.devExcl = false;
         propR.requestLoad = requestLoad;
         propR.poolId = 0;
-        maxCU = xrmCheckCuAvailableNum(ctx, &propR);
+        unsigned int availMaxCU = xrmCheckCuAvailableNum(ctx, &propR);
         xrmCuListProperty cuListPropR;
         xrmCuListResource cuListResR;
-        cuListPropR.cuNum = maxCU;
-        unsigned int* devices = new unsigned int[maxCU];
-        unsigned int* cus = new unsigned int[maxCU];
+        cuListPropR.cuNum = availMaxCU;
+        unsigned int* devices = new unsigned int[availMaxCU];
+        unsigned int* cus = new unsigned int[availMaxCU];
 
         for (int i = 0; i < cuListPropR.cuNum; i++) {
             strcpy(cuListPropR.cuProps[i].kernelName, kernelName);
@@ -254,14 +201,18 @@ class openXRM {
             cuListPropR.cuProps[i].requestLoad = requestLoad;
             cuListPropR.cuProps[i].poolId = 0;
         }
-        uint32_t alloc0 = xrmCuListAlloc(ctx, &cuListPropR, &cuListResR);
+        int32_t alloc0 = xrmCuListAlloc(ctx, &cuListPropR, &cuListResR);
 
-        deviceNm = 0;
+        uint32_t availNumDevices = 0;
         if (alloc0 != 0) {
-            printf("Error: Fail to alloc cu list (xrmCuListAlloc) \n");
+            std::cout << "ERROR: " << __FUNCTION__ 
+                      <<  "Fail to alloc cu list (xrmCuListAlloc): alloc0=" << alloc0 
+                      << std::endl;
+            return alloc0;
         } else {
             memBankSizeTransfer(cuListResR.cuResources[0].membankSize, maxChannelSize);
             for (int i = 0; i < cuListResR.cuNum; i++) {
+#ifndef NDEBUG                
                 printf("INFO: Allocated cu list: cu %d\n", i);
                 printf("   xclbinFileName is:  %s\n", cuListResR.cuResources[i].xclbinFileName);
                 printf("   kernelPluginFileName is:  %s\n", cuListResR.cuResources[i].kernelPluginFileName);
@@ -281,6 +232,7 @@ class openXRM {
                 printf("   allocServiceId is:  %lu\n", cuListResR.cuResources[i].allocServiceId);
                 printf("   poolId is:  %lu\n", cuListResR.cuResources[i].poolId);
                 printf("   channelLoad is:  %d\n", cuListResR.cuResources[i].channelLoad);
+#endif
                 cus[i] = cuListResR.cuResources[i].cuId;
                 devices[i] = cuListResR.cuResources[i].deviceId;
                 bool flag = false;
@@ -290,26 +242,31 @@ class openXRM {
                     }
                 }
                 if (flag == false) {
-                    deviceNm += 1;
+                    availNumDevices += 1;
                 }
             }
             *cuID = cus;
             *deviceID = devices;
-            assert(deviceNm != 0);
+            assert(availNumDevices != 0);
             if (xrmCuListRelease(ctx, &cuListResR))
-                printf("INFO: Success to release cu list\n");
+                std::cout << "INFO: Success to release cu list\n" << std::endl;
             else
-                printf("Error: Fail to release cu list\n");
+                std::cout << "Error: Fail to release cu list\n" << std::endl;
         }
-        std::cout << "INFO: Available device number = " << deviceNm << std::endl;
-        std::cout << "INFO: Available CU number = " << maxCU << std::endl;
+        std::cout << "INFO: Available device number = " << availNumDevices << std::endl;
+        std::cout << "INFO: Available CU number = " << availMaxCU << std::endl;
+        if (availNumDevices >= numDevices) {
+            // has sufficient devices. adjust maxCU based on requested numDevices
+            maxCU = numDevices*availMaxCU/availNumDevices;
+        }
+        return 0;
     }
 
     void freeXRM() {
         if (xrmDestroyContext(ctx) != XRM_SUCCESS)
-            printf("INFO: Destroy context failed\n");
+            std::cout << "INFO: Destroy context failed\n" << std::endl;
         else
-            printf("INFO: Destroy context success\n");
+            std::cout << "INFO: Destroy context success\n" << std::endl;
     };
 
     xrmContext* ctx;
@@ -498,61 +455,56 @@ auto createL3(Q& q, F&& f, Args&&... args) -> event<int> {
     return e;
 }
 
+// currently used
 inline void worker(queue& q,
                    class openXRM* xrm,
                    std::string kernelName,
                    std::string kernelAlias,
                    unsigned int requestLoad,
-                   unsigned int deviceNm,
+                   unsigned int numDevices,
                    unsigned int cuNm) {
-    int requestNm = deviceNm * cuNm;
+    int requestNm = numDevices * cuNm;
     xrmCuResource* resR[requestNm];
+
 #ifdef __DEBUG__
     int requestCnt = 0;
+    std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time;
 #endif
+
     while (true) {
-#ifdef __DEBUG__
-        std::chrono::time_point<std::chrono::high_resolution_clock> l_tp_start_compute =
-            std::chrono::high_resolution_clock::now();
-#endif
         class task t[requestNm];
         for (int i = 0; i < requestNm; ++i) {
+            // q.getWork is blocking until it has a job
             t[i] = q.getWork();
+#ifdef __DEBUG__
+            l_start_time = std::chrono::high_resolution_clock::now();
+            std::cout << "LOG2TIMELINE: " << __FUNCTION__ 
+                      << " start=" << l_start_time.time_since_epoch().count() 
+                      << std::endl;
+#endif
             resR[i] = (xrmCuResource*)malloc(sizeof(xrmCuResource));
             memset(resR[i], 0, sizeof(xrmCuResource));
         }
-
         bool toStop = false;
         for (int i = 0; i < requestNm; ++i) {
             if (!t[i].valid()) toStop = true;
         }
         if (toStop) break;
-#ifdef __DEBUG__
-        std::chrono::time_point<std::chrono::high_resolution_clock> l_tp_compute_time =
-            std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> l_durationSec = l_tp_compute_time - l_tp_start_compute;
-        double l_timeMs = l_durationSec.count() * 1e3;
-        std::cout << "INFO: getwork time =  " << std::fixed << std::setprecision(6) << l_timeMs << " msec" << std::endl;
-        std::cout << "-----------------------------------------------" << std::endl;
-#endif
 
 #ifdef __DEBUG__
         std::chrono::time_point<std::chrono::high_resolution_clock> l_tp_start_compute2 =
             std::chrono::high_resolution_clock::now();
 #endif
-        for (int i = 0; i < requestNm; ++i) {
-            xrm->allocCU(resR[i], kernelName.c_str(), kernelAlias.c_str(), requestLoad);
-        }
-
-#ifdef __DEBUG__
-        std::cout << "INFO: Allocated deviceID = " << deviceID << "\t cuID = " << cuID << "\t channelID = " << channelID
-                  << "\t instance name = " << instanceName << "\t request ID = " << requestCnt << "\t number per while "
-                  << requestNm << std::endl;
-#endif
+        //for (int i = 0; i < requestNm; ++i) {
+        //    xrm->allocCU(resR[i], kernelName.c_str(), kernelAlias.c_str(), requestLoad);
+        //}
 
         for (int i = 0; i < requestNm; i++) {
             unsigned int deviceID = i / cuNm;
             unsigned int cuID = i % cuNm;
+            unsigned int channelID = 0;
+            std::string instanceName = "PLACEHOLDER";
+            /*
             unsigned int ID;
             for (int j = 0; j < requestNm; ++j) {
                 if ((deviceID == resR[j][0].deviceId) && (cuID == resR[j][0].cuId)) {
@@ -561,7 +513,19 @@ inline void worker(queue& q,
             }
             unsigned int channelID = resR[ID][0].channelId;
             std::string instanceName = resR[ID][0].instanceName;
-            t[i].execute(deviceID, cuID, channelID, xrm, resR[ID], instanceName);
+            */
+#ifdef __DEBUG__
+            std::cout << "INFO: " << __FILE__ << "::" << __FUNCTION__ 
+                    << " Allocated deviceID=" << deviceID << " cuID =" << cuID 
+                    << " channelID=" << channelID << " instance name=" 
+                    << instanceName << " request ID=" << requestCnt 
+                    << " requestNm=" << requestNm << " cuNm=" << cuNm 
+                    << std::endl;
+#endif
+
+            //t[i].execute(deviceID, cuID, channelID, xrm, resR[ID], instanceName);
+            t[i].execute(deviceID, cuID, channelID, xrm, resR[i], instanceName);
+
         }
 #ifdef __DEBUG__
         requestCnt++;
@@ -572,7 +536,7 @@ inline void worker(queue& q,
             std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> l_durationSec2 = l_tp_compute_time2 - l_tp_start_compute2;
         double l_timeMs2 = l_durationSec2.count() * 1e3;
-        std::cout << "INFO: Cu allocation time =  " << std::fixed << std::setprecision(6) << l_timeMs2 << " msec"
+        std::cout << "PROFILING: Cu allocation time =  " << std::fixed << std::setprecision(6) << l_timeMs2 << " msec"
                   << std::endl;
         std::cout << "-----------------------------------------------" << std::endl;
 #endif
@@ -631,7 +595,7 @@ inline void worker2(queue& q,
         }
 
         for (int i = 0; i < 1; ++i) {
-            for (int j = 0; j < cuNm * deviceNm; ++j) {
+            for (unsigned int j = 0; j < cuNm * deviceNm; ++j) {
                 cuRes[j + i * cuNm] = &(resR[requestCnt % iteration][i]->cuResources[j]);
                 unsigned int deviceID = cuRes[j + i * cuNm]->deviceId;
                 unsigned int cuID = cuRes[j + i * cuNm]->cuId;
@@ -642,9 +606,9 @@ inline void worker2(queue& q,
         }
         requestCnt++;
 #ifdef __DEBUG__
-        std::cout << "INFO: Allocated deviceID = " << deviceID << "\t cuID = " << cuID << "\t channelID = " << channelID
-                  << "\t instance name = " << instanceName << "\t request ID = " << requestCnt << "\t number per while "
-                  << requestNm << std::endl;
+        //std::cout << "INFO: Allocated deviceID = " << deviceID << "\t cuID = " << cuID << "\t channelID = " << channelID
+        //          << "\t instance name = " << instanceName << "\t request ID = " << requestCnt << "\t number per while "
+        //          << requestNm << std::endl;
         std::chrono::time_point<std::chrono::high_resolution_clock> l_tp_compute_time2 =
             std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> l_durationSec2 = l_tp_compute_time2 - l_tp_start_compute2;

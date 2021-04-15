@@ -28,29 +28,30 @@ endif
 
 #Checks for g++
 CXX := g++
-ifeq ($(HOST_ARCH), x86)
-ifneq ($(shell expr $(shell g++ -dumpversion) \>= 5), 1)
-ifndef XILINX_VIVADO
-$(error [ERROR]: g++ version older. Please use 5.0 or above)
-else
-CXX := $(XILINX_VIVADO)/tps/lnx64/gcc-6.2.0/bin/g++
-$(warning [WARNING]: g++ version older. Using g++ provided by the tool : $(CXX))
-endif
-endif
-else ifeq ($(HOST_ARCH), aarch64)
-CXX := $(XILINX_VITIS)/gnu/aarch64/lin/aarch64-linux/bin/aarch64-linux-gnu-g++
-else ifeq ($(HOST_ARCH), aarch32)
-CXX := $(XILINX_VITIS)/gnu/aarch32/lin/gcc-arm-linux-gnueabi/bin/arm-linux-gnueabihf-g++
-endif
+#ifeq ($(HOST_ARCH), x86)
+#ifneq ($(shell expr $(shell g++ -dumpversion) \>= 5), 1)
+#ifndef XILINX_VIVADO
+#$(error [ERROR]: g++ version older. Please use 5.0 or above)
+#else
+#CXX := $(XILINX_VIVADO)/tps/lnx64/gcc-6.2.0/bin/g++
+#$(warning [WARNING]: g++ version older. Using g++ provided by the tool : $(CXX))
+#endif
+#endif
+#else ifeq ($(HOST_ARCH), aarch64)
+#CXX := $(XILINX_VITIS)/gnu/aarch64/lin/aarch64-linux/bin/aarch64-linux-gnu-g++
+#else ifeq ($(HOST_ARCH), aarch32)
+#CXX := $(XILINX_VITIS)/gnu/aarch32/lin/gcc-arm-linux-gnueabi/bin/arm-linux-gnueabihf-g++
+#endif
 
 ############################## Setting up Host Variables ##############################
 CXXFLAGS += -I$(XFLIB_DIR)/L2/include
 CXXFLAGS += -I$(XFLIB_DIR)/ext/xcl2
 CXXFLAGS += -I$(XFLIB_DIR)/L3/include
-
+#add for new API wrapper
+CXXFLAGS += -I$(XFLIB_DIR)/cosinesim/include
 XILINX_XRM=/opt/xilinx/xrm
 
-CXXFLAGS += -I$(XILINX_XRT)/include -I$(XILINX_VIVADO)/include -I$(XILINX_XRM)/include -std=c++11 -O3 -Wall -Wno-unknown-pragmas -Wno-unused-label
+CXXFLAGS += -I$(XILINX_XRT)/include -I$(XILINX_VIVADO)/include -I$(XILINX_XRM)/include  -std=c++11 -O3 -Wall -Wno-unknown-pragmas -Wno-unused-label
 LDFLAGS += -L$(XILINX_XRT)/lib -lOpenCL -lpthread -lrt -Wno-unused-label -Wno-narrowing -DVERBOSE -L$(XILINX_XRM)/lib -lxrm
 CXXFLAGS += -fmessage-length=0 -O3
 CXXFLAGS +=-I$(CUR_DIR)/src/ 
@@ -77,6 +78,8 @@ CPP_PATH += $(XFLIB_DIR)/L3/src/op_similaritydense.cpp
 CPP_PATH += $(XFLIB_DIR)/L3/src/op_pagerank.cpp
 CPP_PATH += $(XFLIB_DIR)/L3/src/xf_graph_L3_handle.cpp
 CPP_PATH += $(XFLIB_DIR)/L3/src/xf_graph_L3.cpp
+##add for new API wrapper
+CPP_PATH += $(XFLIB_DIR)/cosinesim/src/cosinesim.cpp
 
 $(libGRAPHL3): ${CPP_PATH}
 	$(CXX) -fPIC $(CXXFLAGS) -rdynamic -shared -o $@ $^ $(LDFLAGS) -w -Wl,--export-dynamic

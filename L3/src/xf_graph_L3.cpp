@@ -14,7 +14,6 @@
  * limitations under the License.
 */
 
-#pragma once
 
 #ifndef _XF_GRAPH_L3_CPP_
 #define _XF_GRAPH_L3_CPP_
@@ -27,7 +26,7 @@ namespace L3 {
 
 int runMultiEvents(uint32_t number, std::vector<xf::graph::L3::event<int> >& f) {
     int ret = 0;
-    for (int i = 0; i < number; ++i) {
+    for (uint32_t i = 0; i < number; ++i) {
         ret += f[i].wait();
     }
     return ret;
@@ -49,7 +48,7 @@ event<int> shortestPath(xf::graph::L3::Handle& handle,
                         xf::graph::Graph<uint32_t, float> g,
                         float** result,
                         uint32_t** pred) {
-    for (int i = 0; i < nSource; ++i) {
+    for (uint32_t i = 0; i < nSource; ++i) {
         (handle.opsp)
             ->eventQueue.push_back((handle.opsp)->addwork(1, &sourceID[i], weighted, g, &result[i][0], &pred[i][0]));
     }
@@ -115,7 +114,7 @@ event<int> cosineSimilarityAPSparse(xf::graph::L3::Handle& handle,
                                     uint32_t** resultID,
                                     float** similarity) {
     uint32_t numVertices = g.nodeNum;
-    for (int i = 0; i < numVertices; ++i) {
+    for (uint32_t i = 0; i < numVertices; ++i) {
         (handle.opsimsparse)
             ->eventQueue.push_back(
                 (handle.opsimsparse)->addworkAP(1, 1, i, topK, g, &resultID[i][0], &similarity[i][0]));
@@ -150,7 +149,7 @@ event<int> jaccardSimilarityAPSparse(xf::graph::L3::Handle& handle,
                                      uint32_t** resultID,
                                      float** similarity) {
     uint32_t numVertices = g.nodeNum;
-    for (int i = 0; i < numVertices; ++i) {
+    for (uint32_t i = 0; i < numVertices; ++i) {
         (handle.opsimsparse)
             ->eventQueue.push_back(
                 (handle.opsimsparse)->addworkAP(0, 1, i, topK, g, &resultID[i][0], &similarity[i][0]));
@@ -219,7 +218,7 @@ int cosineSimilaritySSDenseMultiCardBlocking(xf::graph::L3::Handle& handle,
                 ->addworkInt(1, 0, sourceNUM, sourceWeights, topK, g[i][0], resultID0[i], similarity0[i]));
     }
     int ret = 0;
-    for (int i = 0; i < eventQueue.size(); ++i) {
+    for (uint32_t i = 0; i < eventQueue.size(); ++i) {
         ret += eventQueue[i].wait();
     }
     for (int i = 0; i < topK; ++i) {
@@ -268,7 +267,7 @@ event<int> cosineSimilarityAPDense(xf::graph::L3::Handle& handle,
                                    uint32_t** resultID,
                                    float** similarity) {
     uint32_t numVertices = g.nodeNum;
-    for (int i = 0; i < numVertices; ++i) {
+    for (uint32_t i = 0; i < numVertices; ++i) {
         (handle.opsimdense)
             ->eventQueue.push_back(
                 (handle.opsimdense)->addworkAP(1, 1, i, topK, g, &resultID[i][0], &similarity[i][0]));
@@ -286,7 +285,7 @@ event<int> jaccardSimilarityAPDense(xf::graph::L3::Handle& handle,
                                     uint32_t** resultID,
                                     float** similarity) {
     uint32_t numVertices = g.nodeNum;
-    for (int i = 0; i < numVertices; ++i) {
+    for (uint32_t i = 0; i < numVertices; ++i) {
         (handle.opsimdense)
             ->eventQueue.push_back(
                 (handle.opsimdense)->addworkAP(0, 1, i, topK, g, &resultID[i][0], &similarity[i][0]));
@@ -338,7 +337,7 @@ event<int> knnSimilarityAPSparse(xf::graph::L3::Handle& handle,
                                  std::string* knownLabels,
                                  std::string* label) {
     uint32_t numVertices = g.nodeNum;
-    for (int i = 0; i < numVertices; ++i) {
+    for (uint32_t i = 0; i < numVertices; ++i) {
         (handle.opsimsparse)
             ->eventQueue.push_back((handle.opsimsparse)->addworkAPKNN(1, 1, i, topK, g, knownLabels, label[i]));
     }
@@ -355,7 +354,7 @@ event<int> knnSimilarityAPDense(xf::graph::L3::Handle& handle,
                                 std::string* knownLabels,
                                 std::string* label) {
     uint32_t numVertices = g.nodeNum;
-    for (int i = 0; i < numVertices; ++i) {
+    for (uint32_t i = 0; i < numVertices; ++i) {
         (handle.opsimdense)
             ->eventQueue.push_back((handle.opsimdense)->addworkAPKNN(1, 1, i, topK, g, knownLabels, label[i]));
     }
