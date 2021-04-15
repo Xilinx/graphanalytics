@@ -430,7 +430,7 @@ $(foreach f,$(STAGE_LIB_FILES),$(eval $(call STAGE_LIB_RULE,$(f))))
 
 STAGE_EXAMPLE_ZIP = examples.zip
 STAGE_EXAMPLE_FILE_NAMES = \
-	cpp/cppdemo.cpp cpp/Makefile \
+	cpp/cppdemo.cpp cpp/Makefile cpp/README.md \
 	python/pythondemo.py python/run.sh
 
 STAGE_EXAMPLE_FILES = $(addprefix examples/,$(STAGE_EXAMPLE_FILE_NAMES))
