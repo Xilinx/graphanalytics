@@ -39,6 +39,8 @@ SCRIPTPATH=`dirname $SCRIPT`
 . $SCRIPTPATH/bin/common.sh
 # if -i option is set in common.sh, ssh_key_flag is set to -i $ssh_key, 
 # otherwise it's an empty string
+echo " "
+echo "INFO: please enter password for user \"tigergraph\" to continue running the example"
 ssh $ssh_key_flag tigergraph@$hostname $SCRIPTPATH/bin/install_udf.sh $verbose_flag $force_clean_flag
 gsql "$(cat $SCRIPTPATH/query/base.gsql | sed "s/@graph/$xgraph/")"
 gsql "$(cat $SCRIPTPATH/query/client.gsql | sed "s/@graph/$xgraph/")"

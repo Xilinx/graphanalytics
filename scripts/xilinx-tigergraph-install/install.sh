@@ -64,22 +64,23 @@ if [[ $OSDIST == "ubuntu" ]]; then
     sudo apt remove xrt -y
 
     # install XRT/XRM/Deployment shell
-    printf "\nINFO: install XRT\n"
+    printf "\nINFO: Install XRT\n"
     sudo apt install $pkg_dir/xrt/xrt*.deb
 
-    printf "\nINFO: install XRM\n"
+    printf "\nINFO: Install XRM\n"
     sudo apt install $pkg_dir/xrm/xrm*.deb
 
-    printf "\nINFO: install deployment shell\n"
+    printf "\nINFO: Install deployment shell\n"
     sudo apt install $pkg_dir/deployment-shell/xilinx*.deb
 
     # install required package
     sudo apt install jq opencl-headers -y
 
-    printf "\nINFO: install Xilinx overlaysas on TigerGraph installation\n"
-    read -p "Enter username used for TigerGraph installation [default: tigergraph]:" tg_username
-    tg_username=${tg_username:-tigergraph}
-    su -c $SCRIPTPATH/install-overlays.sh - $tg_username
+    printf "\nINFO: Install Xilinx CosineSim product package\n"
+    sudo apt install $pkg_dir/cosinesim/xilinx-cosinesim*.deb
+
+    printf "\nINFO: Install Xilinx Recommend Engine package\n"
+    sudo apt install $pkg_dir/recomengine/xilinx-recomengine*.deb
 fi
 
 if [[ $OSDIST == "centos" ]]; then
@@ -90,22 +91,23 @@ if [[ $OSDIST == "centos" ]]; then
     sudo yum remove xrt -y
 
     # install XRT/XRM/Deployment shell
-    printf "\nINFO: install XRT\n"
+    printf "\nINFO: Install XRT\n"
     sudo yum install $pkg_dir/xrt/xrt*.rpm
 
-    printf "\nINFO: install XRM\n"
+    printf "\nINFO: Install XRM\n"
     sudo yum install $pkg_dir/xrm/xrm*.rpm
 
-    printf "\nINFO: install deployment shell\n"
+    printf "\nINFO: Install deployment shell\n"
     sudo yum install $pkg_dir/deployment-shell/xilinx*.rpm
 
     # install required package
     sudo yum install jq opencl-headers -y
 
-    #printf "\nINFO: install Xilinx overlaysas on TigerGraph installation\n"
-    #read -p "Enter username used for TigerGraph installation [default: tigergraph]:" tg_username
-    #tg_username=${tg_username:-tigergraph}
-    #su -c $SCRIPTPATH/install-overlays.sh - $tg_username
+    printf "\nINFO: Install Xilinx CosineSim package\n"
+    sudo yum install $pkg_dir/cosinesim/xilinx-cosinesim*.rpm
+
+    printf "\nINFO: Install Xilinx Recommend Engine package\n"
+    sudo yum install $pkg_dir/recomengine/xilinx-recomengine*.rpm
 
     # only need to run this on CentOS
     #copy the standard libstdc++ to $HOME/libstd
@@ -114,5 +116,5 @@ if [[ $OSDIST == "centos" ]]; then
 fi
 
 
-printf "\nINFO: please run the command below to flash the card if needed\n" 
+printf "\nINFO: All packages have been installed. Please run the command below to flash the card if needed. \n" 
 printf "${YELLOW}sudo /opt/xilinx/xrt/bin/xbmgmt flash --update --shell xilinx_u50_gen3x16_xdma_201920_3${NC}\n"
