@@ -3,11 +3,29 @@ Install Xilinx CosineSim and Recommendation Engine Alveo Products
 =========================================================================
 
 * Power off the server. Plug Xilinx U50 Alveo card into a PCIe Gen3 x16 slot. Power on the server.
+
 * Install `TigerGraph Enterprise version 3.1 <https://info.tigergraph.com/enterprise-free>`_ with all the 
   default settings like username, passwords, directories. Make a note of the password for the user 
-  "tigergraph" as it will be needed for later steps.
+  "tigergraph". It will be needed for later steps. Create an account on TigerGraph installation for 
+  yourself by using the commands below (replace YOUR-LINUX-USERNAME with your actual Linux username)
+
+.. code-block:: bash
+
+   $su - tigergraph
+   Password:
+   $gsql
+   Welcome to TigerGraph.
+   GSQL > create user
+   User Name : YOUR-LINUX-USERNAME
+   New Password : *********
+   Re-enter Password : *********
+   The user "YOUR-LINUX_USERNAME" is created.
+   GSQL > grant role globaldesigner to YOUR-LINUX-USERNAME
+   Role "globaldesigner" is successfully granted to user(s): YOUR-LINUX-USERNAME
+
 * Get the installation package xilinx-tigergraph-install-1.0.tar.gz from 
   `Database Analytics POC Secure Site <https://www.xilinx.com/member/dba_poc.html>`_ 
+
 * Install Xilinx CosineSim and Recommendation Engine Alveo Products and 
   dependencies (XRT, XRM, and U50 platform packages)
 
@@ -16,7 +34,9 @@ Install Xilinx CosineSim and Recommendation Engine Alveo Products
    tar xzf xilinx-tigergraph-install-1.0.tar.gz
    cd xilinx-tigergraph-install && ./install.sh
     
-* Flash the card and cold-reboot
+* Flash the Alveo U50 card if it is not already running with the shell 
+  xilinx_u50_gen3x16_xdma_201920_3. Cold reboot the machine after flashing is done
+
 * Install Recommendation Engine plugin for TigerGraph
 
 .. code-block:: bash
