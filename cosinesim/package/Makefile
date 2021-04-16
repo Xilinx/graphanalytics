@@ -14,7 +14,7 @@
 #
 PKGDIR := PKG_Release
 RM := rm -rf
-PROD_VERSION := 1.0
+PROD_VERSION := $(strip $(shell cat ../staging/VERSION))
 
 OSDIST = $(shell lsb_release -si)
 ifeq ($(OSDIST),Ubuntu)
@@ -27,10 +27,9 @@ package:$(PKGDIR)
 	cd $(PKGDIR); \
 	cmake -DCMAKE_BUILD_TYPE=Release -DPROD_VERSION=${PROD_VERSION} -DCMAKE_INSTALL_PREFIX=/opt/xilinx/apps/graphanalytics/  ..;\
 	cmake --build .;\
-	cpack --verbose ; \
-	mv *.${DIST_TARGET} .. ; \
+	cpack -B $(shell pwd) ; \
 	cd ..; \
-	rm ${PKGDIR} -r; \
+	rm ${PKGDIR} -r; 
 
 
 $(PKGDIR):

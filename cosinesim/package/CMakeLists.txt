@@ -28,7 +28,7 @@ install(FILES "${CS_FILE_PATH}/include/cosinesim.hpp" DESTINATION ${CMAKE_INSTAL
 
 install(FILES "${CS_FILE_PATH}/src/cosinesim_loader.cpp" DESTINATION ${CMAKE_INSTALL_PATH}/src)
 install(FILES "${CS_FILE_PATH}/examples.zip" DESTINATION ${CMAKE_INSTALL_PATH}/)
-
+install(FILES "${CS_FILE_PATH}/VERSION" DESTINATION ${CMAKE_INSTALL_PATH}/ )
 
 #version 
 
@@ -78,8 +78,8 @@ endif()
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${CPACK_REL_VER}-${CPACK_ARCH}")
 
 message("-- ${CMAKE_BUILD_TYPE} ${PACKAGE_KIND} package")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "xrt (>= 2.8.0),xrm (>= 1.2.0),python3 (>= 3.5.0)")
-set(CPACK_RPM_PACKAGE_DEPENDS "xrt (>= 2.8.0), xrm (>= 1.2.0),python3 (>= 3.5)")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "xrt (>= 2.8.0),xrm (>= 1.2.0),python3.6")
+set(CPACK_RPM_PACKAGE_DEPENDS "xrt (>= 2.8.0), xrm (>= 1.2.0),python3 (>= 3.6)")
 #set(CPACK_PACKAGE_VERSION "1.0.0_18.04-x86_64")
 set(CPACK_PACKAGE_CONTACT "Xilinx Cosinesim Development Team")
 set(CPACK_PACKAGE_VENDOR "Xilinx")
