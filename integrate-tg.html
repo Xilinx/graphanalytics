@@ -349,7 +349,6 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Integration with TigerGraph</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#tigergraph-user-defined-functions-udf">TigerGraph User-Defined Functions (UDF)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#udf-example">UDF Example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#next-step">Next Step</a></li>
 </ul>
 </li>
@@ -434,47 +433,20 @@ calling GSQL query from TigerGraph SW.</p>
 <a class="reference internal image-reference" href="_images/fig_TG_top.jpg"><img alt="_images/fig_TG_top.jpg" class="align-center" src="_images/fig_TG_top.jpg" style="width: 619.8px; height: 284.4px;" /></a>
 <div class="section" id="tigergraph-user-defined-functions-udf">
 <h2>TigerGraph User-Defined Functions (UDF)<a class="headerlink" href="#tigergraph-user-defined-functions-udf" title="Permalink to this headline">¶</a></h2>
-<dl class="simple">
-<dt>You can create your own custom GSQL function as <a class="reference external" href="https://docs.tigergraph.com/dev/gsql-ref/querying/operators-functions-and-expressions#user-defined-functions">UDF</a></dt><dd><p>in TigerGraph using C++. You can define a top level function in
+<p>You can create your own custom GSQL function as <a class="reference external" href="https://docs.tigergraph.com/dev/gsql-ref/querying/operators-functions-and-expressions#user-defined-functions">UDF</a>
+in TigerGraph using C++. You can define a top level function in
 <em>&lt;tigergraph.root.dir&gt;/dev/gdk/gsql/src/QueryUdf/ExprFunctions.hpp</em>.
 It is this UDF mechanism that enables porting of Xilinx Graph Library IP into
 TigerGraph SW. All the files necessary to make this porting is included in the
-Graph Library, as shown below in <em>graph/plugin</em> directory.  Important files/directories are:</p>
-</dd>
-</dl>
-<ul>
-<li><p>install.sh*: is a script to automate the porting. It updates the <em>ExprFunctions.hpp</em>
-with the top level functions of Graph Library defined in <em>tigergraph/QueryUdf/xilinxUdf.hpp</em></p></li>
-<li><p>tigergraph/QueryUdf*: Once all the files in this directory is updated, it replaces
-the <em>QueryUdf</em> directory in TigerGraph install directory
-(<em>~tigergraph/dev/gdk/gsql/src/QueryUdf</em>)</p></li>
-<li><p>tigergraph/tests/cosine_nbor_ss_dense_int*: has all the GSQL scripts that you
-can use to test the newely created UDFs</p></li>
-<li><p>tigergraph/tests/cosine_nbor_ss_dense_int/1K_patiensts*: has all the patient
-data set used for Cosine Similarity query testing</p>
-<a class="reference internal image-reference" href="_images/fig_plugin.jpg"><img alt="_images/fig_plugin.jpg" class="align-center" src="_images/fig_plugin.jpg" style="width: 250.79999999999998px; height: 256.2px;" /></a>
-</li>
-</ul>
-</div>
-<div class="section" id="udf-example">
-<h2>UDF Example<a class="headerlink" href="#udf-example" title="Permalink to this headline">¶</a></h2>
-<p>This section shows how a custom GSQL function is created using
-<em>udf_loadgraph_cosinesim_ss_fpga()</em> as an example. The table below should help
-you navigate the source files used in creating this UDF. They are listed in the
-order of abstraction level - high to low level.</p>
+Graph Library, as shown below in <em>plugin/tigergraph</em> directory. Important
+files/directories are:</p>
 <ul class="simple">
-<li><p>udf_loadgrpah_cosinesim_ss_fpga() : this UDF is called in <em>base.gsql</em> script (in plugin/tigergraph/tests/cosine_nbor_ss_dense_int)</p></li>
-<li><p>udf_loadgrpah_cosinesim_ss_fpga() : defined in xilinxUdf.hpp (in plugin/tigergraph/QueryUdf)
-and copied to ExprFunctions.hpp in TigerGraph install directory by install.sh.
-It calls the function below</p></li>
-<li><p>loadgrpah_cosinesim_ss_dense_fpga() : defined in core.cpp and its prototype
-is in loader.hpp (plugin/tigergraph/QueryUdf). This function opens
-libgraphL3wrap.so library, which is built from L3_wrapp.cpp (in plugin/tigergraph),
-and loads <em>loadgraph_cosine_ss_dense_fpga()</em></p></li>
-<li><p>config_cosinesim_ss_dense_fpga.json : <em>loadgraph_cosinesim_ss_dense_fpga</em> in
-L3_wrapp.cpp calls this json file which specifies the location/name of xclbin
-file, among other settings. It also calls <em>xf::graph::L3::Handle</em> defined in
-xf_graph_L3_handle.hpp (in graph/L3/include) used for XRM</p></li>
+<li><p><em>install.sh</em>: is a script to automate the porting. It updates the ExprFunctions.hpp
+with the top level functions of Graph Library defined in <em>udf/xilinxRecomEngine.hpp.hpp</em></p></li>
+<li><p><em>plugin/tigergraph/examples/synthea</em>: has all supporting files (shell scripts,
+GSQL scripts, UDF) that you can use to test the newely created UDFs</p></li>
+<li><p><em>plugin/tigergraph/examples/synthea/1000_patients/csv</em>: has all the patient data
+set used for Cosine Similarity query testing</p></li>
 </ul>
 </div>
 <div class="section" id="next-step">
