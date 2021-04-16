@@ -24,14 +24,15 @@ else ifeq ($(OSDIST),CentOS)
     DIST_TARGET = rpm
 endif
 
-
 package:$(PKGDIR)
 	cd $(PKGDIR); \
-	cmake -DCMAKE_BUILD_TYPE=Release -DPROD_VERSION=${PROD_VERSION} -DCMAKE_INSTALL_PREFIX=/opt/xilinx/apps/graphanalytics/integration/${PLUGIN}  ..; \
-	cpack  ; \
-	mv *.${DIST_TARGET} .. ; \
+	cmake -DCMAKE_BUILD_TYPE=Release -DPROD_VERSION=${PROD_VERSION} -DCMAKE_INSTALL_PREFIX=/opt/xilinx/apps/graphanalytics/integration/${PLUGIN}  ..;\
+	cmake --build .;\
+	cpack -B $(shell pwd) ; \
 	cd ..; \
 	rm ${PKGDIR} -r; 
 
+
 $(PKGDIR):
 	mkdir $(PKGDIR); 
+
