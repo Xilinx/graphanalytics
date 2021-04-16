@@ -305,7 +305,7 @@
             
             
               <div class="version">
-                2020.2
+                1.0
               </div>
             
           
@@ -336,13 +336,13 @@
 </ul>
 <p class="caption"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="install.html">Install XRT and XRM libraries and U50 platform</a></li>
-<li class="toctree-l1"><a class="reference internal" href="install.html#install-xilinx-alveo-plugin-for-tigergraph">Install Xilinx Alveo Plugin for TigerGraph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install Xilinx CosineSim and Recommendation Engine Alveo Products</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html#collaborate-on-xilinx-cosinesim-and-recommendation-engine-alveo-products">Collaborate on Xilinx CosineSim and Recommendation Engine Alveo Products</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Run Alveo Demo</span></p>
+<p class="caption"><span class="caption-text">Run Synthea Example on Alveo</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="run-demo-jupyter.html">Run Demo in Jupyter Notebook</a></li>
-<li class="toctree-l1"><a class="reference internal" href="run-demo-script.html">Run demo using script</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-demo-script.html">Run Demo using Script</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Integrate with TigerGraph</span></p>
 <ul>
@@ -482,15 +482,13 @@ development flow, where user simply calls those functions thru API in his host c
 <div class="section" id="optimizing-for-performance">
 <h2>Optimizing for Performance<a class="headerlink" href="#optimizing-for-performance" title="Permalink to this headline">¶</a></h2>
 <p>The basic concepts of parallel programming applies to programming Alveo to get
-the optimum performance, such as:
-- Distribution of workload: how to best distribute the workload over the available</p>
-<blockquote>
-<div><p>processing elements (we call them compute units - CU, or kernel), similar to ND
+the optimum performance, such as:</p>
+<ul class="simple">
+<li><p>Distribution of workload: how to best distribute the workload over the available
+processing elements (we call them compute units - CU, or kernel), similar to ND
 partitioning in OpenCL paradigm. Some algorithms works out better in this regard
 than others. For cosine similarity computation, we can easily distribute the
-workload over the available compute units.</p>
-</div></blockquote>
-<ul class="simple">
+workload over the available compute units.</p></li>
 <li><p>What hits the fan first: identifying what is the limiting factor as we try to
 increase the performance.  Is it data bandwidth or computation resources?</p></li>
 <li><p>Data movement: how does the data flow among PCIe, DDR/FPGA, network interface,
@@ -511,15 +509,7 @@ accelerator functions.</p>
 <li><p><a class="reference external" href="https://github.com/Xilinx/Vitis-Tutorials">Vitis Tutorial</a>
 This covers overview/introduction of Vitis development flow, build/run designs
 and analyze results.</p>
-<img alt="_images/fig_vitis101.jpg" src="_images/fig_vitis101.jpg" />
-<dl class="field-list simple">
-<dt class="field-odd">scale</dt>
-<dd class="field-odd"><p>60%</p>
-</dd>
-<dt class="field-even">align</dt>
-<dd class="field-even"><p>center</p>
-</dd>
-</dl>
+<a class="reference internal image-reference" href="_images/fig_vitis101.jpg"><img alt="_images/fig_vitis101.jpg" class="align-center" src="_images/fig_vitis101.jpg" style="width: 423.0px; height: 289.8px;" /></a>
 </li>
 <li><p><a class="reference external" href="https://github.com/Xilinx/Vitis_Accel_Examples">Examples</a>
 Some times you just want to see an example that works rather than reading thru one
@@ -529,15 +519,7 @@ optimization techniques for HLS and Vitis here.</p></li>
 <li><p><a class="reference external" href="https://github.com/Xilinx/Vitis_Libraries">Vitis Library</a>
 You have seen this already. This has several domain specific libraries of
 functions that you can use to compile/build your own applications</p>
-<img alt="_images/fig_library.jpg" src="_images/fig_library.jpg" />
-<dl class="field-list simple">
-<dt class="field-odd">scale</dt>
-<dd class="field-odd"><p>60%</p>
-</dd>
-<dt class="field-even">align</dt>
-<dd class="field-even"><p>center</p>
-</dd>
-</dl>
+<a class="reference internal image-reference" href="_images/fig_library.jpg"><img alt="_images/fig_library.jpg" class="align-center" src="_images/fig_library.jpg" style="width: 301.2px; height: 88.2px;" /></a>
 </li>
 </ul>
 </div>
@@ -570,7 +552,7 @@ functions that you can use to compile/build your own applications</p>
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 23, 2021.
+        Last updated on April 16, 2021.
       </span>
 
     </p>

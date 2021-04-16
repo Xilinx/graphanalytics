@@ -306,7 +306,7 @@
             
             
               <div class="version">
-                2020.2
+                1.0
               </div>
             
           
@@ -337,13 +337,13 @@
 </ul>
 <p class="caption"><span class="caption-text">Installation</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Install XRT and XRM libraries and U50 platform</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#install-xilinx-alveo-plugin-for-tigergraph">Install Xilinx Alveo Plugin for TigerGraph</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Install Xilinx CosineSim and Recommendation Engine Alveo Products</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#collaborate-on-xilinx-cosinesim-and-recommendation-engine-alveo-products">Collaborate on Xilinx CosineSim and Recommendation Engine Alveo Products</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Run Alveo Demo</span></p>
+<p class="caption"><span class="caption-text">Run Synthea Example on Alveo</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="run-demo-jupyter.html">Run Demo in Jupyter Notebook</a></li>
-<li class="toctree-l1"><a class="reference internal" href="run-demo-script.html">Run demo using script</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-demo-script.html">Run Demo using Script</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Integrate with TigerGraph</span></p>
 <ul>
@@ -404,7 +404,7 @@
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Install XRT and XRM libraries and U50 platform</li>
+      <li>Install Xilinx CosineSim and Recommendation Engine Alveo Products</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -421,34 +421,56 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="install-xrt-and-xrm-libraries-and-u50-platform">
-<h1>Install XRT and XRM libraries and U50 platform<a class="headerlink" href="#install-xrt-and-xrm-libraries-and-u50-platform" title="Permalink to this headline">¶</a></h1>
-<ol class="arabic simple">
-<li><p>Plug in U50</p></li>
-<li><p>Install <a class="reference external" href="https://info.tigergraph.com/enterprise-free">TigerGraph Enterprise version 3.1</a>
-with all the default settings like user name, passwords, directories.</p></li>
-<li><p>Get the installation package from <a class="reference external" href="https://www.xilinx.com/member/dba_poc.html">Database Analytics POC Secure Site</a></p></li>
-<li><p>tar xzf xilinx-tigergraph-install.tar.gz</p></li>
-<li><p><cite>cd xilinx-tigergraph-install &amp;&amp; ./install.sh</cite></p></li>
-<li><p>flash the card and cold-reboot (as shown in the log message of the script output)</p></li>
-<li><p>Now you should have XRT/XRM/U50 shell installed and xclbin copied to
-TigerGraph install directory</p></li>
-</ol>
-</div>
-<div class="section" id="install-xilinx-alveo-plugin-for-tigergraph">
-<h1>Install Xilinx Alveo Plugin for TigerGraph<a class="headerlink" href="#install-xilinx-alveo-plugin-for-tigergraph" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="install-xilinx-cosinesim-and-recommendation-engine-alveo-products">
+<h1>Install Xilinx CosineSim and Recommendation Engine Alveo Products<a class="headerlink" href="#install-xilinx-cosinesim-and-recommendation-engine-alveo-products" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
-<li><p>Clone graphanalytics repository using your username</p></li>
+<li><p>Power off the server. Plug Xilinx U50 Alveo card into a PCIe Gen3 x16 slot. Power on the server.</p></li>
+<li><p>Install <a class="reference external" href="https://info.tigergraph.com/enterprise-free">TigerGraph Enterprise version 3.1</a> with all the
+default settings like username, passwords, directories. Make a note of the password for the user
+“tigergraph” as it will be needed for later steps.</p></li>
+<li><p>Get the installation package xilinx-tigergraph-install-1.0.tar.gz from
+<a class="reference external" href="https://www.xilinx.com/member/dba_poc.html">Database Analytics POC Secure Site</a></p></li>
+<li><p>Install Xilinx CosineSim and Recommendation Engine Alveo Products and
+dependencies (XRT, XRM, and U50 platform packages)</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf xilinx-tigergraph-install-1.0.tar.gz
+<span class="nb">cd</span> xilinx-tigergraph-install <span class="o">&amp;&amp;</span> ./install.sh
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Flash the card and cold-reboot</p></li>
+<li><p>Install Recommendation Engine plugin for TigerGraph</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/install.sh
+</pre></div>
+</div>
+</div>
+<div class="section" id="collaborate-on-xilinx-cosinesim-and-recommendation-engine-alveo-products">
+<h1>Collaborate on Xilinx CosineSim and Recommendation Engine Alveo Products<a class="headerlink" href="#collaborate-on-xilinx-cosinesim-and-recommendation-engine-alveo-products" title="Permalink to this headline">¶</a></h1>
+<p>Follow the instructions below if you want to collaborate and contribute to Xilinx
+CosineSim and Recommendation Engine Alveo Products</p>
+<ul class="simple">
+<li><p>Clone graphanalytics repository</p></li>
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/Xilinx/graphanalytics.git
 </pre></div>
 </div>
 <ul class="simple">
-<li><p>Run the commands below to install the plugin as the user “tigergraph”</p></li>
+<li><p>Build and install CosinSim package (Replace the package installation command
+and name for your server’s OS):</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>su - tigergraph
-<span class="nb">cd</span> graphanalytics/plugin
-./install-plugin.sh
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> cosinesim
+make dist
+sudo apt install ./package/xilinx-cosinesim-1.0_18.04-x86_64.deb
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Build and install Recommendation Engine package (Replace the package
+installation command and name for your server’s OS)</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> plugin/tigergraph/
+make dist
+sudo apt install ./package/xilinx-recomengine-tigergraph-1.0_18.04-x86_64.deb
 </pre></div>
 </div>
 </div>
@@ -482,7 +504,7 @@ TigerGraph install directory</p></li>
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 23, 2021.
+        Last updated on April 16, 2021.
       </span>
 
     </p>

@@ -6,12 +6,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 	<head>
 		<meta charset="utf-8">
-		<meta content="Vitis, Database, Vitis Database Library, Alveo" name="keywords" />
-<meta content="Vitis Database Library is an open-sourced Vitis library written in C++ for accelerating database applications in a variety of use cases." name="description" />
-<meta content="Document" name="xlnxdocumentclass" />
-<meta content="Tutorials" name="xlnxdocumenttype" />
-<meta content="Vitis, Database, Vitis Database Library, Alveo" name="keywords" />
-<meta content="Vitis Database Library is an open-sourced Vitis library written in C++ for accelerating database applications in a variety of use cases." name="description" />
+		<meta content="Vitis, Graph Database, Alveo" name="keywords" />
+<meta content="Vitis Graph Database Analytics Library is an open-sourced Vitis library written in C++ for accelerating database applications in a variety of use cases." name="description" />
 <meta content="Document" name="xlnxdocumentclass" />
 <meta content="Tutorials" name="xlnxdocumenttype" />
 
@@ -313,7 +309,7 @@
             
             
               <div class="version">
-                2020.2
+                1.0
               </div>
             
           
@@ -344,13 +340,13 @@
 </ul>
 <p class="caption"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="install.html">Install XRT and XRM libraries and U50 platform</a></li>
-<li class="toctree-l1"><a class="reference internal" href="install.html#install-xilinx-alveo-plugin-for-tigergraph">Install Xilinx Alveo Plugin for TigerGraph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install Xilinx CosineSim and Recommendation Engine Alveo Products</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html#collaborate-on-xilinx-cosinesim-and-recommendation-engine-alveo-products">Collaborate on Xilinx CosineSim and Recommendation Engine Alveo Products</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Run Alveo Demo</span></p>
+<p class="caption"><span class="caption-text">Run Synthea Example on Alveo</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="run-demo-jupyter.html">Run Demo in Jupyter Notebook</a></li>
-<li class="toctree-l1"><a class="reference internal" href="run-demo-script.html">Run demo using script</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-demo-script.html">Run Demo using Script</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Integrate with TigerGraph</span></p>
 <ul>
@@ -411,7 +407,7 @@
     
       <li><a href="#" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Xilinx Alveo Graph Analytics Products</li>
+      <li>&lt;no title&gt;</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -428,209 +424,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="xilinx-alveo-graph-analytics-products">
-<span id="brief"></span><h1>Xilinx Alveo Graph Analytics Products<a class="headerlink" href="#xilinx-alveo-graph-analytics-products" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="high-level-architecture">
-<h2>High Level Architecture<a class="headerlink" href="#high-level-architecture" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="general-use-cases">
-<h3>General use cases<a class="headerlink" href="#general-use-cases" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="synthea-use-case">
-<h4>Synthea use case<a class="headerlink" href="#synthea-use-case" title="Permalink to this headline">¶</a></h4>
-<p>Health and medical professionals are required to make predictions for diagnosis and prognosis in various medical problems. Individualized predictive analytics based on patient similarity is becoming popular in this field to identify similar patients to an index patient, derive insights from the records of the similar patients, and provide personalized predictions. Studies have shown that Consine similarity metrics can outperform conventional predictive modeling in which all available patient data are analyzed. The improved prediction performance is achieved at the cost of increased computational burden.</p>
-<p>Xilinx Graph Analytics library optimized for <a class="reference external" href="https://www.xilinx.com/products/boards-and-kits/alveo.html">Alveo Adaptable Accelerator Cards</a>
-has been demonstrated on <a class="reference external" href="https://synthetichealth.github.io/synthea/">Synthea</a> generated
-patient data to greatly reduce that computational burden and provide predication results
-for patients more rapidly. Synthea&lt;sup&gt;TM&lt;/sup&gt; is an open-source, synthetic patient
-generator that models the medical history of synthetic patients and provides high-quality,
-synthetic, realistic but not real, patient data and associated health records covering
-every aspect of healthcare.</p>
-</div>
-<div class="section" id="product-recommendation">
-<h4>Product recommendation<a class="headerlink" href="#product-recommendation" title="Permalink to this headline">¶</a></h4>
-</div>
-<div class="section" id="healthcare">
-<h4>Healthcare<a class="headerlink" href="#healthcare" title="Permalink to this headline">¶</a></h4>
-</div>
-<div class="section" id="helpdesk">
-<h4>Helpdesk<a class="headerlink" href="#helpdesk" title="Permalink to this headline">¶</a></h4>
-</div>
-<div class="section" id="log-file-errors">
-<h4>Log file errors<a class="headerlink" href="#log-file-errors" title="Permalink to this headline">¶</a></h4>
-</div>
-<div class="section" id="security">
-<h4>Security<a class="headerlink" href="#security" title="Permalink to this headline">¶</a></h4>
-</div>
-</div>
-</div>
-<div class="section" id="xilinx-vitis-graph-analytics-acceleration-library-plugin-for-tigergraph">
-<h2>Xilinx Vitis Graph Analytics Acceleration Library Plugin for TigerGraph<a class="headerlink" href="#xilinx-vitis-graph-analytics-acceleration-library-plugin-for-tigergraph" title="Permalink to this headline">¶</a></h2>
-<p>Xilinx Vitis Graph Analytics Acceleration Libray is seamlessly integrated with
-TigerGraph as a plugin. The low level hardware details are transparent to TigerGraph users.</p>
-<p>The plugin consists of two major components as shown in the block diagram below:</p>
-<ul class="simple">
-<li><p>Xilinx Vitis Graph Analytics Library is provided as custom TigerGraph User Defined
-Function(UDF) that can be called directly from GSQL.</p></li>
-<li><p>Xilinx Resource Manager (XRM) and Xilinx Run Time (XRT) libraries are installed
-on all processing nodes to manage resource allocation on Alveo Acceleration cards and data movement between the CPU and the FPGA.</p></li>
-</ul>
-<a class="reference internal image-reference" href="_images/xilinx-tg-plugin.png"><img alt="Xilinx Tigergraph Plugin" class="align-center" src="_images/xilinx-tg-plugin.png" style="width: 508.2px; height: 415.8px;" /></a>
-</div>
-<div class="section" id="cosine-similarity">
-<h2>Cosine similarity<a class="headerlink" href="#cosine-similarity" title="Permalink to this headline">¶</a></h2>
-<p>Cosine similarity is a measure of similarity between two non-zero vectors of an
-inner product space:</p>
-<a class="reference internal image-reference" href="_images/cosine-similarity-formula.svg"><img alt="Cosine Similarity Formula" class="align-center" src="_images/cosine-similarity-formula.svg" /></a>
-<p>In TigerGraph patients information and medical history are represented as vertices
-and edges in a graph database as shown below:</p>
-<a class="reference internal image-reference" href="_images/synthea-patient-schema.png"><img alt="Cosine Similarity Formula" class="align-center" src="_images/synthea-patient-schema.png" style="width: 504.59999999999997px; height: 376.2px;" /></a>
-<p>Each attribute (e.g. age, gender, race, immunization, etc) of a patient is mapped to
-a numerical value and becomes a feature of the patient vector. In our PoC design each
-paitent vector consists of 198 features and each feature is stored as a 32-bit
-integer. Consine similarity is calcualted between the index patient vector and all
-other patient vectors. The results are then sorted and the top 100 patients with
-highest scores are presented. Below are the details of the feature map:</p>
-<table class="docutils align-center" id="id1" style="width: 50%">
-<caption><span class="caption-text">Patient feature map</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
-<colgroup>
-<col style="width: 43%" />
-<col style="width: 57%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>Feature (INT)</p></th>
-<th class="head"><p>Descriptions</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>0</p></td>
-<td><p>Norm</p></td>
-</tr>
-<tr class="row-odd"><td><p>1-2</p></td>
-<td><p>64-bit patient VID</p></td>
-</tr>
-<tr class="row-even"><td><p>3</p></td>
-<td><p>age</p></td>
-</tr>
-<tr class="row-odd"><td><p>4</p></td>
-<td><p>gender</p></td>
-</tr>
-<tr class="row-even"><td><p>5</p></td>
-<td><p>race</p></td>
-</tr>
-<tr class="row-odd"><td><p>6</p></td>
-<td><p>ethnicity</p></td>
-</tr>
-<tr class="row-even"><td><p>7-19</p></td>
-<td><p>reserved</p></td>
-</tr>
-<tr class="row-odd"><td><p>20-39</p></td>
-<td><p>immunization map</p></td>
-</tr>
-<tr class="row-even"><td><p>40-59</p></td>
-<td><p>allergy map</p></td>
-</tr>
-<tr class="row-odd"><td><p>60-109</p></td>
-<td><p>conditions map</p></td>
-</tr>
-<tr class="row-even"><td><p>110-139</p></td>
-<td><p>imaging studies map</p></td>
-</tr>
-<tr class="row-odd"><td><p>140-189</p></td>
-<td><p>procedures map</p></td>
-</tr>
-<tr class="row-even"><td><p>190-209</p></td>
-<td><p>careplans map</p></td>
-</tr>
-</tbody>
-</table>
-<div class="section" id="cosine-similarity-gsql">
-<h3>Cosine similarity GSQL<a class="headerlink" href="#cosine-similarity-gsql" title="Permalink to this headline">¶</a></h3>
-<p>TigerGraph uses GSQL query language for fast and scalable graph operations and analytics. A GSQL script of patient similarity using cosine similarity is created to baseline the
-functionalities and computation complexity of the algorithm. It is used to verify and validate the functional
-correctness and performance improvement of the Alveo accelerated desgin. Below is the block diagram of cosine
-similarity computation in GSQL, which is executed entirely on CPU.</p>
-<a class="reference internal image-reference" href="_images/cosine-similarity-gsql.png"><img alt="Cosine Similarity GSQL" class="align-center" src="_images/cosine-similarity-gsql.png" style="width: 466.2px; height: 155.4px;" /></a>
-<p>Below is the code snippet of cosine similarity in GSQL.</p>
-<a class="reference internal image-reference" href="_images/tg-graph-algorithm-cosine-similarity.png"><img alt="Tigergraph Cosine Similarity Algorithm" class="align-center" src="_images/tg-graph-algorithm-cosine-similarity.png" style="width: 709.1999999999999px; height: 112.2px;" /></a>
-<div class="section" id="fpga-accelerated-cosine-similarity-function">
-<h4>FPGA Accelerated cosine similarity function<a class="headerlink" href="#fpga-accelerated-cosine-similarity-function" title="Permalink to this headline">¶</a></h4>
-<p>Xilinx Vitis Graph Analytics Library plugin provides a user defined function that
-offloads the computation  of cosine simimarity and the top K highest scores to the FPGA:</p>
-<a class="reference internal image-reference" href="_images/cosine-similarity-alveo.png"><img alt="Cosine Similarity on Alveo" class="align-center" src="_images/cosine-similarity-alveo.png" style="width: 661.1999999999999px; height: 222.0px;" /></a>
-<p>The accelerated cosine simlarity UDF consists of two parts:</p>
-<ul class="simple">
-<li><p>Host code: C++ code that runs on the CPU to manage resource allocation and data
-movement between the CPU and the FPGA</p></li>
-<li><p>Kernel: custom computation hardware logic that utilizes massive parallel
-processing horsepwer and abundant on-chip memory on FPGA. Each kernel contains
-two compute units(CUs) running in parallel with each CU connecting to one HBM
-stack that stores patients’ records.</p></li>
-</ul>
-<p>Below is the code snippet of cosine similarity accelerated on Alveo card using Tigergraph UDF.</p>
-<a class="reference internal image-reference" href="_images/tg-query-cosine-similarity-fpga-gsql.png"><img alt="_images/tg-query-cosine-similarity-fpga-gsql.png" class="align-center" src="_images/tg-query-cosine-similarity-fpga-gsql.png" style="width: 858.6px; height: 19.2px;" /></a>
-<a class="reference internal image-reference" href="_images/tg-query-cosine-similarity-fpga-udf.png"><img alt="_images/tg-query-cosine-similarity-fpga-udf.png" class="align-center" src="_images/tg-query-cosine-similarity-fpga-udf.png" style="width: 1005.0px; height: 24.0px;" /></a>
-<a class="reference internal image-reference" href="_images/cosine-similarity-kernel-top.png"><img alt="_images/cosine-similarity-kernel-top.png" class="align-center" src="_images/cosine-similarity-kernel-top.png" style="width: 368.4px; height: 322.2px;" /></a>
-<p>The kernel design for each CU is illustrated in the block diagram below. Each CU
-contains 16 fully pipelined cosine similarity processing elements (PEs) and one
-MaxK components to choose the top similarities. The 16 PEs are connected to 16
-channels to access 5M patients’ data in parallel. The incoming new patient’s record
-is transmitted to the FPGA’s PLRAM by the host and then duplicated to 16 PEs. The MaxK
-primitive calculates the top cosine similarities and their corresponding indices and
-writes them to the PLRAM, which is read out by the host. In the end, the host
-will do a simple computation to extract the final top similarities from the top
-similarity sets computed by the two CUs.</p>
-<a class="reference internal image-reference" href="_images/cosine-similarity-kernel-block-diagram.png"><img alt="_images/cosine-similarity-kernel-block-diagram.png" class="align-center" src="_images/cosine-similarity-kernel-block-diagram.png" style="width: 781.1999999999999px; height: 288.59999999999997px;" /></a>
-</div>
-<div class="section" id="run-cosine-similarity-on-alveo-u50-card">
-<h4>Run Cosine Similarity on Alveo U50 Card<a class="headerlink" href="#run-cosine-similarity-on-alveo-u50-card" title="Permalink to this headline">¶</a></h4>
-<p>The <a class="reference external" href="https://www.xilinx.com/products/boards-and-kits/alveo/u50.html">Xilinx® Alveo™ U50 Data Center accelerator cards</a>
-provide optimized acceleration for workloads in financial computing, machine
-learning, computational storage, and data search and analytics. Alveo U50 is
-designed for deployment in any server with the following features:</p>
-<ul class="simple">
-<li><p>Built on Xilinx UltraScale+ architecture</p></li>
-<li><p>Efficient 75-watt, small form factor</p></li>
-<li><p>100 Gbps networking I/O</p></li>
-<li><p>PCIe Gen4</p></li>
-<li><p>HBM</p></li>
-</ul>
-<p>Xilinx has demonstrated 400x acceleration of cosine simlarity running on Alveo
-U50 cards comparing to a server with 128 CPU cores and 256GB RAM. A demo
-utilizing Xilinx TigerGraph plugin with Alveo U50 acceleration card is included
-in this repository to show the general usage of the plugin and the development
-flow of custom graph algorithm accelerators on Xilinx Alveo cards in TigerGraph. Please
-Check [Running Alveo Demo](docs/running_demo.md) for detailed instructions on how to
-run the demo on premise.</p>
-</div>
-</div>
-</div>
-<div class="section" id="license">
-<h2>License<a class="headerlink" href="#license" title="Permalink to this headline">¶</a></h2>
-<p>Licensed using the [Apache 2.0 license](<a class="reference external" href="https://www.apache.org/licenses/LICENSE-2.0">https://www.apache.org/licenses/LICENSE-2.0</a>).</p>
-<blockquote>
-<div><p>Copyright 2020-2021 Xilinx, Inc.</p>
-<p>Licensed under the Apache License, Version 2.0 (the “License”);
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at</p>
-<blockquote>
-<div><p><a class="reference external" href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a></p>
-</div></blockquote>
-<p>Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an “AS IS” BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-Copyright 2020-2021 Xilinx, Inc.</p>
-</div></blockquote>
-</div>
-<div class="section" id="trademark-notice">
-<h2>Trademark Notice<a class="headerlink" href="#trademark-notice" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div><p>Xilinx, the Xilinx logo, Artix, ISE, Kintex, Spartan, Virtex, Zynq, and
-other designated brands included herein are trademarks of Xilinx in the
-United States and other countries.</p>
-<p>All other trademarks are the property of their respective owners.</p>
-</div></blockquote>
-<div class="toctree-wrapper compound">
+  <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">Overview</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Xilinx Alveo Graph Analytics Products</a></li>
@@ -639,19 +433,19 @@ United States and other countries.</p>
 <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="install.html">Install XRT and XRM libraries and U50 platform</a></li>
-<li class="toctree-l1"><a class="reference internal" href="install.html#install-xilinx-alveo-plugin-for-tigergraph">Install Xilinx Alveo Plugin for TigerGraph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install Xilinx CosineSim and Recommendation Engine Alveo Products</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html#collaborate-on-xilinx-cosinesim-and-recommendation-engine-alveo-products">Collaborate on Xilinx CosineSim and Recommendation Engine Alveo Products</a></li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
-<p class="caption"><span class="caption-text">Run Alveo Demo</span></p>
+<p class="caption"><span class="caption-text">Run Synthea Example on Alveo</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="run-demo-jupyter.html">Run Demo in Jupyter Notebook</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="run-demo-jupyter.html#install-jupyter-notebook-in-a-conda-environment">Install Jupyter Notebook in a conda environment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="run-demo-jupyter.html#start-jupyter-notebook">Start Jupyter Notebook</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="run-demo-script.html">Run demo using script</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-demo-script.html">Run Demo using Script</a></li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
@@ -665,8 +459,6 @@ United States and other countries.</p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="vitis-dev-flow.html">Vitis Development Flow</a></li>
 </ul>
-</div>
-</div>
 </div>
 
 
@@ -696,7 +488,7 @@ United States and other countries.</p>
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 23, 2021.
+        Last updated on April 16, 2021.
       </span>
 
     </p>

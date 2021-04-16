@@ -58,7 +58,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Vitis Development Flow" href="vitis-dev-flow.html" />
-    <link rel="prev" title="Run demo using script" href="run-demo-script.html" /> 
+    <link rel="prev" title="Run Demo using Script" href="run-demo-script.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -306,7 +306,7 @@
             
             
               <div class="version">
-                2020.2
+                1.0
               </div>
             
           
@@ -337,21 +337,19 @@
 </ul>
 <p class="caption"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="install.html">Install XRT and XRM libraries and U50 platform</a></li>
-<li class="toctree-l1"><a class="reference internal" href="install.html#install-xilinx-alveo-plugin-for-tigergraph">Install Xilinx Alveo Plugin for TigerGraph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install Xilinx CosineSim and Recommendation Engine Alveo Products</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html#collaborate-on-xilinx-cosinesim-and-recommendation-engine-alveo-products">Collaborate on Xilinx CosineSim and Recommendation Engine Alveo Products</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Run Alveo Demo</span></p>
+<p class="caption"><span class="caption-text">Run Synthea Example on Alveo</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="run-demo-jupyter.html">Run Demo in Jupyter Notebook</a></li>
-<li class="toctree-l1"><a class="reference internal" href="run-demo-script.html">Run demo using script</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-demo-script.html">Run Demo using Script</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Integrate with TigerGraph</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Integration with TigerGraph</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#tigergraph-user-defined-functions-udf">TigerGraph User-Defined Functions (UDF)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#udf-example">UDF Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#running-install-sh">Running <em>install.sh</em></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#benchmark-results">Benchmark Results</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#next-step">Next Step</a></li>
 </ul>
 </li>
@@ -430,15 +428,20 @@
             
   <div class="section" id="integration-with-tigergraph">
 <h1>Integration with TigerGraph<a class="headerlink" href="#integration-with-tigergraph" title="Permalink to this headline">¶</a></h1>
-<p>If you have gone thru <em>Targeting Alveo in HPE server</em> section, you have installed
-all the necessary software to start the integration of Xilinx Graph Library IP with
-Tigergraph software. This section explains how L3 Vitis Graph Library function is
+<p>This section explains how L3 Vitis Graph Library function is
 ported into TigerGraph SW framework, and finally running the application on Alveo by
 calling GSQL query from TigerGraph SW.</p>
 <a class="reference internal image-reference" href="_images/fig_TG_top.jpg"><img alt="_images/fig_TG_top.jpg" class="align-center" src="_images/fig_TG_top.jpg" style="width: 619.8px; height: 284.4px;" /></a>
 <div class="section" id="tigergraph-user-defined-functions-udf">
-<h2>TigerGraph <a class="reference external" href="https://docs.tigergraph.com/dev/gsql-ref/querying/operators-functions-and-expressions#user-defined-functions">User-Defined Functions</a> (UDF)<a class="headerlink" href="#tigergraph-user-defined-functions-udf" title="Permalink to this headline">¶</a></h2>
-<p>You can create your own custom GSQL function in TigerGraph using C++. You can define a top level function in <em>&lt;tigergraph.root.dir&gt;/dev/gdk/gsql/src/QueryUdf/ExprFunctions.hpp</em>. It is this UDF mechanism that enables porting of Xilinx Graph Library IP into TigerGraph SW. All the files necessary to make this porting is included in the Graph Library, as shown below in <em>graph/plugin</em> directory.  Important files/directories are:</p>
+<h2>TigerGraph User-Defined Functions (UDF)<a class="headerlink" href="#tigergraph-user-defined-functions-udf" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>You can create your own custom GSQL function as <a class="reference external" href="https://docs.tigergraph.com/dev/gsql-ref/querying/operators-functions-and-expressions#user-defined-functions">UDF</a></dt><dd><p>in TigerGraph using C++. You can define a top level function in
+<em>&lt;tigergraph.root.dir&gt;/dev/gdk/gsql/src/QueryUdf/ExprFunctions.hpp</em>.
+It is this UDF mechanism that enables porting of Xilinx Graph Library IP into
+TigerGraph SW. All the files necessary to make this porting is included in the
+Graph Library, as shown below in <em>graph/plugin</em> directory.  Important files/directories are:</p>
+</dd>
+</dl>
 <ul>
 <li><p>install.sh*: is a script to automate the porting. It updates the <em>ExprFunctions.hpp</em>
 with the top level functions of Graph Library defined in <em>tigergraph/QueryUdf/xilinxUdf.hpp</em></p></li>
@@ -449,7 +452,7 @@ the <em>QueryUdf</em> directory in TigerGraph install directory
 can use to test the newely created UDFs</p></li>
 <li><p>tigergraph/tests/cosine_nbor_ss_dense_int/1K_patiensts*: has all the patient
 data set used for Cosine Similarity query testing</p>
-<a class="reference internal image-reference" href="images/fig_plugin.jpg.jpg"><img alt="images/fig_plugin.jpg.jpg" class="align-center" src="images/fig_plugin.jpg.jpg" /></a>
+<a class="reference internal image-reference" href="_images/fig_plugin.jpg"><img alt="_images/fig_plugin.jpg" class="align-center" src="_images/fig_plugin.jpg" style="width: 250.79999999999998px; height: 256.2px;" /></a>
 </li>
 </ul>
 </div>
@@ -474,44 +477,10 @@ file, among other settings. It also calls <em>xf::graph::L3::Handle</em> defined
 xf_graph_L3_handle.hpp (in graph/L3/include) used for XRM</p></li>
 </ul>
 </div>
-<div class="section" id="running-install-sh">
-<h2>Running <em>install.sh</em><a class="headerlink" href="#running-install-sh" title="Permalink to this headline">¶</a></h2>
-<p>This is the script that automate the exporting of Graph Library functions into
-custom TigerGraph GSQL functions. Make sure you download the xclbin file you
-need during this process from [DBA lounge](<a class="reference external" href="https://www.xilinx.com/member/dba_poc.html">https://www.xilinx.com/member/dba_poc.html</a>) befor you start.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="m">1</span><span class="o">)</span> Integrate Xilinx graph library to TigerGraph framework as UDF
-su - tigergraph
-<span class="nb">cd</span> &lt;lib dir&gt;/plugin
-./install.sh
-
-<span class="m">2</span><span class="o">)</span> check to make sure Alveo U50 is alive and working
-xbutil query
-
-<span class="m">3</span><span class="o">)</span> Copy the xclbin file to &lt;lib dir&gt;/plugin. Make sure the xclbin is owned by
-TigerGraph user
-
-<span class="m">4</span><span class="o">)</span> Move the xclbin file to TigerGraph install directory by
-./install-xclbin.sh
-
-<span class="m">5</span><span class="o">)</span> start XRM <span class="o">(</span>Xilinx Resource Manager<span class="o">)</span> daemon <span class="k">in</span> a separate terminal
-sudo /opt/xilinx/xrm/tools/restart_xrmd.sh
-
-<span class="m">6</span><span class="o">)</span> run cosine similarity poc
-<span class="nb">cd</span> &lt;vitis lib dir&gt;/graph/plugin/tigergraph/tests/cosine_nbor_ss_dense_int
-./run.sh
-</pre></div>
-</div>
-<p>If it has ran sucessfully you should see the following log message:</p>
-<a class="reference internal image-reference" href="images/fig_run_tg.jpg"><img alt="images/fig_run_tg.jpg" class="align-center" src="images/fig_run_tg.jpg" /></a>
-</div>
-<div class="section" id="benchmark-results">
-<h2>Benchmark Results<a class="headerlink" href="#benchmark-results" title="Permalink to this headline">¶</a></h2>
-<p>Update this section with the latest results using 10M patient data set.</p>
-</div>
 <div class="section" id="next-step">
 <h2>Next Step<a class="headerlink" href="#next-step" title="Permalink to this headline">¶</a></h2>
 <p>If you want to create your own accelerator function to run on Alveo, please see
-the the next section [Vitis Development Flow](./vitis_dev_flow.md). &lt;br/&gt;</p>
+the the next section.</p>
 </div>
 </div>
 
@@ -534,7 +503,7 @@ the the next section [Vitis Development Flow](./vitis_dev_flow.md). &lt;br/&gt;<
         <a href="vitis-dev-flow.html" class="btn btn-neutral float-right" title="Vitis Development Flow" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="run-demo-script.html" class="btn btn-neutral float-left" title="Run demo using script" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="run-demo-script.html" class="btn btn-neutral float-left" title="Run Demo using Script" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -544,7 +513,7 @@ the the next section [Vitis Development Flow](./vitis_dev_flow.md). &lt;br/&gt;<
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 23, 2021.
+        Last updated on April 16, 2021.
       </span>
 
     </p>
