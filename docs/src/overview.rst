@@ -222,13 +222,9 @@ designed for deployment in any server with the following features:
 * PCIe Gen4
 * HBM  
 
-Xilinx has demonstrated 400x acceleration of cosine simlarity running on Alveo 
-U50 cards comparing to a server with 128 CPU cores and 256GB RAM. A demo 
-utilizing Xilinx TigerGraph plugin with Alveo U50 acceleration card is included 
+A demo utilizing Xilinx TigerGraph plugin with Alveo U50 acceleration card is included 
 in this repository to show the general usage of the plugin and the development 
-flow of custom graph algorithm accelerators on Xilinx Alveo cards in TigerGraph. Please 
-Check [Running Alveo Demo](docs/running_demo.md) for detailed instructions on how to 
-run the demo on premise.
+flow of custom graph algorithm accelerators on Xilinx Alveo cards in TigerGraph. 
 
 License
 -----------------------

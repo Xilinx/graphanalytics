@@ -34,7 +34,7 @@
    install.rst
 
 .. toctree::
-   :caption: Run Alveo Demo
+   :caption: Run Synthea Example on Alveo
    :maxdepth: 2
 
    run-demo-jupyter.rst

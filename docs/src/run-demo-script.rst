@@ -1,11 +1,10 @@
 ===========================================
-Run demo using script
+Run Demo using Script
 ===========================================
 
-* Open terminal use your username
-* Execute the commands below to run the demo
+* Open terminal
+* Execute the command below to run the demo
 
 .. code-block:: bash
 
-   cd graphanalytics/plugin/tigergraph/tests/cosine_nbor_ss_dense_int
-   ./run.sh
+   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/examples/synthea/run.sh

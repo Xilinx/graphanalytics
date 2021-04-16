@@ -2,9 +2,7 @@
 Integration with TigerGraph 
 =====================================
 
-If you have gone thru *Targeting Alveo in HPE server* section, you have installed 
-all the necessary software to start the integration of Xilinx Graph Library IP with 
-Tigergraph software. This section explains how L3 Vitis Graph Library function is 
+This section explains how L3 Vitis Graph Library function is 
 ported into TigerGraph SW framework, and finally running the application on Alveo by 
 calling GSQL query from TigerGraph SW.
 
