@@ -33,6 +33,10 @@ ifndef XILINX_XRM
     export XILINX_XRM
 endif
 
+#the default PROD_VERSION as the latest version
+ifndef PROD_VERSION 
+    PROD_VERSION = 1.0
+endif
 
 # Location of Alveo product if installed from sources
 MK_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
@@ -43,8 +47,8 @@ LIB_PATH = $(XF_PROJ_ROOT)/staging/lib
 INCLUDE_PATH = $(XF_PROJ_ROOT)/include
 
 ifeq ($(wildcard $(LIB_PATH)/*.so),)
-    LIB_PATH = $(XILINX_COSINESIM)/lib
-    INCLUDE_PATH = $(XILINX_COSINESIM)/include
+    LIB_PATH = $(XILINX_COSINESIM)/${PROD_VERSION}/lib
+    INCLUDE_PATH = $(XILINX_COSINESIM)/${PROD_VERSION}/include
 endif
 
 

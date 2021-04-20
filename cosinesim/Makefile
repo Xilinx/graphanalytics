@@ -401,6 +401,7 @@ STAGE_DIR = staging
 # Files to be direct-copied from source tree to staging area
 
 STAGE_COPY_FILES = \
+    VERSION \
     include/cosinesim.hpp \
     src/cosinesim_loader.cpp
 
@@ -430,8 +431,9 @@ $(foreach f,$(STAGE_LIB_FILES),$(eval $(call STAGE_LIB_RULE,$(f))))
 
 STAGE_EXAMPLE_ZIP = examples.zip
 STAGE_EXAMPLE_FILE_NAMES = \
-	cpp/cppdemo.cpp cpp/Makefile \
-	python/pythondemo.py python/run.sh
+	cpp/cppdemo.cpp cpp/Makefile cpp/README.md \
+    python/pythondemo.py python/run.sh \
+    python/README.md python/jupyter/jupyter_demo.ipynb
 
 STAGE_EXAMPLE_FILES = $(addprefix examples/,$(STAGE_EXAMPLE_FILE_NAMES))
 STAGE_STAGED_EXAMPLE_FILES = $(addprefix $(STAGE_DIR)/,$(STAGE_EXAMPLE_FILES))

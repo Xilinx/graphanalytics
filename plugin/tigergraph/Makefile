@@ -35,17 +35,21 @@ GRAPH_ANALYTICS_DIR = ../..
 
 STAGE_DIR = staging
 SYNTHEA_DIR = examples/synthea
-UDF_DIR = udf
 
 # Files to be direct-copied from source tree to staging area
 
 STAGE_COPY_FILES = \
-    install-plugin.sh \
+    VERSION \
+    install.sh \
     \
-    $(UDF_DIR)/ExprFunctions.hpp \
-    $(UDF_DIR)/mergeHeaders.py \
-    $(UDF_DIR)/xilinxRecomEngine.hpp \
-    $(UDF_DIR)/xilinxRecomEngineImpl.hpp \
+    bin/common.sh \
+    bin/install-plugin-cluster.sh \
+    bin/install-plugin-node.sh\
+    \
+    udf/ExprFunctions.hpp \
+    udf/mergeHeaders.py \
+    udf/xilinxRecomEngine.hpp \
+    udf/xilinxRecomEngineImpl.hpp \
     \
     $(wildcard $(SYNTHEA_DIR)/1000_patients/csv/*.csv) \
     $(SYNTHEA_DIR)/bin/common.sh \

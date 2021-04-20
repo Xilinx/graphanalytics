@@ -67,16 +67,19 @@ fi
 
 for ((j = 0 ; j < $iterations ; ++j))
 do
-    rm -f log/fpga.txt log/tg.txt
-
     echo "------ iteration $j --------"
     echo "Run query cosinesim_ss_tg"
-    time gsql -g $xgraph "run query cosinesim_ss_tg(\"$PWD/log/tg.txt\")"
+    time gsql -g $xgraph "run query cosinesim_ss_tg(\"/tmp/tg.txt\")"
     echo "Run query cosinesim_ss_fpga"
-    time gsql -g $xgraph "run query cosinesim_ss_fpga(\"$PWD/log/fpga.txt\")"
+    time gsql -g $xgraph "run query cosinesim_ss_fpga(\"/tmp/fpga.txt\")"
     
+    echo "INFO: Running a simple diff as a sanity check between CPU and FPGA results"
+    echo "INFO: diff /tmp/tg.txt /tmp/fpga.txt"
     # basic checking of the result
-    diff log/fpga.txt log/tg.txt
+    diff /tmp/fpga.txt /tmp/tg.txt || :
+
+    echo ""
+    echo "INFO: The only difference should be the precision of similarity scores for some records."
 done
 
 
