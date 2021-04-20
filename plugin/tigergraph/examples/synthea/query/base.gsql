@@ -278,7 +278,7 @@ create query load_graph_cosinesim_ss_fpga_core() for graph @graph returns (int) 
     patientList = select p from population:p
         ACCUM @@patientVectors += p.COSINE_SIM_VECTOR, @@patientIds += getvid(p);
 
-    ret = udf_xilinx_recom_load_population_vectors(population.size(), @@patientVectors, @@patientIds);
+    ret = udf_xilinx_recom_load_population_vectors(@@patientVectors, @@patientIds);
     return ret;
 }
 
@@ -296,17 +296,8 @@ create query cosinesim_ss_fpga_core (vertex<patients> source, uint topK) for
     RETURN @@results;
 }
 
-CREATE QUERY cosinesim_start_population() FOR GRAPH @graph RETURNS (BOOL)
-{
-    BOOL ret;
-
-    ret = udf_xilinx_recom_start_population();
-
-    RETURN ret;
-}
-
 install query patient_age, patient_race, patient_gender, patient_ethnicity, 
     patient_vector, cosinesim_clear_embeddings, cosinesim_embed_vectors, cosinesim_embed_normals,
     cosinesim_match_sw, cosinesim_set_num_devices,
     cosinesim_get_num_devices, cosinesim_is_fpga_initialized,
-    load_graph_cosinesim_ss_fpga_core, cosinesim_ss_fpga_core, cosinesim_start_population
+    load_graph_cosinesim_ss_fpga_core, cosinesim_ss_fpga_core

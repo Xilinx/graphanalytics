@@ -724,7 +724,6 @@ std::thread Handle::loadXclbinNonBlock(unsigned int deviceId, char* xclbinName) 
 };
 
 std::future<int> Handle::loadXclbinAsync(unsigned int deviceId, std::string& xclbinPath) {
-    std::cout << "DEBUG: " << __FUNCTION__ << " xclbinPath=" << xclbinPath << std::endl;
     return xrm->loadXclbinAsync(deviceId, xclbinPath);
 };
 
