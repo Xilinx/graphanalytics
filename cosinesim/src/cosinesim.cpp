@@ -84,7 +84,7 @@ public:
         if(options.numDevices > 0)
             numDevices = options.numDevices;
 
-        xclbinPath = "/opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin";
+        xclbinPath = "/opt/xilinx/apps/graphanalytics/cosinesim/1.0/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin";
 //        if (options.xclbinPathCStr != nullptr)
 //            xclbinPath = options.xclbinPathCStr;
 //        else if (!options.xclbinPath.empty()){

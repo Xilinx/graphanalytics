@@ -21,6 +21,16 @@
    :xlnxdocumentclass: Document
    :xlnxdocumenttype: Tutorials
 
+Vitis Graph Database Analytics Library
+======================================
+Vitis Graph Database Analytics Library is an open-sourced Vitis library written 
+in C++ for accelerating database applications in a variety of use cases. It currently
+includes the following products:
+
+* CosineSim and Recommendation Engine intergrated with TigerGraph Graph Database
+
+
+
 .. toctree::
    :caption: Overview
    :maxdepth: 1
@@ -34,7 +44,7 @@
    install.rst
 
 .. toctree::
-   :caption: Run Alveo Demo
+   :caption: Run Synthea Example on Alveo
    :maxdepth: 2
 
    run-demo-jupyter.rst

@@ -20,19 +20,21 @@ set (CMAKE_CXX_STANDARD 14)
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMake/")
 
 set(CS_FILE_PATH "${CMAKE_SOURCE_DIR}/../staging/")
-install(DIRECTORY "${CS_FILE_PATH}/lib/" DESTINATION ${CMAKE_INSTALL_PREFIX}/cosinesim/lib)
+set(CMAKE_INSTALL_PATH "${CMAKE_INSTALL_PREFIX}/cosinesim/${PROD_VERSION}")
+install(DIRECTORY "${CS_FILE_PATH}/lib/" DESTINATION ${CMAKE_INSTALL_PATH}/lib)
 
-install(FILES "${CS_FILE_PATH}/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin" DESTINATION ${CMAKE_INSTALL_PREFIX}/cosinesim/xclbin)
-install(FILES "${CS_FILE_PATH}/include/cosinesim.hpp" DESTINATION ${CMAKE_INSTALL_PREFIX}/cosinesim/include)
+install(FILES "${CS_FILE_PATH}/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin" DESTINATION ${CMAKE_INSTALL_PATH}/xclbin)
+install(FILES "${CS_FILE_PATH}/include/cosinesim.hpp" DESTINATION ${CMAKE_INSTALL_PATH}/include)
 
-install(FILES "${CS_FILE_PATH}/src/cosinesim_loader.cpp" DESTINATION ${CMAKE_INSTALL_PREFIX}/cosinesim/src)
-install(FILES "${CS_FILE_PATH}/examples.zip" DESTINATION ${CMAKE_INSTALL_PREFIX}/cosinesim)
-
+install(FILES "${CS_FILE_PATH}/src/cosinesim_loader.cpp" DESTINATION ${CMAKE_INSTALL_PATH}/src)
+install(FILES "${CS_FILE_PATH}/examples.zip" DESTINATION ${CMAKE_INSTALL_PATH}/)
+install(FILES "${CS_FILE_PATH}/VERSION" DESTINATION ${CMAKE_INSTALL_PATH}/ )
 
 #version 
 
-set(CPACK_PACKAGE_NAME "xilinx-cosinesim")
-set(PROJ_VERSION_RELEASE "1.0.0")
+set(CPACK_PACKAGE_NAME "xilinx-cosinesim-${PROD_VERSION}")
+set(CPACK_PACKAGE_VERSION "1.0.0")
+
 # --- LSB Release ---
 find_program(LSB_RELEASE lsb_release)
 find_program(UNAME uname)
@@ -73,11 +75,11 @@ elseif (${LINUX_FLAVOR} MATCHES "^(RedHat|CentOS|Amazon)")
 
 endif()
 
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${PROJ_VERSION_RELEASE}_${CPACK_REL_VER}-${CPACK_ARCH}")
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${CPACK_REL_VER}-${CPACK_ARCH}")
 
 message("-- ${CMAKE_BUILD_TYPE} ${PACKAGE_KIND} package")
-
-set(CPACK_PACKAGE_NAME "xilinx-cosinesim")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "xrt (>= 2.8.0),xrm (>= 1.2.0),python3.6")
+set(CPACK_RPM_PACKAGE_DEPENDS "xrt (>= 2.8.0), xrm (>= 1.2.0),python3 (>= 3.6)")
 #set(CPACK_PACKAGE_VERSION "1.0.0_18.04-x86_64")
 set(CPACK_PACKAGE_CONTACT "Xilinx Cosinesim Development Team")
 set(CPACK_PACKAGE_VENDOR "Xilinx")

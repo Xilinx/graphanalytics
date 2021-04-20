@@ -13,9 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# This one should be moved to Recommendation Engine install script!
+# Moved to plugin installation script
 #DROP TUPLE XilCosinesimMatch
-TYPEDEF TUPLE<Id VERTEX, score double> XilCosinesimMatch
+#TYPEDEF TUPLE<Id VERTEX, score double> XilCosinesimMatch
 
 # Create Graph
 USE GRAPH @graph
