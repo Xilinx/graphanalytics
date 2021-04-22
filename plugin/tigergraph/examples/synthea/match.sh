@@ -46,7 +46,7 @@ fi
 # cosinesim_embed_vectors: base, dist
 # cosinesim_embed_normals: base, dist
 # cosinesim_set_num_devices: base, dist
-# load_graph_cosinesim_ss_fpga_core: query
+# load_graph_cosinesim_ss_fpga_core: base
 # cosinesim_ss_tg: query
 # cosinesim_ss_fpga: query
 

@@ -288,8 +288,6 @@ create query cosinesim_ss_fpga_core (vertex<patients> source, uint topK) for
     ListAccum<XilCosinesimMatch> @@results;
     ListAccum<int> @@targetPatientVector;
 
-    population = {patients.*};
-
     @@targetPatientVector = patient_vector(source);
 
     @@results = udf_xilinx_recom_match_target_vector(topK, @@targetPatientVector);
