@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
             }
             cosineSim.finishCurrentPopulationVector(pBuf);
         }
-        cosineSim.finishLoadPopulationVectors();
+        cosineSim.finishLoadPopulation();
 
         // Run the match in the FPGA
 

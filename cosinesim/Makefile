@@ -42,13 +42,16 @@ all: stage
 ## Location of graphanalytics project
 GRAPH_ANALYTICS_DIR = ..
 
+# General output directory for intermediate build artifacts
+BUILD_DIR = build
+
 #######################################################################################################################
 #
 # Java API
 #
 
 JAVA_LIB_DIR = lib
-JAVA_BUILD_DIR = build
+JAVA_BUILD_DIR = $(BUILD_DIR)
 JAVA_SRC_DIR = java/src
 JAVA_API_JAR = $(JAVA_LIB_DIR)/xilinxCosineSimApi-0.1.jar
 JAVA_API_DOC_JAR = $(JAVA_LIB_DIR)/xilinxCosineSimApi-0.1-javadoc.jar
@@ -135,6 +138,9 @@ DEPS_all = $(OBJS_all:.o=.d)
 
 OBJS_libCosineSim = $(OBJS_L3) $(OBJS_top) 
 
+CPP_DOXY_TARGET_DIR = $(BUILD_DIR)/cppdocs
+CPP_DOXY_TRIGGER_FILE = $(CPP_DOXY_TARGET_DIR)/html/index.html
+
 .PHONY: cppBuild cppBuild2
 
 # Make in a child process so that we can isolate the run that includes automatic header dependencies
@@ -194,6 +200,27 @@ $(foreach src,$(SRCS_all),$(eval $(call BUILD_CPP_RULE,$(src))))
 ifeq ($(MAKECMDGOALS),cppBuild2)
 -include $(DEPS_all)
 endif
+
+#======================================================================================================================
+
+# Doxygen output for proofreading documentation (as opposed to the process to publish on xilinx.github.io)
+
+.PHONY: doxy-cpp
+
+doxy-cpp: $(CPP_DOXY_TRIGGER_FILE)
+
+CPP_DOXY_CONFIG_FILE = docs/cpp/DoxyFile
+
+$(CPP_DOXY_TRIGGER_FILE): include/cosinesim.hpp $(CPP_DOXY_CONFIG_FILE)
+	@set -e; \
+	if ! [ -x "$$(command -v doxygen)" ]; then \
+	    echo "ERROR: doxygen appears not to be installed.  Please install at least version 1.8.5"; \
+	    false; \
+	fi; \
+	mkdir -p $(CPP_DOXY_TARGET_DIR); \
+	sed 's,COSINESIM_VERSION,$(strip $(shell cat VERSION)),g' < $(CPP_DOXY_CONFIG_FILE) > $(CPP_DOXY_TARGET_DIR)/doxyfile.tmp; \
+	doxygen $(CPP_DOXY_TARGET_DIR)/doxyfile.tmp; \
+	rm -f $(CPP_DOXY_TARGET_DIR)/doxyfile.tmp
 
 
 #######################################################################################################################
@@ -520,7 +547,7 @@ javaTest:
 .PHONY: clean clean-xclbin
 
 clean:
-	rm -rf Debug Release $(JAVA_LIB_DIR) $(JAVA_BUILD_DIR) $(STAGE_DIR)
+	rm -rf Debug Release $(JAVA_LIB_DIR) $(BUILD_DIR) $(STAGE_DIR)
 	@echo "Note: because the XCLBIN file takes so long to generate, it is not removed with this 'clean' target."
 	@echo "To clean the XCLBIN, use 'make clean-xclbin'"
 	
