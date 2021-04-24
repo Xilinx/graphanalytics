@@ -14,25 +14,54 @@
 # limitations under the License.
 #
 
-.PHONY: all install xml rst html clean cleanhtml cleanall check_tools
+ifeq (, $(shell which doxygen 2>/dev/null))
+$(error "No doxygen in PATH.")
+endif
+ifeq (, $(shell which doxyrest 2>/dev/null))
+$(error "No doxyrest in PATH.")
+endif
+ifeq (, $(shell which sphinx-build 2>/dev/null))
+$(error "No sphinx-build in PATH.")
+endif
+ifeq (, $(HTML_DEST_DIR))
+$(error "HTML_DEST_DIR is not set.")
+endif
+
+# doxygen settings
+DOXYGEN_CPP_CONFIG_FILE = DoxyFile-cpp
+COSINESIM_VERSION = ../../cosinesim/VERSION
+DOXYGEN_XML_TARGET_DIR = xml-cpp-docs
+
+# doxyrest settings
+DOXYREST_FRAME = $(dir $(shell which doxyrest))/../share/doxyrest/frame
+DOXYREST_RST_TARGET_DIR = rst-cpp-docs
+RST_FILES = index.rst overview.rst api-doc.rst 
+
+.PHONY: all install xml rst html clean cleanhtml cleanall 
 
 all: install
 
-check_tools:
-ifeq (, $(shell which sphinx-build 2>/dev/null))
-	@echo "ERROR: No sphinx-build in PATH" && false
-endif
-
 install: .stamp/sphinx
-ifeq (, $(HTML_DEST_DIR))
-	@echo "ERROR: HTML_DEST_DIR is not set." && false
-endif
 	rsync -av --delete --exclude .git --exclude .buildinfo \
 		 _build/html/ $(HTML_DEST_DIR) 1>/dev/null
 
-.stamp/sphinx: check_tools
-	mkdir -p .stamp
-	make -f Makefile-sphinx.mk html
+.stamp/doxygen: $(DOXYGEN_CPP_CONFIG_FILE)
+	rm -rf $(DOXYGEN_XML_TARGET_DIR) && \
+	mkdir $(DOXYGEN_XML_TARGET_DIR) && \
+	sed 's,COSINESIM_VERSION,$(strip $(shell cat $(COSINESIM_VERSION))),g' < $(DOXYGEN_CPP_CONFIG_FILE) > $(DOXYGEN_XML_TARGET_DIR)/doxyfile.tmp && \
+	doxygen $(DOXYGEN_XML_TARGET_DIR)/doxyfile.tmp && \
+	rm -f $(DOXYGEN_XML_TARGET_DIR)/doxyfile.tmp && \
+	mkdir -p .stamp && touch .stamp/doxygen
+
+.stamp/doxyrest: .stamp/doxygen doxyrest-config.lua
+	rm -rf $(DOXYREST_RST_TARGET_DIR) && \
+	mkdir $(DOXYREST_RST_TARGET_DIR) && \
+	doxyrest $(DOXYGEN_XML_TARGET_DIR)/index.xml -o $(DOXYREST_RST_TARGET_DIR)/index.rst && \
+	touch .stamp/doxyrest
+
+.stamp/sphinx: .stamp/doxyrest Makefile-sphinx.mk $(RST_FILES) conf.py
+	mkdir -p .stamp && \
+	make -f Makefile-sphinx.mk html && \
 	touch .stamp/sphinx
 
 html:
