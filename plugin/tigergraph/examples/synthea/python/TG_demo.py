@@ -20,7 +20,7 @@ numDevices = 1                                      # Number of FPGA devices to 
 localRepoLocation = Path("C:/Users/dummy")
 serverRepoLocation = PurePosixPath("/home/dummy")
 
-exampleLocation = Path("graphanalytics/plugin/tigergraph/examples/synthea") # DO NOT CHANGE!
+exampleLocation = Path("graphanalytics/plugin/tigergraph/examples/synthea") # when running from github repo
 queryFileLocation = localRepoLocation / exampleLocation / "query"
 serverDataLocation = serverRepoLocation / PurePosixPath(exampleLocation) / "1000_patients/csv"
 
