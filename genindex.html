@@ -44,6 +44,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/language_data.js"></script>
+        <script src="_static/target-highlight.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -55,6 +56,7 @@
   <link rel="stylesheet" href="_static/css/common-ui-all.min.css" type="text/css" />
   <link rel="stylesheet" href="_static/css/header-footer.min.css" type="text/css" />
   <link rel="stylesheet" href="_static/css/pro.min.css" media="all" />
+  <link rel="stylesheet" href="_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" /> 
 	</head>
@@ -338,10 +340,16 @@
 <li class="toctree-l1"><a class="reference internal" href="install.html">Install Xilinx CosineSim and Recommendation Engine Alveo Products</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html#collaborate-on-xilinx-cosinesim-and-recommendation-engine-alveo-products">Collaborate on Xilinx CosineSim and Recommendation Engine Alveo Products</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Run Synthea Example on Alveo</span></p>
+<p class="caption"><span class="caption-text">Recommendation Engine Examples</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="run-demo-jupyter.html">Run Demo in Jupyter Notebook</a></li>
-<li class="toctree-l1"><a class="reference internal" href="run-demo-script.html">Run Demo using Script</a></li>
+<li class="toctree-l1"><a class="reference internal" href="recomengine-example-jupyter.html">Synthea Example in Jupyter Notebook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="recomengine-example-script.html">Synthea Example using Script</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Cosine Similarity Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cosinesim-example-jupyter.html">Jupyter Notebook Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cosinesim-example-python.html">Python Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cosinesim-example-makefile.html">C++ Example using Makefile</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Integrate with TigerGraph</span></p>
 <ul>
@@ -350,6 +358,19 @@
 <p class="caption"><span class="caption-text">Vitis Development Flow</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="vitis-dev-flow.html">Vitis Development Flow</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Product User Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="rst-cpp-docs/index.html">Xilinx Cosine Similarity Alveo Product</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://xilinx.github.io/graphanalytics/">1.0</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Notice</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="notice.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notice.html#trademark-notice">Trademark Notice</a></li>
 </ul>
 
             
@@ -423,8 +444,430 @@
 <h1 id="index">Index</h1>
 
 <div class="genindex-jumpbox">
+ <a href="#C"><strong>C</strong></a>
+ | <a href="#D"><strong>D</strong></a>
+ | <a href="#E"><strong>E</strong></a>
+ | <a href="#F"><strong>F</strong></a>
+ | <a href="#G"><strong>G</strong></a>
+ | <a href="#I"><strong>I</strong></a>
+ | <a href="#M"><strong>M</strong></a>
+ | <a href="#N"><strong>N</strong></a>
+ | <a href="#P"><strong>P</strong></a>
+ | <a href="#R"><strong>R</strong></a>
+ | <a href="#S"><strong>S</strong></a>
+ | <a href="#T"><strong>T</strong></a>
+ | <a href="#V"><strong>V</strong></a>
+ | <a href="#W"><strong>W</strong></a>
+ | <a href="#X"><strong>X</strong></a>
  
 </div>
+<h2 id="C">C</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    class
+
+      <ul>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSim.html#index-0">xilinx_apps::cosinesim::CosineSim</a>
+</li>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSimBase.html#index-0">xilinx_apps::cosinesim::CosineSimBase</a>
+</li>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_Exception.html#index-0">xilinx_apps::cosinesim::Exception</a>
+</li>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_ImplBase.html#index-0">xilinx_apps::cosinesim::ImplBase</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    ColIndex
+
+      <ul>
+        <li><a href="rst-cpp-docs/namespace_xilinx_apps_cosinesim.html#index-2">typedef</a>
+</li>
+      </ul></li>
+      <li>
+    CosineSim
+
+      <ul>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSim.html#index-2">function</a>
+</li>
+      </ul></li>
+      <li>
+    CosineSimBase
+
+      <ul>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSimBase.html#index-1">function</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="D">D</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    define
+
+      <ul>
+        <li><a href="rst-cpp-docs/global.html#index-1">XILINX_COSINESIM_IMPL_DECL</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="E">E</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    Exception
+
+      <ul>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_Exception.html#index-1">function</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="F">F</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    finishCurrentPopulationVector
+
+      <ul>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSim.html#index-5">function</a>, <a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSimBase.html#index-4">[1]</a>
+</li>
+      </ul></li>
+      <li>
+    finishLoadPopulation
+
+      <ul>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSimBase.html#index-5">function</a>
+</li>
+      </ul></li>
+      <li>
+    function
+
+      <ul>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSim.html#index-2">CosineSim</a>
+</li>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSimBase.html#index-1">CosineSimBase</a>
+</li>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_Exception.html#index-1">Exception</a>
+</li>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSim.html#index-5">finishCurrentPopulationVector</a>, <a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSimBase.html#index-4">[1]</a>
+</li>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSimBase.html#index-5">finishLoadPopulation</a>
+</li>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSim.html#index-3">getOptions</a>
+</li>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSim.html#index-4">getPopulationVectorBuffer</a>, <a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSimBase.html#index-3">[1]</a>
+</li>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSim.html#index-6">matchTargetVector</a>, <a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSimBase.html#index-6">[1]</a>
+</li>
+        <li><a href="rst-cpp-docs/struct_xilinx_apps_cosinesim_Result.html#index-3">Result</a>
+</li>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSimBase.html#index-2">startLoadPopulation</a>
+</li>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_Exception.html#index-2">what</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="G">G</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    getOptions
+
+      <ul>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSim.html#index-3">function</a>
+</li>
+      </ul></li>
+      <li>
+    getPopulationVectorBuffer
+
+      <ul>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSim.html#index-4">function</a>, <a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSimBase.html#index-3">[1]</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    global
+
+      <ul>
+        <li><a href="rst-cpp-docs/global.html#index-0">namespace</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    index
+
+      <ul>
+        <li><a href="rst-cpp-docs/struct_xilinx_apps_cosinesim_Result.html#index-1">variable</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="M">M</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    Main Guide
+
+      <ul>
+        <li><a href="rst-cpp-docs/page_index.html#index-0">page</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    matchTargetVector
+
+      <ul>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSim.html#index-6">function</a>, <a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSimBase.html#index-6">[1]</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="N">N</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    namespace
+
+      <ul>
+        <li><a href="rst-cpp-docs/global.html#index-0">global</a>
+</li>
+        <li><a href="rst-cpp-docs/namespace_xilinx_apps.html#index-0">xilinx_apps</a>
+</li>
+        <li><a href="rst-cpp-docs/namespace_xilinx_apps_cosinesim.html#index-0">xilinx_apps::cosinesim</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    numDevices
+
+      <ul>
+        <li><a href="rst-cpp-docs/struct_xilinx_apps_cosinesim_Options.html#index-2">variable</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="P">P</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    page
+
+      <ul>
+        <li><a href="rst-cpp-docs/page_index.html#index-0">Main Guide</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="R">R</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    Result
+
+      <ul>
+        <li><a href="rst-cpp-docs/struct_xilinx_apps_cosinesim_Result.html#index-3">function</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    RowIndex
+
+      <ul>
+        <li><a href="rst-cpp-docs/namespace_xilinx_apps_cosinesim.html#index-1">typedef</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="S">S</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    similarity
+
+      <ul>
+        <li><a href="rst-cpp-docs/struct_xilinx_apps_cosinesim_Result.html#index-2">variable</a>
+</li>
+      </ul></li>
+      <li>
+    startLoadPopulation
+
+      <ul>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSimBase.html#index-2">function</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    struct
+
+      <ul>
+        <li><a href="rst-cpp-docs/struct_xilinx_apps_cosinesim_Options.html#index-0">xilinx_apps::cosinesim::Options</a>
+</li>
+        <li><a href="rst-cpp-docs/struct_xilinx_apps_cosinesim_Result.html#index-0">xilinx_apps::cosinesim::Result</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="T">T</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    typedef
+
+      <ul>
+        <li><a href="rst-cpp-docs/namespace_xilinx_apps_cosinesim.html#index-2">ColIndex</a>
+</li>
+        <li><a href="rst-cpp-docs/namespace_xilinx_apps_cosinesim.html#index-1">RowIndex</a>
+</li>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSim.html#index-1">ValueType</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    ValueType
+
+      <ul>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSim.html#index-1">typedef</a>
+</li>
+      </ul></li>
+      <li>
+    variable
+
+      <ul>
+        <li><a href="rst-cpp-docs/struct_xilinx_apps_cosinesim_Result.html#index-1">index</a>
+</li>
+        <li><a href="rst-cpp-docs/struct_xilinx_apps_cosinesim_Options.html#index-2">numDevices</a>
+</li>
+        <li><a href="rst-cpp-docs/struct_xilinx_apps_cosinesim_Result.html#index-2">similarity</a>
+</li>
+        <li><a href="rst-cpp-docs/struct_xilinx_apps_cosinesim_Options.html#index-1">vecLength</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    vecLength
+
+      <ul>
+        <li><a href="rst-cpp-docs/struct_xilinx_apps_cosinesim_Options.html#index-1">variable</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="W">W</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    what
+
+      <ul>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_Exception.html#index-2">function</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="X">X</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    xilinx_apps
+
+      <ul>
+        <li><a href="rst-cpp-docs/namespace_xilinx_apps.html#index-0">namespace</a>
+</li>
+      </ul></li>
+      <li>
+    xilinx_apps::cosinesim
+
+      <ul>
+        <li><a href="rst-cpp-docs/namespace_xilinx_apps_cosinesim.html#index-0">namespace</a>
+</li>
+      </ul></li>
+      <li>
+    xilinx_apps::cosinesim::CosineSim
+
+      <ul>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSim.html#index-0">class</a>
+</li>
+      </ul></li>
+      <li>
+    xilinx_apps::cosinesim::CosineSimBase
+
+      <ul>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSimBase.html#index-0">class</a>
+</li>
+      </ul></li>
+      <li>
+    xilinx_apps::cosinesim::Exception
+
+      <ul>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_Exception.html#index-0">class</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    xilinx_apps::cosinesim::ImplBase
+
+      <ul>
+        <li><a href="rst-cpp-docs/class_xilinx_apps_cosinesim_ImplBase.html#index-0">class</a>
+</li>
+      </ul></li>
+      <li>
+    xilinx_apps::cosinesim::Options
+
+      <ul>
+        <li><a href="rst-cpp-docs/struct_xilinx_apps_cosinesim_Options.html#index-0">struct</a>
+</li>
+      </ul></li>
+      <li>
+    xilinx_apps::cosinesim::Result
+
+      <ul>
+        <li><a href="rst-cpp-docs/struct_xilinx_apps_cosinesim_Result.html#index-0">struct</a>
+</li>
+      </ul></li>
+      <li>
+    XILINX_COSINESIM_IMPL_DECL
+
+      <ul>
+        <li><a href="rst-cpp-docs/global.html#index-1">define</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
 
 
            </div>
@@ -446,7 +889,7 @@
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on April 16, 2021.
+        Last updated on April 24, 2021.
       </span>
 
     </p>

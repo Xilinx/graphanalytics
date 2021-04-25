@@ -44,6 +44,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/language_data.js"></script>
+        <script src="_static/target-highlight.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -55,6 +56,7 @@
   <link rel="stylesheet" href="_static/css/common-ui-all.min.css" type="text/css" />
   <link rel="stylesheet" href="_static/css/header-footer.min.css" type="text/css" />
   <link rel="stylesheet" href="_static/css/pro.min.css" media="all" />
+  <link rel="stylesheet" href="_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Install Xilinx CosineSim and Recommendation Engine Alveo Products" href="install.html" />
@@ -365,10 +367,16 @@
 <li class="toctree-l1"><a class="reference internal" href="install.html">Install Xilinx CosineSim and Recommendation Engine Alveo Products</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html#collaborate-on-xilinx-cosinesim-and-recommendation-engine-alveo-products">Collaborate on Xilinx CosineSim and Recommendation Engine Alveo Products</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Run Synthea Example on Alveo</span></p>
+<p class="caption"><span class="caption-text">Recommendation Engine Examples</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="run-demo-jupyter.html">Run Demo in Jupyter Notebook</a></li>
-<li class="toctree-l1"><a class="reference internal" href="run-demo-script.html">Run Demo using Script</a></li>
+<li class="toctree-l1"><a class="reference internal" href="recomengine-example-jupyter.html">Synthea Example in Jupyter Notebook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="recomengine-example-script.html">Synthea Example using Script</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Cosine Similarity Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cosinesim-example-jupyter.html">Jupyter Notebook Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cosinesim-example-python.html">Python Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cosinesim-example-makefile.html">C++ Example using Makefile</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Integrate with TigerGraph</span></p>
 <ul>
@@ -377,6 +385,19 @@
 <p class="caption"><span class="caption-text">Vitis Development Flow</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="vitis-dev-flow.html">Vitis Development Flow</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Product User Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="rst-cpp-docs/index.html">Xilinx Cosine Similarity Alveo Product</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://xilinx.github.io/graphanalytics/">1.0</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Notice</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="notice.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notice.html#trademark-notice">Trademark Notice</a></li>
 </ul>
 
             
@@ -497,8 +518,7 @@ on all processing nodes to manage resource allocation on Alveo Acceleration card
 <h2>Cosine similarity<a class="headerlink" href="#cosine-similarity" title="Permalink to this headline">¶</a></h2>
 <p>Cosine similarity is a measure of similarity between two non-zero vectors of an
 inner product space:</p>
-<a class="reference internal image-reference" href="_images/cosine-similarity-formula.svg"><img alt="Cosine Similarity Formula" class="align-center" src="_images/cosine-similarity-formula.svg" /></a>
-<p>In TigerGraph patients information and medical history are represented as vertices
+<img alt="Cosine Similarity Formula" class="align-center" src="_images/cosine-similarity-formula.svg" /><p>In TigerGraph patients information and medical history are represented as vertices
 and edges in a graph database as shown below:</p>
 <a class="reference internal image-reference" href="_images/synthea-patient-schema.png"><img alt="Cosine Similarity Formula" class="align-center" src="_images/synthea-patient-schema.png" style="width: 504.59999999999997px; height: 376.2px;" /></a>
 <p>Each attribute (e.g. age, gender, race, immunization, etc) of a patient is mapped to
@@ -676,7 +696,7 @@ United States and other countries.</p>
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on April 16, 2021.
+        Last updated on April 24, 2021.
       </span>
 
     </p>

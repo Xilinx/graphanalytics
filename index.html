@@ -48,6 +48,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/language_data.js"></script>
+        <script src="_static/target-highlight.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -59,6 +60,7 @@
   <link rel="stylesheet" href="_static/css/common-ui-all.min.css" type="text/css" />
   <link rel="stylesheet" href="_static/css/header-footer.min.css" type="text/css" />
   <link rel="stylesheet" href="_static/css/pro.min.css" media="all" />
+  <link rel="stylesheet" href="_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Xilinx Alveo Graph Analytics Products" href="overview.html" /> 
@@ -343,10 +345,16 @@
 <li class="toctree-l1"><a class="reference internal" href="install.html">Install Xilinx CosineSim and Recommendation Engine Alveo Products</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html#collaborate-on-xilinx-cosinesim-and-recommendation-engine-alveo-products">Collaborate on Xilinx CosineSim and Recommendation Engine Alveo Products</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Run Synthea Example on Alveo</span></p>
+<p class="caption"><span class="caption-text">Recommendation Engine Examples</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="run-demo-jupyter.html">Run Demo in Jupyter Notebook</a></li>
-<li class="toctree-l1"><a class="reference internal" href="run-demo-script.html">Run Demo using Script</a></li>
+<li class="toctree-l1"><a class="reference internal" href="recomengine-example-jupyter.html">Synthea Example in Jupyter Notebook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="recomengine-example-script.html">Synthea Example using Script</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Cosine Similarity Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cosinesim-example-jupyter.html">Jupyter Notebook Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cosinesim-example-python.html">Python Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cosinesim-example-makefile.html">C++ Example using Makefile</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Integrate with TigerGraph</span></p>
 <ul>
@@ -355,6 +363,19 @@
 <p class="caption"><span class="caption-text">Vitis Development Flow</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="vitis-dev-flow.html">Vitis Development Flow</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Product User Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="rst-cpp-docs/index.html">Xilinx Cosine Similarity Alveo Product</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://xilinx.github.io/graphanalytics/">1.0</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Notice</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="notice.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notice.html#trademark-notice">Trademark Notice</a></li>
 </ul>
 
             
@@ -446,14 +467,22 @@ includes the following products:</p>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
-<p class="caption"><span class="caption-text">Run Synthea Example on Alveo</span></p>
+<p class="caption"><span class="caption-text">Recommendation Engine Examples</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="run-demo-jupyter.html">Run Demo in Jupyter Notebook</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="run-demo-jupyter.html#install-jupyter-notebook-in-a-conda-environment">Install Jupyter Notebook in a conda environment</a></li>
-<li class="toctree-l2"><a class="reference internal" href="run-demo-jupyter.html#start-jupyter-notebook">Start Jupyter Notebook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="recomengine-example-jupyter.html">Synthea Example in Jupyter Notebook</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="recomengine-example-jupyter.html#install-jupyter-notebook-in-a-conda-environment">Install Jupyter Notebook in a conda environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="recomengine-example-jupyter.html#start-jupyter-notebook">Start Jupyter Notebook</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="run-demo-script.html">Run Demo using Script</a></li>
+<li class="toctree-l1"><a class="reference internal" href="recomengine-example-script.html">Synthea Example using Script</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Cosine Similarity Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cosinesim-example-jupyter.html">Jupyter Notebook Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cosinesim-example-python.html">Python Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cosinesim-example-makefile.html">C++ Example using Makefile</a></li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
@@ -467,6 +496,12 @@ includes the following products:</p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="vitis-dev-flow.html">Vitis Development Flow</a></li>
 </ul>
+</div>
+<div class="toctree-wrapper compound">
+</div>
+<div class="toctree-wrapper compound">
+</div>
+<div class="toctree-wrapper compound">
 </div>
 </div>
 
@@ -497,7 +532,7 @@ includes the following products:</p>
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on April 16, 2021.
+        Last updated on April 24, 2021.
       </span>
 
     </p>

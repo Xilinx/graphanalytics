@@ -59,7 +59,7 @@
   <link rel="stylesheet" href="_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Run Demo using Script" href="run-demo-script.html" />
+    <link rel="next" title="Synthea Example using Script" href="recomengine-example-script.html" />
     <link rel="prev" title="Install Xilinx CosineSim and Recommendation Engine Alveo Products" href="install.html" /> 
 	</head>
 	<body>
@@ -342,14 +342,20 @@
 <li class="toctree-l1"><a class="reference internal" href="install.html">Install Xilinx CosineSim and Recommendation Engine Alveo Products</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html#collaborate-on-xilinx-cosinesim-and-recommendation-engine-alveo-products">Collaborate on Xilinx CosineSim and Recommendation Engine Alveo Products</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Recommendation Engine Demos</span></p>
+<p class="caption"><span class="caption-text">Recommendation Engine Examples</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Run Demo in Jupyter Notebook</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Synthea Example in Jupyter Notebook</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#install-jupyter-notebook-in-a-conda-environment">Install Jupyter Notebook in a conda environment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#start-jupyter-notebook">Start Jupyter Notebook</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="run-demo-script.html">Run Demo using Script</a></li>
+<li class="toctree-l1"><a class="reference internal" href="recomengine-example-script.html">Synthea Example using Script</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Cosine Similarity Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cosinesim-example-jupyter.html">Jupyter Notebook Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cosinesim-example-python.html">Python Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cosinesim-example-makefile.html">C++ Example using Makefile</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Integrate with TigerGraph</span></p>
 <ul>
@@ -423,7 +429,7 @@
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Run Demo in Jupyter Notebook</li>
+      <li>Synthea Example in Jupyter Notebook</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -440,8 +446,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="run-demo-in-jupyter-notebook">
-<h1>Run Demo in Jupyter Notebook<a class="headerlink" href="#run-demo-in-jupyter-notebook" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="synthea-example-in-jupyter-notebook">
+<h1>Synthea Example in Jupyter Notebook<a class="headerlink" href="#synthea-example-in-jupyter-notebook" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="install-jupyter-notebook-in-a-conda-environment">
 <h2>Install Jupyter Notebook in a conda environment<a class="headerlink" href="#install-jupyter-notebook-in-a-conda-environment" title="Permalink to this headline">¶</a></h2>
 <p>NOTE: The Jupyter Notebook can be installed on any machine provided the machine
@@ -467,12 +473,11 @@ can connect to TigerGraph server via HTTP connections.</p>
 <div class="section" id="start-jupyter-notebook">
 <h2>Start Jupyter Notebook<a class="headerlink" href="#start-jupyter-notebook" title="Permalink to this headline">¶</a></h2>
 <p>Run the command below to start Jupyter Notebook</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>alveo-demo<span class="o">)</span><span class="nv">$cd</span> graphanalytics/plugin/tigergraph/jupyter-demo
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>alveo-demo<span class="o">)</span><span class="nv">$cd</span> /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/examples/synthea/jupyter-demo
 <span class="o">(</span>alveo-demo<span class="o">)</span><span class="nv">$jupyter</span> notebook
 </pre></div>
 </div>
-<p>Below is a snapshot of the TG-demo notebook:</p>
-<a class="reference internal image-reference" href="_images/tg-demo-jupyter.png"><img alt="Xilinx Tigergraph Plugin" class="align-center" src="_images/tg-demo-jupyter.png" style="width: 649.8px; height: 492.59999999999997px;" /></a>
+<p>Follow the step-by-step instructions in the notebook once it is loaded in your browser.</p>
 </div>
 </div>
 
@@ -492,7 +497,7 @@ can connect to TigerGraph server via HTTP connections.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="run-demo-script.html" class="btn btn-neutral float-right" title="Run Demo using Script" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="recomengine-example-script.html" class="btn btn-neutral float-right" title="Synthea Example using Script" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="install.html" class="btn btn-neutral float-left" title="Install Xilinx CosineSim and Recommendation Engine Alveo Products" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
