@@ -35,7 +35,9 @@ DOXYGEN_XML_TARGET_DIR = xml-cpp-docs
 # doxyrest settings
 DOXYREST_FRAME = $(dir $(shell which doxyrest))/../share/doxyrest/frame
 DOXYREST_RST_TARGET_DIR = rst-cpp-docs
-RST_FILES = index.rst overview.rst api-doc.rst 
+RST_FILES = index.rst overview.rst recomengine-example-jupyter.rst \
+            recomengine-example-script.rst cosinesim-example-makefile.rst \
+			cosinesim-example-jupyter.rst cosinesim-example-python.rst
 
 .PHONY: all install xml rst html clean cleanhtml cleanall 
 

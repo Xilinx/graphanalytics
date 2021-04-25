@@ -36,18 +36,29 @@ includes the following products:
 
    overview.rst
 
+
 .. toctree::
    :caption: Installation
    :maxdepth: 1
 
    install.rst
 
+
 .. toctree::
-   :caption: Run Synthea Example on Alveo
+   :caption: Recommendation Engine Examples
    :maxdepth: 2
 
-   run-demo-jupyter.rst
-   run-demo-script.rst
+   recomengine-example-jupyter.rst
+   recomengine-example-script.rst
+
+
+.. toctree::
+   :caption: Cosine Similarity Examples
+   :maxdepth: 2
+
+   cosinesim-example-jupyter.rst
+   cosinesim-example-python.rst
+   cosinesim-example-makefile.rst
 
 
 .. toctree::
