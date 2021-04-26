@@ -65,11 +65,11 @@ includes the following products:
 
 
 .. toctree::
-   :caption: Product User Guides
-   :maxdepth: 4
-   :hidden:
+   :caption: Stand-Alone Alveo Products
+   :maxdepth: 1
 
-   rst-cpp-docs/index.rst
+   Cosine Similarity <cosinesim/index.rst>
+
 
 .. toctree::
    :maxdepth: 1
