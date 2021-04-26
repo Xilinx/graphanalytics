@@ -1,0 +1,7 @@
+drop all
+#TYPEDEF TUPLE<Id VERTEX, score DOUBLE> testResults
+
+create vertex Person (primary_id num int, num int)
+create undirected edge Coworker(from Person, to Person, weight double)
+
+create graph social(*)
