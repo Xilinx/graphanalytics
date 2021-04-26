@@ -26,10 +26,10 @@ PROJ_ROOT ?= $(shell bash -c 'export MK_PATH=$(MK_PATH); echo $${MK_PATH%/L3/tes
 INPUT_DATA_DIR := $(abspath $(PROJ_ROOT))/L3/tests/Louvain/
 CXXFLAGS += -I $(PROJ_ROOT)/L3/include
 CXXFLAGS += -I $(PROJ_ROOT)/L3/include/include_hls
-CXXFLAGS += -I $(PROJ_ROOT)/../ext/xcl2
+CXXFLAGS += -I $(PROJ_ROOT)/ext/xcl2
 CXXFLAGS += -I $(PROJ_ROOT)/L3/tests/Louvain/host
 CXXFLAGS += -I $(XILINX_XRM)/include
-LIB_PATH := $(PROJ_ROOT)/L3/lib
+LIB_PATH := $(PROJ_ROOT)/louvainmod/L3/lib
 CXXFLAGS += -O3
 #CXXFLAGS += -g
 export LD_LIBRARY_PATH=$(LIB_PATH):$(XILINX_XRT)/lib
@@ -49,7 +49,7 @@ endif
 
 EXE_FILE := host.exe
 
-$(EXE_FILE): test_louvainModularity.cpp  $(PROJ_ROOT)/../ext/xcl2/xcl2.cpp
+$(EXE_FILE): test_louvainModularity.cpp  $(PROJ_ROOT)/ext/xcl2/xcl2.cpp
 	/usr/bin/g++ -std=c++11 $^ -o $@ \
 		-I$(XILINX_XRT)/include $(CXXFLAGS)\
 		-L$(LIB_PATH) -lgraphL3 -lzmq\
