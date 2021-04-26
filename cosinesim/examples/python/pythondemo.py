@@ -35,7 +35,7 @@ if __name__ == '__main__':
         cs.finishCurrentPopulationVector(vecBuf)
 
     # Finishing embedding creation
-    cs.finishLoadPopulationVectors()
+    cs.finishLoadPopulation()
 
     # Finally, Call Cosine similarity match API
     result = cs.matchTargetVector(10, testVec)

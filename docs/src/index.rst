@@ -30,12 +30,12 @@ includes the following products:
 * CosineSim and Recommendation Engine intergrated with TigerGraph Graph Database
 
 
-
 .. toctree::
    :caption: Overview
    :maxdepth: 1
 
    overview.rst
+
 
 .. toctree::
    :caption: Installation
@@ -43,12 +43,22 @@ includes the following products:
 
    install.rst
 
+
 .. toctree::
-   :caption: Run Synthea Example on Alveo
+   :caption: Recommendation Engine Examples
    :maxdepth: 2
 
-   run-demo-jupyter.rst
-   run-demo-script.rst
+   recomengine-example-jupyter.rst
+   recomengine-example-script.rst
+
+
+.. toctree::
+   :caption: Cosine Similarity Examples
+   :maxdepth: 2
+
+   cosinesim-example-jupyter.rst
+   cosinesim-example-python.rst
+   cosinesim-example-makefile.rst
 
 
 .. toctree::
@@ -58,10 +68,33 @@ includes the following products:
    integrate-tg.rst
 
 
-
 .. toctree::
    :caption: Vitis Development Flow
    :maxdepth: 1
 
    vitis-dev-flow.rst
 
+
+.. toctree::
+   :caption: Product User Guides
+   :maxdepth: 4
+   :hidden:
+
+   rst-cpp-docs/index.rst
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Versions
+   :hidden:
+
+   1.0 <https://xilinx.github.io/graphanalytics/>
+   
+
+.. toctree::
+   :caption: Notice
+   :maxdepth: 1
+   :hidden:
+
+   notice.rst
+
+   

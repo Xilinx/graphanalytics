@@ -117,7 +117,7 @@ inline int udf_xilinx_recom_load_population_vectors(int64_t numVertices, ListAcc
             pCosineSim->finishCurrentPopulationVector(pBuf);
             idMap[rowIndex] = ids.get(vecNum);
         }
-        pCosineSim->finishLoadPopulationVectors();
+        pCosineSim->finishLoadPopulation();
         pContext->setInitialized();  // FPGA(s) now ready to match
         return 0;
     }

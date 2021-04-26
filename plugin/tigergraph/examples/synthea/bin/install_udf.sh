@@ -29,6 +29,16 @@ if [ "$USER" != "tigergraph" ]; then
     exit 1
 fi
 
+# This is to work around certain user env that bypasses PATH setting in .bashrc
+if [ ! -f "$HOME/.tg.cfg" ]; then
+    echo "ERROR: This script only supports TigerGraph version 3.x"
+    exit 1
+fi
+tg_root_dir=$(cat $HOME/.tg.cfg | jq .System.AppRoot | tr -d \")
+
+# set up PATH for tigergraph commands
+export PATH=$tg_root_dir/../cmd:$PATH
+
 #
 # Process command line options
 #

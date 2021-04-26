@@ -35,8 +35,8 @@ from recommonmark.transform import AutoStructify
 import shutil
 
 theme_dir = '/proj/gdba/ywu/ghe/sphinx_xilinx_theme'
-#tools_dir = os.path.abspath(os.path.join(os.path.dirname(shutil.which('doxyrest')), '..'))
-#sys.path.insert(1, os.path.join(tools_dir, 'share/doxyrest_b/sphinx'))
+tools_dir = os.path.abspath(os.path.join(os.path.dirname(shutil.which('doxyrest')), '..'))
+sys.path.insert(1, os.path.join(tools_dir, 'share/doxyrest/sphinx'))
 
 # -- Project information -----------------------------------------------------
 
@@ -82,7 +82,7 @@ extensions = [
     # Auto-generate section labels.
     'sphinx.ext.autosectionlabel',
     'sphinx.ext.imgmath',
-    #'doxyrest',
+    'doxyrest',
     #'cpplexer',
 ]
 

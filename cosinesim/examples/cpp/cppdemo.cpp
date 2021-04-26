@@ -67,8 +67,8 @@ int main(int argc, char **argv) {
             cosineSim.finishCurrentPopulationVector(pBuf);
         }
 
-        // After the whole population vectors loading finish, call finishLoadPopulationVectors();
-        cosineSim.finishLoadPopulationVectors();
+        // After the whole population vectors loading finish, call finishLoadPopulation();
+        cosineSim.finishLoadPopulation();
 
         // Run the match in the FPGA
 

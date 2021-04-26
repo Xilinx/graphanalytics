@@ -1,9 +1,9 @@
 ===========================================
-Run Demo using Script
+Synthea Example using Script
 ===========================================
 
-* Open terminal
-* Execute the command below to run the demo
+* Open a terminal using your Linux credentials
+* Execute the command below to run the example
 
 .. code-block:: bash
 

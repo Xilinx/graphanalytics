@@ -88,7 +88,7 @@ PYBIND11_MODULE (xilCosineSim, pc) {
         "return pointer of weightDense buffer. user can use the pointer to write into population vector")
     .def("finishCurrentPopulationVector", &PyCSWrapper::finishCurrentPopulationVector,
         "should be called when each population vector loading finishes")
-    .def("finishLoadPopulationVectors", &PyCSWrapper::finishLoadPopulationVectors,
+    .def("finishLoadPopulation", &PyCSWrapper::finishLoadPopulation,
         "should be called when the whole population vectors loading finishes")
     .def("matchTargetVector", &PyCSWrapper::matchTargetVector, "Match API");
 }
