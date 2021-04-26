@@ -24,7 +24,7 @@ CREATE DISTRIBUTED QUERY louvain_alveo(INT max_iter, set<STRING> vertex_types, s
    udf_reset_timer(true);
    A = SELECT s
        FROM Start:s
-       ACCUM udf_execute_alveo_louvain("/proj/isimsj/graphdb/louvain/data/europe_osm-wt450M_2.mtx", "/proj/isimsj/graphdb/louvain/poc_louvain/rundir/louvain_partitions", "3", "9", "2", community_result);
+       ACCUM udf_execute_alveo_louvain("/proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx", "/proj/gdba/ywu/ghe/poc_louvain/as-skitter/louvain_partitions", "3", "9", "2", community_result);
    udf_time = udf_elapsed_time(true);
    print udf_time;
 }
