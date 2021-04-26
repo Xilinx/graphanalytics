@@ -86,7 +86,10 @@ cosinesim-clean:
 
 #######################################################################################################################
 
-RST_FILES = index.rst overview.rst $(COSINESIM_RST_FILES)
+RST_FILES = index.rst overview.rst recomengine-example-jupyter.rst \
+            recomengine-example-script.rst cosinesim-example-makefile.rst \
+            cosinesim-example-jupyter.rst cosinesim-example-python.rst \
+            $(COSINESIM_RST_FILES)
 
 .PHONY: doxyrest
 
