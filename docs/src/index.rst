@@ -38,6 +38,13 @@ includes the following products:
 
 
 .. toctree::
+   :caption: Stand-Alone Alveo Products
+   :maxdepth: 1
+
+   Cosine Similarity <cosinesim/index.rst>
+
+
+.. toctree::
    :caption: Installation
    :maxdepth: 1
 
@@ -53,15 +60,6 @@ includes the following products:
 
 
 .. toctree::
-   :caption: Cosine Similarity Examples
-   :maxdepth: 2
-
-   cosinesim-example-jupyter.rst
-   cosinesim-example-python.rst
-   cosinesim-example-makefile.rst
-
-
-.. toctree::
    :caption: Integrate with TigerGraph
    :maxdepth: 1
 
@@ -73,13 +71,6 @@ includes the following products:
    :maxdepth: 1
 
    vitis-dev-flow.rst
-
-
-.. toctree::
-   :caption: Stand-Alone Alveo Products
-   :maxdepth: 1
-
-   Cosine Similarity <cosinesim/index.rst>
 
 
 .. toctree::

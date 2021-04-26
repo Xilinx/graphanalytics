@@ -51,7 +51,10 @@ install: .stamp/sphinx
 # Cosine Similarity Alveo Product
 #
 
-COSINESIM_RST_NAMES = api.rst cpp-api.rst cpp-classes.rst demos.rst index.rst installation.rst
+COSINESIM_RST_NAMES = \
+    api.rst cpp-api.rst cpp-classes.rst demos.rst index.rst installation.rst \
+    cosinesim-example-makefile.rst cosinesim-example-jupyter.rst cosinesim-example-python.rst
+
 COSINESIM_RST_FILES = $(addprefix cosinesim/,$(COSINESIM_RST_NAMES))
 COSINESIM_VERSION = ../../cosinesim/VERSION
 COSINESIM_TRIGGER_FILES = ../../cosinesim/include/cosinesim.hpp
@@ -86,10 +89,8 @@ cosinesim-clean:
 
 #######################################################################################################################
 
-RST_FILES = index.rst overview.rst recomengine-example-jupyter.rst \
-            recomengine-example-script.rst cosinesim-example-makefile.rst \
-            cosinesim-example-jupyter.rst cosinesim-example-python.rst \
-            $(COSINESIM_RST_FILES)
+RST_FILES = index.rst overview.rst recomengine-example-jupyter.rst recomengine-example-script.rst \
+    $(COSINESIM_RST_FILES)
 
 .PHONY: doxyrest
 
