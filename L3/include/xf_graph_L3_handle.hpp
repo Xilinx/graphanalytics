@@ -37,9 +37,10 @@
 #include "op_wcc.hpp"
 #include "op_scc.hpp"
 #include "op_convertcsrcsc.hpp"
-#include "op_similaritysparse.hpp"
 #include "op_similaritydense.hpp"
+#ifdef LOUVAINMOD
 #include "op_louvainmodularity.hpp"
+#endif
 
 namespace xf {
 namespace graph {
@@ -129,7 +130,7 @@ class Handle {
      * \brief sparse matrix cosine/jaccard similarity operation
      *
      */
-    class opSimilaritySparse* opsimsparse;
+    //class opSimilaritySparse* opsimsparse;
     /**
      * \brief dense matrix cosine/jaccard similarity operation
      *
@@ -155,8 +156,10 @@ class Handle {
         opwcc = new class opWCC;
         opscc = new class opSCC;
         opconvertcsrcsc = new class opConvertCsrCsc;
-        opsimsparse = new class opSimilaritySparse;
         opsimdense = new class opSimilarityDense;
+#ifdef LOUVAINMOD
+        oplouvainmod = new class opLouvainModularity;
+#endif
         xrm = new class openXRM;
     };
 
@@ -185,7 +188,7 @@ class Handle {
 
     void loadXclbin(unsigned int deviceId, char* xclbinName);
 
-    std::thread loadXclbinNonBlock(unsigned int deviceId, char* xclbinName);
+    std::thread loadXclbinNonBlock(unsigned int deviceId, std::string& xclbinName);
     std::future<int> loadXclbinAsync(unsigned int deviceId, std::string& xclbinName);
 /*
     void initOpPageRank(const char* kernelName,
@@ -265,6 +268,12 @@ class Handle {
                            unsigned int numDevices,
                            unsigned int cuPerBoard);
 */
+    int32_t initOpLouvainModularity(std::string kernelName,
+                                    std::string xclbinFile,
+                                    std::string kernelAlias,
+                                    unsigned int requestLoad,
+                                    unsigned int deviceNeeded,
+                                    unsigned int cuPerBoard);
 };
 } // L3
 } // graph

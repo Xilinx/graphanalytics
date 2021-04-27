@@ -39,19 +39,19 @@ CXXFLAGS += -I$(XFLIB_DIR)/louvainmod/integration/tigergraph/udf/QueryUdf
 
 XILINX_XRM=/opt/xilinx/xrm
 
-CXXFLAGS += -I$(XILINX_XRT)/include -I$(XILINX_VIVADO)/include -I$(XILINX_XRM)/include -std=c++11 -O3 -Wall -Wno-unknown-pragmas -Wno-unused-label
+CXXFLAGS += -I$(XILINX_XRT)/include -I$(XILINX_VIVADO)/include -I$(XILINX_XRM)/include -std=c++11 -Wall -Wno-unknown-pragmas -Wno-unused-label
 LDFLAGS += -L$(XILINX_XRT)/lib -lOpenCL -lpthread -lrt -Wno-unused-label -Wno-narrowing -L$(XILINX_XRM)/lib -lxrm
-CXXFLAGS += -fmessage-length=0 -O3
+CXXFLAGS += -fmessage-length=0 
 CXXFLAGS +=-I$(CUR_DIR)/src/ -DPRINTINFO_2
-//CXXFLAGS += -DPRINTINFO -DVERBOSE 
+#CXXFLAGS += -DPRINTINFO -DVERBOSE 
 
 ifneq ($(HOST_ARCH), x86)
 	LDFLAGS += --sysroot=$(SYSROOT)
 endif
 
-CXXFLAGS += -D USE_HBM
-#CXXFLAGS += -g
-CXXFLAGS += -O3
+CXXFLAGS += -D USE_HBM -D LOUVAINMOD
+CXXFLAGS += -g
+#CXXFLAGS += -O3
 
 ############################## Setting Rules for so (Building Dynamic Library) ##############################
 libGRAPHL3 = $(XFLIB_DIR)/L3/lib/libgraphL3.so
@@ -64,7 +64,6 @@ CPP_PATH += $(XFLIB_DIR)/L3/src/op_bfs.cpp
 CPP_PATH += $(XFLIB_DIR)/L3/src/op_wcc.cpp
 CPP_PATH += $(XFLIB_DIR)/L3/src/op_scc.cpp
 CPP_PATH += $(XFLIB_DIR)/L3/src/op_convertcsrcsc.cpp
-CPP_PATH += $(XFLIB_DIR)/L3/src/op_similaritysparse.cpp
 CPP_PATH += $(XFLIB_DIR)/L3/src/op_similaritydense.cpp
 CPP_PATH += $(XFLIB_DIR)/L3/src/op_pagerank.cpp
 CPP_PATH += $(XFLIB_DIR)/L3/src/xf_graph_L3_handle.cpp

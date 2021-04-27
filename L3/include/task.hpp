@@ -106,8 +106,8 @@ class openXRM {
         xrmLoadOneDevice(ctx, deviceId, xclbinName);
     }
     std::thread unloadXclbinNonBlock(unsigned int deviceId) { return std::thread(xrmUnloadOneDevice, ctx, deviceId); }
-    std::thread loadXclbinNonBlock(unsigned int deviceId, char* xclbinName) {
-        return std::thread(xrmLoadOneDevice, ctx, deviceId, xclbinName);
+    std::thread loadXclbinNonBlock(unsigned int deviceId, std::string& xclbinName) {
+        return std::thread(xrmLoadOneDevice, ctx, deviceId, (char*)xclbinName.c_str());
     }
     std::future<int> loadXclbinAsync(unsigned int deviceId, std::string& xclbinPath) {
         std::cout << "DEBUG: " << __FUNCTION__ << " xclbinPath=" << xclbinPath << std::endl;
