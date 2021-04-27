@@ -3588,11 +3588,11 @@ int load_alveo_partitions(int argc, char* argv[]) {
     xf::graph::L3::Handle::singleOP op0;
     xf::graph::L3::Handle handle0;
     //----------------- Set parameters of op0 again some of those will be covered by command-line
-    op0.operationName = (char*)opName.c_str();
+    op0.operationName = opName;
     op0.setKernelName((char*)kernelName.c_str());
     op0.requestLoad = requestLoad;
     if (opts_xclbinPath[0] == 0)
-        op0.xclbinPath = (char*)xclbinPath.c_str();
+        op0.xclbinPath = xclbinPath;
     else
         op0.xclbinPath = opts_xclbinPath;
     if (devNeed_cmd == 0)
@@ -3603,7 +3603,7 @@ int load_alveo_partitions(int argc, char* argv[]) {
     handle0.addOp(op0);
     handle0.setUp();
 #ifdef PRINTINFO_2
-    printf("\033[1;37;40mINFO: xclbin file is        : %s with flow mode %d\033[0m\n",  op0.xclbinPath, flowMode);
+    printf("\033[1;37;40mINFO: xclbin file is        : %s with flow mode %d\033[0m\n",  op0.xclbinPath.c_str(), flowMode);
     printf("\033[1;37;40mINFO: The project file is   : %s\033[0m\n", nameMetaFile);
 #endif
     //printf("\n\n\033[1;31;40mINFO FOR MATRIX FILE: %s \033[0m\n",  inFile);

@@ -91,76 +91,6 @@ event<int> convertCsrCsc(xf::graph::L3::Handle& handle,
     return (handle.opconvertcsrcsc)->addwork(g, g2);
 };
 
-event<int> cosineSimilaritySSSparse(xf::graph::L3::Handle& handle,
-                                    uint32_t sourceNUM,
-                                    uint32_t* sourceIndice,
-                                    uint32_t* sourceWeights,
-                                    uint32_t topK,
-                                    xf::graph::Graph<uint32_t, float> g,
-                                    uint32_t* resultID,
-                                    float* similarity) {
-    (handle.opsimsparse)
-        ->eventQueue.push_back(
-            (handle.opsimsparse)->addwork(1, 1, sourceNUM, sourceIndice, sourceWeights, topK, g, resultID, similarity));
-    std::packaged_task<int(uint32_t, std::vector<event<int> >&)> t(runMultiEvents);
-    std::future<int> f0 = t.get_future();
-    (handle.opsimsparse)->simSparseThread = std::thread(std::move(t), 1, std::ref((handle.opsimsparse)->eventQueue));
-    return event<int>(std::forward<std::future<int> >(f0));
-};
-
-event<int> cosineSimilarityAPSparse(xf::graph::L3::Handle& handle,
-                                    uint32_t topK,
-                                    xf::graph::Graph<uint32_t, float> g,
-                                    uint32_t** resultID,
-                                    float** similarity) {
-    uint32_t numVertices = g.nodeNum;
-    for (uint32_t i = 0; i < numVertices; ++i) {
-        (handle.opsimsparse)
-            ->eventQueue.push_back(
-                (handle.opsimsparse)->addworkAP(1, 1, i, topK, g, &resultID[i][0], &similarity[i][0]));
-    }
-    std::packaged_task<int(uint32_t, std::vector<event<int> >&)> t(runMultiEvents);
-    std::future<int> f0 = t.get_future();
-    (handle.opsimsparse)->simSparseThread =
-        std::thread(std::move(t), numVertices, std::ref((handle.opsimsparse)->eventQueue));
-    return event<int>(std::forward<std::future<int> >(f0));
-};
-
-event<int> jaccardSimilaritySSSparse(xf::graph::L3::Handle& handle,
-                                     uint32_t sourceNUM,
-                                     uint32_t* sourceIndice,
-                                     uint32_t* sourceWeights,
-                                     uint32_t topK,
-                                     xf::graph::Graph<uint32_t, float> g,
-                                     uint32_t* resultID,
-                                     float* similarity) {
-    (handle.opsimsparse)
-        ->eventQueue.push_back(
-            (handle.opsimsparse)->addwork(0, 1, sourceNUM, sourceIndice, sourceWeights, topK, g, resultID, similarity));
-    std::packaged_task<int(uint32_t, std::vector<event<int> >&)> t(runMultiEvents);
-    std::future<int> f0 = t.get_future();
-    (handle.opsimsparse)->simSparseThread = std::thread(std::move(t), 1, std::ref((handle.opsimsparse)->eventQueue));
-    return event<int>(std::forward<std::future<int> >(f0));
-};
-
-event<int> jaccardSimilarityAPSparse(xf::graph::L3::Handle& handle,
-                                     uint32_t topK,
-                                     xf::graph::Graph<uint32_t, float> g,
-                                     uint32_t** resultID,
-                                     float** similarity) {
-    uint32_t numVertices = g.nodeNum;
-    for (uint32_t i = 0; i < numVertices; ++i) {
-        (handle.opsimsparse)
-            ->eventQueue.push_back(
-                (handle.opsimsparse)->addworkAP(0, 1, i, topK, g, &resultID[i][0], &similarity[i][0]));
-    }
-    std::packaged_task<int(uint32_t, std::vector<event<int> >&)> t(runMultiEvents);
-    std::future<int> f0 = t.get_future();
-    (handle.opsimsparse)->simSparseThread =
-        std::thread(std::move(t), numVertices, std::ref((handle.opsimsparse)->eventQueue));
-    return event<int>(std::forward<std::future<int> >(f0));
-};
-
 event<int> cosineSimilaritySSDense(xf::graph::L3::Handle& handle,
                                    uint32_t sourceNUM,
                                    uint32_t* sourceWeights,
@@ -261,110 +191,7 @@ event<int> jaccardSimilaritySSDense(xf::graph::L3::Handle& handle,
     return event<int>(std::forward<std::future<int> >(f0));
 };
 
-event<int> cosineSimilarityAPDense(xf::graph::L3::Handle& handle,
-                                   uint32_t topK,
-                                   xf::graph::Graph<uint32_t, float> g,
-                                   uint32_t** resultID,
-                                   float** similarity) {
-    uint32_t numVertices = g.nodeNum;
-    for (uint32_t i = 0; i < numVertices; ++i) {
-        (handle.opsimdense)
-            ->eventQueue.push_back(
-                (handle.opsimdense)->addworkAP(1, 1, i, topK, g, &resultID[i][0], &similarity[i][0]));
-    }
-    std::packaged_task<int(uint32_t, std::vector<event<int> >&)> t(runMultiEvents);
-    std::future<int> f0 = t.get_future();
-    (handle.opsimdense)->simDenseThread =
-        std::thread(std::move(t), numVertices, std::ref((handle.opsimdense)->eventQueue));
-    return event<int>(std::forward<std::future<int> >(f0));
-};
-
-event<int> jaccardSimilarityAPDense(xf::graph::L3::Handle& handle,
-                                    uint32_t topK,
-                                    xf::graph::Graph<uint32_t, float> g,
-                                    uint32_t** resultID,
-                                    float** similarity) {
-    uint32_t numVertices = g.nodeNum;
-    for (uint32_t i = 0; i < numVertices; ++i) {
-        (handle.opsimdense)
-            ->eventQueue.push_back(
-                (handle.opsimdense)->addworkAP(0, 1, i, topK, g, &resultID[i][0], &similarity[i][0]));
-    }
-    std::packaged_task<int(uint32_t, std::vector<event<int> >&)> t(runMultiEvents);
-    std::future<int> f0 = t.get_future();
-    (handle.opsimdense)->simDenseThread =
-        std::thread(std::move(t), numVertices, std::ref((handle.opsimdense)->eventQueue));
-    return event<int>(std::forward<std::future<int> >(f0));
-};
-
-event<int> knnSimilaritySSSparse(xf::graph::L3::Handle& handle,
-                                 uint32_t sourceNUM,
-                                 uint32_t* sourceIndice,
-                                 uint32_t* sourceWeights,
-                                 uint32_t topK,
-                                 xf::graph::Graph<uint32_t, float> g,
-                                 std::string* knownLabels,
-                                 std::string& label) {
-    (handle.opsimsparse)
-        ->eventQueue.push_back(
-            (handle.opsimsparse)
-                ->addworkKNN(1, 1, sourceNUM, sourceIndice, sourceWeights, topK, g, knownLabels, label));
-    std::packaged_task<int(uint32_t, std::vector<event<int> >&)> t(runMultiEvents);
-    std::future<int> f0 = t.get_future();
-    (handle.opsimsparse)->simSparseThread = std::thread(std::move(t), 1, std::ref((handle.opsimsparse)->eventQueue));
-    return event<int>(std::forward<std::future<int> >(f0));
-};
-
-event<int> knnSimilaritySSDense(xf::graph::L3::Handle& handle,
-                                uint32_t sourceNUM,
-                                uint32_t* sourceWeights,
-                                uint32_t topK,
-                                xf::graph::Graph<uint32_t, float> g,
-                                std::string* knownLabels,
-                                std::string& label) {
-    (handle.opsimdense)
-        ->eventQueue.push_back(
-            (handle.opsimdense)->addworkKNN(1, 1, sourceNUM, sourceWeights, topK, g, knownLabels, label));
-    std::packaged_task<int(uint32_t, std::vector<event<int> >&)> t(runMultiEvents);
-    std::future<int> f0 = t.get_future();
-    (handle.opsimdense)->simDenseThread = std::thread(std::move(t), 1, std::ref((handle.opsimdense)->eventQueue));
-    return event<int>(std::forward<std::future<int> >(f0));
-};
-
-event<int> knnSimilarityAPSparse(xf::graph::L3::Handle& handle,
-                                 uint32_t topK,
-                                 xf::graph::Graph<uint32_t, float> g,
-                                 std::string* knownLabels,
-                                 std::string* label) {
-    uint32_t numVertices = g.nodeNum;
-    for (uint32_t i = 0; i < numVertices; ++i) {
-        (handle.opsimsparse)
-            ->eventQueue.push_back((handle.opsimsparse)->addworkAPKNN(1, 1, i, topK, g, knownLabels, label[i]));
-    }
-    std::packaged_task<int(uint32_t, std::vector<event<int> >&)> t(runMultiEvents);
-    std::future<int> f0 = t.get_future();
-    (handle.opsimsparse)->simSparseThread =
-        std::thread(std::move(t), numVertices, std::ref((handle.opsimsparse)->eventQueue));
-    return event<int>(std::forward<std::future<int> >(f0));
-};
-
-event<int> knnSimilarityAPDense(xf::graph::L3::Handle& handle,
-                                uint32_t topK,
-                                xf::graph::Graph<uint32_t, float> g,
-                                std::string* knownLabels,
-                                std::string* label) {
-    uint32_t numVertices = g.nodeNum;
-    for (uint32_t i = 0; i < numVertices; ++i) {
-        (handle.opsimdense)
-            ->eventQueue.push_back((handle.opsimdense)->addworkAPKNN(1, 1, i, topK, g, knownLabels, label[i]));
-    }
-    std::packaged_task<int(uint32_t, std::vector<event<int> >&)> t(runMultiEvents);
-    std::future<int> f0 = t.get_future();
-    (handle.opsimdense)->simDenseThread =
-        std::thread(std::move(t), numVertices, std::ref((handle.opsimdense)->eventQueue));
-    return event<int>(std::forward<std::future<int> >(f0));
-};
-
+#ifdef LOUVAINMOD
 void louvainModularity(xf::graph::L3::Handle& handle,
 					   int flowMode,
                        GLV* glv,
@@ -373,13 +200,15 @@ void louvainModularity(xf::graph::L3::Handle& handle,
                        long opts_minGraphSize,
                        double opts_threshold,
                        double opts_C_thresh,
-                       int numThreads) {
+                       int numThreads) 
+{
     // auto ev = (handle.oplouvainmod)
     //              ->addwork(glv, opts_C_thresh, buff_cl, buff_host, kernel_louvain, q, eachItrs, currMod,
     //              eachTimeInitBuff, eachTimeReadBuff);
     (handle.oplouvainmod)
         ->demo_par_core(0, flowMode, glv, pglv, opts_coloring, opts_minGraphSize, opts_threshold, opts_C_thresh, numThreads);
 };
+#endif
 
 } // L3
 } // graph

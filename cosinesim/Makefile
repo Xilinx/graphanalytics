@@ -75,7 +75,8 @@ $(JAVA_API_DOC_JAR): $(JAVA_API_JAR)
 
 CCC = g++
 CXX = g++
-CXXFLAGS = -std=c++11 -fPIC -Wall -Wno-unknown-pragmas -Wno-unused-label -Wno-narrowing -D USE_HBM -fmessage-length=0
+CXXFLAGS = -std=c++11 -fPIC -Wall -Wno-unknown-pragmas -Wno-unused-label \
+           -Wno-narrowing -D USE_HBM -fmessage-length=0 -D COSINESIM 
 
 # Define the target directories.
 
@@ -115,7 +116,6 @@ SRCS_L3_NAMES = \
 	op_pagerank.cpp \
 	op_scc.cpp \
 	op_similaritydense.cpp \
-	op_similaritysparse.cpp \
 	op_trianglecount.cpp \
 	op_sp.cpp \
 	op_wcc.cpp \

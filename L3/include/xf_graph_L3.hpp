@@ -65,82 +65,6 @@ event<int> shortestPath(xf::graph::L3::Handle& handle,
                         uint32_t** predecent);
 
 /**
- * @brief The single source cosine similarity API for sparse graph.
- *
- * @param handle Graph library L3 handle
- * @param sourceNUM Input, sourceIndices buffer length of source vertex
- * @param sourceIndices Input, source vertex's out members
- * @param sourceWeights Input, weights of the source vertex's out members
- * @param topK Input, the output similarity buffer length
- * @param gr Input, CSR graph of IDs' type of uint32_t and weights' type of float
- * @param resultID Output, the topK highest similarity IDs
- * @param similarity Output, similarity values corresponding to theirs IDs
- *
- */
-event<int> cosineSimilaritySSSparse(xf::graph::L3::Handle& handle,
-                                    uint32_t sourceNUM,
-                                    uint32_t* sourceIndices,
-                                    uint32_t* sourceWeights,
-                                    uint32_t topK,
-                                    xf::graph::Graph<uint32_t, float> gr,
-                                    uint32_t* resultID,
-                                    float* similarity);
-
-/**
- * @brief The single source jaccard similarity API for sparse graph.
- *
- * @param handle Graph library L3 handle
- * @param sourceNUM Input, sourceIndices buffer length of source vertex
- * @param sourceIndices Input, source vertex's out members
- * @param sourceWeights Input, weights of the source vertex's out members
- * @param topK Input, the output similarity buffer length
- * @param gr Input, CSR graph of IDs' type of uint32_t and weights' type of float
- * @param resultID Output, the topK highest similarity IDs
- * @param similarity Output, similarity values corresponding to theirs IDs
- *
- */
-event<int> jaccardSimilaritySSSparse(xf::graph::L3::Handle& handle,
-                                     uint32_t sourceNUM,
-                                     uint32_t* sourceIndices,
-                                     uint32_t* sourceWeights,
-                                     uint32_t topK,
-                                     xf::graph::Graph<uint32_t, float> gr,
-                                     uint32_t* resultID,
-                                     float* similarity);
-
-/**
- * @brief The all-pairs cosine similarity API for sparse graph.
- *
- * @param handle Graph library L3 handle
- * @param topK Input, the output similarity buffer length
- * @param gr Input, CSR graph of IDs' type of uint32_t and weights' type of float
- * @param resultID Output, the topK highest similarity IDs of all vertices in the sparse graph
- * @param similarity Output, similarity values of all vertices in the sparse graph
- *
- */
-event<int> cosineSimilarityAPSparse(xf::graph::L3::Handle& handle,
-                                    uint32_t topK,
-                                    xf::graph::Graph<uint32_t, float> gr,
-                                    uint32_t** resultID,
-                                    float** similarity);
-
-/**
- * @brief The all-pairs jaccard similarity API for sparse graph.
- *
- * @param handle Graph library L3 handle
- * @param topK Input, the output similarity buffer length
- * @param gr Input, CSR graph of IDs' type of uint32_t and weights' type of float
- * @param resultID Output, the topK highest similarity IDs of all vertices in the sparse graph
- * @param similarity Output, similarity values of all vertices in the sparse graph
- *
- */
-event<int> jaccardSimilarityAPSparse(xf::graph::L3::Handle& handle,
-                                     uint32_t topK,
-                                     xf::graph::Graph<uint32_t, float> gr,
-                                     uint32_t** resultID,
-                                     float** similarity);
-
-/**
  * @brief The single source cosine similarity API for dense graph.
  *
  * @param handle Graph library L3 handle
@@ -203,136 +127,6 @@ std::vector<event<int> > cosineSimilaritySSDenseMultiCard(xf::graph::L3::Handle&
                                                           xf::graph::Graph<int32_t, int32_t>** g,
                                                           int32_t** resultID,
                                                           float** similarity);
-
-/**
- * @brief The single source jaccard similarity API for dense graph.
- *
- * @param handle Graph library L3 handle
- * @param sourceNUM Input, sourceWeights buffer length of source vertex
- * @param sourceWeights Input, weights of the source vertex's out members
- * @param topK Input, the output similarity buffer length
- * @param gr Input, CSR graph of IDs' type of uint32_t and weights' type of float
- * @param resultID Output, the topK highest similarity IDs
- * @param similarity Output, similarity values corresponding to theirs IDs
- *
- */
-event<int> jaccardSimilaritySSDense(xf::graph::L3::Handle& handle,
-                                    uint32_t sourceNUM,
-                                    uint32_t* sourceWeights,
-                                    uint32_t topK,
-                                    xf::graph::Graph<uint32_t, float> gr,
-                                    uint32_t* resultID,
-                                    float* similarity);
-
-/**
- * @brief The all-pairs cosine similarity API for dense graph.
- *
- * @param handle Graph library L3 handle
- * @param topK Input, the output similarity buffer length
- * @param gr Input, CSR graph of IDs' type of uint32_t and weights' type of float
- * @param resultID Output, the topK highest similarity IDs of all vertices in the sparse graph
- * @param similarity Output, similarity values of all vertices in the sparse graph
- *
- */
-event<int> cosineSimilarityAPDense(xf::graph::L3::Handle& handle,
-                                   uint32_t topK,
-                                   xf::graph::Graph<uint32_t, float> gr,
-                                   uint32_t** resultID,
-                                   float** similarity);
-
-/**
- * @brief The all-pairs jaccard similarity API for dense graph.
- *
- * @param handle Graph library L3 handle
- * @param topK Input, the output similarity buffer length
- * @param gr Input, CSR graph of IDs' type of uint32_t and weights' type of float
- * @param resultID Output, the topK highest similarity IDs of all vertices in the sparse graph
- * @param similarity Output, similarity values of all vertices in the sparse graph
- *
- */
-event<int> jaccardSimilarityAPDense(xf::graph::L3::Handle& handle,
-                                    uint32_t topK,
-                                    xf::graph::Graph<uint32_t, float> gr,
-                                    uint32_t** resultID,
-                                    float** similarity);
-
-/**
- * @brief The single source k-nearest neighbors API for sparse graph. knnSimilarity API is based on the cosine
- * similarity algorithm.
- *
- * @param handle Graph library L3 handle
- * @param sourceNUM Input, sourceIndices buffer length of source vertex
- * @param sourceIndices Input, source vertex's out members
- * @param sourceWeights Input, weights of the source vertex's out members
- * @param topK Input, the output similarity buffer length
- * @param gr Input, CSR graph of IDs' type of uint32_t and weights' type of float
- * @param knownLabels Input, labels of each vertex in the sparse graph
- * @param label Output, the predicted most similar label
- *
- */
-event<int> knnSimilaritySSSparse(xf::graph::L3::Handle& handle,
-                                 uint32_t sourceNUM,
-                                 uint32_t* sourceIndices,
-                                 uint32_t* sourceWeights,
-                                 uint32_t topK,
-                                 xf::graph::Graph<uint32_t, float> gr,
-                                 std::string* knownLabels,
-                                 std::string& label);
-
-/**
- * @brief The all-pairs k-nearest neighbors API for sparse graph. knnSimilarity API is based on the cosine similarity
- * algorithm.
- *
- * @param handle Graph library L3 handle
- * @param topK Input, the output similarity buffer length
- * @param gr Input, CSR graph of IDs' type of uint32_t and weights' type of float
- * @param knownLabels Input, labels of each vertex in the sparse graph
- * @param label Output, the predicted most similar labels of all vertices in the sparse graph
- *
- */
-event<int> knnSimilarinyAPSparse(xf::graph::L3::Handle& handle,
-                                 uint32_t topK,
-                                 xf::graph::Graph<uint32_t, float> gr,
-                                 std::string* knownLabels,
-                                 std::string* label);
-
-/**
- * @brief The single source k-nearest neighbors API for dense graph. knnSimilarity API is based on the cosine similarity
- * algorithm.
- *
- * @param handle Graph library L3 handle
- * @param sourceNUM Input, sourceIndices buffer length of source vertex
- * @param sourceWeights Input, weights of the source vertex's out members
- * @param topK Input, the output similarity buffer length
- * @param gr Input, CSR graph of IDs' type of uint32_t and weights' type of float
- * @param knownLabels Input, labels of each vertex in the dense graph
- * @param label Output, the predicted most similar label
- *
- */
-event<int> knnSimilaritySSDense(xf::graph::L3::Handle& handle,
-                                uint32_t sourceNUM,
-                                uint32_t* sourceWeights,
-                                uint32_t topK,
-                                xf::graph::Graph<uint32_t, float> gr,
-                                std::string* knownLabels,
-                                std::string& label);
-
-/**
- * @brief The all-pairs k-nearest neighbors API for dense graph. knnSimilarity API is based on the cosine similarity
- * algorithm.
- *
- * @param handle Graph library L3 handle
- * @param topK Input, the output similarity buffer length
- * @param gr Input, CSR graph of IDs' type of uint32_t and weights' type of float
- * @param knownLabels Input, labels of each vertex in the dense graph
- * @param label Output, the predicted most similar labels of all vertices in the dense graph
- *
- */
-event<int> knnSimilarityAPDense(xf::graph::L3::Handle& handle,
-                                uint32_t topK,
-                                xf::graph::Graph<uint32_t, float> gr,
-                                std::string* knownLabels,
-                                std::string* label);
 
 /**
  * @brief triangleCount the triangle counting algorithm is implemented, the input is the matrix in CSC format.
@@ -411,11 +205,8 @@ event<int> convertCsrCsc(xf::graph::L3::Handle& handle,
                          xf::graph::Graph<uint32_t, uint32_t> gr2);
 
 
-#ifndef THREAD_DEBUG
+#ifdef LOUVAINMOD
 void louvainModularity(xf::graph::L3::Handle& handle,
-#else
-void louvainModularity(xf::graph::L3::Handle* handle,
-#endif
 							 int flowMode,
 		                     GLV* glv,
 							 GLV* pglv,
@@ -425,7 +216,7 @@ void louvainModularity(xf::graph::L3::Handle* handle,
 							 double opts_C_thresh,
 							 int numThreads
                              );
-                             
+#endif                             
 } // L3
 } // graph
 } // xf

@@ -28,6 +28,10 @@ double showTimeData(std::string p_Task, TimePointType& t1, TimePointType& t2) {
     return l_timeMs;
 };
 
+unsigned long diff(const struct timeval* newTime, const struct timeval* oldTime) {
+    return (newTime->tv_sec - oldTime->tv_sec) * 1000000 + (newTime->tv_usec - oldTime->tv_usec);
+}
+
 } // L3
 } // graph
 } // xf

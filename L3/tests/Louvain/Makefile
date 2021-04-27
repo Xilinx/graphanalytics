@@ -29,9 +29,9 @@ CXXFLAGS += -I $(PROJ_ROOT)/L3/include/include_hls
 CXXFLAGS += -I $(PROJ_ROOT)/ext/xcl2
 CXXFLAGS += -I $(PROJ_ROOT)/L3/tests/Louvain/host
 CXXFLAGS += -I $(XILINX_XRM)/include
-LIB_PATH := $(PROJ_ROOT)/louvainmod/L3/lib
-CXXFLAGS += -O3
-#CXXFLAGS += -g
+LIB_PATH := $(PROJ_ROOT)/L3/lib
+#CXXFLAGS += -O3
+CXXFLAGS += -g
 export LD_LIBRARY_PATH=$(LIB_PATH):$(XILINX_XRT)/lib
 
 ifneq (,$(shell echo $(XDEVICE) | awk '/u50/'))
