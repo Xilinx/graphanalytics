@@ -39,6 +39,7 @@
 #include "op_convertcsrcsc.hpp"
 #include "op_similaritysparse.hpp"
 #include "op_similaritydense.hpp"
+#include "op_louvainmodularity.hpp"
 
 namespace xf {
 namespace graph {
@@ -134,6 +135,11 @@ class Handle {
      *
      */
     class opSimilarityDense* opsimdense;
+    /**
+     * \brief louvain modularity operation
+     *
+     */
+    class opLouvainModularity* oplouvainmod;
     /**
      * \brief xilinx FPGA Resource Manager operation
      *

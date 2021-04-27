@@ -409,6 +409,23 @@ event<int> scc(xf::graph::L3::Handle& handle, xf::graph::Graph<uint32_t, uint32_
 event<int> convertCsrCsc(xf::graph::L3::Handle& handle,
                          xf::graph::Graph<uint32_t, uint32_t> gr1,
                          xf::graph::Graph<uint32_t, uint32_t> gr2);
+
+
+#ifndef THREAD_DEBUG
+void louvainModularity(xf::graph::L3::Handle& handle,
+#else
+void louvainModularity(xf::graph::L3::Handle* handle,
+#endif
+							 int flowMode,
+		                     GLV* glv,
+							 GLV* pglv,
+							 bool opts_coloring,
+							 long opts_minGraphSize,
+							 double opts_threshold,
+							 double opts_C_thresh,
+							 int numThreads
+                             );
+                             
 } // L3
 } // graph
 } // xf
