@@ -26,41 +26,32 @@ ifndef XILINX_XRT
   export XILINX_XRT
 endif
 
-#Checks for g++
-CXX := g++
-#ifeq ($(HOST_ARCH), x86)
-#ifneq ($(shell expr $(shell g++ -dumpversion) \>= 5), 1)
-#ifndef XILINX_VIVADO
-#$(error [ERROR]: g++ version older. Please use 5.0 or above)
-#else
-#CXX := $(XILINX_VIVADO)/tps/lnx64/gcc-6.2.0/bin/g++
-#$(warning [WARNING]: g++ version older. Using g++ provided by the tool : $(CXX))
-#endif
-#endif
-#else ifeq ($(HOST_ARCH), aarch64)
-#CXX := $(XILINX_VITIS)/gnu/aarch64/lin/aarch64-linux/bin/aarch64-linux-gnu-g++
-#else ifeq ($(HOST_ARCH), aarch32)
-#CXX := $(XILINX_VITIS)/gnu/aarch32/lin/gcc-arm-linux-gnueabi/bin/arm-linux-gnueabihf-g++
-#endif
-
 ############################## Setting up Host Variables ##############################
-CXXFLAGS += -I$(XFLIB_DIR)/L2/include
+#CXXFLAGS += -I$(XFLIB_DIR)/L2/include
 CXXFLAGS += -I$(XFLIB_DIR)/ext/xcl2
 CXXFLAGS += -I$(XFLIB_DIR)/L3/include
-#add for new API wrapper
-CXXFLAGS += -I$(XFLIB_DIR)/cosinesim/include
+
+# for louvain
+CXXFLAGS += -I$(XFLIB_DIR)/L3/include/include_hls
+
+# for Xilinx Alveo Interface (XAI) to allow third party software to make a call
+CXXFLAGS += -I$(XFLIB_DIR)/louvainmod/integration/tigergraph/udf/QueryUdf
+
 XILINX_XRM=/opt/xilinx/xrm
 
-CXXFLAGS += -I$(XILINX_XRT)/include -I$(XILINX_VIVADO)/include -I$(XILINX_XRM)/include  -std=c++11 -O3 -Wall -Wno-unknown-pragmas -Wno-unused-label
-LDFLAGS += -L$(XILINX_XRT)/lib -lOpenCL -lpthread -lrt -Wno-unused-label -Wno-narrowing -DVERBOSE -L$(XILINX_XRM)/lib -lxrm
+CXXFLAGS += -I$(XILINX_XRT)/include -I$(XILINX_VIVADO)/include -I$(XILINX_XRM)/include -std=c++11 -O3 -Wall -Wno-unknown-pragmas -Wno-unused-label
+LDFLAGS += -L$(XILINX_XRT)/lib -lOpenCL -lpthread -lrt -Wno-unused-label -Wno-narrowing -L$(XILINX_XRM)/lib -lxrm
 CXXFLAGS += -fmessage-length=0 -O3
-CXXFLAGS +=-I$(CUR_DIR)/src/ 
+CXXFLAGS +=-I$(CUR_DIR)/src/ -DPRINTINFO_2
+//CXXFLAGS += -DPRINTINFO -DVERBOSE 
 
 ifneq ($(HOST_ARCH), x86)
 	LDFLAGS += --sysroot=$(SYSROOT)
 endif
 
 CXXFLAGS += -D USE_HBM
+#CXXFLAGS += -g
+CXXFLAGS += -O3
 
 ############################## Setting Rules for so (Building Dynamic Library) ##############################
 libGRAPHL3 = $(XFLIB_DIR)/L3/lib/libgraphL3.so
@@ -78,12 +69,38 @@ CPP_PATH += $(XFLIB_DIR)/L3/src/op_similaritydense.cpp
 CPP_PATH += $(XFLIB_DIR)/L3/src/op_pagerank.cpp
 CPP_PATH += $(XFLIB_DIR)/L3/src/xf_graph_L3_handle.cpp
 CPP_PATH += $(XFLIB_DIR)/L3/src/xf_graph_L3.cpp
-##add for new API wrapper
-CPP_PATH += $(XFLIB_DIR)/cosinesim/src/cosinesim.cpp
+CPP_PATH += $(XFLIB_DIR)/ext/xcl2/xcl2.cpp
+
+# for louvain
+CPP_PATH += $(XFLIB_DIR)/L3/src/op_louvainmodularity.cpp
+CPP_PATH += $(XFLIB_DIR)/L3/tests/Louvain/host/driverForGraphClustering.cpp
+CPP_PATH += $(XFLIB_DIR)/L3/tests/Louvain/host/RngStream.cpp
+CPP_PATH += $(XFLIB_DIR)/L3/tests/Louvain/host/utilityFunctions.cpp
+CPP_PATH += $(XFLIB_DIR)/L3/tests/Louvain/host/parseInputFiles.cpp
+CPP_PATH += $(XFLIB_DIR)/L3/tests/Louvain/host/buildNextPhase.cpp
+CPP_PATH += $(XFLIB_DIR)/L3/tests/Louvain/host/coloringDistanceOne.cpp
+CPP_PATH += $(XFLIB_DIR)/L3/tests/Louvain/host/utilityClusteringFunctions.cpp
+CPP_PATH += $(XFLIB_DIR)/L3/tests/Louvain/host/parallelLouvainMethod.cpp
+CPP_PATH += $(XFLIB_DIR)/L3/tests/Louvain/host/parallelLouvainWithColoring.cpp
+CPP_PATH += $(XFLIB_DIR)/L3/tests/Louvain/host/louvainMultiPhaseRun.cpp
+CPP_PATH += $(XFLIB_DIR)/L3/tests/Louvain/host/parseInputParameters.cpp
+CPP_PATH += $(XFLIB_DIR)/L3/tests/Louvain/host/vertexFollowing.cpp
+CPP_PATH += $(XFLIB_DIR)/L3/tests/Louvain/host/partitionLouvain.cpp
+CPP_PATH += $(XFLIB_DIR)/L3/tests/Louvain/host/ParLV.cpp
+CPP_PATH += $(XFLIB_DIR)/L3/tests/Louvain/host/ctrlLV.cpp
+CPP_PATH += $(XFLIB_DIR)/L3/tests/Louvain/host/louvainPhase.cpp
+CPP_PATH += $(XFLIB_DIR)/L3/tests/Louvain/host/xai.cpp
+
+#$(libGRAPHL3): ${CPP_PATH}
+#	/usr/bin/g++ -fPIC $(CXXFLAGS) -rdynamic -shared -o $@ $^ $(LDFLAGS) -w -Wl,--export-dynamic
+
+# for louvain
+test:
+	echo $(XFLIB_DIR) $(XF_PROJ_ROOT) $(MK_PATH) $(MAKEFILE_LIST)
 
 $(libGRAPHL3): ${CPP_PATH}
-	$(CXX) -fPIC $(CXXFLAGS) -rdynamic -shared -o $@ $^ $(LDFLAGS) -w -Wl,--export-dynamic
+	/usr/bin/g++ -DPRAGMA -Ofast -fopenmp -fPIC $(CXXFLAGS) -rdynamic -shared -o $@ $^ $(LDFLAGS) -w -Wl,--export-dynamic
 
 ############################## Cleaning Rules ##############################
 clean:
-	-$(RMDIR) ${XFLIB_DIR}/L3/lib/*.so 
+	-$(RMDIR) ${XFLIB_DIR}/L3/lib/*.so

@@ -365,6 +365,22 @@ event<int> knnSimilarityAPDense(xf::graph::L3::Handle& handle,
     return event<int>(std::forward<std::future<int> >(f0));
 };
 
+void louvainModularity(xf::graph::L3::Handle& handle,
+					   int flowMode,
+                       GLV* glv,
+                       GLV* pglv,
+                       bool opts_coloring,
+                       long opts_minGraphSize,
+                       double opts_threshold,
+                       double opts_C_thresh,
+                       int numThreads) {
+    // auto ev = (handle.oplouvainmod)
+    //              ->addwork(glv, opts_C_thresh, buff_cl, buff_host, kernel_louvain, q, eachItrs, currMod,
+    //              eachTimeInitBuff, eachTimeReadBuff);
+    (handle.oplouvainmod)
+        ->demo_par_core(0, flowMode, glv, pglv, opts_coloring, opts_minGraphSize, opts_threshold, opts_C_thresh, numThreads);
+};
+
 } // L3
 } // graph
 } // xf

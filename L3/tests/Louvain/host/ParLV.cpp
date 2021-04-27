@@ -1240,7 +1240,7 @@ void PrintTimeRpt(ParLV& parlv, int num_dev) {
     printf("====================================================================================================\n");
 }
 
-void PrintRptPartition(int mode_zmq, ParLV& parlv, int op0_deviceNeeded, int numNode, int numPureWorker) {
+void PrintRptPartition(int mode_zmq, ParLV& parlv, int op0_numDevices, int numNode, int numPureWorker) {
     if (mode_zmq != ZMQ_WORKER) {
 #ifdef PRINTINFO_2
         printf("************************************************************************************************\n");
@@ -1251,7 +1251,7 @@ void PrintRptPartition(int mode_zmq, ParLV& parlv, int op0_deviceNeeded, int num
         printf("\033[1;37;40mINFO\033[0m: Original number of vertices            : %ld\n", parlv.plv_src->NV);
         printf("\033[1;37;40mINFO\033[0m: Original number of un-direct edges     : %ld\n", parlv.plv_src->NE);
         printf("\033[1;37;40mINFO\033[0m: number of partition                    : %d \n", parlv.num_par);
-        printf("\033[1;37;40mINFO\033[0m: number of device used                  : %d \n", op0_deviceNeeded);
+        printf("\033[1;37;40mINFO\033[0m: number of device used                  : %d \n", op0_numDevices);
         printf("\033[1;37;40mINFO\033[0m: Final number of clusters               : %ld\n",
                parlv.plv_src->NC); // com_list.back().
         printf("\033[1;37;40mINFO\033[0m: Final modularity                       : %lf\n",
@@ -1275,9 +1275,9 @@ void PrintRptPartition(int mode_zmq, ParLV& parlv, int op0_deviceNeeded, int num
             double totTimeFPGA_pure = 0;
             double totTimeFPGA_wait = 0;
             double totTimeCPU = 0;
-            for (int d = 0; d < op0_deviceNeeded; d++) totTimeOnDev[d] = 0;
+            for (int d = 0; d < op0_numDevices; d++) totTimeOnDev[d] = 0;
             for (int p = 0; p < parlv.num_par; p++) {
-                for (int d = 0; d < op0_deviceNeeded; d++) {
+                for (int d = 0; d < op0_numDevices; d++) {
                     totTimeOnDev[d] += parlv.par_src[p]->times.totTimeE2E_DEV[d];
                     totTimeFPGA_pure += parlv.par_src[p]->times.totTimeE2E_DEV[d];
                 }
@@ -1295,12 +1295,12 @@ void PrintRptPartition(int mode_zmq, ParLV& parlv, int op0_deviceNeeded, int num
             for (int p = 0; p < parlv.num_par; p++) printf(" +%lf (par-%d) ", parlv.par_src[p]->times.totTimeE2E, p);
             printf(" +%lf (Final) \n", parlv.plv_merged->times.totTimeE2E);
 
-            for (int d = 0; d < op0_deviceNeeded; d++)
+            for (int d = 0; d < op0_numDevices; d++)
                 printf("\t--- Sub-Louvain on Dev-%d             : %lf\n", d, totTimeOnDev[d]);
             printf("\t--- Fnl-Louvain on Dev-0             : %lf\n", parlv.plv_merged->times.totTimeE2E);
-            printf("\t--- FPGA efficiency with %d device(s) : %2.2f\n", op0_deviceNeeded,
+            printf("\t--- FPGA efficiency with %d device(s) : %2.2f\n", op0_numDevices,
                    (totTimeFPGA_pure * 100.0) /
-                       (op0_deviceNeeded * (parlv.timesPar.timeAll - parlv.timesPar.timePar_all)));
+                       (op0_numDevices * (parlv.timesPar.timeAll - parlv.timesPar.timePar_all)));
             printf(
                 "************************************************************************************************\n");
         } // end ZMQ_NONE
@@ -1404,17 +1404,17 @@ void PrintRptParameters(double opts_C_thresh,   // Threshold with coloring on
         "********************************  \033[1;35;40mParameters Report \033[0m   "
         "*********************|********************\n");
     printf("************************************************************************************************\n");
-    // deviceNeeded
+    // numDevices
     if (devNeed_cmd == 0)
         printf(
-            "FPGA Parameter \033[1;37;40mdeviceNeeded    \033[0m: %-8d  \t\t\t Default=        1,       by config.json "
+            "FPGA Parameter \033[1;37;40mnumDevices    \033[0m: %-8d  \t\t\t Default=        1,       by config.json "
             "or\" \033[1;37;40m-dev\033[0m     <v> \"  \n",
-            op0.deviceNeeded);
+            op0.numDevices);
     else
         printf(
-            "FPGA Parameter \033[1;37;40mdeviceNeeded    \033[0m: %-8d  \t\t\t Default=        1,       by "
+            "FPGA Parameter \033[1;37;40mnumDevices    \033[0m: %-8d  \t\t\t Default=        1,       by "
             "command-line: \" \033[1;37;40m-dev\033[0m     <v> \"",
-            op0.deviceNeeded);
+            op0.numDevices);
     printf(" or by config.json\n");
     printf(
         "FPGA Parameter \033[1;37;40mrequestLoad     \033[0m: %-8d  \t\t\t Default=      100,       by config.json     "
@@ -1432,12 +1432,12 @@ void PrintRptParameters(double opts_C_thresh,   // Threshold with coloring on
         printf(
             "FPGA Parameter \033[1;37;40mxclbinFile      \033[0m: %s    \t  by config.json           or by \" "
             "\033[1;37;40m-x <path>\033[0m\"                    \n",
-            op0.xclbinFile);
+            op0.xclbinPath);
     else
         printf(
             "FPGA Parameter \033[1;37;40mxclbinFile      \033[0m: %s    \t  by command-line: \" \033[1;37;40m-x "
             "<path>\033[0m\" or by config.json                \n",
-            op0.xclbinFile);
+            op0.xclbinPath);
     printf(
         "FPGA Parameter \033[1;37;40mtype of xclbin  \033[0m: %s    \t\t\t Default=  normal ,       by command-line: "
         "\" \033[1;37;40m-fast\033[0m \"         \n",
@@ -3517,7 +3517,7 @@ int load_alveo_partitions(int argc, char* argv[]) {
         std::cout << "Error : file doesn't exist !" << std::endl;
         exit(1);
     }
-    int deviceNeeded = 1;
+    int numDevices = 1;
     char line[1024] = {0};
     char* token;
     while (userInput_json.getline(line, sizeof(line))) {
@@ -3535,9 +3535,9 @@ int load_alveo_partitions(int argc, char* argv[]) {
             } else if (!std::strcmp(token, "xclbinPath")) {
                 token = strtok(NULL, "\"\t ,}:{\n");
                 xclbinPath = token;
-            } else if (!std::strcmp(token, "deviceNeeded")) {
+            } else if (!std::strcmp(token, "numDevices")) {
                 token = strtok(NULL, "\"\t ,}:{\n");
-                deviceNeeded = std::atoi(token);
+                numDevices = std::atoi(token);
             }
             token = strtok(NULL, "\"\t ,}:{\n");
         }
@@ -3592,18 +3592,18 @@ int load_alveo_partitions(int argc, char* argv[]) {
     op0.setKernelName((char*)kernelName.c_str());
     op0.requestLoad = requestLoad;
     if (opts_xclbinPath[0] == 0)
-        op0.xclbinFile = (char*)xclbinPath.c_str();
+        op0.xclbinPath = (char*)xclbinPath.c_str();
     else
-        op0.xclbinFile = opts_xclbinPath;
+        op0.xclbinPath = opts_xclbinPath;
     if (devNeed_cmd == 0)
-        op0.deviceNeeded = deviceNeeded;
+        op0.numDevices = numDevices;
     else
-        op0.deviceNeeded = devNeed_cmd;
+        op0.numDevices = devNeed_cmd;
     //----------------- enable handle0--------
     handle0.addOp(op0);
     handle0.setUp();
 #ifdef PRINTINFO_2
-    printf("\033[1;37;40mINFO: xclbin file is        : %s with flow mode %d\033[0m\n",  op0.xclbinFile, flowMode);
+    printf("\033[1;37;40mINFO: xclbin file is        : %s with flow mode %d\033[0m\n",  op0.xclbinPath, flowMode);
     printf("\033[1;37;40mINFO: The project file is   : %s\033[0m\n", nameMetaFile);
 #endif
     //printf("\n\n\033[1;31;40mINFO FOR MATRIX FILE: %s \033[0m\n",  inFile);
@@ -3620,9 +3620,9 @@ int load_alveo_partitions(int argc, char* argv[]) {
         if (mode_zmq == ZMQ_DRIVER) {
             char inFile[1024];
             ParLV parlv_drv;
-            parlv_drv.Init(flowMode, NULL, num_par, deviceNeeded, isPrun, par_prune);
+            parlv_drv.Init(flowMode, NULL, num_par, numDevices, isPrun, par_prune);
             ParLV parlv_wkr;
-            parlv_wkr.Init(flowMode, NULL, num_par, deviceNeeded, isPrun, par_prune);
+            parlv_wkr.Init(flowMode, NULL, num_par, numDevices, isPrun, par_prune);
             // API FOR LOADING
             {
                 TimePointType l_load_start = chrono::high_resolution_clock::now();
@@ -3669,7 +3669,7 @@ int load_alveo_partitions(int argc, char* argv[]) {
             parlv_drv.plv_src->Q = glv_final->Q;
             parlv_drv.plv_src->NC = glv_final->NC;
 
-            PrintRptPartition(mode_zmq, parlv_drv, op0.deviceNeeded, numNode, numPureWorker);
+            PrintRptPartition(mode_zmq, parlv_drv, op0.numDevices, numNode, numPureWorker);
 
             if (opts_output){
             	host_writeOut(opts_outputFile, parlv_drv.plv_src->NV, parlv_drv.plv_src->C);
@@ -3701,13 +3701,13 @@ int load_alveo_partitions(int argc, char* argv[]) {
             return 0;
         } else if (mode_zmq == ZMQ_WORKER) {
             ParLV parlv_wkr;
-            parlv_wkr.Init(flowMode, NULL, num_par, deviceNeeded, isPrun, par_prune);
+            parlv_wkr.Init(flowMode, NULL, num_par, numDevices, isPrun, par_prune);
             parlv_wkr.timesPar.timeAll = getTime();
             char LoadCommand[MAX_LEN_MESSAGE];
             {
                 char inFile[1024];
                 ParLV parlv_tmp;
-                parlv_tmp.Init(flowMode, NULL, num_par, deviceNeeded, isPrun, par_prune);
+                parlv_tmp.Init(flowMode, NULL, num_par, numDevices, isPrun, par_prune);
                 if(load_alveo_partitions_WorkerSelf(nameMetaFile, numNode, numPureWorker, parlv_tmp, parlv_wkr, inFile,
                                                  nodeID, LoadCommand)!=0)
                      return -1;
