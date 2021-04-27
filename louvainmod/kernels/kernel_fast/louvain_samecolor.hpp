@@ -29,10 +29,10 @@
 #include <hls_stream.h>
 
 //#define _DEBUG_SAMECOLOR
-#define _DEBUG_GetV 1
-#define _DEBUG_PUSHV 1
+//#define _DEBUG_GetV 1
+//#define _DEBUG_PUSHV 1
 int pushcnt = 0;
-#define USE_PUSH (1) 
+#define USE_PUSH (1)
 
 #ifdef _DEBUG_SAMECOLOR
 #define _DEBUG_GetV
@@ -48,8 +48,8 @@ namespace graph {
 
 template <int CSRWIDTH, int COLORWIDTH>
 void _new_bus(bool use_push_flag,
-			  ap_uint<FLAGW>* flag,
-			  int coloradj1,
+              ap_uint<FLAGW>* flag,
+              int coloradj1,
               int coloradj2,
               ap_uint<COLORWIDTH>* colorInx,
               ap_uint<CSRWIDTH>* offset,
@@ -67,165 +67,151 @@ GET_V:
 #pragma HLS DEPENDENCE variable = offset inter false
         DF_V_T v = axi_colorInx.rdi(k);
 
-        if (use_push_flag){
-        	ap_uint<FLAGW> push_flag = flag[v];
-        	
-            if(push_flag){
-            int adj1 = AxiRead<8, 5>(offset, v); // axi_offset.rdi(v);
-            
-            if(adj1 < 0)
-                continue;
+        if (use_push_flag) {
+            ap_uint<FLAGW> push_flag = flag[v];
 
-                adj1 = 0x7fffffff&adj1;
-            int adj2 = 0x7fffffff&AxiRead<8, 5>(offset, v + 1);
-			    DF_D_T dgr = adj2 - adj1;
-			    out_v.vcd.set(v, adj1, dgr);
-			    out_v.vcd.get(dinout);
-			    str_GetVout.write(dinout);
+            if (push_flag) {
+                int adj1 = AxiRead<8, 5>(offset, v); // axi_offset.rdi(v);
+
+                if (adj1 < 0) continue;
+
+                adj1 = 0x7fffffff & adj1;
+                int adj2 = 0x7fffffff & AxiRead<8, 5>(offset, v + 1);
+                DF_D_T dgr = adj2 - adj1;
+                out_v.vcd.set(v, adj1, dgr);
+                out_v.vcd.get(dinout);
+                str_GetVout.write(dinout);
 
 #ifndef __SYNTHESIS__
 #ifdef _DEBUG_PUSHV
-		printf("pushv = %d\n", v);
+                printf("pushv = %d\n", v);
 #endif
 #ifdef _DEBUG_GetV
-        printf("Get_pushV push_flag=%d: k=%d\t v=%d\t adj1=%d\t adj1=%d\t dgr=%d\t \n", (int)push_flag, k, v, adj1, adj2, dgr);
+                printf("Get_pushV push_flag=%d: k=%d\t v=%d\t adj1=%d\t adj1=%d\t dgr=%d\t \n", (int)push_flag, k, v,
+                       adj1, adj2, dgr);
 #endif
 #endif
-    
-        	}//push_flag == true
-        
-        }else{
-            int adj1 = AxiRead<8, 5>(offset, v); // axi_offset.rdi(v);
-            if(adj1 < 0)
-            continue;
 
-            adj1 = 0x7fffffff&adj1;
-            int adj2 = 0x7fffffff&AxiRead<8, 5>(offset, v + 1);
+            } // push_flag == true
+
+        } else {
+            int adj1 = AxiRead<8, 5>(offset, v); // axi_offset.rdi(v);
+            if (adj1 < 0) continue;
+
+            adj1 = 0x7fffffff & adj1;
+            int adj2 = 0x7fffffff & AxiRead<8, 5>(offset, v + 1);
             DF_D_T dgr = adj2 - adj1;
             out_v.vcd.set(v, adj1, dgr);
             out_v.vcd.get(dinout);
             str_GetVout.write(dinout);
 #ifndef __SYNTHESIS__
 #ifdef _DEBUG_GetV
-        printf("GetV: k=%d\t v=%d\t adj1=%d\t adj1=%d\t dgr=%d\t \n", k, v, adj1, adj2, dgr);
+            printf("GetV: k=%d\t v=%d\t adj1=%d\t adj1=%d\t dgr=%d\t \n", k, v, adj1, adj2, dgr);
 #endif
 #endif
-        }//push
+        } // push
     }
     out_v.vcd.set(dinout, 0, 0, -1);
     str_GetVout.write(dinout);
 }
 
 template <int CSRWIDTH>
-void SameColor_GetFlag2(
-		hls::stream<int >& str_pushV,
-		ap_uint<CSRWIDTH>* offset,
-		ap_uint<CSRWIDTH>* index,
-		hls::stream<int >& str_flag){
+void SameColor_GetFlag2(hls::stream<int>& str_pushV,
+                        ap_uint<CSRWIDTH>* offset,
+                        ap_uint<CSRWIDTH>* index,
+                        hls::stream<int>& str_flag) {
+    int pushV = 0;
+    DF_D_T d, e_dgr;
+    e_dgr = 0, d = 0;
+    AxiMap<int, CSRWIDTH> axi_index(index);
+    int adj1, adj2;
 
-	int pushV = 0;
-	DF_D_T d, e_dgr;
-	e_dgr = 0, d = 0;
-	AxiMap<int, CSRWIDTH> axi_index(index);
-	int adj1, adj2;
+    while (pushV >= 0) {
+#pragma HLS PIPELINE II = 1
+        if (d == e_dgr) {
+            str_pushV.read(pushV);
+            if (pushV >= 0) {
+                adj1 = AxiRead<8, 5>(offset, pushV); // axi_offset.rdi(v);
+                adj2 = AxiRead<8, 5>(offset, pushV + 1);
+                e_dgr = adj2 - adj1;
+            }
+            d = 0;
+        } else {
+            DF_V_T edge = axi_index.rdi(adj1 + d);
+            str_flag.write(edge);
+            d++;
+        }
+    }
 
-	while(pushV >= 0){
-#pragma HLS PIPELINE II=1
-		if(d == e_dgr){
-			str_pushV.read(pushV);
-			if(pushV >= 0){
-				adj1 = AxiRead<8, 5>(offset, pushV); // axi_offset.rdi(v);
-				adj2 = AxiRead<8, 5>(offset, pushV + 1);
-				e_dgr = adj2 - adj1;
-			}
-			d = 0;
-		}else{
-			DF_V_T edge = axi_index.rdi(adj1 + d);
-			str_flag.write(edge);
-			d++;
-		}
-	}
-
-	str_flag.write(-1);
+    str_flag.write(-1);
 }
 
-
-
 template <int CSRWIDTH>
-void SameColor_GetFlag3(
-		hls::stream<int >& str_pushV,
-		ap_uint<CSRWIDTH>* offset,
-		hls::stream<ap_uint<96> >& str_od){
+void SameColor_GetFlag3(hls::stream<int>& str_pushV, ap_uint<CSRWIDTH>* offset, hls::stream<ap_uint<96> >& str_od) {
+    int pushV = 0;
+    DF_D_T e_dgr;
+    int adj1, adj2;
+    StrmBus_M out_v;
+    ap_uint<96> dinout;
+    int cnt = 0;
 
-	int pushV = 0;
-	DF_D_T  e_dgr;
-	int adj1, adj2;
-	StrmBus_M out_v;
-	ap_uint<96> dinout;
-	int cnt = 0;
-
-	GetFlag3:
-	while(pushV >= 0){
-#pragma HLS PIPELINE II=1
-			str_pushV.read(pushV);
-			if(pushV >= 0){
-				adj1 = AxiRead<8, 5>(offset, pushV); // axi_offset.rdi(v);
-				adj2 = AxiRead<8, 5>(offset, pushV + 1);
-				e_dgr = adj2 - adj1;
-				out_v.vod.set(pushV, adj1, e_dgr);
-				out_v.vod.get(dinout);
-				str_od.write(dinout);
+GetFlag3:
+    while (pushV >= 0) {
+#pragma HLS PIPELINE II = 1
+        str_pushV.read(pushV);
+        if (pushV >= 0) {
+            adj1 = AxiRead<8, 5>(offset, pushV); // axi_offset.rdi(v);
+            adj2 = AxiRead<8, 5>(offset, pushV + 1);
+            e_dgr = adj2 - adj1;
+            out_v.vod.set(pushV, adj1, e_dgr);
+            out_v.vod.get(dinout);
+            str_od.write(dinout);
 #ifndef __SYNTHESIS__
-				cnt++;
+            cnt++;
 #ifdef _DEBUG_PUSHV
-        printf("PUSHV : v=%d\t adj1=%d\t adj2=%d\t e_dgr=%d\t \n", pushV, adj1, adj2, e_dgr);
+            printf("PUSHV : v=%d\t adj1=%d\t adj2=%d\t e_dgr=%d\t \n", pushV, adj1, adj2, e_dgr);
 #endif
 #endif
-			}else{
-				out_v.vod.set(dinout, 0, 0, -1);
-				str_od.write(dinout);
+        } else {
+            out_v.vod.set(dinout, 0, 0, -1);
+            str_od.write(dinout);
 #ifndef __SYNTHESIS__
-				pushcnt += cnt;
-		//printf("PUSHV : cnt=%d\n", cnt);
+            pushcnt += cnt;
+// printf("PUSHV : cnt=%d\n", cnt);
 #endif
-			}
-	}
+        }
+    }
 }
 
 template <int CSRWIDTH>
-void SameColor_GetFlag4(
-		bool wirte_push_flag,
-		hls::stream<ap_uint<96> >& str_od,
-		ap_uint<CSRWIDTH>* index,
-		hls::stream<int >& str_flag){
+void SameColor_GetFlag4(bool wirte_push_flag,
+                        hls::stream<ap_uint<96> >& str_od,
+                        ap_uint<CSRWIDTH>* index,
+                        hls::stream<int>& str_flag) {
+    int pushV = 0;
+    DF_D_T d, e_dgr;
+    e_dgr = 0, d = 0;
+    AxiMap<int, CSRWIDTH> axi_index(index);
+    int adj1, adj2;
+    StrmBus_M out_v;
+    ap_uint<96> dinout;
 
-	int pushV = 0;
-	DF_D_T d, e_dgr;
-	e_dgr = 0, d = 0;
-	AxiMap<int, CSRWIDTH> axi_index(index);
-	int adj1, adj2;
-	StrmBus_M out_v;
-	ap_uint<96> dinout;
+GetFlag4:
+    while (e_dgr >= 0) {
+#pragma HLS PIPELINE II = 1
+        if (d == e_dgr) {
+            str_od.read(dinout);
+            out_v.vod.get(dinout, pushV, adj1, e_dgr);
+            d = 0;
+        } else {
+            DF_V_T edge = axi_index.rdi(adj1 + d);
+            if (wirte_push_flag) str_flag.write(edge);
+            d++;
+        }
+    }
 
-	GetFlag4:
-	while(e_dgr >= 0){
-#pragma HLS PIPELINE II=1
-		if(d == e_dgr){
-			str_od.read(dinout);
-			out_v.vod.get(dinout, pushV, adj1, e_dgr);
-			d = 0;
-		}else{
-			DF_V_T edge = axi_index.rdi(adj1 + d);
-			if(wirte_push_flag)
-			str_flag.write(edge);
-			d++;
-		}
-	}
-
-	str_flag.write(-1);
+    str_flag.write(-1);
 }
-
-
 
 template <int CSRWIDTH>
 void SameColor_GetE(ap_uint<CSRWIDTH>* index,
@@ -390,7 +376,7 @@ GET_BEST:
             vcnki.vcnk.get(dout);
             vcnki_tmp.vcnk.set(dout);
             str_Gainout.write(dout);
-        }else if (GetKins_e == false){
+        } else if (GetKins_e == false) {
             if (degree > 0) {
                 if (d == 0) {
                     str_Aggout.read(dinout);
@@ -447,8 +433,8 @@ GET_BEST:
 #endif
                     d++;
                 }
-              }
             }
+        }
     }
 }
 
@@ -680,7 +666,7 @@ void SameColor_GetBest_Update_CID_step1(ap_uint<DWIDTH>* cidSize,
                                         hls::stream<ap_uint<160> >& str_Gainout,
                                         // output
                                         hls::stream<StrmBus_L>& str_Cidout,
-                                        hls::stream<int >& str_pushV,
+                                        hls::stream<int>& str_pushV,
                                         hls::stream<StrmBus_S>& str_Cid_update) {
     AxiMap<int, DWIDTH> axi_cidSize(cidSize);
 
@@ -898,7 +884,7 @@ void SameColor_GetBest_Update_TOT_Csize_hash3_new(short scl,
 #pragma HLS ARRAY_PARTITION variable = mem_cnt complete
     DF_D_T num_cid_small[NUM_UNIT];
 #pragma HLS ARRAY_PARTITION variable = num_cid_small complete
-    bool isFirstAddr[NUM_UNIT];     
+    bool isFirstAddr[NUM_UNIT];
 #pragma HLS ARRAY_PARTITION variable = isFirstAddr complete
 
     for (int i = 0; i < NUM_UNIT; i++) {
@@ -956,8 +942,9 @@ MDF_TOT_SIZE:
             for (int off = 0; off < NUM_UNIT; off++) {
 #pragma HLS PIPELINE off
 
-                AggBatch2Mem<DWIDTH, BATCH_UPDT, BATCH_UPDT_LOG>(scl, cUpdateSize, totUpdate, mem_key[off], mem_agg[off], mem_cnt[off],
-                                     num_cid_small[off], isFirstAddr[off]);
+                AggBatch2Mem<DWIDTH, BATCH_UPDT, BATCH_UPDT_LOG>(scl, cUpdateSize, totUpdate, mem_key[off],
+                                                                 mem_agg[off], mem_cnt[off], num_cid_small[off],
+                                                                 isFirstAddr[off]);
             }
             isMoved = false;
             isOneFull = false;
@@ -966,17 +953,16 @@ MDF_TOT_SIZE:
 }
 
 template <int DWIDTH>
-void SameColor_GetFlag(hls::stream<int >& str_pushV, ap_uint<8>* flagUpdate){
+void SameColor_GetFlag(hls::stream<int>& str_pushV, ap_uint<8>* flagUpdate) {
+    int pushV = 0;
+    str_pushV.read(pushV);
 
-	int pushV = 0;
-
-	GetFlag_writeout:
-	while(pushV >= 0){
-#pragma HLS PIPELINE II=1
-		str_pushV.read(pushV);
-		flagUpdate[pushV] = 1;
-	}
-
+GetFlag_writeout:
+    while (pushV >= 0) {
+#pragma HLS PIPELINE II = 1
+        flagUpdate[pushV] = 1;
+        str_pushV.read(pushV);
+    }
 }
 
 template <int DWIDTH, int CSRWIDTH, int COLORWIDTH>
@@ -986,8 +972,8 @@ void SameColor_dataflow(int numVertex,
                         int& moves,
                         short scl,
                         long long total_w_i,
-						bool use_push_flag,
-						bool wirte_push_flag,
+                        bool use_push_flag,
+                        bool wirte_push_flag,
                         DF_W_T& constant_recip,
                         ap_uint<DWIDTH>* offset,
                         ap_uint<DWIDTH>* index,
@@ -1000,10 +986,10 @@ void SameColor_dataflow(int numVertex,
                         ap_uint<DWIDTH>* cUpdateSize,
                         ap_uint<DWIDTH>* totUpdate,
                         ap_uint<DWIDTH>* commWeight,
-						ap_uint<CSRWIDTH>* offsetDup,
-						ap_uint<CSRWIDTH>* indexDup,
-						ap_uint<8>* flag,
-						ap_uint<8>* flagUpdate) {
+                        ap_uint<CSRWIDTH>* offsetDup,
+                        ap_uint<CSRWIDTH>* indexDup,
+                        ap_uint<8>* flag,
+                        ap_uint<8>* flagUpdate) {
 #pragma HLS dataflow
 
     hls::stream<ap_uint<96> > str_GetVout("str_GetVout");
@@ -1043,7 +1029,7 @@ void SameColor_dataflow(int numVertex,
     hls::stream<StrmBus_S> str_Cid_update("str_Cid_update");
 #pragma HLS RESOURCE variable = str_Cid_update core = FIFO_LUTRAM
 #pragma HLS STREAM variable = str_Cid_update depth = 256
-    hls::stream<int > str_pushV("str_pushV");
+    hls::stream<int> str_pushV("str_pushV");
 #pragma HLS RESOURCE variable = str_pushV core = FIFO_LUTRAM
 #pragma HLS STREAM variable = str_pushV depth = 256
     SameColor_GetBest_Update_CID_step1<DWIDTH>(cidSize, str_Gainout, str_Cidout, str_pushV, str_Cid_update);
@@ -1054,10 +1040,10 @@ void SameColor_dataflow(int numVertex,
     hls::stream<ap_uint<96> > str_od("str_od");
 #pragma HLS RESOURCE variable = str_od core = FIFO_LUTRAM
 #pragma HLS STREAM variable = str_od depth = 256
-    hls::stream<int > str_flag("str_flag");
+    hls::stream<int> str_flag("str_flag");
 #pragma HLS RESOURCE variable = str_flag core = FIFO_LUTRAM
 #pragma HLS STREAM variable = str_flag depth = 256
-    //SameColor_GetFlag2<CSRWIDTH>(str_pushV, offset, index, str_flag);
+    // SameColor_GetFlag2<CSRWIDTH>(str_pushV, offset, index, str_flag);
     SameColor_GetFlag3<CSRWIDTH>(str_pushV, offsetDup, str_od);
     SameColor_GetFlag4<CSRWIDTH>(wirte_push_flag, str_od, indexDup, str_flag);
     SameColor_GetFlag<DWIDTH>(str_flag, flagUpdate);
