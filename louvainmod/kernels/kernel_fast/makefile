@@ -34,16 +34,7 @@ help::
 	@echo ""
 	@echo "Makefile Usage:"
 	@echo ""
-	@echo "  make host xclbin TARGET=<sw_emu|hw_emu|hw> DEVICE=<FPGA platform>"
-	@echo "      Command to generate the design for specified target and device."
-	@echo ""
-	@echo "      TARGET defaults to sw_emu."
-	@echo ""
-	@echo "      DEVICE is case-insensitive and support awk regex."
-	@echo "      For example, \`make xclbin TARGET=hw DEVICE='u200.*qdma'\`"
-	@echo "      It can also be an absolute path to platform file."
-	@echo ""
-	@echo "  make run TARGET=<sw_emu|hw_emu|hw> DEVICE=<FPGA platform>"
+	@echo "  make build TARGET=<sw_emu|hw_emu|hw> DEVICE=<FPGA platform>"
 	@echo "      Command to run application in emulation."
 	@echo ""
 	@echo "  make clean "
@@ -58,7 +49,7 @@ help::
 # MK_INC_BEGIN vivado.mk
 
 
-TOOL_VERSION ?= 2019.2
+TOOL_VERSION ?= 2020.2
 
 ifeq (,$(XILINX_VIVADO))
 XILINX_VIVADO = /opt/xilinx/Vivado/$(TOOL_VERSION)
@@ -78,7 +69,7 @@ export PATH := $(XILINX_VIVADO)/bin:$(PATH)
 # MK_INC_BEGIN vitis.mk
 
 
-TOOL_VERSION ?= 2019.2
+TOOL_VERSION ?= 2020.2
 
 ifeq (,$(XILINX_VITIS))
 XILINX_VITIS = /opt/xilinx/Vitis/$(TOOL_VERSION)
@@ -89,6 +80,10 @@ check_vpp:
 ifeq (,$(wildcard $(XILINX_VITIS)/bin/v++))
 	@echo "Cannot locate Vitis installation. Please set XILINX_VITIS variable." && false
 endif
+
+XILINX_HLS=/proj/xbuilds/SWIP/2020.2_0827_2001/installs/lin64/Vitis_HLS/2020.2
+echo "Warning: Please use specific hls version for best performance! ex 2020.2_0828_0936 or 2020.2_0827_2001 on xco"
+echo "XILINX_HLS: $XILINX_HLS"
 
 ifeq (,$(XILINX_XRT))
 XILINX_XRT = /opt/xilinx/xrt
@@ -466,7 +461,7 @@ check: run
 
 .PHONY: build
 
-build: xclbin host
+build: xclbin
 
 # MK_INC_END vitis_test_rules.mk
 
