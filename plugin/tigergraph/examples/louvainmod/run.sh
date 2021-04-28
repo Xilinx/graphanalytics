@@ -21,8 +21,8 @@ time gsql -g social "run loading job load_job USING file_name = \"$data_source\"
 echo "Installing louvain_distributed_cpu query"
 time gsql -g social louvain_distributed_cpu.gsql
 
-echo "Installing louvain_alveo query"
-time gsql -g social louvain_alveo.gsql
+echo "Installing louvain_alveo queries"
+time gsql -g social query_louvain_alveo.gsql
 
 mkdir -p log
 chmod a+w log
@@ -35,11 +35,19 @@ TOTAL_TIME=$(($(date +%s%3N) - START))
 echo "louvain_cpu runtime: " $TOTAL_TIME
 START=$(date +%s%3N)
 
-#time gsql -g social 'run query load_alveo()'
-#TOTAL_TIME=$(($(date +%s%3N) - START))
-#echo "load_alveo: " $TOTAL_TIME
-#START=$(date +%s%3N)
-#time gsql -g social 'run query louvain_alveo(10, ["Person"], ["Coworker"], "alveo_out.txt")'
+run_alveo=0
+if [ "$run_alveo" -eq 1 ]; then
+    #time gsql -g social 'run query load_alveo()'
+    #TOTAL_TIME=$(($(date +%s%3N) - START))
+    #echo "load_alveo: " $TOTAL_TIME
+    #START=$(date +%s%3N)
+
+
+    time gsql -g social "run query louvain_alveo(10, [\"Person\"], [\"Coworker\"], \
+                                                 \"$PWD/log/alveo_out.txt\", \
+                                                 \"/proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx\", \
+                                                 \"/proj/gdba/ywu/ghe/poc_louvain/as-skitter/louvain_partitions\")"
 #TOTAL_TIME=$(($(date +%s%3N) - START))
 #echo "louvain_alveo: " $TOTAL_TIME
+fi
 

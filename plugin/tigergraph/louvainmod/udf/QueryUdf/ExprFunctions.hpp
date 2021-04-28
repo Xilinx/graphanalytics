@@ -138,31 +138,33 @@ namespace UDIMPL {
   }
 
 
-  inline string udf_open_alveo(int mode)
-  {
-    if(!xai::openedAlveo) {
-      std::lock_guard<std::mutex> lockGuard(xai::writeMutexOpenAlveo);
-      if(xai::openedAlveo) return "";
-      xai::openedAlveo = true;
-      string result("Initialized Alveo");
-      try
-      {
-        std::cout << "Opening XAI library " << std::endl;
-        xai::xaiLoader.load_library(xai::host_libname);
-        std::cout << "Opened XAI library " << std::endl;
-      }
-      catch (std::exception& e) {
-        std::cerr << "ERROR: An exception occurred: " << e.what() << std::endl;
-        (result += ": STD Exception:")+=e.what();
-      }
-      catch (...) {
-        std::cerr << "ERROR: An unknown exception occurred." << std::endl;
-        (result += ": Unknown Exception:")+=" Reason unknown, check LD_LIBRARY_PATH";
-      }
-      return result;
+    inline string udf_open_alveo(int mode)
+    {
+        std::lock_guard<std::mutex> lockGuard(xai::writeMutexOpenAlveo);
+    
+        if(!xai::openedAlveo) {
+            std::cout << "DEBUG: " << __FUNCTION__ << " xai::openedAlveo=" << xai::openedAlveo << std::endl;
+            if(xai::openedAlveo) return "";
+            xai::openedAlveo = true;
+            string result("Initialized Alveo");
+            try
+            {
+                std::cout << "Opening XAI library " << std::endl;
+                xai::xaiLoader.load_library(xai::host_libname);
+                std::cout << "Opened XAI library " << std::endl;
+            }
+            catch (std::exception& e) {
+                std::cerr << "ERROR: An exception occurred: " << e.what() << std::endl;
+                (result += ": STD Exception:")+=e.what();
+            }
+            catch (...) {
+                std::cerr << "ERROR: An unknown exception occurred." << std::endl;
+                (result += ": Unknown Exception:")+=" Reason unknown, check LD_LIBRARY_PATH";
+            }
+            return result;
+        }
+        return "";
     }
-    return "";
-  }
 
   inline bool udf_close_alveo(int mode)
   {
@@ -187,49 +189,55 @@ namespace UDIMPL {
     xai::calledExecuteLouvain = false;
   }
 
-  inline int udf_execute_alveo_louvain(std::string input_graph, std::string partitions_project,
-    std::string num_devices, std::string num_patitions, std::string num_workers, std::string community_file)
+    inline int udf_execute_alveo_louvain(
+        std::string input_graph, std::string partitions_project, 
+        std::string num_devices, std::string num_patitions, 
+        std::string num_workers, std::string community_file)
     {
-      if(!xai::calledExecuteLouvain) {
-        std::lock_guard<std::mutex> lockGuard(xai::writeMutex);
-        if(xai::calledExecuteLouvain) return 0;
-        xai::calledExecuteLouvain = true;
-        std::string workernum("1");
-        bool isDriver = xai::isHostTheDriver(workernum);
-        int my_argc = 18;
-        std::string worker_or_driver("-workerAlone");
-        char* optional_arg = NULL;
-        if(isDriver) {
-          worker_or_driver = "-driverAlone";
-        } else {
-          optional_arg = (char*) workernum.c_str();
-          my_argc++;
+        if (!xai::calledExecuteLouvain) {
+            std::lock_guard<std::mutex> lockGuard(xai::writeMutex);
+            if(xai::calledExecuteLouvain) return 0;
+            xai::calledExecuteLouvain = true;
+            std::string workernum("1");
+            bool isDriver = xai::isHostTheDriver(workernum);
+            int my_argc = 18;
+            std::string worker_or_driver("-workerAlone");
+            char* optional_arg = NULL;
+            if(isDriver) {
+                worker_or_driver = "-driverAlone";
+            } else {
+                optional_arg = (char*) workernum.c_str();
+                my_argc++;
+            }
+            partitions_project += ".par.proj";
+
+            char* my_argv[] = {"host.exe", "-x", xai::xclbin_filename, input_graph.c_str(), 
+                               "-o", community_file.c_str(), "-fast", "-dev", 
+                               num_devices.c_str(), "-par_num", num_patitions.c_str(),
+                               "-load_alveo_partitions", partitions_project.c_str(), 
+                               "-setwkr", num_workers.c_str(), "tcp://192.168.1.21:5555", "tcp://192.168.1.31:5555", 
+	                           worker_or_driver.c_str(), optional_arg, NULL};
+
+            std::cout
+                << "Calling execute_louvain. input_graph: " <<  input_graph.c_str()
+                << " num_partitions: " << num_patitions.c_str()
+                << " project: " << partitions_project.c_str()
+                << " num workers: " << num_workers.c_str()
+                << " worker_or_driver: " << worker_or_driver.c_str()
+                << " worker num: " << workernum.c_str() << "\n"
+                << std::flush;
+        
+            //if(isDriver) {
+            //unsigned int sleep_time = 240;
+            //std::cout << "KD: Going to slpep for seconds: " << sleep_time << "\n";
+            //std::this_thread::sleep_for (std::chrono::seconds(sleep_time));
+            //std::cout << "KD: Woke up from sleep after seconds: " << sleep_time << "\n";
+            //}
+            int retVal = xai::xaiLoader.execute_louvain(my_argc, (char**)(my_argv));
+            std::cout << "KD: Returned from execute_louvain, isDriver = " << isDriver << "\n" << std::flush;
+            return retVal;
         }
-        partitions_project += ".par.proj";
-
-        char* my_argv[] = {"host.exe", "-x", xai::xclbin_filename, input_graph.c_str(), "-o", community_file.c_str(), "-fast", "-dev", num_devices.c_str(), "-par_num", num_patitions.c_str(),
-        "-load_alveo_partitions", partitions_project.c_str(), "-setwkr", num_workers.c_str(), "tcp://192.168.1.21:5555", "tcp://192.168.1.31:5555", 
-	 worker_or_driver.c_str(), optional_arg, NULL};
-
-        std::cout
-        << "Calling execute_louvain. input_graph: " <<  input_graph.c_str()
-        << " num_partitions: " << num_patitions.c_str()
-        << " project: " << partitions_project.c_str()
-        << " num workers: " << num_workers.c_str()
-        << " worker_or_driver: " << worker_or_driver.c_str()
-        << " worker num: " << workernum.c_str() << "\n"
-        << std::flush;
-        //if(isDriver) {
-          //unsigned int sleep_time = 240;
-          //std::cout << "KD: Going to slpep for seconds: " << sleep_time << "\n";
-          //std::this_thread::sleep_for (std::chrono::seconds(sleep_time));
-          //std::cout << "KD: Woke up from sleep after seconds: " << sleep_time << "\n";
-        //}
-        int retVal = xai::xaiLoader.execute_louvain(my_argc, (char**)(my_argv));
-        std::cout << "KD: Returned from execute_louvain, isDriver = " << isDriver << "\n" << std::flush;
-        return retVal;
-      }
-      return 0;
+        return 0;
     }
 
   /* End Xilinx Louvain Additions */
