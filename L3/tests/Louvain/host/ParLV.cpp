@@ -1423,21 +1423,21 @@ void PrintRptParameters(double opts_C_thresh,   // Threshold with coloring on
     printf(
         "FPGA Parameter \033[1;37;40moperationName   \033[0m: %s    \t\t Default=louvainModularity, by config.json     "
         "                  \n",
-        op0.operationName);
+        op0.operationName.c_str());
     printf(
         "FPGA Parameter \033[1;37;40mkernelName      \033[0m: %s      \t\t Default=kernel_louvain,  by config.json     "
         "                  \n",
-        op0.kernelName);
+        op0.kernelName.c_str());
     if (opts_xclbinPath[0] == 0)
         printf(
             "FPGA Parameter \033[1;37;40mxclbinFile      \033[0m: %s    \t  by config.json           or by \" "
             "\033[1;37;40m-x <path>\033[0m\"                    \n",
-            op0.xclbinPath);
+            op0.xclbinPath.c_str());
     else
         printf(
             "FPGA Parameter \033[1;37;40mxclbinFile      \033[0m: %s    \t  by command-line: \" \033[1;37;40m-x "
             "<path>\033[0m\" or by config.json                \n",
-            op0.xclbinPath);
+            op0.xclbinPath.c_str());
     printf(
         "FPGA Parameter \033[1;37;40mtype of xclbin  \033[0m: %s    \t\t\t Default=  normal ,       by command-line: "
         "\" \033[1;37;40m-fast\033[0m \"         \n",
@@ -2586,7 +2586,11 @@ void Louvain_thread_core(xf::graph::L3::Handle* handle0,
                          long opts_minGraphSize,
                          double opts_threshold,
                          double opts_C_thresh,
-                         int numThreads) {
+                         int numThreads) 
+{
+    std::cout << "DEBUG: " << __FUNCTION__ << " numThreads=" << numThreads 
+              << " flowMode=" << flowMode << std::endl;
+
     xf::graph::L3::louvainModularity(handle0[0], flowMode, glv_src, glv, opts_coloring, opts_minGraphSize,
                                      opts_threshold, opts_C_thresh, numThreads);
 }
@@ -2598,7 +2602,10 @@ GLV* L3_LouvainGLV_general(int& id_glv,
                            long opts_minGraphSize,
                            double opts_threshold,
                            double opts_C_thresh,
-                           int numThreads) {
+                           int numThreads) 
+{
+    std::cout << "DEBUG: " << __FUNCTION__ << " numThreads=" << numThreads << std::endl;
+
     GLV* glv_iter;
     std::thread td;
 
@@ -2611,6 +2618,8 @@ GLV* L3_LouvainGLV_general(int& id_glv,
     td.join();
     return glv_iter;
 }
+
+/*
 // partition
 void Louvain_thread_core_top(ParLV* parlv, GLV* glv, long start, long end, int p, int id_glv) {
 #ifdef PRINTINFO
@@ -2633,6 +2642,9 @@ void Louvain_thread_core_top(ParLV* parlv, GLV* glv, long start, long end, int p
            parlv[0].par_src[p]->ID);
 #endif
 }
+*/
+
+/*
 // partition + louvain
 void Louvain_thread_core_top(xf::graph::L3::Handle* handle0,
                              ParLV* parlv,
@@ -2670,6 +2682,7 @@ void Louvain_thread_core_top(xf::graph::L3::Handle* handle0,
 
     parlv[0].par_lved[p] = glv;
 }
+*/
 
 void Server_SubLouvain(xf::graph::L3::Handle* handle0,
                        ParLV& parlv,
@@ -2678,7 +2691,11 @@ void Server_SubLouvain(xf::graph::L3::Handle* handle0,
                        long opts_minGraphSize,
                        double opts_threshold,
                        double opts_C_thresh,
-                       int numThreads) {
+                       int numThreads) 
+{
+    std::cout << "DEBUG: " << __FUNCTION__ << " handle0=" << handle0 
+              << "parlv.num_par=" << parlv.num_par << std::endl;
+
     parlv.timesPar.timeLv_all = getTime();
     GLV* glv[parlv.num_par];
     std::thread td[parlv.num_par];
@@ -3233,7 +3250,9 @@ GLV* louvain_modularity_alveo(xf::graph::L3::Handle* handle0,
                               int numNode,
                               int numPureWorker,
                               char** switchName // To enalbe all workers for Louvain
-                              ) {
+                              ) 
+{
+    std::cout << "DEBUG: " << __FUNCTION__ << " handle0=" << handle0 << std::endl;
     int id_glv = 0;
     bool opts_coloring = true;
     int nodeID = 0;
@@ -3562,6 +3581,7 @@ int load_alveo_partitions(int argc, char* argv[]) {
     bool isPrun = true;
     int par_prune = 1;
     int numThreads = NUMTHREAD; // using fixed number of thread instead of
+    //int numThreads = 1; // using fixed number of thread instead of
     int devNeed_cmd = 1;
     int mode_zmq = ZMQ_NONE;
     char path_zmq[1024]; // default will be set as "./"

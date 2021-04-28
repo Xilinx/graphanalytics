@@ -57,15 +57,7 @@ CXXFLAGS += -g
 libGRAPHL3 = $(XFLIB_DIR)/L3/lib/libgraphL3.so
 libgraphL3 : $(libGRAPHL3)
 CPP_PATH += $(XFLIB_DIR)/L3/src/common.cpp
-CPP_PATH += $(XFLIB_DIR)/L3/src/op_sp.cpp
-CPP_PATH += $(XFLIB_DIR)/L3/src/op_trianglecount.cpp
-CPP_PATH += $(XFLIB_DIR)/L3/src/op_labelpropagation.cpp
-CPP_PATH += $(XFLIB_DIR)/L3/src/op_bfs.cpp
-CPP_PATH += $(XFLIB_DIR)/L3/src/op_wcc.cpp
-CPP_PATH += $(XFLIB_DIR)/L3/src/op_scc.cpp
-CPP_PATH += $(XFLIB_DIR)/L3/src/op_convertcsrcsc.cpp
 CPP_PATH += $(XFLIB_DIR)/L3/src/op_similaritydense.cpp
-CPP_PATH += $(XFLIB_DIR)/L3/src/op_pagerank.cpp
 CPP_PATH += $(XFLIB_DIR)/L3/src/xf_graph_L3_handle.cpp
 CPP_PATH += $(XFLIB_DIR)/L3/src/xf_graph_L3.cpp
 CPP_PATH += $(XFLIB_DIR)/ext/xcl2/xcl2.cpp

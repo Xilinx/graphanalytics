@@ -26,45 +26,6 @@ namespace graph {
 namespace L3 {
 
 /**
- * @brief pageRank algorithm is implemented.
- *
- * @param handle Graph library L3 handle
- * @param alpha Damping factor, normally 0.85
- * @param tolerance Converge tolerance
- * @param maxIter Max iteration
- * @param gr Input, CSR graph of IDs' type of uint32_t and weights' type of float
- * @param pagerank Output, float type rank values of each vertex
- *
- */
-event<int> pageRankWeight(xf::graph::L3::Handle& handle,
-                          float alpha,
-                          float tolerance,
-                          int maxIter,
-                          xf::graph::Graph<uint32_t, float> gr,
-                          float* pagerank);
-
-/**
- * @brief The single source shortest path algorithm is implemented, the input is the matrix in CSR format.
- *
- * @param handle Graph library L3 handle
- * @param nSource Number of source vertices
- * @param sourceID IDs of giving source vertices
- * @param weighted Bool type flag, when weighted is flag 0, all weights are treated as 1, and when weighted flag is 1,
- * the weights in the gr will be used
- * @param gr Input, CSR graph of IDs' type of uint32_t and weights' type of float
- * @param result The distance result from giving source vertices for each vertex
- * @param predecent The result of parent index of each vertex from giving source vertices for each vertex
- *
- */
-event<int> shortestPath(xf::graph::L3::Handle& handle,
-                        uint32_t nSource,
-                        uint32_t* sourceID,
-                        bool weighted,
-                        xf::graph::Graph<uint32_t, float> gr,
-                        float** result,
-                        uint32_t** predecent);
-
-/**
  * @brief The single source cosine similarity API for dense graph.
  *
  * @param handle Graph library L3 handle
@@ -127,82 +88,6 @@ std::vector<event<int> > cosineSimilaritySSDenseMultiCard(xf::graph::L3::Handle&
                                                           xf::graph::Graph<int32_t, int32_t>** g,
                                                           int32_t** resultID,
                                                           float** similarity);
-
-/**
- * @brief triangleCount the triangle counting algorithm is implemented, the input is the matrix in CSC format.
- *
- * @param handle Graph library L3 handle
- * @param gr Input, CSR/CSC graph of IDs' type of uint32_t and weights' type of uint32_t
- * @param nTriangle Return triangles number
- *
- */
-event<int> triangleCount(xf::graph::L3::Handle& handle, xf::graph::Graph<uint32_t, uint32_t> gr, uint64_t& nTriangle);
-
-/**
- * @brief labelPropagation the label propagation algorithm is implemented
- *
- * @param handle Graph library L3 handle
- * @param maxIter Max iteration
- * @param gr Input, CSR/CSC graph of IDs' type of uint32_t and weights' type of uint32_t
- * @param labels Output labels
- *
- */
-event<int> labelPropagation(xf::graph::L3::Handle& handle,
-                            uint32_t maxIter,
-                            xf::graph::Graph<uint32_t, uint32_t> gr,
-                            uint32_t* labels);
-
-/**
- * @brief bfs Implements the directed graph traversal by breath-first search algorithm
- *
- * @param handle Graph library L3 handle
- * @param sourceID The source vertex ID in this search, starting from 0
- * @param gr Input, CSR graph of IDs' type of uint32_t and weights' type of uint32_t
- * @param predecent The result of parent index of each vertex
- * @param distance The distance result from giving source vertex for each vertex
- *
- */
-event<int> bfs(xf::graph::L3::Handle& handle,
-               uint32_t sourceID,
-               xf::graph::Graph<uint32_t, uint32_t> gr,
-               uint32_t* predecent,
-               uint32_t* distance);
-
-/**
- * @brief connectedComponents Computes the connected component membership of each vertex only for undirected graph
- *
- * @param handle Graph library L3 handle
- * @param gr Input, CSR graph of IDs' type of uint32_t and weights' type of uint32_t
- * @param result Ouput, result buffer with the vertex label containing the lowest vertex id in the strongly
- * connnected component containing that vertex
- *
- */
-event<int> wcc(xf::graph::L3::Handle& handle, xf::graph::Graph<uint32_t, uint32_t> gr, uint32_t* result);
-
-/**
- * @brief stronglyConnectedComponents Computes the strongly connected component membership of each vertex only for
- * directed graph, and label each vertex with one value containing the lowest vertex id in the SCC containing
- * that vertex.
- *
- * @param handle Graph library L3 handle
- * @param gr Input, CSR graph of IDs' type of uint32_t and weights' type of uint32_t
- * @param result Ouput, result buffer with the vertex label containing the lowest vertex id in the strongly
- * connnected component containing that vertex
- *
- */
-event<int> scc(xf::graph::L3::Handle& handle, xf::graph::Graph<uint32_t, uint32_t> gr, uint32_t* result);
-
-/**
- * @brief Convert from CSR to CSC, now it supports only CSR to CSC of unweighted graph
- *
- * @param handle Graph library L3 handle
- * @param gr1 Input, CSR/CSC graph of IDs' type of uint32_t and weights' type of uint32_t
- * @param gr2 Output, CSC/CSR graph of IDs' type of uint32_t and weights' type of uint32_t
- *
- */
-event<int> convertCsrCsc(xf::graph::L3::Handle& handle,
-                         xf::graph::Graph<uint32_t, uint32_t> gr1,
-                         xf::graph::Graph<uint32_t, uint32_t> gr2);
 
 
 #ifdef LOUVAINMOD

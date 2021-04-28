@@ -32,65 +32,6 @@ int runMultiEvents(uint32_t number, std::vector<xf::graph::L3::event<int> >& f) 
     return ret;
 }
 
-event<int> pageRankWeight(xf::graph::L3::Handle& handle,
-                          float alpha,
-                          float tolerance,
-                          int maxIter,
-                          xf::graph::Graph<uint32_t, float> g,
-                          float* pagerank) {
-    return (handle.oppg)->addwork(alpha, tolerance, maxIter, g, pagerank);
-};
-
-event<int> shortestPath(xf::graph::L3::Handle& handle,
-                        uint32_t nSource,
-                        uint32_t* sourceID,
-                        bool weighted,
-                        xf::graph::Graph<uint32_t, float> g,
-                        float** result,
-                        uint32_t** pred) {
-    for (uint32_t i = 0; i < nSource; ++i) {
-        (handle.opsp)
-            ->eventQueue.push_back((handle.opsp)->addwork(1, &sourceID[i], weighted, g, &result[i][0], &pred[i][0]));
-    }
-    std::packaged_task<int(uint32_t, std::vector<event<int> >&)> t(runMultiEvents);
-    std::future<int> f0 = t.get_future();
-    (handle.opsp)->msspThread = std::thread(std::move(t), nSource, std::ref((handle.opsp)->eventQueue));
-    return event<int>(std::forward<std::future<int> >(f0));
-};
-
-event<int> triangleCount(xf::graph::L3::Handle& handle, xf::graph::Graph<uint32_t, uint32_t> g, uint64_t& nTriangle) {
-    return (handle.optcount)->addwork(g, nTriangle);
-};
-
-event<int> labelPropagation(xf::graph::L3::Handle& handle,
-                            uint32_t maxIter,
-                            xf::graph::Graph<uint32_t, uint32_t> g,
-                            uint32_t* labels) {
-    return (handle.oplprop)->addwork(maxIter, g, labels);
-};
-
-event<int> bfs(xf::graph::L3::Handle& handle,
-               uint32_t sourceID,
-               xf::graph::Graph<uint32_t, uint32_t> g,
-               uint32_t* predecent,
-               uint32_t* distance) {
-    return (handle.opbfs)->addwork(sourceID, g, predecent, distance);
-};
-
-event<int> wcc(xf::graph::L3::Handle& handle, xf::graph::Graph<uint32_t, uint32_t> g, uint32_t* result) {
-    return (handle.opwcc)->addwork(g, result);
-};
-
-event<int> scc(xf::graph::L3::Handle& handle, xf::graph::Graph<uint32_t, uint32_t> g, uint32_t* result) {
-    return (handle.opscc)->addwork(g, result);
-};
-
-event<int> convertCsrCsc(xf::graph::L3::Handle& handle,
-                         xf::graph::Graph<uint32_t, uint32_t> g,
-                         xf::graph::Graph<uint32_t, uint32_t> g2) {
-    return (handle.opconvertcsrcsc)->addwork(g, g2);
-};
-
 event<int> cosineSimilaritySSDense(xf::graph::L3::Handle& handle,
                                    uint32_t sourceNUM,
                                    uint32_t* sourceWeights,
@@ -175,22 +116,6 @@ int cosineSimilaritySSDenseMultiCardBlocking(xf::graph::L3::Handle& handle,
     return ret;
 };
 
-event<int> jaccardSimilaritySSDense(xf::graph::L3::Handle& handle,
-                                    uint32_t sourceNUM,
-                                    uint32_t* sourceWeights,
-                                    uint32_t topK,
-                                    xf::graph::Graph<uint32_t, float> g,
-                                    uint32_t* resultID,
-                                    float* similarity) {
-    (handle.opsimdense)
-        ->eventQueue.push_back(
-            (handle.opsimdense)->addwork(0, 1, sourceNUM, sourceWeights, topK, g, resultID, similarity));
-    std::packaged_task<int(uint32_t, std::vector<event<int> >&)> t(runMultiEvents);
-    std::future<int> f0 = t.get_future();
-    (handle.opsimdense)->simDenseThread = std::thread(std::move(t), 1, std::ref((handle.opsimdense)->eventQueue));
-    return event<int>(std::forward<std::future<int> >(f0));
-};
-
 #ifdef LOUVAINMOD
 void louvainModularity(xf::graph::L3::Handle& handle,
 					   int flowMode,
@@ -202,6 +127,9 @@ void louvainModularity(xf::graph::L3::Handle& handle,
                        double opts_C_thresh,
                        int numThreads) 
 {
+
+    std::cout << "DEBUG: " << __FUNCTION__ << "handle=" << &handle << std::endl;
+
     // auto ev = (handle.oplouvainmod)
     //              ->addwork(glv, opts_C_thresh, buff_cl, buff_host, kernel_louvain, q, eachItrs, currMod,
     //              eachTimeInitBuff, eachTimeReadBuff);

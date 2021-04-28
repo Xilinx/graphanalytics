@@ -18,6 +18,6 @@ rm -rf $rundir*
 echo removing $rundir*
 echo ./host.exe  $1 -fast -par_num $partitions -create_alveo_partitions -name $rundir
 
-export LD_LIBRARY_PATH=$PWD/../../../louvainmod/L3/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$PWD/../../lib:$LD_LIBRARY_PATH
 ./host.exe  $1 -fast -par_num $partitions -create_alveo_partitions -name $rundir
 

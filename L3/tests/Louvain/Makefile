@@ -32,6 +32,8 @@ CXXFLAGS += -I $(XILINX_XRM)/include
 LIB_PATH := $(PROJ_ROOT)/L3/lib
 #CXXFLAGS += -O3
 CXXFLAGS += -g
+CXXFLAGS += -D LOUVAINMOD
+
 export LD_LIBRARY_PATH=$(LIB_PATH):$(XILINX_XRT)/lib
 
 ifneq (,$(shell echo $(XDEVICE) | awk '/u50/'))
