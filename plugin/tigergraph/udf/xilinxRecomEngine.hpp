@@ -20,12 +20,6 @@
 
 // mergeHeaders 1 name xilinxRecomEngine
 
-/**
- * @mainpage
- * 
- * 
- */
-
 // mergeHeaders 1 section include start xilinxRecomEngine DO NOT REMOVE!
 #include "xilinxRecomEngineImpl.hpp"
 #include <cstdint>

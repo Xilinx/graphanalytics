@@ -31,13 +31,6 @@ includes the following products:
 
 
 .. toctree::
-   :caption: Overview
-   :maxdepth: 1
-
-   overview.rst
-
-
-.. toctree::
    :caption: Stand-Alone Alveo Products
    :maxdepth: 1
 
@@ -45,29 +38,21 @@ includes the following products:
 
 
 .. toctree::
-   :caption: Installation
+   :caption: Software Stack Integration Products
    :maxdepth: 1
 
-   install.rst
+    Recommendation Engine for TigerGraph 3.x <recom-tg3/index.rst>
 
 
 .. toctree::
-   :caption: Recommendation Engine Examples
-   :maxdepth: 2
+    :caption: Additional Info
+    :maxdepth: 1
 
-   recomengine-example-jupyter.rst
-   recomengine-example-script.rst
-
-
-.. toctree::
-   :caption: Integrate with TigerGraph
-   :maxdepth: 1
-
-   integrate-tg.rst
+    tg3-plugins.rst
 
 
 .. toctree::
-   :caption: Vitis Development Flow
+   :caption: Collaborate with Us
    :maxdepth: 1
 
    vitis-dev-flow.rst

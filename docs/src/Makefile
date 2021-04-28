@@ -89,12 +89,59 @@ cosinesim-clean:
 
 #######################################################################################################################
 
-RST_FILES = index.rst overview.rst recomengine-example-jupyter.rst recomengine-example-script.rst \
-    $(COSINESIM_RST_FILES)
+#
+# Recommendation Engine for TigerGraph 3.x
+#
+
+RECOM_TG3_RST_NAMES = \
+    api.rst index.rst install.rst overview.rst \
+    recomengine-example-script.rst recomengine-example-jupyter.rst \
+    synthea-install.rst synthea-overview.rst synthea-query.rst synthea.rst \
+    users-guide.rst
+
+RECOM_TG3_RST_FILES = $(addprefix recom-tg3/,$(RECOM_TG3_RST_NAMES))
+RECOM_TG3_SRC_DIR = ../../plugin/tigergraph
+RECOM_TG3_VERSION = $(RECOM_TG3_SRC_DIR)/VERSION
+RECOM_TG3_TRIGGER_FILES = $(RECOM_TG3_SRC_DIR)/udf/xilinxRecomEngine.hpp
+
+.stamp/recom-tg3-doxygen: .stamp recom-tg3/$(DOXYGEN_CPP_CONFIG_FILE) $(RECOM_TG3_TRIGGER_FILES)
+	cd recom-tg3 && \
+	rm -rf $(DOXYGEN_XML_TARGET_DIR) && \
+	mkdir -p $(DOXYGEN_XML_TARGET_DIR) && \
+	sed 's,RECOM_TG3_VERSION,$(strip $(shell cat $(RECOM_TG3_VERSION))),g' < $(DOXYGEN_CPP_CONFIG_FILE) \
+	    > $(DOXYGEN_XML_TARGET_DIR)/doxyfile.tmp && \
+	doxygen $(DOXYGEN_XML_TARGET_DIR)/doxyfile.tmp && \
+	rm -f $(DOXYGEN_XML_TARGET_DIR)/doxyfile.tmp && \
+	cd .. && \
+	touch .stamp/recom-tg3-doxygen
+
+.stamp/recom-tg3-doxyrest: .stamp/recom-tg3-doxygen recom-tg3/doxyrest-config.lua
+	cd recom-tg3 && \
+	rm -rf $(DOXYREST_RST_TARGET_DIR) && \
+	mkdir -p $(DOXYREST_RST_TARGET_DIR) && \
+	doxyrest $(DOXYGEN_XML_TARGET_DIR)/index.xml -o $(DOXYREST_RST_TARGET_DIR)/index.rst && \
+	rm -f $(DOXYREST_RST_TARGET_DIR)/index.rst && \
+	cd .. && \
+	touch .stamp/recom-tg3-doxyrest
+
+# Above recipe removes index.rst, as it is replaced by a hand-generated one, and this one causes a warning
+
+.PHONY: recom-tg3-clean
+
+recom-tg3-clean:
+	cd recom-tg3; \
+	rm -rf $(DOXYGEN_XML_TARGET_DIR) $(DOXYREST_RST_TARGET_DIR)
+
+
+#######################################################################################################################
+
+RST_FILES = index.rst notice.rst tg3-plugins.rst vitis-dev-flow.rst \
+    $(COSINESIM_RST_FILES) \
+    $(RECOM_TG3_RST_FILES)
 
 .PHONY: doxyrest
 
-doxyrest: .stamp .stamp/cosinesim-doxyrest
+doxyrest: .stamp .stamp/cosinesim-doxyrest .stamp/recom-tg3-doxyrest
 
 .stamp/sphinx: doxyrest Makefile-sphinx.mk $(RST_FILES) conf.py
 	make -f Makefile-sphinx.mk html && \
@@ -106,7 +153,7 @@ html: cleanhtml .stamp/sphinx
 	mkdir -p .stamp
 
 
-clean: cosinesim-clean cleanhtml
+clean: cosinesim-clean recom-tg3-clean cleanhtml
 	rm -rf .stamp
 
 cleanhtml:
