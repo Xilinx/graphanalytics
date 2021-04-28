@@ -31,7 +31,8 @@ void createHandleLouvainModularity(class openXRM* xrm, clHandle& handle,
                                    std::string xclbinFile, int32_t IDDevice,
                                    unsigned int requestLoad)
 {
-    std::cout << __FUNCTION__ << std::endl;
+    std::cout << "DEBUG: --------" << __FUNCTION__ << " IDDevice=" << IDDevice 
+              << " handle=" << &handle << std::endl;
 
     // Platform related operations
     std::vector<cl::Device> devices = xcl::get_xil_devices();
@@ -58,20 +59,12 @@ void createHandleLouvainModularity(class openXRM* xrm, clHandle& handle,
 #ifndef NDEBUG    
     std::cout << "DEBUG:" << __FUNCTION__ 
               << " IDDevice=" << IDDevice << "=" << devName 
-              << " CommandQueue=" << &handle.q << std::endl;
-
-    std::cout << "DEBUG:" << __FUNCTION__ 
+              << " CommandQueue=" << &handle.q << " kernel=" << &handle.kernel
               << " kernelName=" << kernelName << " kernelAlias=" << kernelAlias 
-              << std::endl;
-
-    std::cout << "DEBUG:" << __FUNCTION__ 
               << " resR.deviceId=" << handle.resR->deviceId 
               << " resR.cuId=" << handle.resR->cuId
               << " resR.channelID=" << handle.resR->channelId 
               << " resR.instanceName=" << handle.resR->instanceName
-              << std::endl;
-
-    std::cout << "DEBUG: " << __FUNCTION__ 
               << " instanceName0=" << instanceName0 <<  " created" << std::endl;
 
 #endif    
@@ -83,32 +76,28 @@ uint32_t opLouvainModularity::dupNmLouvainModularity;
 
 void opLouvainModularity::setHWInfo(uint32_t numDevices, uint32_t maxCU) 
 {
-    std::cout << "DEBUG: " << __FUNCTION__ << " numDev1=" << numDevices << " CUMax=" << maxCU << std::endl;
+    std::cout << "DEBUG: " << __FUNCTION__ << " numDevices=" << numDevices << " maxCU=" << maxCU << std::endl;
    
     maxCU_ = maxCU;
     numDevices_ = numDevices;
     cuPerBoardLouvainModularity = maxCU_ / numDevices_;
 
-    std::cout << "DEBUG: " << __FUNCTION__ << " 1" << std::endl;
     handles = new clHandle[maxCU_];
-    std::cout << "DEBUG: " << __FUNCTION__ << " 2" << std::endl;
     buff_hosts = new KMemorys_host[numDevices_];
-    std::cout << "DEBUG: " << __FUNCTION__ << " 3" << std::endl;
     buff_hosts_prune = new KMemorys_host_prune[numDevices_];
-    std::cout << "DEBUG: " << __FUNCTION__ << " 4" << std::endl;
 };
 
 void opLouvainModularity::freeLouvainModularity() {
-    for (int i = 0; i < maxCU_; ++i) {
+    /*for (int i = 0; i < maxCU_; ++i) {
         delete[] handles[i].buffer;
     }
-    delete[] handles;
+    delete[] handles;*/
 };
 
 void opLouvainModularity::cuRelease(xrmContext* ctx, xrmCuResource* resR) {
-    while (!xrmCuRelease(ctx, resR)) {
+    /*while (!xrmCuRelease(ctx, resR)) {
     };
-    free(resR);
+    free(resR);*/
 };
 
 void opLouvainModularity::init(class openXRM* xrm, std::string kernelName, 
@@ -134,13 +123,11 @@ void opLouvainModularity::init(class openXRM* xrm, std::string kernelName,
                                   xclbinFile, deviceIDs[cnt], requestLoad);
     handles[cnt].buffer = new cl::Buffer[bufferNm];
     unsigned int prev = deviceIDs[0];
-    unsigned int prevCU = cuIDs[0];
     deviceOffset.push_back(0);
     for (int i = 1; i < maxCU_; ++i) {
         handles[i].deviceID = deviceIDs[i];
         handles[i].cuID = cuIDs[i];
         handles[i].dupID = i % dupNmLouvainModularity;
-        // th[i] = std::thread(&createHandleSim, std::ref(handles[i]), kernelName, xclbinFile, deviceIDs[i]);
         createHandleLouvainModularity(xrm, handles[i], kernelName, kernelAlias,
                                       xclbinFile, deviceIDs[i], requestLoad);
         handles[i].buffer = new cl::Buffer[bufferNm];
@@ -218,7 +205,8 @@ int opLouvainModularity::compute(unsigned int deviceID,
                                  int* eachItrs,
                                  double* currMod,
                                  double* eachTimeInitBuff,
-                                 double* eachTimeReadBuff) {
+                                 double* eachTimeReadBuff) 
+{
 	uint32_t which = channelID + cuID * dupNmLouvainModularity +
                                  deviceID * dupNmLouvainModularity * cuPerBoardLouvainModularity;
 #ifdef PRINTINFO
@@ -242,7 +230,7 @@ int opLouvainModularity::compute(unsigned int deviceID,
     std::vector<cl::Event> events_read(1);
 
     cl::Device device = hds[0].device;
-    const char* instanceName = instanceName0.c_str();
+    //const char* instanceName = instanceName0.c_str();
     // Creating Context and Command Queue for selected Device
     cl::Context context = hds[0].context;
     cl::CommandQueue q = hds[0].q;
@@ -250,14 +238,11 @@ int opLouvainModularity::compute(unsigned int deviceID,
 #ifdef PRINTINFO
     printf("INFO: Found Device=%s\n", devName.c_str());
 #endif
-    std::vector<cl::Device> devices;
-    devices.push_back(hds[0].device);
-    cl::Program program = hds[0].program;
-    //cl::Kernel kernel_louvain = cl::Kernel(program, instanceName);
     cl::Kernel kernel_louvain = hds[0].kernel;
-#ifdef PRINTINFO
-    std::cout << "INFO: Kernel has been created" << std::endl;
-#endif
+
+    std::cout << "DEBUG: ---------------------- " << __FUNCTION__ 
+              << " kernel=" << &kernel_louvain << " which=" << which << std::endl;
+
 
     bool isLargeEdge = pglv_iter->G->numEdges > (MAXNV / 2);
 
@@ -305,7 +290,7 @@ int opLouvainModularity::compute(unsigned int deviceID,
 #endif
 		eachTimeReadBuff[0] =
 			PhaseLoop_UsingFPGA_Prep_Read_buff_host(pglv_iter->NV, buf_host, eachItrs, pglv_iter->C, eachItrs, currMod);
-		//cuRelease(ctx, resR);
+		cuRelease(ctx, resR);
 
     }else if (flowMode == 2){
 #ifdef PRINTINFO
@@ -352,9 +337,7 @@ int opLouvainModularity::compute(unsigned int deviceID,
 #endif
         eachTimeReadBuff[0] =
             PhaseLoop_UsingFPGA_Prep_Read_buff_host_prune(pglv_iter->NV, buf_host_prune, eachItrs, pglv_iter->C, eachItrs, currMod);
-        std::cout << "BEFORE cuRelease" << std::endl;
-        //cuRelease(ctx, resR);
-        std::cout << "AFTER cuRelease" << std::endl;
+        cuRelease(ctx, resR);
     }
     pglv_iter->times.eachTimeE2E[0] = omp_get_wtime() -pglv_iter->times.eachTimeE2E[0];
     return 0;
@@ -610,7 +593,10 @@ void opLouvainModularity::UsingFPGA_MapHostClBuff_prune(
 
 
 int opLouvainModularity::cuExecute(
-    clHandle* hds, cl::Kernel& kernel0, unsigned int num_runs, std::vector<cl::Event>* evIn, cl::Event* evOut) {
+    clHandle* hds, cl::Kernel& kernel0, unsigned int num_runs, 
+    std::vector<cl::Event>* evIn, cl::Event* evOut) 
+    
+{
     for (int i = 0; i < num_runs; ++i) {
         hds[0].q.enqueueTask(kernel0, evIn, evOut);
     }
@@ -736,7 +722,9 @@ void opLouvainModularity::demo_par_core(int id_dev, int flowMode,
                                         long opts_minGraphSize,
                                         double opts_threshold,
                                         double opts_C_thresh,
-                                        int numThreads) {
+                                        int numThreads) 
+{
+    std::cout << "DEBUG: ------------- " << __FUNCTION__ << " id_dev=" << id_dev << std::endl;
     pglv_orig->times.totTimeAll = omp_get_wtime();
 
     pglv_orig->times.phase = 1;        // Total phase counter
@@ -792,7 +780,9 @@ void opLouvainModularity::demo_par_core(int id_dev, int flowMode,
 
             auto ev = addwork(pglv_iter, flowMode, opts_C_thresh, &pglv_orig->times.eachItrs[pglv_orig->times.phase - 1], currMod,
                               &pglv_orig->times.eachTimeInitBuff[pglv_orig->times.phase - 1], &pglv_orig->times.eachTimeReadBuff[pglv_orig->times.phase - 1]);
+            std::cout << "DEBUG: before wait addwork" << std::endl;
             ev.wait();
+            std::cout << "DEBUG: after wait addwork" << std::endl;
 
             pglv_orig->times.eachTimeE2E  [pglv_orig->times.phase - 1] =pglv_iter->times.eachTimeE2E[0];
             pglv_orig->times.deviceID     [pglv_orig->times.phase - 1] =pglv_iter->times.deviceID   [0];
