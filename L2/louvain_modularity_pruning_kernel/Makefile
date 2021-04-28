@@ -52,6 +52,8 @@ help::
 	@echo "  make cleanall"
 	@echo "      Command to remove all the generated files."
 	@echo ""
+	@echo "  make xclbin TARGET=hw DEVICE=xilinx_u50_gen3x16_xdma_201920_3"
+	@echo "      Command to build xclbins for U50"
 
 # MK_INC_END vitis_help.mk
 
