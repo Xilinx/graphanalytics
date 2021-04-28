@@ -60,7 +60,7 @@ help::
 # MK_INC_BEGIN vivado.mk
 
 
-TOOL_VERSION ?= 2019.2
+TOOL_VERSION ?= 2020.2
 
 ifeq (,$(XILINX_VIVADO))
 XILINX_VIVADO = /opt/xilinx/Vivado/$(TOOL_VERSION)
@@ -80,8 +80,6 @@ export PATH := $(XILINX_VIVADO)/bin:$(PATH)
 # MK_INC_BEGIN vitis.mk
 
 
-TOOL_VERSION ?= 2019.2
-
 ifeq (,$(XILINX_VITIS))
 XILINX_VITIS = /opt/xilinx/Vitis/$(TOOL_VERSION)
 endif
@@ -91,6 +89,10 @@ check_vpp:
 ifeq (,$(wildcard $(XILINX_VITIS)/bin/v++))
 	@echo "Cannot locate Vitis installation. Please set XILINX_VITIS variable." && false
 endif
+
+XILINX_HLS=/proj/xbuilds/SWIP/2020.2_0827_2001/installs/lin64/Vitis_HLS/2020.2
+echo "Warning: Please use specific hls version for best performance! ex 2020.2_0828_0936 or 2020.2_0827_2001 on xco"
+echo "XILINX_HLS: $(XILINX_HLS)"
 
 ifeq (,$(XILINX_XRT))
 XILINX_XRT = /opt/xilinx/xrt
