@@ -55,6 +55,8 @@ STAGE_COPY_FILES = \
     $(SYNTHEA_DIR)/bin/common.sh \
     $(SYNTHEA_DIR)/bin/install_udf.sh \
     $(SYNTHEA_DIR)/bin/install_udf_tg.sh \
+	$(SYNTHEA_DIR)/jupyter-demo/TG_demo.ipynb \
+	$(SYNTHEA_DIR)/python/TG_demo.py \
     $(SYNTHEA_DIR)/query/base.gsql \
     $(SYNTHEA_DIR)/query/client.gsql \
     $(SYNTHEA_DIR)/query/load_xgraph.gsql \
@@ -66,9 +68,7 @@ STAGE_COPY_FILES = \
     $(SYNTHEA_DIR)/init_graph.sh \
     $(SYNTHEA_DIR)/install_query.sh \
     $(SYNTHEA_DIR)/match.sh \
-    $(SYNTHEA_DIR)/run.sh \
-    \
-    jupyter-demo/TG_demo.ipynb
+    $(SYNTHEA_DIR)/run.sh
 
 define STAGE_COPY_RULE
 $$(STAGE_DIR)/$(1): $(1)
@@ -127,4 +127,9 @@ dist: stage
 
 clean:
 	rm -rf $(STAGE_DIR)
+
+help:
+	@echo "Valid make targets:"
+	@echo "stage   : Generate staging directory"
+	@echo "dist    : Generate installation package (RPM or DEB) for the current OS and architecture"
 

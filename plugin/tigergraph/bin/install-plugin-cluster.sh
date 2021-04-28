@@ -28,11 +28,6 @@ if [ "$USER" != "tigergraph" ]; then
     exit 1
 fi
 
-if ! [ -x "$(command -v gadmin)" ]; then
-    echo "ERROR: Cannot find TigerGraph installation. Please add the gadmin command to user tigergraph's path."
-    exit 2
-fi
-
 xrtPath=/opt/xilinx/xrt
 xrmPath=/opt/xilinx/xrm
 mem_alloc="jemalloc"
@@ -59,6 +54,11 @@ esac
 done
 
 . $SCRIPTPATH/common.sh
+
+if ! [ -x "$(command -v gadmin)" ]; then
+    echo "ERROR: Cannot find TigerGraph installation. Please add the gadmin command to user tigergraph's path."
+    exit 2
+fi
 
 if [ $verbose -eq 1 ]; then
     echo "INFO: Cluster script is running with the settings below:"

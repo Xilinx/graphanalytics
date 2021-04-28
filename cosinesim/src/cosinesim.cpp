@@ -90,6 +90,7 @@ public:
 //        else if (!options.xclbinPath.empty()){
 //           xclbinPath = options.xclbinPath;
 //        }
+        std::cout << "options::xclbinPath = " << options.xclbinPath << std::endl;
         std::cout << "INFO: xclbinPath set to " <<xclbinPath<<std::endl;
         std::cout << "INFO: numDevices set to " <<numDevices<<std::endl;
 
@@ -233,7 +234,12 @@ public:
     }
 
     //padding the row and loadgraph
+<<<<<<< HEAD
     virtual void finishLoadPopulationVectors() {
+=======
+    virtual void finishLoadPopulation() {
+
+>>>>>>> dev
         //for the last PU, the last channels may need to padded as the row will be the multiple of channelsPU
         const unsigned numCus = numDevices * cuNm;
         int paddingDepth = ((numVerticesPU[numCus - 1][splitNm - 1] + channelsPU - 1) / channelsPU) * channelsPU

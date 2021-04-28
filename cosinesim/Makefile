@@ -42,13 +42,16 @@ all: stage
 ## Location of graphanalytics project
 GRAPH_ANALYTICS_DIR = ..
 
+# General output directory for intermediate build artifacts
+BUILD_DIR = build
+
 #######################################################################################################################
 #
 # Java API
 #
 
 JAVA_LIB_DIR = lib
-JAVA_BUILD_DIR = build
+JAVA_BUILD_DIR = $(BUILD_DIR)
 JAVA_SRC_DIR = java/src
 JAVA_API_JAR = $(JAVA_LIB_DIR)/xilinxCosineSimApi-0.1.jar
 JAVA_API_DOC_JAR = $(JAVA_LIB_DIR)/xilinxCosineSimApi-0.1-javadoc.jar
@@ -72,7 +75,8 @@ $(JAVA_API_DOC_JAR): $(JAVA_API_JAR)
 
 CCC = g++
 CXX = g++
-CXXFLAGS = -std=c++11 -fPIC -Wall -Wno-unknown-pragmas -Wno-unused-label -Wno-narrowing -D USE_HBM -fmessage-length=0
+CXXFLAGS = -std=c++11 -fPIC -Wall -Wno-unknown-pragmas -Wno-unused-label \
+           -Wno-narrowing -D USE_HBM -fmessage-length=0 -D COSINESIM 
 
 # Define the target directories.
 
@@ -106,16 +110,7 @@ LOADER_NAME = lib$(LOADER_SHORT_NAME).a
 #SRCS_L3 = $(wildcard $(GRAPH_ANALYTICS_DIR)/L3/src/*.cpp) $(GRAPH_ANALYTICS_DIR)/ext/xcl2/xcl2.cpp
 
 SRCS_L3_NAMES = \
-        op_bfs.cpp \
-	op_convertcsrcsc.cpp \
-	op_labelpropagation.cpp \
-	op_pagerank.cpp \
-	op_scc.cpp \
 	op_similaritydense.cpp \
-	op_similaritysparse.cpp \
-	op_trianglecount.cpp \
-	op_sp.cpp \
-	op_wcc.cpp \
 	xf_graph_L3.cpp \
 	xf_graph_L3_handle.cpp
 
@@ -134,6 +129,9 @@ OBJS_all = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_all:.cpp=.o)))
 DEPS_all = $(OBJS_all:.o=.d)
 
 OBJS_libCosineSim = $(OBJS_L3) $(OBJS_top) 
+
+CPP_DOXY_TARGET_DIR = $(BUILD_DIR)/cppdocs
+CPP_DOXY_TRIGGER_FILE = $(CPP_DOXY_TARGET_DIR)/html/index.html
 
 .PHONY: cppBuild cppBuild2
 
@@ -194,6 +192,27 @@ $(foreach src,$(SRCS_all),$(eval $(call BUILD_CPP_RULE,$(src))))
 ifeq ($(MAKECMDGOALS),cppBuild2)
 -include $(DEPS_all)
 endif
+
+#======================================================================================================================
+
+# Doxygen output for proofreading documentation (as opposed to the process to publish on xilinx.github.io)
+
+.PHONY: doxy-cpp
+
+doxy-cpp: $(CPP_DOXY_TRIGGER_FILE)
+
+CPP_DOXY_CONFIG_FILE = docs/cpp/DoxyFile
+
+$(CPP_DOXY_TRIGGER_FILE): include/cosinesim.hpp $(CPP_DOXY_CONFIG_FILE)
+	@set -e; \
+	if ! [ -x "$$(command -v doxygen)" ]; then \
+	    echo "ERROR: doxygen appears not to be installed.  Please install at least version 1.8.5"; \
+	    false; \
+	fi; \
+	mkdir -p $(CPP_DOXY_TARGET_DIR); \
+	sed 's,COSINESIM_VERSION,$(strip $(shell cat VERSION)),g' < $(CPP_DOXY_CONFIG_FILE) > $(CPP_DOXY_TARGET_DIR)/doxyfile.tmp; \
+	doxygen $(CPP_DOXY_TARGET_DIR)/doxyfile.tmp; \
+	rm -f $(CPP_DOXY_TARGET_DIR)/doxyfile.tmp
 
 
 #######################################################################################################################
@@ -520,7 +539,7 @@ javaTest:
 .PHONY: clean clean-xclbin
 
 clean:
-	rm -rf Debug Release $(JAVA_LIB_DIR) $(JAVA_BUILD_DIR) $(STAGE_DIR)
+	rm -rf Debug Release $(JAVA_LIB_DIR) $(BUILD_DIR) $(STAGE_DIR)
 	@echo "Note: because the XCLBIN file takes so long to generate, it is not removed with this 'clean' target."
 	@echo "To clean the XCLBIN, use 'make clean-xclbin'"
 	
@@ -529,5 +548,6 @@ clean-xclbin:
 
 help:
 	@echo "Valid make targets:"
-	@echo "dist    : Generate cosinesim product package (RPM or DEB) for the current OS and architecture"
-	@echo "run-test: Run standalone test with statically linked executable"
+	@echo "dist     : Generate cosinesim product package (RPM or DEB) for the current OS and architecture"
+	@echo "doxy-cpp : Generate CPP documentation using doxygen. The default html output directory is ./build/cppdocs"
+	@echo "run-test : Run standalone test with statically linked executable"
