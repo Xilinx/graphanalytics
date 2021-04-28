@@ -1,4 +1,4 @@
-drop query louvain_distributed_cpu
+DROP QUERY louvain_distributed_cpu
 CREATE DISTRIBUTED QUERY louvain_distributed_cpu(INT max_iter, set<STRING> vertex_types, set<STRING> edge_types, file community_result) { 
 	TYPEDEF TUPLE <FLOAT deltaQ, FLOAT OutDgr, VERTEX cc> move; 
 	SumAccum<FLOAT> @ac; #sum of the degrees of all the vertices in community C of the vertex
@@ -122,4 +122,4 @@ CREATE DISTRIBUTED QUERY louvain_distributed_cpu(INT max_iter, set<STRING> verte
 	;
 	
 }
-INSTALL query louvain_distributed_cpu
+INSTALL QUERY louvain_distributed_cpu

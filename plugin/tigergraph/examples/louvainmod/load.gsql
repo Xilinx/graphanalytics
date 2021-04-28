@@ -1,7 +1,7 @@
 create loading job load_job for GRAPH social {
 	DEFINE FILENAME file_name;
 	LOAD file_name
-                to vertex Person values ($0, $0),
+        to vertex Person values ($0, $0),
 		to edge Coworker values ($0, $1, 1.0)
 		using Separator=" ", Header = "false";
 }
