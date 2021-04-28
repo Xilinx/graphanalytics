@@ -106,8 +106,8 @@ class openXRM {
         xrmLoadOneDevice(ctx, deviceId, xclbinName);
     }
     std::thread unloadXclbinNonBlock(unsigned int deviceId) { return std::thread(xrmUnloadOneDevice, ctx, deviceId); }
-    std::thread loadXclbinNonBlock(unsigned int deviceId, char* xclbinName) {
-        return std::thread(xrmLoadOneDevice, ctx, deviceId, xclbinName);
+    std::thread loadXclbinNonBlock(unsigned int deviceId, std::string& xclbinName) {
+        return std::thread(xrmLoadOneDevice, ctx, deviceId, (char*)xclbinName.c_str());
     }
     std::future<int> loadXclbinAsync(unsigned int deviceId, std::string& xclbinPath) {
         std::cout << "DEBUG: " << __FUNCTION__ << " xclbinPath=" << xclbinPath << std::endl;
@@ -462,87 +462,52 @@ inline void worker(queue& q,
                    std::string kernelAlias,
                    unsigned int requestLoad,
                    unsigned int numDevices,
-                   unsigned int cuNm) {
+                   unsigned int cuNm) 
+{
     int requestNm = numDevices * cuNm;
     xrmCuResource* resR[requestNm];
-
-#ifdef __DEBUG__
-    int requestCnt = 0;
-    std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time;
-#endif
+    int pendingRequests;
+    int curRequestId = 0;
 
     while (true) {
         class task t[requestNm];
+        pendingRequests = 0;
         for (int i = 0; i < requestNm; ++i) {
             // q.getWork is blocking until it has a job
             t[i] = q.getWork();
-#ifdef __DEBUG__
-            l_start_time = std::chrono::high_resolution_clock::now();
-            std::cout << "LOG2TIMELINE: " << __FUNCTION__ 
-                      << " start=" << l_start_time.time_since_epoch().count() 
-                      << std::endl;
-#endif
+
             resR[i] = (xrmCuResource*)malloc(sizeof(xrmCuResource));
             memset(resR[i], 0, sizeof(xrmCuResource));
+            pendingRequests++;
+            if (q.empty()) break; // no more requests execute pending ones.
         }
+
+        std::cout << "DEBUG: ---------" << __FUNCTION__ 
+                  << " pendingRequests" << pendingRequests 
+                  << " curRequestId " << curRequestId << std::endl;
+                  
         bool toStop = false;
-        for (int i = 0; i < requestNm; ++i) {
+        for (int i = 0; i < pendingRequests; ++i) {
             if (!t[i].valid()) toStop = true;
         }
         if (toStop) break;
 
-#ifdef __DEBUG__
-        std::chrono::time_point<std::chrono::high_resolution_clock> l_tp_start_compute2 =
-            std::chrono::high_resolution_clock::now();
-#endif
-        //for (int i = 0; i < requestNm; ++i) {
-        //    xrm->allocCU(resR[i], kernelName.c_str(), kernelAlias.c_str(), requestLoad);
-        //}
-
-        for (int i = 0; i < requestNm; i++) {
-            unsigned int deviceID = i / cuNm;
-            unsigned int cuID = i % cuNm;
+        for (int i = 0; i < pendingRequests; i++) {
+            unsigned int deviceID = curRequestId / cuNm;
+            unsigned int cuID = curRequestId % cuNm;
             unsigned int channelID = 0;
             std::string instanceName = "PLACEHOLDER";
-            /*
-            unsigned int ID;
-            for (int j = 0; j < requestNm; ++j) {
-                if ((deviceID == resR[j][0].deviceId) && (cuID == resR[j][0].cuId)) {
-                    ID = j;
-                }
-            }
-            unsigned int channelID = resR[ID][0].channelId;
-            std::string instanceName = resR[ID][0].instanceName;
-            */
-#ifdef __DEBUG__
-            std::cout << "INFO: " << __FILE__ << "::" << __FUNCTION__ 
-                    << " Allocated deviceID=" << deviceID << " cuID =" << cuID 
-                    << " channelID=" << channelID << " instance name=" 
-                    << instanceName << " request ID=" << requestCnt 
-                    << " requestNm=" << requestNm << " cuNm=" << cuNm 
-                    << std::endl;
-#endif
 
-            //t[i].execute(deviceID, cuID, channelID, xrm, resR[ID], instanceName);
-            t[i].execute(deviceID, cuID, channelID, xrm, resR[i], instanceName);
-
+            t[i].execute(deviceID, cuID, channelID, xrm, resR[curRequestId], instanceName);
+            
+            curRequestId++;
+            if (curRequestId == requestNm) 
+                curRequestId = 0;
         }
-#ifdef __DEBUG__
-        requestCnt++;
-#endif
-
-#ifdef __DEBUG__
-        std::chrono::time_point<std::chrono::high_resolution_clock> l_tp_compute_time2 =
-            std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> l_durationSec2 = l_tp_compute_time2 - l_tp_start_compute2;
-        double l_timeMs2 = l_durationSec2.count() * 1e3;
-        std::cout << "PROFILING: Cu allocation time =  " << std::fixed << std::setprecision(6) << l_timeMs2 << " msec"
-                  << std::endl;
-        std::cout << "-----------------------------------------------" << std::endl;
-#endif
     }
 }
 
+/*
 inline void worker2(queue& q,
                     class openXRM* xrm,
                     std::string kernelName,
@@ -619,6 +584,9 @@ inline void worker2(queue& q,
 #endif
     }
 }
+end of worker2
+*/
+
 } // L3
 } // graph
 } // xf

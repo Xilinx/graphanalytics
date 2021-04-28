@@ -1,5 +1,5 @@
 ===========================================
-Run Demo in Jupyter Notebook
+Synthea Example in Jupyter Notebook
 ===========================================
 
 Install Jupyter Notebook in a conda environment
@@ -34,12 +34,7 @@ Run the command below to start Jupyter Notebook
 
 .. code-block:: bash
 
-    (alveo-demo)$cd graphanalytics/plugin/tigergraph/jupyter-demo
+    (alveo-demo)$cd /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/examples/synthea/jupyter-demo
     (alveo-demo)$jupyter notebook
 
-Below is a snapshot of the TG-demo notebook:
-
-.. image:: /images/tg-demo-jupyter.png
-   :alt: Xilinx Tigergraph Plugin
-   :scale: 60%
-   :align: center
+Follow the step-by-step instructions in the notebook once it is loaded in your browser.

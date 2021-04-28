@@ -80,7 +80,6 @@ inner product space:
 
 .. image:: /images/cosine-similarity-formula.svg
    :alt: Cosine Similarity Formula
-   :scale: 60%
    :align: center
 
 
