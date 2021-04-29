@@ -23,8 +23,10 @@ CREATE DISTRIBUTED QUERY louvain_alveo(
     INT max_iter, set<STRING> vertex_types, set<STRING> edge_types, STRING community_result,
     STRING input_graph, STRING partitions_project)
 {
+    SumAccum<INT> @@executeAlveoStatus;
     DOUBLE udf_time;
     INT ret;
+
     Start = {Person.*};
     udf_reset_timer(true);
     // each node will get this UDF call for each vertex, but the actual execution 
@@ -32,9 +34,11 @@ CREATE DISTRIBUTED QUERY louvain_alveo(
     // and run the task accordingly.
     A = SELECT s
         FROM Start:s
-           ACCUM udf_execute_alveo_louvain(input_graph, partitions_project, 
+           ACCUM @@executeAlveoStatus += udf_execute_alveo_louvain(
+                                           input_graph, partitions_project, 
                                            "3", "9", "2", community_result);
     udf_time = udf_elapsed_time(true);
+    print @@executeAlveoStatus;
     print udf_time;
 }
 

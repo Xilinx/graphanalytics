@@ -1,23 +1,39 @@
 #!/bin/bash
-echo Running $0
+
+script=$(readlink -f $0)
+script_dir=`dirname $script`
+
+echo Running $script
 if [ "$#" -ne 3 ]; then
-    echo "$0 <.mtx file> <subdir name> <number of partitions>. Example: $0 /proj/autoesl/ryanw/graph/Demo_For_webinary_WT/as-Skitter-wt.mtx skitter 9"
+    echo "$script <.mtx file> <subdir name> <number of partitions>."
+    echo "Example: $0 /proj/autoesl/ryanw/graph/Demo_For_webinary_WT/as-Skitter-wt.mtx skitter 9"
     exit 1
 fi
 
-# Change rootdir appropriately
-rootdir=/proj/gdba/ywu/ghe/poc_louvain
 graph=$1
 subdir=$2
 partitions=$3
 
-mkdir -p $rootdir/$subdir
-# Set rundir to your dir
-rundir=$rootdir/$subdir/louvain_partitions
-rm -rf $rundir*
-echo removing $rundir*
-echo ./host.exe  $1 -fast -par_num $partitions -create_alveo_partitions -name $rundir
+graphabs=$(readlink -f $graph)
+graphdir=`dirname $graphabs`
 
-export LD_LIBRARY_PATH=$PWD/../../lib:$LD_LIBRARY_PATH
-./host.exe  $1 -fast -par_num $partitions -create_alveo_partitions -name $rundir
+mkdir -p $graphdir/$subdir
+# Set rundir to your dir
+rundir=$graphdir/$subdir/louvain_partitions
+
+echo "Removing $rundir"
+rm -rf $rundir
+
+cmd="$script_dir/host.exe  $1 -fast -par_num $partitions -create_alveo_partitions -name $rundir"
+echo $cmd
+export LD_LIBRARY_PATH=$script_dir/../../lib:$LD_LIBRARY_PATH
+$cmd
+
+echo "*************************************************************************"
+echo "INFO: $partitions partitions saved to $graphdir/$subdir"
+echo "*************************************************************************"
+
+
+
+
 

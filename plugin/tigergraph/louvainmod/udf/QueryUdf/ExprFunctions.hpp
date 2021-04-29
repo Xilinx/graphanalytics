@@ -142,7 +142,7 @@ namespace UDIMPL {
     {
         std::lock_guard<std::mutex> lockGuard(xai::writeMutexOpenAlveo);
     
-        if(!xai::openedAlveo) {
+        if (!xai::openedAlveo) {
             std::cout << "DEBUG: " << __FUNCTION__ << " xai::openedAlveo=" << xai::openedAlveo << std::endl;
             if(xai::openedAlveo) return "";
             xai::openedAlveo = true;
@@ -193,9 +193,18 @@ namespace UDIMPL {
         std::string input_graph, std::string partitions_project, 
         std::string num_devices, std::string num_patitions, 
         std::string num_workers, std::string community_file)
-    {
+    {        
+
+        std::lock_guard<std::mutex> lockGuard(xai::writeMutex);
+
+        if (!xai::openedAlveo) {
+            std::cout << "ERROR: Please run udf_open_alveo first" << std::endl;
+            return -1;
+        }
         if (!xai::calledExecuteLouvain) {
-            std::lock_guard<std::mutex> lockGuard(xai::writeMutex);
+            std::cout << "DEBUG: " << __FUNCTION__ 
+                      << " xai::calledExecuteLouvain=" << xai::calledExecuteLouvain << std::endl;
+
             if(xai::calledExecuteLouvain) return 0;
             xai::calledExecuteLouvain = true;
             std::string workernum("1");

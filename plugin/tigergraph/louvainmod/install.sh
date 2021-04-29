@@ -24,3 +24,6 @@ grun all "cp $PWD/udf/QueryUdf/xai.h /home2/tigergraph/tigergraph/tmp/gsql/codeg
 grun all "cp $PWD/udf/QueryUdf/xailoader.hpp /home2/tigergraph/tigergraph/tmp/gsql/codegen/udf"
 grun all "cp $PWD/../../../L3/lib/libgraphL3.so /data/dxgradb/tigergraph/tigergraph/data/gsql/udf"
 
+gadmin restart gpe -y
+
+
