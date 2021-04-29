@@ -6,7 +6,6 @@ if [ "$#" -ne 3 ]; then
     exit 1
 fi
 . env.sh
-rootdir=/proj/gdba/ywu/ghe/poc_louvain
 graph=$1
 subdir=$2
 par=$3
@@ -14,7 +13,7 @@ num_dev=3
 num_workers=2
 workers="tcp://192.168.1.21:5555 tcp://192.168.1.31:5555"
 # Set rundir to your dir
-rundir=$rootdir/$subdir/louvain_partitions
+rundir=$subdir/louvain_partitions
 projdir=$rundir.par.proj
 xclbinfile=/proj/autoesl/ryanw/kernel_louvain_pruning.xclbin
 

@@ -2,12 +2,13 @@
 echo Running $0
 if [ "$#" -ne 4 ]; then
     echo "$0 <.mtx file> <subdir for saved partitions> <number of partitions> <worker_number>. Example: $0 /proj/isimsj/graphdb/louvain/data/europe_osm-wt900M.mtx 900 18 1"
-    echo "create_partitions.sh saves partitions at rootdir/<subdir>. rootdir is set in each of create_partitions.sh, run_driver.sh and run_worker.sh and must be same in all three scripts"
+    echo "create_partitions.sh saves partitions at <subdir>. "
     echo "worker_number should be different for each worker. Give a number starting 1. Give 1 for first worker, 2 for second and so forth."
     exit 1
 fi
+
 . env.sh
-rootdir=/proj/gdba/ywu/ghe/poc_louvain
+
 graph=$1
 subdir=$2
 par=$3
@@ -16,7 +17,7 @@ num_dev=3
 num_workers=2
 workers="tcp://192.168.1.21:5555 tcp://192.168.1.31:5555"
 # Set rundir to your dir
-rundir=$rootdir/$subdir/louvain_partitions
+rundir=$subdir/louvain_partitions
 projdir=$rundir.par.proj
 xclbinfile=/proj/autoesl/ryanw/kernel_louvain_pruning.xclbin
 

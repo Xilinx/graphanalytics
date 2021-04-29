@@ -17,9 +17,9 @@ partitions=$3
 graphabs=$(readlink -f $graph)
 graphdir=`dirname $graphabs`
 
-mkdir -p $graphdir/$subdir
+mkdir -p $subdir
 # Set rundir to your dir
-rundir=$graphdir/$subdir/louvain_partitions
+rundir=$subdir/louvain_partitions
 
 echo "Removing $rundir"
 rm -rf $rundir
@@ -30,7 +30,7 @@ export LD_LIBRARY_PATH=$script_dir/../../lib:$LD_LIBRARY_PATH
 $cmd
 
 echo "*************************************************************************"
-echo "INFO: $partitions partitions saved to $graphdir/$subdir"
+echo "INFO: $partitions partitions saved to $subdir"
 echo "*************************************************************************"
 
 
