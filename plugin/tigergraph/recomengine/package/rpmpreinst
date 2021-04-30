@@ -1,0 +1,1 @@
+%global _python_bytecompile_errors_terminate_build 0

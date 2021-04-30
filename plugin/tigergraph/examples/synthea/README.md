@@ -1,1 +1,0 @@
-# Generate synthea patient data

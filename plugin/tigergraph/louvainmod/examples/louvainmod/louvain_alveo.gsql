@@ -1,0 +1,57 @@
+drop query load_alveo, close_alveo, louvain_alveo
+
+# currently load libgraphL3.so only
+CREATE DISTRIBUTED QUERY load_alveo() FOR GRAPH social {
+   DOUBLE udf_time;
+   String s;
+   INT ret;
+   udf_reset_timer(true);
+   // Initialize on all machines
+   Start = {Person.*};
+   A = SELECT v
+       FROM Start:v
+       ACCUM udf_open_alveo(1);
+
+   // Create partition only on driver
+   //ret = udf_create_alveo_partitions("/proj/isimsj/graphdb/louvain/data/europe_osm-wt450M_2.mtx", "/proj/isimsj/graphdb/louvain/poc_louvain/rundir/450/louvain_skitter", "9");
+   udf_time = udf_elapsed_time(true);
+
+}
+
+
+CREATE DISTRIBUTED QUERY louvain_alveo(
+    INT max_iter, set<STRING> vertex_types, set<STRING> edge_types, STRING community_result,
+    STRING input_graph, STRING partitions_project)
+{
+    SumAccum<INT> @@executeAlveoStatus;
+    DOUBLE udf_time;
+    INT ret;
+
+    Start = {Person.*};
+    udf_reset_timer(true);
+    // each node will get this UDF call for each vertex, but the actual execution 
+    // is only run once guarded by a flag. Each node checks if it's master or slave
+    // and run the task accordingly.
+    A = SELECT s
+        FROM Start:s
+           ACCUM @@executeAlveoStatus += udf_execute_alveo_louvain(
+                                           input_graph, partitions_project, 
+                                           "3", "9", "2", community_result);
+    udf_time = udf_elapsed_time(true);
+    print @@executeAlveoStatus;
+    print udf_time;
+}
+
+CREATE DISTRIBUTED QUERY close_alveo() for GRAPH social {
+   DOUBLE udf_time;
+   BOOL b;
+   udf_reset_timer(true);
+   Start = {Person.*};
+   A = SELECT v
+       FROM Start:v
+       ACCUM udf_close_alveo(1);
+   udf_time = udf_elapsed_time(true);
+   print udf_time, b;
+}
+
+install query load_alveo, close_alveo, louvain_alveo

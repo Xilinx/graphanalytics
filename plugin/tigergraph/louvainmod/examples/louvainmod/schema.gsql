@@ -1,0 +1,13 @@
+USE GRAPH social
+DROP JOB load_job
+DROP QUERY *
+DROP GRAPH social
+DROP EDGE Coworker
+DROP VERTEX Person
+
+#TYPEDEF TUPLE<Id VERTEX, score DOUBLE> testResults
+
+CREATE VERTEX Person (primary_id num int, num int)
+CREATE UNDIRECTED EDGE Coworker(from Person, to Person, weight double)
+
+CREATE GRAPH social(*)
