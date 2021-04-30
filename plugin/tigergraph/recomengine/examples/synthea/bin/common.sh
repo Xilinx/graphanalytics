@@ -30,6 +30,7 @@
 # limitations under the License.
 #
 
+gsql_command="java -DGSQL_CLIENT_VERSION=v3_1_0 -jar $HOME/gsql-client/gsql_client.jar"
 gsql_command="java -Droot.log.level=INFO -DGSQL_CLIENT_VERSION=v3_1_0 -jar $HOME/gsql-client/gsql_client.jar"
 function gsql () {
      $gsql_command -u $username -p $password "$@"
@@ -62,6 +63,7 @@ num_devices=1
 num_nodes=1
 iterations=1
 verbose=0
+xgraph="xgraph_$username"
 
 
 # set default ssh_key for tigergraph
@@ -111,11 +113,6 @@ if [ $($gsql_command "show user" | grep -c $username) -lt 1 ]; then
     echo "Additionally, if you plan on creating graphs and installing queries, please also do:"
     echo "    gsql \"grant role globaldesigner to $username\""
     exit 3
-fi
-
-# $4 graph-name
-if [ -z "$xgraph" ]; then
-    xgraph="xgraph_$username"
 fi
 
 if [ $verbose -eq 1 ]; then
