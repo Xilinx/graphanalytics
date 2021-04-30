@@ -1,7 +1,8 @@
-drop query load_alveo, close_alveo, louvain_alveo
+USE GRAPH @graph
+DROP QUERY load_alveo, close_alveo, louvain_alveo
 
 # currently load libgraphL3.so only
-CREATE DISTRIBUTED QUERY load_alveo() FOR GRAPH social {
+CREATE DISTRIBUTED QUERY load_alveo() FOR GRAPH @graph {
    DOUBLE udf_time;
    String s;
    INT ret;
@@ -42,7 +43,7 @@ CREATE DISTRIBUTED QUERY louvain_alveo(
     print udf_time;
 }
 
-CREATE DISTRIBUTED QUERY close_alveo() for GRAPH social {
+CREATE DISTRIBUTED QUERY close_alveo() for GRAPH @graph {
    DOUBLE udf_time;
    BOOL b;
    udf_reset_timer(true);

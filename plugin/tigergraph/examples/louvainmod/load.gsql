@@ -1,4 +1,6 @@
-create loading job load_job for GRAPH social {
+USE GRAPH @graph
+
+CREATE LOADING JOB load_job FOR GRAPH @graph {
 	DEFINE FILENAME file_name;
 	LOAD file_name
         to vertex Person values ($0, $0),

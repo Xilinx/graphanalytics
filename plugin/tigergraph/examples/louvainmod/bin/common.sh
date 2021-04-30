@@ -30,7 +30,7 @@
 # limitations under the License.
 #
 
-gsql_command="java -Droot.log.level=INFO -DGSQL_CLIENT_VERSION=v3_1_0 -jar $HOME/gsql-client/gsql_client.jar"
+gsql_command="java -DGSQL_CLIENT_VERSION=v3_1_0 -jar $HOME/gsql-client/gsql_client.jar"
 function gsql () {
      $gsql_command -u $username -p $password "$@"
 }
@@ -39,7 +39,7 @@ function usage() {
     echo "Usage: $0 -u TG-username -p TG-password [optional options]"
     echo "Optional options:"
     echo "  -d numDevices       : number of FPGAs needed (default=1)"
-    echo "  -g graphName        : graph name (default=xgraph_<username>"
+    echo "  -g graphName        : graph name (default=social_<username>"
     echo "  -i sshKey           : SSH key for user tigergraph"    
     echo "  -l 0|1              : 0: Do not load FPGA; 1: Load FPGA(default)>"
     echo "  -m numNodes         : Number of nodes in Tigergraph cluster"
@@ -60,7 +60,7 @@ num_devices=1
 num_nodes=1
 partition_prj="$script_dir/as-skitter/as-skitter-partitions/louvain_partitions"
 verbose=0
-
+xgraph="social_$username"
 
 # set default ssh_key for tigergraph
 if [ -f ~/.ssh/tigergraph_rsa ]; then
@@ -117,18 +117,12 @@ if [ $($gsql_command "show user" | grep -c $username) -lt 1 ]; then
     exit 3
 fi
 
-# $4 graph-name
-if [ -z "$xgraph" ]; then
-    xgraph="xgraph_$username"
-fi
-
 if [ $verbose -eq 1 ]; then
     echo "INFO: username=$username"
     echo "      password=$password"
     echo "      data_source=$data_source"
     echo "      partition_prj=$partition_prj"
     echo "      xgraph=$xgraph"
-    echo "      load_cache=$load_cache"
     echo "      load_fpga=$load_fpga"
     echo "      num_nodes=$num_nodes"
     echo "      num_devices=$num_devices"
