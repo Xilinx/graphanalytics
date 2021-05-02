@@ -64,7 +64,7 @@ START=$(date +%s%3N)
 time gsql -g $xgraph "run query louvain_distributed_cpu(10, [\"Person\"], [\"Coworker\"], \"$PWD/log/cpu_out.txt\")"
 TOTAL_TIME=$(($(date +%s%3N) - START))
 
-echo "louvain_cpu runtime: " $TOTAL_TIME
+echo "louvain_distributed_cpu runtime: " $TOTAL_TIME
 
 run_alveo=0
 if [ "$run_alveo" -eq 1 ]; then
