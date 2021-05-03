@@ -41,9 +41,9 @@ class Worker : public Node {
     void listen(function<string(string)> fn, bool verbose = false) {
         while (1) {
             zmq_msg_recv(&this->msg, this->socket, 0);
-            if
-                constexpr(Node::verbose) cout
-                    << "Receive message: " << reinterpret_cast<char*>(zmq_msg_data(&this->msg)) << endl;
+#ifdef VERBOSE
+            cout << "Receive message: " << reinterpret_cast<char*>(zmq_msg_data(&this->msg)) << endl;
+#endif
             string str = fn(reinterpret_cast<const char*>(zmq_msg_data(&this->msg)));
             zmq_send(this->socket, str.c_str(), 1 + str.size(), 0);
         }

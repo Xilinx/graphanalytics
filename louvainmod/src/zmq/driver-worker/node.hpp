@@ -61,8 +61,9 @@ class Node {
         } else {
             rc = zmq_send(socket, ptr, nbytes, flags);
         }
-        if
-            constexpr(verbose) cout << "Send " << NB(nbytes) << " successfully." << endl;
+#ifdef VERBOSE
+            cout << "Send " << NB(nbytes) << " successfully." << endl;
+#endif
         return rc;
     };
 
@@ -108,8 +109,9 @@ class Node {
         } else {
             cout << "ERROR : Receive " << NB(nbytes) << " failed!" << endl;
         }
-        if
-            constexpr(verbose) cout << "Received " << NB(nbytes) << " successfully." << endl;
+#ifdef VERBOSE
+        cout << "Received " << NB(nbytes) << " successfully." << endl;
+#endif
         return rc;
     }
 
@@ -133,8 +135,9 @@ class Node {
         int rc = zmq_msg_recv(&msg, this->socket, flags);
         if (rc > 0) {
             string str(reinterpret_cast<char*>(zmq_msg_data(&msg)));
-            if
-                constexpr(verbose) cout << "Receive message: " << str << endl;
+#ifdef VERBOSE
+            cout << "Receive message: " << str << endl;
+#endif
             return move(str);
         } else {
             return "";
