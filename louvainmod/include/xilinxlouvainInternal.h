@@ -1,6 +1,5 @@
-// xilinxlouvain.h
-#ifndef _XILINXLOUVAIN_H_
-#define _XILINXLOUVAIN_H_
+#ifndef _XILINXLOUVAININTERNAL_H_
+#define _XILINXLOUVAININTERNAL_H_
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -492,16 +491,5 @@ enum {
 	ZMQ_DRIVER,
 	ZMQ_WORKER
 };
-
-enum {
-	ALVEOAPI_NONE=0,
-	ALVEOAPI_PARTITION,
-	ALVEOAPI_LOAD,
-	ALVEOAPI_RUN
-};
-
-int create_alveo_partitions(int argc, char *argv[]);
-int load_alveo_partitions(int argc, char *argv[]);
-int louvain_modularity_alveo(int argc, char *argv[]);
 
 #endif
