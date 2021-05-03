@@ -3,6 +3,7 @@
 #define _XILINXLOUVAIN_H_
 
 #include <exception>
+#include <string>
 
 enum {
 	ALVEOAPI_NONE=0,
