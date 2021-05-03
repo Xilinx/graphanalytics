@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-#include "utils2.hpp"
-#include "xf_graph_L3.hpp"
-#include "stdio.h"
 
-#include "common.hpp"
+#include "stdio.h"
 #include <cstdlib>
 #include <time.h>
 #include "zmq.h"
-
-#include "defs.h"
 #include "xilinxlouvain.h"
+#include <string.h>
 
 int main(int argc, char *argv[]) {
 

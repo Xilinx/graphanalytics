@@ -4,6 +4,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "xilinxlouvain.h"
+#include "xilinxlouvainInternal.h"
 #include "partitionLouvain.hpp"
 #include "xf_graph_L3.hpp"
 #include "zmq.h"

@@ -337,10 +337,6 @@ STAGE_DIR = staging
 STAGE_COPY_FILES = \
     VERSION \
     include/xilinxlouvain.h \
-    include/utils2.hpp \
-    include/xf_graph_L3.hpp \
-    include/common.hpp \
-    include/defs.h \
     src/louvainmod_loader.cpp
 
 define STAGE_COPY_RULE
