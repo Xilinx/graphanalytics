@@ -30,8 +30,9 @@ class Driver : public Node {
 
     void connect(const char* server) {
         zmq_connect(this->socket, server);
-        if
-            constexpr(Node::verbose) cout << "Connect to: " << server << endl;
+#ifdef VERBOSE
+        cout << "Connect to: " << server << endl;
+#endif
     }
 
     void connect(const char* ip, const int port) {
@@ -39,8 +40,9 @@ class Driver : public Node {
         ss << ip << ':' << port;
         string server = ss.str();
         zmq_connect(this->socket, server.c_str());
-        if
-            constexpr(Node::verbose) cout << "Connect to: " << server << endl;
+#ifdef VERBOSE
+        cout << "Connect to: " << server << endl;
+#endif
     }
 
     ~Driver() {
