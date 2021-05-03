@@ -56,12 +56,11 @@ time gsql -g $xgraph louvain_distributed_cpu.gsql
 echo "Installing louvain_alveo queries"
 gsql "$(cat $script_dir/louvain_alveo.gsql | sed "s/@graph/$xgraph/")"
 
-mkdir -p log
-chmod a+w log
-
+# IMPORTANT: DO NOT USE A NETWORK DRIVE FOR LOG FILES IN DISTRIBUTED QUERIES.
+# OTHERWISE EACH NODE WILL OVERWRITE IT
 echo "Running louvain_distributed_cpu"
 START=$(date +%s%3N)
-time gsql -g $xgraph "run query louvain_distributed_cpu(10, [\"Person\"], [\"Coworker\"], \"$PWD/log/cpu_out.txt\")"
+time gsql -g $xgraph "run query louvain_distributed_cpu(10, [\"Person\"], [\"Coworker\"], \"/tmp/cpu_out.txt\")"
 TOTAL_TIME=$(($(date +%s%3N) - START))
 
 echo "louvain_distributed_cpu runtime: " $TOTAL_TIME
@@ -78,7 +77,7 @@ if [ "$run_alveo" -eq 1 ]; then
     #time gsql -g $xgraph "run query louvain_alveo(10, [\"Person\"], [\"Coworker\"], \"$PWD/log/alveo_out.txt\", \"$PWD/as-skitter/as-skitter-wt-e110k.mtx\", \"$PWD/as-skitter/as-skitter-partitions/louvain_partitions\")"
 
     time gsql -g $xgraph "run query louvain_alveo(10, [\"Person\"], [\"Coworker\"], \
-                                                 \"$PWD/log/alveo_out.txt\", \
+                                                 \"/tmp/log/alveo_out.txt\", \
                                                  \"$data_source\", \
                                                  \"$partition_prj\")"
     TOTAL_TIME=$(($(date +%s%3N) - START))

@@ -58,7 +58,7 @@ $(ODIR)/%.o: $(SOURCE_MAIN_DIR)/%.cpp
 $(ODIR)/%.o: $(SOURCE_OTHER_DIR)/%.cpp
 	$(CC) -o $@ $< $(CFLAGS)
 
-$(ODIR)/xaidecl.o: /home2/tigergraph/tigergraph/tmp/gsql/codegen/udf/xaidecl.cpp
+$(ODIR)/xaidecl.o: ../../../../data/gsql/udf/xaidecl.cpp
 	$(CC) -o $@ $< $(CFLAGS)
 
 all: $(SOURCES) $(EXECUTABLE)

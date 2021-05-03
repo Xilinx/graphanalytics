@@ -25,6 +25,8 @@ CREATE DISTRIBUTED QUERY louvain_distributed_cpu(
 			s.@cc_OD = s.outdegree()
 	;
 
+	log(True, "XXYYZZ startsize=", Start.size());
+
 	// update @community_center in the first iteration
 	Start = SELECT t FROM Start:s-((edge_types):e)->:t
 		ACCUM
@@ -49,6 +51,7 @@ CREATE DISTRIBUTED QUERY louvain_distributed_cpu(
 	;
   
 	log(True, "XXYYZZ @community_center initialization ended");
+	log(True, "XXYYZZ startsize=", Start.size());
 
 
 	WHILE @@ccChange LIMIT max_iter DO
@@ -64,6 +67,7 @@ CREATE DISTRIBUTED QUERY louvain_distributed_cpu(
 		;
 
 		log(True, "XXYYZZ compute  v.@community_member_list += s");
+    	log(True, "XXYYZZ startsize=", Start.size());
 
 		Start = SELECT s FROM Start:s 
 			ACCUM FOREACH v IN s.@community_center DO
@@ -75,6 +79,7 @@ CREATE DISTRIBUTED QUERY louvain_distributed_cpu(
 		Start = SELECT s FROM Start:s-((edge_types):e)->:t 
 			ACCUM s.@A += (t.@community_center.get(0)->1)
 		;
+    	log(True, "XXYYZZ compute @A startsize=", Start.size());
 
 		log(True, "XXYYZZ compute @community_sum_degrees");
 		Start = SELECT s FROM Start:s 
@@ -121,11 +126,12 @@ CREATE DISTRIBUTED QUERY louvain_distributed_cpu(
 		log(True, "XXYYZZ ith iteration ended");
 	END;
 
+    log(True, "XXYYZZ final startsize=", Start.size());
 	Start = SELECT s FROM Start:s
 		POST-ACCUM
 			#community_result.println("s", s, "community_center.get", getvid(s.@community_center.get(0)), "ccIntermediate:", s.@ccIntermediate)
-   			community_result.println("s", s, "community_center.get", s.@community_center.get(0), "ccIntermediate:", s.@ccIntermediate)
-
+   			#community_result.println("s", s, "community_center.get", s.@community_center.get(0), "ccIntermediate:", s.@ccIntermediate)
+   			community_result.println(s, s.@community_center.get(0))
 	;
 
 
