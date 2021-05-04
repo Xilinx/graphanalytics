@@ -1,0 +1,44 @@
+drop query load_alveo, close_alveo, louvain_alveo
+
+CREATE DISTRIBUTED QUERY load_alveo() FOR GRAPH social {
+   DOUBLE udf_time;
+   String s;
+   INT ret;
+   udf_reset_timer(true);
+   // Initialize on all machines
+   Start = {Person.*};
+   A = SELECT v
+       FROM Start:v
+       ACCUM udf_open_alveo(1);
+
+   // Create partition only on driver
+   //ret = udf_create_alveo_partitions("/proj/isimsj/graphdb/louvain/data/europe_osm-wt450M_2.mtx", "/proj/isimsj/graphdb/louvain/poc_louvain/rundir/450/louvain_skitter", "9");
+   udf_time = udf_elapsed_time(true);
+
+}
+
+CREATE DISTRIBUTED QUERY louvain_alveo(INT max_iter, set<STRING> vertex_types, set<STRING> edge_types, String community_result){
+   DOUBLE udf_time;
+   INT ret;
+   Start = {Person.*};
+   udf_reset_timer(true);
+   A = SELECT s
+       FROM Start:s
+       ACCUM udf_execute_alveo_louvain("/proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx", "/proj/gdba/ywu/ghe/poc_louvain/as-skitter/louvain_partitions", "3", "9", "2", community_result);
+   udf_time = udf_elapsed_time(true);
+   print udf_time;
+}
+
+CREATE DISTRIBUTED QUERY close_alveo() for GRAPH social {
+   DOUBLE udf_time;
+   BOOL b;
+   udf_reset_timer(true);
+   Start = {Person.*};
+   A = SELECT v
+       FROM Start:v
+       ACCUM udf_close_alveo(1);
+   udf_time = udf_elapsed_time(true);
+   print udf_time, b;
+}
+
+install query load_alveo, close_alveo, louvain_alveo

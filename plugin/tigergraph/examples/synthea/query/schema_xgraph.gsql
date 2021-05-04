@@ -41,6 +41,7 @@ CREATE SCHEMA_CHANGE JOB job_schema_change_local FOR GRAPH @graph {
                          SSN String, FIRST_NAME String, LAST_NAME String, 
                          MARITAL String, RACE String, ETHNICITY String, 
                          GENDER String, COSINE_SIM_VECTOR LIST<INT>, COSINE_SIM_NORMAL DOUBLE);
+    ADD VERTEX dummy_nodes(PRIMARY_ID ID UINT, NODE_ID UINT);
 
     ADD DIRECTED EDGE patient_HAD_immunization (from patients, to immunizations);
     ADD DIRECTED EDGE patient_HAD_allergy (from patients, to allergies);
@@ -53,9 +54,3 @@ END
 
 RUN SCHEMA_CHANGE JOB job_schema_change_local
 DROP JOB job_schema_change_local
-
-
-
-
-
-

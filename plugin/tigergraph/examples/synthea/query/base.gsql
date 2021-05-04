@@ -195,7 +195,7 @@ create query patient_vector(vertex<patients> targetPatient) for graph @graph ret
 }
 
 
-CREATE QUERY cosinesim_clear_embeddings() FOR GRAPH @graph {
+CREATE DISTRIBUTED QUERY cosinesim_clear_embeddings() FOR GRAPH @graph {
     ListAccum<INT> @@emptyVec;
 
     population = {patients.*};
@@ -206,14 +206,14 @@ CREATE QUERY cosinesim_clear_embeddings() FOR GRAPH @graph {
 }
 
 
-CREATE QUERY cosinesim_embed_vectors() FOR GRAPH @graph {
+CREATE DISTRIBUTED QUERY cosinesim_embed_vectors() FOR GRAPH @graph {
     population = {patients.*};
     UPDATE p FROM population:p
         SET p.COSINE_SIM_VECTOR = patient_vector(p);
 }
 
 
-CREATE QUERY cosinesim_embed_normals() FOR GRAPH @graph {
+CREATE DISTRIBUTED QUERY cosinesim_embed_normals() FOR GRAPH @graph {
     # Cache normals, just for software cosine similarity
     population = {patients.*};
     UPDATE p FROM population:p
@@ -293,12 +293,20 @@ create query cosinesim_ss_fpga_core (vertex<patients> source, uint topK) for
     @@targetPatientVector = patient_vector(source);
 
     @@results = udf_xilinx_recom_match_target_vector(topK, @@targetPatientVector);
-    return @@results;
+    RETURN @@results;
 }
 
+CREATE QUERY cosinesim_start_population() FOR GRAPH @graph RETURNS (BOOL)
+{
+    BOOL ret;
+
+    ret = udf_xilinx_recom_start_population();
+
+    RETURN ret;
+}
 
 install query patient_age, patient_race, patient_gender, patient_ethnicity, 
     patient_vector, cosinesim_clear_embeddings, cosinesim_embed_vectors, cosinesim_embed_normals,
     cosinesim_match_sw, cosinesim_set_num_devices,
     cosinesim_get_num_devices, cosinesim_is_fpga_initialized,
-    load_graph_cosinesim_ss_fpga_core, cosinesim_ss_fpga_core
+    load_graph_cosinesim_ss_fpga_core, cosinesim_ss_fpga_core, cosinesim_start_population

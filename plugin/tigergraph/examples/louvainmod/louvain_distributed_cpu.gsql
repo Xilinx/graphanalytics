@@ -1,0 +1,125 @@
+DROP QUERY louvain_distributed_cpu
+CREATE DISTRIBUTED QUERY louvain_distributed_cpu(INT max_iter, set<STRING> vertex_types, set<STRING> edge_types, file community_result) { 
+	TYPEDEF TUPLE <FLOAT deltaQ, FLOAT OutDgr, VERTEX cc> move; 
+	SumAccum<FLOAT> @ac; #sum of the degrees of all the vertices in community C of the vertex
+	ListAccum<VERTEX> @cc; #the community center
+	SumAccum<FLOAT> @cc_OD;
+	MapAccum<VERTEX,SumAccum<FLOAT>> @A; #A[c]: sum of the edge weights for the edges in community c
+	MaxAccum<move> @best_move; # highest dQ, highest -Outdegree, highest cc
+	ListAccum<VERTEX> @cm;  #community member list
+	SumAccum<FLOAT> @@m; # total edge weight
+	ListAccum<INT> @ccIntermediate;
+	OrAccum<BOOL> @@ccChange;
+
+  Start = {vertex_types}; 
+	
+	// initialize @cc
+	log(True, "XXYYZZ @cc initialization started");
+	Start = SELECT s FROM Start:s-((edge_types):e)->:t 
+		ACCUM 
+			@@m += 1 
+		POST-ACCUM 
+			s.@cc += s,
+			s.@cc_OD = s.outdegree()
+	;
+	
+	// update @cc in the first iteration
+	Start = SELECT t FROM Start:s-((edge_types):e)->:t
+		ACCUM
+			t.@best_move += move(1 + 1/2/@@m*t.outdegree() * (t.outdegree() - s.outdegree()), -s.@cc_OD, s.@cc.get(0))
+		POST-ACCUM
+			IF getDeltaQ(t.@best_move) > 0 THEN
+				IF -getOutDegree(t.@best_move) < t.@cc_OD THEN  //
+					t.@cc.clear(), 
+					t.@cc += getCc(t.@best_move),
+					t.@cc_OD = -getOutDegree(t.@best_move),
+					@@ccChange += TRUE
+				ELSE 
+					IF -getOutDegree(t.@best_move) == t.@cc_OD AND getvid(t) < getvid(getCc(t.@best_move))  THEN
+						t.@cc.clear(),
+						t.@cc += getCc(t.@best_move),
+						t.@cc_OD = -getOutDegree(t.@best_move),
+						@@ccChange += TRUE
+					END
+				END
+			END,
+			t.@ccIntermediate += getvid(t.@cc.get(0))
+	;
+  
+	log(True, "XXYYZZ @cc initialization ended");
+	WHILE @@ccChange LIMIT max_iter DO
+		@@ccChange = FALSE;
+
+		// initialize @cm
+		log(True, "XXYYZZ ith iteration started");
+		Start = SELECT s FROM Start:s 
+			POST-ACCUM 
+				s.@ac = 0,
+				s.@cm.clear(),
+				s.@A.clear()
+		;
+
+		log(True, "XXYYZZ compute  v.@cm += s");
+
+		Start = SELECT s FROM Start:s 
+			ACCUM FOREACH v IN s.@cc DO
+				CASE WHEN getvid(v) != -1 THEN v.@cm += s END
+			END
+		;
+
+		log(True, "XXYYZZ compute @A");
+		Start = SELECT s FROM Start:s-((edge_types):e)->:t 
+			ACCUM s.@A += (t.@cc.get(0)->1)
+		;
+
+		log(True, "XXYYZZ compute @ac");
+		Start = SELECT s FROM Start:s 
+			ACCUM FOREACH v IN s.@cc DO
+				CASE WHEN getvid(v) != -1 THEN v.@ac += s.outdegree() END
+			END
+		;
+
+		Start = SELECT s FROM Start:s 
+			ACCUM FOREACH v IN s.@cm DO
+				CASE WHEN getvid(v) != -1 THEN v.@ac = s.@ac END
+			END
+		;
+
+		log(True, "XXYYZZ compute @max_dQ");
+		// compute @max_dQ
+		Start = SELECT s FROM Start:s-((edge_types):e)->:t
+			ACCUM
+				INT A_s = 0,
+				IF s.@A.containsKey(s) THEN
+					A_s = s.@A.get(s)
+				END,
+				s.@best_move += move(s.@A.get(t.@cc.get(0))-A_s+1/2/@@m*s.outdegree()*(s.@ac-t.@ac) , -t.@cc_OD, t.@cc.get(0))
+			POST-ACCUM
+				IF getDeltaQ(s.@best_move) > 0 THEN
+					IF -getOutDegree(s.@best_move) < s.@cc_OD THEN
+						s.@cc.clear(),
+						s.@cc += getCc(s.@best_move),
+						s.@cc_OD = -getOutDegree(s.@best_move),
+						@@ccChange += TRUE
+					ELSE 
+						IF -getOutDegree(s.@best_move) == s.@cc_OD AND getvid(s.@cc.get(0)) < getvid(getCc(s.@best_move))  THEN
+							s.@cc.clear(),
+							s.@cc += getCc(s.@best_move),
+							s.@cc_OD = -getOutDegree(s.@best_move),
+							@@ccChange += TRUE
+						END
+					END
+				END,
+			s.@ccIntermediate += getvid(s.@cc.get(0))
+		;
+
+		log(True, "XXYYZZ ith iteration ended");
+	END;
+
+	Start = SELECT s FROM Start:s
+		POST-ACCUM
+			community_result.println(s,getvid(s.@cc.get(0)),s.@ccIntermediate)
+	;
+	
+}
+INSTALL QUERY louvain_distributed_cpu
