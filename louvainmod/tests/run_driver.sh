@@ -9,8 +9,8 @@ fi
 graph=$1
 subdir=$2
 par=$3
-num_dev=1
-num_workers=0
+num_dev=3
+num_workers=2
 workers="tcp://192.168.1.21:5555 tcp://192.168.1.31:5555"
 # Set rundir to your dir
 rundir=$subdir/louvain_partitions
