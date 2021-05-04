@@ -23,7 +23,7 @@ source $xrtPath/setup.sh
 
 source $xrmPath/setup.sh
 
-#make clean
+make clean
 
 make libgraphL3
 

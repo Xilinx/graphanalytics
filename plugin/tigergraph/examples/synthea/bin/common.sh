@@ -45,6 +45,7 @@ function usage() {
     echo "  -g graphName        : graph name (default=xgraph_<username>"
     echo "  -i sshKey           : SSH key for user tigergraph"    
     echo "  -l 0|1              : 0: Do not load FPGA; 1: Load FPGA(default)>"
+    echo "  -m numNodes         : Number of nodes in Tigergraph cluster"
     echo "  -s dataSourcePath   : path containing input data. default=./1000_patients/csv"
     echo "  -v                  : Print verbose messages"
     echo "  -h                  : Print this help message"
@@ -58,6 +59,7 @@ data_root="$script_dir/1000_patients/csv"
 load_cache=1
 load_fpga=1
 num_devices=1
+num_nodes=1
 iterations=1
 verbose=0
 
@@ -67,7 +69,7 @@ if [ -f ~/.ssh/tigergraph_rsa ]; then
     ssh_key_flag="-i ~/.ssh/tigergraph_rsa"
 fi
 
-while getopts ":c:d:fg:i:l:n:p:s:u:vh" opt
+while getopts ":c:d:fg:i:l:m:n:p:s:u:vh" opt
 do
 case $opt in
     c) load_cache=$OPTARG;;
@@ -76,6 +78,7 @@ case $opt in
     g) xgraph=$OPTARG;;
     i) ssh_key=$OPTARG; ssh_key_flag="-i $ssh_key";;
     l) load_fpga=$OPTARG;;
+    m) num_nodes=$OPTARG;;
     n) iterations=$OPTARG;;
     p) password=$OPTARG;;
     s) data_root=$OPTARG;;
@@ -122,6 +125,7 @@ if [ $verbose -eq 1 ]; then
     echo "      xgraph=$xgraph"
     echo "      load_cache=$load_cache"
     echo "      load_fpga=$load_fpga"
+    echo "      load_fpga=$num_nodes"
     echo "      num_devices=$num_devices"
     echo "      iterations=$iterations"
     echo "      ssh_key=$ssh_key"

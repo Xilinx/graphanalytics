@@ -86,6 +86,8 @@ union f_cast<float> {
 
 double showTimeData(std::string p_Task, TimePointType& t1, TimePointType& t2);
 
+unsigned long diff(const struct timeval* newTime, const struct timeval* oldTime);
+
 } // L3
 } // graph
 } // xf

@@ -36,7 +36,7 @@ create query code_str(vertex<patients> p, string e_str, int num) for graph @grap
     return res;
 }
 
-create query cosinesim_ss_tg(string log_file) for graph @graph {
+CREATE DISTRIBUTED QUERY cosinesim_ss_tg(string log_file) for graph @graph {
     uint topK;
     double score;
     DOUBLE run_time;
@@ -85,7 +85,7 @@ create query cosinesim_ss_tg(string log_file) for graph @graph {
 }
 
 
-create query load_graph_cosinesim_ss_fpga() for graph @graph {
+CREATE QUERY load_graph_cosinesim_ss_fpga() for graph @graph {
     STRING status;
     INT ret;
     EXCEPTION cosinesimLoadFailed(40001);
@@ -100,7 +100,7 @@ create query load_graph_cosinesim_ss_fpga() for graph @graph {
     PRINT status;
 }
 
-create query cosinesim_ss_fpga(string log_file1) for graph @graph {
+CREATE QUERY cosinesim_ss_fpga(string log_file1) for graph @graph {
     uint topK;
     vertex<patients> newPatient;
     ListAccum<XilCosinesimMatch> @@result;
