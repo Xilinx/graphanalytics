@@ -3,8 +3,8 @@ USE GRAPH @graph
 CREATE LOADING JOB load_job FOR GRAPH @graph {
 	DEFINE FILENAME file_name;
 	LOAD file_name
-        to vertex Person values ($0, $0),
-		to edge Coworker values ($0, $1, 1.0)
-		using Separator=" ", Header = "false";
+        TO VERTEX Person VALUES ($0, $0) WHERE $0 != "*Vertices" and $0 != "*Edges",
+		TO EDGE Coworker VALUES ($0, $1, 1.0) WHERE $0 != "*Vertices" and $0 != "*Edges"
+		USING Separator=" ", Header = "false";
 }
 

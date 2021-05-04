@@ -14,8 +14,7 @@
 # limitations under the License.
 
 USE GRAPH @graph
-DROP QUERY louvain_cpu, louvain_distributed_cpu, louvain_alveo, load_alveo,
-           close_alveo
+DROP QUERY louvain_distributed_cpu, louvain_alveo, load_alveo, close_alveo
 DROP JOB load_job
 DROP GRAPH @graph
 

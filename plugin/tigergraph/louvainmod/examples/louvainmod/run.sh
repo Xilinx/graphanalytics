@@ -60,7 +60,7 @@ gsql "$(cat $script_dir/louvain_alveo.gsql | sed "s/@graph/$xgraph/")"
 # OTHERWISE EACH NODE WILL OVERWRITE IT
 echo "Running louvain_distributed_cpu"
 START=$(date +%s%3N)
-time gsql -g $xgraph "run query louvain_distributed_cpu(10, [\"Person\"], [\"Coworker\"], \"/tmp/cpu_out.txt\")"
+time gsql -g $xgraph "run query louvain_distributed_cpu(20, [\"Person\"], [\"Coworker\"], \"/tmp/cpu_out.txt\")"
 TOTAL_TIME=$(($(date +%s%3N) - START))
 
 echo "louvain_distributed_cpu runtime: " $TOTAL_TIME
