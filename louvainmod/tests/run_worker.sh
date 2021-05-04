@@ -31,4 +31,4 @@ xclbinfile=/proj/autoesl/ryanw/kernel_louvain_pruning.xclbin
 #./host.exe -x /proj/autoesl/ryanw/kernel_louvain_gh.xclbin /wrk/xsjhdnobkup1/ryanw/poc_louvain/HugeGraphData/europe_osm-wt600M.mtx  -dev 3 -par_num 12 -driver
 echo "./host.exe -x $xclbinfile $graph -fast -dev $num_dev -par_num $par -load_alveo_partitions $projdir -setwkr $num_workers $workers -workerAlone $worker_number"
 export LD_LIBRARY_PATH=$PWD/../../L3/lib:$LD_LIBRARY_PATH
-./host.exe -x $xclbinfile $graph -fast -dev $num_dev -par_num $par -load_alveo_partitions $projdir -setwkr $num_workers $workers -workerAlone $worker_number
+../Release/louvainModularity_test -x $xclbinfile $graph -fast -dev $num_dev -par_num $par -load_alveo_partitions $projdir -setwkr $num_workers $workers -workerAlone $worker_number

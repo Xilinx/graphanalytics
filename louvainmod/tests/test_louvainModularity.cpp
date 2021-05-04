@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-#include "utils2.hpp"
-#include "xf_graph_L3.hpp"
-#include "stdio.h"
 
-#include "common.hpp"
+#include "stdio.h"
 #include <cstdlib>
 #include <time.h>
 #include "zmq.h"
-
-#include "defs.h"
 #include "xilinxlouvain.h"
+#include <string.h>
 
 int main(int argc, char *argv[]) {
 
@@ -38,14 +34,14 @@ int main(int argc, char *argv[]) {
     }
     printf("\n\n");
     printf("\033[1;37;40mTo CREATE partition for Louvain:\033[0m\n\t");
-    printf("\033[1;31;40m.\/host.exe\033[0m <graph file> \033[1;31;40m-par_num\033[0m <number of partitions> \033[1;31;40m-create_alveo_partitions\033[0m [\033[1;31;40m-name\033[0m <project name>]\n");
+    printf("\033[1;31;40m./host.exe\033[0m <graph file> \033[1;31;40m-par_num\033[0m <number of partitions> \033[1;31;40m-create_alveo_partitions\033[0m [\033[1;31;40m-name\033[0m <project name>]\n");
     printf("\n");
     printf("\033[1;37;40mTo LOAD partition and EXECUTE Louvain for a WORKER:\033[0m\n\t");
-    printf("\033[1;31;40m.\/host.exe\033[0m <graph file> \033[1;31;40m-x\033[0m <kernel> [-fast] [-dev <num>] \033[1;31;40m-load_alveo_partitions\033[0m <project name>.par.proj ");
+    printf("\033[1;31;40m./host.exe\033[0m <graph file> \033[1;31;40m-x\033[0m <kernel> [-fast] [-dev <num>] \033[1;31;40m-load_alveo_partitions\033[0m <project name>.par.proj ");
 	printf("\033[1;31;40m-setwkr\033[0m <number of worker> <worker list> \033[1;31;40m-workerAlone\033[0m <ID of worker> \n");
 	printf("\n");
 	printf("\033[1;37;40mTo LOAD partition and EXECUTE Louvain for a DRIVER:\033[0m\n\t");
-    printf("\033[1;31;40m.\/host.exe\033[0m <graph file> \033[1;31;40m-x\033[0m <kernel> [-fast] [-dev <num>] \033[1;31;40m-load_alveo_partitions\033[0m <project name>.par.proj ");
+    printf("\033[1;31;40m./host.exe\033[0m <graph file> \033[1;31;40m-x\033[0m <kernel> [-fast] [-dev <num>] \033[1;31;40m-load_alveo_partitions\033[0m <project name>.par.proj ");
     printf("\033[1;31;40m-setwkr\033[0m <number of worker> <worker list> \033[1;31;40m-driverAlone\033[0m\n");
 	printf("\n\n");
     return 0;

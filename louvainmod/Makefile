@@ -70,12 +70,12 @@ endif
 
 ## Target: libLouvain.so
 INCLUDES_libLouvain = \
+	-Iinclude \
 	-I$(XILINX_XRT)/include \
 	-I$(XILINX_XRM)/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L2/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L3/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L3/include/include_hls \
-	-I$(GRAPH_ANALYTICS_DIR)/louvainmod/include \
 	-I$(GRAPH_ANALYTICS_DIR)/ext/xcl2 \
 	-I$(GRAPH_ANALYTICS_DIR)/plugin/tigergraph/louvainmod/udf/QueryUdf \
 	-Iinclude
@@ -100,18 +100,15 @@ SRCS_L3_NAMES = \
 SRCS_L3 = $(addprefix $(GRAPH_ANALYTICS_DIR)/L3/src/,$(SRCS_L3_NAMES)) $(GRAPH_ANALYTICS_DIR)/ext/xcl2/xcl2.cpp
 OBJS_L3 = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_L3:.cpp=.o)))
 
-#vw: add loader later
-#SRCS_loader = src/cosinesim_loader.cpp
-#OBJS_loader = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_loader:.cpp=.o)))
-#DEPS_loader = $(OBJS_loader:.o=.d)
+# louvain dynamic loader
+SRCS_loader = src/louvainmod_loader.cpp
+OBJS_loader = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_loader:.cpp=.o)))
+DEPS_loader = $(OBJS_loader:.o=.d)
 
-#SRCS_top = $(filter-out $(SRCS_loader),$(wildcard src/*.cpp))
-
-SRCS_top = $(wildcard src/*.cpp)
+SRCS_top = $(filter-out $(SRCS_loader),$(wildcard src/*.cpp))
 OBJS_top = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_top:.cpp=.o)))
 
-#SRCS_all = $(SRCS_L3) $(SRCS_top) $(SRCS_loader)
-SRCS_all = $(SRCS_L3) $(SRCS_top)
+SRCS_all = $(SRCS_L3) $(SRCS_top) $(SRCS_loader)
 OBJS_all = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_all:.cpp=.o)))
 DEPS_all = $(OBJS_all:.o=.d)
 
@@ -126,8 +123,7 @@ CPP_DOXY_TRIGGER_FILE = $(CPP_DOXY_TARGET_DIR)/html/index.html
 cppBuild: $(CPP_BUILD_DIR)
 	@make cppBuild2
 
-#cppBuild2: $(CPP_BUILD_DIR)/$(LIB_NAME) $(CPP_BUILD_DIR)/$(LOADER_NAME)
-cppBuild2: $(CPP_BUILD_DIR)/$(LIB_NAME)
+cppBuild2: $(CPP_BUILD_DIR)/$(LIB_NAME) $(CPP_BUILD_DIR)/$(LOADER_NAME)
 
 # Create the target directory (if needed)
 $(CPP_BUILD_DIR):
@@ -149,9 +145,9 @@ $(CPP_BUILD_DIR)/$(LIB_NAME): $(OBJS_libLouvain) $(DEPLIBS_libLouvain)
 
 # loader .a
 
-#$(CPP_BUILD_DIR)/$(LOADER_NAME): $(OBJS_loader) $(DEPLIBS_loader)
-#	ar ru $@ $(OBJS_loader)
-#	ranlib $@
+$(CPP_BUILD_DIR)/$(LOADER_NAME): $(OBJS_loader) $(DEPLIBS_loader)
+	ar ru $@ $(OBJS_loader)
+	ranlib $@
 
 # Macro to create a .o rule and a .d rule for each .cpp
 
@@ -190,14 +186,14 @@ doxy-cpp: $(CPP_DOXY_TRIGGER_FILE)
 
 CPP_DOXY_CONFIG_FILE = docs/cpp/DoxyFile
 
-$(CPP_DOXY_TRIGGER_FILE): include/cosinesim.hpp $(CPP_DOXY_CONFIG_FILE)
+$(CPP_DOXY_TRIGGER_FILE): include/xilinxlouvain.hpp $(CPP_DOXY_CONFIG_FILE)
 	@set -e; \
 	if ! [ -x "$$(command -v doxygen)" ]; then \
 	    echo "ERROR: doxygen appears not to be installed.  Please install at least version 1.8.5"; \
 	    false; \
 	fi; \
 	mkdir -p $(CPP_DOXY_TARGET_DIR); \
-	sed 's,COSINESIM_VERSION,$(strip $(shell cat VERSION)),g' < $(CPP_DOXY_CONFIG_FILE) > $(CPP_DOXY_TARGET_DIR)/doxyfile.tmp; \
+	sed 's,LOUVAINMOD_VERSION,$(strip $(shell cat VERSION)),g' < $(CPP_DOXY_CONFIG_FILE) > $(CPP_DOXY_TARGET_DIR)/doxyfile.tmp; \
 	doxygen $(CPP_DOXY_TARGET_DIR)/doxyfile.tmp; \
 	rm -f $(CPP_DOXY_TARGET_DIR)/doxyfile.tmp
 
@@ -212,14 +208,13 @@ $(CPP_DOXY_TRIGGER_FILE): include/cosinesim.hpp $(CPP_DOXY_CONFIG_FILE)
 TEST_DIR = tests
 
 INCLUDES_test = \
+	-Iinclude \
 	-I$(XILINX_XRT)/include \
 	-I$(XILINX_XRM)/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L2/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L3/include \
 	-I$(GRAPH_ANALYTICS_DIR)/ext/xcl2 \
 	-I$(GRAPH_ANALYTICS_DIR)/L3/include/include_hls \
-	-I$(GRAPH_ANALYTICS_DIR)/louvainmod/include \
-	-Iinclude
 
 LDLIBS_test = \
 	
@@ -307,7 +302,8 @@ L2_XDEVICE = xilinx_u50_gen3x16_xdma_201920_3
 L2_BUILD_DIR = $(L2_TOP_DIR)/build_dir.hw.$(L2_XDEVICE)
 XCLBIN_NAME = kernel_louvain_pruning.xclbin
 XCLBIN_FILE = $(L2_BUILD_DIR)/$(XCLBIN_NAME)
-XCLBIN_INSTALLED =/opt/xilinx/apps/graphanalytics/louvainmod/1.0/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin 
+XCLBIN_INSTALLED_NAME = louvainmod_pruning_$(L2_XDEVICE).xclbin
+XCLBIN_INSTALLED =/opt/xilinx/apps/graphanalytics/louvainmod/1.0/xclbin/$(XCLBIN_INSTALLED_NAME)
 
 .PHONY: xclbin
 
@@ -341,10 +337,7 @@ STAGE_DIR = staging
 STAGE_COPY_FILES = \
     VERSION \
     include/xilinxlouvain.h \
-    include/utils2.hpp \
-    include/xf_graph_L3.hpp \
-    include/common.hpp \
-    include/defs.h 
+    src/louvainmod_loader.cpp
 
 define STAGE_COPY_RULE
 $$(STAGE_DIR)/$(1): $(1)
@@ -355,8 +348,8 @@ $(foreach f,$(STAGE_COPY_FILES),$(eval $(call STAGE_COPY_RULE,$(f))))
 # Binary (C++) files
 
 STAGE_LIB_FILES = \
-    $(LIB_NAME)
-#    $(LOADER_NAME)
+    $(LIB_NAME) \
+    $(LOADER_NAME)
 
 ifneq ($(wildcard $(CPP_BUILD_DIR)/$(PYTHON_LIB_NAME)),)
     STAGE_LIB_FILES += $(PYTHON_LIB_NAME)
@@ -397,7 +390,7 @@ $(foreach f,$(STAGE_LIB_FILES),$(eval $(call STAGE_LIB_RULE,$(f))))
 
 # XCLBIN file
 
-STAGE_XCLBIN_NAME = cosinesim_32bit_$(L2_XDEVICE).xclbin
+STAGE_XCLBIN_NAME = $(XCLBIN_INSTALLED_NAME)
 STAGE_XCLBIN_FILE = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME)
 
 $(STAGE_XCLBIN_FILE): $(XCLBIN_FILE)
