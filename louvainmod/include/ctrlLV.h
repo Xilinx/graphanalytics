@@ -248,4 +248,9 @@ void WriteAdjMatrix2Raw(
 		long size_img,
 		char* nm_file
 		);
+
+char* NameNoPath(char* name);
+
+char* PathNoName(char* des, char* name);
+        
 #endif 

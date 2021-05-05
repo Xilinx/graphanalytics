@@ -64,7 +64,7 @@ CPP_BUILD_DIR = Debug
 CXXFLAGS += -O0 -g
 else
 CPP_BUILD_DIR = Release
-CXXFLAGS += -O3 
+CXXFLAGS += -O3 -DNDEBUG
 endif
 
 

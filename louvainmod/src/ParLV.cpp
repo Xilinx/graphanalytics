@@ -2588,9 +2588,10 @@ void Louvain_thread_core(xf::graph::L3::Handle* handle0,
                          double opts_C_thresh,
                          int numThreads) 
 {
+#ifndef NDEBUG
     std::cout << "DEBUG: " << __FUNCTION__ << " numThreads=" << numThreads 
               << " flowMode=" << flowMode << std::endl;
-
+#endif
     xf::graph::L3::louvainModularity(handle0[0], flowMode, glv_src, glv, opts_coloring, opts_minGraphSize,
                                      opts_threshold, opts_C_thresh, numThreads);
 }
@@ -2604,8 +2605,9 @@ GLV* L3_LouvainGLV_general(int& id_glv,
                            double opts_C_thresh,
                            int numThreads) 
 {
+#ifndef NDEBUG
     std::cout << "DEBUG: " << __FUNCTION__ << " numThreads=" << numThreads << std::endl;
-
+#endif
     GLV* glv_iter;
     std::thread td;
 
@@ -2693,9 +2695,10 @@ void Server_SubLouvain(xf::graph::L3::Handle* handle0,
                        double opts_C_thresh,
                        int numThreads) 
 {
+#ifndef NDEBUG
     std::cout << "DEBUG: " << __FUNCTION__ << " handle0=" << handle0 
               << "parlv.num_par=" << parlv.num_par << std::endl;
-
+#endif
     parlv.timesPar.timeLv_all = getTime();
     GLV* glv[parlv.num_par];
     std::thread td[parlv.num_par];
@@ -3015,8 +3018,6 @@ GLV* LouvainGLV_general_top(xf::graph::L3::Handle* handle0,
 }
 
 ////////////////////////////////////////////////////////
-char* NameNoPath(char* name);
-char* PathNoName(char* des, char* name);
 GLV* CreateByFile_general(char* inFile, int& id_glv);
 
 int create_alveo_partitions(char* inFile, int par_num, int par_prune, char* pathName_proj, ParLV& parlv) {
@@ -3252,7 +3253,9 @@ GLV* louvain_modularity_alveo(xf::graph::L3::Handle* handle0,
                               char** switchName // To enalbe all workers for Louvain
                               ) 
 {
+#ifndef NDEBUG
     std::cout << "DEBUG: " << __FUNCTION__ << " handle0=" << handle0 << std::endl;
+#endif
     int id_glv = 0;
     bool opts_coloring = true;
     int nodeID = 0;

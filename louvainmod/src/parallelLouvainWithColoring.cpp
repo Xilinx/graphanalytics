@@ -60,10 +60,10 @@ double algoLouvainWithDistOneColoring(graphNew* G,
         omp_set_num_threads(1);
     else
         omp_set_num_threads(nThreads);
+#ifdef PRINT_DETAILED_STATS_
     int nT;
 #pragma omp parallel
     { nT = omp_get_num_threads(); }
-#ifdef PRINT_DETAILED_STATS_
     printf("Actual number of threads: %d (requested: %d)\n", nT, nThreads);
 #endif
 

@@ -127,9 +127,9 @@ void louvainModularity(xf::graph::L3::Handle& handle,
                        double opts_C_thresh,
                        int numThreads) 
 {
-
-    std::cout << "DEBUG: " << __FUNCTION__ << "handle=" << &handle << std::endl;
-
+#ifndef NDEBUG
+    std::cout << "DEBUG: " << __FUNCTION__ << " handle=" << &handle << std::endl;
+#endif
     // auto ev = (handle.oplouvainmod)
     //              ->addwork(glv, opts_C_thresh, buff_cl, buff_host, kernel_louvain, q, eachItrs, currMod,
     //              eachTimeInitBuff, eachTimeReadBuff);

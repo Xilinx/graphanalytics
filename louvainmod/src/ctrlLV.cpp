@@ -175,7 +175,7 @@ void CtrlLouvain::PrintMan(){
 }
 CtrlLouvain::CtrlLouvain(){
 	//printf("\033[1;37;40mINFO\033[0m:: \n");
-	minGraphSize= 10;
+	minGraphSize = 10;
 	threshold   = 0.000001;   //default 0.0001
 	C_threshold = 0.0001; //default 0.000001
 	coloring    = 1;    //default =1;
@@ -203,7 +203,7 @@ bool CtrlLouvain::IsTempInLIst(){
 void CtrlLouvain::ShowPara(){
 	printf("\n");
 	printf("=====[ Parameters for Louvain ]==============================================================================================================================\n");
-	printf("| \033[1;32;40m minGraphSize\033[0m: %-4d\n", minGraphSize);//
+	printf("| \033[1;32;40m minGraphSize\033[0m: %-4ld\n", minGraphSize);//
 	printf("| \033[1;32;40m threshold   \033[0m: %f\n", threshold);   //= 0.000001;   //default 0.000001
 	printf("| \033[1;32;40m C_thresholt \033[0m: %f\n", C_threshold); //= 0.0001; //default 0.0001
 	//printf("| \033[1;32;40m isParallel  \033[0m: %s\n", isParallel?"true":"false"); //= 0.0001; //default 0.0001
@@ -226,7 +226,7 @@ void CtrlLouvain::ShowPara(){
 	printf("| \033[1;36;40m[glv_temp]*\033[0m\t");if(glv_temp)glv_temp->printSimple();else printf("NULL\n");}
 	printf("|----[ List Status ]-----------------------------------------------------------------------------------------------------------------------------------------\n");
 	printf("| \033[1;35;40m[list_glv]\033[0m\t%d glv(s) in list\n", cnt_list);    //= 0;
-	printf("| \033[1;35;40m[ ParLV  ]\033[0m\t%s \t %s \t %s \t %s\n"
+	printf("| \033[1;35;40m[ ParLV  ]\033[0m\t%s \t %s \t %s \t %s \t %s\n"
 			,parlv.st_Partitioned? "Partitioned"   : "Empty"
 			,parlv.st_ParLved    ? "ParLved"       : "Not ParLved"
 			,parlv.st_PreMerged  ? "PreMerged"     : "Not PreMerged"
@@ -534,20 +534,22 @@ int CtrlLouvain::exe_LV_DEL(){
 	printf("Delete Done\n");
 	return 0;
 }
+
 int SaveG_general(graphNew* g, char* fileName){
 	FILE *file = fopen(fileName, "w");
 	if (file == NULL) {
 	    printf("\033[1;31;40mERROR\033[0m: Cannot open the batch file: %s\n",fileName);
 	    return -1;
 	}
-	  long nv = g->numVertices;
-	  long ne = g->numEdges;
+
+	long nv = g->numVertices;
+	long ne = g->numEdges;
 	map<long,long> map_self;
 	map<long, long>::iterator itr;
 	int cnt=0;
 	int cnt_self=0;
-	fprintf(file, "*Vertices %d\n", nv);
-	fprintf(file, "*Edges %d\n", ne);
+	fprintf(file, "*Vertices %ld\n", nv);
+	fprintf(file, "*Edges %ld\n", ne);
 	for(int i=0; i<g->edgeListPtrs[nv]; i++){
 		long h = g->edgeList[i].head+1;
 		long t = g->edgeList[i].tail+1;
@@ -561,16 +563,16 @@ int SaveG_general(graphNew* g, char* fileName){
 			}
 			map_self[h]=cnt_self++;
 		}
-		fprintf(file, "%d %d %f\n",h,t,w);
+		fprintf(file, "%ld %ld %f\n", h, t, w);
 		cnt++;
 	}
 
 	fclose(file);
-	printf("\033[1;37;40mINFO\033[0m: -f 3 file samed name as %s\n",fileName);
-	printf("\033[1;37;40mINFO\033[0m: -f 3 file samed NV is  %d\n",nv);
-	printf("\033[1;37;40mINFO\033[0m: -f 3 file samed |NE| is  %d and self edge is %d\n",ne);
-	printf("\033[1;37;40mINFO\033[0m: -f 3 file samed undirection edge has  %d \n",cnt);
-	printf("\033[1;37;40mINFO\033[0m: -f 3 file samed sef-loop edge has %d\n",cnt_self);
+	printf("\033[1;37;40mINFO\033[0m: -f 3 file saved name as %s\n", fileName);
+	printf("\033[1;37;40mINFO\033[0m: -f 3 file saved NV is %ld\n", nv);
+	printf("\033[1;37;40mINFO\033[0m: -f 3 file saved |NE| and self edge is %d\n", ne);
+	printf("\033[1;37;40mINFO\033[0m: -f 3 file saved undirection edge has %d \n", cnt);
+	printf("\033[1;37;40mINFO\033[0m: -f 3 file saved sef-loop edge has %d\n", cnt_self);
 	return 0;
 }
 
@@ -578,7 +580,7 @@ char* NameNoPath(char* name){
 	assert (name);
 	int len = strlen(name)-1;
 	char c = name[len];
-	while((c!='\/' && c!='\\'&&c!='\n'&&c!=0)&&len>0){
+	while ((c!='/' && c!='\\'&& c!='\n'&& c!=0) && len>0) {
 		c = name[--len];
 	}
 	if(len==0)
@@ -586,23 +588,25 @@ char* NameNoPath(char* name){
 	else
 		return name+len+1;
 }
+
 char* PathNoName(char* des, char* name){
 	assert (name);
 	int len = strlen(name)-1;
 	char c = name[len];
-	while((c!='\/' && c!='\\'&&c!='\n'&&c!=0)&&len>0){
+	while((c!='/' && c!='\\'&&c!='\n'&&c!=0)&&len>0){
 		c = name[--len];
 	}
 	for(int i=0; i<len; i++)
 		des[i] = name[i];
 	if(len>0)
-		des[len++] = '\/';
+		des[len++] = '/';
 	else if(len==0){
 		des[len++] ='.';
-		des[len++] ='\/';
+		des[len++] ='/';
 	}
 	des[len]= '\0';
 }
+
 int SaveGLVBin(char* name, GLV* glv);
 int CtrlLouvain::exe_LV_SAVE(){
 //save id
@@ -631,10 +635,11 @@ int CtrlLouvain::exe_LV_SAVE(){
 		printf("\033[1;31;40mERROR\033[0m: Wrong parameter! Please using :save <ID>\n");
 		return -1;
 	}
+
 	if( mycmd.cmd_findPara("-glv")!=-1){
 		strcat(filename,".glv");
 		SaveGLVBin(filename, p_glv);
-	}else if( SaveG_general(p_glv->G, filename)==-1){
+	} else if( SaveG_general(p_glv->G, filename)==-1){
 		printf("\033[1;31;40mERROR\033[0m: When running SaveG_general()\n");
 		return -1;
 	}
@@ -643,7 +648,7 @@ int CtrlLouvain::exe_LV_SAVE(){
 }
 
 int CtrlLouvain::exe_LV_DEMO(){
-	mycmd.cmd_GetCmd("loadg ../data/as-Skitter-wt.mtx");
+	mycmd.cmd_GetCmd((const char*)("loadg ../data/as-Skitter-wt.mtx"));
 	ExeCmd();
 /*	mycmd.cmd_GetCmd("par -num 2 -prun 1");
 	ExeCmd();
@@ -829,7 +834,7 @@ int CtrlLouvain::exe_LV_PG(){//1)cmd 2)cmd [-id <id>] [<start> <end>] 3)cmd [<st
 	GLV* pglv=glv_curr;
 	long p1=0;
 	long p2=pglv->NV;
-	int id;
+	int id = 0;
 	int i_id=mycmd.cmd_findPara("-id");
 	int i_star;
 
@@ -1015,14 +1020,14 @@ int CtrlLouvain::exe_LV_TEST(){
 	return 0;
 }
 void CtrlLouvain::print_parlv(){
-	if(parlv.st_Partitioned==false){
+	if (parlv.st_Partitioned == false) {
 		printf("\033[1;37;40mINFO\033[0m: Partition handle is \033[1;31;40mNOT LOADED\033[0m \n");
 		return;
 	}
 	printf("=========================================================[ \033[1;35;40mPar_SRC BEGIN\033[0m ]======================================================================================\n");
 	int cnt=0;
 	for(int p=0; p<parlv.num_par; p++){
-		printf("| \033[1;35;40mSrc\033[0m:%2d off:%4d ",cnt++, parlv.off_src[p] );
+		printf("| \033[1;35;40mSrc\033[0m:%2d off:%4ld ", cnt++, parlv.off_src[p] );
 		parlv.par_src[p]->printSimple();
 	}
 	printf("====================================================================================================================================================================================\n");
@@ -1031,7 +1036,7 @@ void CtrlLouvain::print_parlv(){
 		return;
 	}
 	for(int p=0; p<parlv.num_par; p++){
-		printf("| \033[1;35;40mLv \033[0m:%2d off:%4d ",cnt++, parlv.off_lved[p]);
+		printf("| \033[1;35;40mLv \033[0m:%2d off:%4ld ",cnt++, parlv.off_lved[p]);
 		parlv.par_lved[p]->printSimple();
 	}
 	printf("=========================================================[ \033[1;35;40mPar_lved  END\033[0m ]======================================================================================\n");
@@ -1109,17 +1114,17 @@ int CtrlLouvain::exe_LV_PAR(){
 	}
 	bool isNumber = idx_num>0;
 
-	bool isAllParFlow = mycmd.cmd_findPara("-all")!=-1;
+	bool isAllParFlow = mycmd.cmd_findPara("-all") != -1;
 
 	if(mycmd.argc>=3){
 		if(!isNumber){
 			long start = atoi(mycmd.argv[1]);
 			long end   = atoi(mycmd.argv[2]);
 			if(start>=end){
-				printf("\033[1;31;40mERROR\033[0m: start:%d > end%d\n",start,end);
+				printf("\033[1;31;40mERROR\033[0m: start:%ld > end:%ld\n", start, end);
 				return -1;
 			}else if(end>glv_curr->NV){
-				printf("\033[1;31;40mERROR\033[0m: end:%d > NV:%d\n",end, glv_curr->NV);
+				printf("\033[1;31;40mERROR\033[0m: end:%ld > NV:%ld\n", end, glv_curr->NV);
 				return -1;
 			}
 			SafeCleanTemp();
@@ -1442,6 +1447,7 @@ int CtrlLouvain::exe_LV_DEV(){
 		std::cout << "\t\tDevice Available            : " << devices[d].getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
     }
 	useKernel = num_dev>0;
+    return 0;
 }
 
 int CtrlLouvain::ExeCmd(){
@@ -1554,10 +1560,10 @@ long G2Raw(graphNew* G, long size_grid, unsigned char* &img)
 	long NE        = G->numEdges;
 	long size_img = (NV + size_grid-1)/size_grid;
 	if (size_img > 8196){
-		printf("Too large image with width is %d/n", size_img);
+		printf("Too large image with width is %ld/n", size_img);
 		return -1;
 	}else {
-		printf("G2Raw:  size_img = (%d+%d-1)/%d = %d\n", NV, size_grid, size_grid, size_img);
+		printf("G2Raw:  size_img = (%ld+%ld-1)/%ld = %ld\n", NV, size_grid, size_grid, size_img);
 	}
 	img =  (unsigned char*)malloc( size_img * size_img);
 	if(img==0) return -1;
@@ -1585,16 +1591,16 @@ void WriteAdjMatrix2Raw(
 		char* nm_img
 		)
 {
-	char* surfix=".raw";
+	const char* surfix=".raw";
 	char  nm_file[4096];
 	strcpy(nm_file, nm_img);
 	strcat(nm_file, surfix);
 	FILE* fp;
-	printf("WriteAdjMatrix2Raw:image %s with size %d/n",nm_file, size_img);
+	printf("WriteAdjMatrix2Raw:image %s with size %ld/n", nm_file, size_img);
 	fp = fopen(nm_file, "wb");
 	long cnt = fwrite(img, size_img*size_img, 1, fp);
 	fclose(fp);
-	printf("WriteAdjMatrix2Raw: Total %d pixel wrote/n", cnt);
+	printf("WriteAdjMatrix2Raw: Total %ld pixel wrote/n", cnt);
 }
 
 int CtrlLouvain::Init(int mode, int numThreads, double opts_C_thresh, char* opts_xclbinPath, long opts_minGraphSize)
@@ -1606,7 +1612,9 @@ int CtrlLouvain::Init(int mode, int numThreads, double opts_C_thresh, char* opts
     this->useKernel = true;
     this->exe_LV_DEV();
     this->minGraphSize= opts_minGraphSize;
+    return 0;
 }
+
 #ifndef ONLY_FOR_L2
 int CtrlLouvain::Init(xf::graph::L3::Handle *hd0, int mode, int numThreads, double opts_C_thresh, char* opts_xclbinPath, long opts_minGraphSize)
 {
@@ -1617,7 +1625,9 @@ int CtrlLouvain::Init(xf::graph::L3::Handle *hd0, int mode, int numThreads, doub
 			opts_C_thresh,
 			opts_xclbinPath,
 			opts_minGraphSize);
+    return 0;
 }
+
 int CtrlLouvain::Init(char* file_loadg, xf::graph::L3::Handle *hd0, int mode, int numThreads, double opts_C_thresh, char* opts_xclbinPath, long opts_minGraphSize)
 {
 	this->p_handle0 = hd0;
@@ -1631,5 +1641,6 @@ int CtrlLouvain::Init(char* file_loadg, xf::graph::L3::Handle *hd0, int mode, in
 	sprintf(tmp_cmd, "loadg %s", file_loadg);
 	mycmd.cmd_GetCmd(tmp_cmd);
 	ExeCmd();
+    return 0;
 }
 #endif

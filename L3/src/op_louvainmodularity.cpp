@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Xilinx, Inc.
+ * Copyright 2020-2021 Xilinx, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,6 @@
  * limitations under the License.
 */
 
-#pragma once
-
-#ifndef _XF_GRAPH_L3_OP_LOUVAINMODULARITY_CPP_
-#define _XF_GRAPH_L3_OP_LOUVAINMODULARITY_CPP_
-
 #include "op_louvainmodularity.hpp"
 #include <unordered_map>
 
@@ -31,9 +26,10 @@ void createHandleLouvainModularity(class openXRM* xrm, clHandle& handle,
                                    std::string xclbinFile, int32_t IDDevice,
                                    unsigned int requestLoad)
 {
+#ifndef NDEBUG
     std::cout << "DEBUG: --------" << __FUNCTION__ << " IDDevice=" << IDDevice 
               << " handle=" << &handle << std::endl;
-
+#endif
     // Platform related operations
     std::vector<cl::Device> devices = xcl::get_xil_devices();
     handle.device = devices[IDDevice];
@@ -76,8 +72,9 @@ uint32_t opLouvainModularity::dupNmLouvainModularity;
 
 void opLouvainModularity::setHWInfo(uint32_t numDevices, uint32_t maxCU) 
 {
+#ifndef NDEBUG    
     std::cout << "DEBUG: " << __FUNCTION__ << " numDevices=" << numDevices << " maxCU=" << maxCU << std::endl;
-   
+#endif   
     maxCU_ = maxCU;
     numDevices_ = numDevices;
     cuPerBoardLouvainModularity = maxCU_ / numDevices_;
@@ -240,8 +237,10 @@ int opLouvainModularity::compute(unsigned int deviceID,
 #endif
     cl::Kernel kernel_louvain = hds[0].kernel;
 
+#ifndef NDEBUG
     std::cout << "DEBUG: ---------------------- " << __FUNCTION__ 
               << " kernel=" << &kernel_louvain << " which=" << which << std::endl;
+#endif
 
 
     bool isLargeEdge = pglv_iter->G->numEdges > (MAXNV / 2);
@@ -724,7 +723,9 @@ void opLouvainModularity::demo_par_core(int id_dev, int flowMode,
                                         double opts_C_thresh,
                                         int numThreads) 
 {
+#ifndef NDEBUG    
     std::cout << "DEBUG: ------------- " << __FUNCTION__ << " id_dev=" << id_dev << std::endl;
+#endif    
     pglv_orig->times.totTimeAll = omp_get_wtime();
 
     pglv_orig->times.phase = 1;        // Total phase counter
@@ -780,10 +781,13 @@ void opLouvainModularity::demo_par_core(int id_dev, int flowMode,
 
             auto ev = addwork(pglv_iter, flowMode, opts_C_thresh, &pglv_orig->times.eachItrs[pglv_orig->times.phase - 1], currMod,
                               &pglv_orig->times.eachTimeInitBuff[pglv_orig->times.phase - 1], &pglv_orig->times.eachTimeReadBuff[pglv_orig->times.phase - 1]);
+#ifndef NDEBUG
             std::cout << "DEBUG: before wait addwork" << std::endl;
+#endif
             ev.wait();
+#ifndef NDEBUG
             std::cout << "DEBUG: after wait addwork" << std::endl;
-
+#endif
             pglv_orig->times.eachTimeE2E  [pglv_orig->times.phase - 1] =pglv_iter->times.eachTimeE2E[0];
             pglv_orig->times.deviceID     [pglv_orig->times.phase - 1] =pglv_iter->times.deviceID   [0];
             pglv_orig->times.cuID         [pglv_orig->times.phase - 1] =pglv_iter->times.cuID       [0];
@@ -969,4 +973,4 @@ event<int> opLouvainModularity::addwork(GLV* glv, int flowMode,
 } // L3
 } // graph
 } // xf
-#endif
+

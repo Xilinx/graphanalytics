@@ -482,10 +482,11 @@ inline void worker(queue& q,
             if (q.empty()) break; // no more requests execute pending ones.
         }
 
+#ifndef NDEBUG
         std::cout << "DEBUG: ---------" << __FUNCTION__ 
                   << " pendingRequests" << pendingRequests 
                   << " curRequestId " << curRequestId << std::endl;
-                  
+#endif                  
         bool toStop = false;
         for (int i = 0; i < pendingRequests; ++i) {
             if (!t[i].valid()) toStop = true;
