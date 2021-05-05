@@ -25,5 +25,7 @@ xclbinfile=/proj/autoesl/ryanw/kernel_louvain_pruning.xclbin
 #./host.exe -x /proj/autoesl/ryanw/kernel_louvain_pruning.xclbin /wrk/xsjhdnobkup1/ryanw/poc_louvain/HugeGraphData/europe_osm-wt400M_2.mtx -fast -dev 3 -par_num 9 -driver
 #./host.exe -x /proj/autoesl/ryanw/kernel_louvain_pruning.xclbin /wrk/xsjhdnobkup1/ryanw/poc_louvain/HugeGraphData/europe_osm-wt1350M.mtx -fast -dev 3 -par_num 27 -driver
 #./host.exe -x /proj/autoesl/ryanw/kernel_louvain_gh.xclbin /wrk/xsjhdnobkup1/ryanw/poc_louvain/HugeGraphData/europe_osm-wt600M.mtx  -dev 3 -par_num 12 -driver
-echo "../Release/louvainModularity_test -x $xclbinfile $graph -fast -dev $num_dev -par_num $par -load_alveo_partitions $projdir -setwkr $num_workers $workers -driverAlone"
-../Release/louvainModularity_test -x $xclbinfile $graph -fast -dev $num_dev -par_num $par -load_alveo_partitions $projdir -setwkr $num_workers $workers -driverAlone
+echo "../Release/louvainModularity_test -x $xclbinfile $graph -fast -dev $num_dev -par_num $par \
+          -load_alveo_partitions $projdir -setwkr $num_workers $workers -driverAlone"
+../Release/louvainModularity_test -x $xclbinfile $graph -fast -dev $num_dev -par_num $par \
+    -load_alveo_partitions $projdir -setwkr $num_workers $workers -driverAlone

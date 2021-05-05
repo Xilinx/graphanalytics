@@ -288,17 +288,18 @@ int MessageParser_D2W(char* msg) {
     return 0;
 }
 
-int MessageGen_D2W(
-    char* msg, ParLV& parlv, char* path, int star, int end, int nodeID) { // Format:  parlv_req -num <> -path <> [name]*
+int MessageGen_D2W(char* msg, ParLV& parlv, char* path, int start, int end, int nodeID) 
+{ 
+    // Format:  parlv_req -num <> -path <> [name]*
     // printf("%d,  %d,  %d\n", star , end , nodeID);
     assert(msg);
     assert(path);
-    assert(star >= 0 && star < parlv.num_par);
-    assert(end > star && end <= parlv.num_par);
-    sprintf(msg, "parlv_req -num %d -path %s ", (end - star), path);
+    assert(start >= 0 && start < parlv.num_par);
+    assert(end > start && end <= parlv.num_par);
+    sprintf(msg, "parlv_req -num %d -path %s ", (end - start), path);
     int len = 30;
     len += strlen(path);
-    for (int p = star; p < end; p++) {
+    for (int p = start; p < end; p++) {
         len += (strlen(parlv.par_src[p]->name) + 1);
         if (len > MAX_LEN_MESSAGE) {
             printf("\033[1;31;40mERROR\033[0m length (%d) >MAX_LEN_MESSAGE (%d) ", len, MAX_LEN_MESSAGE);
@@ -310,15 +311,15 @@ int MessageGen_D2W(
     char tmp[10];
     sprintf(tmp, " -node %d ", nodeID);
     strcat(msg, tmp);
-
     strcat(msg, "\n");
 #ifdef PRINTINFO
     printf("MESSAGE D2W parlv_req: %s", msg);
-
 #endif
     return 0;
 }
-int MessageParser_D2W(char* msg, ParLV& parlv, char* path_driver, char names[][256], int& nodeID) {
+
+int MessageParser_D2W(char* msg, ParLV& parlv, char* path_driver, char names[][256], int& nodeID) 
+{
     assert(msg);
     myCmd ps;
     ps.cmd_Getline(msg);
@@ -850,9 +851,6 @@ char* DEMOzmq_get_name(char* des, char* src) {
 }
 
 // demo functions end
-
-// zmq related used by load_alveo_partitions
-
 void ConnectWorkers(Driver* drivers, int numPureWorker, char* switchName[]) {
     printf("Connecting to Louvain %d workers\n", numPureWorker);
     for (int i = 0; i < numPureWorker; i++) {
@@ -877,10 +875,7 @@ void enalbeAllWorkerLouvain(Node* nodes, int numPureWorker) {
     }
 }
 
-// zmq related used by load_alveo_partitions end
-
 // functions for printing info or read command lines
-
 int general_findPara(int argc, char** argv, const char* para) {
     for (int i = 1; i < argc; i++) {
         if (0 == strcmp(argv[i], para)) return i;
@@ -891,6 +886,7 @@ void ParameterError(const char* msg) {
     printf("\033[1;31;40mPARAMETER ERROR\033[0m: %s \n", msg);
     exit(1);
 }
+
 int host_ParserParameters(int argc,
                           char** argv,
                           double& opts_C_thresh,   //; //Threshold with coloring on
@@ -941,13 +937,11 @@ int host_ParserParameters(int argc,
     int has_workerAlone = general_findPara(argc, argv, "-workerAlone");
     int has_cmd = general_findPara(argc, argv, "-cmd");
 
-    //-create_alveo_partitions. host.exe -load_alveo_partitions, host.exe -louvain_modularity_alveo
     if (general_findPara(argc, argv, "-create_alveo_partitions") != -1) {
         mode_alveo = ALVEOAPI_PARTITION;
         int indx = general_findPara(argc, argv, "-name");
         if (argc > indx && indx != -1) strcpy(nameProj, argv[indx + 1]);
     } else if (general_findPara(argc, argv, "-load_alveo_partitions") != -1) {
-        // host.exe -load_alveo_partitions <name of meta> [-setwkr <numPureWorker> <worker name> [<worker name>] ]
         int indx = general_findPara(argc, argv, "-load_alveo_partitions") + 1;
         mode_alveo = ALVEOAPI_LOAD;
         if (argc > indx)
@@ -1084,7 +1078,7 @@ int host_ParserParameters(int argc,
     } else
         numThread = 16;
 #ifdef PRINTINFO
-    printf("PARAMETER  numThread = %i\n", numThread);
+    printf("PARAMETER numThread = %i\n", numThread);
 #endif
     if (has_num_par != -1 && has_num_par < (argc - 1)) {
         rec[has_num_par] = true;
@@ -1242,7 +1236,6 @@ void PrintTimeRpt(ParLV& parlv, int num_dev) {
 
 void PrintRptPartition(int mode_zmq, ParLV& parlv, int op0_numDevices, int numNode, int numPureWorker) {
     if (mode_zmq != ZMQ_WORKER) {
-#ifdef PRINTINFO_2
         printf("************************************************************************************************\n");
         printf(
             "******************************  \033[1;35;40mPartition Louvain Performance\033[0m   "
@@ -1252,24 +1245,11 @@ void PrintRptPartition(int mode_zmq, ParLV& parlv, int op0_numDevices, int numNo
         printf("\033[1;37;40mINFO\033[0m: Original number of un-direct edges     : %ld\n", parlv.plv_src->NE);
         printf("\033[1;37;40mINFO\033[0m: number of partition                    : %d \n", parlv.num_par);
         printf("\033[1;37;40mINFO\033[0m: number of device used                  : %d \n", op0_numDevices);
-        printf("\033[1;37;40mINFO\033[0m: Final number of clusters               : %ld\n",
-               parlv.plv_src->NC); // com_list.back().
+        printf("\033[1;37;40mINFO\033[0m: Final number of communities            : %ld\n", parlv.plv_src->NC); 
         printf("\033[1;37;40mINFO\033[0m: Final modularity                       : %lf\n",
                parlv.plv_src->Q); // com_lit.back().
         printf("************************************************************************************************\n");
-#endif
-#ifdef PRINTINFO
-//        printf("\033[1;37;40mINFO\033[0m: Total for partition (s)                : %lf\n", parlv.timesPar.timePar_all);
-//        printf("\033[1;37;40mINFO\033[0m: Total for partition Louvain (s)        : %lf\n", parlv.timesPar.timeLv_all);
-//
-//        printf("\033[1;37;40mINFO\033[0m: Total for partition pre-Merge (s)      : %lf\n", parlv.timesPar.timePre);
-//        printf("\033[1;37;40mINFO\033[0m: Total for partition Merge (s)          : %lf\n", parlv.timesPar.timeMerge);
-//        printf("\033[1;37;40mINFO\033[0m: Total for partition Final Louvain (s)  : %lf\n", parlv.timesPar.timeFinal);
-//        printf("\033[1;37;40mINFO\033[0m: Total for All flow with partition (s)  : %lf\n", parlv.timesPar.timeAll);
-//        printf("\033[1;37;40mINFO\033[0m: Total for All flow - partition (s)     : %lf\n",
-//               parlv.timesPar.timeAll - parlv.timesPar.timePar_all);
-//        printf("************************************************************************************************\n");
-#endif
+
         if (mode_zmq == ZMQ_NONE) {
             double totTimeOnDev[parlv.num_dev];
             double totTimeFPGA_pure = 0;
@@ -1304,44 +1284,10 @@ void PrintRptPartition(int mode_zmq, ParLV& parlv, int op0_numDevices, int numNo
             printf(
                 "************************************************************************************************\n");
         } // end ZMQ_NONE
-#ifdef PRINTINFO
-//        printf("************************************************************************************************\n");
-//        printf("***********************************  Run time break up all  ************************************\n");
-//        printf("************************************************************************************************\n");
-//        printf("Total for All flow with partition (s)      : %lf (s)\n", parlv.timesPar.timeAll);
-//        printf("  --Time for partition the graph           : %lf (s)\n",
-//               parlv.timesPar.timePar_all + parlv.timesPar.timeDriverSend);
-//        printf("      **Driver: partition the graph        : %lf (s)\n", parlv.timesPar.timePar_all);
-//        printf("      **Driver: file save to disk          : %lf (s)\n", parlv.timesPar.timePar_save);
-//        printf("  --Time for distributed Louvain           : %lf (s)\n",
-//               parlv.timesPar.timeAll - parlv.timesPar.timePar_all - parlv.timesPar.timeDriverSend);
-//        printf("      **Driver&Worker: Actual compute      : %lf (s)\n", parlv.timesPar.timeLv_all);
-//        printf("          ##Driver:                        : %lf (load)+ %lf (lv)+ %lf (save) \n",
-//               parlv.timesPar.timeWrkLoad[numNode - 1], parlv.timesPar.timeWrkCompute[numNode - 1],
-//               parlv.timesPar.timeWrkSend[numNode - 1]);
-//        for (int i = 0; i < numPureWorker; i++)
-//            printf("          ##Worker%d:                       : %lf (load)+ %lf (lv)+ %lf (save) \n", i + 1,
-//                   parlv.timesPar.timeWrkLoad[i], parlv.timesPar.timeWrkCompute[i], parlv.timesPar.timeWrkSend[i]);
-//
-//        printf("      **Driver: file load for final lv     : %lf (s)\n", parlv.timesPar.timeDriverRecv);
-//        printf("      **Driver: Merge Louavin              : %lf (s)\n", parlv.timesPar.time_done_mg);
-//        printf("          ##Driver: pre-Merge              : %lf (s)\n", parlv.timesPar.timePre);
-//        printf("          ##Driver: Merge                  : %lf (s)\n", parlv.timesPar.timeMerge);
-//        printf("          ##Driver: Final lv               : %lf (s)\n", parlv.timesPar.timeFinal);
-#endif
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
         printf("************************************************************************************************\n");
         printf("***********************************  Louvain Summary   *****************************************\n");
         printf("************************************************************************************************\n");
- /*       printf(
-            "\033[1;31;40m    1.    Time for partition the graph \033[0m                              : "
-            "\033[1;31;40m%lf\033[0m (s) =",
-            (parlv.timesPar.timePar_all + parlv.timesPar.timePar_save));
-        printf(" partition +  saving \n");
-        printf("    1.1   Time for partition                                         : %lf (s)\n",
-               parlv.timesPar.timePar_all);
-        printf("    1.2   Time for saving                                            : %lf (s)\n",
-               parlv.timesPar.timePar_save);*/
         printf(
             "\033[1;31;40m    1.   Time for loading partitions \033[0m                               : "
             "\033[1;31;40m%lf\033[0m (s)\n",
@@ -1377,6 +1323,7 @@ void PrintRptPartition(int mode_zmq, ParLV& parlv, int op0_numDevices, int numNo
                parlv.timesPar.timeFinal);
     }
     printf("************************************************************************************************\n");
+
 }
 
 void PrintRptParameters(double opts_C_thresh,   // Threshold with coloring on
@@ -3162,7 +3109,9 @@ int Parser_ParProjFile(char* projFile, ParLV& parlv, char* path, char* name, cha
         char nm[1024];
         sprintf(nm, "%s_%1d%1d%1d.par", name, p / 100, (p / 10) % 10, p % 10);
         parlv.par_src[p]->SetName(nm);
+#ifndef NDEBUG        
         printf("Checking: %s\n", parlv.par_src[p]->name);
+#endif        
         char pathName[1024];
         strcpy(pathName, path);
         FILE* fp = fopen(strcat(pathName, parlv.par_src[p]->name), "r");
@@ -3208,6 +3157,8 @@ int load_alveo_partitions_DriverSelf( // for both driver; no zmq communications 
     int nodeID = 0;
     char msg_w2d[numNode][MAX_LEN_MESSAGE];
     { LouvainProcess_part1(nodeID, parlv, msg_driver, parlv_wkr); }
+
+    return 0;
 }
 
 int load_alveo_partitions_WorkerSelf( // for both driver; no zmq communications occur
@@ -3427,7 +3378,7 @@ extern "C" int create_alveo_partitions(int argc, char* argv[]) {
 #endif
         parlv.CleanTmpGlv();
         parlv.plv_src->printSimple();
-        delete (parlv.plv_src);
+
         return 0;
     } else {
         printf("\033[1;31;40mERROR\033[0m: mode_alveo!=ALVEOAPI_PARTITION\n");
@@ -3539,6 +3490,7 @@ extern "C" int load_alveo_partitions(int argc, char* argv[]) {
         std::cout << "Error : file doesn't exist !" << std::endl;
         exit(1);
     }
+
     int numDevices = 1;
     char line[1024] = {0};
     char* token;
@@ -3595,6 +3547,8 @@ extern "C" int load_alveo_partitions(int argc, char* argv[]) {
     char nameMetaFile[1024];
     char* nameWorkers[128];
     int nodeID;
+    int status;
+
     host_ParserParameters(argc, argv, opts_C_thresh, opts_minGraphSize, opts_threshold, opts_ftype, opts_inFile,
                           opts_coloring, opts_output, opts_outputFile, opts_VF, opts_xclbinPath, numThreads, num_par,
                           par_prune, flow_fast, devNeed_cmd, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
@@ -3606,7 +3560,6 @@ extern "C" int load_alveo_partitions(int argc, char* argv[]) {
     } else {
         flowMode = 1; // normal kernel MD_NORMAL
     }
-
 
     xf::graph::L3::Handle::singleOP op0;
     xf::graph::L3::Handle handle0;
@@ -3622,9 +3575,15 @@ extern "C" int load_alveo_partitions(int argc, char* argv[]) {
         op0.numDevices = numDevices;
     else
         op0.numDevices = devNeed_cmd;
+
+    std::cout << "INFO: numDevices requested: " << op0.numDevices << std::endl;
+
     //----------------- enable handle0--------
     handle0.addOp(op0);
-    handle0.setUp();
+    status = handle0.setUp();
+    if ( status < 0)
+        return status;
+
 #ifdef PRINTINFO_2
     printf("\033[1;37;40mINFO: xclbin file is        : %s with flow mode %d\033[0m\n",  op0.xclbinPath.c_str(), flowMode);
     printf("\033[1;37;40mINFO: The project file is   : %s\033[0m\n", nameMetaFile);
@@ -3639,7 +3598,6 @@ extern "C" int load_alveo_partitions(int argc, char* argv[]) {
     (handle0.oplouvainmod)->loadGraph(NULL, flowMode, opts_coloring, opts_minGraphSize, opts_C_thresh, numThreads);
 
     if (mode_alveo == ALVEOAPI_LOAD) {
-
         if (mode_zmq == ZMQ_DRIVER) {
             char inFile[1024];
             ParLV parlv_drv;
@@ -3696,7 +3654,7 @@ extern "C" int load_alveo_partitions(int argc, char* argv[]) {
 
             if (opts_output){
             	host_writeOut(opts_outputFile, parlv_drv.plv_src->NV, parlv_drv.plv_src->C);
-            }else{
+            } else{
 #ifdef PRINTINFO_2
                 printf("\033[1;37;40mINFO: Please use -o <output file> to store Cluster information\033[0m\n");
 #endif
@@ -3709,11 +3667,7 @@ extern "C" int load_alveo_partitions(int argc, char* argv[]) {
             parlv_drv.plv_src->printSimple();
 #endif
             delete (parlv_drv.plv_src);
-#ifdef PRINTINFO
-            printf("Deleting final graph... \n");
-            glv_final->printSimple();
-            std::cout << "KD: after printSimple\n" << std::flush;
-#endif
+
             glv_final->printSimple();
             delete (glv_final);
 #ifdef PRINTINFO

@@ -258,6 +258,11 @@ class openXRM {
         if (availNumDevices >= numDevices) {
             // has sufficient devices. adjust maxCU based on requested numDevices
             maxCU = numDevices*availMaxCU/availNumDevices;
+        } else {
+            std::cout << "ERROR: number of available devices " << availNumDevices 
+                      << " is less than number of devices requested " << numDevices
+                      << std::endl;
+            return -1;
         }
         return 0;
     }

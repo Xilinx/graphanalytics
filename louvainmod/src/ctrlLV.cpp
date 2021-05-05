@@ -860,7 +860,7 @@ int CtrlLouvain::exe_LV_PG(){//1)cmd 2)cmd [-id <id>] [<start> <end>] 3)cmd [<st
 	//-f
 	int idx_f=mycmd.cmd_findPara("-f");
 	if(idx_f==-1){
-		printf("Graph: %s Local V = %d  \t loval |E| = %d  \t  ", pglv->name,  pglv->NVl,  pglv->NElg);
+		printf("Graph: %s Local V = %ld  \t loval |E| = %ld  \t  ", pglv->name,  pglv->NVl,  pglv->NElg);
 		if(!isPar)
 			printG(pglv->G, pglv->C, pglv->M, p1, p2 , isCid, isDir);
 		else
@@ -868,7 +868,7 @@ int CtrlLouvain::exe_LV_PG(){//1)cmd 2)cmd [-id <id>] [<start> <end>] 3)cmd [<st
 		return 0;
 	}
 	char filename[256];
-	sprintf(filename, "%s_%d_to%d", (mycmd.argc>idx_f)?mycmd.argv[idx_f+1]:pglv->name, p1,p2);
+	sprintf(filename, "%s_%ld_to%ld", (mycmd.argc>idx_f)?mycmd.argv[idx_f+1]:pglv->name, p1, p2);
 	printG(filename, pglv->G, pglv->C, pglv->M, p1, p2);
 	return 0;
 }
