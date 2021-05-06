@@ -23,16 +23,16 @@
 #
 
 # The usual place where the Alveo Product is installed
-pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/cosinesim/1.1
+pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/louvainmod/1.0
 
 # Where to find the git repo for the Alveo Product if it exists
-pluginLocalAlveoProductPath=$SCRIPTPATH/../../../../../cosinesim/staging
+pluginLocalAlveoProductPath=$SCRIPTPATH/../../../../../louvainmod/staging
 
 # The name of the Alveo Product's XCLBIN file
-pluginXclbinName=cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+pluginXclbinName=louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin
 
 # The name of the Alveo Product's .so file
-pluginLibName=libXilinxCosineSim.so
+pluginLibName=libXilinxLouvain.so
 
 # Set to 1 if the Alveo Product's .so needs to be added to LD_PRELOAD
 pluginAlveoProductLibNeedsPreload=1
@@ -44,22 +44,22 @@ pluginAlveoProductLibNeedsPreload=1
 #
 
 # Name of the plugin, as found in mergeHeaders comments
-pluginName=xilinxRecomEngine
+pluginName=xilinxComDetect
 
 # The main UDF file.  This file gets installed into ExprFunctions.hpp.
 # It must contain mergeHeaders comments.  Also, any headers that this file
 # depends on must be present in $pluginAlveoProductHeaders or $pluginHeaders.
 # The path of this file is relative to the plugin top directory
-pluginMainUdf=udf/xilinxRecomEngine.hpp
+pluginMainUdf=udf/xilinxComDetect.hpp
 
 # List of header files to copy from the Alveo Product into the TigerGraph application area
 # and UDF compilation area.  The paths are relative to $pluginAlveoProductPath.
-pluginAlveoProductHeaders="include/cosinesim.hpp src/cosinesim_loader.cpp"
+pluginAlveoProductHeaders="include/xilinxlouvain.h src/louvainmod_loader.cpp"
 
 # List of header files to copy from the plugin into the TigerGraph application area
 # and UDF compilation area.  The paths are relative to the plugin top directory
 # (the parent of this script's directory).
-pluginHeaders=udf/xilinxRecomEngineImpl.hpp
+pluginHeaders=udf/xilinxComDetectImpl.hpp
 
 # List of extra files to copy from the plugin into the TigerGraph application area.
 # Unlike $pluginHeaders, these files are not copied to the compilation area.
@@ -68,4 +68,4 @@ pluginExtraFiles=
 
 # List of files (name only, no path) that need to have the identifier PLUGIN_XCLBIN_PATH
 # replaced with the XCLBIN path.
-pluginXclbinPathFiles=xilinxRecomEngineImpl.hpp
+pluginXclbinPathFiles=xilinxComDetect.hpp

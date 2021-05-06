@@ -96,14 +96,14 @@ compile_plugin_files="$pluginAlveoProductHeaders $pluginHeaders"
 if [ $uninstall -eq 1 ]; then
     # If there are Recom Engine UDFs in the UDF file, uninstall them
     if [ -f $tg_udf_dir/ExprFunctions.hpp ] \
-            && [ $(grep -c 'mergeHeaders.*xilinxRecomEngine' $tg_udf_dir/ExprFunctions.hpp) -gt 0 ]
+            && [ $(grep -c "mergeHeaders.*$pluginName" $tg_udf_dir/ExprFunctions.hpp) -gt 0 ]
     then
         if [ ! -f "$tg_udf_dir/mergeHeaders.py" ]; then
             cp $plugin_udf_dir/mergeHeaders.py $tg_udf_dir
         fi
         echo "INFO: Uninstalling Xilinx Recommendation Engine UDFs"
         mv $tg_udf_dir/ExprFunctions.hpp $tg_udf_dir/ExprFunctions.hpp.prev
-        python3 $tg_udf_dir/mergeHeaders.py -u $tg_udf_dir/ExprFunctions.hpp.prev xilinxRecomEngine \
+        python3 $tg_udf_dir/mergeHeaders.py -u $tg_udf_dir/ExprFunctions.hpp.prev $pluginName \
              > $tg_udf_dir/ExprFunctions.hpp
     else
         if [ $verbose -eq 1 ]; then
@@ -165,14 +165,6 @@ fi
 #source $xrtPath/setup.sh
 #source $xrmPath/setup.sh
 
-# Install plugin to ExprFunctions.hpp file
-
-echo "INFO: Installing Xilinx Recommendation Engine UDFs"
-cp $plugin_udf_dir/mergeHeaders.py $tg_udf_dir
-mv $tg_udf_dir/ExprFunctions.hpp $tg_udf_dir/ExprFunctions.hpp.prev
-python3 $tg_udf_dir/mergeHeaders.py $tg_udf_dir/ExprFunctions.hpp.prev $plugin_dir/$pluginMainUdf \
-     > $tg_udf_dir/ExprFunctions.hpp
-
 # Copy files to TigerGraph UDF area
 
 echo "INFO: Installing Xilinx Recommendation Engine auxiliary files"
@@ -187,8 +179,16 @@ done
 # Substitute the XCLBIN path for PLUGIN_XCLBIN_PATH in all files that need the substitution
 
 for i in $pluginXclbinPathFiles; do
-    sed -i "s|PLUGIN_XCLBIN_PATH|$runtimeXclbinPath|" $tg_udf_dir/$i
+    sed -i "s|PLUGIN_XCLBIN_PATH|\"$runtimeXclbinPath\"|" $tg_udf_dir/${i##*/}
 done
+
+# Install plugin to ExprFunctions.hpp file
+
+echo "INFO: Installing Xilinx Recommendation Engine UDFs"
+cp $plugin_udf_dir/mergeHeaders.py $tg_udf_dir
+mv $tg_udf_dir/ExprFunctions.hpp $tg_udf_dir/ExprFunctions.hpp.prev
+python3 $tg_udf_dir/mergeHeaders.py $tg_udf_dir/ExprFunctions.hpp.prev $tg_udf_dir/${pluginMainUdf##*/} \
+     > $tg_udf_dir/ExprFunctions.hpp
 
 # Copy include files used by UDFs to TG build directory for TigerGraph to build the UDF library
 

@@ -77,8 +77,7 @@ INCLUDES_libLouvain = \
 	-I$(GRAPH_ANALYTICS_DIR)/L3/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L3/include/include_hls \
 	-I$(GRAPH_ANALYTICS_DIR)/ext/xcl2 \
-	-I$(GRAPH_ANALYTICS_DIR)/plugin/tigergraph/louvainmod/udf/QueryUdf \
-	-Iinclude
+	-I$(GRAPH_ANALYTICS_DIR)/plugin/tigergraph/louvainmod/udf/QueryUdf
 #	-I${JAVA_HOME}/include \
 #	-I${JAVA_HOME}/include/linux
 

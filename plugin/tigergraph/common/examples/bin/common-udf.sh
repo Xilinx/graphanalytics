@@ -30,17 +30,41 @@
 # limitations under the License.
 #
 
-set -e
+function usage() {
+    echo "Usage: $0 [options]"
+    echo "Options:"
+    echo "  -f                  : Force (re)install"
+    echo "  -i sshKey           : SSH key for user tigergraph"    
+    echo "  -u                  : Uninstall"
+    echo "  -v                  : Print verbose messages"
+    echo "  -h                  : Print this help message"
+}
 
-SCRIPT=$(readlink -f $0)
-SCRIPTPATH=`dirname $SCRIPT`
+# default values for optional options
+hostname=$(hostname)
+force_clean=0
+force_clean_flag=
+ssh_key_flag=
+uninstall=0
+uninstall_flag=
+verbose=0
+verbose_flag=
 
-# common.sh sets up gsql client and gets username and passowrd
-. $SCRIPTPATH/bin/common.sh
-# if -i option is set in common.sh, ssh_key_flag is set to -i $ssh_key, 
-# otherwise it's an empty string
-echo " "
-$SCRIPTPATH/bin/install-udf.sh $ssh_key_flag $verbose_flag $force_clean_flag
-gsql "$(cat $SCRIPTPATH/query/base.gsql | sed "s/@graph/$xgraph/")"
-gsql "$(cat $SCRIPTPATH/query/client.gsql | sed "s/@graph/$xgraph/")"
-gsql "$(cat $SCRIPTPATH/query/query.gsql | sed "s/@graph/$xgraph/")"
+# set default ssh_key for tigergraph
+if [ -f ~/.ssh/tigergraph_rsa ]; then
+    ssh_key_flag="-i ~/.ssh/tigergraph_rsa"
+fi
+
+while getopts ":fi:uvh" opt
+do
+case $opt in
+    f) force_clean=1; force_clean_flag=-f;;
+    i) ssh_key=$OPTARG; ssh_key_flag="-i $ssh_key";;
+    u) uninstall=1; uninstall_flag=-u;;
+    v) verbose=1; verbose_flag=-v;;
+    h) usage; exit 1;;
+    ?) echo "ERROR: Unknown option: -$OPTARG"; usage; exit 1;;
+esac
+done
+
+. $SCRIPTPATH/set-plugin-vars.sh
