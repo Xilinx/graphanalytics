@@ -52,7 +52,7 @@ inline int udf_create_alveo_partitions(std::string input_graph, std::string part
     int argc = 8;
     char* argv[] = {"host.exe", input_graph.c_str(), "-fast", "-par_num", num_patitions.c_str(),
           "-create_alveo_partitions", "-name", partitions_project.c_str(), nullptr};
-    std::cout << "Calling create_partitions. input_graph: " <<  input_graph.c_str()
+    std::cout << "DEBUG: Calling create_partitions. input_graph: " <<  input_graph.c_str()
               << " num_partitions: " << num_patitions.c_str() << " project: " << partitions_project.c_str()
               << std::flush;
 //    for (int i = 0; i < argc; ++i)
@@ -105,6 +105,7 @@ inline int udf_execute_alveo_louvain(
                            worker_or_driver.c_str(), optional_arg, nullptr};
 
     std::cout
+        << "DEBUG: "
         << "Calling execute_louvain. input_graph: " <<  input_graph.c_str()
         << " num_partitions: " << num_patitions.c_str()
         << " project: " << partitions_project.c_str()
@@ -113,16 +114,10 @@ inline int udf_execute_alveo_louvain(
         << " worker num: " << workernum.c_str() << "\n"
         << std::flush;
 
-    //if(isDriver) {
-    //unsigned int sleep_time = 240;
-    //std::cout << "KD: Going to slpep for seconds: " << sleep_time << "\n";
-    //std::this_thread::sleep_for (std::chrono::seconds(sleep_time));
-    //std::cout << "KD: Woke up from sleep after seconds: " << sleep_time << "\n";
-    //}
 //    for (int i = 0; i < sizeof(my_argv)/sizeof(char *) - 1; ++i)
 //        std::cout << "load partitions arg " << i << " = " << my_argv[i] << std::endl;
     int retVal = load_alveo_partitions(my_argc, (char**)(my_argv));
-    std::cout << "KD: Returned from execute_louvain, isDriver = " << isDriver << "\n" << std::flush;
+    std::cout << "DEBUG: Returned from execute_louvain, isDriver = " << isDriver << "\n" << std::flush;
     return retVal;
 }
 

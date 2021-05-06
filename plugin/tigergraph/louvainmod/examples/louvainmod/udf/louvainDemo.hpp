@@ -58,6 +58,11 @@ inline int64_t getOutDegree(tup t) {
 }
 
 template<typename tup>
+inline float getWeight(tup t) {
+  return t.weight;
+}
+
+template<typename tup>
 inline VERTEX getCc(tup t) {
   return t.cc;
 }
