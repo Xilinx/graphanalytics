@@ -23,7 +23,7 @@
 #include "op_base.hpp"
 #include "openclHandle.hpp"
 
-#include "xilinxlouvain.h"
+#include "xilinxlouvainInternal.h"
 #include <time.h>
 #include "common.hpp"
 
@@ -53,7 +53,9 @@ class opLouvainModularity : public opBase {
 
     void freeLouvainModularity();
 
-    void init(char* kernelName, char* xclbinFile, uint32_t* deviceIDs, uint32_t* cuIDs, unsigned int requestLoad);
+    void init(class openXRM* xrm, std::string kernelName, std::string kernelAlias,
+              std::string xclbinFile, uint32_t* deviceIDs, uint32_t* cuIDs, 
+              unsigned int requestLoad);
 
     void loadGraph(graphNew* G, int flowMode, bool opts_coloring, long opts_minGraphSize, double opts_C_thresh, int numThreads);
 
@@ -93,10 +95,8 @@ class opLouvainModularity : public opBase {
 
    private:
     std::vector<int> deviceOffset;
-
-    uint32_t deviceNm;
-
-    uint32_t maxCU;
+    uint32_t numDevices_;
+    uint32_t maxCU_;
 
     static void bufferInit(clHandle* hds, long NV, long NE_mem_1, long NE_mem_2, KMemorys_host* buff_host);
 

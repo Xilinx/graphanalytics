@@ -1,8 +1,0 @@
-
-{
-    "operationName" : "louvainModularity",
-    "kernelName" : "kernel_louvain",
-    "requestLoad" : 100,
-    "xclbinPath" : "/proj/autoesl/ryanw/kernel_louvain_pruning.xclbin",
-    "deviceNeeded" : 2
-}
