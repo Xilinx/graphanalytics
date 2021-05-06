@@ -107,6 +107,7 @@ else
         fi
 
         gadmin config set GPE.BasicConfig.Env "$gpe_config"
+        gadmin config set RESTPP.Factory.DefaultQueryTimeoutSec 3600
 
         echo "INFO: Apply the new configurations to $gpe_config"
         gadmin config apply -y
