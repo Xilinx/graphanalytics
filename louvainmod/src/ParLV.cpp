@@ -3361,6 +3361,8 @@ GLV* louvain_modularity_alveo(xf::graph::L3::Handle* handle0,
 }
 
 extern "C" int create_alveo_partitions(int argc, char* argv[]) {
+//    for (int i = 0; i < argc; ++i)
+//        std::cout << "internal create partitions arg " << i << " = " << argv[i] << std::endl;
     //--------------- Parse Input parameters
     double opts_C_thresh;   // Threshold with coloring on
     long opts_minGraphSize; // Min |V| to enable coloring
@@ -3523,6 +3525,8 @@ int host_writeOut(char* opts_inFile, long NV_begin, long* C_orig) {
 }
 
 extern "C" int load_alveo_partitions(int argc, char* argv[]) {
+//    for (int i = 0; i < argc; ++i)
+//        std::cout << "internal load partitions arg " << i << " = " << argv[i] << std::endl;
     //----------------- config.json Parser ----------------------------------
     std::string opName = "louvainModularity";
     std::string kernelName = "kernel_louvain";

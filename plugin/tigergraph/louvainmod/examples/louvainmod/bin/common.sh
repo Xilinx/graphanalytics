@@ -39,6 +39,7 @@ function usage() {
     echo "Usage: $0 -u TG-username -p TG-password [optional options]"
     echo "Optional options:"
     echo "  -d numDevices       : number of FPGAs needed (default=1)"
+    echo "  -f                  : Force (re)install"
     echo "  -g graphName        : graph name (default=social_<username>"
     echo "  -i sshKey           : SSH key for user tigergraph"    
     echo "  -l 0|1              : 0: Do not load FPGA; 1: Load FPGA(default)>"
@@ -61,16 +62,20 @@ num_nodes=1
 partition_prj="$script_dir/as-skitter/as-skitter-partitions/louvain_partitions"
 verbose=0
 xgraph="social_$username"
+force_clean=0
+force_clean_flag=
+verbose_flag=
 
 # set default ssh_key for tigergraph
 if [ -f ~/.ssh/tigergraph_rsa ]; then
     ssh_key_flag="-i ~/.ssh/tigergraph_rsa"
 fi
 
-while getopts ":d:g:i:l:m:n:p:s:u:vh" opt
+while getopts ":d:fg:i:l:m:n:p:s:u:vh" opt
 do
 case $opt in
     d) num_devices=$OPTARG;;
+    f) force_clean=1; force_clean_flag=-f;;
     g) xgraph=$OPTARG;;
     i) ssh_key=$OPTARG; ssh_key_flag="-i $ssh_key";;
     l) load_fpga=$OPTARG;;
@@ -92,12 +97,12 @@ if [ -z "$username" ] || [ -z "$password" ]; then
 fi
 
 # create partitions if needed
-if [ $data_source_set -eq 0 ]; then
-    if [ ! -f "$script_dir/as-skitter/as-skitter-partitions/louvain_partitions.par.proj" ]; then
-        echo "INFO: Creating graph partitions"
-        ../../../../../L3/tests/Louvain/create_partitions.sh $script_dir/as-skitter/as-skitter-wt-e110k.mtx as-skitter-partitions 9
-    fi
-fi
+#if [ $data_source_set -eq 0 ]; then
+#    if [ ! -f "$script_dir/as-skitter/as-skitter-partitions/louvain_partitions.par.proj" ]; then
+#        echo "INFO: Creating graph partitions"
+#        ../../../../../L3/tests/Louvain/create_partitions.sh $script_dir/as-skitter/as-skitter-wt-e110k.mtx as-skitter-partitions 9
+#    fi
+#fi
 
 # need to download gsql client first before using it to check for other error conditions
 if [ ! -f "$HOME/gsql-client/gsql_client.jar" ]; then

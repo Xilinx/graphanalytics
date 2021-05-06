@@ -22,14 +22,14 @@ STAGE_COPY_FILES = \
     VERSION \
     \
     bin/set-plugin-vars.sh \
+    bin/install-plugin-cluster-custom.sh \
     \
     udf/xilinxRecomEngine.hpp \
     udf/xilinxRecomEngineImpl.hpp \
     \
     $(wildcard $(SYNTHEA_DIR)/1000_patients/csv/*.csv) \
     $(SYNTHEA_DIR)/bin/common.sh \
-    $(SYNTHEA_DIR)/bin/install_udf.sh \
-    $(SYNTHEA_DIR)/bin/install_udf_tg.sh \
+    $(SYNTHEA_DIR)/bin/set-plugin-vars.sh \
     $(SYNTHEA_DIR)/jupyter-demo/TG_demo.ipynb \
     $(SYNTHEA_DIR)/python/TG_demo.py \
     $(SYNTHEA_DIR)/query/base.gsql \
@@ -44,5 +44,8 @@ STAGE_COPY_FILES = \
     $(SYNTHEA_DIR)/install_query.sh \
     $(SYNTHEA_DIR)/match.sh \
     $(SYNTHEA_DIR)/run.sh
+
+# Example directories into which to copy example common files
+STAGE_EXAMPLES_DIRS = $(SYNTHEA_DIR)
 
 include ../common/Makefile-common.mk
