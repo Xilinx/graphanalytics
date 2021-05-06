@@ -96,14 +96,14 @@ compile_plugin_files="$pluginAlveoProductHeaders $pluginHeaders"
 if [ $uninstall -eq 1 ]; then
     # If there are Recom Engine UDFs in the UDF file, uninstall them
     if [ -f $tg_udf_dir/ExprFunctions.hpp ] \
-            && [ $(grep -c 'mergeHeaders.*xilinxRecomEngine' $tg_udf_dir/ExprFunctions.hpp) -gt 0 ]
+            && [ $(grep -c "mergeHeaders.*$pluginName" $tg_udf_dir/ExprFunctions.hpp) -gt 0 ]
     then
         if [ ! -f "$tg_udf_dir/mergeHeaders.py" ]; then
             cp $plugin_udf_dir/mergeHeaders.py $tg_udf_dir
         fi
         echo "INFO: Uninstalling Xilinx Recommendation Engine UDFs"
         mv $tg_udf_dir/ExprFunctions.hpp $tg_udf_dir/ExprFunctions.hpp.prev
-        python3 $tg_udf_dir/mergeHeaders.py -u $tg_udf_dir/ExprFunctions.hpp.prev xilinxRecomEngine \
+        python3 $tg_udf_dir/mergeHeaders.py -u $tg_udf_dir/ExprFunctions.hpp.prev $pluginName \
              > $tg_udf_dir/ExprFunctions.hpp
     else
         if [ $verbose -eq 1 ]; then

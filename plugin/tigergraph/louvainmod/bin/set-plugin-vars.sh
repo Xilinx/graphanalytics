@@ -43,6 +43,9 @@ pluginAlveoProductLibNeedsPreload=1
 # Variables for identifying the artifacts of the plug-in
 #
 
+# Name of the plugin, as found in mergeHeaders comments
+pluginName=xilinxComDetect
+
 # The main UDF file.  This file gets installed into ExprFunctions.hpp.
 # It must contain mergeHeaders comments.  Also, any headers that this file
 # depends on must be present in $pluginAlveoProductHeaders or $pluginHeaders.
