@@ -919,14 +919,13 @@ void SttGPar::PrintStt(){
 	printf("**SttGPar::PrintStt BEGIN**\n");
 	printf("From %ld to %ld \n", start, end);
 	num_v_l = end-start;
-	printf("Total V : %ld\t Total  Vl : %ld\t Total Vg: %ld\t Vl\/V=%2.2f\%\n",
+	printf("Total V : %ld\t Total  Vl : %ld\t Total Vg: %ld\t Vl/V=%2.2f\%\n",
 			num_v, num_v_l, num_v_g, (float)num_v_l/(float)num_v*100.0);
 	assert (num_e_lg == num_e-num_e_ll);
-	printf("Total 2E: %ld\t Total  ll : %ld\t Total lg: %ld\t ll\/E=%2.2f\%\n",
+	printf("Total 2E: %ld\t Total  ll : %ld\t Total lg: %ld\t ll/E=%2.2f\%\n",
 			  num_e,  num_e_ll, num_e_lg,  (float)num_e_ll/(float)num_e*100.0);
-	printf("Total|E|: %ld\t Total |ll|: %ld\t Total lg: %ld\t |ll|\/|E|=%2.2f\%\n",
-			  num_e_dir,  num_e_ll_dir, num_e_lg,
-			  (float)num_e_ll_dir/(float)num_e_dir*100.0);
+	printf("Total|E|: %ld\t Total |ll|: %ld\t Total lg: %ld\t |ll|/|E|=%2.2f\%\n",
+			  num_e_dir,  num_e_ll_dir, num_e_lg, (float)num_e_ll_dir/(float)num_e_dir*100.0);
 	printf("**SttGPar::PrintStt END**\n");
 }
 
@@ -944,9 +943,8 @@ void SttGPar::AddEdge(edge* edges, long head, long tail, double weight, long* M_
 	//num_e
 	if( InRange(tail)){
 		num_e_ll++;
-		if(head<=tail){
+		if(head <= tail){
 			tail_m = tail - start;
-			//printf("NODIR(%ld)\t: ll:<%ld %ld> -> <%ld %ld> \t= %ld - %ld \n", num_e_dir, head, tail, head_m, tail_m, tail, start);
 			edges[num_e_dir].head = head_m;
 			edges[num_e_dir].tail = tail_m;
 			edges[num_e_dir].weight = weight;

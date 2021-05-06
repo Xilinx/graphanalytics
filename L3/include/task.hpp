@@ -241,17 +241,17 @@ class openXRM {
                         flag = true;
                     }
                 }
-                if (flag == false) {
+                if (!flag) {
                     availNumDevices += 1;
                 }
             }
             *cuID = cus;
             *deviceID = devices;
             assert(availNumDevices != 0);
-            if (xrmCuListRelease(ctx, &cuListResR))
-                std::cout << "INFO: Success to release cu list\n" << std::endl;
-            else
-                std::cout << "Error: Fail to release cu list\n" << std::endl;
+            if (!xrmCuListRelease(ctx, &cuListResR)) {
+                std::cout << "ERORR: Fail to release cu list" << std::endl;
+                return -2;
+            }
         }
         std::cout << "INFO: Available device number = " << availNumDevices << std::endl;
         std::cout << "INFO: Available CU number = " << availMaxCU << std::endl;
