@@ -10,7 +10,7 @@
 
 namespace xai {
 
-    const char* host_libname = "libgraphL3.so";
+    const char* host_libname = "libXilinxLouvain.so";
     const char* xclbin_filename = "/opt/xilinx/apps/graphanalytics/louvainmod/1.0/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin";
     const unsigned int elementSize = sizeof(int); // Number of bytes for each property
     const unsigned int vectorLength = 200;        // Number of properties in each vector

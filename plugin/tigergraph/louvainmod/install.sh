@@ -36,12 +36,12 @@ grun all "cp $PWD/udf/QueryUdf/ExprUtil.hpp $tg_temp_root/gsql/codegen/udf"
 grun all "cp $PWD/udf/QueryUdf/xaidecl.cpp $tg_temp_root/gsql/codegen/udf"
 grun all "cp $PWD/udf/QueryUdf/xai.h $tg_temp_root/gsql/codegen/udf"
 grun all "cp $PWD/udf/QueryUdf/xailoader.hpp $tg_temp_root/gsql/codegen/udf"
-grun all "cp $PWD/../../../L3/lib/libgraphL3.so $tg_data_root/gsql/udf"
+grun all "cp $PWD/../../../louvainmod/staging/lib/libXilinxLouvain.so $tg_data_root/gsql/udf"
 
 # TODO
-#gpe_config="LD_PRELOAD=$LD_PRELOAD:/home2/tigergraph/tigergraph/app/3.1.0/dev/gdk/gsdk/include/thirdparty/prebuilt/dynamic_libs/gmalloc/tcmalloc/libtcmalloc.so;LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/opt/xilinx/xrt/lib:/opt/xilinx/xrm/lib:/home2/tigergraph/libstd:/data/dxgradb/tigergraph/tigergraph/data/gsql/udf:$LD_LIBRARY_PATH;CPUPROFILE=/tmp/tg_cpu_profiler;CPUPROFILESIGNAL=12;MALLOC_CONF=prof:true,prof_active:false;XILINX_XRT=/opt/xilinx/xrt;XILINX_XRM=/opt/xilinx/xrm"
-#gadmin config set GPE.BasicConfig.Env "$gpe_config"
-#echo "INFO: Apply the new configurations to $gpe_config"
-#gadmin config apply -y
+gpe_config="LD_PRELOAD=$LD_PRELOAD:$PWD/../../../louvainmod/staging/lib/:/home2/tigergraph/tigergraph/app/3.1.0/dev/gdk/gsdk/include/thirdparty/prebuilt/dynamic_libs/gmalloc/tcmalloc/libtcmalloc.so;LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/opt/xilinx/xrt/lib:/opt/xilinx/xrm/lib:/home2/tigergraph/libstd:/data/dxgradb/tigergraph/tigergraph/data/gsql/udf:$LD_LIBRARY_PATH;CPUPROFILE=/tmp/tg_cpu_profiler;CPUPROFILESIGNAL=12;MALLOC_CONF=prof:true,prof_active:false;XILINX_XRT=/opt/xilinx/xrt;XILINX_XRM=/opt/xilinx/xrm"
+gadmin config set GPE.BasicConfig.Env "$gpe_config"
+echo "INFO: Apply the new configurations to $gpe_config"
+gadmin config apply -y
 gadmin restart gpe -y
 gadmin config get GPE.BasicConfig.Env

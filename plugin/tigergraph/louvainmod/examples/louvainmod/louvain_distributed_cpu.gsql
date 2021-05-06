@@ -4,6 +4,7 @@ CREATE DISTRIBUTED QUERY louvain_distributed_cpu(
 { 
 	TYPEDEF TUPLE <FLOAT deltaQ, FLOAT OutDgr, VERTEX cc> move; 
 	SumAccum<FLOAT> @community_sum_degrees; #sum of the degrees of all the vertices in community C of the vertex
+    SumAccum<FLOAT> @@Q;
 	ListAccum<VERTEX> @community_center; #the community center
 	SumAccum<FLOAT> @cc_OD;
 	MapAccum<VERTEX,SumAccum<FLOAT>> @A; #A[c]: sum of the edge weights for the edges in community c
@@ -19,11 +20,13 @@ CREATE DISTRIBUTED QUERY louvain_distributed_cpu(
 	log(True, "XXYYZZ @community_center initialization started");
 	Start = SELECT s FROM Start:s-((edge_types):e)->:t 
 		ACCUM 
-			@@m += 1 
+			@@m += 1
 		POST-ACCUM 
 			s.@community_center += s,
 			s.@cc_OD = s.outdegree()
 	;
+
+    //print @@m;
 
 	log(True, "XXYYZZ startsize=", Start.size());
 
@@ -37,26 +40,30 @@ CREATE DISTRIBUTED QUERY louvain_distributed_cpu(
 					t.@community_center.clear(), 
 					t.@community_center += getCc(t.@best_move),
 					t.@cc_OD = -getOutDegree(t.@best_move),
+                    @@Q += getDeltaQ(t.@best_move)/(2*@@m),
 					@@ccChange += TRUE
 				ELSE 
 					IF -getOutDegree(t.@best_move) == t.@cc_OD AND getvid(t) < getvid(getCc(t.@best_move))  THEN
 						t.@community_center.clear(),
 						t.@community_center += getCc(t.@best_move),
 						t.@cc_OD = -getOutDegree(t.@best_move),
+                        @@Q += getDeltaQ(t.@best_move)/(2*@@m),
 						@@ccChange += TRUE
 					END
 				END
 			END,
 			t.@ccIntermediate += getvid(t.@community_center.get(0))
+
 	;
   
+    //PRINT @@Q AS modularity;
+
 	log(True, "XXYYZZ @community_center initialization ended");
-	log(True, "XXYYZZ startsize=", Start.size());
 
 
 	WHILE @@ccChange LIMIT max_iter DO
 		@@ccChange = FALSE;
-
+        print @@ccChange;
 		// initialize @community_member_list
 		log(True, "XXYYZZ ith iteration started");
 		Start = SELECT s FROM Start:s 
@@ -110,28 +117,32 @@ CREATE DISTRIBUTED QUERY louvain_distributed_cpu(
 						s.@community_center.clear(),
 						s.@community_center += getCc(s.@best_move),
 						s.@cc_OD = -getOutDegree(s.@best_move),
+                        @@Q += getDeltaQ(s.@best_move)/(2*@@m),
 						@@ccChange += TRUE
 					ELSE 
 						IF -getOutDegree(s.@best_move) == s.@cc_OD AND getvid(s.@community_center.get(0)) < getvid(getCc(s.@best_move))  THEN
 							s.@community_center.clear(),
 							s.@community_center += getCc(s.@best_move),
 							s.@cc_OD = -getOutDegree(s.@best_move),
+                            @@Q += getDeltaQ(s.@best_move)/(2*@@m),
 							@@ccChange += TRUE
 						END
 					END
 				END,
 			s.@ccIntermediate += getvid(s.@community_center.get(0))
 		;
-
+        //PRINT @@Q AS modularity;
 		log(True, "XXYYZZ ith iteration ended");
 	END;
+
+    PRINT @@Q AS finalModularity;
 
     log(True, "XXYYZZ final startsize=", Start.size());
 	Start = SELECT s FROM Start:s
 		POST-ACCUM
 			#community_result.println("s", s, "community_center.get", getvid(s.@community_center.get(0)), "ccIntermediate:", s.@ccIntermediate)
    			#community_result.println("s", s, "community_center.get", s.@community_center.get(0), "ccIntermediate:", s.@ccIntermediate)
-   			community_result.println(s, s.@community_center.get(0))
+   			community_result.println(s, s.@community_center)
 	;
 
 

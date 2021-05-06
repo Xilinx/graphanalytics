@@ -667,12 +667,14 @@ void GLV::SetM(long* M_src){
 	}
 	RstNVElg();
 }
+
 void GLV::SetM(){
 	assert(G);
 	for(int i=0; i<NV; i++)
 		M[i] = i;
 	NVl=NV;
 }
+
 void GLV::InitM(long* M_src){
 	assert(M_src);
 	assert(G);
@@ -685,6 +687,7 @@ void GLV::InitM(long* M_src){
 	M = (long *) malloc (NV * sizeof(long));
 	SetM(M_src);
 }
+
 void GLV::InitM(){
 	assert(G);
 	NV = G->numVertices;
@@ -696,6 +699,7 @@ void GLV::InitM(){
 	M = (long *) malloc (NV * sizeof(long));
 	SetM();
 }
+
 void GLV::SetC(long* C_src){
 	assert(C_src);
 	assert(G);
@@ -791,6 +795,7 @@ void GLV::print(){
 	assert(M);
 	printG(G, C, M);
 }
+
 void GLV::printSimple(){
 	//list<FeatureLV>::iterator iter = com_list.back();
 	//list<FeatureLV>::iterator iter = com_list[com_list.size() - 1];
@@ -833,11 +838,13 @@ void GLV::printSimple(){
 			printf(" NE: %9d(%-9d/%2d\%)| Colors:%-6d ",NE, NElg, (int)(100*(float)NElg/(float)NE), numColors);
 	}
 	if(Q>0)
-		printf(" Q: \033[1;32;40m%1.6f\033[0m  ",Q);
+		printf(" Q: \033[1;32;40m%1.6f\033[0m  ", Q);
 	else
 		printf(" Q:\033[1;37;40m%2.6f\033[0m  ", Q);
 	printf("| name: %s \n",name);
+
 }
+
 void GLV::PushFeature(int ph, int iter, double time, bool FPGA){
 	FeatureLV f1(this);
 	f1.No_phase = ph;
@@ -848,6 +855,7 @@ void GLV::PushFeature(int ph, int iter, double time, bool FPGA){
 	this->NC = f1.NC;
 	this->Q =f1.Q;
 }
+
 void GLV::printFeature(){
 	list<FeatureLV>::iterator iter=com_list.begin();
 	while(iter!=com_list.end()){
@@ -855,36 +863,42 @@ void GLV::printFeature(){
 		iter++;
 	}
 }
+
 void GLV::SetName_par(int ID_par, int ID_src, long start, long end, int th)
 {
 	char nm[256];
 	sprintf(nm, "ID_%d_ParID_%d_%d_%d_th%d", ID_par, ID_src, start, end, th);
 	this->SetName(nm);
 }
+
 void GLV::SetName_lv(int ID_par, int ID_src)
 {
 	char nm[256];
 	sprintf(nm,"ID_%d_lv_ID_%d",ID_par, ID_src);
 	this->SetName(nm);
 }
+
 void GLV::SetName_ParLvMrg(int num_par, int ID_src)
 {
 	char nm[256];
 	sprintf(nm,"ID_%d_Mrg_lv_Par%d_ID_%d", ID, num_par, ID_src);
 	this->SetName(nm);
 }
+
 void GLV::SetName_loadg(int ID_curr, char* path)
 {
 	char nm[256];
 	sprintf(nm, "ID_%d_%s", ID_curr ,path );
 	this->SetName(nm);
 }
+
 void GLV::SetName_cat( int ID_src1, int ID_src2)
 {
 	char nm[256];
 	sprintf(nm,"ID_%d_cat_ID_%d_ID%d", ID, ID_src1, ID_src2);
 	this->SetName(nm);
 }
+
 ////////////////////////////////////////////////////////////////////////////
 SttGPar::SttGPar(long s, long e){
 	assert (e>s);
@@ -894,29 +908,31 @@ SttGPar::SttGPar(long s, long e){
 	num_v_l = num_v_g = 0;
 	num_e_ll = num_e_lg = num_e_gl = num_e_gg = 0;
 }
+
 SttGPar::SttGPar(){
 	num_v = num_e = num_e_dir = num_e_ll_dir = 0;
 	num_v_l = num_v_g = 0;
 	num_e_ll = num_e_lg = num_e_gl = num_e_gg = 0;
 }
+
 void SttGPar::PrintStt(){
 	printf("**SttGPar::PrintStt BEGIN**\n");
 	printf("From %ld to %ld \n", start, end);
 	num_v_l = end-start;
-	printf("Total V : %ld\t Total  Vl : %ld\t Total Vg: %ld\t Vl\/V=%2.2f\%\n",
+	printf("Total V : %ld\t Total  Vl : %ld\t Total Vg: %ld\t Vl/V=%2.2f\%\n",
 			num_v, num_v_l, num_v_g, (float)num_v_l/(float)num_v*100.0);
 	assert (num_e_lg == num_e-num_e_ll);
-	printf("Total 2E: %ld\t Total  ll : %ld\t Total lg: %ld\t ll\/E=%2.2f\%\n",
+	printf("Total 2E: %ld\t Total  ll : %ld\t Total lg: %ld\t ll/E=%2.2f\%\n",
 			  num_e,  num_e_ll, num_e_lg,  (float)num_e_ll/(float)num_e*100.0);
-	printf("Total|E|: %ld\t Total |ll|: %ld\t Total lg: %ld\t |ll|\/|E|=%2.2f\%\n",
-			  num_e_dir,  num_e_ll_dir, num_e_lg,
-			  (float)num_e_ll_dir/(float)num_e_dir*100.0);
+	printf("Total|E|: %ld\t Total |ll|: %ld\t Total lg: %ld\t |ll|/|E|=%2.2f\%\n",
+			  num_e_dir,  num_e_ll_dir, num_e_lg, (float)num_e_ll_dir/(float)num_e_dir*100.0);
 	printf("**SttGPar::PrintStt END**\n");
 }
 
 bool SttGPar::InRange(long v){
 	return v >= start && v < end;
 }
+
 void SttGPar::AddEdge(edge* edges, long head, long tail, double weight, long* M_g)
 {
 	long head_m = head - start;
@@ -927,9 +943,8 @@ void SttGPar::AddEdge(edge* edges, long head, long tail, double weight, long* M_
 	//num_e
 	if( InRange(tail)){
 		num_e_ll++;
-		if(head<=tail){
+		if(head <= tail){
 			tail_m = tail - start;
-			//printf("NODIR(%ld)\t: ll:<%ld %ld> -> <%ld %ld> \t= %ld - %ld \n", num_e_dir, head, tail, head_m, tail_m, tail, start);
 			edges[num_e_dir].head = head_m;
 			edges[num_e_dir].tail = tail_m;
 			edges[num_e_dir].weight = weight;
@@ -1056,11 +1071,11 @@ void SttGPar::CountVPruning(
         VGMinDgr gMinDgr;
         long num_vg = 0;
         long e_dgr = 0;
-        long head_m, tail_m;
+        long head_m = 0, tail_m = 0;
         long adj1    = vtxPtr[v];
         long adj2    = vtxPtr[v+1];
         int degree   = adj2-adj1;
-        for(int d=0; d<degree; d++){
+        for(int d=0; d<degree; d++) {
             long e = vtxInd[adj1+d].tail;
             double w = vtxInd[adj1+d].weight;
             e_dgr = vtxPtr[e+1] - vtxPtr[e];
@@ -1264,6 +1279,7 @@ GLV* SttGPar::ParNewGlv(
 	glv->RstNVElg();
 	return glv;
 }
+
 GLV* SttGPar::ParNewGlv_Prun(graphNew* G, long st, long ed, int& id_glv, int th_maxGhost){
 	start = st;
 	end = ed;
@@ -1286,7 +1302,7 @@ GLV* SttGPar::ParNewGlv_Prun(graphNew* G, long st, long ed, int& id_glv, int th_
         VGMinDgr gMinDgr;
         long num_vg = 0;
         long e_dgr = 0;
-        long head_m, tail_m;
+        long head_m = 0, tail_m = 0;
         long adj1    = vtxPtr[v];
         long adj2    = vtxPtr[v+1];
         int degree   = adj2-adj1;
@@ -1341,83 +1357,69 @@ void SttGPar::CountV(graphNew* G)
 	return CountV(G, 0, NV);
 }
 void GetGFromEdge(graphNew * G, edge *edgeListTmp, long num_v, long num_e_dir) {
+  
+    //Parse the first line:
+  
+    long NV = num_v, ED=num_e_dir*2, NE=num_e_dir;
+  
+    printf("|V|= %ld, |E|= %ld \n", NV, NE);
+  
+    //Remove duplicate entries:
+      //Allocate for Edge Pointer and keep track of degree for each vertex
+    long  *edgeListPtr = (long *)  malloc((NV+1) * sizeof(long));
+    #pragma omp parallel for
+    for (long i=0; i <= NV; i++)
+        edgeListPtr[i] = 0; //For first touch purposes
+  
+    #pragma omp parallel for
+    for(long i=0; i<NE; i++) {
+        __sync_fetch_and_add(&edgeListPtr[edgeListTmp[i].head + 1], 1); //Plus one to take care of the zeroth location
+        __sync_fetch_and_add(&edgeListPtr[edgeListTmp[i].tail + 1], 1);
+    }
 
-  //Parse the first line:
-
-  long NV = num_v, ED=num_e_dir*2, NE=num_e_dir;
-
-  //printf("Done reading from edges.\n");
-  printf("|V|= %ld, |E|= %ld \n", NV, NE);
-
-  //Remove duplicate entries:
-
-  //Allocate for Edge Pointer and keep track of degree for each vertex
-  long  *edgeListPtr = (long *)  malloc((NV+1) * sizeof(long));
-#pragma omp parallel for
-  for (long i=0; i <= NV; i++)
-    edgeListPtr[i] = 0; //For first touch purposes
-
-#pragma omp parallel for
-  for(long i=0; i<NE; i++) {
-    __sync_fetch_and_add(&edgeListPtr[edgeListTmp[i].head + 1], 1); //Plus one to take care of the zeroth location
-    __sync_fetch_and_add(&edgeListPtr[edgeListTmp[i].tail + 1], 1);
-  }
-  double time1, time2;
-  //////Build the EdgeListPtr Array: Cumulative addition
-  time1 = omp_get_wtime();
-  for (long i=0; i<NV; i++) {
-    edgeListPtr[i+1] += edgeListPtr[i]; //Prefix Sum:
-  }
-  //The last element of Cumulative will hold the total number of characters
-  time2 = omp_get_wtime();
- // printf("Done cumulative addition for edgeListPtrs:  %9.6lf sec.\n", time2 - time1);
-  printf("Sanity Check: 2|E| = %ld, edgeListPtr[NV]= %ld\n", NE*2, edgeListPtr[NV]);
-
-//  printf("About to allocate memory for graph data structures\n");
-  time1 = omp_get_wtime();
-  edge *edgeList = (edge *) malloc ((2*NE) * sizeof(edge)); //Every edge stored twice
-  assert(edgeList != 0);
-  //Keep track of how many edges have been added for a vertex:
-  long  *added = (long *)  malloc (NV * sizeof(long)); assert (added != 0);
-#pragma omp parallel for
-  for (long i = 0; i < NV; i++)
-    added[i] = 0;
-  time2 = omp_get_wtime();
- // printf("Time for allocating memory for edgeList = %lf\n", time2 - time1);
-
-  time1 = omp_get_wtime();
-
- // printf("About to build edgeList...\n");
-  //Build the edgeList from edgeListTmp:
-//#pragma omp parallel for
-  for(long i=0; i<NE; i++) {
-    long head  = edgeListTmp[i].head;
-    long tail  = edgeListTmp[i].tail;
-    double weight      = edgeListTmp[i].weight;
-
-    long Where = edgeListPtr[head] + __sync_fetch_and_add(&added[head], 1);
-    edgeList[Where].head = head;
-    edgeList[Where].tail = tail;
-    edgeList[Where].weight = weight;
-    //added[head]++;
-    //Now add the counter-edge:
-    Where = edgeListPtr[tail] + __sync_fetch_and_add(&added[tail], 1);
-    edgeList[Where].head = tail;
-    edgeList[Where].tail = head;
-    edgeList[Where].weight = weight;
-    //added[tail]++;
-  }
-  time2 = omp_get_wtime();
- //// printf("Time for building edgeList = %lf\n", time2 - time1);
-
-  G->sVertices    = NV;
-  G->numVertices  = NV;
-  G->numEdges     = NE;
-  G->edgeListPtrs = edgeListPtr;
-  G->edgeList     = edgeList;
-
-  //free(edgeListTmp);
-  free(added);
+    // Build the EdgeListPtr Array: Cumulative addition
+    for (long i=0; i<NV; i++) {
+      edgeListPtr[i+1] += edgeListPtr[i]; //Prefix Sum:
+    }
+    //The last element of Cumulative will hold the total number of characters
+    printf("Sanity Check: 2|E| = %ld, edgeListPtr[NV]= %ld\n", NE*2, edgeListPtr[NV]);
+  
+    edge *edgeList = (edge *) malloc ((2*NE) * sizeof(edge)); //Every edge stored twice
+    assert(edgeList != 0);
+    // Keep track of how many edges have been added for a vertex:
+    long  *added = (long *)  malloc (NV * sizeof(long)); assert (added != 0);
+    #pragma omp parallel for
+    for (long i = 0; i < NV; i++)
+      added[i] = 0;
+  
+    //Build the edgeList from edgeListTmp:
+  //#pragma omp parallel for
+    for(long i=0; i<NE; i++) {
+        long head  = edgeListTmp[i].head;
+        long tail  = edgeListTmp[i].tail;
+        double weight      = edgeListTmp[i].weight;
+    
+        long Where = edgeListPtr[head] + __sync_fetch_and_add(&added[head], 1);
+        edgeList[Where].head = head;
+        edgeList[Where].tail = tail;
+        edgeList[Where].weight = weight;
+        //added[head]++;
+        //Now add the counter-edge:
+        Where = edgeListPtr[tail] + __sync_fetch_and_add(&added[tail], 1);
+        edgeList[Where].head = tail;
+        edgeList[Where].tail = head;
+        edgeList[Where].weight = weight;
+        //added[tail]++;
+    }
+  
+    G->sVertices    = NV;
+    G->numVertices  = NV;
+    G->numEdges     = NE;
+    G->edgeListPtrs = edgeListPtr;
+    G->edgeList     = edgeList;
+  
+    //free(edgeListTmp);
+    free(added);
 }
 
 long GetGFromEdge_selfloop(graphNew * G, edge *edgeListTmp, long num_v, long num_e_dir) {
@@ -1575,7 +1577,7 @@ double FeatureLV::ComputeQ2(GLV* glv){
 	return Q;
 }
 void  FeatureLV::PrintFeature(){
-	printf("NC=%-8d  NV=%-8d  NE=%-8d  ", NC, NV, NE);
+	printf("NC=%-8ld  NV=%-8ld  NE=%-8ld  ", NC, NV, NE);
 	printf("Q=%-2.6f   m=%-8.1f    totalTot=%-14.1f  totalIn=%-8.1f ", Q, m, totalTot, totalIn);
 	printf("No_phase=%-2d   Num_iter=%-2d    time=%-8.1f  %s \n",  No_phase, Num_iter, time, isFPGA==true?"FPGA":"CPU" );
 }

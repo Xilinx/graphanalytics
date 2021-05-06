@@ -88,10 +88,10 @@ long vertexFollowing(graphNew* G, long* C) {
 // Return the total time for building the next level of graphNew
 // This will not add any self-loops
 double buildNewGraphVF(graphNew* Gin, graphNew* Gout, long* C, long numUniqueClusters) {
+#ifdef PRINT_DETAILED_STATS_
     int nT;
 #pragma omp parallel
     { nT = omp_get_num_threads(); }
-#ifdef PRINT_DETAILED_STATS_
     printf("Within buildNewGraphVF(): # of unique clusters= %ld\n", numUniqueClusters);
     printf("Actual number of threads: %d \n", nT);
 #endif

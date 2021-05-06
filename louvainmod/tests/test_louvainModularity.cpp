@@ -27,9 +27,9 @@ int main(int argc, char *argv[]) {
     int mode_alveo=ALVEOAPI_NONE;
     for(int i=1; i<argc; i++){
     	//printf("%s  %d\n", argv[i], i);
-    	if(0==strcmp(argv[i], "-create_alveo_partitions"))
+    	if(0 == strcmp(argv[i], "-create_alveo_partitions"))
     		return create_alveo_partitions(argc, argv);
-    	else if(0==strcmp(argv[i], "-load_alveo_partitions"))
+    	else if(0 == strcmp(argv[i], "-load_alveo_partitions"))
     		return load_alveo_partitions(argc, argv);
     }
     printf("\n\n");

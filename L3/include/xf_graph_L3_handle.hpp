@@ -140,14 +140,7 @@ class Handle {
                            unsigned int requestLoad,
                            unsigned int numDevices,
                            unsigned int cuPerBoard);
-/*
-    void initOpSimDenseInt(const char* kernelName,
-                           char* xclbinFile,
-                           char* kernelAlias,
-                           unsigned int requestLoad,
-                           unsigned int numDevices,
-                           unsigned int cuPerBoard);
-*/
+
     int32_t initOpLouvainModularity(std::string kernelName,
                                     std::string xclbinFile,
                                     std::string kernelAlias,

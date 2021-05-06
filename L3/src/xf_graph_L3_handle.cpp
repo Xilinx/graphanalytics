@@ -88,7 +88,6 @@ int Handle::setUp() {
 
     for (unsigned int i = 0; i < opNm; ++i) {
         if (ops[i].operationName == "similarityDense") {
-            // currently active
             unsigned int boardNm = ops[i].numDevices;
             if (deviceCounter + boardNm > totalDevices) {
                 std::cout << "ERROR: Current node does not have requested device count." 
@@ -140,7 +139,7 @@ int Handle::setUp() {
             unsigned int boardNm = ops[i].numDevices;
             if (deviceCounter + boardNm > totalDevices) {
                 std::cout << "Error: Need more devices" << std::endl;
-                exit(1);
+                return XF_GRAPH_L3_ERROR_NOT_ENOUGH_DEVICES;
             }
             std::thread thUn[boardNm];
             for (int j = 0; j < boardNm; ++j) {
@@ -157,8 +156,11 @@ int Handle::setUp() {
                 th[j].join();
             }
             deviceCounter += boardNm;
-            initOpLouvainModularity(ops[i].kernelName, ops[i].xclbinPath, ops[i].kernelAlias, ops[i].requestLoad,
-                                    ops[i].numDevices, ops[i].cuPerBoard);
+            status = initOpLouvainModularity(ops[i].kernelName, ops[i].xclbinPath, 
+                                             ops[i].kernelAlias, ops[i].requestLoad,
+                                             ops[i].numDevices, ops[i].cuPerBoard);
+            if (status < 0)
+                return XF_GRAPH_L3_ERROR_ALLOC_CU;
         }
 #endif
         if (0) {
@@ -201,6 +203,7 @@ void Handle::getEnv() {
     err2 = clGetDeviceIDs(platforms[platformID], CL_DEVICE_TYPE_ALL, totalDevices, devices, NULL);
     size_t valueSize;
     char* value;
+#ifndef NDEBUG    
     for (uint32_t i = 0; i < totalDevices; ++i) {
         // print device name
         clGetDeviceInfo(devices[i], CL_DEVICE_NAME, 0, NULL, &valueSize);
@@ -210,6 +213,7 @@ void Handle::getEnv() {
                   << ":" << value << std::endl;
         delete[] value;
     }
+#endif    
 }
 
 void Handle::showHandleInfo() {
@@ -271,7 +275,9 @@ std::thread Handle::loadXclbinNonBlock(unsigned int deviceId, std::string& xclbi
 };
 
 std::future<int> Handle::loadXclbinAsync(unsigned int deviceId, std::string& xclbinPath) {
+#ifndef NDEBUG    
     std::cout << "DEBUG: " << __FUNCTION__ << " xclbinPath=" << xclbinPath << std::endl;
+#endif
     return xrm->loadXclbinAsync(deviceId, xclbinPath);
 };
 
