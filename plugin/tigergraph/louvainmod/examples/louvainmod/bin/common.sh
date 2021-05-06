@@ -92,12 +92,12 @@ if [ -z "$username" ] || [ -z "$password" ]; then
 fi
 
 # create partitions if needed
-if [ $data_source_set -eq 0 ]; then
-    if [ ! -f "$script_dir/as-skitter/as-skitter-partitions/louvain_partitions.par.proj" ]; then
-        echo "INFO: Creating graph partitions"
-        ../../../../../L3/tests/Louvain/create_partitions.sh $script_dir/as-skitter/as-skitter-wt-e110k.mtx as-skitter-partitions 9
-    fi
-fi
+#if [ $data_source_set -eq 0 ]; then
+#    if [ ! -f "$script_dir/as-skitter/as-skitter-partitions/louvain_partitions.par.proj" ]; then
+#        echo "INFO: Creating graph partitions"
+#        ../../../../../L3/tests/Louvain/create_partitions.sh $script_dir/as-skitter/as-skitter-wt-e110k.mtx as-skitter-partitions 9
+#    fi
+#fi
 
 # need to download gsql client first before using it to check for other error conditions
 if [ ! -f "$HOME/gsql-client/gsql_client.jar" ]; then
