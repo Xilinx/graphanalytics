@@ -1,6 +1,5 @@
 #/usr/bin/env bash
 
-set -x
 set -e
 
 if [ ! -f "$HOME/.tg.cfg" ]; then

@@ -61,11 +61,36 @@ $$(STAGE_DIR)/$(1): $(TG_PLUGIN_COMMON_DIR)/$(1)
 endef
 $(foreach f,$(STAGE_COPY_COMMON_FILES),$(eval $(call STAGE_COPY_COMMON_RULE,$(f),)))
 
+# Files to be direct-copied from TigerGraph plugin common EXAMPLES source tree to staging area
+
+TG_PLUGIN_COMMON_EXAMPLES_DIR = $(TG_PLUGIN_COMMON_DIR)/examples
+
+STAGE_COPY_COMMON_EXAMPLES_FILES = \
+    bin/common-udf.sh \
+    bin/install-udf.sh \
+    bin/install-udf-cluster.sh \
+    bin/install-udf-node.sh
+
+STAGE_ALL_COMMON_EXAMPLES_FILES =
+
+define STAGE_COPY_COMMON_EXAMPLES_FILE_RULE
+$(STAGE_DIR)/$(2)/$(1): $(TG_PLUGIN_COMMON_EXAMPLES_DIR)/$(1)
+	cp -f $(TG_PLUGIN_COMMON_EXAMPLES_DIR)/$(1) $(STAGE_DIR)/$(2)/$(1)
+STAGE_ALL_COMMON_EXAMPLES_FILES += $(STAGE_DIR)/$(2)/$(1)
+endef
+
+define STAGE_COPY_COMMON_EXAMPLES_RULE
+$(foreach f,$(STAGE_COPY_COMMON_EXAMPLES_FILES),$(eval $(call STAGE_COPY_COMMON_EXAMPLES_FILE_RULE,$(f),$(1))))
+endef
+
+$(foreach edir,$(STAGE_EXAMPLES_DIRS),$(eval $(call STAGE_COPY_COMMON_EXAMPLES_RULE,$(edir))))
+
 # Top-level packaging rule
 
 STAGE_ALL_FILES = \
     $(addprefix $(STAGE_DIR)/,$(STAGE_COPY_FILES)) \
-    $(addprefix $(STAGE_DIR)/,$(STAGE_COPY_COMMON_FILES))
+    $(addprefix $(STAGE_DIR)/,$(STAGE_COPY_COMMON_FILES)) \
+    $(STAGE_ALL_COMMON_EXAMPLES_FILES)
 
 STAGE_SUBDIRS = $(sort $(dir $(STAGE_ALL_FILES)))
 

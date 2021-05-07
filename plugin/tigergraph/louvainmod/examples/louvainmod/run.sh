@@ -38,6 +38,15 @@ script_dir=`dirname $SCRIPT`
 
 . $script_dir/bin/common.sh
 
+#temporary protection for old install method
+if [ -x $script_dir/bin/install-udf.sh ]
+then
+echo "Installing UDF files"
+$script_dir/bin/install-udf.sh $ssh_key_flag $verbose_flag $force_clean_flag
+else
+echo "Skipping UDF installation.  ExprFunctions.hpp is expected to have these UDFs already."
+fi
+
 #files=/proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx 
 
 echo "Running schema.gsql"
