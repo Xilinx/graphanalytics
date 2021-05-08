@@ -41,8 +41,8 @@ void createHandleLouvainModularity(class openXRM* xrm, clHandle& handle,
     handle.xclBins = xcl::import_binary_file(xclbinFile);
     std::vector<cl::Device> devices2;
     devices2.push_back(handle.device);
+    // TODO: handle execption from cl::Program
     handle.program = cl::Program(handle.context, devices2, handle.xclBins);
-
     handle.resR = (xrmCuResource*)malloc(sizeof(xrmCuResource));
     memset(handle.resR, 0, sizeof(xrmCuResource));
     xrm->allocCU(handle.resR, kernelName.c_str(), kernelAlias.c_str(), requestLoad);
@@ -102,8 +102,6 @@ void opLouvainModularity::init(class openXRM* xrm, std::string kernelName,
                                uint32_t* deviceIDs, uint32_t* cuIDs, 
                                unsigned int requestLoad) 
 {
-    std::cout << __FUNCTION__ << std::endl;
-
     dupNmLouvainModularity = 100 / requestLoad;
     cuPerBoardLouvainModularity /= dupNmLouvainModularity;
     uint32_t bufferNm = 23;

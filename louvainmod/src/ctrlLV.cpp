@@ -589,7 +589,7 @@ char* NameNoPath(char* name){
 		return name+len+1;
 }
 
-char* PathNoName(char* des, char* name){
+void PathNoName(char* des, char* name){
 	assert (name);
 	int len = strlen(name)-1;
 	char c = name[len];

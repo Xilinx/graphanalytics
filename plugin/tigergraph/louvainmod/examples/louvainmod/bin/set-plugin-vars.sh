@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Copyright 2020-2021 Xilinx, Inc.
 #
@@ -12,20 +13,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
-USE GRAPH @graph
-DROP QUERY louvain_distributed_q_cpu, louvain_alveo, load_alveo, close_alveo
-DROP JOB load_job
-DROP GRAPH @graph
+set -e
 
-CREATE GRAPH @graph()
-BEGIN
-CREATE SCHEMA_CHANGE JOB job_schema_change_local FOR GRAPH @graph {
-    ADD VERTEX Person (primary_id num int, num int);
-    ADD UNDIRECTED EDGE Coworker(from Person, to Person, weight double);
-}
-END
+SCRIPT=$(readlink -f $0)
+SCRIPTPATH=`dirname $SCRIPT`
 
-RUN SCHEMA_CHANGE JOB job_schema_change_local
-DROP JOB job_schema_change_local
+# UDF module name for this plugin.  This value is used by mergeHeaders to identify the plugin in ExprFunctions.hpp
+PLUGIN_NAME=louvainDemo
+
+# Header file containing UDFs for the plugin
+PLUGIN_MAIN_UDF=louvainDemo.hpp
+
+# Header files used by the plugin
+PLUGIN_HEADERS=louvainDemoImpl.hpp
+
+# List of plugins that this plugin depends on.  Install script errors out if one or more dependencies is found
+# not to have been installed.
+PLUGIN_DEPENDENCIES=xilinxComDetect
 

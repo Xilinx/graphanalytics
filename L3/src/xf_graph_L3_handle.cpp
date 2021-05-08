@@ -138,7 +138,9 @@ int Handle::setUp() {
         if (ops[i].operationName == "louvainModularity") {
             unsigned int boardNm = ops[i].numDevices;
             if (deviceCounter + boardNm > totalDevices) {
-                std::cout << "Error: Need more devices" << std::endl;
+                std::cout << "ERROR: Current node does not have requested device count." 
+                    << " Requested: " << deviceCounter + boardNm 
+                    << " Available: " << totalDevices << std::endl;
                 return XF_GRAPH_L3_ERROR_NOT_ENOUGH_DEVICES;
             }
             std::thread thUn[boardNm];

@@ -78,10 +78,6 @@ namespace UDIMPL {
     return true;
   }
 
-  inline bool greater_than_three (double x) {
-    return x > 3;
-  }
-
   inline string reverse(string str) {
     std::reverse(str.begin(), str.end());
     return str;
@@ -95,6 +91,11 @@ namespace UDIMPL {
   template<typename tup>
   inline int64_t getOutDegree(tup t) {
     return t.OutDgr;
+  }
+  
+  template<typename tup>
+  inline float getWeight(tup t) {
+    return t.weight;
   }
 
   template<typename tup>
@@ -149,9 +150,9 @@ namespace UDIMPL {
             string result("Initialized Alveo");
             try
             {
-                std::cout << "Opening XAI library " << std::endl;
+                std::cout << "DEBUG: Opening XAI library " << std::endl;
                 xai::xaiLoader.load_library(xai::host_libname);
-                std::cout << "Opened XAI library " << std::endl;
+                std::cout << "DEBUG: Opened XAI library " << std::endl;
             }
             catch (std::exception& e) {
                 std::cerr << "ERROR: An exception occurred: " << e.what() << std::endl;
@@ -179,7 +180,7 @@ namespace UDIMPL {
     int argc = 8;
     char* argv[] = {"host.exe", input_graph.c_str(), "-fast", "-par_num", num_patitions.c_str(),
           "-create_alveo_partitions", "-name", partitions_project.c_str(), NULL};
-    std::cout << "Calling create_partitions. input_graph: " <<  input_graph.c_str()
+    std::cout << "DEBUG: Calling create_partitions. input_graph: " <<  input_graph.c_str()
               << " num_partitions: " << num_patitions.c_str() << " project: " << partitions_project.c_str()
               << std::flush;
     return xai::xaiLoader.create_partitions(argc, (char**)(argv));
@@ -228,6 +229,7 @@ namespace UDIMPL {
 	                           worker_or_driver.c_str(), optional_arg, NULL};
 
             std::cout
+	        << "DEBUG: "
                 << "Calling execute_louvain. input_graph: " <<  input_graph.c_str()
                 << " num_partitions: " << num_patitions.c_str()
                 << " project: " << partitions_project.c_str()
@@ -236,14 +238,8 @@ namespace UDIMPL {
                 << " worker num: " << workernum.c_str() << "\n"
                 << std::flush;
         
-            //if(isDriver) {
-            //unsigned int sleep_time = 240;
-            //std::cout << "KD: Going to slpep for seconds: " << sleep_time << "\n";
-            //std::this_thread::sleep_for (std::chrono::seconds(sleep_time));
-            //std::cout << "KD: Woke up from sleep after seconds: " << sleep_time << "\n";
-            //}
             int retVal = xai::xaiLoader.execute_louvain(my_argc, (char**)(my_argv));
-            std::cout << "KD: Returned from execute_louvain, isDriver = " << isDriver << "\n" << std::flush;
+            std::cout << "DEBUG: Returned from execute_louvain, isDriver = " << isDriver << "\n" << std::flush;
             return retVal;
         }
         return 0;

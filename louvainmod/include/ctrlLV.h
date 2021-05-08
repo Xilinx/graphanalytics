@@ -251,6 +251,6 @@ void WriteAdjMatrix2Raw(
 
 char* NameNoPath(char* name);
 
-char* PathNoName(char* des, char* name);
+void PathNoName(char* des, char* name);
         
 #endif 

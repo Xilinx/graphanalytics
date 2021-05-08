@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Copyright 2020-2021 Xilinx, Inc.
 #
@@ -12,20 +13,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
-USE GRAPH @graph
-DROP QUERY louvain_distributed_q_cpu, louvain_alveo, load_alveo, close_alveo
-DROP JOB load_job
-DROP GRAPH @graph
+set -e
 
-CREATE GRAPH @graph()
-BEGIN
-CREATE SCHEMA_CHANGE JOB job_schema_change_local FOR GRAPH @graph {
-    ADD VERTEX Person (primary_id num int, num int);
-    ADD UNDIRECTED EDGE Coworker(from Person, to Person, weight double);
-}
-END
+SCRIPT=$(readlink -f $0)
+SCRIPTPATH=`dirname $SCRIPT`
 
-RUN SCHEMA_CHANGE JOB job_schema_change_local
-DROP JOB job_schema_change_local
+. $SCRIPTPATH/common-udf.sh
+
+if [ "$USER" == "tigergraph" ]; then
+    $SCRIPTPATH/install-udf-cluster.sh $verbose_flag $force_clean_flag
+else
+    echo "INFO: This example application requires components to be installed into TigerGraph."
+    echo "INFO: Please enter the password for user \"tigergraph\"."
+    ssh $ssh_key_flag tigergraph@$hostname $SCRIPTPATH/install-udf-cluster.sh \
+        $verbose_flag $force_clean_flag $uninstall_flag
+fi
 

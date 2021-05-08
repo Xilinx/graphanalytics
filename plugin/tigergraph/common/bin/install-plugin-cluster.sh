@@ -87,7 +87,7 @@ else
         echo "INFO: Restarting GPE service"
         gadmin restart gpe -y
     else
-        echo "INFO: Apply environment changes to TigerGraph installation"
+        echo "INFO: Applying environment changes to TigerGraph installation"
         gadmin start all
 
         ld_preload=
@@ -107,6 +107,7 @@ else
         fi
 
         gadmin config set GPE.BasicConfig.Env "$gpe_config"
+        gadmin config set RESTPP.Factory.DefaultQueryTimeoutSec 3600
 
         echo "INFO: Apply the new configurations to $gpe_config"
         gadmin config apply -y
@@ -115,20 +116,6 @@ else
     fi
 fi
 
-# Install or uninstall Recommendation Engine tuples
-if [ $uninstall -eq 1 ]; then
-    echo "INFO: Removing Recommendation Engine tuples"
-    if [ $(gsql "LS" | grep -c XilCosinesimMatch) -gt 0 ]; then
-        gsql "DROP TUPLE XilCosinesimMatch"
-    fi
-    echo ""
-    echo "INFO: Xilinx FPGA acceleration plugin for Tigergraph has been uninstalled."
-else
-    echo "INFO: Adding Recommendation Engine tuples"
-    if [ $(gsql "LS" | grep -c XilCosinesimMatch) -lt 1 ]; then
-        gsql "TYPEDEF TUPLE<Id VERTEX, score double> XilCosinesimMatch"
-    fi
-    echo ""
-    echo "INFO: Xilinx FPGA acceleration plugin for Tigergraph has been installed."
+if [ -r $SCRIPTPATH/install-plugin-cluster-custom.sh ]; then
+    . $SCRIPTPATH/install-plugin-cluster-custom.sh
 fi
-

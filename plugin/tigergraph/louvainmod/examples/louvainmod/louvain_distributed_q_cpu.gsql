@@ -1,0 +1,207 @@
+DROP QUERY louvain_distributed_q_cpu
+
+CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(SET<STRING> v_type, SET<STRING> e_type, STRING wt_attr,
+          INT max_iter = 10, FLOAT tolerence = 0.00001, BOOL intermediateResult = TRUE,
+          BOOL print_accum = FALSE, STRING result_attr = "", STRING file_path = "",
+	        BOOL print_final_Q = TRUE, BOOL print_all_Q = FALSE) 
+  {
+
+	TYPEDEF TUPLE <FLOAT deltaQ, FLOAT weight, VERTEX cc> move;
+	SumAccum<FLOAT> @@Q; # modularity score
+	ListAccum<FLOAT> @@AllQ; # all modularity score
+	SumAccum<FLOAT> @ac; #sum of the degrees of all the vertices in community C of the vertex
+	MapAccum<VERTEX,MaxAccum<FLOAT>> @@ac; # cc -> ac map
+	SetAccum<VERTEX> @@cc; # cc set
+	ListAccum<VERTEX> @cc; #the community center
+	SumAccum<FLOAT> @weight; # total weight incident to this vertex
+    SumAccum<FLOAT> @ccWeight; # total weight incident to the cc vertex
+	MapAccum<VERTEX,SumAccum<FLOAT>> @A; #A[c]: sum of the edge weights for the edges in community c
+	MaxAccum<move> @best_move; # highest dQ, highest -Outdegree, highest cc
+	ListAccum<VERTEX> @cm;  #community member list
+	SumAccum<FLOAT> @@m; # total edge weight
+	ListAccum<INT> @ccIntermediate;
+	INT iter_count = 0;
+	INT dQ = 1;
+	FILE f (file_path);
+
+	Start = {v_type};
+
+	// initialize
+	Start = SELECT s FROM Start:s-(e_type:e)->:t
+		ACCUM
+			@@m += e.getAttr(wt_attr,"FLOAT")*0.5,
+			s.@weight += e.getAttr(wt_attr,"FLOAT")*1.0,
+			s.@ccWeight += e.getAttr(wt_attr,"FLOAT")*1.0
+		POST-ACCUM
+			s.@cc += s
+	;
+
+	// special @cc update in the first iteration
+	Start = SELECT t FROM Start:s-(e_type:e)->:t
+		ACCUM
+			t.@best_move += move(e.getAttr(wt_attr,"FLOAT")*1.0 + @@m*t.@weight * (t.@weight - s.@weight), -s.@ccWeight, s.@cc.get(0))
+		POST-ACCUM
+			IF getDeltaQ(t.@best_move) > 0 THEN
+				IF -getWeight(t.@best_move) < t.@ccWeight THEN  //
+					t.@cc.clear(),
+					t.@cc += getCc(t.@best_move),
+					t.@ccWeight = -getWeight(t.@best_move)
+				ELSE
+					IF -getWeight(t.@best_move) == t.@ccWeight AND getvid(t) < getvid(getCc(t.@best_move))  THEN
+						t.@cc.clear(),
+						t.@cc += getCc(t.@best_move),
+						t.@ccWeight = -getWeight(t.@best_move)
+					END
+				END
+			END,
+			IF intermediateResult THEN t.@ccIntermediate += getvid(t.@cc.get(0)) END
+	;
+
+	// modularity score Q calculation for 1st iteration
+	Start = SELECT s FROM Start:s
+		ACCUM FOREACH v IN s.@cc DO
+			CASE WHEN getvid(v) != -1 THEN v.@cm += s END
+		END
+	;
+	Start = SELECT s FROM Start:s-(e_type:e)->:t
+		ACCUM
+			s.@A += (t.@cc.get(0)->e.getAttr(wt_attr,"FLOAT")*1.0)
+	;
+	Start = SELECT s FROM Start:s
+		ACCUM FOREACH v IN s.@cc DO
+			CASE WHEN getvid(v) != -1 THEN v.@ac += s.@weight END
+		END
+	;
+	Start = SELECT s FROM Start:s
+		ACCUM FOREACH v IN s.@cm DO
+			CASE WHEN getvid(v) != -1 THEN v.@ac = s.@ac END
+		END
+	;
+	Start = SELECT s FROM Start:s
+		ACCUM
+			@@Q += 0.5*s.@A.get(s.@cc.get(0))/@@m,
+			@@ac += (s.@cc.get(0)->s.@ac),
+			@@cc += s.@cc.get(0)
+	;
+	FOREACH cc IN @@cc DO
+		@@Q += -1*((@@ac.get(cc)*@@ac.get(cc))/(@@m*@@m*4));
+	END;
+	IF print_accum THEN
+		PRINT iter_count, @@Q;
+	END;
+	@@AllQ += @@Q;
+
+
+	// main loop
+	WHILE dQ > tolerence LIMIT max_iter DO
+		iter_count = iter_count + 1;
+
+		// compute @max_dQ and move
+		Start = SELECT s FROM Start:s-(e_type:e)->:t
+			ACCUM
+				INT A_s = 0,
+				IF s.@A.containsKey(s) THEN
+					A_s = s.@A.get(s)
+				END,
+				s.@best_move += move(s.@A.get(t.@cc.get(0)) - A_s + 1/@@m*s.@weight*(s.@ac-t.@ac), -t.@ccWeight, t.@cc.get(0))
+			POST-ACCUM
+				IF getDeltaQ(s.@best_move) > 0 THEN
+					IF -getWeight(s.@best_move) < s.@ccWeight THEN
+						s.@cc.clear(),
+						s.@cc += getCc(s.@best_move),
+						s.@ccWeight = -getWeight(s.@best_move)
+					ELSE
+						IF -getWeight(s.@best_move) == s.@ccWeight AND getvid(s.@cc.get(0)) < getvid(getCc(s.@best_move))  THEN
+							s.@cc.clear(),
+							s.@cc += getCc(s.@best_move),
+							s.@ccWeight = -getWeight(s.@best_move)
+						END
+					END
+				END,
+				IF intermediateResult THEN s.@ccIntermediate += getvid(s.@cc.get(0)) END
+		;
+
+		// re-initialize for score calculation
+		@@Q = 0;
+		@@cc.clear();
+		@@ac.clear();
+		Start = SELECT s FROM Start:s
+			POST-ACCUM
+				s.@ac = 0,
+				s.@cm.clear(),
+				s.@A.clear()
+		;
+
+		// score calculation & prep for next iter
+		Start = SELECT s FROM Start:s
+			ACCUM FOREACH v IN s.@cc DO
+				CASE WHEN getvid(v) != -1 THEN v.@cm += s END
+			END
+		;
+		Start = SELECT s FROM Start:s-(e_type:e)->:t
+			ACCUM
+				s.@A += (t.@cc.get(0)->e.getAttr(wt_attr,"FLOAT")*1.0)
+		;
+		Start = SELECT s FROM Start:s
+			ACCUM FOREACH v IN s.@cc DO
+				CASE WHEN getvid(v) != -1 THEN v.@ac += s.@weight END
+			END
+		;
+		Start = SELECT s FROM Start:s
+			ACCUM FOREACH v IN s.@cm DO
+				CASE WHEN getvid(v) != -1 THEN v.@ac = s.@ac END
+			END
+		;
+
+		// calculate Q
+		Start = SELECT s FROM Start:s
+			ACCUM
+				@@Q += 0.5*s.@A.get(s.@cc.get(0))/@@m,
+				@@ac += (s.@cc.get(0)->s.@ac),
+				@@cc += s.@cc.get(0)
+		;
+		FOREACH cc IN @@cc DO
+			@@Q += -1*((@@ac.get(cc)*@@ac.get(cc))/(@@m*@@m*4));
+		END;
+		IF print_accum THEN
+			PRINT iter_count, @@Q;
+		END;
+		@@AllQ += @@Q;
+		dQ = @@AllQ.get(iter_count-1) - @@Q;
+	END;
+
+	// save and print result
+	Start = SELECT s FROM Start:s
+		POST-ACCUM
+			IF result_attr != "" THEN s.setAttr(result_attr, getvid(s.@cc.get(0))) END,
+			IF file_path != "" THEN
+				IF intermediateResult THEN
+					f.println(s, getvid(s.@cc.get(0)), s.@ccIntermediate)
+				ELSE
+					f.println(s, getvid(s.@cc.get(0)))
+				END
+			END
+	;
+	IF print_accum THEN
+		IF intermediateResult THEN
+			PRINT Start [Start.@cc.get(0), Start.@ccIntermediate];
+		ELSE
+			PRINT Start [Start.@cc.get(0)];
+		END;
+    END;
+	IF print_final_Q THEN
+		PRINT @@Q;
+	END;
+	IF print_all_Q THEN
+		PRINT @@AllQ;
+	END;
+}
+
+INSTALL QUERY louvain_distributed_q_cpu
+//RUN QUERY louvain_distributed(["LOUVAIN_C1"],["LOUVAIN_C1_HAS_EDGE"],"weight",_,_,_,_,_,_,_,_)
+//RUN QUERY louvain_distributed(["LOUVAIN_C2"],["LOUVAIN_C2_HAS_EDGE"],"weight",_,_,_,_,_,_,_,_)
+//RUN QUERY louvain_distributed(["LOUVAIN_C3"],["LOUVAIN_C3_HAS_EDGE"],"weight",_,_,_,_,_,_,_,_)
+
+// RUN QUERY louvain_distributed(["LOUVAIN_C1"],["LOUVAIN_C1_HAS_EDGE"],"weight",_,_,_,_,"cid","/home/tigergraph/mydata/louvain/louvain-distributed/r1.txt",FALSE,TRUE)
+// RUN QUERY louvain_distributed(["LOUVAIN_C2"],["LOUVAIN_C2_HAS_EDGE"],"weight",_,_,_,_,"cid","/home/tigergraph/mydata/louvain/louvain-distributed/r2.txt",FALSE,TRUE)
+// RUN QUERY louvain_distributed(["LOUVAIN_C3"],["LOUVAIN_C3_HAS_EDGE"],"weight",_,_,_,_,"cid","/home/tigergraph/mydata/louvain/louvain-distributed/r3.txt",FALSE,TRUE)

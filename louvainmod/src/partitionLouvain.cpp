@@ -130,18 +130,15 @@ void printG(graphNew* G, long* C, long* M, long star, long end, bool isCid, bool
 		long adj1    = vtxPtr[v];
 		long adj2    = vtxPtr[v+1];
 		int degree = adj2-adj1;
-		//printf("c=%4ld : v=%4ld\t adj1=%4ld, adj2=%4ld, degree=%4ld\t",C[v], v, adj1, adj2, degree);
-		//printf("c=%4ld : v=%4ld\t adj1=%4ld, adj2=%4ld, degree=%4ld\t",C[v], v, adj1, adj2, degree);
-		//printf("c=%-4d : v=%-4d m=%-4d off=%4d, dgr=%-3d\t",C[v], v, M[v], adj1, degree);
 		long m = M==NULL?v:M[v];
 		long c = C==NULL?v:C[v];
 
-		//printf(" c=%-4d, v=%-4d,", c, v, m, adj1, degree);
-		if(m<0)
+		if (m < 0)
 			printf(" \033[1;31;40mc=%-5d v=%-5d m=%-5d\033[0m", c, v, m);
 		else
-			printf(" c=%-5d v=%-5d m=%-5d", c, v, m);
-		printf(" o=%-5d d=%-4d |", adj1, degree);
+			printf(" c=%-5ld v=%-5d m=%-5ld", c, v, m);
+		
+        printf(" o=%-5ld d=%-4d |", adj1, degree);
 		for(int d=0; d<degree; d++){
 
 			long t = vtxInd[adj1+d].tail;
@@ -157,9 +154,9 @@ void printG(graphNew* G, long* C, long* M, long star, long end, bool isCid, bool
 			}
 			double w =  vtxInd[adj1+d].weight;
 			if(M!=NULL&&M[t]<0)
-				printf("\033[1;31;40m%5d\033[0m\/%1.0f ", isCid?C[t]:t, w);
+				printf("\033[1;31;40m%5d\033[0m/%1.0f ", isCid?C[t]:t, w);
 			else
-				printf("%5d\/%1.0f ", isCid?C[t]:t, w);
+				printf("%5d/%1.0f ", isCid?C[t]:t, w);
 		}
 		printf("\n");
 	}
@@ -919,14 +916,13 @@ void SttGPar::PrintStt(){
 	printf("**SttGPar::PrintStt BEGIN**\n");
 	printf("From %ld to %ld \n", start, end);
 	num_v_l = end-start;
-	printf("Total V : %ld\t Total  Vl : %ld\t Total Vg: %ld\t Vl\/V=%2.2f\%\n",
+	printf("Total V : %ld\t Total  Vl : %ld\t Total Vg: %ld\t Vl/V=%2.2f\%\n",
 			num_v, num_v_l, num_v_g, (float)num_v_l/(float)num_v*100.0);
 	assert (num_e_lg == num_e-num_e_ll);
-	printf("Total 2E: %ld\t Total  ll : %ld\t Total lg: %ld\t ll\/E=%2.2f\%\n",
+	printf("Total 2E: %ld\t Total  ll : %ld\t Total lg: %ld\t ll/E=%2.2f\%\n",
 			  num_e,  num_e_ll, num_e_lg,  (float)num_e_ll/(float)num_e*100.0);
-	printf("Total|E|: %ld\t Total |ll|: %ld\t Total lg: %ld\t |ll|\/|E|=%2.2f\%\n",
-			  num_e_dir,  num_e_ll_dir, num_e_lg,
-			  (float)num_e_ll_dir/(float)num_e_dir*100.0);
+	printf("Total|E|: %ld\t Total |ll|: %ld\t Total lg: %ld\t |ll|/|E|=%2.2f\%\n",
+			  num_e_dir,  num_e_ll_dir, num_e_lg, (float)num_e_ll_dir/(float)num_e_dir*100.0);
 	printf("**SttGPar::PrintStt END**\n");
 }
 
@@ -944,9 +940,8 @@ void SttGPar::AddEdge(edge* edges, long head, long tail, double weight, long* M_
 	//num_e
 	if( InRange(tail)){
 		num_e_ll++;
-		if(head<=tail){
+		if(head <= tail){
 			tail_m = tail - start;
-			//printf("NODIR(%ld)\t: ll:<%ld %ld> -> <%ld %ld> \t= %ld - %ld \n", num_e_dir, head, tail, head_m, tail_m, tail, start);
 			edges[num_e_dir].head = head_m;
 			edges[num_e_dir].tail = tail_m;
 			edges[num_e_dir].weight = weight;
@@ -1198,6 +1193,7 @@ void SttGPar::CountV(
 	free(elist);
 	free(M_g);
 }
+
 GLV* CloneGlv( GLV* glv_src, int& id_glv)
 {
 	assert (glv_src);
@@ -1448,20 +1444,15 @@ long GetGFromEdge_selfloop(graphNew * G, edge *edgeListTmp, long num_v, long num
     if(edgeListTmp[i].head != edgeListTmp[i].tail)
     	__sync_fetch_and_add(&edgeListPtr[edgeListTmp[i].tail + 1], 1);
   }
-  double time1, time2;
   //////Build the EdgeListPtr Array: Cumulative addition
-  time1 = omp_get_wtime();
   for (long i=0; i<NV; i++) {
     edgeListPtr[i+1] += edgeListPtr[i]; //Prefix Sum:
   }
   //The last element of Cumulative will hold the total number of characters
-  time2 = omp_get_wtime();
- // printf("Done cumulative addition for edgeListPtrs:  %9.6lf sec.\n", time2 - time1);
 #ifdef PRINTINFO_PARLV
   printf("Sanity Check: 2|E| = %ld, edgeListPtr[NV]= %ld  GetGFromEdge_selfloop\n", NE*2, edgeListPtr[NV]);
 #endif
 //  printf("About to allocate memory for graph data structures\n");
-  time1 = omp_get_wtime();
   edge *edgeList = (edge *) malloc ((2*NE) * sizeof(edge)); //Every edge stored twice
   assert(edgeList != 0);
   //Keep track of how many edges have been added for a vertex:
@@ -1469,10 +1460,7 @@ long GetGFromEdge_selfloop(graphNew * G, edge *edgeListTmp, long num_v, long num
 #pragma omp parallel for
   for (long i = 0; i < NV; i++)
     added[i] = 0;
-  time2 = omp_get_wtime();
- // printf("Time for allocating memory for edgeList = %lf\n", time2 - time1);
 
-  time1 = omp_get_wtime();
 
  // printf("About to build edgeList...\n");
   //Build the edgeList from edgeListTmp:
@@ -1497,8 +1485,6 @@ long GetGFromEdge_selfloop(graphNew * G, edge *edgeListTmp, long num_v, long num
     }
     //added[tail]++;
   }
-  time2 = omp_get_wtime();
- //// printf("Time for building edgeList = %lf\n", time2 - time1);
 
   G->sVertices    = NV;
   G->numVertices  = NV;

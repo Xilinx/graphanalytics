@@ -81,6 +81,7 @@ struct ParLVVar{
     bool  isPrun;
 	int   th_prun;
 };
+
 class ParLV{
 public:
 	bool st_Partitioned;
@@ -139,11 +140,11 @@ public:
 
     void Init(int mode);
     void Init(int mode, GLV* src, int numpar, int numdev);
-    void Init(int mode, GLV* src,int num_p, int num_d, bool isPrun, int th_prun);
+    void Init(int mode, GLV* src, int num_p, int num_d, bool isPrun, int th_prun);
     ParLV();
     ~ParLV();
     void PrintSelf();
-    double UpdateTimeAll();//{timeAll = timeFinal+timeMerge+timePre+timePar_all+timeLv_all;};
+    void UpdateTimeAll();
     void CleanList(GLV* glv_curr, GLV* glv_temp);
     GLV* MergingPar2(int& );
     GLV* FinalLouvain(char*, int , int& , long minGraphSize, double threshold, double C_threshold, bool isParallel, int numPhase);
@@ -172,7 +173,8 @@ public:
     double TimeDoneFinal();
     double TimeAll_Done();
 };
-GLV* par_general(GLV* src, SttGPar* pstt, int&id_glv, long start, long end, bool isPrun,  int th_prun);
+
+GLV* par_general(GLV* src, SttGPar* pstt, int&id_glv, long start, long end, bool isPrun, int th_prun);
 GLV* par_general(GLV* src, int&id_glv, long start, long end, bool isPrun,  int th_prun);
 
 GLV* LouvainGLV_general_par(
@@ -187,12 +189,14 @@ GLV* LouvainGLV_general_par_OneDev(
 		//
 		char* xclbinPath, int numThreads, int& id_glv,
 		long minGraphSize, double threshold, double C_threshold, bool isParallel, int numPhase);
+
 GLV* LouvainGLV_general_par(
 		int flowMode,
 		GLV* glv_orig, int num_par, int num_dev, int isPrun, int th_prun,
 		//
 		char* xclbinPath, int numThreads, int& id_glv,
 		long minGraphSize, double threshold, double C_threshold, bool isParallel, int numPhase);
+
 void ParLV_general_batch_thread(
 		int flowMode, GLV* plv_orig,
 		int id_dev, int num_dev, int num_par,
@@ -200,5 +204,13 @@ void ParLV_general_batch_thread(
 		char* xclbinPath, int numThreads,
 		long minGraphSize, double threshold, double C_threshold, bool isParallel, int numPhase);
 
-;
+GLV* LouvainGLV_general_top(xf::graph::L3::Handle* handle0,
+                            ParLV& parlv,
+                            int& id_glv,
+                            bool opts_coloring,
+                            long opts_minGraphSize,
+                            double opts_threshold,
+                            double opts_C_thresh,
+                            int numThreads);
+
 #endif
