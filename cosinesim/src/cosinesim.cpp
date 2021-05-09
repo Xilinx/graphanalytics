@@ -234,8 +234,12 @@ public:
     }
 
     //padding the row and loadgraph
+<<<<<<< HEAD
+    virtual void finishLoadPopulationVectors() {
+=======
     virtual void finishLoadPopulation() {
 
+>>>>>>> dev
         //for the last PU, the last channels may need to padded as the row will be the multiple of channelsPU
         const unsigned numCus = numDevices * cuNm;
         int paddingDepth = ((numVerticesPU[numCus - 1][splitNm - 1] + channelsPU - 1) / channelsPU) * channelsPU
@@ -345,23 +349,17 @@ public:
     };
 
     virtual std::vector<Result> matchTargetVector(unsigned numResults, void *elements){
-
         std::vector<Result> result;
         //---------------- Generate Source Indice and Weight Array -------
         int sourceLen = edgeAlign8; // sourceIndice array length
-        int32_t* sourceWeight =
-                xf::graph::internal::aligned_alloc<int32_t>(sourceLen); // weights of source vertex's out members
-                //int32_t newVecLen = newVector.size() - 3;
+        int32_t* sourceWeight = xf::graph::internal::aligned_alloc<int32_t>(sourceLen); // weights of source vertex's out members
 
-                for (int i = 0; i < sourceLen; i++) {
-                    if (i < vecLength) {
-                        //sourceWeight[i] = elements[i + 3];
+        std::cout << "DEBUG: " << __FUNCTION__ << " sourceLen=" << sourceLen << std::endl;
 
-
+        for (int i = 0; i < sourceLen; i++) {
+            if (i < vecLength) {
                 if(valueSize_ == 4)
                     sourceWeight[i] = (reinterpret_cast<int32_t*>(elements))[i];
-                //else if (valueSize_== 8)
-                //	sourceWeight[i] = (reinterpret_cast<int64_t*>(elements))[i];
                 else {
                     // must exit at this point, or else crash on next line.  Throw exception here.
                     std::cout << "DEBUG: valueType is not supported" << std::endl;
@@ -371,33 +369,28 @@ public:
                     std::cerr << "ERROR: valueType is not supported." <<std::endl;
                     abort();
 
-                    } 
-                }else {
-                        sourceWeight[i] = 0;
-                    }
                 }
-                float* similarity = xf::graph::internal::aligned_alloc<float>(numResults);
-                int32_t* resultID = xf::graph::internal::aligned_alloc<int32_t>(numResults);
-                std::memset(resultID, 0, numResults * sizeof(int32_t));
-                std::memset(similarity, 0, numResults * sizeof(float));
+            } else
+                sourceWeight[i] = 0;
+        }
+            
+        float* similarity = xf::graph::internal::aligned_alloc<float>(numResults);
+        int32_t* resultID = xf::graph::internal::aligned_alloc<int32_t>(numResults);
+        std::memset(resultID, 0, numResults * sizeof(int32_t));
+        std::memset(similarity, 0, numResults * sizeof(float));
 
-                //---------------- Run L3 API -----------------------------------
+        //---------------- Run L3 API -----------------------------------
+        cosinesim_ss_dense_fpga(numDevices * cuNm, sourceLen, sourceWeight, numResults, g.data(),resultID, similarity);
 
-                cosinesim_ss_dense_fpga(numDevices * cuNm, sourceLen, sourceWeight, numResults, g.data(),resultID, similarity);
+        for (unsigned int k = 0; k < numResults; k++) 
+            result.push_back(Result(resultID[k], similarity[k]));
 
-                for (unsigned int k = 0; k < numResults; k++) {
-                    //result += testResults(VERTEX(xai::IDMap[resultID[k]]), similarity[k]);
-                    result.push_back(Result(resultID[k], similarity[k]));
-                }
+        free(sourceWeight);
+        free(similarity);
+        free(resultID);
 
-                free(sourceWeight);
-                free(similarity);
-                free(resultID);
-
-                return result;
+        return result;
     }
-
-
 
 }; // class PrivateImpl
 

@@ -40,10 +40,25 @@ inline int udf_load_cu_cosinesim_ss_fpga(int devicesNeeded)
     return ret;
 }
 
+inline int udf_xilinx_recom_set_node_id(uint nodeId) {
+    std::cout << __FUNCTION__ << " nodeId=" << nodeId << std::endl;
+
+    xilRecom::Lock lock(xilRecom::getMutex());
+    xilRecom::Context *pContext = xilRecom::Context::getInstance();
+    pContext->setNodeId(unsigned(nodeId));
+    return 0;
+}
+
+inline uint udf_xilinx_recom_get_node_id() {
+    xilRecom::Lock lock(xilRecom::getMutex());
+    xilRecom::Context *pContext = xilRecom::Context::getInstance();
+    return pContext->getNodeId();
+}
+
 
 inline int udf_xilinx_recom_set_num_devices(std::uint64_t numDevices) {
-    std::cout << __FUNCTION__ << " numDevices=" << numDevices << std::endl;
-    
+    std::cout << "DEBUG: UDF START" << __FUNCTION__ << " numDevices=" << numDevices << std::endl;
+
     xilRecom::Lock lock(xilRecom::getMutex());
     xilRecom::Context *pContext = xilRecom::Context::getInstance();
     pContext->setNumDevices(unsigned(numDevices));
@@ -62,13 +77,90 @@ inline bool udf_xilinx_recom_is_initialized() {
     return pContext->isInitialized();
 }
 
-inline bool udf_xilinx_recom_start_population() {
+// Each element in arrayNumVertices holds the number of vertices on a node
+inline bool udf_xilinx_recom_start_load_population(ArrayAccum<SumAccum<uint64_t> > arrayNumVectors, int64_t nodeId) {
+    std::cout << "DEBUG: UDF START " << __FUNCTION__ << std::endl;
 
-    std::cout << __FUNCTION__ << std::endl;
+    xilRecom::Lock lock(xilRecom::getMutex());
+    xilRecom::Context *pContext = xilRecom::Context::getInstance(); 
+    uint ctxNodeId = pContext->getNodeId();
+
+    if (nodeId != ctxNodeId) {
+        std::cout << "ERROR: UDF nodeId " << nodeId << 
+                  " does not match CosineSim nodeId " << ctxNodeId << std::endl;
+        return false;
+    }
+
+    xilinx_apps::cosinesim::RowIndex numVectors = xilinx_apps::cosinesim::RowIndex(arrayNumVectors.data_[nodeId]);
+    
+    std::cout << "DEBUG: " << __FUNCTION__ << " nodeID=" << nodeId 
+              << " numVectors=" << numVectors << std::endl;
+
+    xilRecom::Context::IdMap &idMap = pContext->getIdMap();
+    idMap.clear();
+    idMap.resize(numVectors, 0);
+
+    xilRecom::CosineSim *pCosineSim = pContext->getCosineSimObj();
+    pCosineSim->startLoadPopulation(numVectors);
+
+    std::cout << "DEBUG: UDF END " << __FUNCTION__ << std::endl;
     return true;
 }
 
-inline int udf_xilinx_recom_load_population_vectors(int64_t numVertices, ListAccum<ListAccum<int64_t> >& popVectors,
+inline int udf_xilinx_recom_load_population_vector(ListAccum<int64_t> popVector, uint64_t id) {
+    //std::cout << "DEBUG: UDF START " << __FUNCTION__ << std::endl;
+
+    xilRecom::Lock lock(xilRecom::getMutex());
+    xilRecom::Context *pContext = xilRecom::Context::getInstance();
+
+    xilinx_apps::cosinesim::ColIndex vectorLength = xilinx_apps::cosinesim::ColIndex(
+            xilinx_apps::cosinesim::ColIndex(popVector.size()));
+    pContext->setVectorLength(vectorLength);
+
+    xilRecom::Context::IdMap &idMap = pContext->getIdMap();
+    uint ctxNodeId = pContext->getNodeId();
+    xilRecom::CosineSim *pCosineSim = pContext->getCosineSimObj();
+
+    std::cout << "DEBUG: UDF " << __FUNCTION__ << " nodeID=" << ctxNodeId 
+              << " vectorLength=" << vectorLength << std::endl;
+
+    xilinx_apps::cosinesim::RowIndex rowIndex = 0;
+    xilRecom::CosineSim::ValueType *pBuf = pCosineSim->getPopulationVectorBuffer(rowIndex);
+    for (xilinx_apps::cosinesim::ColIndex eltNum = 0; eltNum < vectorLength; ++eltNum)
+        *pBuf++ = xilRecom::CosineSim::ValueType(popVector.get(eltNum));
+    
+    pCosineSim->finishCurrentPopulationVector(pBuf);
+    idMap[rowIndex] = id;
+
+    //std::cout << "DEBUG: UDF END " << __FUNCTION__ << std::endl;
+    return 0;
+}
+
+//
+inline bool udf_xilinx_recom_finish_load_population(int64_t nodeId) {
+    std::cout << "DEBUG: UDF START " << __FUNCTION__ << std::endl;
+    xilRecom::Lock lock(xilRecom::getMutex());
+    xilRecom::Context *pContext = xilRecom::Context::getInstance();
+    xilRecom::CosineSim *pCosineSim = pContext->getCosineSimObj();
+
+    uint ctxNodeId = pContext->getNodeId();
+    std::cout << "DEBUG: UDF START " << __FUNCTION__ << " nodeID=" << ctxNodeId << std::endl;
+
+    if (nodeId != ctxNodeId) {
+        std::cout << "ERROR: UDF nodeId " << nodeId << 
+                  " does not match CosineSim nodeId " << ctxNodeId << std::endl;
+        return false;
+    }
+
+    pCosineSim->finishLoadPopulationVectors();
+    pContext->setInitialized();  // FPGA(s) now ready to match
+
+    std::cout << "DEBUG: UDF END " << __FUNCTION__ << std::endl;
+    return true;
+}
+
+
+inline int udf_xilinx_recom_load_population_vectors(ListAccum<ListAccum<int64_t> >& popVectors,
         ListAccum<uint64_t> &ids) {
     xilRecom::Lock lock(xilRecom::getMutex());
     xilRecom::Context *pContext = xilRecom::Context::getInstance();
@@ -131,7 +223,7 @@ inline int udf_xilinx_recom_load_population_vectors(int64_t numVertices, ListAcc
 // Enable this to print profiling messages to the log (via stdout)
 #define XILINX_RECOM_PROFILE_ON
 
-inline ListAccum<XilCosinesimMatch> udf_xilinx_recom_match_target_vector(int64_t topK, ListAccum<int64_t>& targetVector)
+inline ListAccum<XilCosinesimMatch> udf_xilinx_recom_match_target_vector(int64_t topK, ListAccum<int64_t> targetVector)
 {
     xilRecom::Lock lock(xilRecom::getMutex());
     ListAccum<XilCosinesimMatch> result;
@@ -141,10 +233,8 @@ inline ListAccum<XilCosinesimMatch> udf_xilinx_recom_match_target_vector(int64_t
         return result;
     xilRecom::Context::IdMap &idMap = pContext->getIdMap();
 
-//    std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
-//            << " numVertices=" << numVertices << ", general=" << general 
-//            << ", rest=" << rest 
-//            << ", split=" << devicesNeeded * cuNm * splitNm << std::endl;
+    uint ctxNodeId = pContext->getNodeId();
+    std::cout << "DEBUG: UDF START " << __FUNCTION__ << " nodeID=" << ctxNodeId << std::endl;
 
     //-------------------------------------------------------------------------
 #ifdef XILINX_RECOM_PROFILE_ON
@@ -234,6 +324,8 @@ inline ListAccum<XilCosinesimMatch> udf_xilinx_recom_match_target_vector(int64_t
         std::cout << "ERROR: xilinxRecomEngine: " << ex.what() << std::endl;
 //        pContext->clear();  // maybe don't do this if problem is transient
     }
+
+    std::cout << "DEBUG: UDF END " << __FUNCTION__ << std::endl;
     return result;
 }
 
