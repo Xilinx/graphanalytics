@@ -36,12 +36,25 @@ script_dir=$(dirname $SCRIPT)
 # common.sh sets up gsql client, gets username, passowrd, xgraph name
 . $script_dir/bin/common.sh
 
+mkdir -p log
+if ! chmod 777 log ; then
+    echo "Unable to make a 'log' directory writable by all."
+    exit 1
+fi
+
+# cosinesim_clear_embeddings: base, dist
+# cosinesim_embed_vectors: base, dist
+# cosinesim_embed_normals: base, dist
+# cosinesim_set_num_devices: base, dist
+# load_graph_cosinesim_ss_fpga_core: base
+# cosinesim_ss_tg: query
+# cosinesim_ss_fpga: query
+
 if [ "$load_cache" -eq 1 ]
 then
     echo "Clearing embeddings..."
     time gsql -g $xgraph "set query_timeout=240000000 run query cosinesim_clear_embeddings()"
     echo "Caching cosine similarity vectors to patient vertices..."
-#    time gsql -g $xgraph "set query_timeout=240000000 run query cosinesim_cache_to_vertices()"
     time gsql -g $xgraph "set query_timeout=240000000 run query cosinesim_embed_vectors()"
     time gsql -g $xgraph "set query_timeout=240000000 run query cosinesim_embed_normals()"
 fi
@@ -49,7 +62,7 @@ fi
 if [ "$load_fpga" -eq 1 ]; then
     echo "Run query load_graph_cosinesim_ss_fpga"
     gsql -g $xgraph "run query cosinesim_set_num_devices($num_devices)"
-    time gsql -g $xgraph "run query load_graph_cosinesim_ss_fpga()"
+    time gsql -g $xgraph "run query load_graph_cosinesim_ss_fpga_core()"
 fi
 
 for ((j = 0 ; j < $iterations ; ++j))

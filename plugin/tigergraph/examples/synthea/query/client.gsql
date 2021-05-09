@@ -78,13 +78,13 @@ CREATE QUERY client_cosinesim_load_alveo() FOR GRAPH @graph
     PRINT ret AS StatusCode, status AS StatusMessage, run_time AS ExecTimeInMs;
 }
 
-CREATE QUERY client_cosinesim_load_alveo_cluster() FOR GRAPH @graph 
-{
-    BOOL ret;
-
-    ret = cosinesim_start_population();
-    PRINT ret AS Status;
-}
+#CREATE QUERY client_cosinesim_load_alveo_cluster() FOR GRAPH @graph 
+#{
+#    BOOL ret;
+#
+#    ret = cosinesim_start_population();
+#    PRINT ret AS Status;
+#}
 
 CREATE QUERY client_cosinesim_match_alveo(VERTEX<patients> newPatient, UINT topK) FOR GRAPH @graph {
     DOUBLE run_time;
