@@ -72,7 +72,13 @@ if [ $verbose -eq 1 ]; then
 fi
 
 # Temporary directory of include files to be included into main UDF header (ExprFunctions.hpp)
-tg_temp_include_dir=$tg_temp_root/gsql/codegen/udf
+tg_version=$(basename $tg_root_dir)
+if [ "tg_version" == "3.1.0" ]; then
+    tg_temp_include_dir=$tg_temp_root/gsql/codegen/udf
+else
+    tg_temp_include_dir=$tg_temp_root/gsql/codegen/QueryUdf
+fi
+echo "INFO: UDF codegen directory is $tg_temp_include_dir"
 
 # Source directory for TigerGraph plugin
 plugin_src_dir=$SCRIPTPATH/../udf

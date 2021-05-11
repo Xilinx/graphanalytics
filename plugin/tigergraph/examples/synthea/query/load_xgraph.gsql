@@ -74,15 +74,4 @@ BEGIN
             TO EDGE patient_HAD_careplan VALUES($"PATIENT" patients, $"Id" careplans) 
             USING header="true", separator=",";
     }
-
-
-    CREATE QUERY insert_dummy_nodes(UINT numNodes) for graph @graph 
-    {
-        FOREACH i in RANGE[0, numNodes] DO
-            INSERT INTO dummy_nodes VALUES(i, i);
-            PRINT i;
-        END;
-        PRINT "insert_dummy_nodes done.";
-    }
-    INSTALL QUERY insert_dummy_nodes
 END

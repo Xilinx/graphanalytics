@@ -234,12 +234,7 @@ public:
     }
 
     //padding the row and loadgraph
-<<<<<<< HEAD
-    virtual void finishLoadPopulationVectors() {
-=======
     virtual void finishLoadPopulation() {
-
->>>>>>> dev
         //for the last PU, the last channels may need to padded as the row will be the multiple of channelsPU
         const unsigned numCus = numDevices * cuNm;
         int paddingDepth = ((numVerticesPU[numCus - 1][splitNm - 1] + channelsPU - 1) / channelsPU) * channelsPU

@@ -87,6 +87,9 @@ else
         echo "INFO: Restarting GPE service"
         gadmin restart gpe -y
     else
+        # copy gsql-client.jar to tmp directory
+        cp $tg_root_dir/dev/gdk/gsql/lib/gsql_client.jar /tmp/gsql_client.jar.tmp
+
         echo "INFO: Apply environment changes to TigerGraph installation"
         gadmin start all
 
@@ -105,10 +108,15 @@ else
 
         gadmin config set GPE.BasicConfig.Env "$gpe_config"
 
+        # increase RESTPP timeout
+        gadmin config set RESTPP.Factory.DefaultQueryTimeoutSec 3600
+
+
         echo "INFO: Apply the new configurations to $gpe_config"
         gadmin config apply -y
-        gadmin restart gpe -y
+        gadmin restart GPE RESTPP -y
         gadmin config get GPE.BasicConfig.Env
+        gadmin config get RESTPP.Factory.DefaultQueryTimeoutSec
     fi
 fi
 

@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-use graph @graph
-drop query cosinesim_ss_tg, cosinesim_ss_fpga
+USE GRAPH @graph
+DROP QUERY cosinesim_ss_tg, cosinesim_ss_fpga
 
 #create query code_str(vertex<patients> p, string e_str, int num) for graph @graph 
 #    returns (string)
