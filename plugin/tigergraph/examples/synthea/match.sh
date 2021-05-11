@@ -76,7 +76,7 @@ do
     echo "INFO: Running a simple diff as a sanity check between CPU and FPGA results"
     echo "INFO: diff /tmp/tg.txt /tmp/fpga.txt"
     # basic checking of the result
-    diff /tmp/fpga.txt /tmp/tg.txt || :
+    # diff /tmp/fpga.txt /tmp/tg.txt || :
 
     echo ""
     echo "INFO: The only difference should be the precision of similarity scores for some records."

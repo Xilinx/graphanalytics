@@ -152,7 +152,7 @@ inline bool udf_xilinx_recom_finish_load_population(int64_t nodeId) {
         return false;
     }
 
-    pCosineSim->finishLoadPopulationVectors();
+    pCosineSim->finishLoadPopulation();
     pContext->setInitialized();  // FPGA(s) now ready to match
 
     std::cout << "DEBUG: UDF END " << __FUNCTION__ << std::endl;

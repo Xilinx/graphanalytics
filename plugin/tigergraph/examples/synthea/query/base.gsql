@@ -294,8 +294,20 @@ create query cosinesim_ss_fpga_core (vertex<patients> source, uint topK) for
     RETURN @@results;
 }
 
-install query patient_age, patient_race, patient_gender, patient_ethnicity, 
+
+CREATE QUERY insert_dummy_nodes(UINT numNodes) for graph @graph 
+{
+    FOREACH i in RANGE[0, numNodes] DO
+        INSERT INTO dummy_nodes VALUES(i, i);
+        PRINT i;
+    END;
+    PRINT "insert_dummy_nodes done.";
+}
+
+INSTALL QUERY patient_age, patient_race, patient_gender, patient_ethnicity, 
     patient_vector, cosinesim_clear_embeddings, cosinesim_embed_vectors, cosinesim_embed_normals,
-    cosinesim_match_sw, cosinesim_set_num_devices,
+    cosinesim_match_sw, cosinesim_set_num_devices, 
     cosinesim_get_num_devices, cosinesim_is_fpga_initialized,
-    load_graph_cosinesim_ss_fpga_core, cosinesim_ss_fpga_core
+    load_graph_cosinesim_ss_fpga_core, cosinesim_ss_fpga_core, insert_dummy_nodes
+
+
