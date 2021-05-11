@@ -16,6 +16,7 @@
 #
 
 set -e
+echo $@
 
 SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`
@@ -28,8 +29,6 @@ if [ "$USER" != "tigergraph" ]; then
     exit 1
 fi
 
-xrtPath=/opt/xilinx/xrt
-xrmPath=/opt/xilinx/xrm
 mem_alloc="jemalloc"
 dev_mode=0
 debug_flag=0
@@ -37,16 +36,13 @@ xrt_profiling=0
 uninstall=0
 verbose=0
 node_flags=
-while getopts ":a:dfgm:pr:uv" opt
+while getopts ":a:dgpuv" opt
 do
 case $opt in
     a) mem_alloc=$OPTARG;;
-    d) dev_mode=1; node_flags+=" -d";;
-    f) node_flags+=" -f";;
-    g) debug_flag=1; node_flags+=" -g";;
-    m) xrmPath=$OPTARG; node_flags+=" -m $OPTARG";;
+    d) dev_mode=1;;
+    g) debug_flag=1;;
     p) xrt_profiling=1;;
-    r) xrtPath=$OPTARG; node_flags+=" -r $OPTARG";;
     u) uninstall=1; node_flags+=" -u";;
     v) verbose=1; node_flags+=" -v";;
     ?) echo "ERROR: Unknown option -$OPTARG"; exit 1;;  # pass through to sub-script
@@ -64,8 +60,6 @@ if [ $verbose -eq 1 ]; then
     echo "INFO: Cluster script is running with the settings below:"
     echo "      mem_alloc=$mem_alloc"
     echo "      dev_mode=$dev_mode"
-    echo "      xrtPath=$xrtPath"
-    echo "      xrmPath=$xrmPath"
     echo "      force_clean=$force_clean"
     echo "      debug_flag=$debug_flag"
     echo "      xrt_profiling=$xrt_profiling"
@@ -77,8 +71,9 @@ echo "INFO: Found TigerGraph installation in $tg_root_dir"
 echo "INFO: TigerGraph TEMP root is $tg_temp_root"
 echo "INFO: Home is $HOME"
 
-
-grun all "${SCRIPTPATH}/install-plugin-node.sh $*"
+# run installation script on each node
+echo "Running installation script on each node with option $node_flags"
+grun all "${SCRIPTPATH}/install-plugin-node.sh $node_flags"
 
 if [ $dev_mode -eq 1 ]; then
     echo "INFO: Development mode -- skipping TigerGraph configuration."
