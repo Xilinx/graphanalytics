@@ -77,6 +77,10 @@
                                 {
                                     "name": "sourceWeight", 
                                     "memory": "HBM[24]"
+                                },
+                                {
+                                    "name": "sourceCoeffs", 
+                                    "memory": "HBM[24]"   
                                 }, 
                                 {
                                     "name": "resultID", 
@@ -146,6 +150,10 @@
                                 }, 
                                 {
                                     "name": "sourceWeight", 
+                                    "memory": "HBM[28]"
+                                },
+                                {
+                                    "name": "sourceCoeffs",
                                     "memory": "HBM[28]"
                                 }, 
                                 {
