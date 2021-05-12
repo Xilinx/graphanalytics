@@ -241,23 +241,28 @@ class openXRM {
                         flag = true;
                     }
                 }
-                if (flag == false) {
+                if (!flag) {
                     availNumDevices += 1;
                 }
             }
             *cuID = cus;
             *deviceID = devices;
             assert(availNumDevices != 0);
-            if (xrmCuListRelease(ctx, &cuListResR))
-                std::cout << "INFO: Success to release cu list\n" << std::endl;
-            else
-                std::cout << "Error: Fail to release cu list\n" << std::endl;
+            if (!xrmCuListRelease(ctx, &cuListResR)) {
+                std::cout << "ERORR: Fail to release cu list" << std::endl;
+                return -2;
+            }
         }
         std::cout << "INFO: Available device number = " << availNumDevices << std::endl;
         std::cout << "INFO: Available CU number = " << availMaxCU << std::endl;
         if (availNumDevices >= numDevices) {
             // has sufficient devices. adjust maxCU based on requested numDevices
             maxCU = numDevices*availMaxCU/availNumDevices;
+        } else {
+            std::cout << "ERROR: number of available devices " << availNumDevices 
+                      << " is less than number of devices requested " << numDevices
+                      << std::endl;
+            return -1;
         }
         return 0;
     }
@@ -482,10 +487,11 @@ inline void worker(queue& q,
             if (q.empty()) break; // no more requests execute pending ones.
         }
 
+#ifndef NDEBUG
         std::cout << "DEBUG: ---------" << __FUNCTION__ 
                   << " pendingRequests" << pendingRequests 
                   << " curRequestId " << curRequestId << std::endl;
-                  
+#endif                  
         bool toStop = false;
         for (int i = 0; i < pendingRequests; ++i) {
             if (!t[i].valid()) toStop = true;
