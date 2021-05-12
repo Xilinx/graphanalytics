@@ -30,7 +30,9 @@ int main(int argc, char *argv[]) {
     	else if (0 == strcmp(argv[i], "-load_alveo_partitions"))
     		return load_alveo_partitions(argc, argv);
         else if (0 == strcmp(argv[i], "-compute_modularity"))
-            return compute_modularity(argv[2]);
+            // argv2: in-mtx-file
+            // argv3: in-cluster-info-file
+            return compute_modularity(argv[2], argv[3]);
     }
 
     printf("\n\n");

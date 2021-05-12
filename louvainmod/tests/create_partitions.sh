@@ -24,7 +24,7 @@ rundir=$subdir/louvain_partitions
 echo "Removing $rundir"
 rm -rf $rundir
 
-cmd="../Release/louvainModularity_test  $1 -fast -par_num $partitions -create_alveo_partitions -name $rundir -server_par $4"
+cmd="../Release/louvainmod_test  $1 -fast -par_num $partitions -create_alveo_partitions -name $rundir -server_par $4"
 echo $cmd
 export LD_LIBRARY_PATH=$script_dir/../Release/:$LD_LIBRARY_PATH
 $cmd
