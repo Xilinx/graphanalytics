@@ -13,30 +13,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-use graph @graph
-drop query cosinesim_ss_tg, load_graph_cosinesim_ss_fpga, cosinesim_ss_fpga, code_str
+USE GRAPH @graph
+DROP QUERY cosinesim_ss_tg, cosinesim_ss_fpga
 
-create query code_str(vertex<patients> p, string e_str, int num) for graph @graph 
-    returns (string)
-{
-    string res;
-    ListAccum<uint> @@code_list;
-    patientList = {p};
-    property_list (ANY) = select a FROM patientList-(e_str:e)-:a
-        ORDER BY a.CODE DESC
-        LIMIT num;
+#create query code_str(vertex<patients> p, string e_str, int num) for graph @graph 
+#    returns (string)
+#{
+#    string res;
+#    ListAccum<uint> @@code_list;
+#    patientList = {p};
+#    property_list (ANY) = select a FROM patientList-(e_str:e)-:a
+#        ORDER BY a.CODE DESC
+#        LIMIT num;
+#
+#    my_list (ANY) = select v FROM property_list:v
+#        ACCUM @@code_list += v.CODE;
+#
+#    foreach item in @@code_list do
+#        concat_uint64_to_str(res, item);
+#    end;
+#
+#    return res;
+#}
 
-    my_list (ANY) = select v FROM property_list:v
-        ACCUM @@code_list += v.CODE;
-
-    foreach item in @@code_list do
-        concat_uint64_to_str(res, item);
-    end;
-
-    return res;
-}
-
-create query cosinesim_ss_tg(string log_file) for graph @graph {
+CREATE QUERY cosinesim_ss_tg(string log_file) for graph @graph {
     uint topK;
     double score;
     DOUBLE run_time;
@@ -71,36 +71,31 @@ create query cosinesim_ss_tg(string log_file) for graph @graph {
         ACCUM score = topKP.score
         POST-ACCUM file1.println(score, v.FIRST_NAME, v.LAST_NAME, patient_age(v), v.RACE, v.ETHNICITY,v.GENDER, 
                 v.outdegree("patient_HAD_immunization"), 
-                #code_str(v, "patient_HAD_immunization", 3), 
                 v.outdegree("patient_HAD_allergy"), 
-                #code_str(v, "patient_HAD_allergy", 3),
                 v.outdegree("patient_HAD_condition"), 
-                #code_str(v, "patient_HAD_condition", 3),
                 v.outdegree("patient_HAD_procedure"), 
-                #code_str(v, "patient_HAD_procedure", 3),
                 v.outdegree("patient_HAD_careplan")
-                #code_str(v, "patient_HAD_careplan", 3)
                 );
     end;
 }
 
 
-create query load_graph_cosinesim_ss_fpga() for graph @graph {
-    STRING status;
-    INT ret;
-    EXCEPTION cosinesimLoadFailed(40001);
+#CREATE QUERY load_graph_cosinesim_ss_fpga() for graph @graph {
+#    STRING status;
+#    INT ret;
+#    EXCEPTION cosinesimLoadFailed(40001);
+#
+#    ret = load_graph_cosinesim_ss_fpga_core();
+#    print ret;
+#    IF ret == 0 THEN
+#        status = "Graph data loaded successfully";
+#    ELSE
+#        RAISE cosinesimLoadFailed("ERROR: Cosine Similarity load operation failed.  Please see the GPE log for details.");
+#    END;
+#    PRINT status;
+#}
 
-    ret = load_graph_cosinesim_ss_fpga_core();
-    print ret;
-    IF ret == 0 THEN
-        status = "Graph data loaded successfully";
-    ELSE
-        RAISE cosinesimLoadFailed("ERROR: Cosine Similarity load operation failed.  Please see the GPE log for details.");
-    END;
-    PRINT status;
-}
-
-create query cosinesim_ss_fpga(string log_file1) for graph @graph {
+CREATE QUERY cosinesim_ss_fpga(string log_file1) for graph @graph {
     uint topK;
     vertex<patients> newPatient;
     ListAccum<XilCosinesimMatch> @@result;
@@ -142,17 +137,12 @@ create query cosinesim_ss_fpga(string log_file1) for graph @graph {
         ACCUM score = topKP.score
         POST-ACCUM file1.println(score, v.FIRST_NAME, v.LAST_NAME, patient_age(v), v.RACE, v.ETHNICITY,v.GENDER,
                 v.outdegree("patient_HAD_immunization"), 
-                #code_str(v, "patient_HAD_immunization", 3),
                 v.outdegree("patient_HAD_allergy"), 
-                #code_str(v, "patient_HAD_allergy", 3),
                 v.outdegree("patient_HAD_condition"), 
-                #code_str(v, "patient_HAD_condition", 3),
                 v.outdegree("patient_HAD_procedure"), 
-                #code_str(v, "patient_HAD_procedure", 3),
                 v.outdegree("patient_HAD_careplan") 
-                #code_str(v, "patient_HAD_careplan", 3)
                 );
     end;
 }
 
-install query code_str, cosinesim_ss_tg, load_graph_cosinesim_ss_fpga,  cosinesim_ss_fpga
+install query cosinesim_ss_tg, cosinesim_ss_fpga

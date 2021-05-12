@@ -10,7 +10,18 @@ namespace xilinx_apps {
 namespace cosinesim {
 
 // Binding fixed to following datatype
-using Datatype = std::int32_t;
+using DataType = std::int32_t;
+
+// C++ random number generator, because native python is too slow
+using VecDataType = std::vector<DataType>;
+VecDataType buildRandData(int max, int min, int vecSize) {
+    VecDataType vec(vecSize);
+    for(auto elem = 0; elem < vecSize; elem++) {
+      vec[elem] = DataType(std::rand() * 1.0*(max-min)/RAND_MAX + min);
+    }
+    return vec;
+}
+
 
 // Pointer container class for passing to python
 template<typename PtrType>
@@ -21,20 +32,23 @@ public:
 
     void *get_ptr() { return ptr_; } // This is not right!
 
-    void fill(PtrType value) {
-        if(currIdx_ >= ptrLength_) {
-            std::cout << "C_POINTER_ERROR: Tried writing to position " << currIdx_ << " for " << ptrLength_ << " length array" << std::endl;
+    void append(py::list valueList) {
+        unsigned vecSize = valueList.size();
+        if(currIdx_ + vecSize > ptrLength_) {
+            std::cout << "CPP_POINTER_ERROR: Tried to store " << currIdx_ + vecSize << " elements in a C++ array of size " << ptrLength_ << std::endl;
         }
         else {
-            *((PtrType *)ptr_ + currIdx_) = value;
-            currIdx_++;
+            for(unsigned i = 0; i < vecSize; i++) {
+                *((PtrType *)ptr_ + currIdx_) = valueList[i].cast<DataType>();
+                currIdx_++;
+            }
         }
     }
 
 private:
     void * ptr_;
-    int ptrLength_;
-    int currIdx_;
+    unsigned ptrLength_;
+    unsigned currIdx_;
 };
 
 // Wrapper child class to extend base class with PtrWrapper
@@ -42,16 +56,16 @@ class PyCSWrapper : public CosineSimBase {
 public:
     PyCSWrapper(const Options &options, unsigned valueSize) : CosineSimBase(options, valueSize), opt_(options) {}
 
-    PtrWrapper<Datatype> getPopulationVectorBuffer(RowIndex &rowIndex) {
+    PtrWrapper<DataType> getPopulationVectorBuffer(RowIndex &rowIndex) {
         void *populationVec = CosineSimBase::getPopulationVectorBuffer(rowIndex);
-        return PtrWrapper<Datatype>(populationVec, opt_.vecLength);
+        return PtrWrapper<DataType>(populationVec, opt_.vecLength);
     }
 
-    void finishCurrentPopulationVector(PtrWrapper<Datatype> populationVecWrap) {
+    void finishCurrentPopulationVector(PtrWrapper<DataType> populationVecWrap) {
         CosineSimBase::finishCurrentPopulationVector(populationVecWrap.get_ptr());
     }
 
-    std::vector<Result> matchTargetVector(unsigned numResults, std::vector<Datatype> elementsVec) {
+    std::vector<Result> matchTargetVector(unsigned numResults, std::vector<DataType> elementsVec) {
         return CosineSimBase::matchTargetVector(numResults, elementsVec.data());
     }
 
@@ -64,6 +78,8 @@ private:
 PYBIND11_MODULE (xilCosineSim, pc) {
   pc.doc() = "Python bindings for the Xilinx Cosine Similarity library";
 
+  pc.def("buildRandData", &buildRandData);
+
   py::class_<Options>(pc, "options")
     .def(py::init())
     .def_readwrite("vecLength", &Options::vecLength)
@@ -75,10 +91,10 @@ PYBIND11_MODULE (xilCosineSim, pc) {
     .def_readonly("index", &Result::index)
     .def_readonly("similarity", &Result::similarity);
 
-  py::class_<PtrWrapper<Datatype>>(pc, "cpppointer")
+  py::class_<PtrWrapper<DataType>>(pc, "cpppointer")
     .def(py::init<void*, int>())
     .def(py::init<>())
-    .def("fill", &PtrWrapper<Datatype>::fill);
+    .def("append", &PtrWrapper<DataType>::append);
 
   py::class_<PyCSWrapper>(pc, "cosinesim")
     .def(py::init<const Options &, unsigned>())

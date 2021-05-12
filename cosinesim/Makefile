@@ -75,7 +75,8 @@ $(JAVA_API_DOC_JAR): $(JAVA_API_JAR)
 
 CCC = g++
 CXX = g++
-CXXFLAGS = -std=c++11 -fPIC -Wall -Wno-unknown-pragmas -Wno-unused-label -Wno-narrowing -D USE_HBM -fmessage-length=0
+CXXFLAGS = -std=c++11 -fPIC -Wall -Wno-unknown-pragmas -Wno-unused-label \
+           -Wno-narrowing -D USE_HBM -fmessage-length=0 -D COSINESIM 
 
 # Define the target directories.
 
@@ -109,16 +110,7 @@ LOADER_NAME = lib$(LOADER_SHORT_NAME).a
 #SRCS_L3 = $(wildcard $(GRAPH_ANALYTICS_DIR)/L3/src/*.cpp) $(GRAPH_ANALYTICS_DIR)/ext/xcl2/xcl2.cpp
 
 SRCS_L3_NAMES = \
-        op_bfs.cpp \
-	op_convertcsrcsc.cpp \
-	op_labelpropagation.cpp \
-	op_pagerank.cpp \
-	op_scc.cpp \
 	op_similaritydense.cpp \
-	op_similaritysparse.cpp \
-	op_trianglecount.cpp \
-	op_sp.cpp \
-	op_wcc.cpp \
 	xf_graph_L3.cpp \
 	xf_graph_L3_handle.cpp
 

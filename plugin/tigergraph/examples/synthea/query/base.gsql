@@ -195,7 +195,7 @@ create query patient_vector(vertex<patients> targetPatient) for graph @graph ret
 }
 
 
-CREATE QUERY cosinesim_clear_embeddings() FOR GRAPH @graph {
+CREATE DISTRIBUTED QUERY cosinesim_clear_embeddings() FOR GRAPH @graph {
     ListAccum<INT> @@emptyVec;
 
     population = {patients.*};
@@ -206,14 +206,14 @@ CREATE QUERY cosinesim_clear_embeddings() FOR GRAPH @graph {
 }
 
 
-CREATE QUERY cosinesim_embed_vectors() FOR GRAPH @graph {
+CREATE DISTRIBUTED QUERY cosinesim_embed_vectors() FOR GRAPH @graph {
     population = {patients.*};
     UPDATE p FROM population:p
         SET p.COSINE_SIM_VECTOR = patient_vector(p);
 }
 
 
-CREATE QUERY cosinesim_embed_normals() FOR GRAPH @graph {
+CREATE DISTRIBUTED QUERY cosinesim_embed_normals() FOR GRAPH @graph {
     # Cache normals, just for software cosine similarity
     population = {patients.*};
     UPDATE p FROM population:p
@@ -278,7 +278,7 @@ create query load_graph_cosinesim_ss_fpga_core() for graph @graph returns (int) 
     patientList = select p from population:p
         ACCUM @@patientVectors += p.COSINE_SIM_VECTOR, @@patientIds += getvid(p);
 
-    ret = udf_xilinx_recom_load_population_vectors(population.size(), @@patientVectors, @@patientIds);
+    ret = udf_xilinx_recom_load_population_vectors(@@patientVectors, @@patientIds);
     return ret;
 }
 
@@ -288,17 +288,26 @@ create query cosinesim_ss_fpga_core (vertex<patients> source, uint topK) for
     ListAccum<XilCosinesimMatch> @@results;
     ListAccum<int> @@targetPatientVector;
 
-    population = {patients.*};
-
     @@targetPatientVector = patient_vector(source);
 
     @@results = udf_xilinx_recom_match_target_vector(topK, @@targetPatientVector);
-    return @@results;
+    RETURN @@results;
 }
 
 
-install query patient_age, patient_race, patient_gender, patient_ethnicity, 
+CREATE QUERY insert_dummy_nodes(UINT numNodes) for graph @graph 
+{
+    FOREACH i in RANGE[0, numNodes] DO
+        INSERT INTO dummy_nodes VALUES(i, i);
+        PRINT i;
+    END;
+    PRINT "insert_dummy_nodes done.";
+}
+
+INSTALL QUERY patient_age, patient_race, patient_gender, patient_ethnicity, 
     patient_vector, cosinesim_clear_embeddings, cosinesim_embed_vectors, cosinesim_embed_normals,
-    cosinesim_match_sw, cosinesim_set_num_devices,
+    cosinesim_match_sw, cosinesim_set_num_devices, 
     cosinesim_get_num_devices, cosinesim_is_fpga_initialized,
-    load_graph_cosinesim_ss_fpga_core, cosinesim_ss_fpga_core
+    load_graph_cosinesim_ss_fpga_core, cosinesim_ss_fpga_core, insert_dummy_nodes
+
+
