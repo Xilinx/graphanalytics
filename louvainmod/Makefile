@@ -219,7 +219,7 @@ LDLIBS_test = \
 	
 
 SRC_FILE_NAMES_test = \
-    test_louvainModularity.cpp
+    louvainmod_test.cpp
 
 SRCS_test = $(addprefix $(TEST_DIR)/,$(SRC_FILE_NAMES_test))
 OBJS_test = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_test:.cpp=.o)))
@@ -227,7 +227,7 @@ DEPS_test = $(OBJS_test:.o=.d)
 
 # List of all test executables to build
 EXEC_FILE_NAMES_test = \
-    louvainModularity_test
+    louvainmod_test
 
 EXECS_test = $(addprefix $(CPP_BUILD_DIR)/,$(EXEC_FILE_NAMES_test))
 
@@ -243,7 +243,7 @@ cppTest2: $(EXECS_test)
 
 LDFLAGS_test = -fPIC -w -L $(CPP_BUILD_DIR) -l$(LIB_SHORT_NAME) -lzmq -fopenmp -m64
 
-$(CPP_BUILD_DIR)/louvainModularity_test: $(CPP_BUILD_DIR)/test_louvainModularity.o $(CPP_BUILD_DIR)/$(LIB_NAME)
+$(CPP_BUILD_DIR)/louvainmod_test: $(CPP_BUILD_DIR)/louvainmod_test.o $(CPP_BUILD_DIR)/$(LIB_NAME)
 	$(LINK.cc) -o $@ $< $(LDFLAGS_test) $(LIB_DEPS)
 
 #$(CPP_BUILD_DIR)/cosinesim_dyn_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUILD_DIR)/$(LOADER_NAME) $(CPP_BUILD_DIR)/$(LIB_NAME)

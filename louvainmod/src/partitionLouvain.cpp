@@ -1364,7 +1364,6 @@ GLV* SttGPar::ParNewGlv_Prun(long start_tg, long* offsets_tg, edge* edgelist_tg,
         map<long , long>::iterator itr;
         VGMinDgr gMinDgr;
         long num_vg = 0;
-        long e_dgr = 0;
         long head_m, tail_m;
         long adj1    = offsets_tg[v - start_tg];
         long adj2    = offsets_tg[v+1 - start_tg];
@@ -1373,13 +1372,10 @@ GLV* SttGPar::ParNewGlv_Prun(long start_tg, long* offsets_tg, edge* edgelist_tg,
             long e = edgelist_tg[adj1+d].tail;
             double w = edgelist_tg[adj1+d].weight;
             long e_dgr2 = dgrlist_tg[cnt_e_input];
-            e_dgr=e_dgr2;
             head_m = v - start;
             EdgePruning(elist, v, e, w, M_v, gMinDgr, num_vg, e_dgr2, th_maxGhost);
             cnt_e_input++;
-            //printf("DBG_PAR:vertex= %ld\t adj1= %ld\t adj2= %ld\t  degree= %ld\t e=%d \n", v, adj1, adj2, e_dgr, e);
-
-        }//for
+        }
         long smallest = num_vg < th_maxGhost ? num_vg : th_maxGhost;
         for(int i = 0; i < smallest; i++) {
             itr = map_v_g.find(gMinDgr.tail[i]);

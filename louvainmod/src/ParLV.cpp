@@ -1124,18 +1124,20 @@ int host_ParserParameters(int argc,
     if (has_opts_output != -1 && has_opts_output < (argc - 1)) {
         opts_output = true;
         rec[has_opts_output] = true;
-        rec[has_opts_output + 1] = true;
+        rec[has_opts_output + 1] = true; 
+        
         strcpy(opts_outputFile, argv[has_opts_output + 1]);
 #ifdef PRINTINFO
         printf("PARAMETER  opts_outFile = %s\n", opts_outputFile);
 #endif
+        /*
         FILE* file = fopen(opts_outputFile, "w");
         if (file == NULL) {
             printf("\033[1;31;40mPARAMETER ERROR\033[0m: Cannot open the opts_outFile file: %s\n", opts_outputFile);
             exit(1);
         } else {
             fclose(file);
-        }
+        }*/
     } else {
         opts_outputFile[0] = 0;
     }
@@ -2920,9 +2922,9 @@ GLV* LouvainGLV_general_top(xf::graph::L3::Handle* handle0,
     return glv_final;
 }
 
-////////////////////////////////////////////////////////
-GLV* CreateByFile_general(char* inFile, int& id_glv);
-
+/*
+    TODO: delete the function below once new function is verified.
+*/
 int create_alveo_partitions_org(char* inFile, int par_num, int par_prune, char* pathName_proj, ParLV& parlv) {
     assert(inFile);
     assert(pathName_proj);
@@ -3113,6 +3115,7 @@ int xai_save_partition2(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
 	}
 	return num_par_server;
 }
+
 int create_alveo_partitions(char* inFile, int num_partition, int par_prune, char* pathName_proj, ParLV& parlv) {
     assert(inFile);
     assert(pathName_proj);
@@ -3239,6 +3242,8 @@ int create_alveo_partitions(char* inFile, int num_partition, int par_prune, char
     SaveParLV(pathName_tmp, &parlv);
     sprintf(pathName_tmp, "%s%s.par.src", path_proj, name_proj);
     SaveHead<GLVHead>(pathName_tmp, (GLVHead*)parlv.plv_src);
+
+    return 0;
 }
 
 int Parser_ParProjFile(char* projFile, ParLV& parlv, char* path, char* name, char* name_inFile) {
@@ -3721,7 +3726,7 @@ int host_writeOut(char* opts_inFile, long NV_begin, long* C_orig) {
 #endif
     FILE* out = fopen(outFile, "w");
     for (long i = 0; i < NV_begin; i++) {
-        fprintf(out, "%ld\n", C_orig[i]);
+        fprintf(out, "%ld %ld\n", i, C_orig[i]);
     }
     fclose(out);
     return 0;
@@ -3976,4 +3981,30 @@ int louvain_modularity_alveo(int argc, char* argv[]) {
     printf("\033[1;31;40mMUST DO LOADING BEFORE RUNNING\033[0m\n");
 #endif
     return load_alveo_partitions(argc, argv);
+}
+
+int compute_modularity(char* inFile) 
+{
+    std::cout << "INFO: Computing modularity..." << std::endl;
+
+    int id_glv = 0;
+    GLV* glv_src = CreateByFile_general(inFile, id_glv);
+    
+    if (glv_src == NULL) 
+        return -1;
+
+    std::cout << "INFO: number of vertices= " << glv_src->NV << std::endl;
+
+    if (glv_src->C != NULL) 
+        free(glv_src->C);
+
+    glv_src->C = (long*)malloc(sizeof(long) * glv_src->NV);
+
+    for (long i=0; i < glv_src->NV; i++)
+        glv_src->C[i] = 0;
+
+    glv_src->PushFeature(0, 0, 0.0, true);
+    glv_src->printSimple();
+
+    return 0;
 }

@@ -1,17 +1,24 @@
 #!/bin/bash
 
 echo Running $0
-if [ "$#" -ne 5 ]; then
+if [ "$#" -lt 6 ]; then
     echo "$0 <.mtx file> <partition-dir> <number of partitions> numDevices numWorkers"
     echo "Example: $0 /proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx as-skitter-par9 9 3 2"
     exit 1
 fi
+
 . env.sh
+
 graph=$1
 subdir=$2
 par=$3
 num_dev=$4
 num_workers=$5
+opt_out=
+if [ "$#" -eq 6 ]; then
+    opt_out="-o $6"
+fi
+
 workers="tcp://192.168.1.21:5555 tcp://192.168.1.31:5555"
 # Set rundir to your dir
 rundir=$subdir/louvain_partitions
@@ -33,7 +40,7 @@ fi
 #./host.exe -x /proj/autoesl/ryanw/kernel_louvain_gh.xclbin /wrk/xsjhdnobkup1/ryanw/poc_louvain/HugeGraphData/europe_osm-wt600M.mtx  -dev 3 -par_num 12 -driver
 
 # e.g. ./run_driver.sh /proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx as-skitter-par9 9
-echo "../$exe_dir/louvainModularity_test -x $xclbinfile $graph -fast -dev $num_dev -par_num $par \
-          -load_alveo_partitions $projdir -setwkr $num_workers $workers -driverAlone"
-../$exe_dir/louvainModularity_test -x $xclbinfile $graph -fast -dev $num_dev -par_num $par \
-    -load_alveo_partitions $projdir -setwkr $num_workers $workers -driverAlone
+cmd="../$exe_dir/louvainmod_test -x $xclbinfile $graph -fast -dev $num_dev -par_num $par \
+          -load_alveo_partitions $projdir -setwkr $num_workers $workers -driverAlone $opt_out"
+echo $cmd
+$cmd
