@@ -291,7 +291,6 @@ int MessageParser_D2W(char* msg) {
 int MessageGen_D2W(char* msg, ParLV& parlv, char* path, int start, int end, int nodeID) 
 { 
     // Format:  parlv_req -num <> -path <> [name]*
-    // printf("%d,  %d,  %d\n", star , end , nodeID);
     assert(msg);
     assert(path);
     assert(start >= 0 && start < parlv.num_par);
@@ -367,10 +366,7 @@ int MessageParser_D2W(char* msg, ParLV& parlv, char* path_driver, char names[][2
 }
 
 // generator/parser for messages sent/received through zmq end
-
 // load/send GLV through data files
-
-const long headGLVBin = 0xffff5555ffff5555;
 int SaveGLVBin(char* name, GLV* glv) {
     assert(name);
     assert(glv);
@@ -2710,11 +2706,7 @@ void LouvainProcess_part1(int& nodeID, ParLV& parlv, char* tmp_msg_d2w, ParLV& p
     }
 
     getDiffTime(l_load_start, l_load_end, parlv_wkr.timesPar.timeWrkLoad[0]);
-    std::cout << "DEBUG: end " << __FILE__ << "::" << __FUNCTION__ 
-              << " parlv_wkr num_par=" << parlv_wkr.num_par << std::endl;
-
-
-} // mode_zmq==ZMQ_WORKER
+} 
 
 void LouvainProcess_part2(int nodeID,
                           xf::graph::L3::Handle* handle0,
@@ -2749,8 +2741,6 @@ void LouvainProcess_part2(int nodeID,
 
     MessageGen_W2D(tmp_msg_w2d, parlv_wkr, nodeID);
 
-    // work: end///
-
     parlv_wkr.st_ParLved = true;
 #ifdef PRINTINFO
     parlv_wkr.PrintSelf();
@@ -2760,7 +2750,6 @@ void LouvainProcess_part2(int nodeID,
 void Driver_Partition(ParLV& parlv, int& id_glv) {
     long vsize = parlv.plv_src->NV / parlv.num_par;
     const int id_dev = 0;
-    // parlv.timesPar.timePar_all = getTime();
     long start = 0;
     long end = start + vsize;
 #pragma omp parallel for
@@ -2917,9 +2906,9 @@ GLV* LouvainGLV_general_top(xf::graph::L3::Handle* handle0,
     return glv_final;
 }
 
-////////////////////////////////////////////////////////
-GLV* CreateByFile_general(char* inFile, int& id_glv);
+/*
 
+*/
 int create_alveo_partitions(char* inFile, int par_num, int par_prune, char* pathName_proj, ParLV& parlv) {
     assert(inFile);
     assert(pathName_proj);

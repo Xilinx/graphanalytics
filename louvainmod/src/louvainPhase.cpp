@@ -1726,24 +1726,25 @@ void ConsumingOnePhase(
     		opts_C_thresh, &currMod, pglv_iter->colors, &buff_host);
 
 	PhaseLoop_UsingFPGA_1_KernelSetup (isLargeEdge, kernel_louvain, ob_in, ob_out, buff_cl);
-    std::cout << "\t\PhaseLoop_UsingFPGA_1_KernelSetup Device Available: "<< std::endl;// << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
+    std::cout << "\tPhaseLoop_UsingFPGA_1_KernelSetup Device Available: "<< std::endl;// << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 
 	PhaseLoop_UsingFPGA_2_DataWriteTo (q, kernel_evt0, ob_in);
-    std::cout << "\t\PhaseLoop_UsingFPGA_2_DataWriteTo Device Available: "<< std::endl;//  << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
+    std::cout << "\tPhaseLoop_UsingFPGA_2_DataWriteTo Device Available: "<< std::endl;//  << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 
 	PhaseLoop_UsingFPGA_3_KernelRun   (q, kernel_evt0, kernel_evt1, kernel_louvain);
-    std::cout << "\t\PhaseLoop_UsingFPGA_3_KernelRun Device Available: " << std::endl;// << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
+    std::cout << "\tPhaseLoop_UsingFPGA_3_KernelRun Device Available: " << std::endl;// << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 
 	PhaseLoop_UsingFPGA_4_DataReadBack(q, kernel_evt1, ob_out);
-    std::cout << "\t\PhaseLoop_UsingFPGA_4_DataReadBack Device Available: " << std::endl;// << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
+    std::cout << "\tPhaseLoop_UsingFPGA_4_DataReadBack Device Available: " << std::endl;// << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 
 	PhaseLoop_UsingFPGA_5_KernelFinish(q);
-    std::cout << "\t\PhaseLoop_UsingFPGA_5_KernelFinish Device Available: " << std::endl;// << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
+    std::cout << "\tPhaseLoop_UsingFPGA_5_KernelFinish Device Available: " << std::endl;// << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 
     eachTimeReadBuff = PhaseLoop_UsingFPGA_Prep_Read_buff_host(pglv_iter->NV, buff_host, eachItrs, pglv_iter->C, eachItrs, currMod);
 
 }
-void runLouvainWithFPGA_demo_par_core(
+
+void runLouvainWithFPGA_demo_par_core (
 		bool   hasGhost,
 		int    id_dev,
 		GLV*   pglv_orig,
@@ -1986,23 +1987,24 @@ void ConsumingOnePhase_prune(
 
 
 	PhaseLoop_UsingFPGA_1_KernelSetup_prune (isLargeEdge, kernel_louvain, ob_in, ob_out, buff_cl);
-    std::cout << "\t\PhaseLoop_UsingFPGA_1_KernelSetup Device Available: "<< std::endl;// << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
+    std::cout << "\tPhaseLoop_UsingFPGA_1_KernelSetup Device Available: "<< std::endl;// << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 
 	PhaseLoop_UsingFPGA_2_DataWriteTo (q, kernel_evt0, ob_in);
-    std::cout << "\t\PhaseLoop_UsingFPGA_2_DataWriteTo Device Available: "<< std::endl;//  << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
+    std::cout << "\tPhaseLoop_UsingFPGA_2_DataWriteTo Device Available: "<< std::endl;//  << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 
 	PhaseLoop_UsingFPGA_3_KernelRun   (q, kernel_evt0, kernel_evt1, kernel_louvain);
-    std::cout << "\t\PhaseLoop_UsingFPGA_3_KernelRun Device Available: " << std::endl;// << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
+    std::cout << "\tPhaseLoop_UsingFPGA_3_KernelRun Device Available: " << std::endl;// << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 
 	PhaseLoop_UsingFPGA_4_DataReadBack(q, kernel_evt1, ob_out);
-    std::cout << "\t\PhaseLoop_UsingFPGA_4_DataReadBack Device Available: " << std::endl;// << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
+    std::cout << "\tPhaseLoop_UsingFPGA_4_DataReadBack Device Available: " << std::endl;// << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 
 	PhaseLoop_UsingFPGA_5_KernelFinish(q);
-    std::cout << "\t\PhaseLoop_UsingFPGA_5_KernelFinish Device Available: " << std::endl;// << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
+    std::cout << "\tPhaseLoop_UsingFPGA_5_KernelFinish Device Available: " << std::endl;// << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 
     eachTimeReadBuff = PhaseLoop_UsingFPGA_Prep_Read_buff_host_prune_local(pglv_iter->NV, buff_host, eachItrs, pglv_iter->C, eachItrs, currMod);
 
 }
+
 void runLouvainWithFPGA_demo_par_core_prune(
 		bool   hasGhost,
 		int    id_dev,

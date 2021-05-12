@@ -11,7 +11,9 @@
 #define MAX_PARTITION (512)
 #define MAX_DEVICE (64)
 
-struct TimePartition{
+const long headGLVBin = 0xffff5555ffff5555;
+
+struct TimePartition {
 	double time_star;
 	double time_done_par;
 	double time_done_lv;
@@ -39,6 +41,7 @@ struct TimePartition{
 	double timeAll;
 
 };
+
 struct ParLVVar{
 	bool st_Partitioned;
 	bool st_ParLved;
@@ -212,5 +215,9 @@ GLV* LouvainGLV_general_top(xf::graph::L3::Handle* handle0,
                             double opts_threshold,
                             double opts_C_thresh,
                             int numThreads);
+
+GLV* CreateByFile_general(char* inFile, int& id_glv);
+
+int SaveGLVBin(char* name, GLV* glv);
 
 #endif
