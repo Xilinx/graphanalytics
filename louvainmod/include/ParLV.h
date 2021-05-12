@@ -127,6 +127,11 @@ public:
     long  NV_list_g;
     bool  isPrun;
 	int   th_prun;
+	///////////////////////////////////
+	int num_server;// default '1' means using concentration partition
+	int parInServer[MAX_PARTITION];
+	long parOffsets[MAX_PARTITION];//start vertex for each partition. Currently no use for it. Just recored in .par.proj file
+	///////////////////////////////////
 	GLV* plv_src;
 	GLV* par_src[MAX_PARTITION];
 	GLV* par_lved[MAX_PARTITION];

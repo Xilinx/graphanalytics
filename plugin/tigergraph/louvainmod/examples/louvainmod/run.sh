@@ -60,16 +60,18 @@ echo "Loading $files"
 time gsql -g $xgraph "run loading job load_job USING file_name = \"$data_source\""
 
 echo "Installing louvain_distributed_cpu query"
-time gsql -g $xgraph louvain_distributed_cpu.gsql
+time gsql -g $xgraph louvain_distributed_q_cpu.gsql
 
 echo "Installing louvain_alveo queries"
 gsql "$(cat $script_dir/louvain_alveo.gsql | sed "s/@graph/$xgraph/")"
 
 # IMPORTANT: DO NOT USE A NETWORK DRIVE FOR LOG FILES IN DISTRIBUTED QUERIES.
 # OTHERWISE EACH NODE WILL OVERWRITE IT
-echo "Running louvain_distributed_cpu"
+echo "Running louvain_distributed_q_cpu"
 START=$(date +%s%3N)
-time gsql -g $xgraph "run query louvain_distributed_cpu(20, [\"Person\"], [\"Coworker\"], \"/tmp/cpu_out.txt\")"
+#time gsql -g $xgraph "run query louvain_distributed_cpu(20, [\"Person\"], [\"Coworker\"], \"/tmp/cpu_out.txt\")"
+echo time gsql -g $xgraph "run query louvain_distributed_q_cpu([\"Person\"], [\"Coworker\"], \"weight\",10,0.00001,TRUE,FALSE,\"\",\"/tmp/output_cpu.txt\",TRUE,FALSE)"
+time gsql -g $xgraph "run query louvain_distributed_q_cpu([\"Person\"], [\"Coworker\"], \"weight\",10,0.00001,TRUE,FALSE,\"\",\"/home2/tigergraph/output_cpu.txt\",TRUE,FALSE)"
 TOTAL_TIME=$(($(date +%s%3N) - START))
 
 echo "louvain_distributed_cpu runtime: " $TOTAL_TIME

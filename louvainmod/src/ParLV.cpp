@@ -913,7 +913,8 @@ int host_ParserParameters(int argc,
                           char* nameMetaFile,
                           int& numPureWorker,
                           char* nameWorker[128],
-                          int& nodeID) {
+                          int& nodeID,
+						  int& server_par) {
     const int max_parameter = 100;
     bool rec[max_parameter];
     for (int i = 1; i < argc; i++) rec[i] = false;
@@ -937,6 +938,7 @@ int host_ParserParameters(int argc,
     int has_driverAlone = general_findPara(argc, argv, "-driverAlone");
     int has_workerAlone = general_findPara(argc, argv, "-workerAlone");
     int has_cmd = general_findPara(argc, argv, "-cmd");
+    int has_server_par = general_findPara(argc, argv, "-server_par");
 
     if (general_findPara(argc, argv, "-create_alveo_partitions") != -1) {
         mode_alveo = ALVEOAPI_PARTITION;
@@ -1138,6 +1140,16 @@ int host_ParserParameters(int argc,
         opts_outputFile[0] = 0;
     }
 
+    if (has_server_par != -1 && has_server_par < (argc - 1)) {
+        rec[has_server_par] = true;
+        rec[has_server_par + 1] = true;
+        server_par = atoi(argv[has_server_par + 1]);
+    } else
+    	server_par = 1;
+#ifdef PRINTINFO
+    printf("PARAMETER server_par = %i\n", server_par);
+#endif
+
     if(mode_alveo == ALVEOAPI_LOAD)
     	return 0; //No need to set input matrix file if
     for (int i = 1; i < argc; i++) {
@@ -1162,6 +1174,7 @@ int host_ParserParameters(int argc,
             }
         }
     }
+
     return 0;
 }
 
@@ -1461,6 +1474,7 @@ void ParLV::Init(int mode) {
     NV_list_g = 0;
     num_dev = 1;
     flowMode = mode;
+    num_server = 1;
 }
 
 void ParLV::Init(int mode, GLV* src, int nump, int numd) {
@@ -2906,10 +2920,10 @@ GLV* LouvainGLV_general_top(xf::graph::L3::Handle* handle0,
     return glv_final;
 }
 
-/*
+////////////////////////////////////////////////////////
+GLV* CreateByFile_general(char* inFile, int& id_glv);
 
-*/
-int create_alveo_partitions(char* inFile, int par_num, int par_prune, char* pathName_proj, ParLV& parlv) {
+int create_alveo_partitions_org(char* inFile, int par_num, int par_prune, char* pathName_proj, ParLV& parlv) {
     assert(inFile);
     assert(pathName_proj);
     int id_glv = 0;
@@ -2973,6 +2987,259 @@ int create_alveo_partitions(char* inFile, int par_num, int par_prune, char* path
 
     return 0;
 }
+void sim_getServerPar(
+  //input
+  graphNew* G,   //Looks like a Global Graph but here only access dataset within
+  long start_vertex, // a range from start_vertex to end_vertex, which is stored locally
+  long end_vertex,   // Here we assume that the vertices of a TigerGraph partition
+                 // stored on a node are continuous
+  //Output
+  long* offsets_tg, // we can also use �degree� instead of �offsets�
+  edge* edges_tg,   //
+  long* dgr_tail_tg // degrees for the tail of each edge;
+){
+	//printf("DBG_TGPAR: NV=%d NE=%d \n", G->numVertices, G->numEdges);
+    long* off_glb   = G->edgeListPtrs; //in GSQL, maybe �degree� can be much easier.
+    edge* edges_glb = G->edgeList;
+    long  cnt_e     = 0;
+    long  cnt_v     = 0;
+    offsets_tg[0]   = off_glb[0 + start_vertex] - off_glb[start_vertex];//0;
+    for(long v_glb = start_vertex; v_glb < end_vertex; v_glb++){//Scanning nodes within a range
+        offsets_tg[cnt_v + 1] = off_glb[v_glb + 1 ] - off_glb[start_vertex];
+        long degree = off_glb[ v_glb + 1] - off_glb[v_glb];
+        for( long e = 0; e < degree; e++ ){
+            edges_tg[cnt_e].head   = edges_glb[off_glb[v_glb] + e].head;
+            edges_tg[cnt_e].tail   = edges_glb[off_glb[v_glb] + e].tail;
+            edges_tg[cnt_e].weight = edges_glb[off_glb[v_glb] + e].weight;
+            dgr_tail_tg[cnt_e]     = off_glb[edges_tg[cnt_e].tail+1] - off_glb[edges_tg[cnt_e].tail];
+            cnt_e++;
+        }
+        cnt_v++;
+    }//end for
+}
+GLV* par_general_4TG(long start_vertexInGlb, long* offsets_tg, edge* edgelist_tg, long* drglist_tg, long start_parInGlb, long stride_par, int& id_glv, int th_maxGhost){
+	SttGPar stt;
+	//printf("\033[1;37;40mINFO\033[0m: Partition of \033[1;31;40mPruning\033[0m is used and th_maxGhost=%d \n", th_maxGhost);
+	//printf("DBG_4TG start_vertexInGlb=%d, start_parInGlb=%d, stride_par=%d\n", start_vertexInGlb, start_parInGlb, stride_par);
+	GLV* ret=  stt.ParNewGlv_Prun(start_vertexInGlb,  offsets_tg, edgelist_tg, drglist_tg, start_parInGlb, stride_par, id_glv, th_maxGhost);
+	return ret;
+}
+void xai_save_partition(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
+		long  start_vertex,  // If a vertex is smaller than star_vertex, it is a ghost
+		long  end_vertex,	 // If a vertex is larger than star_vertex-1, it is a ghost
+		char* path_prefix,  // For saving the partition files like <path_prefix>_xxx.par
+							// Different server can have different path_prefix
+		int par_prune,       // Can always be set with value '1'
+		int num_par_server  // Not necessary, can be figure out by size limitation, like (end_vertex-star_vertex)/50M
+
+		) {
+	long NV_server = end_vertex - start_vertex;
+	GLV*  parlv_par_src[MAX_PARTITION];
+	int id_glv = 0;//fun2c_call();
+    long stride_par = NV_server / num_par_server;
+    long start_vertext_par = start_vertex;
+	for(int p=0; p< num_par_server; p++){
+		long NV_par = (p==num_par_server-1)? end_vertex - start_vertext_par : stride_par;
+		parlv_par_src[p] = par_general_4TG(
+			//Input data from TG
+			start_vertex,
+			offsets_tg,
+			edgelist_tg,
+			drglist_tg,
+			//Partition parameters
+			start_vertext_par,    //Start vertex
+			NV_par, //Total local vertex. Number of ghost vertex is not available until partition finish
+			id_glv,       // ID counter's reference for GLV objects created. Any integer with any value is OK here;
+			par_prune // Ghost prunning parameter, always be '1'. It can be set by command-line
+		);
+		char nm[1024];
+		sprintf(nm, "_%1d%1d%1d.par", p / 100, (p / 10) % 10, p % 10);
+		parlv_par_src[p]->SetName(nm);
+		char pathName[1024];
+		strcpy(pathName, path_prefix);
+		strcat(pathName, nm);
+		SaveGLVBin(pathName, parlv_par_src[p], false);
+		start_vertext_par += stride_par;
+	}
+}
+
+int xai_save_partition2(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
+		long  start_vertex,     // If a vertex is smaller than star_vertex, it is a ghost
+		long  end_vertex,	    // If a vertex is larger than star_vertex-1, it is a ghost
+		char* path_prefix,      // For saving the partition files like <path_prefix>_xxx.par
+							    // Different server can have different path_prefix
+		int par_prune,          // Can always be set with value '1'
+		long NV_par_recommand,  // Allow to partition small graphs not bigger than FPGA limitation
+		long NV_par_max		    //  64*1000*1000;
+		) {
+	int num_par_server;  // It can be figure out by max_vertices, like (end_vertex-star_vertex)/50M
+	long NV_server = end_vertex - start_vertex;
+	GLV*  parlv_par_src[MAX_PARTITION];
+	int id_glv = 0;//fun2c_call();
+    //long stride_par = NV_server / num_par_server;
+	num_par_server = (NV_server + NV_par_recommand -1) / NV_par_recommand;//Up-round
+	long average_stride = (NV_server + (num_par_server+1)/2) / num_par_server; //normal round
+    long start_vertext_par = start_vertex;
+	for(int p=0; p< num_par_server; p++){
+		long NV_par = (p==num_par_server-1)? end_vertex - start_vertext_par : average_stride;
+		do{
+			parlv_par_src[p] = par_general_4TG(
+				//Input data from TG
+				start_vertex,
+				offsets_tg,
+				edgelist_tg,
+				drglist_tg,
+				//Partition parameters
+				start_vertext_par,    //Start vertex
+				NV_par, //Total local vertex. Number of ghost vertex is not available until partition finish
+				id_glv,       // ID counter's reference for GLV objects created. Any integer with any value is OK here;
+				par_prune // Ghost prunning parameter, always be '1'. It can be set by command-line
+			);
+			long diff_NV = NV_par_max - parlv_par_src[p]->NV;
+			if(diff_NV <0){
+				NV_par -= diff_NV;
+				delete(parlv_par_src[p]);
+				parlv_par_src[p] = NULL;
+			}
+		}while(parlv_par_src[p] == NULL);//If the partition is too big to load on FPGA, reduce the NV_par until partition is small enough
+		char nm[1024];
+		sprintf(nm, "_%1d%1d%1d.par", p / 100, (p / 10) % 10, p % 10);
+		parlv_par_src[p]->SetName(nm);
+		char pathName[1024];
+		strcpy(pathName, path_prefix);
+		strcat(pathName, nm);
+		SaveGLVBin(pathName, parlv_par_src[p], false);
+		start_vertext_par += NV_par;
+	}
+	return num_par_server;
+}
+int create_alveo_partitions(char* inFile, int num_partition, int par_prune, char* pathName_proj, ParLV& parlv) {
+    assert(inFile);
+    assert(pathName_proj);
+    int id_glv = 0;
+    GLV* glv_src = CreateByFile_general(inFile, id_glv);
+    if (glv_src == NULL) return -1;
+    //////////////////////////// Set the name for partition project////////////////////////////
+    char path_proj[1024];
+    char name_proj[256];
+    strcpy(name_proj, NameNoPath(pathName_proj));
+    PathNoName(path_proj, pathName_proj);
+
+#ifdef PRINTINFO
+    printf("\033[1;37;40mINFO\033[0m:Partition Project: path = %s name = %s\n", path_proj, name_proj);
+#endif
+    //////////////////////////// Initial data structure ////////////////////////////
+    // ParLV parlv;
+    parlv.plv_src = glv_src;
+    parlv.num_par = num_partition;
+    parlv.th_prun = par_prune;
+    //////////////////////////// partition ////////////////////////////
+    parlv.timesPar.timePar_all = getTime();
+
+    long NV            = glv_src->NV;
+	int num_server     = parlv.num_server;
+
+	//For simulation: create server-level partition
+	long start_vertex[3];
+	long end_vertex[3];
+	int vInServer[3];
+	for(int i_svr=0; i_svr<num_server; i_svr++){
+		start_vertex[i_svr] =  i_svr* (NV / num_server);
+		if(i_svr!=num_server-1)
+			end_vertex[i_svr] = start_vertex[i_svr] + NV / num_server;
+		else
+			end_vertex[i_svr] = NV;
+		vInServer[i_svr] = end_vertex[i_svr] - start_vertex[3];
+	}
+	//For simulation: create server-level partition
+	int start_par[MAX_PARTITION];// eg. {0, 3, 6} when par_num == 9
+	int end_par[MAX_PARTITION];  // eg. {3, 6, 9}  when par_num == 9
+	int parInServer[MAX_PARTITION];//eg. {3, 3, 3} when par_num == 9 and num_server==3
+	for(int i_svr=0; i_svr<num_server; i_svr++){
+		start_par[i_svr] = i_svr * (num_partition / num_server);
+		if(i_svr!=num_server-1)
+			end_par[i_svr] = start_par[i_svr] + (num_partition / num_server);
+		else
+			end_par[i_svr] = num_partition;
+		parInServer[i_svr] = end_par[i_svr] - start_par[i_svr];
+	}
+
+	long* offsets_glb  = glv_src->G->edgeListPtrs;
+	num_partition = 0;
+    for (int i_svr = 0; i_svr < num_server; i_svr++) {
+    	//For simulation: To get partition on server(i_svr)
+    	long* offsets_tg   = (long*) malloc( sizeof(long) * (vInServer[i_svr] + 1) );
+    	edge* edgelist_tg  = (edge*) malloc( sizeof(edge) * (offsets_glb[end_vertex[i_svr]] - offsets_glb[start_vertex[i_svr]]) );
+    	long* drglist_tg   = (long*) malloc( sizeof(long) * (offsets_glb[end_vertex[i_svr]] - offsets_glb[start_vertex[i_svr]]) );
+
+    	sim_getServerPar(// This function should be repleased by GSQL
+    			glv_src->G, start_vertex[i_svr], end_vertex[i_svr],
+    			offsets_tg, edgelist_tg, drglist_tg);
+#ifdef PRINTINFO
+		printf("DBG:: SERVER(%d): start_vertex=%d, end_vertex=%d, NV_tg=%d, start_par=%d, parInServer=%d, pathName:%s\n",
+    	i_svr, start_vertex[i_svr], end_vertex[i_svr], vInServer[i_svr], start_par[i_svr], parInServer[i_svr], pathName_proj);
+#endif
+
+		//For compatibility, when num_server is 1, no 'srv<n>' surfix used
+		char pathName_proj_svr[1024];
+		if(num_server>1)
+			sprintf(pathName_proj_svr, "%s_svr%d", pathName_proj, i_svr);//louvain_partitions_svr0_000.par
+		else
+			strcpy(pathName_proj_svr, pathName_proj);                    //louvain_partitions_000.par
+
+		long NV_par_recommand;//(long)(64000000.0 * 0.80);
+		long NV_par_max = 64*1000*1000;
+		if(parlv.num_par>1)
+			NV_par_recommand = (NV + parlv.num_par-1) / parlv.num_par;//allow to partition small graph with -par_num
+		else
+			NV_par_recommand = (long)((float)NV_par_max * 0.80);//20% space for ghosts.
+		parInServer[i_svr] = xai_save_partition2(
+				offsets_tg,  edgelist_tg,  drglist_tg,
+    			start_vertex[i_svr],
+				end_vertex[i_svr],
+				pathName_proj_svr, // num_server==1? <dir>/louvain_partitions_ : louvain_partitions_svr<num_server>
+				par_prune,         // always be '1'
+				NV_par_recommand,  // Allow to partition small graphs not bigger than FPGA limitation
+				NV_par_max		   //  64*1000*1000;
+    			);
+		num_partition +=parInServer[i_svr] ;
+    	free(offsets_tg);
+    	free(edgelist_tg);
+    	free(drglist_tg);
+    }
+    parlv.st_Partitioned = true;
+    parlv.timesPar.timePar_all = getTime() - parlv.timesPar.timePar_all;
+
+    //////////////////////////// save <metadata>.par file for loading //////////////////
+    // Format: -create_alveo_partitions <inFile> -par_num <par_num> -par_prune <par_prun> -name <ProjectFile>
+    char* meta = (char*)malloc(4096);
+    char pathName_tmp[1024];
+    sprintf(pathName_tmp, "%s%s.par.proj", path_proj, name_proj);
+    sprintf(meta, "-create_alveo_partitions %s -par_num %d -par_prune %d -name %s -time_par %f -time_save %f ", inFile,
+    		num_partition, par_prune, pathName_proj, parlv.timesPar.timePar_all, parlv.timesPar.timePar_save);
+    ///////////////////////////////////////////////////////////////////////
+    //adding : -server_par <num_server> <num_par on server0> �..<num_par on server?>
+    char tmp_str[128];
+    sprintf(tmp_str, "-server_par %d ",  num_server);
+    strcat(meta, tmp_str);
+    for(int i_svr = 0; i_svr < num_server; i_svr++){
+    	 sprintf(tmp_str, "%d ",  parInServer[i_svr]);
+    	 strcat(meta, tmp_str);
+    }///////////////////////////////////////////////////////////////////////
+    strcat(meta, "\n");
+
+    FILE* fp = fopen(pathName_tmp, "w");
+    fwrite(meta, sizeof(char), strlen(meta), fp);
+    fclose(fp);
+#ifdef PRINTINFO
+    printf("\033[1;37;40mINFO\033[0m:Partition Project Meta Data saved in file \033[1;37;40m%s\033[0m\n", pathName_tmp);
+    printf(" \t\t Meta Data in file is: %s\n", meta);
+#endif
+    sprintf(pathName_tmp, "%s%s.par.parlv", path_proj, name_proj);
+    SaveParLV(pathName_tmp, &parlv);
+    sprintf(pathName_tmp, "%s%s.par.src", path_proj, name_proj);
+    SaveHead<GLVHead>(pathName_tmp, (GLVHead*)parlv.plv_src);
+}
 
 int Parser_ParProjFile(char* projFile, ParLV& parlv, char* path, char* name, char* name_inFile) {
     // Format: -create_alveo_partitions <inFile> -par_num <par_num> -par_prune <par_prune> -name <ProjectFile>
@@ -3000,6 +3267,7 @@ int Parser_ParProjFile(char* projFile, ParLV& parlv, char* path, char* name, cha
         return -1;
     }
 
+
     if (strcmp("-create_alveo_partitions", ps.argv[0]) != 0) {
         printf("\033[1;31;40mERROR\033[0m: MessageParser_D2W: Unknow head%s. -create_alveo_partitions is required\n",
                ps.argv[0]);
@@ -3020,6 +3288,18 @@ int Parser_ParProjFile(char* projFile, ParLV& parlv, char* path, char* name, cha
         parlv.timesPar.timePar_all = 0;
         parlv.timesPar.timePar_save = 0;
     }
+    //////////////////////////////////////////////////////////////////////////
+    //for multi-server partition [-server_par <num_server> <num_par on server0> �..<num_par on server?>]
+    int idx_server = ps.cmd_findPara("-server_par");
+    if (idx_server > -1){
+    	parlv.num_par = 0;
+    	parlv.num_server = atoi(ps.argv[idx_server+1]);
+    	for(int i_svr = 0; i_svr < parlv.num_server; i_svr++){
+    		parlv.parInServer[i_svr] = atoi(ps.argv[idx_server+ 2 + i_svr]);
+    		parlv.num_par += parlv.parInServer[i_svr];
+    	}
+    }
+    ///////////////////////////////////////////////////////////////////////////
     if(nameProj[0]=='/')
     	PathNoName(path, nameProj);//Absolute name used in project file, so abstract the path use project name
     else
@@ -3035,18 +3315,26 @@ int Parser_ParProjFile(char* projFile, ParLV& parlv, char* path, char* name, cha
 #ifdef PRINTINFO
     printf("\033[1;37;40mINFO\033[0m:Partition Project: path = %s name = %s\n", path, name);
 #endif
-    int num_par;
     if (parlv.num_par != atoi(str_par_num)) {
-        printf("\033[1;31;40mERROR\033[0m: parlv.num_par%d != atoi(str_par_num)%d\n", parlv.num_par, atoi(str_par_num));
-        getchar();
+        printf("\033[1;31;40mWARNING\033[0m: parlv.num_par(%d) != %d; Value in file will be used\n", parlv.num_par, atoi(str_par_num));
+        //getchar();
     }
+    parlv.num_par = atoi(str_par_num);
     parlv.th_prun = atoi(str_par_prune);
 
     int cnt_file = 0;
-    for (int p = 0; p < parlv.num_par; p++) {
+    //for (int p = 0; p < parlv.num_par; p++)
+    int p=0;
+    int i_svr=0;
+    int p_svr=0;
+    while (p < parlv.num_par){
         parlv.par_src[p] = new GLV(id_glv);
         char nm[1024];
-        sprintf(nm, "%s_%1d%1d%1d.par", name, p / 100, (p / 10) % 10, p % 10);
+        if(parlv.num_server==1)
+        	sprintf(nm, "%s_%1d%1d%1d.par", name, p / 100, (p / 10) % 10, p % 10);
+        else{
+        	sprintf(nm, "%s_svr%d_%1d%1d%1d.par", name,i_svr, p_svr / 100, (p_svr / 10) % 10, p_svr % 10);
+        }
         parlv.par_src[p]->SetName(nm);
 #ifndef NDEBUG        
         printf("Checking: %s\n", parlv.par_src[p]->name);
@@ -3059,7 +3347,14 @@ int Parser_ParProjFile(char* projFile, ParLV& parlv, char* path, char* name, cha
             cnt_file++;
         } else
             printf("\033[1;31;40mERROR\033[0m: Partition Share %s not Found\n", pathName);
-    }
+
+        if(p_svr==parlv.parInServer[i_svr]-1){
+            i_svr++;
+            p_svr=0;
+        }else
+        	p_svr++;
+        p++;
+    }//
     free(fdata);
     if (cnt_file != parlv.num_par)
         return -1;
@@ -3283,10 +3578,11 @@ extern "C" int create_alveo_partitions(int argc, char* argv[]) {
     char nameMetaFile[1024];
     char* nameWorkers[128];
     int nodeID;
+    int server_par = 1;
     host_ParserParameters(argc, argv, opts_C_thresh, opts_minGraphSize, opts_threshold, opts_ftype, opts_inFile,
                           opts_coloring, opts_output, opts_outputFile, opts_VF, opts_xclbinPath, numThreads, num_par,
                           par_prune, flow_fast, devNeed_cmd, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
-                          nameMetaFile, numPureWorker, nameWorkers, nodeID);
+                          nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par);
 
     if (flow_fast) {
         flowMode = 2; // fast kernel  MD_FAST
@@ -3299,6 +3595,7 @@ extern "C" int create_alveo_partitions(int argc, char* argv[]) {
     if (mode_alveo == ALVEOAPI_PARTITION) {
         ParLV parlv;
         parlv.Init(flowMode, NULL, num_par, devNeed_cmd, isPrun, par_prune);
+        parlv.num_server = server_par;
         create_alveo_partitions(opts_inFile, num_par, par_prune, nameProj, parlv);
         printf("************************************************************************************************\n");
         printf("***********************************  Louvain Summary   *****************************************\n");
@@ -3507,11 +3804,12 @@ extern "C" int load_alveo_partitions(int argc, char* argv[]) {
     char* nameWorkers[128];
     int nodeID;
     int status;
+    int server_par=1;
 
     host_ParserParameters(argc, argv, opts_C_thresh, opts_minGraphSize, opts_threshold, opts_ftype, opts_inFile,
                           opts_coloring, opts_output, opts_outputFile, opts_VF, opts_xclbinPath, numThreads, num_par,
                           par_prune, flow_fast, devNeed_cmd, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
-                          nameMetaFile, numPureWorker, nameWorkers, nodeID);
+                          nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par);
     const char* switchName[2] = {"tcp://192.168.1.21:5555", "tcp://192.168.1.31:5555"};
     int numNode = numPureWorker + 1;
     if (flow_fast) {

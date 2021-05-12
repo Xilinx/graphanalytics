@@ -85,6 +85,7 @@ public:
 	bool InRange(long v);
 	GLV* ParNewGlv(graphNew* G, long star, long end, int& id_glv);
 	GLV* ParNewGlv_Prun(graphNew* G, long star, long end, int& id_glv, int th_maxGhost);
+	GLV* ParNewGlv_Prun(long start_tg, long* offsets_tg, edge* edgelist_tg, long* dgrlist_tg, long start_par, long size_par, int& id_glv, int th_maxGhost);
 	long findAt(VGMinDgr& gMinDgr, long tail, long dgr, long num_vg, int th_maxGhost);
 };
 
