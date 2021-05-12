@@ -77,10 +77,10 @@ if [[ $OSDIST == "ubuntu" ]]; then
     sudo apt install jq opencl-headers -y
 
     printf "\nINFO: Install Xilinx CosineSim product package\n"
-    sudo apt install $pkg_dir/cosinesim/xilinx-cosinesim*.deb
+    sudo apt install --reinstall $pkg_dir/cosinesim/xilinx-cosinesim*.deb
 
     printf "\nINFO: Install Xilinx Recommend Engine package\n"
-    sudo apt install $pkg_dir/recomengine/xilinx-recomengine*.deb
+    sudo apt install --reinstall $pkg_dir/recomengine/xilinx-recomengine*.deb
 fi
 
 if [[ $OSDIST == "centos" ]]; then

@@ -42,6 +42,9 @@ fi
 tg_root_dir=$(cat $HOME/.tg.cfg | jq .System.AppRoot | tr -d \")
 tg_temp_root=$(cat $HOME/.tg.cfg | jq .System.TempRoot | tr -d \")
 
+# set up PATH for tigergraph commands
+export PATH=$tg_root_dir/../cmd:$PATH
+
 # Install dir for TigerGraph plugins
 tg_udf_dir=$tg_root_dir/dev/gdk/gsql/src/QueryUdf
 tg_udf_xclbin_dir=$tg_udf_dir/xclbin
