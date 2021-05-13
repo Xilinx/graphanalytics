@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 script=$(readlink -f $0)
 script_dir=`dirname $script`
 
@@ -14,19 +16,22 @@ graph=$1
 subdir=$2
 partitions=$3
 
-graphabs=$(readlink -f $graph)
-graphdir=`dirname $graphabs`
-
 mkdir -p $subdir
+
 # Set rundir to your dir
 rundir=$subdir/louvain_partitions
 
 echo "Removing $rundir"
 rm -rf $rundir
 
-cmd="../Release/louvainmod_test  $1 -fast -par_num $partitions -create_alveo_partitions -name $rundir -server_par $4"
+exe_dir="Release"
+if [ "$DEBUG" == "1" ]; then
+    exe_dir="Debug"
+fi 
+
+export LD_LIBRARY_PATH=$script_dir/../$exe_dir/:$LD_LIBRARY_PATH
+cmd="$script_dir/../$exe_dir/louvainmod_test  $1 -fast -par_num $partitions -create_alveo_partitions -name $rundir -server_par $4"
 echo $cmd
-export LD_LIBRARY_PATH=$script_dir/../Release/:$LD_LIBRARY_PATH
 $cmd
 
 echo "*************************************************************************"

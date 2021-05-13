@@ -1,7 +1,8 @@
 #!/bin/bash
 
 echo Running $0
-if [ "$#" -lt 6 ]; then
+if [ "$#" -lt 5 ]; then
+    echo $#
     echo "$0 <.mtx file> <partition-dir> <number of partitions> numDevices numWorkers"
     echo "Example: $0 /proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx as-skitter-par9 9 3 2"
     exit 1
@@ -19,14 +20,15 @@ if [ "$#" -eq 6 ]; then
     opt_out="-o $6"
 fi
 
-workers="tcp://192.168.1.21:5555 tcp://192.168.1.31:5555"
+#workers="tcp://192.168.1.21:5555 tcp://192.168.1.31:5555"
+workers="tcp://10.18.5.112:5555 tcp://10.18.5.113:5555"
 # Set rundir to your dir
 rundir=$subdir/louvain_partitions
 projdir=$rundir.par.proj
 xclbinfile=/proj/autoesl/ryanw/kernel_louvain_pruning.xclbin
 
 exe_dir="Release"
-if [ "$DEBUG" -eq 1 ]; then
+if [ "$DEBUG" == "1" ]; then
     exe_dir="Debug"
 fi 
 

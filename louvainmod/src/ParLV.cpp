@@ -846,15 +846,15 @@ char* DEMOzmq_get_name(char* des, char* src) {
 }
 
 
-void ConnectWorkers(Driver* drivers, int numPureWorker, const char* switchName[]) 
+void ConnectWorkers(Driver* drivers, int numPureWorker, char* nameWorkers[]) 
 {
     if (numPureWorker == 0)
         return;
 
     std::cout << "INFO: Connecting to " << numPureWorker << " workers..." << std::endl;
     for (int i = 0; i < numPureWorker; i++) {
-        drivers[i].connect(switchName[i]);
-        std::cout << "INFO: Connected to worker " << switchName[i] << std::endl;
+        drivers[i].connect(nameWorkers[i]);
+        std::cout << "INFO: Connected to worker " << nameWorkers[i] << std::endl;
     }
 }
 
@@ -912,7 +912,7 @@ int host_ParserParameters(int argc,
                           char* nameProj,
                           char* nameMetaFile,
                           int& numPureWorker,
-                          char* nameWorker[128],
+                          char* nameWorkers[128],
                           int& nodeID,
 						  int& server_par) {
     const int max_parameter = 100;
@@ -961,7 +961,7 @@ int host_ParserParameters(int argc,
             numPureWorker = atoi(argv[indx2++]);
             if (argc < indx2 + numPureWorker) ParameterError("-setwkr <numWorkers> <worker name> [<worker name>] ]");
             for (int i = 0; i < numPureWorker; i++) {
-                nameWorker[i] = argv[indx2 + i];
+                nameWorkers[i] = argv[indx2 + i];
             }
         }
         if ((has_driverAlone == -1) && (has_workerAlone == -1)) {
@@ -2925,7 +2925,7 @@ GLV* LouvainGLV_general_top(xf::graph::L3::Handle* handle0,
 /*
     TODO: delete the function below once new function is verified.
 */
-int create_alveo_partitions_org(char* inFile, int par_num, int par_prune, char* pathName_proj, ParLV& parlv) {
+int create_alveo_partitions(char* inFile, int par_num, int par_prune, char* pathName_proj, ParLV& parlv) {
     assert(inFile);
     assert(pathName_proj);
     int id_glv = 0;
@@ -3116,7 +3116,7 @@ int xai_save_partition2(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
 	return num_par_server;
 }
 
-int create_alveo_partitions(char* inFile, int num_partition, int par_prune, char* pathName_proj, ParLV& parlv) {
+int create_alveo_partitions_new(char* inFile, int num_partition, int par_prune, char* pathName_proj, ParLV& parlv) {
     assert(inFile);
     assert(pathName_proj);
     int id_glv = 0;
@@ -3423,9 +3423,9 @@ int load_alveo_partitions_WorkerSelf( // for both driver; no zmq communications 
         TimePointType l_send_start = chrono::high_resolution_clock::now();
         TimePointType l_send_end;
         int stride = parlv.num_par / numNode;
-//#ifdef PRINTINFO
+#ifndef NDEBUG
         printf(" load_alveo_partitions_WorkerSelf %d,  %d, %d,  %d,   %d\n", parlv.num_par, numNode, stride * (nodeID - 1), stride * nodeID, nodeID);
-//#endif
+#endif
         MessageGen_D2W(msg_worker, parlv, path_proj, stride * (nodeID - 1), stride * nodeID, nodeID);
         getDiffTime(l_send_start, l_send_end, parlv.timesPar.timeDriverSend);
     }
@@ -3441,7 +3441,7 @@ GLV* louvain_modularity_alveo(xf::graph::L3::Handle* handle0,
                               int numThreads,
                               int numNode,
                               int numPureWorker,
-                              const char** switchName // To enalbe all workers for Louvain
+                              char** nameWorkers // To enalbe all workers for Louvain
                               ) 
 {
 #ifndef NDEBUG
@@ -3456,7 +3456,7 @@ GLV* louvain_modularity_alveo(xf::graph::L3::Handle* handle0,
     TimePointType l_end;
 
     Driver* drivers = new Driver[numPureWorker];
-    ConnectWorkers(drivers, numPureWorker, switchName);
+    ConnectWorkers(drivers, numPureWorker, nameWorkers);
 
     enalbeAllWorkerLouvain(drivers, numPureWorker);
 
@@ -3506,7 +3506,7 @@ GLV* louvain_modularity_alveo(xf::graph::L3::Handle* handle0,
             }
             drivers[i].receive(msg_w2d[i], MAX_LEN_MESSAGE);
 #ifdef PRINTINFO_2
-            printf("INFO: Received from worker:%s (requester%d): %s\n", switchName[i], i, msg_w2d[i]);
+            printf("INFO: Received from worker:%s (requester%d): %s\n", nameWorkers[i], i, msg_w2d[i]);
 #endif
         }
 
@@ -3815,7 +3815,6 @@ extern "C" int load_alveo_partitions(int argc, char* argv[]) {
                           opts_coloring, opts_output, opts_outputFile, opts_VF, opts_xclbinPath, numThreads, num_par,
                           par_prune, flow_fast, devNeed_cmd, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
                           nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par);
-    const char* switchName[2] = {"tcp://192.168.1.21:5555", "tcp://192.168.1.31:5555"};
     int numNode = numPureWorker + 1;
     if (flow_fast) {
         flowMode = 2; // fast kernel  MD_FAST
@@ -3883,7 +3882,7 @@ extern "C" int load_alveo_partitions(int argc, char* argv[]) {
             {
                 const char* char_tmp = "shake hands from Driver";
                 Driver* drivers = new Driver[numPureWorker];
-                ConnectWorkers(drivers, numPureWorker, switchName);
+                ConnectWorkers(drivers, numPureWorker, nameWorkers);
 
                 for (int i = 0; i < numPureWorker; i++) {
 #ifdef PRINTINFO
@@ -3910,7 +3909,7 @@ extern "C" int load_alveo_partitions(int argc, char* argv[]) {
                 TimePointType l_execute_start = chrono::high_resolution_clock::now();
                 TimePointType l_execute_end;
                 glv_final = louvain_modularity_alveo(&handle0, parlv_drv, parlv_wkr, opts_minGraphSize, opts_threshold,
-                                                     opts_C_thresh, numThreads, numNode, numPureWorker, switchName);
+                                                     opts_C_thresh, numThreads, numNode, numPureWorker, nameWorkers);
                 getDiffTime(l_execute_start, l_execute_end, parlv_drv.timesPar.timeDriverExecute);
             }
             glv_final->PushFeature(0, 0, 0.0, true);
@@ -3955,9 +3954,8 @@ extern "C" int load_alveo_partitions(int argc, char* argv[]) {
                 char inFile[1024];
                 ParLV parlv_tmp;
                 parlv_tmp.Init(flowMode, NULL, num_par, numDevices, isPrun, par_prune);
-                std::cout << "-------------parlv_tmp.num_par=" << parlv_tmp.num_par << std::endl;
 
-                if(load_alveo_partitions_WorkerSelf(
+                if (load_alveo_partitions_WorkerSelf(
                     nameMetaFile, numNode, numPureWorker, parlv_tmp,  
                     inFile, nodeID, LoadCommand) != 0)
                     return -1;

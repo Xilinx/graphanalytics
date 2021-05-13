@@ -16,7 +16,7 @@ in_file=$1
 in_cluster_info_file=$2
 
 exe_dir="Release"
-if [ "$DEBUG" -eq 1 ]; then
+if [ "$DEBUG" == "1" ]; then
     exe_dir="Debug"
 fi 
 
