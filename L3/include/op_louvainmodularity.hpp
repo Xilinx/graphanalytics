@@ -23,7 +23,7 @@
 #include "op_base.hpp"
 #include "openclHandle.hpp"
 
-#include "xilinxlouvain.h"
+#include "xilinxlouvainInternal.h"
 #include <time.h>
 #include "common.hpp"
 

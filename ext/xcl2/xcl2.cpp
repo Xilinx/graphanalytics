@@ -68,7 +68,7 @@ cl::Program::Binaries import_binary_file(std::string xclbin_file_name) {
         exit(EXIT_FAILURE);
     }
     // Loading XCL Bin into char buffer
-    std::cout << "Loading: '" << xclbin_file_name.c_str() << "'\n";
+    std::cout << "INFO: Loading: " << xclbin_file_name.c_str() << std::endl;
     std::ifstream bin_file(xclbin_file_name.c_str(), std::ifstream::binary);
     bin_file.seekg(0, bin_file.end);
     unsigned nb = bin_file.tellg();
@@ -79,6 +79,9 @@ cl::Program::Binaries import_binary_file(std::string xclbin_file_name) {
 
     cl::Program::Binaries bins;
     bins.push_back({buf, nb});
+#ifndef NDEBUG    
+    std::cout << "INFO: Completed importing " << xclbin_file_name << std::endl;
+#endif    
     return bins;
 }
 
