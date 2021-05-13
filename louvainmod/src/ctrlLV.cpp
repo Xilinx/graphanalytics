@@ -607,9 +607,8 @@ void PathNoName(char* des, char* name){
 	des[len]= '\0';
 }
 
-int SaveGLVBin(char* name, GLV* glv);
-int CtrlLouvain::exe_LV_SAVE(){
-//save id
+int CtrlLouvain::exe_LV_SAVE()
+{
 	GLV* p_glv = glv_curr;
 	char filename[1024];
 	int id;
@@ -650,19 +649,6 @@ int CtrlLouvain::exe_LV_SAVE(){
 int CtrlLouvain::exe_LV_DEMO(){
 	mycmd.cmd_GetCmd((const char*)("loadg ../data/as-Skitter-wt.mtx"));
 	ExeCmd();
-/*	mycmd.cmd_GetCmd("par -num 2 -prun 1");
-	ExeCmd();
-	mycmd.cmd_GetCmd("par -lv");
-	ExeCmd();
-	mycmd.cmd_GetCmd("par -pre");
-	ExeCmd();
-	mycmd.cmd_GetCmd("par -merge");
-	ExeCmd();
-	mycmd.cmd_GetCmd("par -final");
-	ExeCmd();
-	mycmd.cmd_GetCmd("pl");
-		ExeCmd();*/
-	//mycmd.cmd_GetCmd("loadg data/part1.bat");
 	return 0;
 }
 
