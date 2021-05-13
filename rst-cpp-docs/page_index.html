@@ -550,12 +550,12 @@
 <div class="section" id="linking-directly-so">
 <h2>Linking directly (.so)<a class="headerlink" href="#linking-directly-so" title="Permalink to this headline">¶</a></h2>
 <p>The simplest method of linking the API into your application is to link directly with the shared library (.so), placing a run-time dependency of your application on the shared library. Simply add the following arguments to your link line:</p>
-<pre class="highlight literal-block"><span></span><span class="o">-</span><span class="n">L</span><span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">xilinx</span><span class="o">/</span><span class="n">apps</span><span class="o">/</span><span class="n">graphanalytics</span><span class="o">/</span><span class="n">cosinesim</span><span class="o">/</span><span class="mf">1.0</span><span class="o">/</span><span class="n">lib</span> <span class="o">-</span><span class="n">lXilinxCosineSim</span></pre>
+<pre class="highlight literal-block"><span></span><span class="o">-</span><span class="n">L</span><span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">xilinx</span><span class="o">/</span><span class="n">apps</span><span class="o">/</span><span class="n">graphanalytics</span><span class="o">/</span><span class="n">cosinesim</span><span class="o">/</span><span class="mf">1.1</span><span class="o">/</span><span class="n">lib</span> <span class="o">-</span><span class="n">lXilinxCosineSim</span></pre>
 </div>
 <div class="section" id="linking-with-the-dynamic-loader-archive-a">
 <h2>Linking with the dynamic loader archive (.a)<a class="headerlink" href="#linking-with-the-dynamic-loader-archive-a" title="Permalink to this headline">¶</a></h2>
 <p>To avoid having a run-time dependency on the shared library, but instead load the shared library on demand (internally using <code class="docutils literal notranslate"><span class="pre">dlopen()</span></code>), you can link with the loader archive by adding the following arguments to your link line:</p>
-<pre class="highlight literal-block"><span></span><span class="o">-</span><span class="n">L</span><span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">xilinx</span><span class="o">/</span><span class="n">apps</span><span class="o">/</span><span class="n">graphanalytics</span><span class="o">/</span><span class="n">cosinesim</span><span class="o">/</span><span class="mf">1.0</span><span class="o">/</span><span class="n">lib</span> <span class="o">-</span><span class="n">lXilinxCosineSim_loader</span> <span class="o">-</span><span class="n">ldl</span></pre>
+<pre class="highlight literal-block"><span></span><span class="o">-</span><span class="n">L</span><span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">xilinx</span><span class="o">/</span><span class="n">apps</span><span class="o">/</span><span class="n">graphanalytics</span><span class="o">/</span><span class="n">cosinesim</span><span class="o">/</span><span class="mf">1.1</span><span class="o">/</span><span class="n">lib</span> <span class="o">-</span><span class="n">lXilinxCosineSim_loader</span> <span class="o">-</span><span class="n">ldl</span></pre>
 </div>
 <div class="section" id="including-the-dynamic-loader-source-file-cpp">
 <h2>Including the dynamic loader source file (.cpp)<a class="headerlink" href="#including-the-dynamic-loader-source-file-cpp" title="Permalink to this headline">¶</a></h2>
@@ -567,7 +567,7 @@
 
 <span class="cp">#include</span> <span class="cpf">&quot;cosinesim_loader.cpp&quot;</span></pre>
 <p>Note that you will still have to include <code class="docutils literal notranslate"><span class="pre">-ldl</span></code> on your link line to pull in the standard dynamic loading library.</p>
-<p>The loader source file is located in <code class="docutils literal notranslate"><span class="pre">/opt/xilinx/apps/graphanalytics/cosinesim/1.0/src</span></code>. Note the macro definition that comes before the inclusion of <code class="docutils literal notranslate"><span class="pre">cosinesim.hpp</span></code>.</p>
+<p>The loader source file is located in <code class="docutils literal notranslate"><span class="pre">/opt/xilinx/apps/graphanalytics/cosinesim/1.1/src</span></code>. Note the macro definition that comes before the inclusion of <code class="docutils literal notranslate"><span class="pre">cosinesim.hpp</span></code>.</p>
 <p><strong>TIP:</strong> When using either dynamic loading technique, if the order of symbol loading causes unexplained behavior in your application, you can try adding <code class="docutils literal notranslate"><span class="pre">libXilinxCosineSim.so</span></code> to the list of pre-loaded shared libraries, as explained in ` &lt;<a class="reference external" href="https://stackoverflow.com/questions/426230/what-is-the-ld-preload-trick">https://stackoverflow.com/questions/426230/what-is-the-ld-preload-trick</a>&gt;`__.</p>
 </div>
 </div>
@@ -605,7 +605,7 @@
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on April 24, 2021.
+        Last updated on May 13, 2021.
       </span>
 
     </p>
