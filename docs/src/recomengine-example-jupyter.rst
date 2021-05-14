@@ -1,5 +1,5 @@
 ===========================================
-Synthea Example in Jupyter Notebook
+Jupyter Notebook with PyTigerGraph
 ===========================================
 
 Install Jupyter Notebook in a conda environment
@@ -38,3 +38,7 @@ Run the command below to start Jupyter Notebook
     (alveo-demo)$jupyter notebook
 
 Follow the step-by-step instructions in the notebook once it is loaded in your browser.
+
+The Jupter Notebook demo is also available on 
+`Github <https://github.com/Xilinx/graphanalytics/blob/master/plugin/tigergraph/examples/synthea/jupyter-demo/TG_demo.ipynb>`_
+

@@ -1,5 +1,5 @@
 ===========================================
-Jupyter Notebook Example
+Jupyter Notebook with CosineSim Python API
 ===========================================
 
 Jupyter Notebook is assumed to be installed in the Synthea Example in Jupyter Notebook section.
@@ -14,3 +14,7 @@ Run following commands in a Python virtual environment to run the example:
     (alveo-demo)$unzip examples.zip
     (alveo-demo)$cd examples/python
     (alveo-demo)$./run.sh jupyter notebook jupyter/jupyter_demo.ipynb
+
+
+The Jupter Notebook demo is also available on 
+`Github <https://github.com/Xilinx/graphanalytics/blob/master/cosinesim/examples/python/jupyter/jupyter_demo.ipynb>`_
