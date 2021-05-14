@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-EXAMPLE_DIR = examples/louvainmod
+EXAMPLE_DIR = examples/comdetect
 
 # Files to be direct-copied from plugin source tree to staging area
 
