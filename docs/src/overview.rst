@@ -234,32 +234,16 @@ A demo utilizing Xilinx TigerGraph plugin with Alveo U50 acceleration card is in
 in this repository to show the general usage of the plugin and the development 
 flow of custom graph algorithm accelerators on Xilinx Alveo cards in TigerGraph. 
 
-License
------------------------
 
-Licensed using the [Apache 2.0 license](https://www.apache.org/licenses/LICENSE-2.0).
+Related Links
+---------------
 
-    Copyright 2020-2021 Xilinx, Inc.
-    
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-    
-        http://www.apache.org/licenses/LICENSE-2.0
-    
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-    Copyright 2020-2021 Xilinx, Inc.
+Webinars
+########
 
-Trademark Notice
-----------------
+* `Xilinx Cosine Similarity and Recommendation Engine Webinar 
+  <https://www.xilinx.com/video/application/cosine-similarity-and-recommendation-enginewebinar..html>`_
 
-    Xilinx, the Xilinx logo, Artix, ISE, Kintex, Spartan, Virtex, Zynq, and
-    other designated brands included herein are trademarks of Xilinx in the
-    United States and other countries.
-    
-    All other trademarks are the property of their respective owners.
+
+
     

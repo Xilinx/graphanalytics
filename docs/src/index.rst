@@ -80,7 +80,6 @@ The library is released on `GitHub <https://github.com/Xilinx/graphanalytics>`_ 
 .. toctree::
    :caption: Product User Guides
    :maxdepth: 4
-   :hidden:
 
    rst-cpp-docs/index.rst
 
