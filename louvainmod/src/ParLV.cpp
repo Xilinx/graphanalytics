@@ -3981,9 +3981,16 @@ int louvain_modularity_alveo(int argc, char* argv[]) {
     return load_alveo_partitions(argc, argv);
 }
 
-int compute_modularity(char* inFile, char* inClusterInfoFile) 
+/* 
+Compute modularity based on user provided cluster information file
+*/
+int compute_modularity(char* inFile, char* inClusterInfoFile, int offset) 
 {
     std::cout << "INFO: Computing modularity..." << std::endl;
+    std::cout << "INFO: inFile " << inFile << std::endl;
+    std::cout << "INFO: inClusterInfoFile=" << inClusterInfoFile << std::endl;
+    std::cout << "INFO: offset=" << offset << std::endl;
+
     ifstream ifsInClusterInfoFile;
     long vertexID, clusterID;
     
@@ -4001,7 +4008,7 @@ int compute_modularity(char* inFile, char* inClusterInfoFile)
     ifsInClusterInfoFile.open(inClusterInfoFile);
     long lineCnt = 0;
     while (ifsInClusterInfoFile >> vertexID >> clusterID) {
-        glv_src->C[vertexID] = clusterID;
+        glv_src->C[vertexID-offset] = clusterID-offset;
         lineCnt++;
     }
     ifsInClusterInfoFile.close();

@@ -21,7 +21,7 @@ CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(SET<STRING> v_type, SET<STRIN
 	SumAccum<FLOAT> @@m; # total edge weight
 	ListAccum<INT> @ccIntermediate;
 	INT iter_count = 0;
-	INT dQ = 1;
+	FLOAT dQ = 1.0;
 	FILE f (file_path);
 
 	Start = {v_type};
@@ -91,10 +91,12 @@ CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(SET<STRING> v_type, SET<STRIN
 	END;
 	@@AllQ += @@Q;
 
+   	log(True, "XILINX-INFO", @@Q, @@AllQ);
 
 	// main loop
 	WHILE dQ > tolerence LIMIT max_iter DO
 		iter_count = iter_count + 1;
+       	log(True, "XILINX-INFO", iter_count, dQ, tolerence, max_iter);
 
 		// compute @max_dQ and move
 		Start = SELECT s FROM Start:s-(e_type:e)->:t
@@ -167,7 +169,8 @@ CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(SET<STRING> v_type, SET<STRIN
 			PRINT iter_count, @@Q;
 		END;
 		@@AllQ += @@Q;
-		dQ = @@AllQ.get(iter_count-1) - @@Q;
+		dQ = @@Q - @@AllQ.get(iter_count-1);
+      	log(True, "XILINX-INFO", @@Q, @@AllQ, dQ);
 	END;
 
 	// save and print result
@@ -178,7 +181,8 @@ CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(SET<STRING> v_type, SET<STRIN
 				IF intermediateResult THEN
 					f.println(s, getvid(s.@cc.get(0)), s.@ccIntermediate)
 				ELSE
-					f.println(s, getvid(s.@cc.get(0)))
+					#f.println(s, getvid(s.@cc.get(0)))
+                    f.println(s, s.@cc.get(0))
 				END
 			END
 	;
@@ -195,6 +199,7 @@ CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(SET<STRING> v_type, SET<STRIN
 	IF print_all_Q THEN
 		PRINT @@AllQ;
 	END;
+    PRINT iter_count;
 }
 
 INSTALL QUERY louvain_distributed_q_cpu

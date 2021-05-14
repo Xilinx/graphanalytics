@@ -32,7 +32,8 @@ int main(int argc, char *argv[]) {
         else if (0 == strcmp(argv[i], "-compute_modularity"))
             // argv2: in-mtx-file
             // argv3: in-cluster-info-file
-            return compute_modularity(argv[2], argv[3]);
+            // argv4: offset: 0: cluster info file from C++. 1: cluster info file from py or gsql
+            return compute_modularity(argv[2], argv[3], atoi(argv[4]));
     }
 
     printf("\n\n");

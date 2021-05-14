@@ -28,8 +28,6 @@ STAGE_COPY_FILES = \
     \
     $(wildcard $(EXAMPLE_DIR)/as-skitter/*) \
     $(EXAMPLE_DIR)/bin/common.sh \
-    $(EXAMPLE_DIR)/bin/louvain-py-requirements.txt \
-    $(EXAMPLE_DIR)/bin/louvain.py \
     $(EXAMPLE_DIR)/bin/set-plugin-vars.sh \
     $(EXAMPLE_DIR)/udf/louvainDemo.hpp \
     $(EXAMPLE_DIR)/udf/louvainDemoImpl.hpp \
