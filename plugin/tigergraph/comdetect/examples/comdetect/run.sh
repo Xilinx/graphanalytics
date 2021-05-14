@@ -47,31 +47,45 @@ else
 echo "Skipping UDF installation.  ExprFunctions.hpp is expected to have these UDFs already."
 fi
 
-#files=/proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx 
-
+echo "-------------------------------------------------------------------------"
 echo "Running schema.gsql"
-gsql "$(cat $script_dir/schema.gsql | sed "s/@graph/$xgraph/")"
+echo "gsql -u $username -p $password \"\$(cat $script_dir/query/schema.gsql | sed \"s/@graph/$xgraph/\")"
+echo "-------------------------------------------------------------------------"
+gsql -u $username -p $password "$(cat $script_dir/query/schema.gsql | sed "s/@graph/$xgraph/")"
 
 
+echo "-------------------------------------------------------------------------"
 echo "Installing load.gsql"
-gsql "$(cat $script_dir/load.gsql | sed "s/@graph/$xgraph/")"
+echo "gsql -u $username -p $password \"\$(cat $script_dir/query/load.gsql | sed \"s/@graph/$xgraph/\")"
+echo "-------------------------------------------------------------------------"
+gsql -u $username -p $password "$(cat $script_dir/query/load.gsql | sed "s/@graph/$xgraph/")"
 
+echo "-------------------------------------------------------------------------"
 echo "Loading $files"
-time gsql -g $xgraph "run loading job load_job USING file_name = \"$data_source\""
+echo "gsql -u $username -p $password -g $xgraph \"run loading job load_job USING file_name = \"$data_source\"\""
+echo "-------------------------------------------------------------------------"
+gsql -u $username -p $password -g $xgraph "run loading job load_job USING file_name = \"$data_source\""
 
+
+echo "-------------------------------------------------------------------------"
 echo "Installing louvain_distributed_cpu query"
-time gsql -g $xgraph louvain_distributed_q_cpu.gsql
+echo "gsql -u $username -p $password -g $xgraph $script_dir/query/louvain_distributed_q_cpu.gsql"
+echo "-------------------------------------------------------------------------"
+gsql -u $username -p $password -g $xgraph $script_dir/query/louvain_distributed_q_cpu.gsql
 
-echo "Installing louvain_alveo queries"
-gsql "$(cat $script_dir/louvain_alveo.gsql | sed "s/@graph/$xgraph/")"
+echo "-------------------------------------------------------------------------"
+echo "gsql -u $username -p $password \"\$(cat $script_dir/query/louvain_alveo.gsql | sed \"s/@graph/$xgraph/\")"
+echo "-------------------------------------------------------------------------"
+#gsql -u $username -p $password "$(cat $script_dir/louvain_alveo.gsql | sed "s/@graph/$xgraph/")"
 
 # IMPORTANT: DO NOT USE A NETWORK DRIVE FOR LOG FILES IN DISTRIBUTED QUERIES.
 # OTHERWISE EACH NODE WILL OVERWRITE IT
+echo "-------------------------------------------------------------------------"
 echo "Running louvain_distributed_q_cpu"
+echo gsql -u $username -p $password -g $xgraph 'run query louvain_distributed_q_cpu([\"Person\"], [\"Coworker\"], \"weight\",10,0.00001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_cpu.txt\",TRUE,FALSE)'
+echo "-------------------------------------------------------------------------"
 START=$(date +%s%3N)
-#time gsql -g $xgraph "run query louvain_distributed_cpu(20, [\"Person\"], [\"Coworker\"], \"/tmp/cpu_out.txt\")"
-echo time gsql -g $xgraph "run query louvain_distributed_q_cpu([\"Person\"], [\"Coworker\"], \"weight\",10,0.00001,TRUE,FALSE,\"\",\"/tmp/output_cpu.txt\",TRUE,FALSE)"
-time gsql -g $xgraph "run query louvain_distributed_q_cpu([\"Person\"], [\"Coworker\"], \"weight\",10,0.00001,TRUE,FALSE,\"\",\"/home2/tigergraph/output_cpu.txt\",TRUE,FALSE)"
+time gsql -u $username -p $password -g $xgraph "run query louvain_distributed_q_cpu([\"Person\"], [\"Coworker\"], \"weight\",10,0.00001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_cpu.txt\",TRUE,FALSE)"
 TOTAL_TIME=$(($(date +%s%3N) - START))
 
 echo "louvain_distributed_cpu runtime: " $TOTAL_TIME
@@ -79,7 +93,7 @@ echo "louvain_distributed_cpu runtime: " $TOTAL_TIME
 run_alveo=0
 if [ "$run_alveo" -eq 1 ]; then
     START=$(date +%s%3N)
-    time gsql -g $xgraph 'run query load_alveo()'
+    time gsql -u $username -p $password -g $xgraph 'run query load_alveo()'
     TOTAL_TIME=$(($(date +%s%3N) - START))
     echo "load_alveo: " $TOTAL_TIME
     

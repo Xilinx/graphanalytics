@@ -1331,7 +1331,7 @@ void runLouvainWithFPGA_demo(graphNew* G,
         free(G);
     }
     if (opts_coloring) {
-        if (colors != 0) free(colors);
+        if (colors != NULL) free(colors);
     }
     buff_host.freeMem();
 } // End of runMultiPhaseLouvainAlgorithm()

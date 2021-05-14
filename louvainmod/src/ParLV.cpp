@@ -2925,7 +2925,7 @@ GLV* LouvainGLV_general_top(xf::graph::L3::Handle* handle0,
 /*
     TODO: delete the function below once new function is verified.
 */
-int create_alveo_partitions(char* inFile, int par_num, int par_prune, char* pathName_proj, ParLV& parlv) {
+int create_alveo_partitions_org(char* inFile, int par_num, int par_prune, char* pathName_proj, ParLV& parlv) {
     assert(inFile);
     assert(pathName_proj);
     int id_glv = 0;
@@ -3116,7 +3116,7 @@ int xai_save_partition2(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
 	return num_par_server;
 }
 
-int create_alveo_partitions_new(char* inFile, int num_partition, int par_prune, char* pathName_proj, ParLV& parlv) {
+int create_alveo_partitions(char* inFile, int num_partition, int par_prune, char* pathName_proj, ParLV& parlv) {
     assert(inFile);
     assert(pathName_proj);
     int id_glv = 0;
@@ -3981,9 +3981,16 @@ int louvain_modularity_alveo(int argc, char* argv[]) {
     return load_alveo_partitions(argc, argv);
 }
 
-int compute_modularity(char* inFile, char* inClusterInfoFile) 
+/* 
+Compute modularity based on user provided cluster information file
+*/
+int compute_modularity(char* inFile, char* inClusterInfoFile, int offset) 
 {
     std::cout << "INFO: Computing modularity..." << std::endl;
+    std::cout << "INFO: inFile " << inFile << std::endl;
+    std::cout << "INFO: inClusterInfoFile=" << inClusterInfoFile << std::endl;
+    std::cout << "INFO: offset=" << offset << std::endl;
+
     ifstream ifsInClusterInfoFile;
     long vertexID, clusterID;
     
@@ -4001,7 +4008,7 @@ int compute_modularity(char* inFile, char* inClusterInfoFile)
     ifsInClusterInfoFile.open(inClusterInfoFile);
     long lineCnt = 0;
     while (ifsInClusterInfoFile >> vertexID >> clusterID) {
-        glv_src->C[vertexID] = clusterID;
+        glv_src->C[vertexID-offset] = clusterID-offset;
         lineCnt++;
     }
     ifsInClusterInfoFile.close();
