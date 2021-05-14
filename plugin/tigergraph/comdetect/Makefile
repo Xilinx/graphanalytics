@@ -31,11 +31,11 @@ STAGE_COPY_FILES = \
     $(EXAMPLE_DIR)/bin/set-plugin-vars.sh \
     $(EXAMPLE_DIR)/udf/louvainDemo.hpp \
     $(EXAMPLE_DIR)/udf/louvainDemoImpl.hpp \
-    $(EXAMPLE_DIR)/load.gsql \
-    $(EXAMPLE_DIR)/louvain_alveo.gsql \
-    $(EXAMPLE_DIR)/louvain_cpu.gsql \
-    $(EXAMPLE_DIR)/louvain_distributed_cpu.gsql \
-    $(EXAMPLE_DIR)/schema.gsql \
+    $(EXAMPLE_DIR)/query/load.gsql \
+    $(EXAMPLE_DIR)/query/louvain_alveo.gsql \
+    $(EXAMPLE_DIR)/query/louvain_cpu.gsql \
+    $(EXAMPLE_DIR)/query/louvain_distributed_cpu.gsql \
+    $(EXAMPLE_DIR)/query/schema.gsql \
     $(EXAMPLE_DIR)/run.sh
 
 # Example directories into which to copy example common files
