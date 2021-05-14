@@ -18,3 +18,7 @@ Run following commands in a Python virtual environment to run the example:
 
 The Jupter Notebook demo is also available on 
 `Github <https://github.com/Xilinx/graphanalytics/blob/master/cosinesim/examples/python/jupyter/jupyter_demo.ipynb>`_
+
+Watch `Standalone Cosine Similarity Direct Python Webinar 
+<https://www.xilinx.com/video/application/standalone-cosine-similarity-direct-python-webinar.html>`_
+to learn more about this demo.

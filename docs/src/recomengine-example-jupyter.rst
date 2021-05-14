@@ -42,3 +42,6 @@ Follow the step-by-step instructions in the notebook once it is loaded in your b
 The Jupter Notebook demo is also available on 
 `Github <https://github.com/Xilinx/graphanalytics/blob/master/plugin/tigergraph/examples/synthea/jupyter-demo/TG_demo.ipynb>`_
 
+Watch `Recommendation Engine Jupyter Notebook Demo Webinar 
+<https://www.xilinx.com/video/application/recommendation-engine-accelerated-tigergraph-webinar.html>`_
+to learn more about this demo.
