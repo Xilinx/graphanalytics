@@ -369,12 +369,12 @@
 </ul>
 <p class="caption"><span class="caption-text">Recommendation Engine Examples</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="recomengine-example-jupyter.html">Synthea Example in Jupyter Notebook</a></li>
-<li class="toctree-l1"><a class="reference internal" href="recomengine-example-script.html">Synthea Example using Script</a></li>
+<li class="toctree-l1"><a class="reference internal" href="recomengine-example-jupyter.html">Jupyter Notebook with PyTigerGraph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="recomengine-example-script.html">Bash Script with GSQL</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Cosine Similarity Examples</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="cosinesim-example-jupyter.html">Jupyter Notebook Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cosinesim-example-jupyter.html">Jupyter Notebook with CosineSim Python API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cosinesim-example-python.html">Python Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cosinesim-example-makefile.html">C++ Example using Makefile</a></li>
 </ul>
@@ -475,7 +475,14 @@
 <h3>General use cases<a class="headerlink" href="#general-use-cases" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="synthea-use-case">
 <h4>Synthea use case<a class="headerlink" href="#synthea-use-case" title="Permalink to this headline">¶</a></h4>
-<p>Health and medical professionals are required to make predictions for diagnosis and prognosis in various medical problems. Individualized predictive analytics based on patient similarity is becoming popular in this field to identify similar patients to an index patient, derive insights from the records of the similar patients, and provide personalized predictions. Studies have shown that Consine similarity metrics can outperform conventional predictive modeling in which all available patient data are analyzed. The improved prediction performance is achieved at the cost of increased computational burden.</p>
+<p>Health and medical professionals are required to make predictions for diagnosis
+and prognosis in various medical problems. Individualized predictive analytics
+based on patient similarity is becoming popular in this field to identify similar
+patients to an index patient, derive insights from the records of the similar
+patients, and provide personalized predictions. Studies have shown that cosine
+similarity metrics can outperform conventional predictive modeling in which all
+available patient data are analyzed. The improved prediction performance is
+achieved at the cost of increased computational burden.</p>
 <p>Xilinx Graph Analytics library optimized for <a class="reference external" href="https://www.xilinx.com/products/boards-and-kits/alveo.html">Alveo Adaptable Accelerator Cards</a>
 has been demonstrated on <a class="reference external" href="https://synthetichealth.github.io/synthea/">Synthea</a> generated
 patient data to greatly reduce that computational burden and provide predication results
@@ -523,8 +530,8 @@ and edges in a graph database as shown below:</p>
 <a class="reference internal image-reference" href="_images/synthea-patient-schema.png"><img alt="Cosine Similarity Formula" class="align-center" src="_images/synthea-patient-schema.png" style="width: 504.59999999999997px; height: 376.2px;" /></a>
 <p>Each attribute (e.g. age, gender, race, immunization, etc) of a patient is mapped to
 a numerical value and becomes a feature of the patient vector. In our PoC design each
-paitent vector consists of 198 features and each feature is stored as a 32-bit
-integer. Consine similarity is calcualted between the index patient vector and all
+patient vector consists of 198 features and each feature is stored as a 32-bit
+integer. Cosine similarity is calculated between the index patient vector and all
 other patient vectors. The results are then sorted and the top 100 patients with
 highest scores are presented. Below are the details of the feature map:</p>
 <table class="docutils align-center" id="id1" style="width: 50%">
@@ -582,9 +589,11 @@ highest scores are presented. Below are the details of the feature map:</p>
 </table>
 <div class="section" id="cosine-similarity-gsql">
 <h3>Cosine similarity GSQL<a class="headerlink" href="#cosine-similarity-gsql" title="Permalink to this headline">¶</a></h3>
-<p>TigerGraph uses GSQL query language for fast and scalable graph operations and analytics. A GSQL script of patient similarity using cosine similarity is created to baseline the
-functionalities and computation complexity of the algorithm. It is used to verify and validate the functional
-correctness and performance improvement of the Alveo accelerated desgin. Below is the block diagram of cosine
+<p>TigerGraph uses GSQL query language for fast and scalable graph operations and
+analytics. A GSQL script of patient similarity using cosine similarity is
+created to baseline the functionalities and computation complexity of the algorithm.
+It is used to verify and validate the functional correctness and performance
+improvement of the Alveo accelerated design. Below is the block diagram of cosine
 similarity computation in GSQL, which is executed entirely on CPU.</p>
 <a class="reference internal image-reference" href="_images/cosine-similarity-gsql.png"><img alt="Cosine Similarity GSQL" class="align-center" src="_images/cosine-similarity-gsql.png" style="width: 466.2px; height: 155.4px;" /></a>
 <p>Below is the code snippet of cosine similarity in GSQL.</p>
@@ -609,7 +618,7 @@ stack that stores patients’ records.</p></li>
 <a class="reference internal image-reference" href="_images/cosine-similarity-kernel-top.png"><img alt="_images/cosine-similarity-kernel-top.png" class="align-center" src="_images/cosine-similarity-kernel-top.png" style="width: 368.4px; height: 322.2px;" /></a>
 <p>The kernel design for each CU is illustrated in the block diagram below. Each CU
 contains 16 fully pipelined cosine similarity processing elements (PEs) and one
-MaxK components to choose the top similarities. The 16 PEs are connected to 16
+MaxK component to choose the top similarities. The 16 PEs are connected to 16
 channels to access 5M patients’ data in parallel. The incoming new patient’s record
 is transmitted to the FPGA’s PLRAM by the host and then duplicated to 16 PEs. The MaxK
 primitive calculates the top cosine similarities and their corresponding indices and
@@ -696,7 +705,7 @@ United States and other countries.</p>
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on May 13, 2021.
+        Last updated on May 14, 2021.
       </span>
 
     </p>
