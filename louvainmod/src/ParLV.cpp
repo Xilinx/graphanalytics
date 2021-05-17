@@ -3024,46 +3024,7 @@ GLV* par_general_4TG(long start_vertexInGlb, long* offsets_tg, edge* edgelist_tg
 	GLV* ret=  stt.ParNewGlv_Prun(start_vertexInGlb,  offsets_tg, edgelist_tg, drglist_tg, start_parInGlb, stride_par, id_glv, th_maxGhost);
 	return ret;
 }
-void xai_save_partition(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
-		long  start_vertex,  // If a vertex is smaller than star_vertex, it is a ghost
-		long  end_vertex,	 // If a vertex is larger than star_vertex-1, it is a ghost
-		char* path_prefix,  // For saving the partition files like <path_prefix>_xxx.par
-							// Different server can have different path_prefix
-		int par_prune,       // Can always be set with value '1'
-		int num_par_server  // Not necessary, can be figure out by size limitation, like (end_vertex-star_vertex)/50M
-
-		) {
-	long NV_server = end_vertex - start_vertex;
-	GLV*  parlv_par_src[MAX_PARTITION];
-	int id_glv = 0;//fun2c_call();
-    long stride_par = NV_server / num_par_server;
-    long start_vertext_par = start_vertex;
-	for(int p=0; p< num_par_server; p++){
-		long NV_par = (p==num_par_server-1)? end_vertex - start_vertext_par : stride_par;
-		parlv_par_src[p] = par_general_4TG(
-			//Input data from TG
-			start_vertex,
-			offsets_tg,
-			edgelist_tg,
-			drglist_tg,
-			//Partition parameters
-			start_vertext_par,    //Start vertex
-			NV_par, //Total local vertex. Number of ghost vertex is not available until partition finish
-			id_glv,       // ID counter's reference for GLV objects created. Any integer with any value is OK here;
-			par_prune // Ghost prunning parameter, always be '1'. It can be set by command-line
-		);
-		char nm[1024];
-		sprintf(nm, "_%1d%1d%1d.par", p / 100, (p / 10) % 10, p % 10);
-		parlv_par_src[p]->SetName(nm);
-		char pathName[1024];
-		strcpy(pathName, path_prefix);
-		strcat(pathName, nm);
-		SaveGLVBin(pathName, parlv_par_src[p], false);
-		start_vertext_par += stride_par;
-	}
-}
-
-int xai_save_partition2(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
+int xai_save_partition(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
 		long  start_vertex,     // If a vertex is smaller than star_vertex, it is a ghost
 		long  end_vertex,	    // If a vertex is larger than star_vertex-1, it is a ghost
 		char* path_prefix,      // For saving the partition files like <path_prefix>_xxx.par
@@ -3072,16 +3033,14 @@ int xai_save_partition2(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
 		long NV_par_recommand,  // Allow to partition small graphs not bigger than FPGA limitation
 		long NV_par_max		    //  64*1000*1000;
 		) {
-	int num_par_server;  // It can be figure out by max_vertices, like (end_vertex-star_vertex)/50M
 	long NV_server = end_vertex - start_vertex;
 	GLV*  parlv_par_src[MAX_PARTITION];
 	int id_glv = 0;//fun2c_call();
-    //long stride_par = NV_server / num_par_server;
-	num_par_server = (NV_server + NV_par_recommand -1) / NV_par_recommand;//Up-round
-	long average_stride = (NV_server + (num_par_server+1)/2) / num_par_server; //normal round
+	long average_stride = NV_par_recommand;
     long start_vertext_par = start_vertex;
-	for(int p=0; p< num_par_server; p++){
-		long NV_par = (p==num_par_server-1)? end_vertex - start_vertext_par : average_stride;
+    int p=0;
+    while(start_vertext_par != end_vertex){
+		long NV_par = (end_vertex - start_vertext_par ) > average_stride ? average_stride: end_vertex - start_vertext_par;
 		do{
 			parlv_par_src[p] = par_general_4TG(
 				//Input data from TG
@@ -3090,10 +3049,10 @@ int xai_save_partition2(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
 				edgelist_tg,
 				drglist_tg,
 				//Partition parameters
-				start_vertext_par,    //Start vertex
-				NV_par, //Total local vertex. Number of ghost vertex is not available until partition finish
-				id_glv,       // ID counter's reference for GLV objects created. Any integer with any value is OK here;
-				par_prune // Ghost prunning parameter, always be '1'. It can be set by command-line
+				start_vertext_par,    // Start vertex for each partition
+				NV_par,               // Total local vertex. Number of ghost vertex is not available until partition finish
+				id_glv,               // ID counter's reference for GLV objects created. Any integer with any value is OK here;
+				par_prune             // Ghost prunning parameter, always be '1'. It can be set by command-line
 			);
 			long diff_NV = NV_par_max - parlv_par_src[p]->NV;
 			if(diff_NV <0){
@@ -3110,9 +3069,11 @@ int xai_save_partition2(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
 		strcat(pathName, nm);
 		SaveGLVBin(pathName, parlv_par_src[p], false);
 		start_vertext_par += NV_par;
+		p++;
 	}
-	return num_par_server;
+	return p;
 }
+
 int create_alveo_partitions(char* inFile, int num_partition, int par_prune, char* pathName_proj, ParLV& parlv) {
     assert(inFile);
     assert(pathName_proj);
@@ -3193,7 +3154,7 @@ int create_alveo_partitions(char* inFile, int num_partition, int par_prune, char
 			NV_par_recommand = (NV + parlv.num_par-1) / parlv.num_par;//allow to partition small graph with -par_num
 		else
 			NV_par_recommand = (long)((float)NV_par_max * 0.80);//20% space for ghosts.
-		parInServer[i_svr] = xai_save_partition2(
+		parInServer[i_svr] = xai_save_partition(
 				offsets_tg,  edgelist_tg,  drglist_tg,
     			start_vertex[i_svr],
 				end_vertex[i_svr],
