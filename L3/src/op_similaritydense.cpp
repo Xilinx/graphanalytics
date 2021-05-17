@@ -42,7 +42,6 @@ void createHandleSimDense(class openXRM* xrm, clHandle& handle,
     devices2.push_back(handle.device);
     handle.program = cl::Program(handle.context, devices2, handle.xclBins);
 
-    //xrmCuResource* resR;
     handle.resR = (xrmCuResource*)malloc(sizeof(xrmCuResource));
     memset(handle.resR, 0, sizeof(xrmCuResource));
     xrm->allocCU(handle.resR, kernelName.c_str(), kernelAlias.c_str(), requestLoad);
@@ -682,7 +681,9 @@ int opSimilarityDense::compute(unsigned int deviceID,
     return ret;
 };
 
+//-----------------------------------------------------------------------------
 // currently used
+//-----------------------------------------------------------------------------
 int opSimilarityDense::computeInt(unsigned int deviceID,
                                   unsigned int cuID,
                                   unsigned int channelID,
@@ -754,197 +755,6 @@ int opSimilarityDense::computeInt(unsigned int deviceID,
     return ret;
 };
 
-int opSimilarityDense::computeKNN(unsigned int deviceID,
-                                  unsigned int cuID,
-                                  unsigned int channelID,
-                                  xrmContext* ctx,
-                                  xrmCuResource* resR,
-                                  std::string instanceName,
-                                  clHandle* handles,
-                                  uint32_t similarityType,
-                                  uint32_t dataType,
-                                  unsigned int sourceNUM,
-                                  uint32_t* sourceWeight,
-                                  uint32_t topK,
-                                  xf::graph::Graph<uint32_t, float> g,
-                                  std::string* knownLabels,
-                                  std::string* label) {
-    clHandle* hds = &handles[channelID + cuID * dupNmSimDense + deviceID * dupNmSimDense * cuPerBoardSimDense];
-    cl::Kernel kernel0;
-    std::vector<cl::Memory> ob_in;
-    std::vector<cl::Memory> ob_out;
-
-    uint32_t* config;
-    config = aligned_alloc<uint32_t>(64);
-    uint32_t* resultID = aligned_alloc<uint32_t>(topK);
-    float* similarity = aligned_alloc<float>(topK);
-
-    unsigned int num_runs = 1;
-
-    std::vector<cl::Event> events_write(1);
-    std::vector<cl::Event> events_kernel(num_runs);
-    std::vector<cl::Event> events_read(1);
-
-    bufferInit(hds, instanceName, g, similarityType, dataType, topK, sourceNUM, sourceWeight, config, resultID,
-               similarity, kernel0, ob_in, ob_out);
-
-    migrateMemObj(hds, 0, num_runs, ob_in, nullptr, &events_write[0]);
-
-    int ret = cuExecute(hds, kernel0, num_runs, &events_write, &events_kernel[0]);
-
-    migrateMemObj(hds, 1, num_runs, ob_out, &events_kernel, &events_read[0]);
-
-    events_read[0].wait();
-
-    postProcessKNN(topK, knownLabels, resultID, similarity, label);
-
-    cuRelease(ctx, resR);
-
-    free(config);
-    free(resultID);
-    free(similarity);
-
-    return ret;
-};
-
-int opSimilarityDense::computeAP(unsigned int deviceID,
-                                 unsigned int cuID,
-                                 unsigned int channelID,
-                                 xrmContext* ctx,
-                                 xrmCuResource* resR,
-                                 std::string instanceName,
-                                 clHandle* handles,
-                                 uint32_t similarityType,
-                                 uint32_t dataType,
-                                 uint32_t sourceID,
-                                 uint32_t topK,
-                                 xf::graph::Graph<uint32_t, float> g,
-                                 uint32_t* resultID,
-                                 float* similarity) {
-    clHandle* hds = &handles[channelID + cuID * dupNmSimDense + deviceID * dupNmSimDense * cuPerBoardSimDense];
-    cl::Kernel kernel0;
-    std::vector<cl::Memory> ob_in;
-    std::vector<cl::Memory> ob_out;
-
-    uint32_t* config = aligned_alloc<uint32_t>(64);
-    uint32_t numEdges = g.edgeNum;
-    uint32_t* sourceWeight = aligned_alloc<uint32_t>(numEdges);
-    f_cast<float> tmp;
-    uint32_t id = 0;
-    uint32_t row = 0;
-    uint32_t offset[g.splitNum + 1];
-    offset[0] = 0;
-    for (unsigned int i = 0; i < g.splitNum; i++) {
-        offset[i + 1] = 4 * g.numVerticesPU[i] + offset[i];
-        if ((sourceID >= offset[i]) && (sourceID < offset[i + 1])) {
-            id = i;
-            row = sourceID - offset[i];
-        }
-    }
-
-    for (unsigned int i = 0; i < numEdges; i++) {
-        tmp.f = g.weightsDense[(id * 4 + row) % (g.splitNum * 4)][i];
-        sourceWeight[i] = tmp.i;
-    }
-
-    unsigned int num_runs = 1;
-
-    std::vector<cl::Event> events_write(1);
-    std::vector<cl::Event> events_kernel(num_runs);
-    std::vector<cl::Event> events_read(1);
-
-    bufferInit(hds, instanceName, g, similarityType, dataType, topK, numEdges, sourceWeight, config, resultID,
-               similarity, kernel0, ob_in, ob_out);
-
-    migrateMemObj(hds, 0, num_runs, ob_in, nullptr, &events_write[0]);
-
-    int ret = cuExecute(hds, kernel0, num_runs, &events_write, &events_kernel[0]);
-
-    migrateMemObj(hds, 1, num_runs, ob_out, &events_kernel, &events_read[0]);
-
-    events_read[0].wait();
-
-    cuRelease(ctx, resR);
-
-    free(config);
-    free(sourceWeight);
-
-    return ret;
-};
-
-int opSimilarityDense::computeAPKNN(unsigned int deviceID,
-                                    unsigned int cuID,
-                                    unsigned int channelID,
-                                    xrmContext* ctx,
-                                    xrmCuResource* resR,
-                                    std::string instanceName,
-                                    clHandle* handles,
-                                    uint32_t similarityType,
-                                    uint32_t dataType,
-                                    uint32_t sourceID,
-                                    uint32_t topK,
-                                    xf::graph::Graph<uint32_t, float> g,
-                                    std::string* knownLabels,
-                                    std::string* label) {
-    clHandle* hds = &handles[channelID + cuID * dupNmSimDense + deviceID * dupNmSimDense * cuPerBoardSimDense];
-    cl::Kernel kernel0;
-    std::vector<cl::Memory> ob_in;
-    std::vector<cl::Memory> ob_out;
-
-    uint32_t* config = aligned_alloc<uint32_t>(64);
-    uint32_t* resultID = aligned_alloc<uint32_t>(topK);
-    float* similarity = aligned_alloc<float>(topK);
-    memset(resultID, 0, topK * sizeof(uint32_t));
-    memset(similarity, 0, topK * sizeof(float));
-    uint32_t numEdges = g.edgeNum;
-    uint32_t* sourceWeight = aligned_alloc<uint32_t>(numEdges);
-    f_cast<float> tmp;
-    uint32_t id = 0;
-    uint32_t row = 0;
-    uint32_t offset[g.splitNum + 1];
-    offset[0] = 0;
-    for (unsigned int i = 0; i < g.splitNum; i++) {
-        offset[i + 1] = 4 * g.numVerticesPU[i] + offset[i];
-        if ((sourceID >= offset[i]) && (sourceID < offset[i + 1])) {
-            id = i;
-            row = sourceID - offset[i];
-        }
-    }
-
-    for (unsigned int i = 0; i < numEdges; i++) {
-        tmp.f = g.weightsDense[(id * 4 + row) % (g.splitNum * 4)][i];
-        sourceWeight[i] = tmp.i;
-    }
-
-    unsigned int num_runs = 1;
-
-    std::vector<cl::Event> events_write(1);
-    std::vector<cl::Event> events_kernel(num_runs);
-    std::vector<cl::Event> events_read(1);
-
-    bufferInit(hds, instanceName, g, similarityType, dataType, topK, numEdges, sourceWeight, config, resultID,
-               similarity, kernel0, ob_in, ob_out);
-
-    migrateMemObj(hds, 0, num_runs, ob_in, nullptr, &events_write[0]);
-
-    int ret = cuExecute(hds, kernel0, num_runs, &events_write, &events_kernel[0]);
-
-    migrateMemObj(hds, 1, num_runs, ob_out, &events_kernel, &events_read[0]);
-
-    events_read[0].wait();
-
-    postProcessKNN(topK, knownLabels, resultID, similarity, label);
-
-    cuRelease(ctx, resR);
-
-    free(config);
-    free(resultID);
-    free(similarity);
-    free(sourceWeight);
-
-    return ret;
-};
-
 event<int> opSimilarityDense::addwork(uint32_t similarityType,
                                       uint32_t dataType,
                                       uint32_t sourceNUM,
@@ -967,40 +777,6 @@ event<int> opSimilarityDense::addworkInt(int32_t similarityType,
                                          float* similarity) {
     return createL3(task_queue[0], &(computeInt), handles, similarityType, 
         dataType, sourceNUM, sourceWeight, topK, g, resultID, similarity);
-};
-
-event<int> opSimilarityDense::addworkKNN(uint32_t similarityType,
-                                         uint32_t dataType,
-                                         uint32_t sourceNUM,
-                                         uint32_t* sourceWeight,
-                                         uint32_t topK,
-                                         xf::graph::Graph<uint32_t, float> g,
-                                         std::string* knownLabels,
-                                         std::string& label) {
-    return createL3(task_queue[0], &(computeKNN), handles, similarityType, dataType, sourceNUM, sourceWeight, topK, g,
-                    knownLabels, &label);
-};
-
-event<int> opSimilarityDense::addworkAP(uint32_t similarityType,
-                                        uint32_t dataType,
-                                        uint32_t sourceID,
-                                        uint32_t topK,
-                                        xf::graph::Graph<uint32_t, float> g,
-                                        uint32_t* resultID,
-                                        float* similarity) {
-    return createL3(task_queue[0], &(computeAP), handles, similarityType, dataType, sourceID, topK, g, resultID,
-                    similarity);
-};
-
-event<int> opSimilarityDense::addworkAPKNN(uint32_t similarityType,
-                                           uint32_t dataType,
-                                           uint32_t sourceID,
-                                           uint32_t topK,
-                                           xf::graph::Graph<uint32_t, float> g,
-                                           std::string* knownLabels,
-                                           std::string& label) {
-    return createL3(task_queue[0], &(computeAPKNN), handles, similarityType, dataType, sourceID, topK, g, knownLabels,
-                    &label);
 };
 
 } // L3

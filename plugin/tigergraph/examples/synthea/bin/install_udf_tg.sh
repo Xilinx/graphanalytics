@@ -95,7 +95,13 @@ tg_udf_dir=$tg_root_dir/dev/gdk/gsql/src/QueryUdf
 plugin_src_dir=$SCRIPTPATH/../udf
 
 # Temporary directory of include files to be included into main UDF header (ExprFunctions.hpp)
-tg_temp_include_dir=$tg_temp_root/gsql/codegen/udf
+tg_version=$(basename $tg_root_dir)
+if [ "tg_version" == "3.1.0" ]; then
+    tg_temp_include_dir=$tg_temp_root/gsql/codegen/udf
+else
+    tg_temp_include_dir=$tg_temp_root/gsql/codegen/QueryUdf
+fi
+echo "INFO: UDF codegen directory is $tg_temp_include_dir"
 
 #
 # If uninstalling, clean up installed files and uninstall the demo UDFs

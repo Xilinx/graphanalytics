@@ -37,10 +37,12 @@ script_dir=$(dirname "$0")
 
 echo "data_root=$data_root"
 
-time gsql "$(cat $script_dir/query/schema_xgraph.gsql | sed "s/@graph/$xgraph/")"
+gsql "$(cat $script_dir/query/schema_xgraph.gsql | sed "s/@graph/$xgraph/")"
+
+# load data from data files into the graph
 time gsql "SET sys.data_root=\"$data_root\" $(cat $script_dir/query/load_xgraph.gsql | sed "s/@graph/$xgraph/")"
 
 # set timeout of loading job to 1 hour
 time gsql -g $xgraph "SET QUERY_TIMEOUT=3600000 SET sys.data_root=\"$data_root\" RUN LOADING JOB load_xgraph"
-time gsql -g $xgraph "DROP JOB load_xgraph"
+gsql -g $xgraph "DROP JOB load_xgraph"
 echo "INFO: -------- $(date) load_xgraph completed. --------"

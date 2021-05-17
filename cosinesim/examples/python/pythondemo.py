@@ -3,7 +3,7 @@ import random as rand
 
 # Setup
 VectorLength = 200
-NumVectors = 5000
+NumVectors = 1000
 MaxValue = 16383
 testVec = []
 
@@ -16,20 +16,20 @@ if __name__ == '__main__':
     # Create cosinesim object, datatype is int, size 4 bytes
     cs = xcs.cosinesim(opt, 4)
 
+    print("Loading population vectors into Alveo card...")
     # Initialize cosine similarity
     cs.startLoadPopulation(NumVectors)
 
     # Create vector embeddings
-    for vecNum in range(NumVectors):
+    for vecId in range(NumVectors):
         # Get a vector
-        vecBuf = cs.getPopulationVectorBuffer(vecNum)
+        vecBuf = cs.getPopulationVectorBuffer(vecId)
 
         # Fill the vector
-        for vecIdx in range(VectorLength):
-            val = rand.randint(int(-MaxValue/2), int(MaxValue/2))
-            vecBuf.fill(val)  # fill cpp managed memory
-            if vecNum == testVecIdx:
-                testVec.append(val)
+        valVec = xcs.buildRandData(int(MaxValue/2), int(-MaxValue/2), VectorLength)
+        if vecId == testVecIdx:
+            testVec += valVec
+        vecBuf.append(valVec)
 
         # Finish filling the vector
         cs.finishCurrentPopulationVector(vecBuf)
