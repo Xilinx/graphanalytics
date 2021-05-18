@@ -26,6 +26,10 @@
 
 using namespace std;
 
+//extern int glb_max_num_level;
+//extern int glb_max_num_iter;
+int glb_max_num_level = MAX_NUM_PHASE;
+int glb_max_num_iter = MAX_NUM_TOTITR;
 // time functions
 
 typedef std::chrono::time_point<std::chrono::high_resolution_clock> TimePointType;
@@ -914,7 +918,9 @@ int host_ParserParameters(int argc,
                           int& numPureWorker,
                           char* nameWorker[128],
                           int& nodeID,
-						  int& server_par) {
+						  int& server_par,
+						  int& max_num_level,
+						  int& max_num_iter) {
     const int max_parameter = 100;
     bool rec[max_parameter];
     for (int i = 1; i < argc; i++) rec[i] = false;
@@ -939,6 +945,8 @@ int host_ParserParameters(int argc,
     int has_workerAlone = general_findPara(argc, argv, "-workerAlone");
     int has_cmd = general_findPara(argc, argv, "-cmd");
     int has_server_par = general_findPara(argc, argv, "-server_par");
+    int has_max_num_level = general_findPara(argc, argv, "-num_level");
+    int has_max_num_iter = general_findPara(argc, argv, "-num_iter");
 
     if (general_findPara(argc, argv, "-create_alveo_partitions") != -1) {
         mode_alveo = ALVEOAPI_PARTITION;
@@ -1149,6 +1157,27 @@ int host_ParserParameters(int argc,
 #ifdef PRINTINFO
     printf("PARAMETER server_par = %i\n", server_par);
 #endif
+
+    if (has_max_num_level != -1 && has_max_num_level < (argc - 1)) {
+        rec[has_max_num_level] = true;
+        rec[has_max_num_level + 1] = true;
+        max_num_level = atoi(argv[has_max_num_level + 1]);
+    } else
+    	max_num_level = MAX_NUM_PHASE;
+#ifdef PRINTINFO
+    printf("PARAMETER max_num_level = %i\n", max_num_level);
+#endif
+
+    if (has_max_num_iter != -1 && has_max_num_iter < (argc - 1)) {
+        rec[has_max_num_iter] = true;
+        rec[has_max_num_iter + 1] = true;
+        max_num_iter = atoi(argv[has_max_num_iter + 1]);
+    } else
+    	max_num_iter = MAX_NUM_TOTITR;
+#ifdef PRINTINFO
+    printf("PARAMETER max_num_iter = %i\n", max_num_iter);
+#endif
+
 
     if(mode_alveo == ALVEOAPI_LOAD)
     	return 0; //No need to set input matrix file if
@@ -3540,10 +3569,12 @@ extern "C" int create_alveo_partitions(int argc, char* argv[]) {
     char* nameWorkers[128];
     int nodeID;
     int server_par = 1;
+    //int max_num_level;
+    //int max_num_iter;
     host_ParserParameters(argc, argv, opts_C_thresh, opts_minGraphSize, opts_threshold, opts_ftype, opts_inFile,
                           opts_coloring, opts_output, opts_outputFile, opts_VF, opts_xclbinPath, numThreads, num_par,
                           par_prune, flow_fast, devNeed_cmd, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
-                          nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par);
+                          nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par, glb_max_num_level, glb_max_num_iter);
 
     if (flow_fast) {
         flowMode = 2; // fast kernel  MD_FAST
@@ -3766,11 +3797,13 @@ extern "C" int load_alveo_partitions(int argc, char* argv[]) {
     int nodeID;
     int status;
     int server_par=1;
+    //int max_num_level;
+    //int max_num_iter;
 
     host_ParserParameters(argc, argv, opts_C_thresh, opts_minGraphSize, opts_threshold, opts_ftype, opts_inFile,
                           opts_coloring, opts_output, opts_outputFile, opts_VF, opts_xclbinPath, numThreads, num_par,
                           par_prune, flow_fast, devNeed_cmd, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
-                          nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par);
+                          nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par, glb_max_num_level, glb_max_num_iter);
     const char* switchName[2] = {"tcp://192.168.1.21:5555", "tcp://192.168.1.31:5555"};
     int numNode = numPureWorker + 1;
     if (flow_fast) {

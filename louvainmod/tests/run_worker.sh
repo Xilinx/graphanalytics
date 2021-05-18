@@ -1,6 +1,6 @@
 #!/bin/bash
 echo Running $0
-if [ "$#" -ne 4 ]; then
+if [ "$#" -lt 4 ]; then
     echo "$0 <.mtx file> <subdir for saved partitions> <number of partitions> <worker_number>. Example: $0 /proj/isimsj/graphdb/louvain/data/europe_osm-wt900M.mtx 900 18 1"
     echo "create_partitions.sh saves partitions at <subdir>. "
     echo "worker_number should be different for each worker. Give a number starting 1. Give 1 for first worker, 2 for second and so forth."
@@ -37,4 +37,5 @@ echo "./$exe_dir/louvainModularity_test -x $xclbinfile $graph -fast -dev $num_de
           -load_alveo_partitions $projdir -setwkr $num_workers $workers -workerAlone $worker_number"
 export LD_LIBRARY_PATH=$PWD/../../L3/lib:$LD_LIBRARY_PATH
 ../$exe_dir/louvainModularity_test -x $xclbinfile $graph -fast -dev $num_dev -par_num $par \
-    -load_alveo_partitions $projdir -setwkr $num_workers $workers -workerAlone $worker_number
+    -load_alveo_partitions $projdir -setwkr $num_workers $workers -workerAlone $worker_number \
+    -num_level $5
