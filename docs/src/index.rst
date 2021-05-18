@@ -29,6 +29,8 @@ includes the following products:
 
 * CosineSim and Recommendation Engine intergrated with TigerGraph Graph Database
 
+The library is released on `GitHub <https://github.com/Xilinx/graphanalytics>`_ under Apache License, Version 2.0
+
 
 .. toctree::
    :caption: Overview
@@ -78,7 +80,6 @@ includes the following products:
 .. toctree::
    :caption: Product User Guides
    :maxdepth: 4
-   :hidden:
 
    rst-cpp-docs/index.rst
 
