@@ -32,10 +32,12 @@ NC='\033[0m' # No Color
 use_tcmalloc=0
 uninstall=0
 verbose=0
+force=0
 
-while getopts ":huv" opt
+while getopts ":fhuv" opt
 do
 case $opt in
+    f) force=1;;
     u) uninstall=1;;
     v) verbose=1;;
     ?) echo "ERROR: Unknown option: -$OPTARG"; exit 1;;
@@ -146,10 +148,13 @@ fi
 # If the existing ExprFunctions.hpp has not been prepared for plugins, replace it
 # with the base prepared version (containing just TG-supplied UDFs)
 
-if [ ! -f $tg_udf_dir/ExprFunctions.hpp ] || [ $(grep -c mergeHeaders $tg_udf_dir/ExprFunctions.hpp) -eq 0 ]; then
+if [ $force -eq 1 ] || [ ! -f $tg_udf_dir/ExprFunctions.hpp ] || [ $(grep -c mergeHeaders $tg_udf_dir/ExprFunctions.hpp) -eq 0 ]; then
     echo "INFO: TigerGraph UDF file ExprFunctions.hpp has no plugin tags.  Installing base UDF file with tags"
     cp -f $plugin_udf_dir/ExprFunctions.hpp $tg_udf_dir
 fi
+
+# copy stock ExprUtil.hpp to the new gsql UDF directory under TG data 
+cp $tg_app_udf_dir/ExprUtil.hpp $tg_udf_dir
 
 
 #source $xrtPath/setup.sh

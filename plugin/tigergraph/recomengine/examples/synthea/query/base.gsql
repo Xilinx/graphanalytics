@@ -13,9 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-set query_timeout = 600000
-use graph @graph
-drop query all
+SET QUERY_TIMEOUT = 600000
+USE GRAPH @graph
+DROP QUERY all
 
 create query patient_age(vertex<patients> p) for graph @graph returns (int){ 
     float age;

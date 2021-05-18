@@ -31,6 +31,7 @@ STAGE_COPY_FILES = \
     $(EXAMPLE_DIR)/bin/set-plugin-vars.sh \
     $(EXAMPLE_DIR)/udf/louvainDemo.hpp \
     $(EXAMPLE_DIR)/udf/louvainDemoImpl.hpp \
+	$(EXAMPLE_DIR)/query/base.gsql \
     $(EXAMPLE_DIR)/query/load.gsql \
     $(EXAMPLE_DIR)/query/louvain_alveo.gsql \
     $(EXAMPLE_DIR)/query/louvain_cpu.gsql \

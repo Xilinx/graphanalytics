@@ -17,6 +17,9 @@
 
 set -e
 
+# Turn on tracing for debugging this script
+#set -x
+
 SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`
 
@@ -26,7 +29,7 @@ function usage() {
     echo "  -i sshKey        : SSH key for user tigergraph"    
     echo "  -a mem_alloc     : Change memory allocator default=jemalloc. " 
     echo "  -d               : Install plugin in development mode and bypass resetting Tigergraph services."
-    echo "  -f               : Force cleaning plugin libraries"
+    echo "  -f               : Force installation"
     echo "  -g               : Build plugin libraries with __DEBUG__"
     echo "  -m xrm-lib-path  : Path to XRM libraries. default=/opt/xilinx/xrm"
     echo "  -p               : Turn on XRT profiling and timetrace"
@@ -57,7 +60,7 @@ done
 if [ "$USER" == "tigergraph" ]; then
     ${SCRIPTPATH}/bin/install-plugin-cluster.sh $flags
 else
-    echo "INFO: Running installation as user \"tigergraph\". Enter password for \"tigergraph\" if prompted."
+    echo "INFO: Running installation as user \"tigergraph\" with $flags. Enter password for \"tigergraph\" if prompted."
     ssh $ssh_key_flag tigergraph@$hostname ${SCRIPTPATH}/bin/install-plugin-cluster.sh $flags
 fi
 

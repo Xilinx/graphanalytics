@@ -63,6 +63,8 @@ public:
     };
     
 private:
+    unsigned nodeId_;
+    unsigned numNodes_;
     State state_ = UninitializedState;
     unsigned numDevices_ = 1;
     
@@ -76,7 +78,17 @@ public:
     
     Context() = default;
     ~Context() {}
-    
+
+    void setNodeId(unsigned nodeId) {
+        std::cout << "DEBUG: " << __FUNCTION__ << " nodeId=" << nodeId << std::endl;
+        nodeId_ = nodeId;
+    }
+
+    void setNumNodes(unsigned numNodes) {
+        std::cout << "DEBUG: " << __FUNCTION__ << " numNodes=" << numNodes << std::endl;
+        numNodes_ = numNodes;
+    }
+
     void setNumDevices(unsigned numDevices) {
         if (numDevices != numDevices_)
             clear();

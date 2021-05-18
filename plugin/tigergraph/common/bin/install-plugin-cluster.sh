@@ -36,11 +36,13 @@ xrt_profiling=0
 uninstall=0
 verbose=0
 node_flags=
-while getopts ":a:dgpuv" opt
+force=0
+while getopts ":a:dfgpuv" opt
 do
 case $opt in
     a) mem_alloc=$OPTARG;;
     d) dev_mode=1;;
+    f) force=1; node_flags+=" -f";;
     g) debug_flag=1;;
     p) xrt_profiling=1;;
     u) uninstall=1; node_flags+=" -u";;
@@ -60,15 +62,18 @@ if [ $verbose -eq 1 ]; then
     echo "INFO: Cluster script is running with the settings below:"
     echo "      mem_alloc=$mem_alloc"
     echo "      dev_mode=$dev_mode"
-    echo "      force_clean=$force_clean"
+    echo "      force=$force"
     echo "      debug_flag=$debug_flag"
     echo "      xrt_profiling=$xrt_profiling"
     echo "      uninstall=$uninstall"
 fi
 
 echo ""
-echo "INFO: Found TigerGraph installation in $tg_root_dir"
-echo "INFO: TigerGraph TEMP root is $tg_temp_root"
+echo "INFO: TigerGraph installation info:"
+echo "    APP root is $tg_root_dir"
+echo "    TEMP root is $tg_temp_root"
+echo "    DATA root is $tg_data_root"
+echo "    UDF source directory is $tg_udf_dir"
 echo "INFO: Home is $HOME"
 
 # run installation script on each node
