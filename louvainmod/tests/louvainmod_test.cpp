@@ -18,9 +18,9 @@
 #include "stdio.h"
 #include <cstdlib>
 #include <time.h>
-#include "zmq.h"
 #include "xilinxlouvain.h"
 #include <string.h>
+
 
 int main(int argc, char *argv[]) {
 
@@ -29,7 +29,13 @@ int main(int argc, char *argv[]) {
     		return create_alveo_partitions(argc, argv);
     	else if (0 == strcmp(argv[i], "-load_alveo_partitions"))
     		return load_alveo_partitions(argc, argv);
+        else if (0 == strcmp(argv[i], "-compute_modularity"))
+            // argv2: in-mtx-file
+            // argv3: in-cluster-info-file
+            // argv4: offset: 0: cluster info file from C++. 1: cluster info file from py or gsql
+            return compute_modularity(argv[2], argv[3], atoi(argv[4]));
     }
+
     printf("\n\n");
     printf("\033[1;37;40mTo CREATE partition for Louvain:\033[0m\n\t");
     printf("\033[1;31;40m./host.exe\033[0m <graph file> \033[1;31;40m-par_num\033[0m <number of partitions> \033[1;31;40m-create_alveo_partitions\033[0m [\033[1;31;40m-name\033[0m <project name>]\n");

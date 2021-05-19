@@ -155,19 +155,16 @@ void opLouvainModularity::migrateMemObj(clHandle* hds,
 void opLouvainModularity::loadGraph(
     graphNew* G, int flowMode, bool opts_coloring, long opts_minGraphSize, double opts_C_thresh, int numThreads) {
 
-    long NV_orig;// = G->numVertices;
-    long NE_orig;// = G->numEdges;
+    unsigned long NV_orig;// = G->numVertices;
+    unsigned long NE_orig;// = G->numEdges;
     
     NV_orig = 64000000;//Now using fixed size for L3
     NE_orig = (1<<26);//Now using fixed size for L3
     if(NV_orig >=  MAXNV-1)
     {
-        printf("WARNING: G->numVertices(%x) is more than MAXNV(%x), partition should be used\n", NV_orig, MAXNV);
+        printf("WARNING: G->numVertices(%lx) is more than MAXNV(%lx), partition should be used\n", NV_orig, MAXNV);
         NV_orig = MAXNV-2;
     }
-    //assert(NE_orig < MAXNE);
-    //if(NE_orig > 55000000)
-
 
     long NE_mem = NE_orig * 2; // number for real edge to be stored in memory
     long NE_mem_1 = NE_mem < (MAXNV) ? NE_mem : (MAXNV);
@@ -482,7 +479,7 @@ void opLouvainModularity::UsingFPGA_MapHostClBuff_prune(
     ap_uint<CSRWIDTHS>* axi_indicesdup = reinterpret_cast<ap_uint<CSRWIDTHS>*>(buff_host_prune[0].indicesdup);
     ap_uint<CSRWIDTHS>* axi_weights = reinterpret_cast<ap_uint<CSRWIDTHS>*>(buff_host_prune[0].weights);
     ap_uint<CSRWIDTHS>* axi_indices2;
-    ap_uint<CSRWIDTHS>* axi_indicesdup2;
+    ap_uint<CSRWIDTHS>* axi_indicesdup2 = 0;
     ap_uint<CSRWIDTHS>* axi_weights2;
     if(NE_mem_2>0){
     	axi_indices2 = reinterpret_cast<ap_uint<CSRWIDTHS>*>(buff_host_prune[0].indices2);

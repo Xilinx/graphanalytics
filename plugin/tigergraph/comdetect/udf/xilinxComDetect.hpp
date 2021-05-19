@@ -30,12 +30,25 @@ namespace UDIMPL {
 
 // mergeHeaders 1 section body start xilinxComDetect DO NOT REMOVE!
 
-inline string udf_open_alveo(int mode)
+inline int udf_xilinx_comdetect_set_node_id(uint nodeId)
 {
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
-    return "";
+    std::cout << "DEBUG: " << __FUNCTION__ << " nodeId=" << nodeId << std::endl;
+    xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+
+    pContext->setNodeId(unsigned(nodeId));
+    return nodeId;
 }
 
+inline int udf_xilinx_comdetect_set_num_nodes(uint numNodes)
+{
+    std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
+    std::cout << "DEBUG: " << __FUNCTION__ << " numNodes=" << numNodes << std::endl;
+    xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+
+    pContext->setNumNodes(unsigned(numNodes));
+    return numNodes;
+}
 
 inline bool udf_close_alveo(int mode)
 {

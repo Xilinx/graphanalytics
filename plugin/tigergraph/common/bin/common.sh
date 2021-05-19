@@ -41,12 +41,15 @@ if [ ! -f "$HOME/.tg.cfg" ]; then
 fi
 tg_root_dir=$(cat $HOME/.tg.cfg | jq .System.AppRoot | tr -d \")
 tg_temp_root=$(cat $HOME/.tg.cfg | jq .System.TempRoot | tr -d \")
+tg_data_root=$(cat $HOME/.tg.cfg | jq .System.DataRoot | tr -d \")
 
 # set up PATH for tigergraph commands
 export PATH=$tg_root_dir/../cmd:$PATH
 
 # Install dir for TigerGraph plugins
-tg_udf_dir=$tg_root_dir/dev/gdk/gsql/src/QueryUdf
+tg_app_udf_dir=$tg_root_dir/dev/gdk/gsql/src/QueryUdf
+# TODO: check the directory name below for 3.1.1
+tg_udf_dir=$tg_data_root/gsql/udf/
 tg_udf_xclbin_dir=$tg_udf_dir/xclbin
 
 plugin_ld_preload=

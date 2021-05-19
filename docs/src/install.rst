@@ -24,8 +24,8 @@ Install Xilinx CosineSim and Recommendation Engine Alveo Products
    GSQL > grant role globaldesigner to YOUR-LINUX-USERNAME
    Role "globaldesigner" is successfully granted to user(s): YOUR-LINUX-USERNAME
 
-* Get the installation package xilinx-tigergraph-install-1.0.2.tar.gz from 
-  `Database Analytics POC Secure Site <https://www.xilinx.com/member/dba_poc.html>`_ 
+* Get the installation package `xilinx-tigergraph-install-1.0.2.tar.gz from 
+  Xilinx website <https://www.xilinx.com/member/forms/download/design-license-xef.html?filename=xilinx-tigergraph-install-1.0.2.tar.gz>`_ 
 
 * Install Xilinx CosineSim and Recommendation Engine Alveo Products and 
   dependencies (XRT, XRM, and U50 platform packages)

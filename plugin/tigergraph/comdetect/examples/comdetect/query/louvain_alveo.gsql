@@ -1,26 +1,7 @@
 USE GRAPH @graph
-DROP QUERY load_alveo, close_alveo, louvain_alveo
+DROP QUERY close_alveo, louvain_alveo
 
-# currently load libgraphL3.so only
-CREATE DISTRIBUTED QUERY load_alveo() FOR GRAPH @graph {
-   DOUBLE udf_time;
-   String s;
-   INT ret;
-   udf_reset_timer(true);
-   // Initialize on all machines
-   Start = {Person.*};
-   A = SELECT v
-       FROM Start:v
-       ACCUM udf_open_alveo(1);
-
-   // Create partition only on driver
-   //ret = udf_create_alveo_partitions("/proj/isimsj/graphdb/louvain/data/europe_osm-wt450M_2.mtx", "/proj/isimsj/graphdb/louvain/poc_louvain/rundir/450/louvain_skitter", "9");
-   udf_time = udf_elapsed_time(true);
-
-}
-
-
-CREATE DISTRIBUTED QUERY louvain_alveo(
+CREATE DISTRIBUTED QUERY louvain_alveo (
     INT max_iter, set<STRING> vertex_types, set<STRING> edge_types, STRING community_result,
     STRING input_graph, STRING partitions_project)
 {
@@ -55,4 +36,4 @@ CREATE DISTRIBUTED QUERY close_alveo() for GRAPH @graph {
    print udf_time, b;
 }
 
-install query load_alveo, close_alveo, louvain_alveo
+INSTALL QUERY close_alveo, louvain_alveo

@@ -1472,7 +1472,6 @@ long* parse_MultiKvPowerGridGraph(graphNew* G, char* fileName) {
         edgeListPtr[i + 1] += edgeListPtr[i]; // Prefix Sum:
     }
     // The last element of Cumulative will hold the total number of characters
-    printf("Done cumulative addition for edgeListPtrs:  %9.6lf sec.\n", time2 - time1);
     printf("Sanity Check: 2|E| = %ld, edgeListPtr[NV]= %ld\n", NE * 2, edgeListPtr[NV]);
     assert(NE * 2 == edgeListPtr[NV]);
 
@@ -1880,8 +1879,6 @@ void parse_SNAP(graphNew* G, char* fileName) {
     } while (!fin.eof()); // End of while
 
     fin.close(); // Close the file
-    time2 = omp_get_wtime();
-    printf("Done reading from file: NE= %ld. Time= %lf\n", NE, time2 - time1);
 
     ///////////
     time1 = omp_get_wtime();

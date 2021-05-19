@@ -814,25 +814,25 @@ void GLV::printSimple(){
 			printf(" \033[1;37;40m%-6d\033[0m(%-5d/%2d\%)",NV, (NV-NVl), (int)(100*(float)(NV-NVl)/(float)NV));
 	}else{
 		if(NV==NVl)
-			printf(" \033[1;37;40m%-6d\033[0m(%-8d/%2d\%)",NV, (NV-NVl), (int)(100*(float)(NV-NVl)/(float)NV));
+			printf(" \033[1;37;40m%-6ld\033[0m(%-8ld/%2d%)", NV, (NV-NVl), (int)(100*(float)(NV-NVl)/(float)NV));
 		else
-			printf(" \033[1;37;40m%-6d\033[0m(%-8d/%2d\%)",NV, (NV-NVl), (int)(100*(float)(NV-NVl)/(float)NV));
+			printf(" \033[1;37;40m%-6ld\033[0m(%-8ld/%2d%)", NV, (NV-NVl), (int)(100*(float)(NV-NVl)/(float)NV));
 	}
 	if(NE<(1000)){
 		if(NElg==0)
-			printf(" NE: %9d(%-9d/%2d\%)| Colors:%-6d ",NE, NElg, (int)(100*(float)NElg/(float)NE), numColors);
+			printf(" NE: %9ld(%-9ld/%2d%)| Colors:%-6d ", NE, NElg, (int)(100*(float)NElg/(float)NE), numColors);
 		else
-			printf(" NE: %9d(%-9d/%2d\%)| Colors:%-6d ",NE, NElg, (int)(100*(float)NElg/(float)NE), numColors);
+			printf(" NE: %9ld(%-9ld/%2d%)| Colors:%-6d ", NE, NElg, (int)(100*(float)NElg/(float)NE), numColors);
 	}else if(NE<(1000000)){
 		if(NElg==0)
-			printf(" NE: %9d(%-9d/%2d\%)| Colors:%-6d ",NE, NElg, (int)(100*(float)NElg/(float)NE), numColors);
+			printf(" NE: %9ld(%-9ld/%2d%)| Colors:%-6d ", NE, NElg, (int)(100*(float)NElg/(float)NE), numColors);
 		else
-			printf(" NE: %9d(%-9d/%2d\%)| Colors:%-6d ",NE, NElg, (int)(100*(float)NElg/(float)NE), numColors);
+			printf(" NE: %9ld(%-9ld/%2d%)| Colors:%-6d ", NE, NElg, (int)(100*(float)NElg/(float)NE), numColors);
 	}else{
 		if(NElg==0)
-			printf(" NE: %9d(%-9d/% 2d\%)| Colors:%-6d ",NE, NElg, (int)(100*(float)NElg/(float)NE), numColors);
+			printf(" NE: %9ld(%-9ld/%2d%)| Colors:%-6d ", NE, NElg, (int)(100*(float)NElg/(float)NE), numColors);
 		else
-			printf(" NE: %9d(%-9d/%2d\%)| Colors:%-6d ",NE, NElg, (int)(100*(float)NElg/(float)NE), numColors);
+			printf(" NE: %l9d(%-9ld/%2d%)| Colors:%-6d ", NE, NElg, (int)(100*(float)NElg/(float)NE), numColors);
 	}
 	if(Q>0)
 		printf(" Q: \033[1;32;40m%1.6f\033[0m  ", Q);
@@ -916,12 +916,12 @@ void SttGPar::PrintStt(){
 	printf("**SttGPar::PrintStt BEGIN**\n");
 	printf("From %ld to %ld \n", start, end);
 	num_v_l = end-start;
-	printf("Total V : %ld\t Total  Vl : %ld\t Total Vg: %ld\t Vl/V=%2.2f\%\n",
+	printf("Total V : %ld\t Total  Vl : %ld\t Total Vg: %ld\t Vl/V=%2.2f% \n",
 			num_v, num_v_l, num_v_g, (float)num_v_l/(float)num_v*100.0);
 	assert (num_e_lg == num_e-num_e_ll);
-	printf("Total 2E: %ld\t Total  ll : %ld\t Total lg: %ld\t ll/E=%2.2f\%\n",
+	printf("Total 2E: %ld\t Total  ll : %ld\t Total lg: %ld\t ll/E=%2.2f% \n",
 			  num_e,  num_e_ll, num_e_lg,  (float)num_e_ll/(float)num_e*100.0);
-	printf("Total|E|: %ld\t Total |ll|: %ld\t Total lg: %ld\t |ll|/|E|=%2.2f\%\n",
+	printf("Total|E|: %ld\t Total |ll|: %ld\t Total lg: %ld\t |ll|/|E|=%2.2f% \n",
 			  num_e_dir,  num_e_ll_dir, num_e_lg, (float)num_e_ll_dir/(float)num_e_dir*100.0);
 	printf("**SttGPar::PrintStt END**\n");
 }
@@ -1364,8 +1364,7 @@ GLV* SttGPar::ParNewGlv_Prun(long start_tg, long* offsets_tg, edge* edgelist_tg,
         map<long , long>::iterator itr;
         VGMinDgr gMinDgr;
         long num_vg = 0;
-        long e_dgr = 0;
-        long head_m, tail_m;
+        long head_m = 0, tail_m = 0;
         long adj1    = offsets_tg[v - start_tg];
         long adj2    = offsets_tg[v+1 - start_tg];
         int degree   = adj2-adj1;
@@ -1373,13 +1372,10 @@ GLV* SttGPar::ParNewGlv_Prun(long start_tg, long* offsets_tg, edge* edgelist_tg,
             long e = edgelist_tg[adj1+d].tail;
             double w = edgelist_tg[adj1+d].weight;
             long e_dgr2 = dgrlist_tg[cnt_e_input];
-            e_dgr=e_dgr2;
             head_m = v - start;
             EdgePruning(elist, v, e, w, M_v, gMinDgr, num_vg, e_dgr2, th_maxGhost);
             cnt_e_input++;
-            //printf("DBG_PAR:vertex= %ld\t adj1= %ld\t adj2= %ld\t  degree= %ld\t e=%d \n", v, adj1, adj2, e_dgr, e);
-
-        }//for
+        }
         long smallest = num_vg < th_maxGhost ? num_vg : th_maxGhost;
         for(int i = 0; i < smallest; i++) {
             itr = map_v_g.find(gMinDgr.tail[i]);

@@ -45,14 +45,22 @@ void *getDynamicFunction(const std::string &funcName) {
     }
 
     // load the symbol
+#ifndef NDEBUG    
     std::cout << "DEBUG: after handle==nullptr check" << std::endl;
+#endif    
     dlerror();  // reset errors
+#ifndef NDEBUG        
     std::cout << "DEBUG: before dlsym" << std::endl;
+#ifndef NDEBUG        
     void *pFunc = dlsym(handle, funcName.c_str());
+#ifndef NDEBUG        
     std::cout << "DEBUG: after dlsym" << std::endl;
+#ifndef NDEBUG        
     const char* dlsym_error2 = dlerror();
     if (dlsym_error2) {
+#ifndef NDEBUG            
         std::cout << "DEBUG: inside dlsym_error2" << std::endl;
+#ifndef NDEBUG            
         std::ostringstream oss;
         oss << "Cannot load symbol '" << funcName << "': " << dlsym_error2
                 << ".  Possibly an older version of library " << SOFILEPATH

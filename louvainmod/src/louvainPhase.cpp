@@ -1331,7 +1331,7 @@ void runLouvainWithFPGA_demo(graphNew* G,
         free(G);
     }
     if (opts_coloring) {
-        if (colors != 0) free(colors);
+        if (colors != NULL) free(colors);
     }
     buff_host.freeMem();
 } // End of runMultiPhaseLouvainAlgorithm()
@@ -2180,7 +2180,7 @@ void runLouvainWithFPGA_demo_par_core_prune(
     	else
     		eachTimePhase[phase-1] = omp_get_wtime() -eachTimePhase[phase-1];
     	if(NE_max < pglv_iter->G->numEdges){
-    		printf("WARNING: ReMapBuff as %d < %d \n", NE_max, pglv_iter->G->numEdges);
+    		printf("WARNING: ReMapBuff as %ld < %ld \n", NE_max, pglv_iter->G->numEdges);
     		NE_max = pglv_iter->G->numEdges;
 			long NE_mem      = NE_max * 2;//number for real edge to be stored in memory
 			long NE_mem_1    = NE_mem < (MAXNV)? NE_mem :(MAXNV) ;
