@@ -20,20 +20,26 @@
 #include <time.h>
 #include "xilinxlouvain.h"
 #include <string.h>
-
+#include <iostream>
 
 int main(int argc, char *argv[]) {
 
     for (int i=1; i<argc; i++) {
     	if (0 == strcmp(argv[i], "-create_alveo_partitions"))
     		return create_alveo_partitions(argc, argv);
-    	else if (0 == strcmp(argv[i], "-load_alveo_partitions"))
-    		return load_alveo_partitions(argc, argv);
-        else if (0 == strcmp(argv[i], "-compute_modularity"))
+    	else if (0 == strcmp(argv[i], "-load_alveo_partitions")) {
+    		float modularity_q = load_alveo_partitions(argc, argv);
+            std::cout << "*****************************************************" << std::endl;
+            std::cout << "* Final modularity Q: " << modularity_q << std::endl;
+            std::cout << "*****************************************************" << std::endl;
+
+            return 0;
+        } else if (0 == strcmp(argv[i], "-compute_modularity")) {
             // argv2: in-mtx-file
             // argv3: in-cluster-info-file
             // argv4: offset: 0: cluster info file from C++. 1: cluster info file from py or gsql
             return compute_modularity(argv[2], argv[3], atoi(argv[4]));
+        }
     }
 
     printf("\n\n");

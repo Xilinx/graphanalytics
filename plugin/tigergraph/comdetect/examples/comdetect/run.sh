@@ -74,15 +74,15 @@ gsql -u $username -p $password -g $xgraph "RUN QUERY insert_dummy_nodes($num_nod
 
 echo "-------------------------------------------------------------------------"
 echo "Installing louvain_distributed_cpu query"
-echo "gsql -u $username -p $password -g $xgraph $script_dir/query/louvain_distributed_q_cpu.gsql"
+echo "gsql -u $username -p $password -g $xgraph \"$script_dir/query/louvain_distributed_q_cpu.gsql\""
 echo "-------------------------------------------------------------------------"
-gsql -u $username -p $password -g $xgraph $script_dir/query/louvain_distributed_q_cpu.gsql
+gsql -u $username -p $password -g $xgraph "$script_dir/query/louvain_distributed_q_cpu.gsql"
 
 echo "-------------------------------------------------------------------------"
 echo "Installing Louvain Alveo queries"
 echo "gsql -u $username -p $password \"\$(cat $script_dir/query/louvain_alveo.gsql | sed \"s/@graph/$xgraph/\")\""
 echo "-------------------------------------------------------------------------"
-gsql -u $username -p $password "$(cat $script_dir/louvain_alveo.gsql | sed "s/@graph/$xgraph/")"
+gsql -u $username -p $password "$(cat $script_dir/query/louvain_alveo.gsql | sed "s/@graph/$xgraph/")"
 
 # IMPORTANT: DO NOT USE A NETWORK DRIVE FOR LOG FILES IN DISTRIBUTED QUERIES.
 # OTHERWISE EACH NODE WILL OVERWRITE IT
@@ -101,10 +101,22 @@ START=$(date +%s%3N)
 #command example
 #time gsql -g $xgraph "run query louvain_alveo(10, [\"Person\"], [\"Coworker\"], \"$PWD/log/alveo_out.txt\", \"$PWD/as-skitter/as-skitter-wt-e110k.mtx\", \"$PWD/as-skitter/as-skitter-partitions/louvain_partitions\")"
 
-time gsql -g $xgraph "run query louvain_alveo(10, [\"Person\"], [\"Coworker\"], \
-                                                 \"/tmp/log/alveo_out.txt\", \
+# use the dataset below as default for now
+data_source=/proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx
+partition_prj=/proj/gdba/datasets/louvain-graphs/as-skitter-par9/louvain_partitions.par.proj
+echo "-------------------------------------------------------------------------"
+echo "Running louvain_alveo"
+echo time gsql -u $username -p $password -g $xgraph "run query louvain_alveo(10, [\"Person\"], [\"Coworker\"], \
+    \"/home2/tigergraph/alveo_out.txt\", \"$data_source\", \
+    \"$partition_prj\", \"1\", \"9\", \"0\")"
+echo "-------------------------------------------------------------------------"
+
+time gsql -u $username -p $password -g $xgraph "run query louvain_alveo(10, [\"Person\"], [\"Coworker\"], \
+                                                 \"/home2/tigergraph/alveo_out.txt\", \
                                                  \"$data_source\", \
-                                                 \"$partition_prj\")"
+                                                 \"$partition_prj\", \
+												 \"1\", \"9\", \"0\")"
+
 TOTAL_TIME=$(($(date +%s%3N) - START))
 echo "louvain_alveo: " $TOTAL_TIME
 

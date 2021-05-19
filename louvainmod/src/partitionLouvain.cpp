@@ -275,9 +275,9 @@ void printG_old2(
 		long adj1    = vtxPtr[v];
 		long adj2    = vtxPtr[v+1];
 		int degree = adj2-adj1;
-		printf("c=%-4d : v=%-4d m=%-4d off=%4d, dgr=%-3d\t",C[v], v, M[v], adj1, degree);
+		printf("c=%-4ld : v=%-4d m=%-4d off=%4ld, dgr=%-3d\t",C[v], v, M[v], adj1, degree);
 		for(int d=0; d<degree; d++){
-			printf(" %4d  ", vtxInd[adj1+d].tail);
+			printf(" %4ld  ", vtxInd[adj1+d].tail);
 		}
 		printf("\n");
 	}
@@ -410,10 +410,10 @@ void CreateSubG(
 			long tail = edge_s[v+e].tail;
 			bool isHeadin = (head>= start) && (head<end);
 			bool isTailin = (tail>= start) && (tail<end);
-			bool isEgAllIn =  isHeadin & isTailin;
-			bool isEgAllOut = (~isHeadin) & (~isTailin);
-			bool isOnlyHeadIn = isHeadin & (~isTailin);
-			bool isOnlyTailIn = isTailin & (~isHeadin);
+			bool isEgAllIn =  isHeadin && isTailin;
+			bool isEgAllOut = (!isHeadin) && (!isTailin);
+			bool isOnlyHeadIn = isHeadin && (!isTailin);
+			bool isOnlyTailIn = isTailin && (!isHeadin);
 			long head_m;
 			long tail_m;
 
@@ -799,40 +799,40 @@ void GLV::printSimple(){
 	//Q = com_list.back().Q;
 	//long NC = this->NC;//com_list.back().NC;
 	if(NC==NV)
-		printf("| GLV ID: %-2d| NC/NV: \033[1;37;40m%8d\033[0m/",ID, NC, NVl);
+		printf("| GLV ID: %-2ld| NC/NV: \033[1;37;40m%8ld\033[0m/", ID, NC);
 	else
-		printf("| GLV ID: %-2d| NC/NV: \033[1;31;40m%8d\033[0m/",ID, NC, NVl);
+		printf("| GLV ID: %-2ld| NC/NV: \033[1;31;40m%8ld\033[0m/", ID, NC);
 	if(NV<(1)){
 			if(NV==NVl)
-				printf(" \033[1;37;40m%-3d\033[0m(%-3d/%2d\%)",NV, (NV-NVl), (int)(100*(float)(NV-NVl)/(float)NV));
+				printf(" \033[1;37;40m%-3ld\033[0m(%-3ld/%2d%%)", NV, (NV-NVl), (int)(100*(float)(NV-NVl)/(float)NV));
 			else
-				printf(" \033[1;37;40m%-3d\033[0m(%-3d/%2d\%)",NV, (NV-NVl), (int)(100*(float)(NV-NVl)/(float)NV));
+				printf(" \033[1;37;40m%-3ld\033[0m(%-3ld/%2d%%)", NV, (NV-NVl), (int)(100*(float)(NV-NVl)/(float)NV));
 	}else if(NV<(1000000)){
 		if(NV==NVl)
-			printf(" \033[1;37;40m%-6d\033[0m(%-5d/%2d\%)",NV, (NV-NVl), (int)(100*(float)(NV-NVl)/(float)NV));
+			printf(" \033[1;37;40m%-6ld\033[0m(%-5ld/%2d%%)", NV, (NV-NVl), (int)(100*(float)(NV-NVl)/(float)NV));
 		else
-			printf(" \033[1;37;40m%-6d\033[0m(%-5d/%2d\%)",NV, (NV-NVl), (int)(100*(float)(NV-NVl)/(float)NV));
+			printf(" \033[1;37;40m%-6ld\033[0m(%-5ld/%2d%%)", NV, (NV-NVl), (int)(100*(float)(NV-NVl)/(float)NV));
 	}else{
 		if(NV==NVl)
-			printf(" \033[1;37;40m%-6ld\033[0m(%-8ld/%2d%)", NV, (NV-NVl), (int)(100*(float)(NV-NVl)/(float)NV));
+			printf(" \033[1;37;40m%-6ld\033[0m(%-8ld/%2d%%)", NV, (NV-NVl), (int)(100*(float)(NV-NVl)/(float)NV));
 		else
-			printf(" \033[1;37;40m%-6ld\033[0m(%-8ld/%2d%)", NV, (NV-NVl), (int)(100*(float)(NV-NVl)/(float)NV));
+			printf(" \033[1;37;40m%-6ld\033[0m(%-8ld/%2d%%)", NV, (NV-NVl), (int)(100*(float)(NV-NVl)/(float)NV));
 	}
 	if(NE<(1000)){
 		if(NElg==0)
-			printf(" NE: %9ld(%-9ld/%2d%)| Colors:%-6d ", NE, NElg, (int)(100*(float)NElg/(float)NE), numColors);
+			printf(" NE: %9ld(%-9ld/%2d%%)| Colors:%-6d ", NE, NElg, (int)(100*(float)NElg/(float)NE), numColors);
 		else
-			printf(" NE: %9ld(%-9ld/%2d%)| Colors:%-6d ", NE, NElg, (int)(100*(float)NElg/(float)NE), numColors);
+			printf(" NE: %9ld(%-9ld/%2d%%)| Colors:%-6d ", NE, NElg, (int)(100*(float)NElg/(float)NE), numColors);
 	}else if(NE<(1000000)){
 		if(NElg==0)
-			printf(" NE: %9ld(%-9ld/%2d%)| Colors:%-6d ", NE, NElg, (int)(100*(float)NElg/(float)NE), numColors);
+			printf(" NE: %9ld(%-9ld/%2d%%)| Colors:%-6d ", NE, NElg, (int)(100*(float)NElg/(float)NE), numColors);
 		else
-			printf(" NE: %9ld(%-9ld/%2d%)| Colors:%-6d ", NE, NElg, (int)(100*(float)NElg/(float)NE), numColors);
+			printf(" NE: %9ld(%-9ld/%2d%%)| Colors:%-6d ", NE, NElg, (int)(100*(float)NElg/(float)NE), numColors);
 	}else{
 		if(NElg==0)
-			printf(" NE: %9ld(%-9ld/%2d%)| Colors:%-6d ", NE, NElg, (int)(100*(float)NElg/(float)NE), numColors);
+			printf(" NE: %9ld(%-9ld/%2d%%)| Colors:%-6d ", NE, NElg, (int)(100*(float)NElg/(float)NE), numColors);
 		else
-			printf(" NE: %l9d(%-9ld/%2d%)| Colors:%-6d ", NE, NElg, (int)(100*(float)NElg/(float)NE), numColors);
+			printf(" NE: %9ld(%-9ld/%2d%%)| Colors:%-6d ", NE, NElg, (int)(100*(float)NElg/(float)NE), numColors);
 	}
 	if(Q>0)
 		printf(" Q: \033[1;32;40m%1.6f\033[0m  ", Q);
@@ -864,7 +864,7 @@ void GLV::printFeature(){
 void GLV::SetName_par(int ID_par, int ID_src, long start, long end, int th)
 {
 	char nm[256];
-	sprintf(nm, "ID_%d_ParID_%d_%d_%d_th%d", ID_par, ID_src, start, end, th);
+	sprintf(nm, "ID_%d_ParID_%d_%ld_%ld_th%d", ID_par, ID_src, start, end, th);
 	this->SetName(nm);
 }
 
@@ -916,12 +916,12 @@ void SttGPar::PrintStt(){
 	printf("**SttGPar::PrintStt BEGIN**\n");
 	printf("From %ld to %ld \n", start, end);
 	num_v_l = end-start;
-	printf("Total V : %ld\t Total  Vl : %ld\t Total Vg: %ld\t Vl/V=%2.2f% \n",
+	printf("Total V : %ld\t Total  Vl : %ld\t Total Vg: %ld\t Vl/V=%2.2f%% \n",
 			num_v, num_v_l, num_v_g, (float)num_v_l/(float)num_v*100.0);
 	assert (num_e_lg == num_e-num_e_ll);
-	printf("Total 2E: %ld\t Total  ll : %ld\t Total lg: %ld\t ll/E=%2.2f% \n",
+	printf("Total 2E: %ld\t Total  ll : %ld\t Total lg: %ld\t ll/E=%2.2f%% \n",
 			  num_e,  num_e_ll, num_e_lg,  (float)num_e_ll/(float)num_e*100.0);
-	printf("Total|E|: %ld\t Total |ll|: %ld\t Total lg: %ld\t |ll|/|E|=%2.2f% \n",
+	printf("Total|E|: %ld\t Total |ll|: %ld\t Total lg: %ld\t |ll|/|E|=%2.2f%% \n",
 			  num_e_dir,  num_e_ll_dir, num_e_lg, (float)num_e_ll_dir/(float)num_e_dir*100.0);
 	printf("**SttGPar::PrintStt END**\n");
 }

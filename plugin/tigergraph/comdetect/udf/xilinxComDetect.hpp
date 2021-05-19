@@ -81,7 +81,7 @@ inline int udf_execute_reset(int mode) {
 }
 
 
-inline int udf_execute_alveo_louvain(
+inline float udf_execute_alveo_louvain(
     std::string input_graph, std::string partitions_project, 
     std::string num_devices, std::string num_patitions, 
     std::string num_workers, std::string community_file)
@@ -90,25 +90,31 @@ inline int udf_execute_alveo_louvain(
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
 
-    if (pContext->getState() >= xilComDetect::Context::CalledExecuteLouvainState)
-        return 0;
+    //if (pContext->getState() >= xilComDetect::Context::CalledExecuteLouvainState)
+    //    return 0;
     
-    std::cout << "DEBUG: " << __FUNCTION__ 
-              << " Context::getState()=" << pContext->getState() << std::endl;
+    //std::cout << "DEBUG: " << __FUNCTION__ 
+    //          << " Context::getState()=" << pContext->getState() << std::endl;
 
-    pContext->setState(xilComDetect::Context::CalledExecuteLouvainState);
-    std::string workernum("1");
-    bool isDriver = xilComDetect::isHostTheDriver(workernum);
-    int my_argc = 18;
+    //pContext->setState(xilComDetect::Context::CalledExecuteLouvainState);
+    std::string workernum;
+
     std::string worker_or_driver("-workerAlone");
+    int my_argc = 18;
     char* optional_arg = nullptr;
-    if(isDriver) {
+
+    // nodeId 0 is always the driver. All other nodes are workers.
+    unsigned nodeId = pContext->getNodeId();
+    if (nodeId == 0) {
         worker_or_driver = "-driverAlone";
     } else {
         optional_arg = (char*) workernum.c_str();
         my_argc++;
     }
-    partitions_project += ".par.proj";
+    workernum = std::to_string(nodeId);
+
+    std::cout << "DEBUG: " << __FUNCTION__ << " workernum=" << workernum 
+              << " isdriver=" << (nodeId == 0) << std::endl;
 
     char* my_argv[] = {"host.exe", "-x", PLUGIN_XCLBIN_PATH, input_graph.c_str(), 
                        "-o", community_file.c_str(), "-fast", "-dev", 
@@ -129,8 +135,8 @@ inline int udf_execute_alveo_louvain(
 
 //    for (int i = 0; i < sizeof(my_argv)/sizeof(char *) - 1; ++i)
 //        std::cout << "load partitions arg " << i << " = " << my_argv[i] << std::endl;
-    int retVal = load_alveo_partitions(my_argc, (char**)(my_argv));
-    std::cout << "DEBUG: Returned from execute_louvain, isDriver = " << isDriver << "\n" << std::flush;
+    float retVal = load_alveo_partitions(my_argc, (char**)(my_argv));
+    std::cout << "DEBUG: Returned from execute_louvain. Q=" << retVal << std::endl;
     return retVal;
 }
 

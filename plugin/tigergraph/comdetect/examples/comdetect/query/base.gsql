@@ -15,11 +15,11 @@
 #
 SET QUERY_TIMEOUT = 600000
 USE GRAPH @graph
-DROP QUERY all
+DROP QUERY insert_dummy_nodes
 
 CREATE QUERY insert_dummy_nodes(UINT numNodes) for graph @graph 
 {
-    FOREACH i in RANGE[1, numNodes] DO
+    FOREACH i in RANGE[0, numNodes-1] DO
         INSERT INTO dummy_nodes VALUES(i, i);
         PRINT i;
     END;

@@ -42,11 +42,11 @@ XILINX_LOUVAINMOD_IMPL_DECL
 int create_alveo_partitions(int argc, char *argv[]);
 
 XILINX_LOUVAINMOD_IMPL_DECL
-int load_alveo_partitions(int argc, char *argv[]);
+float load_alveo_partitions(int argc, char *argv[]);
 
 }
 
-int louvain_modularity_alveo(int argc, char *argv[]);
+float louvain_modularity_alveo(int argc, char *argv[]);
 int compute_modularity(char* inFile, char* clusterInfoFile, int offset);
 
 namespace xilinx_apps {

@@ -16,7 +16,7 @@
 #
 
 set -e
-set -x
+#set -x
 
 SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`

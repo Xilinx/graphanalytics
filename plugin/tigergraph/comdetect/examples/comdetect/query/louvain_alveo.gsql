@@ -3,25 +3,33 @@ DROP QUERY close_alveo, louvain_alveo
 
 CREATE DISTRIBUTED QUERY louvain_alveo (
     INT max_iter, set<STRING> vertex_types, set<STRING> edge_types, STRING community_result,
-    STRING input_graph, STRING partitions_project)
+    STRING input_graph, STRING partitions_project,     
+    STRING num_devices, STRING num_patitions, STRING num_workers)
 {
+    ListAccum<int> @@nodeAccum;
+    ListAccum<float> @@modularityAccum;
     SumAccum<INT> @@executeAlveoStatus;
     DOUBLE udf_time;
-    INT ret;
 
-    Start = {Person.*};
+    nodes = {dummy_nodes.*};
+    nodeList = SELECT n FROM nodes:n
+        ACCUM @@nodeAccum += udf_xilinx_comdetect_set_node_id(n.NODE_ID);
+
+    //nodeList = SELECT n FROM nodes:n
+    //    ACCUM @@nodeAccum += udf_xilinx_comdetect_set_num_nodes(1);
+
     udf_reset_timer(true);
-    // each node will get this UDF call for each vertex, but the actual execution 
-    // is only run once guarded by a flag. Each node checks if it's master or slave
-    // and run the task accordingly.
-    A = SELECT s
-        FROM Start:s
-           ACCUM @@executeAlveoStatus += udf_execute_alveo_louvain(
+        nodeList = SELECT n FROM nodes:n
+        ACCUM @@modularityAccum += udf_execute_alveo_louvain(
                                            input_graph, partitions_project, 
-                                           "3", "9", "2", community_result);
+                                           num_devices, num_patitions, num_workers, community_result);
+
     udf_time = udf_elapsed_time(true);
-    print @@executeAlveoStatus;
-    print udf_time;
+
+    print nodes.size() as NumOfNodes;
+    print @@modularityAccum as ModularityQValues;
+    print "Xilinx Alveo U50" AS ComputationTechnique;
+    print udf_time as ExecTimeInMs;
 }
 
 CREATE DISTRIBUTED QUERY close_alveo() for GRAPH @graph {

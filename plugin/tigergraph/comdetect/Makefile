@@ -34,8 +34,7 @@ STAGE_COPY_FILES = \
 	$(EXAMPLE_DIR)/query/base.gsql \
     $(EXAMPLE_DIR)/query/load.gsql \
     $(EXAMPLE_DIR)/query/louvain_alveo.gsql \
-    $(EXAMPLE_DIR)/query/louvain_cpu.gsql \
-    $(EXAMPLE_DIR)/query/louvain_distributed_cpu.gsql \
+    $(EXAMPLE_DIR)/query/louvain_distributed_q_cpu.gsql \
     $(EXAMPLE_DIR)/query/schema.gsql \
     $(EXAMPLE_DIR)/run.sh
 
