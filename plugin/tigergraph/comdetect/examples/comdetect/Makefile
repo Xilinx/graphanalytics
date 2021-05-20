@@ -1,5 +1,7 @@
 SHELL = bash
 
+XGRAPH=social_ywu1
+
 ../../../../../louvainmod/staging/lib/libXilinxLouvain.so: ../../../../../louvainmod/src/louvainmod_loader.cpp
 	cd ../../../../../louvainmod && make DEBUG=1
 	
@@ -28,18 +30,18 @@ run-test: ./install-query-done
 	@echo "-------------------------------------------------------"
 	@echo "make run-test"
 	@echo "-------------------------------------------------------"
-	gsql -g social_ywu "run query insert_dummy_nodes(1)"
-	time gsql -g social_ywu "run query louvain_alveo(10, [\"Person\"], [\"Coworker\"], \
+	gsql -g $(XGRAPH) "run query insert_dummy_nodes(1)"
+	time gsql -g $(XGRAPH) "run query louvain_alveo(10, [\"Person\"], [\"Coworker\"], \
                                                  \"/home2/tigergraph/alveo_out.txt\", \
                                                  \"/proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx\", \
                                                  \"/proj/gdba/datasets/louvain-graphs/as-skitter-par9/louvain_partitions.par.proj\", \
-												 \"1\", \"9\", \"0\")"
+												 \"1\", \"9\", )"
 
 staging-run: ./install-udf-done
 	@echo "-------------------------------------------------------"
 	@echo "make staging-run"
 	@echo "-------------------------------------------------------"
-	cd ../../ && make && ./staging/examples/comdetect/run.sh -g social_ywu1 -s /proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx 
+	cd ../../ && make && ./staging/examples/comdetect/run.sh -g $(XGRAPH) -s /proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx 
 
 clean:
 	rm -f ./install-plugin-done ./install-udf-done ./install-query-done

@@ -38,15 +38,15 @@ void PrintReport_MultiPhase(
 	    printf("********************************************\n");
 	    printf("*********    Compact Summary   *************\n");
 	    printf("********************************************\n");
-	    printf("Number of threads              : %-8d \t m=%d \t thhd=%lf \t thhd_c=%lf\n",  numThreads,opts_minGraphSize,	 opts_threshold,opts_C_thresh);
+	    printf("Number of threads              : %-8d \t m=%ld \t thhd=%lf \t thhd_c=%lf\n",  numThreads, opts_minGraphSize, opts_threshold, opts_C_thresh);
 	    printf("Total number of phases         : %-8d\n",  phase);
 	    printf("Total number of iterations     : %-8d = \t",  totItr);
 	    for(int i=0; i<phase; i++)
 	    	printf(" + %8d  ",  eachItrs[i]);
 	    printf("\n");
-	    printf("Final number of clusters       : %-8d : \t", numClusters);
+	    printf("Final number of clusters       : %-8ld : \t", numClusters);
 	    for(int i=0; i<phase; i++)
-	    	printf("   %8d  ",  eachClusters[i]);
+	    	printf("   %8ld  ",  eachClusters[i]);
 	    printf("\n");
 	    printf("Final modularity               : %lf : \t ", prevMod);
 	    for(int i=0; i<phase; i++)
@@ -149,7 +149,7 @@ void PrintReport_MultiPhase_2(
     	printf("+ %2.6f  ",  eachTimeFeature[i]);
     printf("\n");
     printf("********************************************\n");
-    printf("TOTAL TIME2                    : %lf = \t",totTimeAll);//eachTimePhase
+    printf("TOTAL TIME2                    : %lf = \t", totTimeAll);//eachTimePhase
     for(int i=0; i<phase; i++)
     	printf("+ %2.6f  ",  eachTimePhase[i]);
     printf("\n");
@@ -676,7 +676,8 @@ void PhaseLoop_UsingFPGA_Post(
     std::cout << "-------------------------------------------------------" << std::endl;
     std::cout << "INFO: Finish E2E execution" << std::endl;
     //std::cout << "INFO: FPGA execution time of " << num_runsFPGA << " runs:" << exec_timeE2E << " us\n"
-    printf("INFO: FPGA execution time of %1d runs:%9d us    Iteration times = %2d currMod=%f\n", num_runsFPGA, exec_timeE2E, buff_host.config0[2], currMod);
+    printf("INFO: FPGA execution time of %1d runs:%9d us    Iteration times = %2ld currMod=%f\n", 
+           num_runsFPGA, exec_timeE2E, buff_host.config0[2], currMod);
     std::cout << "INFO: Average execution per run: " << exec_timeE2E - exec_time0 * num_runsFPGA + exec_time0
               << " us\n"
               << "INFO: The iterations is: " << buff_host.config0[2] << "\n";
@@ -716,7 +717,8 @@ void PhaseLoop_UsingFPGA_Post_par(
     std::cout << "-------------------------------------------------------" << std::endl;
     std::cout << "INFO: Finish E2E execution" << std::endl;
     //std::cout << "INFO: FPGA execution time of " << num_runsFPGA << " runs:" << exec_timeE2E << " us\n"
-    printf("INFO: FPGA execution time of %1d runs:%9d us    Iteration times = %2d currMod=%f\n", num_runsFPGA, exec_timeE2E, buff_host.config0[2], currMod);
+    printf("INFO: FPGA execution time of %1d runs:%9d us    Iteration times = %2ld currMod=%f\n", 
+           num_runsFPGA, exec_timeE2E, buff_host.config0[2], currMod);
     std::cout << "INFO: Average execution per run: " << exec_timeE2E - exec_time0 * num_runsFPGA + exec_time0
               << " us\n"
               << "INFO: The iterations is: " << buff_host.config0[2] << "\n";
@@ -1307,7 +1309,8 @@ void runLouvainWithFPGA_demo(graphNew* G,
     printf("********************************************\n");
     printf("*********    Compact Summary   *************\n");
     printf("********************************************\n");
-    printf("Number of threads              : %d\tm=%d \t thhd=%lf \t thhd_c=%lf\n",  numThreads,opts_minGraphSize,	 opts_threshold,opts_C_thresh);
+    printf("Number of threads              : %d\tm=%ld \t thhd=%lf \t thhd_c=%lf\n",  
+           numThreads, opts_minGraphSize, opts_threshold,opts_C_thresh);
     printf("Total number of phases         : %d\n",  phase);
     printf("Total number of iterations     : %d\n",  totItr);
     printf("Final number of clusters       : %ld\n", numClusters);

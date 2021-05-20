@@ -485,11 +485,12 @@ double PhaseLoop_UsingFPGA_Prep_Read_buff_host_prune(
 		int*            eachItr,
 		double*         currMod
 		);
+        
 //New from host/////////////////////////////////////////////////////////////////////
 enum {
 	ZMQ_NONE=0,
-	ZMQ_DRIVER,
-	ZMQ_WORKER
+	ZMQ_DRIVER=1,
+	ZMQ_WORKER=2
 };
 
 #endif

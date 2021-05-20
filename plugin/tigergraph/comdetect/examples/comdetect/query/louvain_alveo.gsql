@@ -2,9 +2,10 @@ USE GRAPH @graph
 DROP QUERY close_alveo, louvain_alveo
 
 CREATE DISTRIBUTED QUERY louvain_alveo (
-    INT max_iter, set<STRING> vertex_types, set<STRING> edge_types, STRING community_result,
+    INT max_iter, set<STRING> vertex_types, set<STRING> edge_types, 
     STRING input_graph, STRING partitions_project,     
-    STRING num_devices, STRING num_patitions, STRING num_workers)
+    UINT num_workers, UINT num_devices, UINT num_patitions, 
+    STRING community_result)
 {
     ListAccum<int> @@nodeAccum;
     ListAccum<float> @@modularityAccum;
@@ -21,8 +22,9 @@ CREATE DISTRIBUTED QUERY louvain_alveo (
     udf_reset_timer(true);
         nodeList = SELECT n FROM nodes:n
         ACCUM @@modularityAccum += udf_execute_alveo_louvain(
-                                           input_graph, partitions_project, 
-                                           num_devices, num_patitions, num_workers, community_result);
+                                    input_graph, partitions_project, 
+                                    num_devices, num_patitions, num_workers, 
+                                    community_result);
 
     udf_time = udf_elapsed_time(true);
 

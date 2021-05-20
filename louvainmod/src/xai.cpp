@@ -48,7 +48,7 @@ int xai_create_partitions(int argc, char** argv) {
 }
 
 int xai_load_partitions(int argc, char** argv) {
-    return load_alveo_partitions(argc, argv);
+    return load_alveo_partitions_wrapper(argc, argv);
 }
 
 int xai_execute_louvain(int argc, char** argv) {

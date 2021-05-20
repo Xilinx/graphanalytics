@@ -82,9 +82,9 @@ inline int udf_execute_reset(int mode) {
 
 
 inline float udf_execute_alveo_louvain(
-    std::string input_graph, std::string partitions_project, 
-    std::string num_devices, std::string num_patitions, 
-    std::string num_workers, std::string community_file)
+    std::string input_graph, std::string partitionProject, 
+    uint numWorkers, uint numDevices, uint numPartitions, 
+    std::string communityFile)
 {        
 
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
@@ -97,45 +97,32 @@ inline float udf_execute_alveo_louvain(
     //          << " Context::getState()=" << pContext->getState() << std::endl;
 
     //pContext->setState(xilComDetect::Context::CalledExecuteLouvainState);
-    std::string workernum;
-
-    std::string worker_or_driver("-workerAlone");
-    int my_argc = 18;
-    char* optional_arg = nullptr;
+    int modeZmq;
+    char* nameWorkers[128] = {"tcp://192.168.1.21:5555", "tcp://192.168.1.31:5555"};
 
     // nodeId 0 is always the driver. All other nodes are workers.
     unsigned nodeId = pContext->getNodeId();
     if (nodeId == 0) {
-        worker_or_driver = "-driverAlone";
+        modeZmq = 1; // driver
     } else {
-        optional_arg = (char*) workernum.c_str();
-        my_argc++;
+        modeZmq = 2; // worker
     }
-    workernum = std::to_string(nodeId);
-
-    std::cout << "DEBUG: " << __FUNCTION__ << " workernum=" << workernum 
-              << " isdriver=" << (nodeId == 0) << std::endl;
-
-    char* my_argv[] = {"host.exe", "-x", PLUGIN_XCLBIN_PATH, input_graph.c_str(), 
-                       "-o", community_file.c_str(), "-fast", "-dev", 
-                       num_devices.c_str(), "-par_num", num_patitions.c_str(),
-                       "-load_alveo_partitions", partitions_project.c_str(), 
-                       "-setwkr", num_workers.c_str(), "tcp://192.168.1.21:5555", "tcp://192.168.1.31:5555", 
-                           worker_or_driver.c_str(), optional_arg, nullptr};
-
+    /*
     std::cout
         << "DEBUG: "
-        << "Calling execute_louvain. input_graph: " <<  input_graph.c_str()
-        << " num_partitions: " << num_patitions.c_str()
-        << " project: " << partitions_project.c_str()
-        << " num workers: " << num_workers.c_str()
-        << " worker_or_driver: " << worker_or_driver.c_str()
-        << " worker num: " << workernum.c_str() << "\n"
-        << std::flush;
+        << "Calling execute_louvain. input_graph: " <<  input_graph
+        << " num_partitions: " << numPartitions
+        << " project: " << partitionProject
+        << " num workers: " << numWorkers
+        << " nodeId: " << nodeId << std::endl;
+    */
+    float retVal = 0;
+    /*retVal = load_alveo_partitions(    
+                    PLUGIN_XCLBIN_PATH, true, numDevices, 
+                    numPartitions, partitionProject, 
+                    modeZmq, numWorkers, nameWorkers, nodeId,
+                    communityFile); */
 
-//    for (int i = 0; i < sizeof(my_argv)/sizeof(char *) - 1; ++i)
-//        std::cout << "load partitions arg " << i << " = " << my_argv[i] << std::endl;
-    float retVal = load_alveo_partitions(my_argc, (char**)(my_argv));
     std::cout << "DEBUG: Returned from execute_louvain. Q=" << retVal << std::endl;
     return retVal;
 }
