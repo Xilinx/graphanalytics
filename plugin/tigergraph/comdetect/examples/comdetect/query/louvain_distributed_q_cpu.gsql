@@ -26,7 +26,7 @@ CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(
 	SetAccum<VERTEX> @@cc; # cc set
 	ListAccum<VERTEX> @cc; #the community center
 	SumAccum<FLOAT> @weight; # total weight incident to this vertex
-        SumAccum<FLOAT> @ccWeight; # total weight incident to the cc vertex
+    SumAccum<FLOAT> @ccWeight; # total weight incident to the cc vertex
 	MapAccum<VERTEX,SumAccum<FLOAT>> @A; #A[c]: sum of the edge weights for the edges in community c
 	MaxAccum<move> @best_move; # highest dQ, highest -Outdegree, highest cc
 	ListAccum<VERTEX> @cm;  #community member list
@@ -37,8 +37,10 @@ CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(
 	FILE f (result_file);
 	DOUBLE vm_peak, vm_hwm;
 	INT ret;
+    DOUBLE udf_time;
 
 	Start = {v_type};
+    udf_reset_timer(true);
 
 	// initialize
 	Start = SELECT s FROM Start:s-(e_type:e)->:t
@@ -208,14 +210,21 @@ CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(
 		END;
     END;
 	IF print_final_Q THEN
-		PRINT @@Q;
+		PRINT @@Q as ModularityQValueFinal;
 	END;
 	IF print_all_Q THEN
-		PRINT @@AllQ;
+		PRINT @@AllQ as ModularityQValueAll;
 	END;
-    PRINT iter_count;
+
+    udf_time = udf_elapsed_time(true);
     ret = udf_peak_memory_usage(vm_peak, vm_hwm);
-    PRINT vm_peak, vm_hwm;
+    ret = udf_peak_memory_usage(vm_peak, vm_hwm);
+    PRINT iter_count; as Iterations;
+    print nodes.size() as NumOfNodes;
+    print "TigerGraph CPU" AS ComputationTechnique;
+    print vm_peak as PeakVirtualMemoryInKB;
+    print vm_hwm as PeakResidentMemoryInKB;
+    print udf_time as ExecTimeInMs;
 }
 
 INSTALL QUERY louvain_distributed_q_cpu
