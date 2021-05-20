@@ -51,37 +51,37 @@ echo "-------------------------------------------------------------------------"
 echo "Running schema.gsql"
 echo "gsql -u $username -p $password \"\$(cat $script_dir/query/schema.gsql | sed \"s/@graph/$xgraph/\")\""
 echo "-------------------------------------------------------------------------"
-#gsql -u $username -p $password "$(cat $script_dir/query/schema.gsql | sed "s/@graph/$xgraph/")"
+gsql -u $username -p $password "$(cat $script_dir/query/schema.gsql | sed "s/@graph/$xgraph/")"
 
 echo "-------------------------------------------------------------------------"
 echo "Installing load.gsql"
 echo "gsql -u $username -p $password \"\$(cat $script_dir/query/load.gsql | sed \"s/@graph/$xgraph/\")\""
 echo "-------------------------------------------------------------------------"
-#gsql -u $username -p $password "$(cat $script_dir/query/load.gsql | sed "s/@graph/$xgraph/")"
+gsql -u $username -p $password "$(cat $script_dir/query/load.gsql | sed "s/@graph/$xgraph/")"
 
 echo "-------------------------------------------------------------------------"
 echo "Loading $files"
 echo "gsql -u $username -p $password -g $xgraph \"run loading job load_job USING file_name = \"$data_source\"\""
 echo "-------------------------------------------------------------------------"
-#gsql -u $username -p $password -g $xgraph "run loading job load_job USING file_name = \"$data_source\""
+gsql -u $username -p $password -g $xgraph "run loading job load_job USING file_name = \"$data_source\""
 
 echo "-------------------------------------------------------------------------"
 echo "Install base queries"
 echo "gsql -u $username -p $password \"\$(cat $script_dir/query/base.gsql | sed \"s/@graph/$xgraph/\")\""
 echo "-------------------------------------------------------------------------"
-#gsql -u $username -p $password "$(cat $script_dir/query/base.gsql | sed "s/@graph/$xgraph/")"
+gsql -u $username -p $password "$(cat $script_dir/query/base.gsql | sed "s/@graph/$xgraph/")"
 
 echo "-------------------------------------------------------------------------"
 echo "Installing louvain_distributed_cpu query"
 echo "gsql -u $username -p $password -g $xgraph \"$script_dir/query/louvain_distributed_q_cpu.gsql\""
 echo "-------------------------------------------------------------------------"
-#gsql -u $username -p $password -g $xgraph "$script_dir/query/louvain_distributed_q_cpu.gsql"
+gsql -u $username -p $password -g $xgraph "$script_dir/query/louvain_distributed_q_cpu.gsql"
 
 echo "-------------------------------------------------------------------------"
 echo "Installing Louvain Alveo queries"
 echo "gsql -u $username -p $password \"\$(cat $script_dir/query/louvain_alveo.gsql | sed \"s/@graph/$xgraph/\")\""
 echo "-------------------------------------------------------------------------"
-#gsql -u $username -p $password "$(cat $script_dir/query/louvain_alveo.gsql | sed "s/@graph/$xgraph/")"
+gsql -u $username -p $password "$(cat $script_dir/query/louvain_alveo.gsql | sed "s/@graph/$xgraph/")"
 
 # IMPORTANT: DO NOT USE A NETWORK DRIVE FOR LOG FILES IN DISTRIBUTED QUERIES.
 # OTHERWISE EACH NODE WILL OVERWRITE IT
