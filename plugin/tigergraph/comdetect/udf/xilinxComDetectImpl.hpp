@@ -63,6 +63,8 @@ public:
     };
     
 private:
+    unsigned nodeId_ = 0;
+    unsigned numNodes_ = 1;
     State state_ = UninitializedState;
     unsigned numDevices_ = 1;
     
@@ -76,8 +78,24 @@ public:
     
     Context() = default;
     ~Context() {}
+
+    void setNodeId(unsigned nodeId) {
+        std::cout << "DEBUG: " << __FUNCTION__ << " nodeId=" << nodeId << std::endl;
+        nodeId_ = nodeId;
+    }
+
+    unsigned getNodeId() { return nodeId_; }
     
-    void setNumDevices(unsigned numDevices) {
+    void setNumNodes(unsigned numNodes) 
+    {
+        std::cout << "DEBUG: " << __FUNCTION__ << " numNodes=" << numNodes << std::endl;
+        numNodes_ = numNodes;
+    }
+
+    unsigned getNumNodes() { return numNodes_; }
+
+    void setNumDevices(unsigned numDevices) 
+    {
         if (numDevices != numDevices_)
             clear();
         numDevices_ = numDevices;
@@ -92,37 +110,6 @@ public:
         state_ = UninitializedState;
     }
 };
-
-
-inline bool isHostTheDriver(std::string& workernum)
-{
-    bool retVal = false;
-    const char* driverHostName = "xsj-dxgradb01";
-    char hostname[HOST_NAME_MAX + 1];
-    int res_hostname = gethostname(hostname, HOST_NAME_MAX + 1);
-    if (res_hostname != 0) {
-        std::cout << "XAIDEBUG: gethostname failed\n";
-        return retVal;
-    }
-    std::string hostString(hostname);
-    std::cout << "XAIDEBUG: host_name: " << hostString;
-    int res_comp = hostString.compare(driverHostName);
-    if (res_comp == 0) {
-        retVal = true;
-        workernum = "0";
-        std::cout << " Driver \n" << std::flush;
-    } else {
-        std::cout << " Worker \n" << std::flush;
-        if (hostString.compare("xsj-dxgradb02") == 0) {
-            workernum = "1";
-        } else if (hostString.compare("xsj-dxgradb03") == 0) {
-            workernum = "2";
-        } else {
-            workernum = "3";
-        }
-    }
-    return retVal;
-}
 
 }  // namespace xilComDetect
 

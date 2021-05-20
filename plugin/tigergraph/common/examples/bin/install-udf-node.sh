@@ -16,6 +16,7 @@
 #
 
 set -e
+#set -x
 
 SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`
@@ -56,20 +57,25 @@ fi
 
 tg_root_dir=$(cat $HOME/.tg.cfg | jq .System.AppRoot | tr -d \")
 tg_temp_root=$(cat $HOME/.tg.cfg | jq .System.TempRoot | tr -d \")
-if [ $verbose -eq 1 ]; then
-    echo "INFO: Found TigerGraph installation in $tg_root_dir"
-    echo "INFO: TigerGraph TEMP root is $tg_temp_root"
-fi
-
+tg_data_root=$(cat $HOME/.tg.cfg | jq .System.DataRoot | tr -d \")
 # Install dir for TigerGraph plugins
-tg_udf_dir=$tg_root_dir/dev/gdk/gsql/src/QueryUdf
+#tg_udf_dir=$tg_root_dir/dev/gdk/gsql/src/QueryUdf
+tg_udf_dir=$tg_data_root/gsql/udf/
+
+if [ $verbose -eq 1 ]; then
+    echo "INFO: TigerGraph installation info:"
+    echo "    APP root is $tg_root_dir"
+    echo "    TEMP root is $tg_temp_root"
+    echo "    DATA root is $tg_data_root"
+    echo "    UDF source directory is $tg_udf_dir"
+fi
 
 # Source directory for plugin
 plugin_src_dir=$SCRIPTPATH/..
 
 # Temporary directory of include files to be included into main UDF header (ExprFunctions.hpp)
 tg_version=$(basename $tg_root_dir)
-if [ "tg_version" == "3.1.0" ]; then
+if [ "$tg_version" == "3.1.0" ]; then
     tg_temp_include_dir=$tg_temp_root/gsql/codegen/udf
 else
     tg_temp_include_dir=$tg_temp_root/gsql/codegen/QueryUdf

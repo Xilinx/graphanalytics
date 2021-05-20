@@ -2,7 +2,6 @@
 
 echo Running $0
 if [ "$#" -lt 5 ]; then
-    echo $#
     echo "$0 <.mtx file> <partition-dir> <number of partitions> numDevices numWorkers"
     echo "Example: $0 /proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx as-skitter-par9 9 3 2"
     exit 1

@@ -53,26 +53,38 @@ CREATE DISTRIBUTED QUERY louvain_alveo(
     BOOL print_all_Q = FALSE)       // Print intermediate Q value
 
 {
+    ListAccum<int> @@nodeAccum;
+    ListAccum<float> @@modularityAccum;
     SumAccum<INT> @@executeAlveoStatus;
     DOUBLE udf_time;
     DOUBLE vm_peak, vm_hwm;
     INT ret;
 
-    Start = {Person.*};
+    nodes = {dummy_nodes.*};
+    nodeList = SELECT n FROM nodes:n
+        ACCUM @@nodeAccum += udf_xilinx_comdetect_set_node_id(n.NODE_ID);
+
+    //nodeList = SELECT n FROM nodes:n
+    //    ACCUM @@nodeAccum += udf_xilinx_comdetect_set_num_nodes(1);
+
     udf_reset_timer(true);
     udf_reset_states(1);
     // each node will get this UDF call for each vertex, but the actual execution
     // is only run once guarded by a flag. Each node checks if it's master or slave
     // and run the task accordingly.
-    A = SELECT s
-        FROM Start:s
+    nodelist = SELECT n FROM nodes:n
            ACCUM @@executeAlveoStatus += udf_louvain_alveo(
            max_iter, max_level, tolerence, intermediateResult,
            verbose, result_file, print_final_Q, print_all_Q);
     udf_time = udf_elapsed_time(true);
     print @@executeAlveoStatus;
     ret = udf_peak_memory_usage(vm_peak, vm_hwm);
-    print udf_time;
+    print nodes.size() as NumOfNodes;
+    print @@modularityAccum as ModularityQValues;
+    print "Xilinx Alveo U50" AS ComputationTechnique;
+    print vm_peak as PeakVirtualMemory;
+    print vm_hwm as PeakResidentMemory;
+    print udf_time as ExecTimeInMs;
 }
 
 CREATE DISTRIBUTED QUERY close_alveo() for GRAPH @graph {

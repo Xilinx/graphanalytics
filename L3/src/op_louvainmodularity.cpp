@@ -16,7 +16,10 @@
 
 #include "op_louvainmodularity.hpp"
 #include <unordered_map>
-
+//int glb_max_num_level = MAX_NUM_PHASE;
+//int glb_max_num_iter = MAX_NUM_TOTITR;
+extern int glb_max_num_level;
+extern int glb_max_num_iter;
 namespace xf {
 namespace graph {
 namespace L3 {
@@ -822,7 +825,7 @@ void opLouvainModularity::demo_par_core(int id_dev, int flowMode,
         pglv_orig->times.totTimeFeature += pglv_orig->times.eachTimeFeature[pglv_orig->times.phase - 1];
 
 
-        if ((pglv_orig->times.phase > MAX_NUM_PHASE) || (pglv_orig->times.totItr > MAX_NUM_TOTITR)) {
+        if ((pglv_orig->times.phase >= glb_max_num_level) || (pglv_orig->times.totItr >= glb_max_num_iter)) {
             isItrStop = true; // Break if too many phases or iterations
         } else if ((currMod[0] - prevMod) <= opts_threshold) {
             isItrStop = true;

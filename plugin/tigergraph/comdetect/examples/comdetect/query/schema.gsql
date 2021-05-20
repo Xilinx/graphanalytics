@@ -14,17 +14,18 @@
 # limitations under the License.
 
 USE GRAPH @graph
-DROP QUERY louvain_distributed_q_cpu, louvain_alveo, load_alveo, close_alveo
-DROP JOB load_job
+DROP QUERY ALL
+DROP JOB ALL
 DROP GRAPH @graph
 
 CREATE GRAPH @graph()
-BEGIN
+
 CREATE SCHEMA_CHANGE JOB job_schema_change_local FOR GRAPH @graph {
     ADD VERTEX Person (primary_id num int, num int);
     ADD UNDIRECTED EDGE Coworker(from Person, to Person, weight double);
+    ADD VERTEX dummy_nodes(PRIMARY_ID ID UINT, NODE_ID UINT);
+
 }
-END
 
 RUN SCHEMA_CHANGE JOB job_schema_change_local
 DROP JOB job_schema_change_local

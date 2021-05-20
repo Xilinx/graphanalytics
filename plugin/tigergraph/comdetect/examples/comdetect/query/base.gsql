@@ -1,4 +1,3 @@
-#!/bin/bash
 #
 # Copyright 2020-2021 Xilinx, Inc.
 #
@@ -14,21 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+SET QUERY_TIMEOUT = 600000
+USE GRAPH @graph
+DROP QUERY insert_dummy_nodes
 
-set -e
-#set -x
+CREATE QUERY insert_dummy_nodes(UINT numNodes) for graph @graph 
+{
+    FOREACH i in RANGE[0, numNodes-1] DO
+        INSERT INTO dummy_nodes VALUES(i, i);
+        PRINT i;
+    END;
+    PRINT "insert_dummy_nodes done.";
+}
 
-SCRIPT=$(readlink -f $0)
-SCRIPTPATH=`dirname $SCRIPT`
-
-. $SCRIPTPATH/common-udf.sh
-
-if [ "$USER" == "tigergraph" ]; then
-    $SCRIPTPATH/install-udf-cluster.sh $verbose_flag $force_clean_flag
-else
-    echo "INFO: This example application requires components to be installed into TigerGraph."
-    echo "INFO: Please enter the password for user \"tigergraph\" if prompted."
-    ssh $ssh_key_flag tigergraph@$hostname $SCRIPTPATH/install-udf-cluster.sh \
-        $verbose_flag $force_clean_flag $uninstall_flag
-fi
-
+INSTALL QUERY insert_dummy_nodes

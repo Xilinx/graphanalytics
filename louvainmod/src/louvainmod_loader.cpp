@@ -45,14 +45,24 @@ void *getDynamicFunction(const std::string &funcName) {
     }
 
     // load the symbol
+#ifndef NDEBUG    
     std::cout << "DEBUG: after handle==nullptr check" << std::endl;
+#endif    
     dlerror();  // reset errors
+#ifndef NDEBUG        
     std::cout << "DEBUG: before dlsym" << std::endl;
+#endif     
+
     void *pFunc = dlsym(handle, funcName.c_str());
+#ifndef NDEBUG        
     std::cout << "DEBUG: after dlsym" << std::endl;
+#endif 
+
     const char* dlsym_error2 = dlerror();
     if (dlsym_error2) {
+#ifndef NDEBUG            
         std::cout << "DEBUG: inside dlsym_error2" << std::endl;
+#endif 
         std::ostringstream oss;
         oss << "Cannot load symbol '" << funcName << "': " << dlsym_error2
                 << ".  Possibly an older version of library " << SOFILEPATH
@@ -101,8 +111,8 @@ int create_alveo_partitions(int argc, char *argv[]) {
 }
 
 XILINX_LOUVAINMOD_IMPL_DEF
-int load_alveo_partitions(int argc, char *argv[]) {
-    typedef int (*LoadPartitionsFunc)(int, char *[]);
+float load_alveo_partitions(int argc, char *argv[]) {
+    typedef float (*LoadPartitionsFunc)(int, char *[]);
     LoadPartitionsFunc pLoadFunc = (LoadPartitionsFunc) getDynamicFunction("load_alveo_partitions");
     return pLoadFunc(argc, argv);
 }
