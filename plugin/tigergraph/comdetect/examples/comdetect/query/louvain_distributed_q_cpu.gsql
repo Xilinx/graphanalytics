@@ -1,9 +1,21 @@
 DROP QUERY louvain_distributed_q_cpu
 
-CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(SET<STRING> v_type, SET<STRING> e_type, STRING wt_attr,
-          INT max_iter = 10, FLOAT tolerence = 0.00001, BOOL intermediateResult = TRUE,
-          BOOL print_accum = FALSE, STRING result_attr = "", STRING file_path = "",
-	        BOOL print_final_Q = TRUE, BOOL print_all_Q = FALSE) 
+//Example invocations:
+// RUN QUERY louvain_distributed(["LOUVAIN_C1"],["LOUVAIN_C1_HAS_EDGE"],"weight",15,1,_,_,_,_,_,_,_)
+// RUN QUERY louvain_distributed(["LOUVAIN_C3"],["LOUVAIN_C3_HAS_EDGE"],"weight",10,1,_,_,_,"cid","/home/tigergraph/mydata/louvain/louvain-distributed/r3.txt",FALSE,TRUE)
+CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(
+    SET<STRING> v_type,             // Set of names of vertex types to be considered. Example: ["Person", "Animal"]
+    SET<STRING> e_type,             // Set of names of edge types to be considered. Example: ["co-worker", "owner"]
+    STRING wt_attr,                 // Name of the edge attribute which has weight of the the edge. Example: "weight"
+    INT max_iter = 10,              // Maximum number of iterations for moving nodes and evaluating Q for a level
+    INT max_level = 10,             // Maximum number of levels or passes of condensing communities and reapplying louvain
+    FLOAT tolerence = 0.00001,      // Maximum delta Q that is considered no change
+    BOOL intermediateResult = TRUE, // Store intermediate results such as intermediate community in the 'result_file'
+    BOOL verbose = FALSE,           // Print debugging accumulators
+    STRING result_attr = "",        // Name of the attribute of a vertext to store the final community Id in
+    STRING result_file = "",        // Full path of result file. It must be accessibble on each machine in cluster.
+    BOOL print_final_Q = TRUE,      // Print final Q value
+    BOOL print_all_Q = FALSE)       // Print intermediate Q value
   {
 
 	TYPEDEF TUPLE <FLOAT deltaQ, FLOAT weight, VERTEX cc> move;
@@ -14,7 +26,7 @@ CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(SET<STRING> v_type, SET<STRIN
 	SetAccum<VERTEX> @@cc; # cc set
 	ListAccum<VERTEX> @cc; #the community center
 	SumAccum<FLOAT> @weight; # total weight incident to this vertex
-    SumAccum<FLOAT> @ccWeight; # total weight incident to the cc vertex
+        SumAccum<FLOAT> @ccWeight; # total weight incident to the cc vertex
 	MapAccum<VERTEX,SumAccum<FLOAT>> @A; #A[c]: sum of the edge weights for the edges in community c
 	MaxAccum<move> @best_move; # highest dQ, highest -Outdegree, highest cc
 	ListAccum<VERTEX> @cm;  #community member list
@@ -22,7 +34,9 @@ CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(SET<STRING> v_type, SET<STRIN
 	ListAccum<INT> @ccIntermediate;
 	INT iter_count = 0;
 	FLOAT dQ = 1.0;
-	FILE f (file_path);
+	FILE f (result_file);
+	DOUBLE vm_peak, vm_hwm;
+	INT ret;
 
 	Start = {v_type};
 
@@ -86,7 +100,7 @@ CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(SET<STRING> v_type, SET<STRIN
 	FOREACH cc IN @@cc DO
 		@@Q += -1*((@@ac.get(cc)*@@ac.get(cc))/(@@m*@@m*4));
 	END;
-	IF print_accum THEN
+	IF verbose THEN
 		PRINT iter_count, @@Q;
 	END;
 	@@AllQ += @@Q;
@@ -165,7 +179,7 @@ CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(SET<STRING> v_type, SET<STRIN
 		FOREACH cc IN @@cc DO
 			@@Q += -1*((@@ac.get(cc)*@@ac.get(cc))/(@@m*@@m*4));
 		END;
-		IF print_accum THEN
+		IF verbose THEN
 			PRINT iter_count, @@Q;
 		END;
 		@@AllQ += @@Q;
@@ -177,7 +191,7 @@ CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(SET<STRING> v_type, SET<STRIN
 	Start = SELECT s FROM Start:s
 		POST-ACCUM
 			IF result_attr != "" THEN s.setAttr(result_attr, getvid(s.@cc.get(0))) END,
-			IF file_path != "" THEN
+			IF result_file != "" THEN
 				IF intermediateResult THEN
 					f.println(s, getvid(s.@cc.get(0)), s.@ccIntermediate)
 				ELSE
@@ -186,7 +200,7 @@ CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(SET<STRING> v_type, SET<STRIN
 				END
 			END
 	;
-	IF print_accum THEN
+	IF verbose THEN
 		IF intermediateResult THEN
 			PRINT Start [Start.@cc.get(0), Start.@ccIntermediate];
 		ELSE
@@ -200,13 +214,8 @@ CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(SET<STRING> v_type, SET<STRIN
 		PRINT @@AllQ;
 	END;
     PRINT iter_count;
+    ret = udf_peak_memory_usage(vm_peak, vm_hwm);
+    PRINT vm_peak, vm_hwm;
 }
 
 INSTALL QUERY louvain_distributed_q_cpu
-//RUN QUERY louvain_distributed(["LOUVAIN_C1"],["LOUVAIN_C1_HAS_EDGE"],"weight",_,_,_,_,_,_,_,_)
-//RUN QUERY louvain_distributed(["LOUVAIN_C2"],["LOUVAIN_C2_HAS_EDGE"],"weight",_,_,_,_,_,_,_,_)
-//RUN QUERY louvain_distributed(["LOUVAIN_C3"],["LOUVAIN_C3_HAS_EDGE"],"weight",_,_,_,_,_,_,_,_)
-
-// RUN QUERY louvain_distributed(["LOUVAIN_C1"],["LOUVAIN_C1_HAS_EDGE"],"weight",_,_,_,_,"cid","/home/tigergraph/mydata/louvain/louvain-distributed/r1.txt",FALSE,TRUE)
-// RUN QUERY louvain_distributed(["LOUVAIN_C2"],["LOUVAIN_C2_HAS_EDGE"],"weight",_,_,_,_,"cid","/home/tigergraph/mydata/louvain/louvain-distributed/r2.txt",FALSE,TRUE)
-// RUN QUERY louvain_distributed(["LOUVAIN_C3"],["LOUVAIN_C3_HAS_EDGE"],"weight",_,_,_,_,"cid","/home/tigergraph/mydata/louvain/louvain-distributed/r3.txt",FALSE,TRUE)

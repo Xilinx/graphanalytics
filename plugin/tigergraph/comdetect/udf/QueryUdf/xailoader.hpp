@@ -183,35 +183,31 @@ namespace xai {
     t_fp_xai_execute_louvain _fptr_execute_louvain;
   }; // class Loader
 
-  extern Loader xaiLoader;
+
+  // Open Alveo parameters
   extern const char* host_libname;
   extern const char* xclbin_filename;
-  extern std::ofstream pv_file;
-  extern const unsigned int elementSize;
-  extern const unsigned int vectorLength;
-  extern const unsigned int startPropertyIndex;
-  extern const unsigned int numVectorPerChannel;
-  extern const unsigned int numChannels;
-  extern const unsigned int maxTopK;
-  extern const unsigned int numDevices;
-  extern int* subjectVector;
-  extern int* populationVectorArray_cu0;
-  extern int* populationVectorArray_cu1;
-  extern int* curPopulationVectorArray;
-  extern unsigned int curElementIndex;
-  extern unsigned int maxElementPerCU;
-  extern int defaultNorm;
-  extern int defaultId0;
-  extern int defaultId1;
-  extern int defaultProperty;
-  extern t_time_point timer_start_time;
-  extern p_xai_context xaiCP;
-  extern xaiHandle appContext;
-  extern p_xai_id_value_pair resultVec;
+
+  // Load alveo parameters
+  extern bool tg_partition;
+  extern bool use_saved_partition;
+  extern std::string graph_file;
+  extern std::string louvain_project;
+  extern std::string num_partitions;
+  extern std::string num_devices;
+
+  // Mutexes
   extern std::mutex writeMutex;
-  extern bool calledExecuteLouvain;
   extern std::mutex writeMutexOpenAlveo;
+
+  // States
+  extern bool executedLouvain;
+  extern bool loadedAlveo;
   extern bool openedAlveo;
+
+  // Construct loader and start timer
+  extern Loader xaiLoader;
+  extern t_time_point timer_start_time;
 
 }
 
