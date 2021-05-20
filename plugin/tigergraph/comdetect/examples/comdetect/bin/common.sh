@@ -44,8 +44,8 @@ function usage() {
     echo "  -i sshKey           : SSH key for user tigergraph"    
     echo "  -l 0|1              : 0: Do not load FPGA; 1: Load FPGA(default)>"
     echo "  -m numNodes         : Number of nodes in Tigergraph cluster"
-    echo "  -n partitionProject : Graph partition project basename. "
-    echo "  -s dataSource       : .mtx containing input graph. default=./as-Skitter/as-Skitter-wt-e110k.mtx"
+    echo "  -n partitionProject : Graph partition project basename "
+    echo "  -s dataSource       : A .mtx file containing input graph. default=./as-Skitter/as-Skitter-wt-e110k.mtx"
     echo "  -v                  : Print verbose messages"
     echo "  -h                  : Print this help message"
 }

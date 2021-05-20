@@ -51,42 +51,45 @@ echo "-------------------------------------------------------------------------"
 echo "Running schema.gsql"
 echo "gsql -u $username -p $password \"\$(cat $script_dir/query/schema.gsql | sed \"s/@graph/$xgraph/\")\""
 echo "-------------------------------------------------------------------------"
-gsql -u $username -p $password "$(cat $script_dir/query/schema.gsql | sed "s/@graph/$xgraph/")"
+#gsql -u $username -p $password "$(cat $script_dir/query/schema.gsql | sed "s/@graph/$xgraph/")"
 
 echo "-------------------------------------------------------------------------"
 echo "Installing load.gsql"
 echo "gsql -u $username -p $password \"\$(cat $script_dir/query/load.gsql | sed \"s/@graph/$xgraph/\")\""
 echo "-------------------------------------------------------------------------"
-gsql -u $username -p $password "$(cat $script_dir/query/load.gsql | sed "s/@graph/$xgraph/")"
+#gsql -u $username -p $password "$(cat $script_dir/query/load.gsql | sed "s/@graph/$xgraph/")"
 
 echo "-------------------------------------------------------------------------"
 echo "Loading $files"
 echo "gsql -u $username -p $password -g $xgraph \"run loading job load_job USING file_name = \"$data_source\"\""
 echo "-------------------------------------------------------------------------"
-gsql -u $username -p $password -g $xgraph "run loading job load_job USING file_name = \"$data_source\""
+#gsql -u $username -p $password -g $xgraph "run loading job load_job USING file_name = \"$data_source\""
 
 echo "-------------------------------------------------------------------------"
 echo "Install base queries"
 echo "gsql -u $username -p $password \"\$(cat $script_dir/query/base.gsql | sed \"s/@graph/$xgraph/\")\""
 echo "-------------------------------------------------------------------------"
-gsql -u $username -p $password "$(cat $script_dir/query/base.gsql | sed "s/@graph/$xgraph/")"
-gsql -u $username -p $password -g $xgraph "RUN QUERY insert_dummy_nodes($num_nodes)"
+#gsql -u $username -p $password "$(cat $script_dir/query/base.gsql | sed "s/@graph/$xgraph/")"
 
 echo "-------------------------------------------------------------------------"
 echo "Installing louvain_distributed_cpu query"
 echo "gsql -u $username -p $password -g $xgraph \"$script_dir/query/louvain_distributed_q_cpu.gsql\""
 echo "-------------------------------------------------------------------------"
-gsql -u $username -p $password -g $xgraph "$script_dir/query/louvain_distributed_q_cpu.gsql"
+#gsql -u $username -p $password -g $xgraph "$script_dir/query/louvain_distributed_q_cpu.gsql"
 
 echo "-------------------------------------------------------------------------"
 echo "Installing Louvain Alveo queries"
 echo "gsql -u $username -p $password \"\$(cat $script_dir/query/louvain_alveo.gsql | sed \"s/@graph/$xgraph/\")\""
 echo "-------------------------------------------------------------------------"
-gsql -u $username -p $password "$(cat $script_dir/query/louvain_alveo.gsql | sed "s/@graph/$xgraph/")"
+#gsql -u $username -p $password "$(cat $script_dir/query/louvain_alveo.gsql | sed "s/@graph/$xgraph/")"
 
 # IMPORTANT: DO NOT USE A NETWORK DRIVE FOR LOG FILES IN DISTRIBUTED QUERIES.
 # OTHERWISE EACH NODE WILL OVERWRITE IT
 echo "-------------------------------------------------------------------------"
+echo "Running nsert dummy nodes for distributed alveo computing"
+gsql -u $username -p $password -g $xgraph "RUN QUERY insert_dummy_nodes($num_nodes)"
+echo "-------------------------------------------------------------------------"
+
 echo "Running louvain_distributed_q_cpu"
 echo gsql -u $username -p $password -g $xgraph \'run query louvain_distributed_q_cpu\([\"Person\"], [\"Coworker\"],\"weight\",10,1,0.00001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_cpu.txt\",TRUE,FALSE\)\'
 echo "-------------------------------------------------------------------------"
@@ -97,7 +100,7 @@ TOTAL_TIME=$(($(date +%s%3N) - START))
 
 echo "louvain_distributed_cpu runtime: " $TOTAL_TIME
 
-run_alveo=0
+run_alveo=1
 if [ "$run_alveo" -eq 1 ]; then
     START=$(date +%s%3N)
     echo "Running open_alveo"
@@ -108,7 +111,7 @@ if [ "$run_alveo" -eq 1 ]; then
 
     START=$(date +%s%3N)
     echo "Running load_alveo"
-    echo gsql -u $username -p $password -g $xgraph \'run query load_alveo\([\"Person\"], [\"Coworker\"], \"weight\", FALSE, TRUE, \"$data_source\", \"$partition_prj\", \"9\", \"3\"\)\'
+    echo gsql -u $username -p $password -g $xgraph \'run query load_alveo\([\"Person\"], [\"Coworker\"], \"weight\", FALSE, FALSE, \"$data_source\", \"$partition_prj\", \"9\", \"3\"\)\'
     time gsql -u $username -p $password -g $xgraph "run query load_alveo([\"Person\"], [\"Coworker\"], \
          \"weight\", FALSE, FALSE, \"$data_source\", \"$partition_prj\", \"9\", \"3\")"
     TOTAL_TIME=$(($(date +%s%3N) - START))

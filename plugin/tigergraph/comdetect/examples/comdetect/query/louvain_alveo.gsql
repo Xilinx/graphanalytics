@@ -61,8 +61,8 @@ CREATE DISTRIBUTED QUERY louvain_alveo(
     INT ret;
 
     nodes = {dummy_nodes.*};
-    nodeList = SELECT n FROM nodes:n
-        ACCUM @@nodeAccum += udf_xilinx_comdetect_set_node_id(n.NODE_ID);
+    //nodeList = SELECT n FROM nodes:n
+    //    ACCUM @@nodeAccum += udf_xilinx_comdetect_set_node_id(n.NODE_ID);
 
     //nodeList = SELECT n FROM nodes:n
     //    ACCUM @@nodeAccum += udf_xilinx_comdetect_set_num_nodes(1);

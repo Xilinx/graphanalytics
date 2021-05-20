@@ -227,7 +227,14 @@ namespace UDIMPL {
                 << " num_partitions: " << xai::num_partitions.c_str() << " louvain project: " << xai::louvain_project.c_str()
                 << std::flush;
 		if(!use_saved_partition) {
-                   ret = xai::xaiLoader.create_partitions(argc, (char**)(argv));
+                   string workernum("1");
+                   bool isDriver = xai::isHostTheDriver(workernum);
+		   if(isDriver) {
+                    std::cout
+                    << "DEBUG: "
+                    << "Calling xaiLoader.create_partitions" <<  "\n";
+                     ret = xai::xaiLoader.create_partitions(argc, (char**)(argv));
+		   }
 		}
                 ret = 0;
             }
