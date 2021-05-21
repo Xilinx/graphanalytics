@@ -37,7 +37,11 @@
 #include <limits.h>
 #include <unistd.h>
 #include <string>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 #include <chrono>
+
 #include <gle/engine/cpplib/headers.hpp>
 
 /**     XXX Warning!! Put self-defined struct in ExprUtil.hpp **
@@ -47,102 +51,128 @@
 *  Please put user defined structs, helper functions etc. in ExprUtil.hpp
 */
 #include "ExprUtil.hpp"
-#include <string>
 #include <thread>
 #include <mutex>
 //#define XAIDEBUG true
-#define XAIWORKAROUND true
 
 namespace UDIMPL {
 
-  typedef std::string string; //XXX DON'T REMOVE
+    typedef std::string string; //XXX DON'T REMOVE
 
-  /****** BIULT-IN FUNCTIONS **************/
-  /****** XXX DON'T REMOVE ****************/
-  inline int64_t str_to_int (string str) {
-    return atoll(str.c_str());
-  }
+    /****** BIULT-IN FUNCTIONS **************/
+    /****** XXX DON'T REMOVE ****************/
+    inline int64_t str_to_int (string str) {
+        return atoll(str.c_str());
+    }
 
-  inline int64_t float_to_int (float val) {
-    return (int64_t) val;
-  }
+    inline int64_t float_to_int (float val) {
+        return (int64_t) val;
+    }
 
-  inline string to_string (double val) {
-    char result[200];
-    sprintf(result, "%g", val);
-    return string(result);
-  }
+    inline string to_string (double val) {
+        char result[200];
+        sprintf(result, "%g", val);
+        return string(result);
+    }
 
-  inline bool concat_uint64_to_str(string& ret_val, uint64_t val) {
-    (ret_val += " ")+=std::to_string(val);
-    return true;
-  }
+    inline bool concat_uint64_to_str(string& ret_val, uint64_t val) {
+        (ret_val += " ")+=std::to_string(val);
+        return true;
+    }
 
-  inline string reverse(string str) {
-    std::reverse(str.begin(), str.end());
-    return str;
-  }
+    inline string reverse(string str) {
+        std::reverse(str.begin(), str.end());
+        return str;
+    }
 
-  template <typename tuple>
-  inline uint64_t getDeltaQ (tuple tup) {
-    return tup.deltaQ;
-  }
+    template <typename tuple>
+    inline uint64_t getDeltaQ (tuple tup) {
+        return tup.deltaQ;
+    }
 
-  template<typename tup>
-  inline int64_t getOutDegree(tup t) {
-    return t.OutDgr;
-  }
-  
-  template<typename tup>
-  inline float getWeight(tup t) {
-    return t.weight;
-  }
+    template<typename tup>
+    inline int64_t getOutDegree(tup t) {
+        return t.OutDgr;
+    }
 
-  template<typename tup>
-  inline VERTEX getCc(tup t) {
-    return t.cc;
-  }
+    template<typename tup>
+    inline float getWeight(tup t) {
+        return t.weight;
+    }
 
-  /* Start Xilinx UDF additions */
-  inline int64_t udf_reinterpret_double_as_int64(double val) {
-    int64_t double_to_int64 = *(reinterpret_cast<int64_t*>(&val));
-    return double_to_int64;
-  }
+    template<typename tup>
+    inline VERTEX getCc(tup t) {
+        return t.cc;
+    }
 
-  inline double udf_reinterpret_int64_as_double(int64_t val) {
-    double int64_to_double = *(reinterpret_cast<double*>(&val));
-    return int64_to_double;
-  }
+    /* Start Xilinx UDF additions */
+    inline int64_t udf_reinterpret_double_as_int64(double val) {
+        int64_t double_to_int64 = *(reinterpret_cast<int64_t*>(&val));
+        return double_to_int64;
+    }
 
-  inline int64_t udf_lsb32bits(uint64_t val) {
-    return val & 0x00000000FFFFFFFF;
-  }
+    inline double udf_reinterpret_int64_as_double(int64_t val) {
+        double int64_to_double = *(reinterpret_cast<double*>(&val));
+        return int64_to_double;
+    }
 
-  inline int64_t udf_msb32bits(uint64_t val) {
-    return ( val >> 32 ) & 0x00000000FFFFFFFF;
-  }
+    inline int64_t udf_lsb32bits(uint64_t val) {
+        return val & 0x00000000FFFFFFFF;
+    }
 
-  inline VERTEX udf_getvertex(uint64_t vid) {
-    return VERTEX(vid);
-  }
+    inline int64_t udf_msb32bits(uint64_t val) {
+        return ( val >> 32 ) & 0x00000000FFFFFFFF;
+    }
 
-  inline bool udf_reset_timer(bool dummy) {
-    xai::timer_start_time = std::chrono::high_resolution_clock::now();
-    return true;
-  }
+    inline VERTEX udf_getvertex(uint64_t vid) {
+        return VERTEX(vid);
+    }
 
-  inline double udf_elapsed_time(bool dummy) {
-    xai::t_time_point cur_time = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> l_durationSec = cur_time - xai::timer_start_time;
-    double l_timeMs = l_durationSec.count() * 1e3;
-    return l_timeMs;
-  }
+    inline bool udf_reset_timer(bool dummy) {
+        xai::timer_start_time = std::chrono::high_resolution_clock::now();
+        return true;
+    }
+
+    inline double udf_elapsed_time(bool dummy) {
+        xai::t_time_point cur_time = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> l_durationSec = cur_time - xai::timer_start_time;
+        double l_timeMs = l_durationSec.count() * 1e3;
+        return l_timeMs;
+    }
+
+    inline bool udf_reset_states(int mode) 
+    {
+       xai::executedLouvain = false;
+       return true;
+    }
+
+    inline int64_t udf_peak_memory_usage(double& VmPeak, double& VmHWM)
+    {
+        // Open the /proc/self/status and grep for relevant fields
+        //Layout of fields in /proc/self/status
+        //VmPeak:     8216 kB This is peak Virtual Memory size
+        //VmHWM:       752 kB This is peak Resident Set Size
+        uint64_t vm_peak, vm_hwm;
+        string line;
+        std::ifstream proc_status("/proc/self/status", std::ios_base::in);
+        while (std::getline(proc_status, line)) {
+            std::size_t pos = line.find("VmPeak");
+            if( pos != string::npos) {
+                VmPeak = xai::extract_size_in_kB(line);
+            }
+            pos = line.find("VmHWM");
+            if( pos != string::npos) {
+                VmHWM = xai::extract_size_in_kB(line);
+            }
+        }
+        return 0L;
+    }
 
 
     inline string udf_open_alveo(int mode)
     {
         std::lock_guard<std::mutex> lockGuard(xai::writeMutexOpenAlveo);
-    
+
         if (!xai::openedAlveo) {
             std::cout << "DEBUG: " << __FUNCTION__ << " xai::openedAlveo=" << xai::openedAlveo << std::endl;
             if(xai::openedAlveo) return "";
@@ -167,87 +197,115 @@ namespace UDIMPL {
         return "";
     }
 
-  inline bool udf_close_alveo(int mode)
-  {
-    std::lock_guard<std::mutex> lockGuard(xai::writeMutex);
-    return true;
-  }
-
-  inline int udf_create_alveo_partitions(std::string input_graph, std::string partitions_project, std::string num_patitions)
-  {
-    std::lock_guard<std::mutex> lockGuard(xai::writeMutex);
-    xai::calledExecuteLouvain = false;
-    int argc = 8;
-    char* argv[] = {"host.exe", input_graph.c_str(), "-fast", "-par_num", num_patitions.c_str(),
-          "-create_alveo_partitions", "-name", partitions_project.c_str(), NULL};
-    std::cout << "DEBUG: Calling create_partitions. input_graph: " <<  input_graph.c_str()
-              << " num_partitions: " << num_patitions.c_str() << " project: " << partitions_project.c_str()
-              << std::flush;
-    return xai::xaiLoader.create_partitions(argc, (char**)(argv));
-  }
-
-  inline int udf_execute_reset(int mode) {
-    xai::calledExecuteLouvain = false;
-  }
-
-    inline int udf_execute_alveo_louvain(
-        std::string input_graph, std::string partitions_project, 
-        std::string num_devices, std::string num_patitions, 
-        std::string num_workers, std::string community_file)
-    {        
-
+    inline bool udf_close_alveo(int mode)
+    {
         std::lock_guard<std::mutex> lockGuard(xai::writeMutex);
-
-        if (!xai::openedAlveo) {
-            std::cout << "ERROR: Please run udf_open_alveo first" << std::endl;
-            return -1;
-        }
-        if (!xai::calledExecuteLouvain) {
-            std::cout << "DEBUG: " << __FUNCTION__ 
-                      << " xai::calledExecuteLouvain=" << xai::calledExecuteLouvain << std::endl;
-
-            if(xai::calledExecuteLouvain) return 0;
-            xai::calledExecuteLouvain = true;
-            std::string workernum("1");
-            bool isDriver = xai::isHostTheDriver(workernum);
-            int my_argc = 18;
-            std::string worker_or_driver("-workerAlone");
-            char* optional_arg = NULL;
-            if(isDriver) {
-                worker_or_driver = "-driverAlone";
-            } else {
-                optional_arg = (char*) workernum.c_str();
-                my_argc++;
-            }
-            partitions_project += ".par.proj";
-
-            char* my_argv[] = {"host.exe", "-x", xai::xclbin_filename, input_graph.c_str(), 
-                               "-o", community_file.c_str(), "-fast", "-dev", 
-                               num_devices.c_str(), "-par_num", num_patitions.c_str(),
-                               "-load_alveo_partitions", partitions_project.c_str(), 
-                               "-setwkr", num_workers.c_str(), "tcp://192.168.1.21:5555", "tcp://192.168.1.31:5555", 
-	                           worker_or_driver.c_str(), optional_arg, NULL};
-
-            std::cout
-	        << "DEBUG: "
-                << "Calling execute_louvain. input_graph: " <<  input_graph.c_str()
-                << " num_partitions: " << num_patitions.c_str()
-                << " project: " << partitions_project.c_str()
-                << " num workers: " << num_workers.c_str()
-                << " worker_or_driver: " << worker_or_driver.c_str()
-                << " worker num: " << workernum.c_str() << "\n"
-                << std::flush;
-        
-            int retVal = xai::xaiLoader.execute_louvain(my_argc, (char**)(my_argv));
-            std::cout << "DEBUG: Returned from execute_louvain, isDriver = " << isDriver << "\n" << std::flush;
-            return retVal;
-        }
-        return 0;
+        return true;
     }
 
-  /* End Xilinx Louvain Additions */
+    inline int udf_load_alveo(
+        bool tg_partition,
+        bool use_saved_partition,
+        string graph_file,
+        string louvain_project,
+        string num_partitions,
+        string num_devices)
+        {
+            std::lock_guard<std::mutex> lockGuard(xai::writeMutex);
+            int ret=0;
+            if (!xai::loadedAlveo) {
+                if(xai::loadedAlveo) return 0;
+                xai::loadedAlveo = true;
+                xai::graph_file = graph_file;
+                xai::louvain_project = louvain_project;
+                xai::num_partitions = num_partitions;
+                xai::num_devices = num_devices;
+                int argc = 9;
+                char* argv[] = {"host.exe", xai::graph_file.c_str(), "-fast", "-par_num", xai::num_partitions.c_str(),
+                "-create_alveo_partitions", "-name", xai::louvain_project.c_str(), "-server_par", NULL};
+                std::cout << "DEBUG: Calling create_partitions. graph_file: " <<  xai::graph_file.c_str()
+                << " num_partitions: " << xai::num_partitions.c_str() << " louvain project: " << xai::louvain_project.c_str()
+                << std::flush;
+		if(!use_saved_partition) {
+                   string workernum("1");
+                   bool isDriver = xai::isHostTheDriver(workernum);
+		   if(isDriver) {
+                    std::cout
+                    << "DEBUG: "
+                    << "Calling xaiLoader.create_partitions" <<  "\n";
+                     ret = xai::xaiLoader.create_partitions(argc, (char**)(argv));
+		   }
+		}
+                ret = 0;
+            }
+            return ret;
+        }
 
-}
-/****************************************/
 
-#endif /* EXPRFUNCTIONS_HPP_ */
+        inline int udf_louvain_alveo(
+            int64_t max_iter,
+            int64_t max_level,
+            float tolerence,
+            bool intermediateResult,
+            bool verbose,
+            string result_file,
+            bool print_final_Q,
+            bool print_all_Q)
+            {
+
+                std::lock_guard<std::mutex> lockGuard(xai::writeMutex);
+
+                if (!xai::openedAlveo) {
+                    std::cout << "ERROR: Please run udf_open_alveo first" << std::endl;
+                    return -1;
+                }
+                if (!xai::executedLouvain) {
+                    std::cout << "DEBUG: " << __FUNCTION__
+                    << " xai::executedLouvain=" << xai::executedLouvain << std::endl;
+
+                    if(xai::executedLouvain) return 0;
+                    xai::executedLouvain = true;
+                    string workernum("1");
+                    string num_workers("2");
+                    bool isDriver = xai::isHostTheDriver(workernum);
+                    int my_argc = 18;
+                    string worker_or_driver("-workerAlone");
+                    char* optional_arg = NULL;
+                    if(isDriver) {
+                        worker_or_driver = "-driverAlone";
+                    } else {
+                        optional_arg = (char*) workernum.c_str();
+                        my_argc++;
+                    }
+                    string partitions_project = xai::louvain_project + ".par.proj";
+
+                    char* my_argv[] = {"host.exe", "-x", xai::xclbin_filename, xai::graph_file.c_str(),
+                    "-o", result_file.c_str(), "-fast", "-dev",
+                    xai::num_devices.c_str(), "-par_num", xai::num_partitions.c_str(),
+                    "-load_alveo_partitions", partitions_project.c_str(),
+                    "-setwkr", num_workers.c_str(), "tcp://192.168.1.21:5555", "tcp://192.168.1.31:5555",
+                    worker_or_driver.c_str(), optional_arg, NULL};
+
+                    std::cout
+                    << "DEBUG: "
+                    << "Calling execute_louvain. input_graph: " <<  xai::graph_file.c_str()
+                    << " num_partitions: " << xai::num_partitions.c_str()
+                    << " project: " << partitions_project.c_str()
+                    << " num workers: " << num_workers.c_str()
+                    << " worker_or_driver: " << worker_or_driver.c_str()
+                    << " worker num: " << workernum.c_str() << "\n"
+                    << std::flush;
+
+                    int retVal = xai::xaiLoader.execute_louvain(my_argc, (char**)(my_argv));
+                    std::cout << "DEBUG: Returned from execute_louvain, isDriver = " << isDriver << "\n" << std::flush;
+                    return retVal;
+                }
+                return 0;
+            }
+
+            /* End Xilinx Louvain Additions */
+
+        }
+        /****************************************/
+
+        #endif /* EXPRFUNCTIONS_HPP_ */
