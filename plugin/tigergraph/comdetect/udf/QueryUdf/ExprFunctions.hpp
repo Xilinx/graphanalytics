@@ -140,10 +140,16 @@ namespace UDIMPL {
         return l_timeMs;
     }
 
-    inline bool udf_reset_states(int mode) 
+    inline bool udf_reset_states(int mode)
     {
-       xai::executedLouvain = false;
-       return true;
+        xai::executedLouvain = false;
+        if(mode>=1) {
+            xai::loadedAlveo = false;
+        }
+        if(mode>=2) {
+            xai::openedAlveo = false;
+        }
+        return true;
     }
 
     inline int64_t udf_peak_memory_usage(double& VmPeak, double& VmHWM)
@@ -203,109 +209,111 @@ namespace UDIMPL {
         return true;
     }
 
-    inline int udf_load_alveo(
-        bool tg_partition,
-        bool use_saved_partition,
-        string graph_file,
-        string louvain_project,
-        string num_partitions,
-        string num_devices)
-        {
-            std::lock_guard<std::mutex> lockGuard(xai::writeMutex);
-            int ret=0;
-            if (!xai::loadedAlveo) {
-                if(xai::loadedAlveo) return 0;
-                xai::loadedAlveo = true;
-                xai::graph_file = graph_file;
-                xai::louvain_project = louvain_project;
-                xai::num_partitions = num_partitions;
-                xai::num_devices = num_devices;
-                int argc = 9;
-                char* argv[] = {"host.exe", xai::graph_file.c_str(), "-fast", "-par_num", xai::num_partitions.c_str(),
-                "-create_alveo_partitions", "-name", xai::louvain_project.c_str(), "-server_par", NULL};
-                std::cout << "DEBUG: Calling create_partitions. graph_file: " <<  xai::graph_file.c_str()
-                << " num_partitions: " << xai::num_partitions.c_str() << " louvain project: " << xai::louvain_project.c_str()
-                << std::flush;
-		if(!use_saved_partition) {
-                   string workernum("1");
-                   bool isDriver = xai::isHostTheDriver(workernum);
-		   if(isDriver) {
+    // TODO: Change signature as needed
+    // This function combined with GSQL code should traverse memory of TigerGraph on Each
+    // server and build the partitions for each server in the form Louvain host code can consume it
+    inline int udf_load_partitions(string num_partitions, string num_devices)
+    {
+
+        std::lock_guard<std::mutex> lockGuard(xai::writeMutex);
+        int ret=0;
+        if (!xai::loadedAlveo) {
+            if(xai::loadedAlveo) return 0;
+            xai::loadedAlveo = true;
+            xai::num_partitions = num_partitions;
+            xai::num_devices = num_devices;
+        }
+        // TODO: make call into host code and add needed functions
+    }
+
+    inline int udf_create_load_alveo_partitions(bool use_saved_partition, string graph_file, string louvain_project, string num_partitions, string num_devices)
+    {
+        std::lock_guard<std::mutex> lockGuard(xai::writeMutex);
+        int ret=0;
+        if (!xai::loadedAlveo) {
+            if(xai::loadedAlveo) return 0;
+            xai::loadedAlveo = true;
+            xai::graph_file = graph_file;
+            xai::louvain_project = louvain_project;
+            xai::num_partitions = num_partitions;
+            xai::num_devices = num_devices;
+            int argc = 9;
+            char* argv[] = {"host.exe", xai::graph_file.c_str(), "-fast", "-par_num", xai::num_partitions.c_str(),
+            "-create_alveo_partitions", "-name", xai::louvain_project.c_str(), "-server_par", NULL};
+            std::cout << "DEBUG: Calling create_partitions. graph_file: " <<  xai::graph_file.c_str()
+            << " num_partitions: " << xai::num_partitions.c_str() << " louvain project: " << xai::louvain_project.c_str()
+            << std::flush;
+            if(!use_saved_partition) {
+                string workernum("1");
+                bool isDriver = xai::isHostTheDriver(workernum);
+                if(isDriver) {
                     std::cout
                     << "DEBUG: "
                     << "Calling xaiLoader.create_partitions" <<  "\n";
-                     ret = xai::xaiLoader.create_partitions(argc, (char**)(argv));
-		   }
-		}
-                ret = 0;
-            }
-            return ret;
-        }
-
-
-        inline int udf_louvain_alveo(
-            int64_t max_iter,
-            int64_t max_level,
-            float tolerence,
-            bool intermediateResult,
-            bool verbose,
-            string result_file,
-            bool print_final_Q,
-            bool print_all_Q)
-            {
-
-                std::lock_guard<std::mutex> lockGuard(xai::writeMutex);
-
-                if (!xai::openedAlveo) {
-                    std::cout << "ERROR: Please run udf_open_alveo first" << std::endl;
-                    return -1;
+                    ret = xai::xaiLoader.create_partitions(argc, (char**)(argv));
                 }
-                if (!xai::executedLouvain) {
-                    std::cout << "DEBUG: " << __FUNCTION__
-                    << " xai::executedLouvain=" << xai::executedLouvain << std::endl;
-
-                    if(xai::executedLouvain) return 0;
-                    xai::executedLouvain = true;
-                    string workernum("1");
-                    string num_workers("2");
-                    bool isDriver = xai::isHostTheDriver(workernum);
-                    int my_argc = 18;
-                    string worker_or_driver("-workerAlone");
-                    char* optional_arg = NULL;
-                    if(isDriver) {
-                        worker_or_driver = "-driverAlone";
-                    } else {
-                        optional_arg = (char*) workernum.c_str();
-                        my_argc++;
-                    }
-                    string partitions_project = xai::louvain_project + ".par.proj";
-
-                    char* my_argv[] = {"host.exe", "-x", xai::xclbin_filename, xai::graph_file.c_str(),
-                    "-o", result_file.c_str(), "-fast", "-dev",
-                    xai::num_devices.c_str(), "-par_num", xai::num_partitions.c_str(),
-                    "-load_alveo_partitions", partitions_project.c_str(),
-                    "-setwkr", num_workers.c_str(), "tcp://192.168.1.21:5555", "tcp://192.168.1.31:5555",
-                    worker_or_driver.c_str(), optional_arg, NULL};
-
-                    std::cout
-                    << "DEBUG: "
-                    << "Calling execute_louvain. input_graph: " <<  xai::graph_file.c_str()
-                    << " num_partitions: " << xai::num_partitions.c_str()
-                    << " project: " << partitions_project.c_str()
-                    << " num workers: " << num_workers.c_str()
-                    << " worker_or_driver: " << worker_or_driver.c_str()
-                    << " worker num: " << workernum.c_str() << "\n"
-                    << std::flush;
-
-                    int retVal = xai::xaiLoader.execute_louvain(my_argc, (char**)(my_argv));
-                    std::cout << "DEBUG: Returned from execute_louvain, isDriver = " << isDriver << "\n" << std::flush;
-                    return retVal;
-                }
-                return 0;
             }
-
-            /* End Xilinx Louvain Additions */
-
+            ret = 0;
         }
-        /****************************************/
+        return ret;
+    }
 
-        #endif /* EXPRFUNCTIONS_HPP_ */
+    inline int udf_louvain_alveo(int64_t max_iter, int64_t max_level, float tolerence, bool intermediateResult, bool verbose, string result_file, bool print_final_Q, bool print_all_Q)
+    {
+
+        std::lock_guard<std::mutex> lockGuard(xai::writeMutex);
+
+        if (!xai::openedAlveo) {
+            std::cout << "ERROR: Please run udf_open_alveo first" << std::endl;
+            return -1;
+        }
+        if (!xai::executedLouvain) {
+            std::cout << "DEBUG: " << __FUNCTION__
+            << " xai::executedLouvain=" << xai::executedLouvain << std::endl;
+
+            if(xai::executedLouvain) return 0;
+            xai::executedLouvain = true;
+            string workernum("1");
+            string num_workers("2");
+            bool isDriver = xai::isHostTheDriver(workernum);
+            int my_argc = 18;
+            string worker_or_driver("-workerAlone");
+            char* optional_arg = NULL;
+            if(isDriver) {
+                worker_or_driver = "-driverAlone";
+            } else {
+                optional_arg = (char*) workernum.c_str();
+                my_argc++;
+            }
+            string partitions_project = xai::louvain_project + ".par.proj";
+
+            char* my_argv[] = {"host.exe", "-x", xai::xclbin_filename, xai::graph_file.c_str(),
+            "-o", result_file.c_str(), "-fast", "-dev",
+            xai::num_devices.c_str(), "-par_num", xai::num_partitions.c_str(),
+            "-load_alveo_partitions", partitions_project.c_str(),
+            "-setwkr", num_workers.c_str(), "tcp://192.168.1.21:5555", "tcp://192.168.1.31:5555",
+            worker_or_driver.c_str(), optional_arg, NULL};
+
+            std::cout
+            << "DEBUG: "
+            << "Calling execute_louvain. input_graph: " <<  xai::graph_file.c_str()
+            << " num_partitions: " << xai::num_partitions.c_str()
+            << " project: " << partitions_project.c_str()
+            << " num workers: " << num_workers.c_str()
+            << " worker_or_driver: " << worker_or_driver.c_str()
+            << " worker num: " << workernum.c_str() << "\n"
+            << std::flush;
+
+            int retVal = xai::xaiLoader.execute_louvain(my_argc, (char**)(my_argv));
+            std::cout << "DEBUG: Returned from execute_louvain, isDriver = " << isDriver << "\n" << std::flush;
+            return retVal;
+        }
+        return 0;
+    }
+
+    /* End Xilinx Louvain Additions */
+
+}
+/****************************************/
+
+#endif /* EXPRFUNCTIONS_HPP_ */

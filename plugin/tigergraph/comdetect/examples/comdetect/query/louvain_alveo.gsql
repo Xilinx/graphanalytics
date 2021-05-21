@@ -5,6 +5,7 @@ CREATE DISTRIBUTED QUERY open_alveo() FOR GRAPH @graph {
    DOUBLE udf_time;
    String s;
    INT ret;
+   udf_reset_states(2);
    udf_reset_timer(true);
    // Initialize on all machines
    Start = {Person.*};
@@ -28,12 +29,23 @@ CREATE DISTRIBUTED QUERY load_alveo(
 {
    DOUBLE udf_time;
    INT ret;
+   udf_reset_states(1);
    udf_reset_timer(true);
    // Traverse TigerGraph memory and load partitions on each node
    Start = {v_types};
-   Start = SELECT v FROM Start:v-(e_types:e)->:t
+   nodes = {dummy_nodes.*};
+   IF tg_partition THEN
+       Start = SELECT v FROM Start:v-(e_types:e)->:t
            ACCUM
-                udf_load_alveo(tg_partition, use_saved_partition, graph_file, louvain_project, num_partitions, num_devices);
+           // TODO build the edge list and offsets here from TigerGraph memory
+           udf_load_partitions(num_partitions, num_devices);
+   ELSE
+       // On each server call the code
+       nodelist = SELECT n FROM nodes:n
+           ACCUM
+           udf_create_load_partitions(use_saved_partition, graph_file, louvain_project, num_partitions, num_devices);
+   END
+
    udf_time = udf_elapsed_time(true);
 
 }
@@ -85,8 +97,8 @@ CREATE DISTRIBUTED QUERY louvain_alveo (
     print nodes.size() as NumOfNodes;
     print @@modularityAccum as ModularityQValues;
     print "Xilinx Alveo U50" AS ComputationTechnique;
-    print vm_peak as PeakVirtualMemory;
-    print vm_hwm as PeakResidentMemory;
+    print vm_peak as PeakVirtualMemoryInKB;
+    print vm_hwm as PeakResidentMemoryInKB;
     print udf_time as ExecTimeInMs;
 }
 
