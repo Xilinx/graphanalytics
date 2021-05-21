@@ -38,13 +38,13 @@ CREATE DISTRIBUTED QUERY load_alveo(
        Start = SELECT v FROM Start:v-(e_types:e)->:t
            ACCUM
            // TODO build the edge list and offsets here from TigerGraph memory
-           udf_load_partitions(num_partitions, num_devices);
+           ret = udf_load_partitions(num_partitions, num_devices);
    ELSE
        // On each server call the code
        nodelist = SELECT n FROM nodes:n
            ACCUM
-           udf_create_load_partitions(use_saved_partition, graph_file, louvain_project, num_partitions, num_devices);
-   END
+           ret = udf_create_load_alveo_partitions(use_saved_partition, graph_file, louvain_project, num_partitions, num_devices);
+   END;
 
    udf_time = udf_elapsed_time(true);
 

@@ -219,8 +219,8 @@ CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(
     udf_time = udf_elapsed_time(true);
     ret = udf_peak_memory_usage(vm_peak, vm_hwm);
     ret = udf_peak_memory_usage(vm_peak, vm_hwm);
-    PRINT iter_count; as Iterations;
-    print nodes.size() as NumOfNodes;
+    PRINT iter_count as Iterations;
+    //print nodes.size() as NumOfNodes;
     print "TigerGraph CPU" AS ComputationTechnique;
     print vm_peak as PeakVirtualMemoryInKB;
     print vm_hwm as PeakResidentMemoryInKB;
