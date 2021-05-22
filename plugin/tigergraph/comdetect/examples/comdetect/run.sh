@@ -119,9 +119,9 @@ if [ "$run_alveo" -eq 1 ]; then
 
     START=$(date +%s%3N)
     echo "Running louvain_alveo"
-    echo gsql -g $xgraph \'run query louvain_alveo\([\"Person\"], [\"Coworker\"], \"weight\",10,1,0.00001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_alveo.txt\",TRUE,FALSE\)\'
+    echo gsql -g $xgraph \'run query louvain_alveo\([\"Person\"], [\"Coworker\"], \"weight\",20,1,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_alveo.txt\",TRUE,FALSE\)\'
     time gsql -g $xgraph "run query louvain_alveo([\"Person\"], [\"Coworker\"], \
-         \"weight\",10,1,0.00001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_alveo.txt\",TRUE,FALSE)"
+         \"weight\",20,1,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_alveo.txt\",TRUE,FALSE)"
     TOTAL_TIME=$(($(date +%s%3N) - START))
     echo "louvain_alveo: " $TOTAL_TIME
 fi
