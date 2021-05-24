@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash 
 
 #
 # Copyright 2021 Xilinx, Inc.
@@ -86,22 +86,23 @@ gsql -u $username -p $password "$(cat $script_dir/query/louvain_alveo.gsql | sed
 # IMPORTANT: DO NOT USE A NETWORK DRIVE FOR LOG FILES IN DISTRIBUTED QUERIES.
 # OTHERWISE EACH NODE WILL OVERWRITE IT
 echo "-------------------------------------------------------------------------"
-echo "Running nsert dummy nodes for distributed alveo computing"
+echo "Running insert dummy nodes for distributed alveo computing"
 gsql -u $username -p $password -g $xgraph "RUN QUERY insert_dummy_nodes($num_nodes)"
 echo "-------------------------------------------------------------------------"
+echo "Run mode: $run_mode"
 
-echo "Running louvain_distributed_q_cpu"
-echo gsql -u $username -p $password -g $xgraph \'run query louvain_distributed_q_cpu\([\"Person\"], [\"Coworker\"],\"weight\",20,1,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_cpu.txt\",TRUE,FALSE\)\'
-echo "-------------------------------------------------------------------------"
-START=$(date +%s%3N)
-time gsql -u $username -p $password -g $xgraph "run query louvain_distributed_q_cpu([\"Person\"], [\"Coworker\"], \
-     \"weight\",20,1,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_cpu.txt\",TRUE,FALSE)"
-TOTAL_TIME=$(($(date +%s%3N) - START))
+if [ "$run_mode" -eq 0 ] || [ "$run_mode" -eq 2 ]; then
+   echo "Running louvain_distributed_q_cpu"
+   echo gsql -u $username -p $password -g $xgraph \'run query louvain_distributed_q_cpu\([\"Person\"], [\"Coworker\"],\"weight\",20,1,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_cpu.txt\",TRUE,FALSE\)\'
+   echo "-------------------------------------------------------------------------"
+   START=$(date +%s%3N)
+   #time gsql -u $username -p $password -g $xgraph "run query louvain_distributed_q_cpu([\"Person\"], [\"Coworker\"], \
+   #     \"weight\",20,1,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_cpu.txt\",TRUE,FALSE)"
+   TOTAL_TIME=$(($(date +%s%3N) - START))
+   echo "louvain_distributed_cpu runtime: " $TOTAL_TIME
+fi
 
-echo "louvain_distributed_cpu runtime: " $TOTAL_TIME
-
-run_alveo=1
-if [ "$run_alveo" -eq 1 ]; then
+if [ "$run_mode" -eq 1 ] || [ "$run_mode" -eq 2 ]; then
     START=$(date +%s%3N)
     echo "Running open_alveo"
     echo gsql -u $username -p $password -g $xgraph \'run query open_alveo\(\)\'
@@ -111,9 +112,9 @@ if [ "$run_alveo" -eq 1 ]; then
 
     START=$(date +%s%3N)
     echo "Running load_alveo"
-    echo gsql -u $username -p $password -g $xgraph \'run query load_alveo\([\"Person\"], [\"Coworker\"], \"weight\", FALSE, FALSE, \"$data_source\", \"$partition_prj\", \"9\", \"3\"\)\'
+    echo gsql -u $username -p $password -g $xgraph \'run query load_alveo\([\"Person\"], [\"Coworker\"], \"weight\", FALSE, FALSE, \"$data_source\", \"$alveo_prj\", \"$num_partitions\", \"$num_devices\"\)\'
     time gsql -u $username -p $password -g $xgraph "run query load_alveo([\"Person\"], [\"Coworker\"], \
-         \"weight\", FALSE, FALSE, \"$data_source\", \"$partition_prj\", \"9\", \"3\")"
+         \"weight\", FALSE, FALSE, \"$data_source\", \"$alveo_prj\", \"$num_partitions\", \"$num_devices\")"
     TOTAL_TIME=$(($(date +%s%3N) - START))
     echo "load_alveo: " $TOTAL_TIME
 
