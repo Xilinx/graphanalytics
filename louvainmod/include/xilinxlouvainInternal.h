@@ -448,6 +448,25 @@ double PhaseLoop_CommPostProcessing_par(
 		double &time_set
 		);
 
+double PhaseLoop_CommPostProcessing_par_renumber(
+		GLV* pglv_orig,
+		GLV* pglv_iter,
+		int    numThreads,
+		double opts_threshold,
+		bool   opts_coloring,
+		//modified:
+		bool   &nonColor,
+		int    &phase,
+		int    &totItr,
+		long   &numClusters,
+		double &totTimeBuildingPhase,
+		double &time_renum,
+		double &time_C,
+		double &time_M,
+		double &time_buid,
+		double &time_set
+		);
+
 double PhaseLoop_UsingFPGA_Prep_Init_buff_host(
 		int numColors,
 		graphNew*        G,
@@ -476,6 +495,16 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune(
 		//Updated variables
 	    int*          	 colors,
 		KMemorys_host_prune* buff_host_prune);
+double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_renumber(
+		int 			 numColors,
+        long             NVl,
+		graphNew*        G,
+		long*         	 M,
+		double        	 opts_C_thresh,
+		double*        	 currMod,
+		//Updated variables
+	    int*          	 colors,
+		KMemorys_host_prune* buff_host_prune);
 double PhaseLoop_UsingFPGA_Prep_Read_buff_host_prune(
 		long           	vertexNum,
 		KMemorys_host_prune*  buff_host_prune,
@@ -484,6 +513,16 @@ double PhaseLoop_UsingFPGA_Prep_Read_buff_host_prune(
 		long*          	C,
 		int*            eachItr,
 		double*         currMod
+		);
+double PhaseLoop_UsingFPGA_Prep_Read_buff_host_prune_renumber(
+		long           	vertexNum,
+		KMemorys_host_prune*  buff_host_prune,
+		int*            eachItrs,
+		//output
+		long*          	C,
+		int*            eachItr,
+		double*         currMod,
+        long*           numClusters
 		);
 //New from host/////////////////////////////////////////////////////////////////////
 enum {

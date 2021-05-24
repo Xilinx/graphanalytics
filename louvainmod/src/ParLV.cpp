@@ -907,7 +907,7 @@ int host_ParserParameters(int argc,
                           int& numThread,
                           int& num_par,
                           int& gh_par,
-                          bool& flow_prune,
+                          int& flow_prune,
                           int& devNeed,
                           int& mode_zmq,
                           char* path_zmq,
@@ -938,6 +938,7 @@ int host_ParserParameters(int argc,
     int has_gh_par = general_findPara(argc, argv, "-par_prune");
     int has_flow_prune = general_findPara(argc, argv, "-prun");
     int has_flow_fast = general_findPara(argc, argv, "-fast");
+    int has_flow_fast2 = general_findPara(argc, argv, "-fast2");
     int has_devNeed = general_findPara(argc, argv, "-dev");
     int has_driver = general_findPara(argc, argv, "-driver");
     int has_worker = general_findPara(argc, argv, "-worker");
@@ -1120,12 +1121,12 @@ int host_ParserParameters(int argc,
 #endif
     if (has_flow_prune != -1) {
         rec[has_flow_prune] = true;
-        flow_prune = true;
-    } else if (has_flow_fast != -1) {
-        rec[has_flow_fast] = true;
-        flow_prune = true;
+        flow_prune = 2;
+    } else if (has_flow_fast2 != -1) {
+        rec[has_flow_fast2] = true;
+        flow_prune = 3;
     } else
-        flow_prune = false;
+        flow_prune = 1;
 #ifdef PRINTINFO
     printf("PARAMETER  flow_prune = %d\n", flow_prune);
 #endif
@@ -3556,7 +3557,7 @@ extern "C" int create_alveo_partitions(int argc, char* argv[]) {
     bool opts_VF;
     char opts_xclbinPath[4096];
 
-    bool flow_fast = false;
+    int flow_fast = 2;
     int flowMode = 1;
     int num_par;
     bool isPrun = true;
@@ -3580,10 +3581,12 @@ extern "C" int create_alveo_partitions(int argc, char* argv[]) {
                           par_prune, flow_fast, devNeed_cmd, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
                           nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par, glb_max_num_level, glb_max_num_iter);
 
-    if (flow_fast) {
+    if (flow_fast == 1) {
+        flowMode = 1; // normal kernel MD_NORMAL
+    } else if (flow_fast == 2) {
         flowMode = 2; // fast kernel  MD_FAST
     } else {
-        flowMode = 1; // normal kernel MD_NORMAL
+        flowMode = 3; // fast renumber
     }
 #ifdef PRINTINFO_2
     printf("\033[1;37;40mINFO: The graph matrix is   : %s \033[0m\n",  opts_inFile);
@@ -3782,7 +3785,7 @@ extern "C" int load_alveo_partitions(int argc, char* argv[]) {
     bool opts_VF;
     char opts_xclbinPath[4096];
 
-    bool flow_fast = false;
+    int flow_fast = 2;
     int flowMode = 1;
     int num_par;
     bool isPrun = true;
@@ -3809,11 +3812,12 @@ extern "C" int load_alveo_partitions(int argc, char* argv[]) {
                           par_prune, flow_fast, devNeed_cmd, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
                           nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par, glb_max_num_level, glb_max_num_iter);
     int numNode = numPureWorker + 1;
-    if (flow_fast) {
-        flowMode = 2; // fast kernel  MD_FAST
-    } else {
+    if (flow_fast == 1) {
         flowMode = 1; // normal kernel MD_NORMAL
-    }
+    } else if (flow_fast == 2) {
+        flowMode = 2; // fast kernel  MD_FAST
+    } else 
+        flowMode = 3;
 
     xf::graph::L3::Handle::singleOP op0;
     xf::graph::L3::Handle handle0;
