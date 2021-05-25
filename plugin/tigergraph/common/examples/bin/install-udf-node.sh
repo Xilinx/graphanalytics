@@ -16,7 +16,7 @@
 #
 
 set -e
-set -x
+#set -x
 
 SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`
@@ -60,7 +60,7 @@ tg_temp_root=$(cat $HOME/.tg.cfg | jq .System.TempRoot | tr -d \")
 tg_data_root=$(cat $HOME/.tg.cfg | jq .System.DataRoot | tr -d \")
 # Install dir for TigerGraph plugins
 #tg_udf_dir=$tg_root_dir/dev/gdk/gsql/src/QueryUdf
-tg_udf_dir=$tg_data_root/gsql/udf/
+tg_udf_dir=$tg_data_root/gsql/udf
 
 if [ $verbose -eq 1 ]; then
     echo "INFO: TigerGraph installation info:"

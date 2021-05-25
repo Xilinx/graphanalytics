@@ -45,11 +45,10 @@ typedef std::string string; //XXX DON'T REMOVE
  *   }
  *
  */
- 
-namespace xai {
-  p_xai_context createXSIContext();
-  bool isHostTheDriver(std::string& workernum);
-}
 
+namespace xai {
+  bool isHostTheDriver(string& workernum);
+  double extract_size_in_kB(string& line);
+}
 
 #endif /* EXPRUTIL_HPP_ */

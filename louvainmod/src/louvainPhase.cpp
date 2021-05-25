@@ -1021,11 +1021,11 @@ void UsingFPGA_MapHostClBuff_prune(
 		KMemorys_clBuff_prune  &buff_cl
 		)
 {
-	printf("TMPDBG 1 NV=%d %d %d\n", NV, NE_mem_1, NE_mem_2);
+	printf("TMPDBG 1 NV=%ld %ld %ld\n", NV, NE_mem_1, NE_mem_2);
     std::vector<cl_mem_ext_ptr_t> mext_in(NUM_PORT_KERNEL+7);
-    printf("TMPDBG 2 NV=%d %d %d\n", NV, NE_mem_1, NE_mem_2);
+    printf("TMPDBG 2 NV=%ld %ld %ld\n", NV, NE_mem_1, NE_mem_2);
     PhaseLoop_MapHostBuff_prune( NV, NE_mem_1, NE_mem_2, mext_in, context, buff_host);
-    printf("TMPDBG 3 NV=%d %d %d\n", NV, NE_mem_1, NE_mem_2);
+    printf("TMPDBG 3 NV=%ld %ld %ld\n", NV, NE_mem_1, NE_mem_2);
     PhaseLoop_MapClBuff_prune( NV, NE_mem_1, NE_mem_2, mext_in, context, buff_cl);
 }
 void PhaseLoop_UsingFPGA_1_KernelSetup_prune(

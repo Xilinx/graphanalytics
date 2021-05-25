@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash 
 
 #
 # Copyright 2021 Xilinx, Inc.
@@ -46,65 +46,98 @@ $script_dir/bin/install-udf.sh $ssh_key_flag $verbose_flag $force_clean_flag
 else
 echo "Skipping UDF installation.  ExprFunctions.hpp is expected to have these UDFs already."
 fi
+tg_partition="FALSE"
+use_saved_partition="FALSE"
+if [ "$partition_mode" -eq 0 ]; then
+   tg_partition="TRUE"
+elif [ "$partition_mode" -eq 1 ]; then
+   tg_partition="FALSE"
+else 
+   use_saved_partition="TRUE"
+fi
+
+if [ "$compile_mode" -eq 0 ]; then
+    echo "-------------------------------------------------------------------------"
+    echo "Running schema.gsql"
+    echo "gsql -u $username -p $password \"\$(cat $script_dir/query/schema.gsql | sed \"s/@graph/$xgraph/\")\""
+    echo "-------------------------------------------------------------------------"
+    gsql -u $username -p $password "$(cat $script_dir/query/schema.gsql | sed "s/@graph/$xgraph/")"
+
+    echo "-------------------------------------------------------------------------"
+    echo "Installing load.gsql"
+    echo "gsql -u $username -p $password \"\$(cat $script_dir/query/load.gsql | sed \"s/@graph/$xgraph/\")\""
+    echo "-------------------------------------------------------------------------"
+    gsql -u $username -p $password "$(cat $script_dir/query/load.gsql | sed "s/@graph/$xgraph/")"
+
+    echo "-------------------------------------------------------------------------"
+    echo "Loading $files"
+    echo "gsql -u $username -p $password -g $xgraph \"run loading job load_job USING file_name = \"$data_source\"\""
+    echo "-------------------------------------------------------------------------"
+    gsql -u $username -p $password -g $xgraph "run loading job load_job USING file_name = \"$data_source\""
+
+    echo "-------------------------------------------------------------------------"
+    echo "Install base queries"
+    echo "gsql -u $username -p $password \"\$(cat $script_dir/query/base.gsql | sed \"s/@graph/$xgraph/\")\""
+    echo "-------------------------------------------------------------------------"
+    gsql -u $username -p $password "$(cat $script_dir/query/base.gsql | sed "s/@graph/$xgraph/")"
+
+    echo "-------------------------------------------------------------------------"
+    echo "Running insert dummy nodes for distributed alveo computing"
+    gsql -u $username -p $password -g $xgraph "RUN QUERY insert_dummy_nodes($num_nodes)"
+fi
+
+if [ "$compile_mode" -eq 0 ] || [ "$compile_mode" -eq 1 ]; then
+    echo "-------------------------------------------------------------------------"
+    echo "Installing louvain_distributed_cpu query"
+    echo "gsql -u $username -p $password -g $xgraph \"$script_dir/query/louvain_distributed_q_cpu.gsql\""
+    echo "-------------------------------------------------------------------------"
+    gsql -u $username -p $password -g $xgraph "$script_dir/query/louvain_distributed_q_cpu.gsql"
+
+    echo "-------------------------------------------------------------------------"
+    echo "Installing Louvain Alveo queries"
+    echo "gsql -u $username -p $password \"\$(cat $script_dir/query/louvain_alveo.gsql | sed \"s/@graph/$xgraph/\")\""
+    echo "-------------------------------------------------------------------------"
+    gsql -u $username -p $password "$(cat $script_dir/query/louvain_alveo.gsql | sed "s/@graph/$xgraph/")"
+
+    # IMPORTANT: DO NOT USE A NETWORK DRIVE FOR LOG FILES IN DISTRIBUTED QUERIES.
+    # OTHERWISE EACH NODE WILL OVERWRITE IT
+fi
 
 echo "-------------------------------------------------------------------------"
-echo "Running schema.gsql"
-echo "gsql -u $username -p $password \"\$(cat $script_dir/query/schema.gsql | sed \"s/@graph/$xgraph/\")\""
-echo "-------------------------------------------------------------------------"
-gsql -u $username -p $password "$(cat $script_dir/query/schema.gsql | sed "s/@graph/$xgraph/")"
+echo "Run mode: $run_mode"
 
-echo "-------------------------------------------------------------------------"
-echo "Installing load.gsql"
-echo "gsql -u $username -p $password \"\$(cat $script_dir/query/load.gsql | sed \"s/@graph/$xgraph/\")\""
-echo "-------------------------------------------------------------------------"
-gsql -u $username -p $password "$(cat $script_dir/query/load.gsql | sed "s/@graph/$xgraph/")"
+if [ "$run_mode" -eq 0 ] || [ "$run_mode" -eq 2 ]; then
+   echo "Running louvain_distributed_q_cpu"
+   echo gsql -u $username -p $password -g $xgraph \'run query louvain_distributed_q_cpu\([\"Person\"], [\"Coworker\"],\"weight\",20,1,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_cpu.txt\",TRUE,FALSE\)\'
+   echo "-------------------------------------------------------------------------"
+   START=$(date +%s%3N)
+   time gsql -u $username -p $password -g $xgraph "run query louvain_distributed_q_cpu([\"Person\"], [\"Coworker\"], \
+        \"weight\",20,1,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_cpu.txt\",TRUE,FALSE)"
+   TOTAL_TIME=$(($(date +%s%3N) - START))
+   echo "louvain_distributed_cpu runtime: " $TOTAL_TIME
+fi
 
-echo "-------------------------------------------------------------------------"
-echo "Loading $files"
-echo "gsql -u $username -p $password -g $xgraph \"run loading job load_job USING file_name = \"$data_source\"\""
-echo "-------------------------------------------------------------------------"
-gsql -u $username -p $password -g $xgraph "run loading job load_job USING file_name = \"$data_source\""
+if [ "$run_mode" -eq 1 ] || [ "$run_mode" -eq 2 ]; then
+    START=$(date +%s%3N)
+    echo "Running open_alveo"
+    echo gsql -u $username -p $password -g $xgraph \'run query open_alveo\(\)\'
+    time gsql -u $username -p $password -g $xgraph "run query open_alveo()"
+    TOTAL_TIME=$(($(date +%s%3N) - START))
+    echo "open_alveo: " $TOTAL_TIME
 
-echo "-------------------------------------------------------------------------"
-echo "Install base queries"
-echo "gsql -u $username -p $password \"\$(cat $script_dir/query/base.gsql | sed \"s/@graph/$xgraph/\")\""
-echo "-------------------------------------------------------------------------"
-gsql -u $username -p $password "$(cat $script_dir/query/base.gsql | sed "s/@graph/$xgraph/")"
-gsql -u $username -p $password -g $xgraph "RUN QUERY insert_dummy_nodes($num_nodes)"
+    START=$(date +%s%3N)
+    echo "Running load_alveo"
+    echo gsql -u $username -p $password -g $xgraph \'run query load_alveo\([\"Person\"], [\"Coworker\"], \"weight\", $tg_partition, $use_saved_partition, \"$data_source\", \"$alveo_prj\", \"$num_partitions\", \"$num_devices\"\)\'
+    time gsql -u $username -p $password -g $xgraph "run query load_alveo([\"Person\"], [\"Coworker\"], \
+         \"weight\", $tg_partition, $use_saved_partition, \"$data_source\", \"$alveo_prj\", \"$num_partitions\", \"$num_devices\")"
+    TOTAL_TIME=$(($(date +%s%3N) - START))
+    echo "load_alveo: " $TOTAL_TIME
 
-echo "-------------------------------------------------------------------------"
-echo "Installing louvain_distributed_cpu query"
-echo "gsql -u $username -p $password -g $xgraph $script_dir/query/louvain_distributed_q_cpu.gsql"
-echo "-------------------------------------------------------------------------"
-gsql -u $username -p $password -g $xgraph $script_dir/query/louvain_distributed_q_cpu.gsql
-
-echo "-------------------------------------------------------------------------"
-echo "Installing Louvain Alveo queries"
-echo "gsql -u $username -p $password \"\$(cat $script_dir/query/louvain_alveo.gsql | sed \"s/@graph/$xgraph/\")\""
-echo "-------------------------------------------------------------------------"
-gsql -u $username -p $password "$(cat $script_dir/louvain_alveo.gsql | sed "s/@graph/$xgraph/")"
-
-# IMPORTANT: DO NOT USE A NETWORK DRIVE FOR LOG FILES IN DISTRIBUTED QUERIES.
-# OTHERWISE EACH NODE WILL OVERWRITE IT
-echo "-------------------------------------------------------------------------"
-echo "Running louvain_distributed_q_cpu"
-echo gsql -u $username -p $password -g $xgraph 'run query louvain_distributed_q_cpu([\"Person\"], [\"Coworker\"], \"weight\",10,0.00001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_cpu.txt\",TRUE,FALSE)'
-echo "-------------------------------------------------------------------------"
-START=$(date +%s%3N)
-time gsql -u $username -p $password -g $xgraph "run query louvain_distributed_q_cpu([\"Person\"], [\"Coworker\"], \"weight\",10,0.00001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_cpu.txt\",TRUE,FALSE)"
-TOTAL_TIME=$(($(date +%s%3N) - START))
-
-echo "louvain_distributed_cpu runtime: " $TOTAL_TIME
-
-
-START=$(date +%s%3N)
-#command example
-#time gsql -g $xgraph "run query louvain_alveo(10, [\"Person\"], [\"Coworker\"], \"$PWD/log/alveo_out.txt\", \"$PWD/as-skitter/as-skitter-wt-e110k.mtx\", \"$PWD/as-skitter/as-skitter-partitions/louvain_partitions\")"
-
-time gsql -g $xgraph "run query louvain_alveo(10, [\"Person\"], [\"Coworker\"], \
-                                                 \"/tmp/log/alveo_out.txt\", \
-                                                 \"$data_source\", \
-                                                 \"$partition_prj\")"
-TOTAL_TIME=$(($(date +%s%3N) - START))
-echo "louvain_alveo: " $TOTAL_TIME
-
+    START=$(date +%s%3N)
+    echo "Running louvain_alveo"
+    echo gsql -g $xgraph \'run query louvain_alveo\([\"Person\"], [\"Coworker\"], \"weight\",20,1,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_alveo.txt\",TRUE,FALSE\)\'
+    time gsql -g $xgraph "run query louvain_alveo([\"Person\"], [\"Coworker\"], \
+         \"weight\",20,1,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_alveo.txt\",TRUE,FALSE)"
+    TOTAL_TIME=$(($(date +%s%3N) - START))
+    echo "louvain_alveo: " $TOTAL_TIME
+fi

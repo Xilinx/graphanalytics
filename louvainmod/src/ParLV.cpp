@@ -3727,51 +3727,25 @@ int host_writeOut(char* opts_inFile, long NV_begin, long* C_orig) {
 }
 
 /*
-
+    --load_alveo_partitions nameMetaFile
+    -dev numDevices
+    -fast -> flow_fast -> flowMode;
+    -setwkr numPureWorker nameWorkers
+    -workerAlone worker_number -> nodeID
 */
-extern "C" int load_alveo_partitions(int argc, char* argv[]) {
-//    for (int i = 0; i < argc; ++i)
-//        std::cout << "internal load partitions arg " << i << " = " << argv[i] << std::endl;
-    //----------------- config.json Parser ----------------------------------
+/*
+extern "C" int load_alveo_partitions_core(
+    char nameMetaFile[1024], bool flow_fast, int numDevices,
+    int numPureWorker, char* nameWorkers[128], int nodeID)
+{
     std::string opName = "louvainModularity";
     std::string kernelName = "kernel_louvain";
     int requestLoad = 100;
-    std::string xclbinPath;
+    char nameMetaFile[1024];
+    bool isPrun = true;
 
+    std::string xclbinPath = "/proj/autoesl/ryanw/kernel_louvain_pruning.xclbin";
     const int cuNm = 1;
-
-    std::fstream userInput_json("./config.json", std::ios::in);
-    if (!userInput_json) {
-        std::cout << "Error : file doesn't exist !" << std::endl;
-        exit(1);
-    }
-
-    int numDevices = 1;
-    char line[1024] = {0};
-    char* token;
-    while (userInput_json.getline(line, sizeof(line))) {
-        token = strtok(line, "\"\t ,}:{\n");
-        while (token != NULL) {
-            if (!std::strcmp(token, "operationName")) {
-                token = strtok(NULL, "\"\t ,}:{\n");
-                opName = token;
-            } else if (!std::strcmp(token, "kernelName")) {
-                token = strtok(NULL, "\"\t ,}:{\n");
-                kernelName = token;
-            } else if (!std::strcmp(token, "requestLoad")) {
-                token = strtok(NULL, "\"\t ,}:{\n");
-                requestLoad = std::atoi(token);
-            } else if (!std::strcmp(token, "xclbinPath")) {
-                token = strtok(NULL, "\"\t ,}:{\n");
-                xclbinPath = token;
-            } else if (!std::strcmp(token, "numDevices")) {
-                token = strtok(NULL, "\"\t ,}:{\n");
-                numDevices = std::atoi(token);
-            }
-            token = strtok(NULL, "\"\t ,}:{\n");
-        }
-    }
-    userInput_json.close();
 
     //--------------- Parse Input parameters
     double opts_C_thresh;   // Threshold with coloring on
@@ -3785,10 +3759,8 @@ extern "C" int load_alveo_partitions(int argc, char* argv[]) {
     bool opts_VF;
     char opts_xclbinPath[4096];
 
-    int flow_fast = 2;
-    int flowMode = 1;
+
     int num_par;
-    bool isPrun = true;
     int par_prune = 1;
     int numThreads = NUMTHREAD; // using fixed number of thread instead of
     //int numThreads = 1; // using fixed number of thread instead of
@@ -3798,26 +3770,23 @@ extern "C" int load_alveo_partitions(int argc, char* argv[]) {
     bool useCmd = false;
     int mode_alveo = ALVEOAPI_NONE;
     char nameProj[1024];
-    int numPureWorker;
-    char nameMetaFile[1024];
-    char* nameWorkers[128];
-    int nodeID;
+    
     int status;
     int server_par=1;
-    //int max_num_level;
-    //int max_num_iter;
 
-    host_ParserParameters(argc, argv, opts_C_thresh, opts_minGraphSize, opts_threshold, opts_ftype, opts_inFile,
+    host_ParserParameters(opts_C_thresh, opts_minGraphSize, opts_threshold, opts_ftype, opts_inFile,
                           opts_coloring, opts_output, opts_outputFile, opts_VF, opts_xclbinPath, numThreads, num_par,
-                          par_prune, flow_fast, devNeed_cmd, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
-                          nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par, glb_max_num_level, glb_max_num_iter);
+                          par_prune, devNeed_cmd, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
+                          nameMetaFile, server_par, glb_max_num_level, glb_max_num_iter);
+
+    int flowMode = 1;
+
     int numNode = numPureWorker + 1;
-    if (flow_fast == 1) {
-        flowMode = 1; // normal kernel MD_NORMAL
-    } else if (flow_fast == 2) {
+    if (flow_fast) {
         flowMode = 2; // fast kernel  MD_FAST
-    } else 
-        flowMode = 3;
+    } else {
+        flowMode = 1; // normal kernel MD_NORMAL
+    }
 
     xf::graph::L3::Handle::singleOP op0;
     xf::graph::L3::Handle handle0;
@@ -3837,7 +3806,6 @@ extern "C" int load_alveo_partitions(int argc, char* argv[]) {
     std::cout << "INFO: numNode: " << numNode << std::endl;
     std::cout << "INFO: numDevices requested: " << op0.numDevices << std::endl;
     
-
     //----------------- enable handle0--------
     handle0.addOp(op0);
     status = handle0.setUp();
@@ -3970,8 +3938,222 @@ extern "C" int load_alveo_partitions(int argc, char* argv[]) {
 
     return 0;
 }
+*/
 
-int louvain_modularity_alveo(int argc, char* argv[]) {
+/*
+
+*/
+extern "C" float load_alveo_partitions(int argc, char* argv[]) {
+//    for (int i = 0; i < argc; ++i)
+//        std::cout << "internal load partitions arg " << i << " = " << argv[i] << std::endl;
+    //----------------- config.json Parser ----------------------------------
+    std::string opName = "louvainModularity";
+    std::string kernelName = "kernel_louvain";
+    int requestLoad = 100;
+    std::string xclbinPath = "/proj/autoesl/ryanw/kernel_louvain_pruning.xclbin";
+    int numDevices = 2;
+    const int cuNm = 1;
+
+    //--------------- Parse Input parameters
+    double opts_C_thresh;   // Threshold with coloring on
+    long opts_minGraphSize; // Min |V| to enable coloring
+    double opts_threshold;  // Value of threshold
+    int opts_ftype;         // File type
+    char opts_inFile[4096];
+    bool opts_coloring;
+    bool opts_output;
+    char opts_outputFile[4096];
+    bool opts_VF;
+    char opts_xclbinPath[4096];
+
+    int flow_fast = 2;
+    int flowMode = 1;
+    int num_par;
+    bool isPrun = true;
+    int par_prune = 1;
+    int numThreads = NUMTHREAD; // using fixed number of thread instead of
+    //int numThreads = 1; // using fixed number of thread instead of
+    int devNeed_cmd = 1;
+    int mode_zmq = ZMQ_NONE;
+    char path_zmq[1024]; // default will be set as "./"
+    bool useCmd = false;
+    int mode_alveo = ALVEOAPI_NONE;
+    char nameProj[1024];
+    int numPureWorker;
+    char nameMetaFile[1024];
+    char* nameWorkers[128];
+    int nodeID;
+    int status;
+    int server_par=1;
+    float retVal = 0.0;
+    //int max_num_level;
+    //int max_num_iter;
+
+    host_ParserParameters(argc, argv, opts_C_thresh, opts_minGraphSize, opts_threshold, opts_ftype, opts_inFile,
+                          opts_coloring, opts_output, opts_outputFile, opts_VF, opts_xclbinPath, numThreads, num_par,
+                          par_prune, flow_fast, devNeed_cmd, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
+                          nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par, glb_max_num_level, glb_max_num_iter);
+    int numNode = numPureWorker + 1;
+    if (flow_fast == 1) {
+        flowMode = 1; // normal kernel MD_NORMAL
+    } else if (flow_fast == 2) {
+        flowMode = 2; // fast kernel  MD_FAST
+    } else 
+        flowMode = 3;
+
+    xf::graph::L3::Handle::singleOP op0;
+    xf::graph::L3::Handle handle0;
+    //----------------- Set parameters of op0 again some of those will be covered by command-line
+    op0.operationName = opName;
+    op0.setKernelName((char*)kernelName.c_str());
+    op0.requestLoad = requestLoad;
+    if (opts_xclbinPath[0] == 0)
+        op0.xclbinPath = xclbinPath;
+    else
+        op0.xclbinPath = opts_xclbinPath;
+    if (devNeed_cmd == 0)
+        op0.numDevices = numDevices;
+    else
+        op0.numDevices = devNeed_cmd;
+
+    std::cout << "INFO: numNode: " << numNode << std::endl;
+    std::cout << "INFO: numDevices requested: " << op0.numDevices << std::endl;
+    
+
+    //----------------- enable handle0--------
+    handle0.addOp(op0);
+    status = handle0.setUp();
+    if (status < 0)
+        return status;
+
+#ifdef PRINTINFO_2
+    printf("\033[1;37;40mINFO: xclbin file is        : %s with flow mode %d\033[0m\n",  op0.xclbinPath.c_str(), flowMode);
+    printf("\033[1;37;40mINFO: The project file is   : %s\033[0m\n", nameMetaFile);
+#endif
+
+#ifndef NDEBUG
+    PrintRptParameters(opts_C_thresh, opts_minGraphSize, opts_threshold, opts_ftype, opts_inFile, opts_coloring,
+                       opts_output, opts_outputFile, opts_VF, opts_xclbinPath, numThreads, num_par, par_prune,
+                       flow_fast, devNeed_cmd, mode_zmq, path_zmq, useCmd, mode_alveo, op0);
+#endif
+    (handle0.oplouvainmod)->loadGraph(NULL, flowMode, opts_coloring, opts_minGraphSize, opts_C_thresh, numThreads);
+
+    if (mode_alveo == ALVEOAPI_LOAD) {
+        if (mode_zmq == ZMQ_DRIVER) {
+            //-----------------------------------------------------------------
+            // DRIVER
+            //-----------------------------------------------------------------
+            char inFile[1024];
+            ParLV parlv_drv;
+            parlv_drv.Init(flowMode, NULL, num_par, numDevices, isPrun, par_prune);
+            ParLV parlv_wkr;
+            parlv_wkr.Init(flowMode, NULL, num_par, numDevices, isPrun, par_prune);
+
+            // API FOR LOADING
+            {
+                TimePointType l_load_start = chrono::high_resolution_clock::now();
+                TimePointType l_load_end;
+                if(load_alveo_partitions_DriverSelf(nameMetaFile, numNode, numPureWorker, parlv_drv, parlv_wkr, inFile)!=0)
+                    return -1;
+                getDiffTime(l_load_start, l_load_end, parlv_drv.timesPar.timeDriverLoad);
+            }
+
+            {
+                const char* char_tmp = "shake hands from Driver";
+                Driver* drivers = new Driver[numPureWorker];
+                ConnectWorkers(drivers, numPureWorker, nameWorkers);
+
+                for (int i = 0; i < numPureWorker; i++) {
+#ifdef PRINTINFO
+                    printf("Driver shake hands with worker %d\n", (i + 1));
+#endif
+                    drivers[i].send(char_tmp, MAX_LEN_MESSAGE, 0);
+                }
+
+                isAllWorkerLoadingDone(drivers, numPureWorker);
+                delete[] drivers;
+            }
+#ifdef PRINTINFO
+            printf("\n\n\033[1;31;40mDriver's LOADING DONE \033[0m\n");
+            printf("\n\n\033[1;31;40mPlease Wait for Workers' Done\033[0m\n");
+            printf("\n\033[1;31;40mTO START LOUVAIN PUT ANY KEY: \033[0m");
+            // getchar();
+
+            // TODO Add synchronization here
+            printf("\n\033[1;31;40mTO RUNNING LOUVAIN \033[0m\n");
+#endif
+            // API FOR RUNNING LOUVAIN
+            GLV* glv_final;
+            {
+                TimePointType l_execute_start = chrono::high_resolution_clock::now();
+                TimePointType l_execute_end;
+                glv_final = louvain_modularity_alveo(&handle0, parlv_drv, parlv_wkr, opts_minGraphSize, opts_threshold,
+                                                     opts_C_thresh, numThreads, numNode, numPureWorker, nameWorkers);
+                getDiffTime(l_execute_start, l_execute_end, parlv_drv.timesPar.timeDriverExecute);
+            }
+            glv_final->PushFeature(0, 0, 0.0, true);
+            parlv_drv.plv_src->Q = glv_final->Q;
+            parlv_drv.plv_src->NC = glv_final->NC;
+
+            PrintRptPartition(mode_zmq, parlv_drv, op0.numDevices, numNode, numPureWorker);
+
+            if (opts_output){
+            	host_writeOut(opts_outputFile, parlv_drv.plv_src->NV, parlv_drv.plv_src->C);
+            } else{
+#ifdef PRINTINFO_2
+                printf("\033[1;37;40mINFO: Please use -o <output file> to store Cluster information\033[0m\n");
+#endif
+            }
+#ifdef PRINTINFO
+            printf("Deleting orignal graph... \n");
+#endif
+            parlv_drv.CleanTmpGlv();
+#ifdef PRINTINFO
+            parlv_drv.plv_src->printSimple();
+#endif
+            delete (parlv_drv.plv_src);
+
+            glv_final->printSimple();
+            delete (glv_final);
+#ifdef PRINTINFO
+            std::cout << "KD: after delete glv_final\n" << std::flush;
+            handle0.free();
+            std::cout << "KD: return from driver\n" << std::flush;
+#endif
+            return glv_final->Q;
+        } else if (mode_zmq == ZMQ_WORKER) {
+            //-----------------------------------------------------------------
+            // WORKER
+            //-----------------------------------------------------------------
+            ParLV parlv_wkr;
+            parlv_wkr.Init(flowMode, NULL, num_par, numDevices, isPrun, par_prune);
+            parlv_wkr.timesPar.timeAll = getTime();
+            char LoadCommand[MAX_LEN_MESSAGE];
+            {
+                char inFile[1024];
+                ParLV parlv_tmp;
+                parlv_tmp.Init(flowMode, NULL, num_par, numDevices, isPrun, par_prune);
+
+                if (load_alveo_partitions_WorkerSelf(
+                    nameMetaFile, numNode, numPureWorker, parlv_tmp,  
+                    inFile, nodeID, LoadCommand) != 0)
+                    return -1;
+
+                LouvainGLV_general_top_zmq_worker_new_part1(&handle0, parlv_tmp, opts_minGraphSize, opts_threshold,
+                                                            opts_C_thresh, numThreads, nodeID, parlv_wkr, LoadCommand);
+            }
+            {
+                LouvainGLV_general_top_zmq_worker_new_part2(&handle0, opts_minGraphSize, opts_threshold,
+                                                            opts_C_thresh, numThreads, nodeID, parlv_wkr);
+            }
+            handle0.free();
+        }
+    }
+
+    return retVal;
+}
+
+float louvain_modularity_alveo(int argc, char* argv[]) {
 #ifdef PRINTINFO
     printf("\033[1;31;40mMUST DO LOADING BEFORE RUNNING\033[0m\n");
 #endif

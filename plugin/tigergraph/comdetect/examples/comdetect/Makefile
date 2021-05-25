@@ -1,6 +1,6 @@
 SHELL = bash
 
-../../../../../louvainmod/staging/lib/libXilinxLouvain.so:
+../../../../../louvainmod/staging/lib/libXilinxLouvain.so: ../../../../../louvainmod/src/louvainmod_loader.cpp
 	cd ../../../../../louvainmod && make DEBUG=1
 	
 ./install-plugin-done: ../../udf/xilinxComDetect.hpp ../../udf/xilinxComDetectImpl.hpp ../../../../../louvainmod/staging/lib/libXilinxLouvain.so
@@ -32,9 +32,14 @@ run-test: ./install-query-done
 	time gsql -g social_ywu "run query louvain_alveo(10, [\"Person\"], [\"Coworker\"], \
                                                  \"/home2/tigergraph/alveo_out.txt\", \
                                                  \"/proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx\", \
-                                                 \"/proj/gdba/datasets/louvain-graphs/as-skitter-par9\", \
-												 \"3\", \"9\", \"0\")"
+                                                 \"/proj/gdba/datasets/louvain-graphs/as-skitter-par9/louvain_partitions.par.proj\", \
+												 \"1\", \"9\", \"0\")"
 
+staging-run: ./install-udf-done
+	@echo "-------------------------------------------------------"
+	@echo "make staging-run"
+	@echo "-------------------------------------------------------"
+	cd ../../ && make && ./staging/examples/comdetect/run.sh -g social_ywu1 -s /proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx 
 
 clean:
 	rm -f ./install-plugin-done ./install-udf-done ./install-query-done

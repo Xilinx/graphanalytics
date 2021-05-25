@@ -109,7 +109,7 @@ public:
             xilinx_apps::cosinesim::Options options;
             options.vecLength = vectorLength_;
             options.numDevices = numDevices_;
-            options.xclbinPath = PLUGIN_XCLBIN_PATH;
+            options.setXclbinPath(PLUGIN_XCLBIN_PATH);
 #ifdef XILINX_RECOM_DEBUG_ON
             std::cout << "DEBUG: cosinesim options: vecLength=" << options.vecLength
                     << ", numDevices=" << options.numDevices
