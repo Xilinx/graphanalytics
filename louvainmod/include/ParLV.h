@@ -10,6 +10,7 @@
 #include "zmq.h"
 #define MAX_PARTITION (512)
 #define MAX_DEVICE (64)
+#define MAX_SERVER (64)
 
 const long headGLVBin = 0xffff5555ffff5555;
 
@@ -39,7 +40,6 @@ struct TimePartition {
 	double timeMerge;
 	double timeFinal;
 	double timeAll;
-
 };
 
 struct ParLVVar{
@@ -129,6 +129,7 @@ public:
 	int   th_prun;
 	///////////////////////////////////
 	int num_server;// default '1' means using concentration partition
+	int numServerCard[MAX_SERVER];
 	int parInServer[MAX_PARTITION];
 	long parOffsets[MAX_PARTITION];//start vertex for each partition. Currently no use for it. Just recored in .par.proj file
 	///////////////////////////////////
