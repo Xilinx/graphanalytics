@@ -26,6 +26,7 @@ int main(int argc, const char* argv[]) {
     std::string offsetFile;
     std::string indiceFile;
     std::string weightFile;
+    std::string coeffsFile;
     std::string goldenFile;
     std::string tmpStr;
 
@@ -99,10 +100,16 @@ int main(int argc, const char* argv[]) {
         }
 
         if (!parser.getCmdOption("-edges", tmpStr)) { // numEdges
-            std::cout << "INFO: vertice number is not set, use default " << numVertices << "\n";
+            std::cout << "INFO: edge number is not set, use default " << numEdges << "\n";
         } else {
             numEdges = std::stoi(tmpStr);
         }
+    }
+
+    if (!parser.getCmdOption("-coeffs", coeffsFile)) { // coeffs
+        std::cout << "INFO: coeffs file path is not set!\n";
+    } else {
+        std::cout << "INFO: coeffs file path is " << coeffsFile << std::endl;
     }
 
     if (!parser.getCmdOption("-golden", goldenFile)) { // golden
@@ -136,8 +143,10 @@ int main(int argc, const char* argv[]) {
     }
 
     // read in data from file
-    readInDataFile<PU_NUMBER>(offsetFile, indiceFile, weightFile, graphType, dataType, numVerticesPU, numEdgesPU,
-                              numVertices, numEdges, offset32, indice32, weightSparse, weightDense);
+    ap_int<32>* sourceCoeffs;
+    readInDataFile<PU_NUMBER>(offsetFile, indiceFile, weightFile, coeffsFile, graphType, dataType, numVerticesPU,
+                              numEdgesPU, numVertices, numEdges, offset32, indice32, weightSparse, weightDense,
+                              &sourceCoeffs);
 
     // generate source vertex's indice array and weight array
     unsigned int sourceNUM;   // sourceIndice array length
@@ -146,13 +155,13 @@ int main(int argc, const char* argv[]) {
 
     // calculate similarity
     int info;
-    info =
-        computeSimilarity0<PU_NUMBER>(xclbinPath, goldenFile, numVertices, numEdges, similarityType, dataType, sourceID,
-                                      sortK, repInt, numVerticesPU, numEdgesPU, weightDense, sourceNUM, sourceWeight);
+    info = computeSimilarity0<PU_NUMBER>(xclbinPath, goldenFile, numVertices, numEdges, similarityType, dataType,
+                                         sourceID, sortK, repInt, numVerticesPU, numEdgesPU, weightDense, sourceNUM,
+                                         sourceWeight, sourceCoeffs);
 
-    info =
-        computeSimilarity1<PU_NUMBER>(xclbinPath, goldenFile, numVertices, numEdges, similarityType, dataType, sourceID,
-                                      sortK, repInt, numVerticesPU, numEdgesPU, weightDense, sourceNUM, sourceWeight);
+    info = computeSimilarity1<PU_NUMBER>(xclbinPath, goldenFile, numVertices, numEdges, similarityType, dataType,
+                                         sourceID, sortK, repInt, numVerticesPU, numEdgesPU, weightDense, sourceNUM,
+                                         sourceWeight, sourceCoeffs);
 
     return info;
 }
