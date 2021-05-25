@@ -1126,6 +1126,9 @@ int host_ParserParameters(int argc,
     if (has_flow_prune != -1) {
         rec[has_flow_prune] = true;
         flow_prune = 2;
+    } else if(has_flow_fast != -1) {
+        rec[has_flow_fast] = true;
+        flow_prune = 2;
     } else if (has_flow_fast2 != -1) {
         rec[has_flow_fast2] = true;
         flow_prune = 3;

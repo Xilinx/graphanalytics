@@ -48,12 +48,12 @@ CREATE DISTRIBUTED QUERY load_alveo(
         Start = SELECT v FROM Start:v-(e_types:e)->:t
            ACCUM
            // TODO build the edge list and offsets here from TigerGraph memory
-           status = udf_load_partitions(num_partitions, num_devices);
+           status = udf_load_alveo(num_partitions, num_devices);
     ELSE
         // On each server call the code
         nodelist = SELECT n FROM nodes:n
            ACCUM
-           status = udf_create_load_alveo_partitions(use_saved_partition, 
+           status = udf_create_partition_load_alveo(use_saved_partition, 
                graph_file, louvain_project, nodes.size(), node_names, node_ips,
                num_partitions, num_devices);
     END;
@@ -101,7 +101,7 @@ CREATE DISTRIBUTED QUERY louvain_alveo(
     //       max_iter, max_level, tolerence, intermediateResult,
     //       verbose, result_file, print_final_Q, print_all_Q);
     nodelist = SELECT n FROM nodes:n
-           ACCUM @@modularityAccum += udf_execute_alveo_louvain(
+           ACCUM @@modularityAccum += udf_louvain_alveo(
            max_iter, max_level, tolerence, intermediateResult,
            verbose, result_file, print_final_Q, print_all_Q);
 
