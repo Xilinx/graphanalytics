@@ -64,6 +64,7 @@ struct is_float<float> {
 
 extern "C" void denseSimilarityKernel(ap_int<32>* config,
                                       ap_int<32>* sourceWeight,
+                                      ap_int<32>* sourceCoeffs,
 
                                       ap_int<32 * CHANNEL_NUMBER>* dataIn00,
                                       ap_int<32 * CHANNEL_NUMBER>* dataIn01,

@@ -353,7 +353,7 @@ void opSimilarityDense::loadGraph(xf::graph::Graph<uint32_t, float> g) {
         freed[cnt] = 1;
       }
       for (unsigned int i = 0; i < (unsigned int)(g.splitNum * 4); i++) {
-        handles[j].buffer[2 + i] = handles[cnt].buffer[2 + i];
+        handles[j].buffer[5 + i] = handles[cnt].buffer[5 + i];
       }
     } else {
       cnt = j;
@@ -390,7 +390,7 @@ void opSimilarityDense::loadGraphMultiCardBlocking(
         (handles[j].cuID == (unsigned int)cuID)) {
       if (handles[j].dupID != 0) {
         for (unsigned int i = 0; i < (unsigned int)(g.splitNum * 4); i++) {
-          handles[j].buffer[2 + i] = handles[cnt].buffer[2 + i];
+          handles[j].buffer[5 + i] = handles[cnt].buffer[5 + i];
         }
       } else {
         cnt = j;
@@ -401,7 +401,7 @@ void opSimilarityDense::loadGraphMultiCardBlocking(
 
 void opSimilarityDense::loadGraphMultiCardNonBlocking(
     int deviceID, int cuID, xf::graph::Graph<int32_t, int32_t> graph) {
-
+  std::cout << "INFO: Loading Graph for Device " << deviceID << " CU " << cuID << std::endl;
   int nnz = graph.edgeNum;
   int nrows = graph.nodeNum;
   bool freed[maxCU_];
@@ -432,7 +432,7 @@ void opSimilarityDense::loadGraphMultiCardNonBlocking(
           freed[cnt] = 1;
         }
         for (unsigned int i = 0; i < (unsigned int)(graph.splitNum * 4); i++) {
-          handles[j].buffer[2 + i] = handles[cnt].buffer[2 + i];
+          handles[j].buffer[5 + i] = handles[cnt].buffer[5 + i];
         }
       } else {
         cnt = j;
@@ -497,15 +497,15 @@ void opSimilarityDense::bufferInitInt(clHandle *hds, std::string instanceName0,
   // declare map of host buffers
   std::vector<cl_mem_ext_ptr_t> mext_o(5);
   if (cuID == 0) {
-    mext_o[0] = {(int32_t)(24) | XCL_MEM_TOPOLOGY, sourceWeight, 0};
-    mext_o[1] = {(int32_t)(24) | XCL_MEM_TOPOLOGY, sourceCoeffs, 0};
-    mext_o[2] = {(int32_t)(24) | XCL_MEM_TOPOLOGY, config, 0};
+    mext_o[0] = {(int32_t)(24) | XCL_MEM_TOPOLOGY, config, 0};
+    mext_o[1] = {(int32_t)(24) | XCL_MEM_TOPOLOGY, sourceWeight, 0};
+    mext_o[2] = {(int32_t)(24) | XCL_MEM_TOPOLOGY, sourceCoeffs, 0};
     mext_o[3] = {(int32_t)(24) | XCL_MEM_TOPOLOGY, resultID, 0};
     mext_o[4] = {(int32_t)(24) | XCL_MEM_TOPOLOGY, similarity, 0};
   } else {
-    mext_o[0] = {(int32_t)(28) | XCL_MEM_TOPOLOGY, sourceWeight, 0};
-    mext_o[1] = {(int32_t)(24) | XCL_MEM_TOPOLOGY, sourceCoeffs, 0};
-    mext_o[2] = {(int32_t)(28) | XCL_MEM_TOPOLOGY, config, 0};
+    mext_o[0] = {(int32_t)(28) | XCL_MEM_TOPOLOGY, config, 0};
+    mext_o[1] = {(int32_t)(28) | XCL_MEM_TOPOLOGY, sourceWeight, 0};
+    mext_o[2] = {(int32_t)(28) | XCL_MEM_TOPOLOGY, sourceCoeffs, 0};
     mext_o[3] = {(int32_t)(28) | XCL_MEM_TOPOLOGY, resultID, 0};
     mext_o[4] = {(int32_t)(28) | XCL_MEM_TOPOLOGY, similarity, 0};
   }
@@ -513,15 +513,15 @@ void opSimilarityDense::bufferInitInt(clHandle *hds, std::string instanceName0,
   // declare cl::buffers
   hds[0].buffer[0] = cl::Buffer(
       context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-      sizeof(int32_t) * (sourceNUM + CHANNEL_NUMBER), &mext_o[0]);
-
+      sizeof(int32_t) * 64, &mext_o[0]);
+  
   hds[0].buffer[1] = cl::Buffer(
       context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
       sizeof(int32_t) * (sourceNUM + CHANNEL_NUMBER), &mext_o[1]);
 
   hds[0].buffer[2] = cl::Buffer(
       context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-      sizeof(int32_t) * 64, &mext_o[2]);
+      sizeof(int32_t) * (sourceNUM + CHANNEL_NUMBER), &mext_o[2]);
 
   hds[0].buffer[3] = cl::Buffer(
       context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
@@ -593,6 +593,7 @@ int opSimilarityDense::computeInt(unsigned int deviceID, unsigned int cuID,
                                   int32_t topK,
                                   xf::graph::Graph<int32_t, int32_t> g,
                                   int32_t *resultID, float *similarity) {
+  
   std::thread::id this_id = std::this_thread::get_id();
   std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time =
       std::chrono::high_resolution_clock::now();

@@ -67,7 +67,8 @@ int computeSimilarity0(std::string xclbinPath,
                        unsigned int numEdgesPU[PUNUM],
                        float* weightDense[4 * PUNUM],
                        unsigned int sourceNUM,
-                       ap_int<32>* sourceWeight) {
+                       ap_int<32>* sourceWeight,
+                       ap_int<32>* sourceCoeffs) {
     struct timeval start_time; // End to end time clock start
     gettimeofday(&start_time, 0);
 
@@ -101,29 +102,31 @@ int computeSimilarity0(std::string xclbinPath,
 ///////////////////////////////////////////////////////////////////////
 
 #ifndef HLS_TEST
+    cl_int fail;
+
     // platform related operations
     std::vector<cl::Device> devices = xcl::get_xil_devices();
     cl::Device device = devices[0];
 
     // Creating Context and Command Queue for selected Device
-    cl::Context context(device);
-    cl::CommandQueue q(context, device, CL_QUEUE_PROFILING_ENABLE | CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE);
+    cl::Context context(device, NULL, NULL, NULL, &fail);
+    cl::CommandQueue q(context, device, CL_QUEUE_PROFILING_ENABLE | CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, &fail);
     std::string devName = device.getInfo<CL_DEVICE_NAME>();
     printf("INFO: Found Device=%s\n", devName.c_str());
 
     cl::Program::Binaries xclBins = xcl::import_binary_file(xclbinPath);
     devices.resize(1);
-    cl::Program program(context, devices, xclBins);
+    cl::Program program(context, devices, xclBins, NULL, &fail);
 
     // create kernels
     std::vector<cl::Kernel> similarity_kernel(repInt);
     for (int i = 0; i < repInt; i++) {
-        similarity_kernel[i] = cl::Kernel(program, "denseSimilarityKernel:{denseSimilarityKernel_0}");
+        similarity_kernel[i] = cl::Kernel(program, "denseSimilarityKernel:{denseSimilarityKernel_0}", &fail);
     }
     std::cout << "INFO: kernel has been created" << std::endl;
 
     // declare map of host buffers
-    std::vector<cl_mem_ext_ptr_t> mext_o(3 * repInt + 4 * PUNUM + 1);
+    std::vector<cl_mem_ext_ptr_t> mext_o(3 * repInt + 4 * PUNUM + 2);
     for (int i = 0; i < PUNUM; i++) {
         mext_o[4 * i + 0] = {XCL_BANK(8 * i), weightDense[4 * i], 0};
         mext_o[4 * i + 1] = {XCL_BANK(8 * i + 1), weightDense[4 * i + 1], 0};
@@ -132,16 +135,18 @@ int computeSimilarity0(std::string xclbinPath,
     }
 
     mext_o[4 * PUNUM] = {XCL_BANK24, sourceWeight, 0};
+    mext_o[4 * PUNUM + 1] = {XCL_BANK24, sourceCoeffs, 0};
 
     for (int i = 0; i < repInt; i++) {
-        mext_o[4 * PUNUM + 1 + i] = {XCL_BANK24, config[i], 0};
-        mext_o[4 * PUNUM + 1 + repInt + i] = {XCL_BANK24, result_id[i], 0};
-        mext_o[4 * PUNUM + 1 + 2 * repInt + i] = {XCL_BANK24, similarity[i], 0};
+        mext_o[4 * PUNUM + 2 + i] = {XCL_BANK24, config[i], 0};
+        mext_o[4 * PUNUM + 2 + repInt + i] = {XCL_BANK24, result_id[i], 0};
+        mext_o[4 * PUNUM + 2 + 2 * repInt + i] = {XCL_BANK24, similarity[i], 0};
     }
 
     // create device buffer and map dev buf to host buf
     cl::Buffer weight_buf[4 * PUNUM];
     cl::Buffer source_weight_buf;
+    cl::Buffer source_coeffs_buf;
     std::vector<cl::Buffer> config_buf(repInt);
     std::vector<cl::Buffer> result_id_buf(repInt);
     std::vector<cl::Buffer> similarity_buf(repInt);
@@ -155,14 +160,16 @@ int computeSimilarity0(std::string xclbinPath,
 
     source_weight_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
                                    sizeof(ap_int<32>) * (sourceNUM + CHANNEL_NUMBER), &mext_o[4 * PUNUM]);
+    source_coeffs_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
+                                   sizeof(ap_int<32>) * (sourceNUM + CHANNEL_NUMBER), &mext_o[4 * PUNUM + 1]);
 
     for (int i = 0; i < repInt; i++) {
         config_buf[i] = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                   sizeof(ap_int<32>) * 64, &mext_o[4 * PUNUM + 1 + i]);
+                                   sizeof(ap_int<32>) * 64, &mext_o[4 * PUNUM + 2 + i]);
         result_id_buf[i] = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                      sizeof(ap_int<32>) * 128, &mext_o[4 * PUNUM + 1 + repInt + i]);
+                                      sizeof(ap_int<32>) * 128, &mext_o[4 * PUNUM + 2 + repInt + i]);
         similarity_buf[i] = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                       sizeof(float) * 128, &mext_o[4 * PUNUM + 1 + 2 * repInt + i]);
+                                       sizeof(float) * 128, &mext_o[4 * PUNUM + 2 + 2 * repInt + i]);
     }
 
     // add buffers to migrate
@@ -180,6 +187,7 @@ int computeSimilarity0(std::string xclbinPath,
         init.push_back(similarity_buf[i]);
     }
     init.push_back(source_weight_buf);
+    init.push_back(source_coeffs_buf);
 
     // migrate data from host to device
     q.enqueueMigrateMemObjects(init, CL_MIGRATE_MEM_OBJECT_CONTENT_UNDEFINED, nullptr, nullptr);
@@ -195,6 +203,7 @@ int computeSimilarity0(std::string xclbinPath,
         ob_in.push_back(weight_buf[i]);
     }
     ob_in.push_back(source_weight_buf);
+    ob_in.push_back(source_coeffs_buf);
 
     for (int i = 0; i < repInt; i++) {
         ob_out.push_back(result_id_buf[i]);
@@ -214,6 +223,7 @@ int computeSimilarity0(std::string xclbinPath,
         int j = 0;
         similarity_kernel[i].setArg(j++, config_buf[i]);
         similarity_kernel[i].setArg(j++, source_weight_buf);
+        similarity_kernel[i].setArg(j++, source_coeffs_buf);
 
         for (int k = 0; k < 4 * PUNUM; k++) {
             similarity_kernel[i].setArg(j++, weight_buf[k]);
@@ -272,15 +282,15 @@ int computeSimilarity0(std::string xclbinPath,
     std::cout << "-------------------------------------------------------" << std::endl;
 
 #else
-    denseSimilarityKernel(config[0], sourceWeight, weightDense[0], weightDense[1], weightDense[2], weightDense[3],
-                          weightDense[4], weightDense[5], weightDense[6], weightDense[7], weightDense[8],
-                          weightDense[9], weightDense[10], weightDense[11], result_id[0], similarity[0]);
+    denseSimilarityKernel(config[0], sourceWeight, sourceCoeffs, weightDense[0], weightDense[1], weightDense[2],
+                          weightDense[3], weightDense[4], weightDense[5], weightDense[6], weightDense[7],
+                          weightDense[8], weightDense[9], weightDense[10], weightDense[11], result_id[0],
+                          similarity[0]);
 #endif
 
     // need to write a compare function in order to compare golden values with results and put it here
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     int err = checkData<PU_NUMBER>(goldenFile, result_id[0], similarity[0]);
-
     return err;
 }
 
@@ -298,7 +308,8 @@ int computeSimilarity1(std::string xclbinPath,
                        unsigned int numEdgesPU[PUNUM],
                        float* weightDense[4 * PUNUM],
                        unsigned int sourceNUM,
-                       ap_int<32>* sourceWeight) {
+                       ap_int<32>* sourceWeight,
+                       ap_int<32>* sourceCoeffs) {
     struct timeval start_time; // End to end time clock start
     gettimeofday(&start_time, 0);
 
@@ -332,29 +343,31 @@ int computeSimilarity1(std::string xclbinPath,
 ///////////////////////////////////////////////////////////////////////
 
 #ifndef HLS_TEST
+    cl_int fail;
+
     // platform related operations
     std::vector<cl::Device> devices = xcl::get_xil_devices();
     cl::Device device = devices[0];
 
     // Creating Context and Command Queue for selected Device
-    cl::Context context(device);
-    cl::CommandQueue q(context, device, CL_QUEUE_PROFILING_ENABLE | CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE);
+    cl::Context context(device, NULL, NULL, NULL, &fail);
+    cl::CommandQueue q(context, device, CL_QUEUE_PROFILING_ENABLE | CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, &fail);
     std::string devName = device.getInfo<CL_DEVICE_NAME>();
     printf("INFO: Found Device=%s\n", devName.c_str());
 
     cl::Program::Binaries xclBins = xcl::import_binary_file(xclbinPath);
     devices.resize(1);
-    cl::Program program(context, devices, xclBins);
+    cl::Program program(context, devices, xclBins, NULL, &fail);
 
     // create kernels
     std::vector<cl::Kernel> similarity_kernel(repInt);
     for (int i = 0; i < repInt; i++) {
-        similarity_kernel[i] = cl::Kernel(program, "denseSimilarityKernel:{denseSimilarityKernel_1}");
+        similarity_kernel[i] = cl::Kernel(program, "denseSimilarityKernel", &fail);
     }
     std::cout << "INFO: kernel has been created" << std::endl;
 
     // declare map of host buffers
-    std::vector<cl_mem_ext_ptr_t> mext_o(3 * repInt + 4 * PUNUM + 1);
+    std::vector<cl_mem_ext_ptr_t> mext_o(3 * repInt + 4 * PUNUM + 2);
     for (int i = 0; i < PUNUM; i++) {
         mext_o[4 * i + 0] = {XCL_BANK(8 * i + 4), weightDense[4 * i], 0};
         mext_o[4 * i + 1] = {XCL_BANK(8 * i + 5), weightDense[4 * i + 1], 0};
@@ -363,16 +376,18 @@ int computeSimilarity1(std::string xclbinPath,
     }
 
     mext_o[4 * PUNUM] = {XCL_BANK28, sourceWeight, 0};
+    mext_o[4 * PUNUM + 1] = {XCL_BANK28, sourceCoeffs, 0};
 
     for (int i = 0; i < repInt; i++) {
-        mext_o[4 * PUNUM + 1 + i] = {XCL_BANK28, config[i], 0};
-        mext_o[4 * PUNUM + 1 + repInt + i] = {XCL_BANK28, result_id[i], 0};
-        mext_o[4 * PUNUM + 1 + 2 * repInt + i] = {XCL_BANK28, similarity[i], 0};
+        mext_o[4 * PUNUM + 2 + i] = {XCL_BANK28, config[i], 0};
+        mext_o[4 * PUNUM + 2 + repInt + i] = {XCL_BANK28, result_id[i], 0};
+        mext_o[4 * PUNUM + 2 + 2 * repInt + i] = {XCL_BANK28, similarity[i], 0};
     }
 
     // create device buffer and map dev buf to host buf
     cl::Buffer weight_buf[4 * PUNUM];
     cl::Buffer source_weight_buf;
+    cl::Buffer source_coeffs_buf;
     std::vector<cl::Buffer> config_buf(repInt);
     std::vector<cl::Buffer> result_id_buf(repInt);
     std::vector<cl::Buffer> similarity_buf(repInt);
@@ -387,13 +402,16 @@ int computeSimilarity1(std::string xclbinPath,
     source_weight_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
                                    sizeof(ap_int<32>) * (sourceNUM + CHANNEL_NUMBER), &mext_o[4 * PUNUM]);
 
+    source_coeffs_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
+                                   sizeof(ap_int<32>) * (sourceNUM + CHANNEL_NUMBER), &mext_o[4 * PUNUM + 1]);
+
     for (int i = 0; i < repInt; i++) {
         config_buf[i] = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                   sizeof(ap_int<32>) * 64, &mext_o[4 * PUNUM + 1 + i]);
+                                   sizeof(ap_int<32>) * 64, &mext_o[4 * PUNUM + 2 + i]);
         result_id_buf[i] = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                      sizeof(ap_int<32>) * 128, &mext_o[4 * PUNUM + 1 + repInt + i]);
+                                      sizeof(ap_int<32>) * 128, &mext_o[4 * PUNUM + 2 + repInt + i]);
         similarity_buf[i] = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                       sizeof(float) * 128, &mext_o[4 * PUNUM + 1 + 2 * repInt + i]);
+                                       sizeof(float) * 128, &mext_o[4 * PUNUM + 2 + 2 * repInt + i]);
     }
 
     // add buffers to migrate
@@ -426,6 +444,7 @@ int computeSimilarity1(std::string xclbinPath,
         ob_in.push_back(weight_buf[i]);
     }
     ob_in.push_back(source_weight_buf);
+    ob_in.push_back(source_coeffs_buf);
 
     for (int i = 0; i < repInt; i++) {
         ob_out.push_back(result_id_buf[i]);
@@ -445,6 +464,7 @@ int computeSimilarity1(std::string xclbinPath,
         int j = 0;
         similarity_kernel[i].setArg(j++, config_buf[i]);
         similarity_kernel[i].setArg(j++, source_weight_buf);
+        similarity_kernel[i].setArg(j++, source_coeffs_buf);
 
         for (int k = 0; k < 4 * PUNUM; k++) {
             similarity_kernel[i].setArg(j++, weight_buf[k]);
@@ -503,15 +523,16 @@ int computeSimilarity1(std::string xclbinPath,
     std::cout << "-------------------------------------------------------" << std::endl;
 
 #else
-    denseSimilarityKernel(config[0], sourceWeight, weightDense[0], weightDense[1], weightDense[2], weightDense[3],
-                          weightDense[4], weightDense[5], weightDense[6], weightDense[7], weightDense[8],
-                          weightDense[9], weightDense[10], weightDense[11], result_id[0], similarity[0]);
+    denseSimilarityKernel(config[0], sourceWeight, sourceCoeffs, weightDense[0], weightDense[1], weightDense[2],
+                          weightDense[3], weightDense[4], weightDense[5], weightDense[6], weightDense[7],
+                          weightDense[8], weightDense[9], weightDense[10], weightDense[11], result_id[0],
+                          similarity[0]);
 #endif
 
     // need to write a compare function in order to compare golden values with results and put it here
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     int err = checkData<PU_NUMBER>(goldenFile, result_id[0], similarity[0]);
-
+ 
     return err;
 }
 
