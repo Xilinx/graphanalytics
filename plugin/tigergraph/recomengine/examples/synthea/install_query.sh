@@ -40,7 +40,6 @@ SCRIPTPATH=`dirname $SCRIPT`
 # if -i option is set in common.sh, ssh_key_flag is set to -i $ssh_key, 
 # otherwise it's an empty string
 echo " "
-$SCRIPTPATH/bin/install-udf.sh $ssh_key_flag $verbose_flag $force_clean_flag
 gsql "$(cat $SCRIPTPATH/query/base.gsql | sed "s/@graph/$xgraph/")"
 gsql -g $xgraph "RUN QUERY insert_dummy_nodes($num_nodes)"
 gsql "$(cat $SCRIPTPATH/query/client.gsql | sed "s/@graph/$xgraph/")"

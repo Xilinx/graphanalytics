@@ -37,6 +37,8 @@ script_dir=$(dirname "$0")
 
 echo "data_root=$data_root"
 
+$script_dir/bin/install-udf.sh $ssh_key_flag $verbose_flag $force_clean_flag
+
 gsql "$(cat $script_dir/query/schema_xgraph.gsql | sed "s/@graph/$xgraph/")"
 
 # load data from data files into the graph

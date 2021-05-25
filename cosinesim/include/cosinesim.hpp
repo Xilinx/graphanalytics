@@ -253,6 +253,7 @@ namespace cosinesim
 #include <string>
 #include <memory>
 #include <exception>
+#include <cstring>
 
 namespace xilinx_apps
 {
@@ -343,13 +344,67 @@ struct Options {
     /// number of Alveo accelerator cards to use.  Default is 1.
     std::int32_t numDevices;
     
-    // The following options are disabled for this release
+    /**
+     * FPGA binary file (XCLBIN) path.  Default is the package installation path.
+     * 
+     * When setting this field, the field takes ownership of the buffer pointed to.
+     * To avoid dealing with allocation, use the @ref setXclbinPath() function instead.
+     */
+    char *xclbinPath = nullptr;
+
+    /**
+     * Destroys this Options object.
+     */
+    ~Options() {
+        delete xclbinPath;
+    }
     
-    // FPGA binary file Path. default is the package installation path
-    std::string xclbinPath;
+    /**
+     * Constructs an Options object with default values.
+     */
+    Options() = default;
     
-    // Work around g++ version compatibility problems (use this instead of xclbinPath)
-    const char *xclbinPathCStr = nullptr;
+    /**
+     * Copy constructor, which deep-copies the reference Options object.
+     * @param opt the Options object to copy from
+     */
+    Options(const Options &opt) { copyIn(opt); }
+    
+    /**
+     * Deep-copies the reference Options object into this Options object.
+     * 
+     * @param opt the Options object to copy from
+     * @return this Options object
+     */
+    Options &operator=(const Options &opt) { copyIn(opt); return *this; }
+    
+    /**
+     * Sets the @ref xclbinPath field to the given string, which is deep-copied.
+     * 
+     * @param newXclbinPath the XCLBIN path string to set @ref xclbinPath to
+     */
+    void setXclbinPath(const char *newXclbinPath) {
+        delete xclbinPath;
+        xclbinPath = nullptr;
+        if (newXclbinPath != nullptr) {
+            xclbinPath = new char[std::strlen(newXclbinPath) + 1];
+            std::strcpy(xclbinPath, newXclbinPath);
+        }
+    }
+    
+    /**
+     * Sets the @ref xclbinPath field to the given string, which is deep-copied.
+     * 
+     * @param newXclbinPath the XCLBIN path string to set @ref xclbinPath to
+     */
+    void setXclbinPath(const std::string &xclbinPath) { setXclbinPath(xclbinPath.c_str()); }
+
+private:    
+    void copyIn(const Options &opt) {
+        vecLength = opt.vecLength;
+        numDevices = opt.numDevices;
+        setXclbinPath(opt.xclbinPath);
+    }
 };
 
 
@@ -382,13 +437,9 @@ public:
      * @param options the configuration options for consine similarity operations.  See the Options struct for details.
      * @param valueSize the size in bytes of each vector element.  4 is the only supported value for this release.
      */
-    CosineSimBase(const Options &options, unsigned valueSize) : pImpl_(::xilinx_cosinesim_createImpl(options, valueSize)) {
-        // Copy C string to std::string, as C string may go away
-        if (options_.xclbinPathCStr != nullptr) {
-            options_.xclbinPath = options_.xclbinPathCStr;
-            options_.xclbinPathCStr = nullptr;
-        }
-    }
+    CosineSimBase(const Options &options, unsigned valueSize)
+    : options_(options), pImpl_(::xilinx_cosinesim_createImpl(options, valueSize))
+    {}
 
     /**
      * Destroys this CosineSimBase object.

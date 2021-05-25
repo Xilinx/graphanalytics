@@ -49,7 +49,7 @@ export PATH=$tg_root_dir/../cmd:$PATH
 # Install dir for TigerGraph plugins
 tg_app_udf_dir=$tg_root_dir/dev/gdk/gsql/src/QueryUdf
 # TODO: check the directory name below for 3.1.1
-tg_udf_dir=$tg_data_root/gsql/udf/
+tg_udf_dir=$tg_data_root/gsql/udf
 tg_udf_xclbin_dir=$tg_udf_dir/xclbin
 
 plugin_ld_preload=
