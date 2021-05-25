@@ -22,8 +22,8 @@ using namespace std;
 #define CSRWIDTHS (256)
 #define COLORWIDTHS (32)
 #define NUM (DWIDTHS / 32)
-#define MAXNV (1 << 26)
-#define MAXNE (1 << 27)
+#define MAXNV (1ul << 26)  //  67,108,864
+#define MAXNE (1 << 27)  // 134,217.728
 #define VERTEXS (MAXNV / NUM)
 #define EDGES (MAXNE / NUM)
 #define DEGREES (1 << 17)

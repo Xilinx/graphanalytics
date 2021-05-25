@@ -19,7 +19,8 @@
 
 # Create Graph
 USE GRAPH @graph
-DROP QUERY *
+DROP JOB ALL
+DROP QUERY ALL
 DROP GRAPH @graph
 CREATE GRAPH @graph()
 

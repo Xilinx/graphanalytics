@@ -29,22 +29,15 @@ NC='\033[0m' # No Color
 ###############################################################################
 
 # script options processing
-xrtPath=/opt/xilinx/xrt
-xrmPath=/opt/xilinx/xrm
-force_clean=0
-dev_mode=0
 use_tcmalloc=0
 uninstall=0
 verbose=0
+force=0
 
-while getopts ":r:m:dfghuv" opt
+while getopts ":fhuv" opt
 do
 case $opt in
-    d) dev_mode=1;;
-    f) force_clean=1; echo "INFO: Option set: Force rebuidling plugin libraries";;
-    g) debug_flag="DEBUG=1"; echo "INFO: debug_flag=$debug_flag";;
-    m) xrmPath=$OPTARG;;
-    r) xrtPath=$OPTARG;;
+    f) force=1;;
     u) uninstall=1;;
     v) verbose=1;;
     ?) echo "ERROR: Unknown option: -$OPTARG"; exit 1;;
@@ -57,13 +50,6 @@ done
 
 if [ $verbose -eq 1 ]; then
     echo "INFO: Script is running with the settings below:"
-    echo "      mem_alloc=$mem_alloc"
-    echo "      dev_mode=$dev_mode"
-    echo "      xrtPath=$xrtPath"
-    echo "      xrmPath=$xrmPath"
-    echo "      force_clean=$force_clean"
-    echo "      debug_flag=$debug_flag"
-    echo "      xrt_profiling=$xrt_profiling"
     echo "      uninstall=$uninstall"
 fi
 
@@ -74,7 +60,13 @@ if [ $verbose -eq 1 ]; then
 fi
 
 # Temporary directory of include files to be included into main UDF header (ExprFunctions.hpp)
-tg_temp_include_dir=$tg_temp_root/gsql/codegen/udf
+tg_version=$(basename $tg_root_dir)
+if [ "$tg_version" == "3.1.0" ]; then
+    tg_temp_include_dir=$tg_temp_root/gsql/codegen/udf
+else
+    tg_temp_include_dir=$tg_temp_root/gsql/codegen/QueryUdf
+fi
+echo "INFO: UDF codegen directory is $tg_temp_include_dir"
 
 # Source directory for TigerGraph plugin
 plugin_dir=$SCRIPTPATH/..
@@ -156,10 +148,13 @@ fi
 # If the existing ExprFunctions.hpp has not been prepared for plugins, replace it
 # with the base prepared version (containing just TG-supplied UDFs)
 
-if [ ! -f $tg_udf_dir/ExprFunctions.hpp ] || [ $(grep -c mergeHeaders $tg_udf_dir/ExprFunctions.hpp) -eq 0 ]; then
+if [ $force -eq 1 ] || [ ! -f $tg_udf_dir/ExprFunctions.hpp ] || [ $(grep -c mergeHeaders $tg_udf_dir/ExprFunctions.hpp) -eq 0 ]; then
     echo "INFO: TigerGraph UDF file ExprFunctions.hpp has no plugin tags.  Installing base UDF file with tags"
     cp -f $plugin_udf_dir/ExprFunctions.hpp $tg_udf_dir
 fi
+
+# copy stock ExprUtil.hpp to the new gsql UDF directory under TG data 
+cp $tg_app_udf_dir/ExprUtil.hpp $tg_udf_dir
 
 
 #source $xrtPath/setup.sh

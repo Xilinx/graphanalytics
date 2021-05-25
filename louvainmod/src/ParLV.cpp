@@ -26,6 +26,10 @@
 
 using namespace std;
 
+//extern int glb_max_num_level;
+//extern int glb_max_num_iter;
+int glb_max_num_level = MAX_NUM_PHASE;
+int glb_max_num_iter = MAX_NUM_TOTITR;
 // time functions
 
 typedef std::chrono::time_point<std::chrono::high_resolution_clock> TimePointType;
@@ -846,15 +850,15 @@ char* DEMOzmq_get_name(char* des, char* src) {
 }
 
 
-void ConnectWorkers(Driver* drivers, int numPureWorker, const char* switchName[]) 
+void ConnectWorkers(Driver* drivers, int numPureWorker, char* nameWorkers[]) 
 {
     if (numPureWorker == 0)
         return;
 
     std::cout << "INFO: Connecting to " << numPureWorker << " workers..." << std::endl;
     for (int i = 0; i < numPureWorker; i++) {
-        drivers[i].connect(switchName[i]);
-        std::cout << "INFO: Connected to worker " << switchName[i] << std::endl;
+        drivers[i].connect(nameWorkers[i]);
+        std::cout << "INFO: Connected to worker " << nameWorkers[i] << std::endl;
     }
 }
 
@@ -912,9 +916,11 @@ int host_ParserParameters(int argc,
                           char* nameProj,
                           char* nameMetaFile,
                           int& numPureWorker,
-                          char* nameWorker[128],
+                          char* nameWorkers[128],
                           int& nodeID,
-						  int& server_par) {
+						  int& server_par,
+						  int& max_num_level,
+						  int& max_num_iter) {
     const int max_parameter = 100;
     bool rec[max_parameter];
     for (int i = 1; i < argc; i++) rec[i] = false;
@@ -939,6 +945,8 @@ int host_ParserParameters(int argc,
     int has_workerAlone = general_findPara(argc, argv, "-workerAlone");
     int has_cmd = general_findPara(argc, argv, "-cmd");
     int has_server_par = general_findPara(argc, argv, "-server_par");
+    int has_max_num_level = general_findPara(argc, argv, "-num_level");
+    int has_max_num_iter = general_findPara(argc, argv, "-num_iter");
 
     if (general_findPara(argc, argv, "-create_alveo_partitions") != -1) {
         mode_alveo = ALVEOAPI_PARTITION;
@@ -961,7 +969,7 @@ int host_ParserParameters(int argc,
             numPureWorker = atoi(argv[indx2++]);
             if (argc < indx2 + numPureWorker) ParameterError("-setwkr <numWorkers> <worker name> [<worker name>] ]");
             for (int i = 0; i < numPureWorker; i++) {
-                nameWorker[i] = argv[indx2 + i];
+                nameWorkers[i] = argv[indx2 + i];
             }
         }
         if ((has_driverAlone == -1) && (has_workerAlone == -1)) {
@@ -1124,18 +1132,20 @@ int host_ParserParameters(int argc,
     if (has_opts_output != -1 && has_opts_output < (argc - 1)) {
         opts_output = true;
         rec[has_opts_output] = true;
-        rec[has_opts_output + 1] = true;
+        rec[has_opts_output + 1] = true; 
+        
         strcpy(opts_outputFile, argv[has_opts_output + 1]);
 #ifdef PRINTINFO
         printf("PARAMETER  opts_outFile = %s\n", opts_outputFile);
 #endif
+        /*
         FILE* file = fopen(opts_outputFile, "w");
         if (file == NULL) {
             printf("\033[1;31;40mPARAMETER ERROR\033[0m: Cannot open the opts_outFile file: %s\n", opts_outputFile);
             exit(1);
         } else {
             fclose(file);
-        }
+        }*/
     } else {
         opts_outputFile[0] = 0;
     }
@@ -1149,6 +1159,27 @@ int host_ParserParameters(int argc,
 #ifdef PRINTINFO
     printf("PARAMETER server_par = %i\n", server_par);
 #endif
+
+    if (has_max_num_level != -1 && has_max_num_level < (argc - 1)) {
+        rec[has_max_num_level] = true;
+        rec[has_max_num_level + 1] = true;
+        max_num_level = atoi(argv[has_max_num_level + 1]);
+    } else
+    	max_num_level = MAX_NUM_PHASE;
+#ifdef PRINTINFO
+    printf("PARAMETER max_num_level = %i\n", max_num_level);
+#endif
+
+    if (has_max_num_iter != -1 && has_max_num_iter < (argc - 1)) {
+        rec[has_max_num_iter] = true;
+        rec[has_max_num_iter + 1] = true;
+        max_num_iter = atoi(argv[has_max_num_iter + 1]);
+    } else
+    	max_num_iter = MAX_NUM_TOTITR;
+#ifdef PRINTINFO
+    printf("PARAMETER max_num_iter = %i\n", max_num_iter);
+#endif
+
 
     if(mode_alveo == ALVEOAPI_LOAD)
     	return 0; //No need to set input matrix file if
@@ -2920,9 +2951,9 @@ GLV* LouvainGLV_general_top(xf::graph::L3::Handle* handle0,
     return glv_final;
 }
 
-////////////////////////////////////////////////////////
-GLV* CreateByFile_general(char* inFile, int& id_glv);
-
+/*
+    TODO: delete the function below once new function is verified.
+*/
 int create_alveo_partitions_org(char* inFile, int par_num, int par_prune, char* pathName_proj, ParLV& parlv) {
     assert(inFile);
     assert(pathName_proj);
@@ -3024,46 +3055,7 @@ GLV* par_general_4TG(long start_vertexInGlb, long* offsets_tg, edge* edgelist_tg
 	GLV* ret=  stt.ParNewGlv_Prun(start_vertexInGlb,  offsets_tg, edgelist_tg, drglist_tg, start_parInGlb, stride_par, id_glv, th_maxGhost);
 	return ret;
 }
-void xai_save_partition(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
-		long  start_vertex,  // If a vertex is smaller than star_vertex, it is a ghost
-		long  end_vertex,	 // If a vertex is larger than star_vertex-1, it is a ghost
-		char* path_prefix,  // For saving the partition files like <path_prefix>_xxx.par
-							// Different server can have different path_prefix
-		int par_prune,       // Can always be set with value '1'
-		int num_par_server  // Not necessary, can be figure out by size limitation, like (end_vertex-star_vertex)/50M
-
-		) {
-	long NV_server = end_vertex - start_vertex;
-	GLV*  parlv_par_src[MAX_PARTITION];
-	int id_glv = 0;//fun2c_call();
-    long stride_par = NV_server / num_par_server;
-    long start_vertext_par = start_vertex;
-	for(int p=0; p< num_par_server; p++){
-		long NV_par = (p==num_par_server-1)? end_vertex - start_vertext_par : stride_par;
-		parlv_par_src[p] = par_general_4TG(
-			//Input data from TG
-			start_vertex,
-			offsets_tg,
-			edgelist_tg,
-			drglist_tg,
-			//Partition parameters
-			start_vertext_par,    //Start vertex
-			NV_par, //Total local vertex. Number of ghost vertex is not available until partition finish
-			id_glv,       // ID counter's reference for GLV objects created. Any integer with any value is OK here;
-			par_prune // Ghost prunning parameter, always be '1'. It can be set by command-line
-		);
-		char nm[1024];
-		sprintf(nm, "_%1d%1d%1d.par", p / 100, (p / 10) % 10, p % 10);
-		parlv_par_src[p]->SetName(nm);
-		char pathName[1024];
-		strcpy(pathName, path_prefix);
-		strcat(pathName, nm);
-		SaveGLVBin(pathName, parlv_par_src[p], false);
-		start_vertext_par += stride_par;
-	}
-}
-
-int xai_save_partition2(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
+int xai_save_partition(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
 		long  start_vertex,     // If a vertex is smaller than star_vertex, it is a ghost
 		long  end_vertex,	    // If a vertex is larger than star_vertex-1, it is a ghost
 		char* path_prefix,      // For saving the partition files like <path_prefix>_xxx.par
@@ -3072,16 +3064,14 @@ int xai_save_partition2(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
 		long NV_par_recommand,  // Allow to partition small graphs not bigger than FPGA limitation
 		long NV_par_max		    //  64*1000*1000;
 		) {
-	int num_par_server;  // It can be figure out by max_vertices, like (end_vertex-star_vertex)/50M
 	long NV_server = end_vertex - start_vertex;
 	GLV*  parlv_par_src[MAX_PARTITION];
 	int id_glv = 0;//fun2c_call();
-    //long stride_par = NV_server / num_par_server;
-	num_par_server = (NV_server + NV_par_recommand -1) / NV_par_recommand;//Up-round
-	long average_stride = (NV_server + (num_par_server+1)/2) / num_par_server; //normal round
+	long average_stride = NV_par_recommand;
     long start_vertext_par = start_vertex;
-	for(int p=0; p< num_par_server; p++){
-		long NV_par = (p==num_par_server-1)? end_vertex - start_vertext_par : average_stride;
+    int p=0;
+    while(start_vertext_par != end_vertex){
+		long NV_par = (end_vertex - start_vertext_par ) > average_stride ? average_stride: end_vertex - start_vertext_par;
 		do{
 			parlv_par_src[p] = par_general_4TG(
 				//Input data from TG
@@ -3090,10 +3080,10 @@ int xai_save_partition2(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
 				edgelist_tg,
 				drglist_tg,
 				//Partition parameters
-				start_vertext_par,    //Start vertex
-				NV_par, //Total local vertex. Number of ghost vertex is not available until partition finish
-				id_glv,       // ID counter's reference for GLV objects created. Any integer with any value is OK here;
-				par_prune // Ghost prunning parameter, always be '1'. It can be set by command-line
+				start_vertext_par,    // Start vertex for each partition
+				NV_par,               // Total local vertex. Number of ghost vertex is not available until partition finish
+				id_glv,               // ID counter's reference for GLV objects created. Any integer with any value is OK here;
+				par_prune             // Ghost prunning parameter, always be '1'. It can be set by command-line
 			);
 			long diff_NV = NV_par_max - parlv_par_src[p]->NV;
 			if(diff_NV <0){
@@ -3110,9 +3100,11 @@ int xai_save_partition2(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
 		strcat(pathName, nm);
 		SaveGLVBin(pathName, parlv_par_src[p], false);
 		start_vertext_par += NV_par;
+		p++;
 	}
-	return num_par_server;
+	return p;
 }
+
 int create_alveo_partitions(char* inFile, int num_partition, int par_prune, char* pathName_proj, ParLV& parlv) {
     assert(inFile);
     assert(pathName_proj);
@@ -3193,7 +3185,7 @@ int create_alveo_partitions(char* inFile, int num_partition, int par_prune, char
 			NV_par_recommand = (NV + parlv.num_par-1) / parlv.num_par;//allow to partition small graph with -par_num
 		else
 			NV_par_recommand = (long)((float)NV_par_max * 0.80);//20% space for ghosts.
-		parInServer[i_svr] = xai_save_partition2(
+		parInServer[i_svr] = xai_save_partition(
 				offsets_tg,  edgelist_tg,  drglist_tg,
     			start_vertex[i_svr],
 				end_vertex[i_svr],
@@ -3239,6 +3231,8 @@ int create_alveo_partitions(char* inFile, int num_partition, int par_prune, char
     SaveParLV(pathName_tmp, &parlv);
     sprintf(pathName_tmp, "%s%s.par.src", path_proj, name_proj);
     SaveHead<GLVHead>(pathName_tmp, (GLVHead*)parlv.plv_src);
+
+    return 0;
 }
 
 int Parser_ParProjFile(char* projFile, ParLV& parlv, char* path, char* name, char* name_inFile) {
@@ -3418,9 +3412,9 @@ int load_alveo_partitions_WorkerSelf( // for both driver; no zmq communications 
         TimePointType l_send_start = chrono::high_resolution_clock::now();
         TimePointType l_send_end;
         int stride = parlv.num_par / numNode;
-//#ifdef PRINTINFO
+#ifndef NDEBUG
         printf(" load_alveo_partitions_WorkerSelf %d,  %d, %d,  %d,   %d\n", parlv.num_par, numNode, stride * (nodeID - 1), stride * nodeID, nodeID);
-//#endif
+#endif
         MessageGen_D2W(msg_worker, parlv, path_proj, stride * (nodeID - 1), stride * nodeID, nodeID);
         getDiffTime(l_send_start, l_send_end, parlv.timesPar.timeDriverSend);
     }
@@ -3436,7 +3430,7 @@ GLV* louvain_modularity_alveo(xf::graph::L3::Handle* handle0,
                               int numThreads,
                               int numNode,
                               int numPureWorker,
-                              const char** switchName // To enalbe all workers for Louvain
+                              char** nameWorkers // To enalbe all workers for Louvain
                               ) 
 {
 #ifndef NDEBUG
@@ -3451,7 +3445,7 @@ GLV* louvain_modularity_alveo(xf::graph::L3::Handle* handle0,
     TimePointType l_end;
 
     Driver* drivers = new Driver[numPureWorker];
-    ConnectWorkers(drivers, numPureWorker, switchName);
+    ConnectWorkers(drivers, numPureWorker, nameWorkers);
 
     enalbeAllWorkerLouvain(drivers, numPureWorker);
 
@@ -3501,7 +3495,7 @@ GLV* louvain_modularity_alveo(xf::graph::L3::Handle* handle0,
             }
             drivers[i].receive(msg_w2d[i], MAX_LEN_MESSAGE);
 #ifdef PRINTINFO_2
-            printf("INFO: Received from worker:%s (requester%d): %s\n", switchName[i], i, msg_w2d[i]);
+            printf("INFO: Received from worker:%s (requester%d): %s\n", nameWorkers[i], i, msg_w2d[i]);
 #endif
         }
 
@@ -3579,10 +3573,12 @@ extern "C" int create_alveo_partitions(int argc, char* argv[]) {
     char* nameWorkers[128];
     int nodeID;
     int server_par = 1;
+    //int max_num_level;
+    //int max_num_iter;
     host_ParserParameters(argc, argv, opts_C_thresh, opts_minGraphSize, opts_threshold, opts_ftype, opts_inFile,
                           opts_coloring, opts_output, opts_outputFile, opts_VF, opts_xclbinPath, numThreads, num_par,
                           par_prune, flow_fast, devNeed_cmd, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
-                          nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par);
+                          nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par, glb_max_num_level, glb_max_num_iter);
 
     if (flow_fast) {
         flowMode = 2; // fast kernel  MD_FAST
@@ -3721,58 +3717,239 @@ int host_writeOut(char* opts_inFile, long NV_begin, long* C_orig) {
 #endif
     FILE* out = fopen(outFile, "w");
     for (long i = 0; i < NV_begin; i++) {
-        fprintf(out, "%ld\n", C_orig[i]);
+        fprintf(out, "%ld %ld\n", i, C_orig[i]);
     }
     fclose(out);
     return 0;
 }
 
 /*
+    --load_alveo_partitions nameMetaFile
+    -dev numDevices
+    -fast -> flow_fast -> flowMode;
+    -setwkr numPureWorker nameWorkers
+    -workerAlone worker_number -> nodeID
+*/
+/*
+extern "C" int load_alveo_partitions_core(
+    char nameMetaFile[1024], bool flow_fast, int numDevices,
+    int numPureWorker, char* nameWorkers[128], int nodeID)
+{
+    std::string opName = "louvainModularity";
+    std::string kernelName = "kernel_louvain";
+    int requestLoad = 100;
+    char nameMetaFile[1024];
+    bool isPrun = true;
+
+    std::string xclbinPath = "/proj/autoesl/ryanw/kernel_louvain_pruning.xclbin";
+    const int cuNm = 1;
+
+    //--------------- Parse Input parameters
+    double opts_C_thresh;   // Threshold with coloring on
+    long opts_minGraphSize; // Min |V| to enable coloring
+    double opts_threshold;  // Value of threshold
+    int opts_ftype;         // File type
+    char opts_inFile[4096];
+    bool opts_coloring;
+    bool opts_output;
+    char opts_outputFile[4096];
+    bool opts_VF;
+    char opts_xclbinPath[4096];
+
+
+    int num_par;
+    int par_prune = 1;
+    int numThreads = NUMTHREAD; // using fixed number of thread instead of
+    //int numThreads = 1; // using fixed number of thread instead of
+    int devNeed_cmd = 1;
+    int mode_zmq = ZMQ_NONE;
+    char path_zmq[1024]; // default will be set as "./"
+    bool useCmd = false;
+    int mode_alveo = ALVEOAPI_NONE;
+    char nameProj[1024];
+    
+    int status;
+    int server_par=1;
+
+    host_ParserParameters(opts_C_thresh, opts_minGraphSize, opts_threshold, opts_ftype, opts_inFile,
+                          opts_coloring, opts_output, opts_outputFile, opts_VF, opts_xclbinPath, numThreads, num_par,
+                          par_prune, devNeed_cmd, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
+                          nameMetaFile, server_par, glb_max_num_level, glb_max_num_iter);
+
+    int flowMode = 1;
+
+    int numNode = numPureWorker + 1;
+    if (flow_fast) {
+        flowMode = 2; // fast kernel  MD_FAST
+    } else {
+        flowMode = 1; // normal kernel MD_NORMAL
+    }
+
+    xf::graph::L3::Handle::singleOP op0;
+    xf::graph::L3::Handle handle0;
+    //----------------- Set parameters of op0 again some of those will be covered by command-line
+    op0.operationName = opName;
+    op0.setKernelName((char*)kernelName.c_str());
+    op0.requestLoad = requestLoad;
+    if (opts_xclbinPath[0] == 0)
+        op0.xclbinPath = xclbinPath;
+    else
+        op0.xclbinPath = opts_xclbinPath;
+    if (devNeed_cmd == 0)
+        op0.numDevices = numDevices;
+    else
+        op0.numDevices = devNeed_cmd;
+
+    std::cout << "INFO: numNode: " << numNode << std::endl;
+    std::cout << "INFO: numDevices requested: " << op0.numDevices << std::endl;
+    
+    //----------------- enable handle0--------
+    handle0.addOp(op0);
+    status = handle0.setUp();
+    if (status < 0)
+        return status;
+
+#ifdef PRINTINFO_2
+    printf("\033[1;37;40mINFO: xclbin file is        : %s with flow mode %d\033[0m\n",  op0.xclbinPath.c_str(), flowMode);
+    printf("\033[1;37;40mINFO: The project file is   : %s\033[0m\n", nameMetaFile);
+#endif
+
+#ifndef NDEBUG
+    PrintRptParameters(opts_C_thresh, opts_minGraphSize, opts_threshold, opts_ftype, opts_inFile, opts_coloring,
+                       opts_output, opts_outputFile, opts_VF, opts_xclbinPath, numThreads, num_par, par_prune,
+                       flow_fast, devNeed_cmd, mode_zmq, path_zmq, useCmd, mode_alveo, op0);
+#endif
+    (handle0.oplouvainmod)->loadGraph(NULL, flowMode, opts_coloring, opts_minGraphSize, opts_C_thresh, numThreads);
+
+    if (mode_alveo == ALVEOAPI_LOAD) {
+        if (mode_zmq == ZMQ_DRIVER) {
+            //-----------------------------------------------------------------
+            // DRIVER
+            //-----------------------------------------------------------------
+            char inFile[1024];
+            ParLV parlv_drv;
+            parlv_drv.Init(flowMode, NULL, num_par, numDevices, isPrun, par_prune);
+            ParLV parlv_wkr;
+            parlv_wkr.Init(flowMode, NULL, num_par, numDevices, isPrun, par_prune);
+
+            // API FOR LOADING
+            {
+                TimePointType l_load_start = chrono::high_resolution_clock::now();
+                TimePointType l_load_end;
+                if(load_alveo_partitions_DriverSelf(nameMetaFile, numNode, numPureWorker, parlv_drv, parlv_wkr, inFile)!=0)
+                    return -1;
+                getDiffTime(l_load_start, l_load_end, parlv_drv.timesPar.timeDriverLoad);
+            }
+
+            {
+                const char* char_tmp = "shake hands from Driver";
+                Driver* drivers = new Driver[numPureWorker];
+                ConnectWorkers(drivers, numPureWorker, nameWorkers);
+
+                for (int i = 0; i < numPureWorker; i++) {
+#ifdef PRINTINFO
+                    printf("Driver shake hands with worker %d\n", (i + 1));
+#endif
+                    drivers[i].send(char_tmp, MAX_LEN_MESSAGE, 0);
+                }
+
+                isAllWorkerLoadingDone(drivers, numPureWorker);
+                delete[] drivers;
+            }
+#ifdef PRINTINFO
+            printf("\n\n\033[1;31;40mDriver's LOADING DONE \033[0m\n");
+            printf("\n\n\033[1;31;40mPlease Wait for Workers' Done\033[0m\n");
+            printf("\n\033[1;31;40mTO START LOUVAIN PUT ANY KEY: \033[0m");
+            // getchar();
+
+            // TODO Add synchronization here
+            printf("\n\033[1;31;40mTO RUNNING LOUVAIN \033[0m\n");
+#endif
+            // API FOR RUNNING LOUVAIN
+            GLV* glv_final;
+            {
+                TimePointType l_execute_start = chrono::high_resolution_clock::now();
+                TimePointType l_execute_end;
+                glv_final = louvain_modularity_alveo(&handle0, parlv_drv, parlv_wkr, opts_minGraphSize, opts_threshold,
+                                                     opts_C_thresh, numThreads, numNode, numPureWorker, nameWorkers);
+                getDiffTime(l_execute_start, l_execute_end, parlv_drv.timesPar.timeDriverExecute);
+            }
+            glv_final->PushFeature(0, 0, 0.0, true);
+            parlv_drv.plv_src->Q = glv_final->Q;
+            parlv_drv.plv_src->NC = glv_final->NC;
+
+            PrintRptPartition(mode_zmq, parlv_drv, op0.numDevices, numNode, numPureWorker);
+
+            if (opts_output){
+            	host_writeOut(opts_outputFile, parlv_drv.plv_src->NV, parlv_drv.plv_src->C);
+            } else{
+#ifdef PRINTINFO_2
+                printf("\033[1;37;40mINFO: Please use -o <output file> to store Cluster information\033[0m\n");
+#endif
+            }
+#ifdef PRINTINFO
+            printf("Deleting orignal graph... \n");
+#endif
+            parlv_drv.CleanTmpGlv();
+#ifdef PRINTINFO
+            parlv_drv.plv_src->printSimple();
+#endif
+            delete (parlv_drv.plv_src);
+
+            glv_final->printSimple();
+            delete (glv_final);
+#ifdef PRINTINFO
+            std::cout << "KD: after delete glv_final\n" << std::flush;
+            // handle0.free();
+            std::cout << "KD: return from driver\n" << std::flush;
+#endif
+            return 0;
+        } else if (mode_zmq == ZMQ_WORKER) {
+            //-----------------------------------------------------------------
+            // WORKER
+            //-----------------------------------------------------------------
+            ParLV parlv_wkr;
+            parlv_wkr.Init(flowMode, NULL, num_par, numDevices, isPrun, par_prune);
+            parlv_wkr.timesPar.timeAll = getTime();
+            char LoadCommand[MAX_LEN_MESSAGE];
+            {
+                char inFile[1024];
+                ParLV parlv_tmp;
+                parlv_tmp.Init(flowMode, NULL, num_par, numDevices, isPrun, par_prune);
+
+                if (load_alveo_partitions_WorkerSelf(
+                    nameMetaFile, numNode, numPureWorker, parlv_tmp,  
+                    inFile, nodeID, LoadCommand) != 0)
+                    return -1;
+
+                LouvainGLV_general_top_zmq_worker_new_part1(&handle0, parlv_tmp, opts_minGraphSize, opts_threshold,
+                                                            opts_C_thresh, numThreads, nodeID, parlv_wkr, LoadCommand);
+            }
+            {
+                LouvainGLV_general_top_zmq_worker_new_part2(&handle0, opts_minGraphSize, opts_threshold,
+                                                            opts_C_thresh, numThreads, nodeID, parlv_wkr);
+            }
+            // handle0.free();
+        }
+    }
+
+    return 0;
+}
+*/
+
+/*
 
 */
-extern "C" int load_alveo_partitions(int argc, char* argv[]) {
+extern "C" float load_alveo_partitions(int argc, char* argv[]) {
 //    for (int i = 0; i < argc; ++i)
 //        std::cout << "internal load partitions arg " << i << " = " << argv[i] << std::endl;
     //----------------- config.json Parser ----------------------------------
     std::string opName = "louvainModularity";
     std::string kernelName = "kernel_louvain";
     int requestLoad = 100;
-    std::string xclbinPath;
-
+    std::string xclbinPath = "/proj/autoesl/ryanw/kernel_louvain_pruning.xclbin";
+    int numDevices = 2;
     const int cuNm = 1;
-
-    std::fstream userInput_json("./config.json", std::ios::in);
-    if (!userInput_json) {
-        std::cout << "Error : file doesn't exist !" << std::endl;
-        exit(1);
-    }
-
-    int numDevices = 1;
-    char line[1024] = {0};
-    char* token;
-    while (userInput_json.getline(line, sizeof(line))) {
-        token = strtok(line, "\"\t ,}:{\n");
-        while (token != NULL) {
-            if (!std::strcmp(token, "operationName")) {
-                token = strtok(NULL, "\"\t ,}:{\n");
-                opName = token;
-            } else if (!std::strcmp(token, "kernelName")) {
-                token = strtok(NULL, "\"\t ,}:{\n");
-                kernelName = token;
-            } else if (!std::strcmp(token, "requestLoad")) {
-                token = strtok(NULL, "\"\t ,}:{\n");
-                requestLoad = std::atoi(token);
-            } else if (!std::strcmp(token, "xclbinPath")) {
-                token = strtok(NULL, "\"\t ,}:{\n");
-                xclbinPath = token;
-            } else if (!std::strcmp(token, "numDevices")) {
-                token = strtok(NULL, "\"\t ,}:{\n");
-                numDevices = std::atoi(token);
-            }
-            token = strtok(NULL, "\"\t ,}:{\n");
-        }
-    }
-    userInput_json.close();
 
     //--------------- Parse Input parameters
     double opts_C_thresh;   // Threshold with coloring on
@@ -3805,12 +3982,14 @@ extern "C" int load_alveo_partitions(int argc, char* argv[]) {
     int nodeID;
     int status;
     int server_par=1;
+    float retVal = 0.0;
+    //int max_num_level;
+    //int max_num_iter;
 
     host_ParserParameters(argc, argv, opts_C_thresh, opts_minGraphSize, opts_threshold, opts_ftype, opts_inFile,
                           opts_coloring, opts_output, opts_outputFile, opts_VF, opts_xclbinPath, numThreads, num_par,
                           par_prune, flow_fast, devNeed_cmd, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
-                          nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par);
-    const char* switchName[2] = {"tcp://192.168.1.21:5555", "tcp://192.168.1.31:5555"};
+                          nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par, glb_max_num_level, glb_max_num_iter);
     int numNode = numPureWorker + 1;
     if (flow_fast) {
         flowMode = 2; // fast kernel  MD_FAST
@@ -3878,7 +4057,7 @@ extern "C" int load_alveo_partitions(int argc, char* argv[]) {
             {
                 const char* char_tmp = "shake hands from Driver";
                 Driver* drivers = new Driver[numPureWorker];
-                ConnectWorkers(drivers, numPureWorker, switchName);
+                ConnectWorkers(drivers, numPureWorker, nameWorkers);
 
                 for (int i = 0; i < numPureWorker; i++) {
 #ifdef PRINTINFO
@@ -3905,7 +4084,7 @@ extern "C" int load_alveo_partitions(int argc, char* argv[]) {
                 TimePointType l_execute_start = chrono::high_resolution_clock::now();
                 TimePointType l_execute_end;
                 glv_final = louvain_modularity_alveo(&handle0, parlv_drv, parlv_wkr, opts_minGraphSize, opts_threshold,
-                                                     opts_C_thresh, numThreads, numNode, numPureWorker, switchName);
+                                                     opts_C_thresh, numThreads, numNode, numPureWorker, nameWorkers);
                 getDiffTime(l_execute_start, l_execute_end, parlv_drv.timesPar.timeDriverExecute);
             }
             glv_final->PushFeature(0, 0, 0.0, true);
@@ -3934,10 +4113,10 @@ extern "C" int load_alveo_partitions(int argc, char* argv[]) {
             delete (glv_final);
 #ifdef PRINTINFO
             std::cout << "KD: after delete glv_final\n" << std::flush;
-            // handle0.free();
+            handle0.free();
             std::cout << "KD: return from driver\n" << std::flush;
 #endif
-            return 0;
+            return glv_final->Q;
         } else if (mode_zmq == ZMQ_WORKER) {
             //-----------------------------------------------------------------
             // WORKER
@@ -3950,9 +4129,8 @@ extern "C" int load_alveo_partitions(int argc, char* argv[]) {
                 char inFile[1024];
                 ParLV parlv_tmp;
                 parlv_tmp.Init(flowMode, NULL, num_par, numDevices, isPrun, par_prune);
-                std::cout << "-------------parlv_tmp.num_par=" << parlv_tmp.num_par << std::endl;
 
-                if(load_alveo_partitions_WorkerSelf(
+                if (load_alveo_partitions_WorkerSelf(
                     nameMetaFile, numNode, numPureWorker, parlv_tmp,  
                     inFile, nodeID, LoadCommand) != 0)
                     return -1;
@@ -3964,16 +4142,55 @@ extern "C" int load_alveo_partitions(int argc, char* argv[]) {
                 LouvainGLV_general_top_zmq_worker_new_part2(&handle0, opts_minGraphSize, opts_threshold,
                                                             opts_C_thresh, numThreads, nodeID, parlv_wkr);
             }
-            // handle0.free();
+            handle0.free();
         }
     }
 
-    return 0;
+    return retVal;
 }
 
-int louvain_modularity_alveo(int argc, char* argv[]) {
+float louvain_modularity_alveo(int argc, char* argv[]) {
 #ifdef PRINTINFO
     printf("\033[1;31;40mMUST DO LOADING BEFORE RUNNING\033[0m\n");
 #endif
     return load_alveo_partitions(argc, argv);
+}
+
+/* 
+Compute modularity based on user provided cluster information file
+*/
+int compute_modularity(char* inFile, char* inClusterInfoFile, int offset) 
+{
+    std::cout << "INFO: Computing modularity..." << std::endl;
+    std::cout << "INFO: inFile " << inFile << std::endl;
+    std::cout << "INFO: inClusterInfoFile=" << inClusterInfoFile << std::endl;
+    std::cout << "INFO: offset=" << offset << std::endl;
+
+    ifstream ifsInClusterInfoFile;
+    long vertexID, clusterID;
+    
+    int id_glv = 0;
+    GLV* glv_src = CreateByFile_general(inFile, id_glv);   
+    if (glv_src == NULL) 
+        return -1;
+
+    std::cout << "INFO: number of vertices= " << glv_src->NV << std::endl;
+
+    if (glv_src->C != NULL) 
+        free(glv_src->C);
+    glv_src->C = (long*)malloc(sizeof(long) * glv_src->NV);
+
+    ifsInClusterInfoFile.open(inClusterInfoFile);
+    long lineCnt = 0;
+    while (ifsInClusterInfoFile >> vertexID >> clusterID) {
+        glv_src->C[vertexID-offset] = clusterID-offset;
+        lineCnt++;
+    }
+    ifsInClusterInfoFile.close();
+    std::cout << "INFO: " << lineCnt << " lines read from " << inClusterInfoFile << std::endl;
+    
+    glv_src->PushFeature(0, 0, 0.0, true);
+    glv_src->printSimple();
+
+    return 0;
 }

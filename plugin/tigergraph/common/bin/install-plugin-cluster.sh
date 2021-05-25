@@ -16,6 +16,7 @@
 #
 
 set -e
+echo $@
 
 SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`
@@ -28,25 +29,22 @@ if [ "$USER" != "tigergraph" ]; then
     exit 1
 fi
 
-xrtPath=/opt/xilinx/xrt
-xrmPath=/opt/xilinx/xrm
-mem_alloc="jemalloc"
+mem_alloc="tcmalloc"
 dev_mode=0
 debug_flag=0
 xrt_profiling=0
 uninstall=0
 verbose=0
 node_flags=
-while getopts ":a:dfgm:pr:uv" opt
+force=0
+while getopts ":a:dfgpuv" opt
 do
 case $opt in
     a) mem_alloc=$OPTARG;;
-    d) dev_mode=1; node_flags+=" -d";;
-    f) node_flags+=" -f";;
-    g) debug_flag=1; node_flags+=" -g";;
-    m) xrmPath=$OPTARG; node_flags+=" -m $OPTARG";;
+    d) dev_mode=1;;
+    f) force=1; node_flags+=" -f";;
+    g) debug_flag=1;;
     p) xrt_profiling=1;;
-    r) xrtPath=$OPTARG; node_flags+=" -r $OPTARG";;
     u) uninstall=1; node_flags+=" -u";;
     v) verbose=1; node_flags+=" -v";;
     ?) echo "ERROR: Unknown option -$OPTARG"; exit 1;;  # pass through to sub-script
@@ -64,21 +62,23 @@ if [ $verbose -eq 1 ]; then
     echo "INFO: Cluster script is running with the settings below:"
     echo "      mem_alloc=$mem_alloc"
     echo "      dev_mode=$dev_mode"
-    echo "      xrtPath=$xrtPath"
-    echo "      xrmPath=$xrmPath"
-    echo "      force_clean=$force_clean"
+    echo "      force=$force"
     echo "      debug_flag=$debug_flag"
     echo "      xrt_profiling=$xrt_profiling"
     echo "      uninstall=$uninstall"
 fi
 
 echo ""
-echo "INFO: Found TigerGraph installation in $tg_root_dir"
-echo "INFO: TigerGraph TEMP root is $tg_temp_root"
+echo "INFO: TigerGraph installation info:"
+echo "    APP root is $tg_root_dir"
+echo "    TEMP root is $tg_temp_root"
+echo "    DATA root is $tg_data_root"
+echo "    UDF source directory is $tg_udf_dir"
 echo "INFO: Home is $HOME"
 
-
-grun all "${SCRIPTPATH}/install-plugin-node.sh $*"
+# run installation script on each node
+echo "Running installation script on each node with option $node_flags"
+grun all "${SCRIPTPATH}/install-plugin-node.sh $node_flags"
 
 if [ $dev_mode -eq 1 ]; then
     echo "INFO: Development mode -- skipping TigerGraph configuration."
@@ -87,7 +87,10 @@ else
         echo "INFO: Restarting GPE service"
         gadmin restart gpe -y
     else
-        echo "INFO: Applying environment changes to TigerGraph installation"
+        # copy gsql-client.jar to tmp directory
+        cp $tg_root_dir/dev/gdk/gsql/lib/gsql_client.jar /tmp/gsql_client.jar.tmp
+
+        echo "INFO: Apply environment changes to TigerGraph installation"
         gadmin start all
 
         ld_preload=
@@ -107,12 +110,14 @@ else
         fi
 
         gadmin config set GPE.BasicConfig.Env "$gpe_config"
-        gadmin config set RESTPP.Factory.DefaultQueryTimeoutSec 3600
+        # increase RESTPP timeout
+        gadmin config set RESTPP.Factory.DefaultQueryTimeoutSec 36000
 
         echo "INFO: Apply the new configurations to $gpe_config"
         gadmin config apply -y
-        gadmin restart gpe -y
+        gadmin restart GPE RESTPP -y
         gadmin config get GPE.BasicConfig.Env
+        gadmin config get RESTPP.Factory.DefaultQueryTimeoutSec
     fi
 fi
 

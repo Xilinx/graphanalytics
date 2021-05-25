@@ -970,11 +970,11 @@ void UsingFPGA_MapHostClBuff_prune(
 		KMemorys_clBuff_prune  &buff_cl
 		)
 {
-	printf("TMPDBG 1 NV=%d %d %d\n", NV, NE_mem_1, NE_mem_2);
+	printf("TMPDBG 1 NV=%ld %ld %ld\n", NV, NE_mem_1, NE_mem_2);
     std::vector<cl_mem_ext_ptr_t> mext_in(NUM_PORT_KERNEL+7);
-    printf("TMPDBG 2 NV=%d %d %d\n", NV, NE_mem_1, NE_mem_2);
+    printf("TMPDBG 2 NV=%ld %ld %ld\n", NV, NE_mem_1, NE_mem_2);
     PhaseLoop_MapHostBuff_prune( NV, NE_mem_1, NE_mem_2, mext_in, context, buff_host);
-    printf("TMPDBG 3 NV=%d %d %d\n", NV, NE_mem_1, NE_mem_2);
+    printf("TMPDBG 3 NV=%ld %ld %ld\n", NV, NE_mem_1, NE_mem_2);
     PhaseLoop_MapClBuff_prune( NV, NE_mem_1, NE_mem_2, mext_in, context, buff_cl);
 }
 void PhaseLoop_UsingFPGA_1_KernelSetup_prune(
@@ -1331,7 +1331,7 @@ void runLouvainWithFPGA_demo(graphNew* G,
         free(G);
     }
     if (opts_coloring) {
-        if (colors != 0) free(colors);
+        if (colors != NULL) free(colors);
     }
     buff_host.freeMem();
 } // End of runMultiPhaseLouvainAlgorithm()
@@ -2180,7 +2180,7 @@ void runLouvainWithFPGA_demo_par_core_prune(
     	else
     		eachTimePhase[phase-1] = omp_get_wtime() -eachTimePhase[phase-1];
     	if(NE_max < pglv_iter->G->numEdges){
-    		printf("WARNING: ReMapBuff as %d < %d \n", NE_max, pglv_iter->G->numEdges);
+    		printf("WARNING: ReMapBuff as %ld < %ld \n", NE_max, pglv_iter->G->numEdges);
     		NE_max = pglv_iter->G->numEdges;
 			long NE_mem      = NE_max * 2;//number for real edge to be stored in memory
 			long NE_mem_1    = NE_mem < (MAXNV)? NE_mem :(MAXNV) ;

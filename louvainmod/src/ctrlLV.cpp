@@ -116,7 +116,7 @@ int myCmd::cmd_GetCmd(){
 	}
 	return cmd_last;
 }
-int myCmd::cmd_GetCmd(char* str){
+int myCmd::cmd_GetCmd(char* str) {
 	cmd_Getline(str);
 	if(argc==0){
 		printf("\033[1;31;40mERROR\033[0m: No valid command\n");
@@ -570,7 +570,7 @@ int SaveG_general(graphNew* g, char* fileName){
 	fclose(file);
 	printf("\033[1;37;40mINFO\033[0m: -f 3 file saved name as %s\n", fileName);
 	printf("\033[1;37;40mINFO\033[0m: -f 3 file saved NV is %ld\n", nv);
-	printf("\033[1;37;40mINFO\033[0m: -f 3 file saved |NE| and self edge is %d\n", ne);
+	printf("\033[1;37;40mINFO\033[0m: -f 3 file saved |NE| and self edge is %ld\n", ne);
 	printf("\033[1;37;40mINFO\033[0m: -f 3 file saved undirection edge has %d \n", cnt);
 	printf("\033[1;37;40mINFO\033[0m: -f 3 file saved sef-loop edge has %d\n", cnt_self);
 	return 0;

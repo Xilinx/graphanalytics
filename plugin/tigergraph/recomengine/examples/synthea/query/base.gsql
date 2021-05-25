@@ -13,9 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-set query_timeout = 600000
-use graph @graph
-drop query all
+SET QUERY_TIMEOUT = 600000
+USE GRAPH @graph
+DROP QUERY all
 
 create query patient_age(vertex<patients> p) for graph @graph returns (int){ 
     float age;
@@ -278,7 +278,7 @@ create query load_graph_cosinesim_ss_fpga_core() for graph @graph returns (int) 
     patientList = select p from population:p
         ACCUM @@patientVectors += p.COSINE_SIM_VECTOR, @@patientIds += getvid(p);
 
-    ret = udf_xilinx_recom_load_population_vectors(population.size(), @@patientVectors, @@patientIds);
+    ret = udf_xilinx_recom_load_population_vectors(@@patientVectors, @@patientIds);
     return ret;
 }
 
@@ -288,25 +288,26 @@ create query cosinesim_ss_fpga_core (vertex<patients> source, uint topK) for
     ListAccum<XilCosinesimMatch> @@results;
     ListAccum<int> @@targetPatientVector;
 
-    population = {patients.*};
-
     @@targetPatientVector = patient_vector(source);
 
     @@results = udf_xilinx_recom_match_target_vector(topK, @@targetPatientVector);
     RETURN @@results;
 }
 
-CREATE QUERY cosinesim_start_population() FOR GRAPH @graph RETURNS (BOOL)
+
+CREATE QUERY insert_dummy_nodes(UINT numNodes) for graph @graph 
 {
-    BOOL ret;
-
-    ret = udf_xilinx_recom_start_population();
-
-    RETURN ret;
+    FOREACH i in RANGE[0, numNodes] DO
+        INSERT INTO dummy_nodes VALUES(i, i);
+        PRINT i;
+    END;
+    PRINT "insert_dummy_nodes done.";
 }
 
-install query patient_age, patient_race, patient_gender, patient_ethnicity, 
+INSTALL QUERY patient_age, patient_race, patient_gender, patient_ethnicity, 
     patient_vector, cosinesim_clear_embeddings, cosinesim_embed_vectors, cosinesim_embed_normals,
-    cosinesim_match_sw, cosinesim_set_num_devices,
+    cosinesim_match_sw, cosinesim_set_num_devices, 
     cosinesim_get_num_devices, cosinesim_is_fpga_initialized,
-    load_graph_cosinesim_ss_fpga_core, cosinesim_ss_fpga_core, cosinesim_start_population
+    load_graph_cosinesim_ss_fpga_core, cosinesim_ss_fpga_core, insert_dummy_nodes
+
+

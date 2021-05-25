@@ -1,5 +1,5 @@
 ===========================================
-Synthea Example using Script
+Bash Script with GSQL
 ===========================================
 
 * Open a terminal using your Linux credentials

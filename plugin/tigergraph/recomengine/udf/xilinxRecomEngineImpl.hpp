@@ -61,8 +61,10 @@ public:
     using IdMap = std::vector<std::uint64_t>;
     
 private:
+    unsigned nodeId_;
     unsigned numDevices_ = 1;
     xilinx_apps::cosinesim::ColIndex vectorLength_ = 0;
+    bool vectorLengthSet_ = false;
     bool isInitialized_ = false;
     CosineSim *pCosineSim_ = nullptr;
     IdMap idMap_;  // maps from vector ID to FPGA row number
@@ -78,6 +80,13 @@ public:
     Context() = default;
     ~Context() { delete pCosineSim_; }
     
+    void setNodeId(unsigned nodeId) {
+        std::cout << "DEBUG: " << __FUNCTION__ << " nodeId=" << nodeId << std::endl;
+        nodeId_ = nodeId;
+    }
+
+    unsigned getNodeId() const { return nodeId_;}
+
     void setNumDevices(unsigned numDevices) {
         if (numDevices != numDevices_)
             clear();
@@ -87,9 +96,10 @@ public:
     unsigned getNumDevices() const { return numDevices_; }
     
     void setVectorLength(xilinx_apps::cosinesim::ColIndex vectorLength) {
-        if (vectorLength != vectorLength_)
+        if (vectorLengthSet_ && vectorLength != vectorLength_)
             clear();
         vectorLength_ = vectorLength;
+        vectorLengthSet_ = true;
     }
     
     xilinx_apps::cosinesim::ColIndex getVectorLength() const { return vectorLength_; }
@@ -99,7 +109,7 @@ public:
             xilinx_apps::cosinesim::Options options;
             options.vecLength = vectorLength_;
             options.numDevices = numDevices_;
-            options.xclbinPath = PLUGIN_XCLBIN_PATH;
+            options.setXclbinPath(PLUGIN_XCLBIN_PATH);
 #ifdef XILINX_RECOM_DEBUG_ON
             std::cout << "DEBUG: cosinesim options: vecLength=" << options.vecLength
                     << ", numDevices=" << options.numDevices
@@ -124,6 +134,7 @@ public:
 
     void clear() {
         isInitialized_ = false;
+        vectorLengthSet_ = false;
         idMap_.clear();
         delete pCosineSim_;
         pCosineSim_ = nullptr;

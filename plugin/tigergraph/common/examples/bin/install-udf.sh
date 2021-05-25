@@ -16,6 +16,7 @@
 #
 
 set -e
+#set -x
 
 SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`
@@ -26,7 +27,7 @@ if [ "$USER" == "tigergraph" ]; then
     $SCRIPTPATH/install-udf-cluster.sh $verbose_flag $force_clean_flag
 else
     echo "INFO: This example application requires components to be installed into TigerGraph."
-    echo "INFO: Please enter the password for user \"tigergraph\"."
+    echo "INFO: Please enter the password for user \"tigergraph\" if prompted."
     ssh $ssh_key_flag tigergraph@$hostname $SCRIPTPATH/install-udf-cluster.sh \
         $verbose_flag $force_clean_flag $uninstall_flag
 fi
