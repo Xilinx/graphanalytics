@@ -92,7 +92,7 @@ int sendGLV_OnlyC(const long headGLVBin, Node* worker_node, GLV* glv) {
     worker_node->send(nvl);
     worker_node->send(nelg);
     worker_node->send(glv->C, sizeof(long) * nv);
-    worker_node->send(glv->times, sizeof(TimeLv));
+    worker_node->send((void*)(&(glv->times)), sizeof(TimeLv));
 #ifdef PRINTINFO
     printf("INFO: sendGLV_OnlyC  nv=%ld nc=%ld Q=%lf Successfully \n", nv, nc, Q);
 #endif
@@ -111,7 +111,7 @@ int receiveGLV_OnlyC(Node* driver_node, GLV* glv) {
     driver_node->receive(nelg);
     glv->C = (long*)malloc(sizeof(long) * nv);
     driver_node->receive(glv->C, sizeof(long) * nv);
-    driver_node->receive(glv->times, sizeof(TimeLv));
+    driver_node->receive((void*)(&(glv->times)), sizeof(TimeLv));
     glv->NV = nv;
     glv->NC = nc;
     glv->Q = Q;
@@ -1343,13 +1343,13 @@ void PrintRptPartition_Summary(
 		printf("\t\tNumber of levels             : %d\n" , numLevel );
 
 		printf("\t\tNumber of iterations         : %d "	, parlv.par_src[p]->times.totItr);
-		PrintArrayByNum<int>(numLevel, parlv.par_src[p]->times.eachItrs);//[15, 10, 5]
+		//PrintArrayByNum<int>(numLevel, parlv.par_src[p]->times.eachItrs);//[15, 10, 5]
 
 		printf("\t\tNumber of communities        : %ld ", parlv.par_src[p]->NC);
-		PrintArrayByNum<long>(numLevel, parlv.par_src[p]->times.eachClusters);//[7, 3, 2]
+		//PrintArrayByNum<long>(numLevel, parlv.par_src[p]->times.eachClusters);//[7, 3, 2]
 
 		printf("\t\tModularity                   : %lf ", parlv.par_src[p]->Q);
-		PrintArrayByNum<double>(numLevel, parlv.par_src[p]->times.eachMod);//[7, 3, 2]//[0.64, 0.77, 0.84]
+		//PrintArrayByNum<double>(numLevel, parlv.par_src[p]->times.eachMod);//[7, 3, 2]//[0.64, 0.77, 0.84]
 	}
 	printf("Time                         : %4.3f sec ", parlv.timesPar.timeDriverExecute );
 	printf(" (Partition Compute: %4.3f sec"           , parlv.timesPar.timeDriverCollect);
