@@ -176,7 +176,7 @@ void opLouvainModularity::loadGraph(
     	//loadGraphCoreLouvainModularity(&handles[i], NV_orig, NE_mem_1, NE_mem_2, &buff_hosts[i]);
     	if(flowMode == 1){
     		bufferInit(&handles[i], NV_orig, NE_mem_1, NE_mem_2, &buff_hosts[i]);
-    	}else if (flowMode == 2){
+    	} else {
 #ifdef PRINTINFO
     		std::cout<< "INFO: start Create host buffer["<< i <<"]" <<std::endl;
 #endif
@@ -199,6 +199,7 @@ int opLouvainModularity::compute(unsigned int deviceID,
 								 KMemorys_host_prune* buff_host_prune,
                                  int* eachItrs,
                                  double* currMod,
+                                 long*   numClusters,
                                  double* eachTimeInitBuff,
                                  double* eachTimeReadBuff) 
 {
@@ -335,6 +336,52 @@ int opLouvainModularity::compute(unsigned int deviceID,
         eachTimeReadBuff[0] =
             PhaseLoop_UsingFPGA_Prep_Read_buff_host_prune(pglv_iter->NV, buf_host_prune, eachItrs, pglv_iter->C, eachItrs, currMod);
         cuRelease(ctx, resR);
+    } else {
+#ifdef PRINTINFO
+    	std::cout << "INFO: inside flow 3 " << std::endl;
+#endif
+    	KMemorys_host_prune* buf_host_prune = &buff_host_prune[which];
+#ifdef PRINTINFO
+    	std::cout << "INFO: buf_host_prune has been created" << std::endl;
+#endif
+
+        eachTimeInitBuff[0] = PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_renumber(pglv_iter->numColors, pglv_iter->NVl, pglv_iter->G, pglv_iter->M,
+                                                                      opts_C_thresh, currMod, pglv_iter->colors, buf_host_prune);
+#ifdef PRINTINFO
+        std::cout << "INFO: PhaseLoop_UsingFPGA_Prep_Init_buff_host #prune# done" << std::endl;
+#endif
+        PhaseLoop_UsingFPGA_1_KernelSetup_prune(isLargeEdge, kernel_louvain, ob_in, ob_out, hds);
+#ifdef PRINTINFO
+        std::cout << "\t\PhaseLoop_UsingFPGA_1_KernelSetup Device Available: "
+                  << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
+#endif
+        // PhaseLoop_UsingFPGA_2_DataWriteTo (q, kernel_evt0, ob_in);
+        migrateMemObj(hds, 0, 1, ob_in, nullptr, &events_write[0]);
+#ifdef PRINTINFO
+        std::cout << "\t\PhaseLoop_UsingFPGA_2_DataWriteTo Device Available: "
+                  << std::endl; //  << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
+#endif
+        // PhaseLoop_UsingFPGA_3_KernelRun   (q, kernel_evt0, kernel_evt1, kernel_louvain);
+        int ret = cuExecute(hds, kernel_louvain, 1, &events_write, &events_kernel[0]);
+#ifdef PRINTINFO
+        std::cout << "\t\PhaseLoop_UsingFPGA_3_KernelRun Device Available: "
+                  << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
+#endif
+        // PhaseLoop_UsingFPGA_4_DataReadBack(q, kernel_evt1, ob_out);
+        migrateMemObj(hds, 1, 1, ob_out, &events_kernel, &events_read[0]);
+#ifdef PRINTINFO
+        std::cout << "\t\PhaseLoop_UsingFPGA_4_DataReadBack Device Available: "
+                  << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
+#endif
+        //PhaseLoop_UsingFPGA_5_KernelFinish(q);
+        q.finish();
+#ifdef PRINTINFO
+        std::cout << "\t\PhaseLoop_UsingFPGA_5_KernelFinish Device Available: "
+                  << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
+#endif
+        eachTimeReadBuff[0] =
+            PhaseLoop_UsingFPGA_Prep_Read_buff_host_prune_renumber(pglv_iter->NV, buf_host_prune, eachItrs, pglv_iter->C, eachItrs, currMod, numClusters);
+        cuRelease(ctx, resR);
     }
     pglv_iter->times.eachTimeE2E[0] = omp_get_wtime() -pglv_iter->times.eachTimeE2E[0];
     return 0;
@@ -445,7 +492,7 @@ void opLouvainModularity::UsingFPGA_MapHostClBuff_prune(
 	std::cout<< "INFO: start MapHostClBuff " <<std::endl;
 #endif
 	std::vector<cl_mem_ext_ptr_t> mext_in(NUM_PORT_KERNEL+7);
-	buff_host_prune[0].config0       = aligned_alloc<int64_t>(5);//zyl
+	buff_host_prune[0].config0       = aligned_alloc<int64_t>(6);//zyl
 	buff_host_prune[0].config1       = aligned_alloc<DWEIGHT>(4);
 	buff_host_prune[0].offsets       = aligned_alloc<int  >(NV + 1);
 	buff_host_prune[0].indices       = aligned_alloc<int  >(NE_mem_1);
@@ -536,7 +583,7 @@ void opLouvainModularity::UsingFPGA_MapHostClBuff_prune(
     int flag_RW = CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE;
     int flag_RD = CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY;
 
-    hds[0].buffer[0] = cl::Buffer(hds[0].context, flag_RW, sizeof(int64_t) * (5), &mext_in[0]);
+    hds[0].buffer[0] = cl::Buffer(hds[0].context, flag_RW, sizeof(int64_t) * (6), &mext_in[0]);
     hds[0].buffer[1] = cl::Buffer(hds[0].context, flag_RW, sizeof(DWEIGHT) * (4), &mext_in[1]);
     hds[0].buffer[2] = cl::Buffer(hds[0].context, flag_RD, sizeof(int) * (NV + 1), &mext_in[2]);
     hds[0].buffer[3] = cl::Buffer(hds[0].context, flag_RD, sizeof(int) * NE_mem_1, &mext_in[3]);
@@ -777,7 +824,7 @@ void opLouvainModularity::demo_par_core(int id_dev, int flowMode,
         {
         	pglv_orig->times.eachTimeE2E_2[pglv_orig->times.phase - 1] = omp_get_wtime();
 
-            auto ev = addwork(pglv_iter, flowMode, opts_C_thresh, &pglv_orig->times.eachItrs[pglv_orig->times.phase - 1], currMod,
+            auto ev = addwork(pglv_iter, flowMode, opts_C_thresh, &pglv_orig->times.eachItrs[pglv_orig->times.phase - 1], currMod, &numClusters,
                               &pglv_orig->times.eachTimeInitBuff[pglv_orig->times.phase - 1], &pglv_orig->times.eachTimeReadBuff[pglv_orig->times.phase - 1]);
 #ifndef NDEBUG
             std::cout << "DEBUG: before wait addwork" << std::endl;
@@ -798,17 +845,31 @@ void opLouvainModularity::demo_par_core(int id_dev, int flowMode,
             pglv_orig->times.totTimeE2E      += pglv_orig->times.eachTimeE2E     [pglv_orig->times.phase - 1];
             pglv_orig->times.totItr          += pglv_orig->times.eachItrs        [pglv_orig->times.phase - 1];
         }
-        pglv_orig->times.eachTimeReGraph[pglv_orig->times.phase - 1] = PhaseLoop_CommPostProcessing_par(
-            pglv_orig, pglv_iter, numThreads, opts_threshold, opts_coloring, nonColor,
-			pglv_orig->times.phase,
-			pglv_orig->times.totItr,
-			numClusters,
-			pglv_orig->times.totTimeBuildingPhase,
-			pglv_orig->times.eachNum  [pglv_orig->times.phase - 1],
-			pglv_orig->times.eachC    [pglv_orig->times.phase - 1],
-			pglv_orig->times.eachM    [pglv_orig->times.phase - 1],
-			pglv_orig->times.eachBuild[pglv_orig->times.phase - 1],
-			pglv_orig->times.eachSet  [pglv_orig->times.phase - 1]);
+        if(flowMode != 3) {
+            pglv_orig->times.eachTimeReGraph[pglv_orig->times.phase - 1] = PhaseLoop_CommPostProcessing_par(
+                pglv_orig, pglv_iter, numThreads, opts_threshold, opts_coloring, nonColor,
+		    	pglv_orig->times.phase,
+		    	pglv_orig->times.totItr,
+		    	numClusters,
+		    	pglv_orig->times.totTimeBuildingPhase,
+		    	pglv_orig->times.eachNum  [pglv_orig->times.phase - 1],
+		    	pglv_orig->times.eachC    [pglv_orig->times.phase - 1],
+		    	pglv_orig->times.eachM    [pglv_orig->times.phase - 1],
+		    	pglv_orig->times.eachBuild[pglv_orig->times.phase - 1],
+		    	pglv_orig->times.eachSet  [pglv_orig->times.phase - 1]);
+        } else {
+            pglv_orig->times.eachTimeReGraph[pglv_orig->times.phase - 1] = PhaseLoop_CommPostProcessing_par_renumber(
+                pglv_orig, pglv_iter, numThreads, opts_threshold, opts_coloring, nonColor,
+		    	pglv_orig->times.phase,
+		    	pglv_orig->times.totItr,
+		    	numClusters,
+		    	pglv_orig->times.totTimeBuildingPhase,
+		    	pglv_orig->times.eachNum  [pglv_orig->times.phase - 1],
+		    	pglv_orig->times.eachC    [pglv_orig->times.phase - 1],
+		    	pglv_orig->times.eachM    [pglv_orig->times.phase - 1],
+		    	pglv_orig->times.eachBuild[pglv_orig->times.phase - 1],
+		    	pglv_orig->times.eachSet  [pglv_orig->times.phase - 1]);
+        }
 
         pglv_orig->times.eachClusters[pglv_orig->times.phase - 1] = numClusters;
         pglv_orig->times.eachMod[pglv_orig->times.phase - 1] = currMod[0];
@@ -960,12 +1021,13 @@ event<int> opLouvainModularity::addwork(GLV* glv, int flowMode,
                                         double opts_C_thresh,
                                         int* eachItrs,
                                         double* currMod,
+                                        long*   numClusters,
                                         double* eachTimeInitBuff,
                                         double* eachTimeReadBuff) {
     // return createL3(task_queue[0], &(compute), handles, G, C_orig, opts_coloring, opts_minGraphSize, opts_threshold,
     //                opts_C_thresh, numThreads)
     return createL3(task_queue[0], &(compute), handles, flowMode, glv, opts_C_thresh, buff_hosts, buff_hosts_prune, eachItrs, currMod,
-                    eachTimeInitBuff, eachTimeReadBuff);
+                    numClusters, eachTimeInitBuff, eachTimeReadBuff);
 };
 
 } // L3

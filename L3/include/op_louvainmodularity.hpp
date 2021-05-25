@@ -73,6 +73,7 @@ class opLouvainModularity : public opBase {
 					   KMemorys_host_prune* buff_host_prune,
                        int* eachItrs,
                        double* currMod,
+                       long*   numClusters,
                        double* eachTimeInitBuff,
                        double* eachTimeReadBuff);
 
@@ -90,6 +91,7 @@ class opLouvainModularity : public opBase {
                        double opts_C_thresh,
                        int* eachItrs,
                        double* currMod,
+                       long*   numClusters,
                        double* eachTimeInitBuff,
                        double* eachTimeReadBuff);
 
