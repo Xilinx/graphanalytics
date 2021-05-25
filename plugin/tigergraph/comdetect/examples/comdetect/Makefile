@@ -4,6 +4,11 @@ XGRAPH=social_$(USER)
 compileMode=0
 runMode=0
 partitionMode=1
+numDevices=1
+numNodes=1
+numPartitions=9
+dataSource=/proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx
+alveoProject=/proj/gdba/tg-common/alveo-projects/as-skitter-partition
 
 ../../../../../louvainmod/staging/lib/libXilinxLouvain.so: ../../../../../louvainmod/src/louvainmod_loader.cpp \
                                                            ../../../../../louvainmod/src/ParLV.cpp
@@ -45,7 +50,11 @@ run: .install-udf-done
 	@echo "-------------------------------------------------------"
 	cd ../../ && make && ./staging/examples/comdetect/run.sh -v -g $(XGRAPH) \
 	    -c $(compileMode) -r $(runMode) -x $(partitionMode) \
-	    -s /proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx 
+		-m $(numNodes) -d $(numDevices) \
+	    -s $(dataSource) -a $(alveoProject) -n $(numPartitions)
+
+help:
+	./run.sh -h
 
 clean:
 	rm -f .install-plugin-done .install-udf-done .install-query-done

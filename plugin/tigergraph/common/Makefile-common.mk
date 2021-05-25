@@ -116,6 +116,8 @@ else ifeq ($(OSDIST),CentOS)
     DIST_TARGET = RPM
 endif
 
+all : install
+
 .PHONY: dist
 
 dist: stage
@@ -126,6 +128,8 @@ dist: stage
 	    echo "Packaging $(DIST_TARGET) for $(OSDIST)"; \
 	    make ; \
 	fi
+
+.PHONY: install
 
 install: stage
 	./staging/install.sh

@@ -19,8 +19,8 @@ if [ "$#" -eq 6 ]; then
     opt_out="-o $6"
 fi
 
-#workers="tcp://192.168.1.21:5555 tcp://192.168.1.31:5555"
-workers="tcp://10.18.5.112:5555 tcp://10.18.5.113:5555"
+workers="tcp://192.168.1.21:5555 tcp://192.168.1.31:5555"
+#workers="tcp://10.18.5.112:5555 tcp://10.18.5.113:5555"
 # Set rundir to your dir
 rundir=$subdir/louvain_partitions
 projdir=$rundir.par.proj

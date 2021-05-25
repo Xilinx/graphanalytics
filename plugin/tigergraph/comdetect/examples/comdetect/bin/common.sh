@@ -99,7 +99,7 @@ case $opt in
     u) username=$OPTARG;;
     v) verbose=1; verbose_flag=-v;;
     x) partition_mode=$OPTARG;;
-    h) usage; exit 1;;
+    h) usage; exit 0;;
     ?) echo "ERROR: Unknown option: -$OPTARG"; usage; exit 1;;
 esac
 done
