@@ -2887,10 +2887,11 @@ GLV* Driver_Merge_Final_LoacalPar(xf::graph::L3::Handle* handle0,
 #ifdef PRINTINFO_2
     printf("\033[1;37;40mINFO: Now doing Final Louvain... \033[0m\n");
 #endif
-    GLV* glv_final = UpdateCwithFinal(handle0, parlv.flowMode,
+   /* GLV* glv_final = UpdateCwithFinal(handle0, parlv.flowMode,
                                       parlv.plv_merged, // C will be updated
                                       parlv.num_dev, parlv.isPrun, 1, id_glv, opts_coloring, opts_minGraphSize,
-                                      opts_threshold, opts_C_thresh, numThreads);
+                                      opts_threshold, opts_C_thresh, numThreads);*/
+    GLV* glv_final = parlv.plv_merged->CloneSelf(id_glv);
 #ifdef PRINTINFO_2
     printf("\033[1;37;40mINFO: Now doing BackAnnotationg... \033[0m\n");
 #endif
@@ -3911,10 +3912,11 @@ extern "C" float load_alveo_partitions(
             delete (parlv_drv.plv_src);
 
             glv_final->printSimple();
+	    double ret =  glv_final->Q;
             delete (glv_final);
 
             handle0.free();
-            return glv_final->Q;
+            return ret;
         } else if (mode_zmq == ZMQ_WORKER) {
             //-----------------------------------------------------------------
             // WORKER
