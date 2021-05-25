@@ -92,6 +92,7 @@ int sendGLV_OnlyC(const long headGLVBin, Node* worker_node, GLV* glv) {
     worker_node->send(nvl);
     worker_node->send(nelg);
     worker_node->send(glv->C, sizeof(long) * nv);
+    worker_node->send(glv->times, sizeof(TimeLv));
 #ifdef PRINTINFO
     printf("INFO: sendGLV_OnlyC  nv=%ld nc=%ld Q=%lf Successfully \n", nv, nc, Q);
 #endif
@@ -110,6 +111,7 @@ int receiveGLV_OnlyC(Node* driver_node, GLV* glv) {
     driver_node->receive(nelg);
     glv->C = (long*)malloc(sizeof(long) * nv);
     driver_node->receive(glv->C, sizeof(long) * nv);
+    driver_node->receive(glv->times, sizeof(TimeLv));
     glv->NV = nv;
     glv->NC = nc;
     glv->Q = Q;
@@ -1278,6 +1280,83 @@ void PrintTimeRpt(ParLV& parlv, int num_dev) {
     // printf("============================================================\n");
     PrintTimeRpt(parlv.plv_merged, num_dev, false);
     printf("====================================================================================================\n");
+}
+//Summary
+//Number of vertices           : 30
+//Number of edges              : 15
+//Number of partitions         : 10
+//Partition size               : 3
+//Number of nodes (machines)   : 3
+//Number of Xilinx Alveo cards : 9
+//Number of levels             : 3
+//Delta Q tolerance            : 0.0001
+//Number of iterations         : 20 [15, 10, 5]
+//Number of communities        : 12 [7, 3, 2]
+//Modularity                   : 0.84 [0.64, 0.77, 0.84]
+//Time                         : 9 sec (Partition Compute: 7 sec, Merge: 1 sec, Merge Compute: 1 sec)
+template <class T>
+void PrintArrayByNum(int num, T* array){
+	for(int i=0; i < num; i++){
+		if(i==0)printf("[");
+		else printf(", ");
+		if(std::is_same<T, int>::value)
+			printf("%d", array[i]);
+		else if(std::is_same<T, long>::value)
+			printf("%ld", array[i]);
+		else if( std::is_same<T, float>::value)
+			printf("%f", array[i]);
+		else if( std::is_same<T, double>::value)
+			printf("%lf", array[i]);
+		if(i==num-1)printf("]\n");
+	}
+}
+template <class T>
+T SummArrayByNum(int num, T* array){
+	T ret=0;
+	for(int i=0; i < num; i++)
+		ret +=array[i];
+	return ret;
+}
+
+void PrintRptPartition_Summary(
+		ParLV& parlv,
+		//int numNode, int* card_Node,
+		long opts_C_thresh
+		) {
+	int num_par = parlv.num_par;
+	int numNode = parlv.num_server;
+	int* card_Node = parlv.numServerCard;
+
+	printf("****************************************Summary*************************************************\n");
+	printf("Number of vertices           : %ld\n", parlv.plv_src->NV);
+	printf("Number of edges              : %ld\n", parlv.plv_src->NE);
+	printf("Number of partitions         : %d\n" , parlv.num_par);
+	printf("Partition size               : < %ld\n", 64000000);
+	printf("Number of nodes (machines)   : %d\n" , numNode);
+	printf("Number of Xilinx Alveo cards : %d\n" , SummArrayByNum<int>(numNode, card_Node));
+	printf("Delta Q tolerance            : %lf\n" , opts_C_thresh);
+	printf("Number of communities        : %ld\n", parlv.plv_src->NC);
+	printf("Modularity                   : %lf\n ", parlv.plv_src->Q);
+	for(int p = 0; p< num_par; p++){
+		printf("\tPARTITION-%d :\n ", p);
+		int numLevel = parlv.par_src[p]->times.phase;
+		printf("\t\tNumber of levels             : %d\n" , numLevel );
+
+		printf("\t\tNumber of iterations         : %d "	, parlv.par_src[p]->times.totItr);
+		PrintArrayByNum<int>(numLevel, parlv.par_src[p]->times.eachItrs);//[15, 10, 5]
+
+		printf("\t\tNumber of communities        : %ld ", parlv.par_src[p]->NC);
+		PrintArrayByNum<long>(numLevel, parlv.par_src[p]->times.eachClusters);//[7, 3, 2]
+
+		printf("\t\tModularity                   : %lf ", parlv.par_src[p]->Q);
+		PrintArrayByNum<double>(numLevel, parlv.par_src[p]->times.eachMod);//[7, 3, 2]//[0.64, 0.77, 0.84]
+	}
+	printf("Time                         : %4.3f sec ", parlv.timesPar.timeDriverExecute );
+	printf(" (Partition Compute: %4.3f sec"           , parlv.timesPar.timeDriverCollect);
+	printf(", Merge: %4.3f sec"                       , parlv.timesPar.timePre + parlv.timesPar.timeMerge);
+	printf(", Merge Compute: %4.3f sec)"              , parlv.timesPar.timeFinal);
+	printf("\n");
+	printf("************************************************************************************************\n");
 }
 
 void PrintRptPartition(int mode_zmq, ParLV& parlv, int op0_numDevices, int numNode, int numPureWorker) {
@@ -2887,10 +2966,11 @@ GLV* Driver_Merge_Final_LoacalPar(xf::graph::L3::Handle* handle0,
 #ifdef PRINTINFO_2
     printf("\033[1;37;40mINFO: Now doing Final Louvain... \033[0m\n");
 #endif
-    GLV* glv_final = UpdateCwithFinal(handle0, parlv.flowMode,
+    /*GLV* glv_final = UpdateCwithFinal(handle0, parlv.flowMode,
                                       parlv.plv_merged, // C will be updated
                                       parlv.num_dev, parlv.isPrun, 1, id_glv, opts_coloring, opts_minGraphSize,
-                                      opts_threshold, opts_C_thresh, numThreads);
+                                      opts_threshold, opts_C_thresh, numThreads);*/
+    GLV* glv_final = parlv.plv_merged;//->CloneSelf(id_glv);
 #ifdef PRINTINFO_2
     printf("\033[1;37;40mINFO: Now doing BackAnnotationg... \033[0m\n");
 #endif
@@ -3533,6 +3613,7 @@ GLV* louvain_modularity_alveo(xf::graph::L3::Handle* handle0,
             parlv.par_lved[p] = parlv_wkr.par_lved[p - numPureWorker * num_par_per_worker];
             parlv.par_lved[p]->ID = p;
         }
+        parlv.num_server = numNode;
 
         parlv.st_ParLved = true;
 #ifdef PRINTINFO
@@ -3893,6 +3974,7 @@ extern "C" float load_alveo_partitions(
             parlv_drv.plv_src->NC = glv_final->NC;
 
             PrintRptPartition(mode_zmq, parlv_drv, op0.numDevices, numNode, numPureWorker);
+            PrintRptPartition_Summary( parlv_drv,opts_C_thresh);
             std::string outputFileName(opts_outputFile);
             if (!outputFileName.empty()) {
             	host_writeOut(outputFileName.c_str(), parlv_drv.plv_src->NV, parlv_drv.plv_src->C);
@@ -3904,17 +3986,18 @@ extern "C" float load_alveo_partitions(
 #ifdef PRINTINFO
             printf("Deleting orignal graph... \n");
 #endif
-            parlv_drv.CleanTmpGlv();
+            //parlv_drv.CleanTmpGlv();
 #ifdef PRINTINFO
             parlv_drv.plv_src->printSimple();
 #endif
-            delete (parlv_drv.plv_src);
+            //delete (parlv_drv.plv_src);
 
             glv_final->printSimple();
-            delete (glv_final);
+            double ret = glv_final->Q;
+           // delete (glv_final);
 
-            handle0.free();
-            return glv_final->Q;
+           // handle0.free();
+            return ret;
         } else if (mode_zmq == ZMQ_WORKER) {
             //-----------------------------------------------------------------
             // WORKER
