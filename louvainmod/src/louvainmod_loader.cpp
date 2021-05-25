@@ -112,18 +112,18 @@ int create_alveo_partitions(int argc, char *argv[]) {
 
 XILINX_LOUVAINMOD_IMPL_DEF
 float load_alveo_partitions(    
-    std::string xclbinPath, bool flowFast, unsigned int numDevices, 
-    unsigned int num_par, std::string nameMetaFile, 
-    int mode_zmq, int numPureWorker, char* nameWorkers[128], unsigned int nodeID,
-    std::string opts_outputFile) 
+    char* xclbinPath, bool flowFast, unsigned numDevices, 
+    unsigned num_par, char* alveoProject, 
+    unsigned mode_zmq, unsigned numPureWorker, char* nameWorkers[128], unsigned nodeID,
+    char* opts_outputFile) 
 {
-    typedef float (*LoadPartitionsFunc)(std::string, bool, unsigned int, 
-                                        int, std::string, 
-                                        unsigned int, int, char* [], unsigned int,
-                                        std::string);
+    typedef float (*LoadPartitionsFunc)(char*, bool, unsigned, 
+                                        unsigned, char*, 
+                                        unsigned, unsigned, char* [], unsigned,
+                                        char*);
     LoadPartitionsFunc pLoadFunc = (LoadPartitionsFunc) getDynamicFunction("load_alveo_partitions");
     return pLoadFunc(xclbinPath, flowFast, numDevices, 
-                     num_par, nameMetaFile, 
+                     num_par, alveoProject, 
                      mode_zmq, numPureWorker, nameWorkers, nodeID,
                      opts_outputFile);
 }

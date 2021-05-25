@@ -32,6 +32,21 @@ inline t_time_point &getTimerStartTime() {
     return s_startTime;
 }
 
+  
+//Layout of fields in /proc/self/status
+//VmPeak:     8216 kB This is peak Virtual Memory size
+//VmHWM:       752 kB This is peak Resident Set Size
+// return size of field in kB, return value of -1.0 means error
+inline double extract_size_in_kB(std::string& line) {
+    double retValue = -1.0;
+    std::istringstream sstream(line);
+    std::string field, value, unit;
+    sstream >> field >> value >> unit;
+    if (unit == "kB") {
+        retValue = std::stod(value);
+    }
+    return retValue;
+}
 
 } // namespace
 

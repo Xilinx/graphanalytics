@@ -63,10 +63,14 @@ public:
     };
     
 private:
+    std::string alveoProject_;
+    unsigned numPartitions_;
+    unsigned numDevices_ = 1;
+    std::string nodeNames_;
+    std::string nodeIps_;
     unsigned nodeId_ = 0;
     unsigned numNodes_ = 1;
     State state_ = UninitializedState;
-    unsigned numDevices_ = 1;
     
 public:
     static Context *getInstance() {
@@ -79,11 +83,34 @@ public:
     Context() = default;
     ~Context() {}
 
+    void setAlveoProject(std::string alveoProject) {
+        std::cout << "DEBUG: " << __FUNCTION__ << " AlveoProject=" << alveoProject << std::endl;
+        alveoProject_ = alveoProject;
+    }
+    std::string getAlveoProject() { return alveoProject_; }
+
+    void setNodeNames(std::string nodeNames) {
+        std::cout << "DEBUG: " << __FUNCTION__ << " nodeNames=" << nodeNames << std::endl;
+        nodeNames_ = nodeNames;
+    }
+    std::string getNodeNames() { return nodeNames_; }
+
+    void setNodeIps(std::string nodeIps) {
+        std::cout << "DEBUG: " << __FUNCTION__ << " nodeIps=" << nodeIps << std::endl;
+        nodeIps_ = nodeIps;
+    }
+    std::string getNodeIps() { return nodeIps_; }
+
+    void setNumPartitions(unsigned numPartitions) {
+        std::cout << "DEBUG: " << __FUNCTION__ << " numPartitions=" << numPartitions << std::endl;
+        numPartitions_ = numPartitions;
+    }
+    unsigned getNumPartitions() { return numPartitions_; }
+
     void setNodeId(unsigned nodeId) {
         std::cout << "DEBUG: " << __FUNCTION__ << " nodeId=" << nodeId << std::endl;
         nodeId_ = nodeId;
     }
-
     unsigned getNodeId() { return nodeId_; }
     
     void setNumNodes(unsigned numNodes) 
@@ -91,7 +118,6 @@ public:
         std::cout << "DEBUG: " << __FUNCTION__ << " numNodes=" << numNodes << std::endl;
         numNodes_ = numNodes;
     }
-
     unsigned getNumNodes() { return numNodes_; }
 
     void setNumDevices(unsigned numDevices) 
@@ -100,7 +126,6 @@ public:
             clear();
         numDevices_ = numDevices;
     }
-    
     unsigned getNumDevices() const { return numDevices_; }
     
     State getState() const { return state_; }

@@ -38,18 +38,20 @@ function gsql () {
 function usage() {
     echo "Usage: $0 -u TG-username -p TG-password [optional options]"
     echo "Optional options:"
+    echo "  -a alveoProject     : Alveo project name with full path"
     echo "  -d numDevices       : number of FPGAs needed (default=1)"
     echo "  -f                  : Force (re)install"
     echo "  -g graphName        : graph name (default=social_<username>"
     echo "  -i sshKey           : SSH key for user tigergraph"    
     echo "  -l 0|1              : 0: Do not load FPGA; 1: Load FPGA(default)>"
     echo "  -m numNodes         : Number of nodes in Tigergraph cluster"
-    echo "  -n partitionProject : Graph partition project basename "
+    echo "  -n numPartitions    : Number of partitions for parallel Louvain "
     echo "  -s dataSource       : A .mtx file containing input graph. default=./as-Skitter/as-Skitter-wt-e110k.mtx"
     echo "  -v                  : Print verbose messages"
     echo "  -h                  : Print this help message"
 }
 
+tg_home=$(readlink -f ~tigergraph)
 # default values for optional options
 hostname=$(hostname)
 username=$USER
@@ -59,7 +61,8 @@ data_source_set=0
 load_fpga=1
 num_devices=1
 num_nodes=1
-partition_prj="$script_dir/as-skitter/as-skitter-partitions/louvain_partitions"
+num_partitions=9
+alveo_prj="$tg_home/as-skitter-partitions"
 verbose=0
 xgraph="social_$username"
 force_clean=0
@@ -71,16 +74,17 @@ if [ -f ~/.ssh/tigergraph_rsa ]; then
     ssh_key_flag="-i ~/.ssh/tigergraph_rsa"
 fi
 
-while getopts ":d:fg:i:l:m:n:p:s:u:vh" opt
+while getopts ":a:d:fg:i:l:m:n:p:s:u:vh" opt
 do
 case $opt in
+    a) partition_prj=$OPTARG;;
     d) num_devices=$OPTARG;;
     f) force_clean=1; force_clean_flag=-f;;
     g) xgraph=$OPTARG;;
     i) ssh_key=$OPTARG; ssh_key_flag="-i $ssh_key";;
     l) load_fpga=$OPTARG;;
     m) num_nodes=$OPTARG;;
-    n) partition_prj=$OPTARG;;
+    n) num_partitions=$OPTARG;;
     p) password=$OPTARG;;
     s) data_source=$OPTARG; data_source_set=1;;
     u) username=$OPTARG;;
@@ -126,11 +130,12 @@ if [ $verbose -eq 1 ]; then
     echo "INFO: username=$username"
     echo "      password=$password"
     echo "      data_source=$data_source"
-    echo "      partition_prj=$partition_prj"
+    echo "      alveo_prj=$alveo_prj"
     echo "      xgraph=$xgraph"
     echo "      load_fpga=$load_fpga"
     echo "      num_nodes=$num_nodes"
     echo "      num_devices=$num_devices"
+    echo "      num_partitions=$num_partitions"
     echo "      ssh_key=$ssh_key"
     echo "      hostname=$hostname"
 fi

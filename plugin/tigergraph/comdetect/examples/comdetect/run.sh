@@ -61,7 +61,7 @@ gsql -u $username -p $password "$(cat $script_dir/query/load.gsql | sed "s/@grap
 
 echo "-------------------------------------------------------------------------"
 echo "Loading $files"
-echo "gsql -u $username -p $password -g $xgraph \"run loading job load_job USING file_name = \"$data_source\"\""
+echo gsql -u $username -p $password -g $xgraph \'run loading job load_job USING file_name = \"$data_source\"\'
 echo "-------------------------------------------------------------------------"
 gsql -u $username -p $password -g $xgraph "run loading job load_job USING file_name = \"$data_source\""
 
@@ -87,41 +87,47 @@ gsql -u $username -p $password "$(cat $script_dir/query/louvain_alveo.gsql | sed
 # OTHERWISE EACH NODE WILL OVERWRITE IT
 echo "-------------------------------------------------------------------------"
 echo "Running nsert dummy nodes for distributed alveo computing"
-gsql -u $username -p $password -g $xgraph "RUN QUERY insert_dummy_nodes($num_nodes)"
 echo "-------------------------------------------------------------------------"
+gsql -u $username -p $password -g $xgraph "RUN QUERY insert_dummy_nodes($num_nodes)"
 
 echo "Running louvain_distributed_q_cpu"
-echo gsql -u $username -p $password -g $xgraph \'run query louvain_distributed_q_cpu\([\"Person\"], [\"Coworker\"],\"weight\",10,1,0.00001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_cpu.txt\",TRUE,FALSE\)\'
+echo gsql -u $username -p $password -g $xgraph \'run query louvain_distributed_q_cpu\([\"Person\"], [\"Coworker\"],\"weight\",20,1,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_cpu.txt\",TRUE,FALSE\)\'
 echo "-------------------------------------------------------------------------"
 START=$(date +%s%3N)
-time gsql -u $username -p $password -g $xgraph "run query louvain_distributed_q_cpu([\"Person\"], [\"Coworker\"], \
-     \"weight\",10,1,0.00001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_cpu.txt\",TRUE,FALSE)"
+#time gsql -u $username -p $password -g $xgraph "run query louvain_distributed_q_cpu([\"Person\"], [\"Coworker\"], \
+#     \"weight\",20,1,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_cpu.txt\",TRUE,FALSE)"
 TOTAL_TIME=$(($(date +%s%3N) - START))
 
 echo "louvain_distributed_cpu runtime: " $TOTAL_TIME
 
-run_alveo=1
-if [ "$run_alveo" -eq 1 ]; then
-    START=$(date +%s%3N)
-    echo "Running open_alveo"
-    echo gsql -u $username -p $password -g $xgraph \'run query open_alveo\(\)\'
-    time gsql -u $username -p $password -g $xgraph "run query open_alveo()"
-    TOTAL_TIME=$(($(date +%s%3N) - START))
-    echo "open_alveo: " $TOTAL_TIME
+#START=$(date +%s%3N)
+#echo "Running open_alveo"
+#echo gsql -u $username -p $password -g $xgraph \'run query open_alveo\(\)\'
+#time gsql -u $username -p $password -g $xgraph "run query open_alveo()"
+#TOTAL_TIME=$(($(date +%s%3N) - START))
+#echo "open_alveo: " $TOTAL_TIME
+START=$(date +%s%3N)
+use_tg_partition="FALSE"
+use_saved_partion="TRUE"
+node_names="xsj-dxgradb01 xsj-dxgradb02 xsj-dxgradb03"
+node_ips="192.168.1.11 192.168.1.21 192.168.1.31"
+echo "-------------------------------------------------------------------------"
+echo "Running load_alveo"
+echo gsql -u $username -p $password -g $xgraph \'run query load_alveo\([\"Person\"], [\"Coworker\"], \"weight\", $use_tg_partition, $use_saved_partion, \"$data_source\", \"$alveo_prj\", \"$node_names\", \"$node_ips\", $num_partitions, $num_devices\)\'
+echo "-------------------------------------------------------------------------"
+time gsql -u $username -p $password -g $xgraph "run query load_alveo([\"Person\"], \
+    [\"Coworker\"], \"weight\", $use_tg_partition, $use_saved_partion, \
+    \"$data_source\", \"$alveo_prj\", \"$node_names\", \"$node_ips\", $num_partitions, $num_devices)"
+TOTAL_TIME=$(($(date +%s%3N) - START))
+echo "load_alveo: " $TOTAL_TIME
+START=$(date +%s%3N)
 
-    START=$(date +%s%3N)
-    echo "Running load_alveo"
-    echo gsql -u $username -p $password -g $xgraph \'run query load_alveo\([\"Person\"], [\"Coworker\"], \"weight\", FALSE, FALSE, \"$data_source\", \"$partition_prj\", \"9\", \"3\"\)\'
-    time gsql -u $username -p $password -g $xgraph "run query load_alveo([\"Person\"], [\"Coworker\"], \
-         \"weight\", FALSE, FALSE, \"$data_source\", \"$partition_prj\", \"9\", \"3\")"
-    TOTAL_TIME=$(($(date +%s%3N) - START))
-    echo "load_alveo: " $TOTAL_TIME
+echo "-------------------------------------------------------------------------"
+echo "Running louvain_alveo"
+echo gsql -u $username -p $password -g $xgraph \'run query louvain_alveo\([\"Person\"], [\"Coworker\"], \"weight\",20,1,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_alveo.txt\",TRUE,FALSE\)\'
+echo "-------------------------------------------------------------------------"
+time gsql -u $username -p $password -g $xgraph "run query louvain_alveo([\"Person\"], [\"Coworker\"], \
+     \"weight\",20,1,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_alveo.txt\",TRUE,FALSE)"
+TOTAL_TIME=$(($(date +%s%3N) - START))
+echo "louvain_alveo: " $TOTAL_TIME
 
-    START=$(date +%s%3N)
-    echo "Running louvain_alveo"
-    echo gsql -g $xgraph \'run query louvain_alveo\([\"Person\"], [\"Coworker\"], \"weight\",10,1,0.00001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_alveo.txt\",TRUE,FALSE\)\'
-    time gsql -g $xgraph "run query louvain_alveo([\"Person\"], [\"Coworker\"], \
-         \"weight\",10,1,0.00001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_alveo.txt\",TRUE,FALSE)"
-    TOTAL_TIME=$(($(date +%s%3N) - START))
-    echo "louvain_alveo: " $TOTAL_TIME
-fi

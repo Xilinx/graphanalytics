@@ -127,6 +127,8 @@ dist: stage
 	    make ; \
 	fi
 
+install: stage
+	./staging/install.sh
 
 #######################################################################################################################
 #
@@ -143,4 +145,5 @@ help:
 	@echo "Valid make targets:"
 	@echo "stage   : Generate staging directory"
 	@echo "dist    : Generate installation package (RPM or DEB) for the current OS and architecture"
+	@echo "install : Make stage and run insta.sh"
 

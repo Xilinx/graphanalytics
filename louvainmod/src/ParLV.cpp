@@ -384,7 +384,7 @@ int SaveGLVBin(char* name, GLV* glv) {
     long nelg = glv->NElg;
     FILE* fp = fopen(name, "wb");
     if (fp == NULL) {
-        printf("ERROR: SaveGLVBin failed for open %s \n", name);
+        printf("ERROR: SaveGLVBin failed to open %s \n", name);
         return -1;
     }
     fwrite(&headGLVBin, sizeof(long), 1, fp);
@@ -430,7 +430,7 @@ int SaveGLVBin(char* name, GLV* glv, bool useInt) {
     long nelg = glv->NElg;
     FILE* fp = fopen(name, "wb");
     if (fp == NULL) {
-        printf("ERROR: SaveGLVBin failed for open %s \n", name);
+        printf("ERROR: SaveGLVBin failed to open %s \n", name);
         return -1;
     }
     fwrite(&headGLVBin, sizeof(long), 1, fp);
@@ -512,6 +512,7 @@ int SaveGLVBin_OnlyC(char* name, GLV* glv) {
 #endif
     return 0;
 }
+
 int SaveGLVBinBatch(GLV* glv[], int num_par, const char* path, bool useInt) {
     assert(glv);
     assert(num_par < MAX_PARTITION);
@@ -528,6 +529,7 @@ int SaveGLVBinBatch(GLV* glv[], int num_par, const char* path, bool useInt) {
     }
     return ret;
 }
+
 int SaveGLVBinBatch_OnlyC(GLV* glv[], int num_par, const char* path) {
     assert(glv);
     assert(num_par < MAX_PARTITION);
@@ -3053,6 +3055,8 @@ GLV* par_general_4TG(long start_vertexInGlb, long* offsets_tg, edge* edgelist_tg
 	GLV* ret=  stt.ParNewGlv_Prun(start_vertexInGlb,  offsets_tg, edgelist_tg, drglist_tg, start_parInGlb, stride_par, id_glv, th_maxGhost);
 	return ret;
 }
+
+
 int xai_save_partition(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
 		long  start_vertex,     // If a vertex is smaller than star_vertex, it is a ghost
 		long  end_vertex,	    // If a vertex is larger than star_vertex-1, it is a ghost
@@ -3061,7 +3065,13 @@ int xai_save_partition(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
 		int par_prune,          // Can always be set with value '1'
 		long NV_par_recommand,  // Allow to partition small graphs not bigger than FPGA limitation
 		long NV_par_max		    //  64*1000*1000;
-		) {
+		) 
+{
+#ifndef NDEBUG    
+    std::cout << "DEBUG: " << __FUNCTION__ << std::endl;
+#endif
+    int status = 0;
+
 	long NV_server = end_vertex - start_vertex;
 	GLV*  parlv_par_src[MAX_PARTITION];
 	int id_glv = 0;//fun2c_call();
@@ -3089,21 +3099,33 @@ int xai_save_partition(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
 				delete(parlv_par_src[p]);
 				parlv_par_src[p] = NULL;
 			}
-		}while(parlv_par_src[p] == NULL);//If the partition is too big to load on FPGA, reduce the NV_par until partition is small enough
+		} while(parlv_par_src[p] == NULL);//If the partition is too big to load on FPGA, reduce the NV_par until partition is small enough
 		char nm[1024];
 		sprintf(nm, "_%1d%1d%1d.par", p / 100, (p / 10) % 10, p % 10);
 		parlv_par_src[p]->SetName(nm);
 		char pathName[1024];
 		strcpy(pathName, path_prefix);
 		strcat(pathName, nm);
-		SaveGLVBin(pathName, parlv_par_src[p], false);
+		status = SaveGLVBin(pathName, parlv_par_src[p], false);
+        if (status < 0) 
+            return status;
 		start_vertext_par += NV_par;
 		p++;
 	}
 	return p;
 }
 
-int create_alveo_partitions(char* inFile, int num_partition, int par_prune, char* pathName_proj, ParLV& parlv) {
+/*
+    Return value:
+        -1: Cannot create partition files
+*/
+int create_alveo_partitions(char* inFile, int num_partition, int par_prune, char* pathName_proj, ParLV& parlv) 
+{
+    std::cout << "DEBUG: " << __FUNCTION__ << " inFile" << inFile 
+              << " num_partition=" << num_partition << std::endl;
+
+    int status;
+
     assert(inFile);
     assert(pathName_proj);
     int id_glv = 0;
@@ -3192,6 +3214,9 @@ int create_alveo_partitions(char* inFile, int num_partition, int par_prune, char
 				NV_par_recommand,  // Allow to partition small graphs not bigger than FPGA limitation
 				NV_par_max		   //  64*1000*1000;
     			);
+        if (parInServer[i_svr] < 0)
+            return -1;
+
 		num_partition +=parInServer[i_svr] ;
     	free(offsets_tg);
     	free(edgelist_tg);
@@ -3542,6 +3567,9 @@ extern "C" int create_alveo_partitions(int argc, char* argv[]) {
 //    for (int i = 0; i < argc; ++i)
 //        std::cout << "internal create partitions arg " << i << " = " << argv[i] << std::endl;
     //--------------- Parse Input parameters
+#ifndef NDEBUG
+    std::cout << "DEBUG: " << __FUNCTION__ << std::endl;
+#endif
     double opts_C_thresh;   // Threshold with coloring on
     long opts_minGraphSize; // Min |V| to enable coloring
     double opts_threshold;  // Value of threshold
@@ -3570,6 +3598,7 @@ extern "C" int create_alveo_partitions(int argc, char* argv[]) {
     char* nameWorkers[128];
     int nodeID;
     int server_par = 1;
+    int status = 0;
     //int max_num_level;
     //int max_num_iter;
     host_ParserParameters(argc, argv, opts_C_thresh, opts_minGraphSize, opts_threshold, opts_ftype, opts_inFile,
@@ -3589,18 +3618,25 @@ extern "C" int create_alveo_partitions(int argc, char* argv[]) {
         ParLV parlv;
         parlv.Init(flowMode, NULL, num_par, devNeed_cmd, isPrun, par_prune);
         parlv.num_server = server_par;
-        create_alveo_partitions(opts_inFile, num_par, par_prune, nameProj, parlv);
+        status = create_alveo_partitions(opts_inFile, num_par, par_prune, nameProj, parlv);
+        std::cout << "DEBUG: status=" << status << std::endl;
+        if (status < 0)
+            return status;
+
         printf("************************************************************************************************\n");
-        printf("***********************************  Louvain Summary   *****************************************\n");
+        printf("*****************************  Louvain Partition Summary   *************************************\n");
         printf("************************************************************************************************\n");
-        printf(
-            "\033[1;31;40m    1.    Time for partition the graph \033[0m                              : "
-            "\033[1;31;40m%lf\033[0m (s) =",
-            (parlv.timesPar.timePar_all + parlv.timesPar.timePar_save));
-        printf(" partition +  saving \n");
-        printf("    1.1   Time for partition                                         : %lf (s)\n",
+
+        std::cout << "Input graph                        : " << opts_inFile << std::endl;
+        std::cout << "Number of servers                  : " << server_par << std::endl;
+        std::cout << "Output Alveo partition project     : " << nameProj << std::endl;
+        std::cout << "Number of partitions               : " << num_par << std::endl;
+        printf("Time for partitioning the graph    : %lf = ",
+               (parlv.timesPar.timePar_all + parlv.timesPar.timePar_save));
+        printf(" partitioning +  saving \n");
+        printf("    Time for partition             : %lf (s)\n",
                parlv.timesPar.timePar_all);
-        printf("    1.2   Time for saving                                            : %lf (s)\n",
+        printf("    Time for saving                : %lf (s)\n",
                parlv.timesPar.timePar_save);
         printf("************************************************************************************************\n");
 #ifdef PRINTINFO
@@ -3729,19 +3765,23 @@ int host_writeOut(const char* opts_inFile, long NV_begin, long* C_orig) {
 */
 
 extern "C" float load_alveo_partitions(
-    std::string xclbinPath, bool flow_fast, unsigned int numDevices, 
-    unsigned int num_par, std::string nameMetaFile, 
+    char* xclbinPath, bool flow_fast, unsigned int numDevices, 
+    unsigned int num_par, char* alveoProject, 
     int mode_zmq, int numPureWorker, char* nameWorkers[128], unsigned int nodeID,
-    std::string opts_outputFile)
+    char* opts_outputFile)
 {
 #ifndef NDEBUG    
     std::cout << "DEBUG: " << __FUNCTION__ <<  " xclbinPath=" << xclbinPath 
               << " flow_fast=" << flow_fast << " numDevices=" << numDevices 
-              << " num_par=" << num_par << " nameMetaFile=" << nameMetaFile 
+              << " num_par=" << num_par << " alveoProject=" << alveoProject 
               << " mode_zmq=" << mode_zmq << " numPureWorker=" << numPureWorker
               << " nodeID=" << nodeID
               << " opts_outputFile=" << opts_outputFile
               << std::endl;
+
+    for (int i=0; i<numPureWorker; i++)
+        std::cout << "DEBUG: nameWorker " << i << "=" << nameWorkers[i] << std::endl;
+
 #endif    
     int mode_alveo = ALVEOAPI_LOAD;
     std::string opName = "louvainModularity";
@@ -3789,7 +3829,8 @@ extern "C" float load_alveo_partitions(
     printf("\033[1;37;40mINFO: The project file is   : %s\033[0m\n", nameMetaFile);
 #endif
 
-    (handle0.oplouvainmod)->loadGraph(NULL, flowMode, opts_coloring, opts_minGraphSize, opts_C_thresh, numThreads);
+    (handle0.oplouvainmod)->loadGraph(NULL, flowMode, opts_coloring, 
+        opts_minGraphSize, opts_C_thresh, numThreads);
 
     if (mode_alveo == ALVEOAPI_LOAD) {
         if (mode_zmq == ZMQ_DRIVER) {
@@ -3806,7 +3847,7 @@ extern "C" float load_alveo_partitions(
             {
                 TimePointType l_load_start = chrono::high_resolution_clock::now();
                 TimePointType l_load_end;
-                if(load_alveo_partitions_DriverSelf(nameMetaFile, numNode, numPureWorker, parlv_drv, parlv_wkr, inFile)!=0)
+                if(load_alveo_partitions_DriverSelf(alveoProject, numNode, numPureWorker, parlv_drv, parlv_wkr, inFile)!=0)
                     return -1;
                 getDiffTime(l_load_start, l_load_end, parlv_drv.timesPar.timeDriverLoad);
             }
@@ -3849,9 +3890,9 @@ extern "C" float load_alveo_partitions(
             parlv_drv.plv_src->NC = glv_final->NC;
 
             PrintRptPartition(mode_zmq, parlv_drv, op0.numDevices, numNode, numPureWorker);
-
-            if (!opts_outputFile.empty()){
-            	host_writeOut(opts_outputFile.c_str(), parlv_drv.plv_src->NV, parlv_drv.plv_src->C);
+            std::string outputFileName(opts_outputFile);
+            if (!outputFileName.empty()) {
+            	host_writeOut(outputFileName.c_str(), parlv_drv.plv_src->NV, parlv_drv.plv_src->C);
             } else{
 #ifdef PRINTINFO_2
                 printf("\033[1;37;40mINFO: Please use -o <output file> to store Cluster information\033[0m\n");
@@ -3885,7 +3926,7 @@ extern "C" float load_alveo_partitions(
                 parlv_tmp.Init(flowMode, NULL, num_par, numDevices, isPrun, par_prune);
 
                 if (load_alveo_partitions_WorkerSelf(
-                    nameMetaFile, numNode, numPureWorker, parlv_tmp,  
+                    alveoProject, numNode, numPureWorker, parlv_tmp,  
                     inFile, nodeID, LoadCommand) != 0)
                     return -1;
 
@@ -3959,10 +4000,10 @@ float load_alveo_partitions_wrapper(int argc, char* argv[]) {
     if (devNeed_cmd > 0)
         numDevices = devNeed_cmd;
 
-    retVal = load_alveo_partitions(xclbinPath, flow_fast, numDevices, 
-                                   num_par, nameMetaFile, 
+    retVal = load_alveo_partitions((char *)xclbinPath.c_str(), flow_fast, numDevices, 
+                                   num_par, (char *)nameMetaFile.c_str(), 
                                    mode_zmq, numPureWorker, nameWorkers, nodeID,
-                                   opts_outputFile);
+                                   (char *)opts_outputFile.c_str());
 
     return retVal;
 }
