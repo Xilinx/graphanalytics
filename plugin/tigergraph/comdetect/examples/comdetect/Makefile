@@ -1,6 +1,9 @@
 SHELL = bash
 
 XGRAPH=social_$(USER)
+compileMode=0
+runMode=0
+partitionMode=1
 
 ../../../../../louvainmod/staging/lib/libXilinxLouvain.so: ../../../../../louvainmod/src/louvainmod_loader.cpp \
                                                            ../../../../../louvainmod/src/ParLV.cpp
@@ -41,6 +44,7 @@ run: .install-udf-done
 	@echo "Running run.sh from staging "
 	@echo "-------------------------------------------------------"
 	cd ../../ && make && ./staging/examples/comdetect/run.sh -v -g $(XGRAPH) \
+	    -c $(compileMode) -r $(runMode) -x $(partitionMode) \
 	    -s /proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx 
 
 clean:

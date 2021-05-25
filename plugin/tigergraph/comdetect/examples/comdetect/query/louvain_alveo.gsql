@@ -19,7 +19,7 @@ CREATE DISTRIBUTED QUERY load_alveo(
     SET<STRING> v_types,            // List of vertex types that would participate in Louvain Modularity
     SET<STRING> e_types,            // List of edge types that would participate in Louvain Modularity
     STRING weight_attr,             // Name of the edge attribute that has weight of the edge
-    BOOL use_tg_partition = TRUE,   // Use the partitions created by TigerGraph if true, else create custom partitions
+    BOOL tg_partition = TRUE,   // Use the partitions created by TigerGraph if true, else create custom partitions
     BOOL use_saved_partition = TRUE,// If partitions are saved on disk, use them instead of getting from RAM
     STRING graph_file = "",         // Source graph file in .mtx format, needed only if tg_partition = FALSE
     STRING louvain_project = "",    // Provide a project name for saving partitions, used for loading from disk too
@@ -44,7 +44,7 @@ CREATE DISTRIBUTED QUERY load_alveo(
     nodeList = SELECT n FROM nodes:n
         ACCUM @@nodeAccum += udf_xilinx_comdetect_set_node_id(n.NODE_ID);
 
-    IF use_tg_partition THEN
+    IF tg_partition THEN
         Start = SELECT v FROM Start:v-(e_types:e)->:t
            ACCUM
            // TODO build the edge list and offsets here from TigerGraph memory
@@ -59,7 +59,7 @@ CREATE DISTRIBUTED QUERY load_alveo(
     END;
 
     udf_time = udf_elapsed_time(true);
-    print use_tg_partition, use_saved_partition, status;
+    print tg_partition, use_saved_partition, status;
 
 }
 
@@ -76,12 +76,6 @@ CREATE DISTRIBUTED QUERY louvain_alveo(
     STRING result_file = "",        // Full path of result file. It must be accessible on each machine in cluster.
     BOOL print_final_Q = TRUE,      // Print final Q value
     BOOL print_all_Q = FALSE)       // Print intermediate Q value
-
-//CREATE DISTRIBUTED QUERY louvain_alveo (
-//    INT max_iter, set<STRING> vertex_types, set<STRING> edge_types, 
-//    STRING input_graph, STRING partitions_project,     
-//    UINT num_workers, UINT num_devices, UINT num_patitions, 
-//    STRING community_result)
 {
     ListAccum<int> @@nodeAccum;
     ListAccum<float> @@modularityAccum;
