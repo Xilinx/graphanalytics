@@ -95,7 +95,7 @@ inline int udf_xilinx_comdetect_setup_nodes(std::string nodeNames,
 // TODO: Change signature as needed
 // This function combined with GSQL code should traverse memory of TigerGraph on Each
 // server and build the partitions for each server in the form Louvain host code can consume it
-inline int udf_load_partitions(uint num_partitions, uint num_devices)
+inline int udf_load_alveo(uint num_partitions, uint num_devices)
 {
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
@@ -116,7 +116,7 @@ inline int udf_load_partitions(uint num_partitions, uint num_devices)
 
 
 // num_devices:
-inline int udf_create_load_alveo_partitions(bool use_saved_partition, 
+inline int udf_create_partition_load_alveo(bool use_saved_partition, 
     string graph_file, string alveo_project, 
     uint num_nodes, string node_names, string node_ips, 
     uint num_partitions, uint num_devices)
@@ -187,7 +187,7 @@ inline int udf_execute_reset(int mode) {
 }
 
 
-inline float udf_execute_alveo_louvain(
+inline float udf_louvain_alveo(
     int64_t max_iter, int64_t max_level, float tolerence, bool intermediateResult,
     bool verbose, string result_file, bool print_final_Q, bool print_all_Q)
 {        
