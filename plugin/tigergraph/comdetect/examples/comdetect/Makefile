@@ -1,6 +1,7 @@
-SHELL = bash
-
 XGRAPH=social_$(USER)
+ifdef SSH_KEY
+    SSH_KEY_OPT=-i $(SSH_KEY)
+endif	
 compileMode=0
 runMode=0
 partitionMode=1
@@ -10,6 +11,8 @@ numPartitions=9
 dataSource=/proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx
 alveoProject=/proj/gdba/tg-common/alveo-projects/as-skitter-partition
 
+all: run
+
 ../../../../../louvainmod/staging/lib/libXilinxLouvain.so: ../../../../../louvainmod/src/louvainmod_loader.cpp \
                                                            ../../../../../louvainmod/src/ParLV.cpp
 	cd ../../../../../louvainmod && make DEBUG=1
@@ -18,7 +21,7 @@ alveoProject=/proj/gdba/tg-common/alveo-projects/as-skitter-partition
 	@echo "-------------------------------------------------------"
 	@echo "Installing plugin files into TigerGraph software"
 	@echo "-------------------------------------------------------"
-	cd ../../ && make && ./staging/install.sh -v -f && \
+	cd ../../ && make && ./staging/install.sh -v -f $(SSH_KEY_OPT) && \
 	cd - && touch .install-plugin-done
 
 .install-udf-done: .install-plugin-done udf/louvainDemo.hpp
@@ -26,7 +29,7 @@ alveoProject=/proj/gdba/tg-common/alveo-projects/as-skitter-partition
 	@echo "Installing application specific UDFs into TigerGraph software"
 	@echo "--------------------------------------------------------------"
 	cd ../../ && make && \
-	./staging/examples/comdetect/bin/install-udf.sh -v -f && \
+	./staging/examples/comdetect/bin/install-udf.sh -v -f $(SSH_KEY_OPT) && \
 	cd - && touch .install-udf-done
 
 .install-query-done: .install-udf-done query/test.gsql 
@@ -44,12 +47,13 @@ run-test: .install-query-done
 
 install-plugin: .install-plugin-done
 
+.PHONY: run
 run: .install-udf-done
 	@echo "-------------------------------------------------------"
 	@echo "Running run.sh from staging "
 	@echo "-------------------------------------------------------"
-	cd ../../ && make && ./staging/examples/comdetect/run.sh -v -g $(XGRAPH) \
-	    -c $(compileMode) -r $(runMode) -x $(partitionMode) \
+	cd ../../ && make && ./staging/examples/comdetect/run.sh -v $(SSH_KEY_OPT) \
+	    -g $(XGRAPH) -c $(compileMode) -r $(runMode) -x $(partitionMode) \
 		-m $(numNodes) -d $(numDevices) \
 	    -s $(dataSource) -a $(alveoProject) -n $(numPartitions)
 
