@@ -128,12 +128,13 @@ float compute_louvain_alveo(
     typedef float (*LoadPartitionsFunc)(char*, bool, unsigned, 
                                         unsigned, char*, 
                                         unsigned, unsigned, char* [], unsigned,
-                                        char*);
+                                        char*, unsigned, unsigned, float, bool, bool, bool, bool);
     LoadPartitionsFunc pLoadFunc = (LoadPartitionsFunc) getDynamicFunction("compute_louvain_alveo");
     return pLoadFunc(xclbinPath, flowFast, numDevices, 
                      num_par, alveoProject, 
                      mode_zmq, numPureWorker, nameWorkers, nodeID,
-                     opts_outputFile);
+                     opts_outputFile, max_iter, max_level, tolerence, intermediateResult,
+		     verbose, final_Q, all_Q);
 }
 
 }  // extern "C"

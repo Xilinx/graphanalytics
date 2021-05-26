@@ -3884,17 +3884,20 @@ int host_writeOut(const char* opts_inFile, long NV_begin, long* C_orig) {
     -workerAlone worker_number -> nodeID
 */
 
+// This function is for loading partitions from tigergraph memory. Additional arguments
+// should be added as needed
 extern "C" float load_alveo_partitions(unsigned int num_partitions, unsigned int num_devices)
 {
 #ifndef NDEBUG    
-    std::cout << "compute_louvain_alveo not implemented yet" << << std::endl; 
+    std::cout << "load_alveo_partitions not implemented yet" << << std::endl; 
 #endif
 }
+
 extern "C" float compute_louvain_alveo(
     char* xclbinPath, bool flow_fast, unsigned int numDevices, 
     unsigned int num_par, char* alveoProject, 
     int mode_zmq, int numPureWorker, char* nameWorkers[128], unsigned int nodeID,
-    char* opts_outputFile, int64_t max_iter, int64_t max_level, float tolerence, bool intermediateResult,
+    char* opts_outputFile, unsigned int max_iter, unsigned int max_level, float tolerence, bool intermediateResult,
     bool verbose, bool final_Q, bool all_Q)
 {
 #ifndef NDEBUG    
@@ -3904,6 +3907,9 @@ extern "C" float compute_louvain_alveo(
               << " mode_zmq=" << mode_zmq << " numPureWorker=" << numPureWorker
               << " nodeID=" << nodeID
               << " opts_outputFile=" << opts_outputFile
+              << " max_iter=" << max_iter << " max_level=" << max_level 
+              << " tolerence=" << tolerence << " intermediateResult=" << intermediateResult 
+              << " verbose=" << verbose << " final_Q=" << final_Q << " all_Q=" << all_Q 
               << std::endl;
 
     for (int i=0; i<numPureWorker; i++)
