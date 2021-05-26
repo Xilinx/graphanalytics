@@ -32,26 +32,11 @@ int runMultiEvents(uint32_t number, std::vector<xf::graph::L3::event<int> >& f) 
     return ret;
 }
 
-event<int> cosineSimilaritySSDense(xf::graph::L3::Handle& handle,
-                                   uint32_t sourceNUM,
-                                   uint32_t* sourceWeights,
-                                   uint32_t topK,
-                                   xf::graph::Graph<uint32_t, float> g,
-                                   uint32_t* resultID,
-                                   float* similarity) {
-    (handle.opsimdense)
-        ->eventQueue.push_back(
-            (handle.opsimdense)->addwork(1, 1, sourceNUM, sourceWeights, topK, g, resultID, similarity));
-    std::packaged_task<int(uint32_t, std::vector<event<int> >&)> t(runMultiEvents);
-    std::future<int> f0 = t.get_future();
-    (handle.opsimdense)->simDenseThread = std::thread(std::move(t), 1, std::ref((handle.opsimdense)->eventQueue));
-    return event<int>(std::forward<std::future<int> >(f0));
-};
-
 std::vector<event<int> > cosineSimilaritySSDenseMultiCard(xf::graph::L3::Handle& handle,
                                                           int32_t deviceNm,
                                                           int32_t sourceNUM,
                                                           int32_t* sourceWeights,
+                                                          int32_t* sourceCoeffs,
                                                           int32_t topK,
                                                           xf::graph::Graph<int32_t, int32_t>** g,
                                                           int32_t** resultID,
@@ -59,7 +44,7 @@ std::vector<event<int> > cosineSimilaritySSDenseMultiCard(xf::graph::L3::Handle&
     std::vector<event<int> > eventQueue;
     for (int i = 0; i < deviceNm; ++i) {
         eventQueue.push_back(
-            (handle.opsimdense)->addworkInt(1, 0, sourceNUM, sourceWeights, topK, g[i][0], resultID[i], similarity[i]));
+            (handle.opsimdense)->addworkInt(1, 0, sourceNUM, sourceWeights, sourceCoeffs, topK, g[i][0], resultID[i], similarity[i]));
     }
     return eventQueue;
 };
@@ -68,6 +53,7 @@ int cosineSimilaritySSDenseMultiCardBlocking(xf::graph::L3::Handle& handle,
                                              int32_t deviceNm,
                                              int32_t sourceNUM,
                                              int32_t* sourceWeights,
+                                             int32_t* sourceCoeffs,
                                              int32_t topK,
                                              xf::graph::Graph<int32_t, int32_t>** g,
                                              int32_t* resultID,
@@ -86,7 +72,7 @@ int cosineSimilaritySSDenseMultiCardBlocking(xf::graph::L3::Handle& handle,
     for (int i = 0; i < deviceNm; ++i) {
         eventQueue.push_back(
             (handle.opsimdense)
-                ->addworkInt(1, 0, sourceNUM, sourceWeights, topK, g[i][0], resultID0[i], similarity0[i]));
+                ->addworkInt(1, 0, sourceNUM, sourceWeights, sourceCoeffs, topK, g[i][0], resultID0[i], similarity0[i]));
     }
     int ret = 0;
     for (uint32_t i = 0; i < eventQueue.size(); ++i) {
