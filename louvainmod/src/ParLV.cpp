@@ -92,7 +92,7 @@ int sendGLV_OnlyC(const long headGLVBin, Node* worker_node, GLV* glv) {
     worker_node->send(nvl);
     worker_node->send(nelg);
     worker_node->send(glv->C, sizeof(long) * nv);
-    worker_node->send((void*)(&(glv->times)), sizeof(TimeLv));
+    //worker_node->send((void*)(&(glv->times)), sizeof(TimeLv));
 #ifdef PRINTINFO
     printf("INFO: sendGLV_OnlyC  nv=%ld nc=%ld Q=%lf Successfully \n", nv, nc, Q);
 #endif
@@ -111,7 +111,7 @@ int receiveGLV_OnlyC(Node* driver_node, GLV* glv) {
     driver_node->receive(nelg);
     glv->C = (long*)malloc(sizeof(long) * nv);
     driver_node->receive(glv->C, sizeof(long) * nv);
-    driver_node->receive((void*)(&(glv->times)), sizeof(TimeLv));
+   // driver_node->receive((void*)(&(glv->times)), sizeof(TimeLv));
     glv->NV = nv;
     glv->NC = nc;
     glv->Q = Q;
@@ -3977,7 +3977,7 @@ extern "C" float load_alveo_partitions(
             parlv_drv.plv_src->NC = glv_final->NC;
 
             PrintRptPartition(mode_zmq, parlv_drv, op0.numDevices, numNode, numPureWorker);
-            PrintRptPartition_Summary( parlv_drv,opts_C_thresh);
+            //PrintRptPartition_Summary( parlv_drv,opts_C_thresh);
             std::string outputFileName(opts_outputFile);
             if (!outputFileName.empty()) {
             	host_writeOut(outputFileName.c_str(), parlv_drv.plv_src->NV, parlv_drv.plv_src->C);
