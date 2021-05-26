@@ -258,7 +258,7 @@ inline float udf_louvain_alveo(
         << " nodeId=" << nodeId << std::endl;
     
     float retVal = 0;
-    retVal = execute_louvain_alveo(    
+    retVal = compute_louvain_alveo(    
                     PLUGIN_XCLBIN_PATH, true, numDevices, 
                     numPartitions, alveoProject.c_str(), 
                     modeZmq, numWorkers, nameWorkers, nodeId,
