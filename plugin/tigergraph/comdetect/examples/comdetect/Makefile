@@ -15,7 +15,7 @@ all: run
 
 ../../../../../louvainmod/staging/lib/libXilinxLouvain.so: ../../../../../louvainmod/src/louvainmod_loader.cpp \
                                                            ../../../../../louvainmod/src/ParLV.cpp
-	cd ../../../../../louvainmod && make DEBUG=1
+	cd ../../../../../louvainmod && make DEBUG=$(DEBUG)
 	
 .install-plugin-done: ../../udf/xilinxComDetect.hpp ../../udf/xilinxComDetectImpl.hpp ../../../../../louvainmod/staging/lib/libXilinxLouvain.so
 	@echo "-------------------------------------------------------"
