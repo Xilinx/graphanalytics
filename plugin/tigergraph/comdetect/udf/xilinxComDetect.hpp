@@ -99,6 +99,8 @@ inline int udf_load_alveo(uint num_partitions, uint num_devices)
 {
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+    int retVal = 0;
+    retVal = load_alveo_partitions(num_partitions, num_devices);    
 
  /* TODO
     std::lock_guard<std::mutex> lockGuard(xai::writeMutex);
@@ -111,12 +113,12 @@ inline int udf_load_alveo(uint num_partitions, uint num_devices)
     }
 */    
     // TODO: make call into host code and add needed functions
-    return 0;
+    return retVal;
 }
 
 
 // num_devices:
-inline int udf_create_partition_load_alveo(bool use_saved_partition, 
+inline int udf_create_and_load_alveo_partitions(bool use_saved_partition, 
     string graph_file, string alveo_project, 
     uint num_nodes, string node_names, string node_ips, 
     uint num_partitions, uint num_devices)
@@ -150,7 +152,7 @@ inline int udf_create_partition_load_alveo(bool use_saved_partition,
         
     if (!use_saved_partition && nodeId == 0) {
         std::cout << "DEBUG: Calling create_alveo_partitions" << std::endl;
-        ret = create_alveo_partitions(argc, (char**)(argv));
+        ret = create_and_load_alveo_partitions(argc, (char**)(argv));
     }
     return ret;
 }
@@ -189,7 +191,7 @@ inline int udf_execute_reset(int mode) {
 
 inline float udf_louvain_alveo(
     int64_t max_iter, int64_t max_level, float tolerence, bool intermediateResult,
-    bool verbose, string result_file, bool print_final_Q, bool print_all_Q)
+    bool verbose, string result_file, bool final_Q, bool all_Q)
 {        
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
@@ -201,7 +203,6 @@ inline float udf_louvain_alveo(
     unsigned numPartitions = pContext->getNumPartitions(); 
     std::string nodeNames = pContext->getNodeNames();
     std::string nodeIps = pContext->getNodeIps();
-    std::string communityFile;
 
     //if (pContext->getState() >= xilComDetect::Context::CalledExecuteLouvainState)
     //    return 0;
@@ -257,11 +258,12 @@ inline float udf_louvain_alveo(
         << " nodeId=" << nodeId << std::endl;
     
     float retVal = 0;
-    retVal = load_alveo_partitions(    
+    retVal = execute_louvain_alveo(    
                     PLUGIN_XCLBIN_PATH, true, numDevices, 
                     numPartitions, alveoProject.c_str(), 
                     modeZmq, numWorkers, nameWorkers, nodeId,
-                    communityFile.c_str()); 
+                    result_file.c_str(),
+		    max_iter, max_level, tolerence, intermediateResult, verbose, final_Q, all_Q); 
     
     std::cout << "DEBUG: Returned from execute_louvain. Q=" << retVal << std::endl;
     return retVal;

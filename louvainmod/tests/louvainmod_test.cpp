@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
 
     for (int i=1; i<argc; i++) {
     	if (0 == strcmp(argv[i], "-create_alveo_partitions"))
-    		return create_alveo_partitions(argc, argv);
+    		return create_and_load_alveo_partitions(argc, argv);
     	else if (0 == strcmp(argv[i], "-load_alveo_partitions")) {
     		float modularity_q = load_alveo_partitions_wrapper(argc, argv);
             std::cout << "*****************************************************" << std::endl;

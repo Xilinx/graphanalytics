@@ -3648,7 +3648,7 @@ GLV* louvain_modularity_alveo(xf::graph::L3::Handle* handle0,
     // delete( glv_final);
 }
 
-extern "C" int create_alveo_partitions(int argc, char* argv[]) {
+extern "C" int create_and_load_alveo_partitions(int argc, char* argv[]) {
 //    for (int i = 0; i < argc; ++i)
 //        std::cout << "internal create partitions arg " << i << " = " << argv[i] << std::endl;
     //--------------- Parse Input parameters
@@ -3851,11 +3851,18 @@ int host_writeOut(const char* opts_inFile, long NV_begin, long* C_orig) {
     -workerAlone worker_number -> nodeID
 */
 
-extern "C" float load_alveo_partitions(
+extern "C" float load_alveo_partitions(unsigned int num_partitions, unsigned int num_devices)
+{
+#ifndef NDEBUG    
+    std::cout << "compute_louvain_alveo not implemented yet" << << std::endl; 
+#endif
+}
+extern "C" float compute_louvain_alveo(
     char* xclbinPath, bool flow_fast, unsigned int numDevices, 
     unsigned int num_par, char* alveoProject, 
     int mode_zmq, int numPureWorker, char* nameWorkers[128], unsigned int nodeID,
-    char* opts_outputFile)
+    char* opts_outputFile, int64_t max_iter, int64_t max_level, float tolerence, bool intermediateResult,
+    bool verbose, bool final_Q, bool all_Q)
 {
 #ifndef NDEBUG    
     std::cout << "DEBUG: " << __FUNCTION__ <<  " xclbinPath=" << xclbinPath 
@@ -4089,10 +4096,11 @@ float load_alveo_partitions_wrapper(int argc, char* argv[]) {
     if (devNeed_cmd > 0)
         numDevices = devNeed_cmd;
 
-    retVal = load_alveo_partitions((char *)xclbinPath.c_str(), flow_fast, numDevices, 
+    retVal = compute_louvain_alveo((char *)xclbinPath.c_str(), flow_fast, numDevices, 
                                    num_par, (char *)nameMetaFile.c_str(), 
                                    mode_zmq, numPureWorker, nameWorkers, nodeID,
-                                   (char *)opts_outputFile.c_str());
+                                   (char *)opts_outputFile.c_str(),glb_max_num_iter, glb_max_num_level, 
+				   opts_threshold, false, false, true, false);
 
     return retVal;
 }
