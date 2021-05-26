@@ -3897,7 +3897,7 @@ extern "C" float compute_louvain_alveo(
     char* xclbinPath, bool flow_fast, unsigned int numDevices, 
     unsigned int num_par, char* alveoProject, 
     int mode_zmq, int numPureWorker, char* nameWorkers[128], unsigned int nodeID,
-    char* opts_outputFile, unsigned int max_iter, unsigned int max_level, float tolerence, bool intermediateResult,
+    char* opts_outputFile, unsigned int max_iter, unsigned int max_level, float tolerance, bool intermediateResult,
     bool verbose, bool final_Q, bool all_Q)
 {
 #ifndef NDEBUG    
@@ -3916,6 +3916,9 @@ extern "C" float compute_louvain_alveo(
         std::cout << "DEBUG: nameWorker " << i << "=" << nameWorkers[i] << std::endl;
 
 #endif    
+    // TODO: We should remove globals as this is quite confusing
+    glb_max_num_level = max_level;
+    glb_max_num_iter = max_iter;
     int mode_alveo = ALVEOAPI_LOAD;
     std::string opName = "louvainModularity";
     std::string kernelName = "kernel_louvain";
@@ -3923,7 +3926,8 @@ extern "C" float compute_louvain_alveo(
     bool isPrun = true;
     const int cuNm = 1;
 
-    double opts_C_thresh = 0.0002;   // Threshold with coloring on
+    //double opts_C_thresh = 0.0002;   // Threshold with coloring on
+    double opts_C_thresh = tolerance;   // Threshold with coloring on
     long opts_minGraphSize = 10; // Min |V| to enable coloring
     double opts_threshold = 0.000001;  // Value of threshold
     int par_prune = 1;

@@ -53,7 +53,7 @@ CREATE DISTRIBUTED QUERY load_alveo(
         // On each server call the code
         nodelist = SELECT n FROM nodes:n
            ACCUM
-           status = udf_create_partition_load_alveo(use_saved_partition, 
+           status = udf_create_and_load_alveo_partitions(use_saved_partition, 
                graph_file, louvain_project, nodes.size(), node_names, node_ips,
                num_partitions, num_devices);
     END;
