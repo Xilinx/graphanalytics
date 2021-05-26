@@ -42,7 +42,7 @@ XILINX_LOUVAINMOD_IMPL_DECL
 int create_alveo_partitions(int argc, char *argv[]);
 
 XILINX_LOUVAINMOD_IMPL_DECL
-float load_alveo_partitions(int argc, char *argv[]);
+float load_alveo_partitions_wrapper(int argc, char *argv[]);
 
 }
 

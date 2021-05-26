@@ -47,6 +47,28 @@ inline double udf_elapsed_time(bool dummy) {
     return l_timeMs;
 }
 
+inline int64_t udf_peak_memory_usage(double& VmPeak, double& VmHWM)
+{
+    // Open the /proc/self/status and grep for relevant fields
+    //Layout of fields in /proc/self/status
+    //VmPeak:     8216 kB This is peak Virtual Memory size
+    //VmHWM:       752 kB This is peak Resident Set Size
+    uint64_t vm_peak, vm_hwm;
+    string line;
+    std::ifstream proc_status("/proc/self/status", std::ios_base::in);
+    while (std::getline(proc_status, line)) {
+        std::size_t pos = line.find("VmPeak");
+        if( pos != string::npos) {
+            VmPeak = louvainDemo::extract_size_in_kB(line);
+        }
+        pos = line.find("VmHWM");
+        if( pos != string::npos) {
+            VmHWM = louvainDemo::extract_size_in_kB(line);
+        }
+    }
+    return 0L;
+}
+
 template <typename tuple>
 inline uint64_t getDeltaQ (tuple tup) {
   return tup.deltaQ;

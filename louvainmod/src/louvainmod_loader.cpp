@@ -111,10 +111,21 @@ int create_alveo_partitions(int argc, char *argv[]) {
 }
 
 XILINX_LOUVAINMOD_IMPL_DEF
-float load_alveo_partitions(int argc, char *argv[]) {
-    typedef float (*LoadPartitionsFunc)(int, char *[]);
+float load_alveo_partitions(    
+    char* xclbinPath, bool flowFast, unsigned numDevices, 
+    unsigned num_par, char* alveoProject, 
+    unsigned mode_zmq, unsigned numPureWorker, char* nameWorkers[128], unsigned nodeID,
+    char* opts_outputFile) 
+{
+    typedef float (*LoadPartitionsFunc)(char*, bool, unsigned, 
+                                        unsigned, char*, 
+                                        unsigned, unsigned, char* [], unsigned,
+                                        char*);
     LoadPartitionsFunc pLoadFunc = (LoadPartitionsFunc) getDynamicFunction("load_alveo_partitions");
-    return pLoadFunc(argc, argv);
+    return pLoadFunc(xclbinPath, flowFast, numDevices, 
+                     num_par, alveoProject, 
+                     mode_zmq, numPureWorker, nameWorkers, nodeID,
+                     opts_outputFile);
 }
 
 }  // extern "C"

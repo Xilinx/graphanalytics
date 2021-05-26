@@ -1,48 +1,64 @@
 SHELL = bash
 
-../../../../../louvainmod/staging/lib/libXilinxLouvain.so: ../../../../../louvainmod/src/louvainmod_loader.cpp
+XGRAPH=social_$(USER)
+compileMode=0
+runMode=0
+partitionMode=1
+numDevices=1
+numNodes=1
+numPartitions=9
+dataSource=/proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx
+alveoProject=/proj/gdba/tg-common/alveo-projects/as-skitter-partition
+
+../../../../../louvainmod/staging/lib/libXilinxLouvain.so: ../../../../../louvainmod/src/louvainmod_loader.cpp \
+                                                           ../../../../../louvainmod/src/ParLV.cpp
 	cd ../../../../../louvainmod && make DEBUG=1
 	
-./install-plugin-done: ../../udf/xilinxComDetect.hpp ../../udf/xilinxComDetectImpl.hpp ../../../../../louvainmod/staging/lib/libXilinxLouvain.so
+.install-plugin-done: ../../udf/xilinxComDetect.hpp ../../udf/xilinxComDetectImpl.hpp ../../../../../louvainmod/staging/lib/libXilinxLouvain.so
 	@echo "-------------------------------------------------------"
-	@echo "make ./install-plugin-done"
+	@echo "Installing plugin files into TigerGraph software"
 	@echo "-------------------------------------------------------"
 	cd ../../ && make && ./staging/install.sh -v -f && \
-	cd - && touch install-plugin-done
+	cd - && touch .install-plugin-done
 
-./install-udf-done: ./install-plugin-done
-	@echo "-------------------------------------------------------"
-	@echo "make ./install-udf-done"
-	@echo "-------------------------------------------------------"
+.install-udf-done: .install-plugin-done udf/louvainDemo.hpp
+	@echo "--------------------------------------------------------------"
+	@echo "Installing application specific UDFs into TigerGraph software"
+	@echo "--------------------------------------------------------------"
 	cd ../../ && make && \
 	./staging/examples/comdetect/bin/install-udf.sh -v -f && \
-	cd - && touch install-udf-done
+	cd - && touch .install-udf-done
 
-./install-query-done: ./install-udf-done query/test.gsql 
+.install-query-done: .install-udf-done query/test.gsql 
 	@echo "-------------------------------------------------------"
 	@echo "make install-query-done"
 	@echo "-------------------------------------------------------"
-	@gsql query/test.gsql && touch install-query-done
+	@gsql query/test.gsql && touch .install-query-done
 
-run-test: ./install-query-done
+run-test: .install-query-done
 	@echo "-------------------------------------------------------"
 	@echo "make run-test"
 	@echo "-------------------------------------------------------"
-	gsql -g social_ywu "run query insert_dummy_nodes(1)"
-	time gsql -g social_ywu "run query louvain_alveo(10, [\"Person\"], [\"Coworker\"], \
-                                                 \"/home2/tigergraph/alveo_out.txt\", \
-                                                 \"/proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx\", \
-                                                 \"/proj/gdba/datasets/louvain-graphs/as-skitter-par9/louvain_partitions.par.proj\", \
-												 \"1\", \"9\", \"0\")"
+	gsql -g $(XGRAPH) "run query insert_dummy_nodes(1)"
+	time gsql -g $(XGRAPH) "run query test()"
 
-staging-run: ./install-udf-done
+install-plugin: .install-plugin-done
+
+run: .install-udf-done
 	@echo "-------------------------------------------------------"
-	@echo "make staging-run"
+	@echo "Running run.sh from staging "
 	@echo "-------------------------------------------------------"
-	cd ../../ && make && ./staging/examples/comdetect/run.sh -g social_ywu1 -s /proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx 
+	cd ../../ && make && ./staging/examples/comdetect/run.sh -v -g $(XGRAPH) \
+	    -c $(compileMode) -r $(runMode) -x $(partitionMode) \
+		-m $(numNodes) -d $(numDevices) \
+	    -s $(dataSource) -a $(alveoProject) -n $(numPartitions)
+
+help:
+	./run.sh -h
 
 clean:
-	rm -f ./install-plugin-done ./install-udf-done ./install-query-done
+	rm -f .install-plugin-done .install-udf-done .install-query-done
+
 
 
 

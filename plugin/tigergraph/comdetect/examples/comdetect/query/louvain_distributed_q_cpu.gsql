@@ -38,6 +38,7 @@ CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(
 	DOUBLE vm_peak, vm_hwm;
 	INT ret;
     DOUBLE udf_time;
+    DOUBLE epsilon = 0.0001;
 
 	Start = {v_type};
     udf_reset_timer(true);
@@ -63,7 +64,8 @@ CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(
 					t.@cc += getCc(t.@best_move),
 					t.@ccWeight = -getWeight(t.@best_move)
 				ELSE
-					IF -getWeight(t.@best_move) == t.@ccWeight AND getvid(t) < getvid(getCc(t.@best_move))  THEN
+					//IF -getWeight(t.@best_move) == t.@ccWeight AND getvid(t) < getvid(getCc(t.@best_move))  THEN
+                    IF abs((-getWeight(t.@best_move)) - (t.@ccWeight)) < epsilon AND getvid(t) < getvid(getCc(t.@best_move))  THEN
 						t.@cc.clear(),
 						t.@cc += getCc(t.@best_move),
 						t.@ccWeight = -getWeight(t.@best_move)
@@ -129,7 +131,8 @@ CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(
 						s.@cc += getCc(s.@best_move),
 						s.@ccWeight = -getWeight(s.@best_move)
 					ELSE
-						IF -getWeight(s.@best_move) == s.@ccWeight AND getvid(s.@cc.get(0)) < getvid(getCc(s.@best_move))  THEN
+                        //IF -getWeight(s.@best_move) == s.@ccWeight AND getvid(s.@cc.get(0)) < getvid(getCc(s.@best_move))  THEN
+						IF abs((-getWeight(s.@best_move)) - (s.@ccWeight)) < epsilon AND getvid(s.@cc.get(0)) < getvid(getCc(s.@best_move))  THEN
 							s.@cc.clear(),
 							s.@cc += getCc(s.@best_move),
 							s.@ccWeight = -getWeight(s.@best_move)

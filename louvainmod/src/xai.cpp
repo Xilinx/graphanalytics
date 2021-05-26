@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-
+/*
 #include <stdint.h>
 
 #include "xai.h"
@@ -48,9 +48,10 @@ int xai_create_partitions(int argc, char** argv) {
 }
 
 int xai_load_partitions(int argc, char** argv) {
-    return load_alveo_partitions(argc, argv);
+    return load_alveo_partitions_wrapper(argc, argv);
 }
 
 int xai_execute_louvain(int argc, char** argv) {
     return louvain_modularity_alveo(argc, argv);
 }
+*/
