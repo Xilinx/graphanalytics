@@ -3889,7 +3889,7 @@ int host_writeOut(const char* opts_inFile, long NV_begin, long* C_orig) {
 extern "C" float load_alveo_partitions(unsigned int num_partitions, unsigned int num_devices)
 {
 #ifndef NDEBUG    
-    std::cout << "load_alveo_partitions not implemented yet" << << std::endl; 
+    std::cout << "load_alveo_partitions not implemented yet" << std::endl; 
 #endif
 }
 
