@@ -92,7 +92,7 @@ int sendGLV_OnlyC(const long headGLVBin, Node* worker_node, GLV* glv) {
     worker_node->send(nvl);
     worker_node->send(nelg);
     worker_node->send(glv->C, sizeof(long) * nv);
-    worker_node->send(glv->times, sizeof(TimeLv));
+    worker_node->send((void*)(&(glv->times)), sizeof(TimeLv));
 #ifdef PRINTINFO
     printf("INFO: sendGLV_OnlyC  nv=%ld nc=%ld Q=%lf Successfully \n", nv, nc, Q);
 #endif
@@ -111,7 +111,7 @@ int receiveGLV_OnlyC(Node* driver_node, GLV* glv) {
     driver_node->receive(nelg);
     glv->C = (long*)malloc(sizeof(long) * nv);
     driver_node->receive(glv->C, sizeof(long) * nv);
-    driver_node->receive(glv->times, sizeof(TimeLv));
+    driver_node->receive((void*)(&(glv->times)), sizeof(TimeLv));
     glv->NV = nv;
     glv->NC = nc;
     glv->Q = Q;
@@ -176,10 +176,10 @@ int MessageGen_W2D(char* msg, int nodeID) { // Format:  parlv_req -num <> -path 
     return 0;
 }
 
-int MessageGen_W2D(char* msg, ParLV& parlv, int nodeID) { // Format:  parlv_req -num <> -path <> [name]*
+int MessageGen_W2D(char* msg, ParLV& parlv, int nodeID) { // Format:  parlv_done -num %d -node %d -comp %lf -io %lf %lf -num_dev %d
     assert(msg);
-    sprintf(msg, "parlv_done -num %d -node %d -comp %lf -io %lf %lf", parlv.num_par, nodeID,
-            parlv.timesPar.timeWrkCompute[0], parlv.timesPar.timeWrkLoad[0], parlv.timesPar.timeWrkSend[0]);
+    sprintf(msg, "parlv_done -num %d -node %d -comp %lf -io %lf %lf -num_dev %d", parlv.num_par, nodeID,
+            parlv.timesPar.timeWrkCompute[0], parlv.timesPar.timeWrkLoad[0], parlv.timesPar.timeWrkSend[0], parlv.num_dev);
     strcat(msg, "\n");
 #ifdef PRINTINFO
     printf("MESSAGE W2D parlv_done: %s", msg);
@@ -260,6 +260,17 @@ int MessageParser_W2D(int id_wkr, char* msg, ParLV& parlv) {
     parlv.timesPar.timeWrkLoad[nodeID] = tmp;
     tmp = atof(ps.argv[id_timeIO + 2]);
     parlv.timesPar.timeWrkSend[nodeID] = tmp;
+
+    int id_num_dev = ps.cmd_findPara("-num_dev");
+    if (id_num_dev == -1) {
+        printf("\033[1;31;40mERROR\033[0m: MessageParser_W2D: Can't find parameter -num_dev\n");
+        return -1;
+    }
+    parlv.numServerCard[nodeID] = atoi(ps.argv[id_num_dev + 1]);
+#ifdef PRINTINFO
+    printf("\033[1;37;40mINFO\033[0m : parlv.numServerCard[nodeID]: %d\n", parlv.numServerCard[nodeID]);
+#endif
+
     return num_par_sub;
 }
 
@@ -1303,13 +1314,13 @@ void PrintArrayByNum(int num, T* array){
 		if(i==0)printf("[");
 		else printf(", ");
 		if(std::is_same<T, int>::value)
-			printf("%d", array[i]);
+			printf("%d", (int)(array[i]));
 		else if(std::is_same<T, long>::value)
-			printf("%ld", array[i]);
+			printf("%ld", (long)(array[i]));
 		else if( std::is_same<T, float>::value)
-			printf("%f", array[i]);
+			printf("%f", (float)(array[i]));
 		else if( std::is_same<T, double>::value)
-			printf("%lf", array[i]);
+			printf("%lf", (double)(array[i]));
 		if(i==num-1)printf("]\n");
 	}
 }
@@ -1321,25 +1332,49 @@ T SummArrayByNum(int num, T* array){
 	return ret;
 }
 
+int FindMinLevel(ParLV& parlv){
+	int ret=glb_max_num_level;
+	for(int i=0; i < parlv.num_par; i++)
+		ret = ret >  parlv.par_src[i]->times.phase ? parlv.par_src[i]->times.phase: ret;
+	return ret;
+}
+
+int FindMaxLevel(ParLV& parlv){
+	int ret=0;
+	for(int i=0; i < parlv.num_par; i++)
+		ret = ret <  parlv.par_src[i]->times.phase ? parlv.par_src[i]->times.phase: ret;
+	return ret;
+}
+
 void PrintRptPartition_Summary(
 		ParLV& parlv,
 		//int numNode, int* card_Node,
-		long opts_C_thresh
+		double opts_C_thresh
 		) {
 	int num_par = parlv.num_par;
 	int numNode = parlv.num_server;
 	int* card_Node = parlv.numServerCard;
 
 	printf("****************************************Summary*************************************************\n");
-	printf("Number of vertices           : %ld\n", parlv.plv_src->NV);
-	printf("Number of edges              : %ld\n", parlv.plv_src->NE);
-	printf("Number of partitions         : %d\n" , parlv.num_par);
-	printf("Partition size               : < %ld\n", 64000000);
-	printf("Number of nodes (machines)   : %d\n" , numNode);
-	printf("Number of Xilinx Alveo cards : %d\n" , SummArrayByNum<int>(numNode, card_Node));
-	printf("Delta Q tolerance            : %lf\n" , opts_C_thresh);
-	printf("Number of communities        : %ld\n", parlv.plv_src->NC);
-	printf("Modularity                   : %lf\n ", parlv.plv_src->Q);
+	printf("Number of vertices           : %ld\n"  , parlv.plv_src->NV);
+	printf("Number of edges              : %ld\n"  , parlv.plv_src->NE);
+	printf("Number of partitions         : %d\n"   , parlv.num_par);
+	printf("Partition size               : < %d\n" , 64000000);
+	printf("Number of nodes (machines)   : %d\n"   , numNode);
+	printf("Number of Xilinx Alveo cards : %d"     , SummArrayByNum<int>(numNode, card_Node));
+	PrintArrayByNum<int>(numNode, card_Node);//[3, 3,3]
+	printf("Number of level [Min, Max]   : [ %d, %d ]\n" , FindMinLevel(parlv), FindMaxLevel(parlv));
+	printf("Number of iterations         : Each partition has its own iteration number for each level, so please check the Partition Summary\n");
+	printf("Delta Q tolerance            : %lf\n"  , opts_C_thresh);
+	printf("Number of communities        : %ld\n"  , parlv.plv_src->NC);
+	printf("Modularity                   : %lf\n"  , parlv.plv_src->Q);
+
+	printf("Time                         : %4.3f sec ", parlv.timesPar.timeDriverExecute );
+	printf(" (Partition Compute: %4.3f sec"           , parlv.timesPar.timeDriverCollect);
+	printf(", Merge: %4.3f sec"                       , parlv.timesPar.timePre + parlv.timesPar.timeMerge);
+	printf(", Merge Compute: %4.3f sec)"              , parlv.timesPar.timeFinal);
+	printf("\n");
+	printf("********************************Partition Summary***********************************************\n");
 	for(int p = 0; p< num_par; p++){
 		printf("\tPARTITION-%d :\n ", p);
 		int numLevel = parlv.par_src[p]->times.phase;
@@ -1354,12 +1389,8 @@ void PrintRptPartition_Summary(
 		printf("\t\tModularity                   : %lf ", parlv.par_src[p]->Q);
 		PrintArrayByNum<double>(numLevel, parlv.par_src[p]->times.eachMod);//[7, 3, 2]//[0.64, 0.77, 0.84]
 	}
-	printf("Time                         : %4.3f sec ", parlv.timesPar.timeDriverExecute );
-	printf(" (Partition Compute: %4.3f sec"           , parlv.timesPar.timeDriverCollect);
-	printf(", Merge: %4.3f sec"                       , parlv.timesPar.timePre + parlv.timesPar.timeMerge);
-	printf(", Merge Compute: %4.3f sec)"              , parlv.timesPar.timeFinal);
-	printf("\n");
 	printf("************************************************************************************************\n");
+
 }
 
 void PrintRptPartition(int mode_zmq, ParLV& parlv, int op0_numDevices, int numNode, int numPureWorker) {
@@ -2646,8 +2677,10 @@ void LoadParLV(char* name, ParLV* p_parlv) {
     FILE* fp = fopen(name, "rb");
     char* ptr = (char*)p_parlv;
     int flowMode = p_parlv->flowMode;
+    int num_dev = p_parlv->num_dev;
     fread(ptr, sizeof(ParLVVar), 1, fp);
     p_parlv->flowMode = flowMode;
+    p_parlv->num_dev = num_dev;
     fclose(fp);
 }
 

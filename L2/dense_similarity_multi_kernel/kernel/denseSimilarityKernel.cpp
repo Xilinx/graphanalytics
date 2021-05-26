@@ -25,12 +25,13 @@ void loadSource(ap_int<32> similarity_type,
                 ap_int<32> source_nm,
 
                 ap_int<WData>* weight,
+                ap_int<WData>* coeffs,
                 hls::stream<ap_int<WData> >& source_weight) {
 #pragma HLS INLINE off
 
     for (ap_int<32> i = 0; i < source_nm; i++) {
 #pragma HLS PIPELINE II = 1
-        source_weight.write(weight[i]);
+        source_weight.write(weight[i] * coeffs[i]);
     }
 }
 
@@ -329,6 +330,7 @@ void denseSimilarityTop3PU(ap_int<32> k,
 
 extern "C" void denseSimilarityKernel(ap_int<32>* config,
                                       ap_int<32>* sourceWeight,
+                                      ap_int<32>* sourceCoeffs,
 
                                       ap_int<32 * CHANNEL_NUMBER>* dataIn00,
                                       ap_int<32 * CHANNEL_NUMBER>* dataIn01,
@@ -395,6 +397,9 @@ extern "C" void denseSimilarityKernel(ap_int<32>* config,
     32 max_write_burst_length = 8 max_read_burst_length = 8 bundle = gmem4_0 port = sourceWeight depth = 65536
 #pragma HLS INTERFACE s_axilite port = sourceWeight bundle = control
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 1 num_read_outstanding = \
+    32 max_write_burst_length = 8 max_read_burst_length = 8 bundle = gmem4_0 port = sourceCoeffs depth = 65536
+#pragma HLS INTERFACE s_axilite port = sourceCoeffs bundle = control
+#pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 1 num_read_outstanding = \
     32 max_write_burst_length = 8 max_read_burst_length = 8 bundle = gmem4_0 port = resultID depth = 128
 #pragma HLS INTERFACE s_axilite port = resultID bundle = control
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 1 num_read_outstanding = \
@@ -440,7 +445,7 @@ extern "C" void denseSimilarityKernel(ap_int<32>* config,
     std::cout << "loading source" << std::endl;
 #endif
 
-    loadSource<CHANNEL_NUMBER, W_DATA>(similarity_type, source_num, sourceWeight, source_weight);
+    loadSource<CHANNEL_NUMBER, W_DATA>(similarity_type, source_num, sourceWeight, sourceCoeffs, source_weight);
 
     hls::stream<ap_int<W_DATA> > row_strm;
 #pragma HLS stream variable = row_strm depth = 512

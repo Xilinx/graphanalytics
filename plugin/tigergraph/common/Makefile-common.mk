@@ -129,10 +129,13 @@ dist: stage
 	    make ; \
 	fi
 
-.PHONY: install
+ifdef SSH_KEY
+    SSH_KEY_OPT=-i $(SSH_KEY)
+endif
 
+.PHONY: install
 install: stage
-	./staging/install.sh
+	./staging/install.sh $(SSH_KEY_OPT)
 
 #######################################################################################################################
 #
@@ -150,4 +153,8 @@ help:
 	@echo "stage   : Generate staging directory"
 	@echo "dist    : Generate installation package (RPM or DEB) for the current OS and architecture"
 	@echo "install : Make stage and run insta.sh"
+	@echo ""
+	@echo "Examples:"
+	@echo "Install plugin files with SSH key file"
+	@echo "make SSH_KEY=~/.ssh/tigergraph_rsa"
 
