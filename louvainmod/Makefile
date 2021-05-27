@@ -71,6 +71,7 @@ endif
 ## Target: libLouvain.so
 INCLUDES_libLouvain = \
 	-Iinclude \
+	-I$(GRAPH_ANALYTICS_DIR)/louvainmod/grappolo/include \
 	-I$(XILINX_XRT)/include \
 	-I$(XILINX_XRM)/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L2/include \
@@ -104,7 +105,7 @@ SRCS_loader = src/louvainmod_loader.cpp
 OBJS_loader = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_loader:.cpp=.o)))
 DEPS_loader = $(OBJS_loader:.o=.d)
 
-SRCS_top = $(filter-out $(SRCS_loader),$(wildcard src/*.cpp))
+SRCS_top = $(filter-out $(SRCS_loader),$(wildcard src/*.cpp)) $(wildcard grappolo/src/*.cpp)
 OBJS_top = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_top:.cpp=.o)))
 
 SRCS_all = $(SRCS_L3) $(SRCS_top) $(SRCS_loader)
