@@ -241,7 +241,6 @@ inline float udf_louvain_alveo(
 
     for (int i=0; i < iTcpConn; i++)
         std::cout << "DEBUG: nameWorker " << i << "=" << nameWorkers[i] << std::endl;
-    //{"tcp://192.168.1.21:5555", "tcp://192.168.1.31:5555"};
 
     // nodeId 0 is always the driver. All other nodes are workers.
     if (nodeId == 0) {

@@ -463,6 +463,6 @@ clean-xclbin:
 
 help:
 	@echo "Valid make targets:"
-	@echo "dist     : Generate cosinesim product package (RPM or DEB) for the current OS and architecture"
+	@echo "dist     : Generate product installation package (RPM or DEB) for the current OS and architecture"
 	@echo "doxy-cpp : Generate CPP documentation using doxygen. The default html output directory is ./build/cppdocs"
-	@echo "run-test : Run standalone test with statically linked executable"
+	

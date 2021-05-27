@@ -918,7 +918,7 @@ int host_ParserParameters(int argc,
                           bool& opts_output,       //;
                           std::string& opts_outputFile,
                           bool& opts_VF, //;
-                          char opts_xclbinPath[4096],
+                          std::string& xclbinPath,
                           int& numThread,
                           int& num_par,
                           int& gh_par,
@@ -1090,13 +1090,11 @@ int host_ParserParameters(int argc,
     if (has_opts_xclbinPath != -1 && has_opts_xclbinPath < (argc - 1)) {
         rec[has_opts_xclbinPath] = true;
         rec[has_opts_xclbinPath + 1] = true;
-        strcpy(opts_xclbinPath, argv[has_opts_xclbinPath + 1]);
-#ifdef PRINTINFO
-        printf("PARAMETER  opts_xclbinPath = %s\n", opts_xclbinPath);
-#endif
-    } else {
-        opts_xclbinPath[0] = 0;
-    }
+        xclbinPath = argv[has_opts_xclbinPath + 1];
+//#ifdef PRINTINFO
+        printf("PARAMETER  opts_xclbinPath = %s\n", xclbinPath.c_str());
+//#endif
+    } 
 
     if (has_numThread != -1 && has_numThread < (argc - 1)) {
         rec[has_numThread] = true;
@@ -3697,7 +3695,7 @@ extern "C" int create_and_load_alveo_partitions(int argc, char* argv[]) {
     bool opts_output;
     std::string opts_outputFile;
     bool opts_VF;
-    char opts_xclbinPath[4096];
+    std::string xclbinPath;
 
     int flow_fast = 2;
     int flowMode = 1;
@@ -3720,7 +3718,7 @@ extern "C" int create_and_load_alveo_partitions(int argc, char* argv[]) {
     //int max_num_level;
     //int max_num_iter;
     host_ParserParameters(argc, argv, opts_C_thresh, opts_minGraphSize, opts_threshold, opts_ftype, opts_inFile,
-                          opts_coloring, opts_output, opts_outputFile, opts_VF, opts_xclbinPath, numThreads, num_par,
+                          opts_coloring, opts_output, opts_outputFile, opts_VF, xclbinPath, numThreads, num_par,
                           par_prune, flow_fast, devNeed_cmd, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
                           nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par, glb_max_num_level, glb_max_num_iter);
 
@@ -3908,7 +3906,7 @@ extern "C" float compute_louvain_alveo(
               << " nodeID=" << nodeID
               << " opts_outputFile=" << opts_outputFile
               << " max_iter=" << max_iter << " max_level=" << max_level 
-              << " tolerence=" << tolerence << " intermediateResult=" << intermediateResult 
+              << " tolerance=" << tolerance << " intermediateResult=" << intermediateResult 
               << " verbose=" << verbose << " final_Q=" << final_Q << " all_Q=" << all_Q 
               << std::endl;
 
@@ -4094,7 +4092,7 @@ float load_alveo_partitions_wrapper(int argc, char* argv[]) {
     std::string opName = "louvainModularity";
     std::string kernelName = "kernel_louvain";
     int requestLoad = 100;
-    std::string xclbinPath = "/proj/autoesl/ryanw/kernel_louvain_pruning.xclbin";
+    std::string xclbinPath = "/opt/xilinx/apps/graphanalytics/louvainmod/1.0/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin";
     int numDevices = 2;
     const int cuNm = 1;
 
@@ -4108,8 +4106,6 @@ float load_alveo_partitions_wrapper(int argc, char* argv[]) {
     bool opts_output;
     std::string opts_outputFile;
     bool opts_VF;
-    char opts_xclbinPath[4096];
-
     int flow_fast = 2;
     int flowMode = 1;
     int num_par;
@@ -4132,7 +4128,7 @@ float load_alveo_partitions_wrapper(int argc, char* argv[]) {
     float retVal = 0.0;
 
     host_ParserParameters(argc, argv, opts_C_thresh, opts_minGraphSize, opts_threshold, opts_ftype, opts_inFile,
-                          opts_coloring, opts_output, opts_outputFile, opts_VF, opts_xclbinPath, numThreads, num_par,
+                          opts_coloring, opts_output, opts_outputFile, opts_VF, xclbinPath, numThreads, num_par,
                           par_prune, flow_fast, devNeed_cmd, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
                           nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par, glb_max_num_level, glb_max_num_iter);
 

@@ -1,6 +1,8 @@
-XGRAPH=social_$(USER)
-ifdef SSH_KEY
-    SSH_KEY_OPT=-i $(SSH_KEY)
+
+
+graphName=social_$(USER)
+ifdef sshKey
+    SSH_KEY_OPT=-i $(sshKey)
 endif	
 compileMode=0
 runMode=0
@@ -42,8 +44,8 @@ run-test: .install-query-done
 	@echo "-------------------------------------------------------"
 	@echo "make run-test"
 	@echo "-------------------------------------------------------"
-	gsql -g $(XGRAPH) "run query insert_dummy_nodes(1)"
-	time gsql -g $(XGRAPH) "run query test()"
+	gsql -g $(graphName) "run query insert_dummy_nodes(1)"
+	time gsql -g $(graphName) "run query test()"
 
 install-plugin: .install-plugin-done
 
@@ -52,13 +54,26 @@ run: .install-udf-done
 	@echo "-------------------------------------------------------"
 	@echo "Running run.sh from staging "
 	@echo "-------------------------------------------------------"
-	cd ../../ && make && ./staging/examples/comdetect/run.sh -v $(SSH_KEY_OPT) \
-	    -g $(XGRAPH) -c $(compileMode) -r $(runMode) -x $(partitionMode) \
+	cd ../../ && make stage && ./staging/examples/comdetect/run.sh -v $(SSH_KEY_OPT) \
+	    -g $(graphName) -c $(compileMode) -r $(runMode) -x $(partitionMode) \
 		-m $(numNodes) -d $(numDevices) \
 	    -s $(dataSource) -a $(alveoProject) -n $(numPartitions)
 
 help:
-	./run.sh -h
+	@echo "Optional make parameters"
+	@echo "alveoProject     : Alveo partition project basename"
+	@echo "compileMode      : 0: recreate database and compile all (default); 1: only compile query gsql; 2: skip database creation and gsql compilation"
+	@echo "numDevices       : number of FPGAs needed (default=1)"
+	@echo "graphName        : graph name (default=social_<username>"
+	@echo "sshKey           : SSH key for user tigergraph"
+	@echo "numNodes         : Number of nodes in Tigergraph cluster"
+	@echo "numPartitions    : Number of Alveo partitions"
+	@echo "runMode          : 0: Run only on CPU (default); 1: Run only on Alveo; 2: Run on both CPU and Alveo"
+	@echo "dataSource       : A .mtx file containing input graph. default=./as-Skitter/as-Skitter-wt-e110k.mtx"
+	@echo "partitionMode    : 0: from TigerGraph memory; 1: from dataSource (.mtx) (default); 2: load saved (alveo project)"
+	@echo " "
+	@echo "Examples:"
+	@echo "make alveoProject=/proj/gdba/tg-common/alveo-projects/as-skitter-partition"
 
 clean:
 	rm -f .install-plugin-done .install-udf-done .install-query-done

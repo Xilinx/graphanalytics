@@ -1,6 +1,8 @@
 #!/bin/bash
 
-echo Running $0
+SCRIPT=$(readlink -f $0)
+SCRIPTPATH=`dirname $SCRIPT`
+echo Running $SCRIPT
 if [ "$#" -lt 6 ]; then
     echo "$0 <.mtx file> <partition project base name> <number of partitions> <numDevices> <numWorkers> <max_level>"
     echo "Example: $0 /proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx as-skitter-par9 9 3 2"
@@ -22,8 +24,7 @@ fi
 
 workers="tcp://192.168.1.21:5555 tcp://192.168.1.31:5555"
 #workers="tcp://10.18.5.112:5555 tcp://10.18.5.113:5555"
-# Set rundir to your dir
-xclbinfile=/proj/autoesl/ryanw/kernel_louvain_pruning.xclbin
+xclbinfile=$SCRIPTPATH/../staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin
 
 exe_dir="Release"
 if [ "$DEBUG" == "1" ]; then

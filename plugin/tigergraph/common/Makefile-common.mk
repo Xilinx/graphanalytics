@@ -95,7 +95,7 @@ STAGE_ALL_FILES = \
 STAGE_SUBDIRS = $(sort $(dir $(STAGE_ALL_FILES)))
 
 stage: $(STAGE_DIR) $(STAGE_SUBDIRS) $(STAGE_ALL_FILES)
-	
+
 
 $(STAGE_DIR):
 	mkdir -p $@
@@ -129,8 +129,8 @@ dist: stage
 	    make ; \
 	fi
 
-ifdef SSH_KEY
-    SSH_KEY_OPT=-i $(SSH_KEY)
+ifdef sshKey
+    SSH_KEY_OPT=-i $(sshKey)
 endif
 
 .PHONY: install

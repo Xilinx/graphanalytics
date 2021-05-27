@@ -30,7 +30,7 @@ void createHandleLouvainModularity(class openXRM* xrm, clHandle& handle,
                                    unsigned int requestLoad)
 {
 #ifndef NDEBUG
-    std::cout << "DEBUG: --------" << __FUNCTION__ << " IDDevice=" << IDDevice 
+    std::cout << "DEBUG: " << __FUNCTION__ << " IDDevice=" << IDDevice 
               << " handle=" << &handle << std::endl;
 #endif
     // Platform related operations
@@ -826,13 +826,8 @@ void opLouvainModularity::demo_par_core(int id_dev, int flowMode,
 
             auto ev = addwork(pglv_iter, flowMode, opts_C_thresh, &pglv_orig->times.eachItrs[pglv_orig->times.phase - 1], currMod, &numClusters,
                               &pglv_orig->times.eachTimeInitBuff[pglv_orig->times.phase - 1], &pglv_orig->times.eachTimeReadBuff[pglv_orig->times.phase - 1]);
-#ifndef NDEBUG
-            std::cout << "DEBUG: before wait addwork" << std::endl;
-#endif
             ev.wait();
-#ifndef NDEBUG
-            std::cout << "DEBUG: after wait addwork" << std::endl;
-#endif
+
             pglv_orig->times.eachTimeE2E  [pglv_orig->times.phase - 1] =pglv_iter->times.eachTimeE2E[0];
             pglv_orig->times.deviceID     [pglv_orig->times.phase - 1] =pglv_iter->times.deviceID   [0];
             pglv_orig->times.cuID         [pglv_orig->times.phase - 1] =pglv_iter->times.cuID       [0];

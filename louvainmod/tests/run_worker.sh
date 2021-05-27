@@ -16,8 +16,7 @@ worker_number=$5
 num_dev=3
 num_workers=2
 workers="tcp://192.168.1.21:5555 tcp://192.168.1.31:5555"
-# Set rundir to your dir
-xclbinfile=/proj/autoesl/ryanw/kernel_louvain_pruning.xclbin
+xclbinfile=$SCRIPTPATH/../staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin
 
 exe_dir="Release"
 if [ "$DEBUG" == "1" ]; then
