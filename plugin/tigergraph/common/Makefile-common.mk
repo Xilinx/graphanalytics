@@ -49,6 +49,7 @@ STAGE_COPY_COMMON_FILES = \
     install.sh \
     \
     bin/common.sh \
+	bin/gen-cluster-info.py \
     bin/install-plugin-cluster.sh \
     bin/install-plugin-node.sh\
     \
@@ -156,5 +157,5 @@ help:
 	@echo ""
 	@echo "Examples:"
 	@echo "Install plugin files with SSH key file"
-	@echo "make SSH_KEY=~/.ssh/tigergraph_rsa"
+	@echo "make sshKey=~/.ssh/tigergraph_rsa"
 

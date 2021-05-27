@@ -117,22 +117,49 @@ inline int udf_load_alveo(uint num_partitions, uint num_devices)
 }
 
 
-// num_devices:
 inline int udf_create_and_load_alveo_partitions(bool use_saved_partition, 
-    string graph_file, string alveo_project, 
-    uint num_nodes, string node_names, string node_ips, 
-    uint num_partitions, uint num_devices)
+    string graph_file, string alveo_project, uint num_nodes, uint num_partitions, 
+    uint num_devices)
 {
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     int ret=0;
 
+    std::string cur_node_hostname, cur_node_ip, node_ips;
+    // PLUGIN_CONFIG_PATH will be replaced by the actual config path during plugin installation
+    std::fstream config_json(PLUGIN_CONFIG_PATH, std::ios::in);
+    if (!config_json) {
+        std::cout << "ERROR: config file doesn't exist:" << PLUGIN_CONFIG_PATH << std::endl;
+        return(2);
+    }
+
+    char line[1024] = {0};
+    char* token;
+    while (config_json.getline(line, sizeof(line))) {
+        token = strtok(line, "\"\t ,}:{\n");
+        while (token != NULL) {
+            if (!std::strcmp(token, "curNodeHostname")) {
+                token = strtok(NULL, "\"\t ,}:{\n");
+                cur_node_hostname = token;
+            } else if (!std::strcmp(token, "curNodeIp")) {
+                token = strtok(NULL, "\"\t ,}:{\n");
+                cur_node_ip = token;
+            } else if (!std::strcmp(token, "nodeIps")) {
+                token = strtok(NULL, "\"\t ,}:{\n");
+                node_ips = token;
+            } 
+            token = strtok(NULL, "\"\t ,}:{\n");
+        }
+    }
+    config_json.close();
+
     pContext->setAlveoProject(alveo_project);
     pContext->setNumNodes(num_nodes);
     pContext->setNumPartitions(num_partitions);
     pContext->setNumDevices(num_devices);
-    pContext->setNodeNames(node_names);
+    pContext->setCurNodeIp(cur_node_ip);
     pContext->setNodeIps(node_ips);
+
 /*
     std::lock_guard<std::mutex> lockGuard(xai::writeMutex);
     int ret=0;
@@ -141,6 +168,7 @@ inline int udf_create_and_load_alveo_partitions(bool use_saved_partition,
         xai::loadedAlveo = true;
         xai::graph_file = graph_file;
 */      
+
     unsigned nodeId = pContext->getNodeId();
     int argc = 9;
     char* argv[] = {"host.exe", graph_file.c_str(), "-fast", "-par_num", std::to_string(num_partitions).c_str(),
@@ -148,8 +176,12 @@ inline int udf_create_and_load_alveo_partitions(bool use_saved_partition,
     std::cout << "DEBUG: " << __FUNCTION__ << " nodeId=" << nodeId
               << " graph_file=" << graph_file.c_str() 
               << " num_partitions=" << num_partitions 
-              << " louvain project=" << alveo_project.c_str() << std::flush;
+              << " louvain project=" << alveo_project.c_str() 
+              << " cur_node_ip=" << cur_node_ip 
+              << " cur_node_hostname=" << cur_node_hostname 
+              << " node_ips=" << node_ips << std::endl;
         
+    
     if (!use_saved_partition && nodeId == 0) {
         std::cout << "DEBUG: Calling create_alveo_partitions" << std::endl;
         ret = create_and_load_alveo_partitions(argc, (char**)(argv));
@@ -201,7 +233,7 @@ inline float udf_louvain_alveo(
     unsigned numWorkers = pContext->getNumNodes() - 1;
     unsigned numDevices = pContext->getNumDevices();
     unsigned numPartitions = pContext->getNumPartitions(); 
-    std::string nodeNames = pContext->getNodeNames();
+    std::string curNodeIp = pContext->getCurNodeIp();
     std::string nodeIps = pContext->getNodeIps();
 
     //if (pContext->getState() >= xilComDetect::Context::CalledExecuteLouvainState)
@@ -213,31 +245,29 @@ inline float udf_louvain_alveo(
     //pContext->setState(xilComDetect::Context::CalledExecuteLouvainState);
     unsigned modeZmq;
 
-    std::istringstream issNodeNames(nodeNames);
     std::istringstream issNodeIps(nodeIps);
-    std::string nodeName;
+    //std::string nodeName;
     std::string nodeIp;
-    char hostname[64 + 1];
+    //char hostname[64 + 1];
     char* nameWorkers[128];
-    int  res_hostname = gethostname(hostname, 64 + 1);
-    if (res_hostname != 0) {
-        std::cout << "ERROR: gethostname failed" << std::endl;
-        return res_hostname;
-    }
-    std::string hostString(hostname);
+    //int  res_hostname = gethostname(hostname, 64 + 1);
+    //if (res_hostname != 0) {
+    //    std::cout << "ERROR: gethostname failed" << std::endl;
+    //    return res_hostname;
+    //}
     std::string tcpConn;
-    std::cout << "DEBUG: nodeId " << nodeId << " hostname=" << hostString << std::endl;
+    //std::cout << "DEBUG: nodeId " << nodeId << " hostname=" << hostString << std::endl;
     unsigned iTcpConn = 0;
-    while ((issNodeNames >> nodeName) && (issNodeIps >> nodeIp)) {
-        if (nodeName != hostString) {
+    while (issNodeIps >> nodeIp) {
+        if (nodeIp != curNodeIp) {
             tcpConn = "tcp://" + nodeIp + ":5555";
             std::cout << "DEBUG: zmq=" << tcpConn << std::endl;
             nameWorkers[iTcpConn] = strcpy(new char[tcpConn.length() + 1], 
-                                          tcpConn.c_str());
+                                           tcpConn.c_str());
             iTcpConn++;
         } else
             std::cout << "DEBUG: skip nodeIp " << nodeIp << std::endl;
-    } while (issNodeNames && issNodeIps);
+    };
 
     for (int i=0; i < iTcpConn; i++)
         std::cout << "DEBUG: nameWorker " << i << "=" << nameWorkers[i] << std::endl;

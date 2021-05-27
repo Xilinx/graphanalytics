@@ -66,7 +66,7 @@ private:
     std::string alveoProject_;
     unsigned numPartitions_;
     unsigned numDevices_ = 1;
-    std::string nodeNames_;
+    std::string curNodeIp_;
     std::string nodeIps_;
     unsigned nodeId_ = 0;
     unsigned numNodes_ = 1;
@@ -89,11 +89,11 @@ public:
     }
     std::string getAlveoProject() { return alveoProject_; }
 
-    void setNodeNames(std::string nodeNames) {
-        std::cout << "DEBUG: " << __FUNCTION__ << " nodeNames=" << nodeNames << std::endl;
-        nodeNames_ = nodeNames;
+    void setCurNodeIp(std::string curNodeIp) {
+        std::cout << "DEBUG: " << __FUNCTION__ << " curNodeIp=" << curNodeIp << std::endl;
+        curNodeIp_ = curNodeIp;
     }
-    std::string getNodeNames() { return nodeNames_; }
+    std::string getCurNodeIp() { return curNodeIp_; }
 
     void setNodeIps(std::string nodeIps) {
         std::cout << "DEBUG: " << __FUNCTION__ << " nodeIps=" << nodeIps << std::endl;

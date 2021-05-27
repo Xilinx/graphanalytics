@@ -30,7 +30,7 @@ all: run
 	@echo "--------------------------------------------------------------"
 	@echo "Installing application specific UDFs into TigerGraph software"
 	@echo "--------------------------------------------------------------"
-	cd ../../ && make && \
+	cd ../../ && make stage && \
 	./staging/examples/comdetect/bin/install-udf.sh -v -f $(SSH_KEY_OPT) && \
 	cd - && touch .install-udf-done
 

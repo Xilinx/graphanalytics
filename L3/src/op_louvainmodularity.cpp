@@ -237,7 +237,7 @@ int opLouvainModularity::compute(unsigned int deviceID,
     cl::Kernel kernel_louvain = hds[0].kernel;
 
 #ifndef NDEBUG
-    std::cout << "DEBUG: ---------------------- " << __FUNCTION__ 
+    std::cout << "DEBUG: " << __FUNCTION__ 
               << " kernel=" << &kernel_louvain << " which=" << which << std::endl;
 #endif
 
@@ -255,35 +255,35 @@ int opLouvainModularity::compute(unsigned int deviceID,
 
 		PhaseLoop_UsingFPGA_1_KernelSetup(isLargeEdge, kernel_louvain, ob_in, ob_out, hds);
 #ifdef PRINTINFO
-		std::cout << "\t\PhaseLoop_UsingFPGA_1_KernelSetup Device Available: "
+		std::cout << "\tPhaseLoop_UsingFPGA_1_KernelSetup Device Available: "
 				  << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 #endif
 
 		// PhaseLoop_UsingFPGA_2_DataWriteTo (q, kernel_evt0, ob_in);
 		migrateMemObj(hds, 0, 1, ob_in, nullptr, &events_write[0]);
 #ifdef PRINTINFO
-		std::cout << "\t\PhaseLoop_UsingFPGA_2_DataWriteTo Device Available: "
+		std::cout << "\tPhaseLoop_UsingFPGA_2_DataWriteTo Device Available: "
 				  << std::endl; //  << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 #endif
 
 		// PhaseLoop_UsingFPGA_3_KernelRun   (q, kernel_evt0, kernel_evt1, kernel_louvain);
 		int ret = cuExecute(hds, kernel_louvain, 1, &events_write, &events_kernel[0]);
 #ifdef PRINTINFO
-		std::cout << "\t\PhaseLoop_UsingFPGA_3_KernelRun Device Available: "
+		std::cout << "\tPhaseLoop_UsingFPGA_3_KernelRun Device Available: "
 				  << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 #endif
 
 		// PhaseLoop_UsingFPGA_4_DataReadBack(q, kernel_evt1, ob_out);
 		migrateMemObj(hds, 1, 1, ob_out, &events_kernel, &events_read[0]);
 #ifdef PRINTINFO
-		std::cout << "\t\PhaseLoop_UsingFPGA_4_DataReadBack Device Available: "
+		std::cout << "\tPhaseLoop_UsingFPGA_4_DataReadBack Device Available: "
 				  << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 #endif
 
 		//PhaseLoop_UsingFPGA_5_KernelFinish(q);
 		q.finish();
 #ifdef PRINTINFO
-		std::cout << "\t\PhaseLoop_UsingFPGA_5_KernelFinish Device Available: "
+		std::cout << "\tPhaseLoop_UsingFPGA_5_KernelFinish Device Available: "
 				  << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 #endif
 		eachTimeReadBuff[0] =
@@ -306,31 +306,31 @@ int opLouvainModularity::compute(unsigned int deviceID,
 #endif
         PhaseLoop_UsingFPGA_1_KernelSetup_prune(isLargeEdge, kernel_louvain, ob_in, ob_out, hds);
 #ifdef PRINTINFO
-        std::cout << "\t\PhaseLoop_UsingFPGA_1_KernelSetup Device Available: "
+        std::cout << "\tPhaseLoop_UsingFPGA_1_KernelSetup Device Available: "
                   << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 #endif
         // PhaseLoop_UsingFPGA_2_DataWriteTo (q, kernel_evt0, ob_in);
         migrateMemObj(hds, 0, 1, ob_in, nullptr, &events_write[0]);
 #ifdef PRINTINFO
-        std::cout << "\t\PhaseLoop_UsingFPGA_2_DataWriteTo Device Available: "
+        std::cout << "\tPhaseLoop_UsingFPGA_2_DataWriteTo Device Available: "
                   << std::endl; //  << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 #endif
         // PhaseLoop_UsingFPGA_3_KernelRun   (q, kernel_evt0, kernel_evt1, kernel_louvain);
         int ret = cuExecute(hds, kernel_louvain, 1, &events_write, &events_kernel[0]);
 #ifdef PRINTINFO
-        std::cout << "\t\PhaseLoop_UsingFPGA_3_KernelRun Device Available: "
+        std::cout << "\tPhaseLoop_UsingFPGA_3_KernelRun Device Available: "
                   << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 #endif
         // PhaseLoop_UsingFPGA_4_DataReadBack(q, kernel_evt1, ob_out);
         migrateMemObj(hds, 1, 1, ob_out, &events_kernel, &events_read[0]);
 #ifdef PRINTINFO
-        std::cout << "\t\PhaseLoop_UsingFPGA_4_DataReadBack Device Available: "
+        std::cout << "\tPhaseLoop_UsingFPGA_4_DataReadBack Device Available: "
                   << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 #endif
         //PhaseLoop_UsingFPGA_5_KernelFinish(q);
         q.finish();
 #ifdef PRINTINFO
-        std::cout << "\t\PhaseLoop_UsingFPGA_5_KernelFinish Device Available: "
+        std::cout << "\tPhaseLoop_UsingFPGA_5_KernelFinish Device Available: "
                   << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 #endif
         eachTimeReadBuff[0] =
@@ -352,31 +352,31 @@ int opLouvainModularity::compute(unsigned int deviceID,
 #endif
         PhaseLoop_UsingFPGA_1_KernelSetup_prune(isLargeEdge, kernel_louvain, ob_in, ob_out, hds);
 #ifdef PRINTINFO
-        std::cout << "\t\PhaseLoop_UsingFPGA_1_KernelSetup Device Available: "
+        std::cout << "\tPhaseLoop_UsingFPGA_1_KernelSetup Device Available: "
                   << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 #endif
         // PhaseLoop_UsingFPGA_2_DataWriteTo (q, kernel_evt0, ob_in);
         migrateMemObj(hds, 0, 1, ob_in, nullptr, &events_write[0]);
 #ifdef PRINTINFO
-        std::cout << "\t\PhaseLoop_UsingFPGA_2_DataWriteTo Device Available: "
+        std::cout << "\tPhaseLoop_UsingFPGA_2_DataWriteTo Device Available: "
                   << std::endl; //  << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 #endif
         // PhaseLoop_UsingFPGA_3_KernelRun   (q, kernel_evt0, kernel_evt1, kernel_louvain);
         int ret = cuExecute(hds, kernel_louvain, 1, &events_write, &events_kernel[0]);
 #ifdef PRINTINFO
-        std::cout << "\t\PhaseLoop_UsingFPGA_3_KernelRun Device Available: "
+        std::cout << "\tPhaseLoop_UsingFPGA_3_KernelRun Device Available: "
                   << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 #endif
         // PhaseLoop_UsingFPGA_4_DataReadBack(q, kernel_evt1, ob_out);
         migrateMemObj(hds, 1, 1, ob_out, &events_kernel, &events_read[0]);
 #ifdef PRINTINFO
-        std::cout << "\t\PhaseLoop_UsingFPGA_4_DataReadBack Device Available: "
+        std::cout << "\tPhaseLoop_UsingFPGA_4_DataReadBack Device Available: "
                   << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 #endif
         //PhaseLoop_UsingFPGA_5_KernelFinish(q);
         q.finish();
 #ifdef PRINTINFO
-        std::cout << "\t\PhaseLoop_UsingFPGA_5_KernelFinish Device Available: "
+        std::cout << "\tPhaseLoop_UsingFPGA_5_KernelFinish Device Available: "
                   << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 #endif
         eachTimeReadBuff[0] =

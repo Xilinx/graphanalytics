@@ -23,8 +23,6 @@ CREATE DISTRIBUTED QUERY load_alveo(
     BOOL use_saved_partition = TRUE,// If partitions are saved on disk, use them instead of getting from RAM
     STRING graph_file = "",         // Source graph file in .mtx format, needed only if tg_partition = FALSE
     STRING louvain_project = "",    // Provide a project name for saving partitions, used for loading from disk too
-    STRING node_names,              // Hostnames of all nodes in the cluster
-    STRING node_ips,                // IP address of all ndoes in the cluster 
     UINT num_partitions = 9,        // Number of partitions as string (e.g. "9"). Default: "auto" for best performance
     UINT num_devices = 1            // Number of devices (alveo cards) to use per server (e.g. "3"). Default; "auto"
 ) FOR GRAPH @graph
@@ -54,8 +52,7 @@ CREATE DISTRIBUTED QUERY load_alveo(
         nodelist = SELECT n FROM nodes:n
            ACCUM
            status = udf_create_and_load_alveo_partitions(use_saved_partition, 
-               graph_file, louvain_project, nodes.size(), node_names, node_ips,
-               num_partitions, num_devices);
+               graph_file, louvain_project, nodes.size(), num_partitions, num_devices);
     END;
 
     udf_time = udf_elapsed_time(true);

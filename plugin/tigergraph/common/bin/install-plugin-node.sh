@@ -18,7 +18,7 @@
 set -e
 
 # Turn on tracing for debugging this script
-#set -x
+set -x
 
 SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`
@@ -162,7 +162,7 @@ cp $tg_app_udf_dir/ExprUtil.hpp $tg_udf_dir
 
 # Copy files to TigerGraph UDF area
 
-echo "INFO: Installing Xilinx Recommendation Engine auxiliary files"
+echo "INFO: Installing $pluginAlveoProductName auxiliary files"
 for i in $app_plugin_files; do
     cp -f $plugin_dir/$i $tg_udf_dir
 done
@@ -171,15 +171,24 @@ for i in $app_alveo_product_files; do
     cp -f $pluginAlveoProductPath/$i $tg_udf_dir
 done
 
+# Generate cluster configuration file
+echo "INFO: Generate plugin configration file $tg_udf_dir/plugin-config.json"
+python3 $SCRIPTPATH/gen-cluster-info.py $tg_udf_dir/plugin-config.json
+
 # Substitute the XCLBIN path for PLUGIN_XCLBIN_PATH in all files that need the substitution
 
 for i in $pluginXclbinPathFiles; do
     sed -i "s|PLUGIN_XCLBIN_PATH|\"$runtimeXclbinPath\"|" $tg_udf_dir/${i##*/}
 done
 
+# Substitute the config path for PLUGIN_CONFIG_PATH in all files that need the substituion
+for i in $pluginConfigPathFiles; do
+    sed -i "s|PLUGIN_CONFIG_PATH|\"$tg_udf_dir/plugin-config.json\"|" $tg_udf_dir/${i##*/}
+done
+
 # Install plugin to ExprFunctions.hpp file
 
-echo "INFO: Installing Xilinx Recommendation Engine UDFs"
+echo "INFO: Installing $pluginAlveoProductName UDFs"
 cp $plugin_udf_dir/mergeHeaders.py $tg_udf_dir
 mv $tg_udf_dir/ExprFunctions.hpp $tg_udf_dir/ExprFunctions.hpp.prev
 python3 $tg_udf_dir/mergeHeaders.py $tg_udf_dir/ExprFunctions.hpp.prev $tg_udf_dir/${pluginMainUdf##*/} \
