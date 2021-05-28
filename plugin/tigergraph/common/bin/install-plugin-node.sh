@@ -18,7 +18,7 @@
 set -e
 
 # Turn on tracing for debugging this script
-set -x
+#set -x
 
 SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`

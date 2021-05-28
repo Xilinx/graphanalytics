@@ -135,8 +135,11 @@ inline int udf_create_and_load_alveo_partitions(bool use_saved_partition,
 
     char line[1024] = {0};
     char* token;
+    node_ips = "";
+    bool scanNodeIp;
     while (config_json.getline(line, sizeof(line))) {
         token = strtok(line, "\"\t ,}:{\n");
+        scanNodeIp = false;
         while (token != NULL) {
             if (!std::strcmp(token, "curNodeHostname")) {
                 token = strtok(NULL, "\"\t ,}:{\n");
@@ -145,9 +148,18 @@ inline int udf_create_and_load_alveo_partitions(bool use_saved_partition,
                 token = strtok(NULL, "\"\t ,}:{\n");
                 cur_node_ip = token;
             } else if (!std::strcmp(token, "nodeIps")) {
+                // this field has multipe space separated IPs
+                scanNodeIp = true;
+                // read the next token
                 token = strtok(NULL, "\"\t ,}:{\n");
-                node_ips = token;
-            } 
+                node_ips += token;
+                std::cout << "node_ips=" << node_ips << std::endl;
+            } else if (scanNodeIp) {
+                // In the middle of nodeIps field
+                node_ips += " ";
+                node_ips += token;
+                std::cout << "node_ips=" << node_ips << std::endl;
+            }
             token = strtok(NULL, "\"\t ,}:{\n");
         }
     }

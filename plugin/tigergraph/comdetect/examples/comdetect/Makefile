@@ -54,12 +54,24 @@ run: .install-udf-done
 	@echo "-------------------------------------------------------"
 	@echo "Running run.sh from staging "
 	@echo "-------------------------------------------------------"
-	cd ../../ && make stage && ./staging/examples/comdetect/run.sh -v $(SSH_KEY_OPT) \
+	cd ../../ && make stage && ./staging/examples/comdetect/run.sh -v \
 	    -g $(graphName) -c $(compileMode) -r $(runMode) -x $(partitionMode) \
 		-m $(numNodes) -d $(numDevices) \
 	    -s $(dataSource) -a $(alveoProject) -n $(numPartitions)
 
+.PHONY: run-cluster
+run-cluster: .install-udf-done
+	@echo "-------------------------------------------------------"
+	@echo "Running run.sh from staging "
+	@echo "-------------------------------------------------------"
+	cd ../../ && make stage && ./staging/examples/comdetect/run.sh -v \
+	    -g $(graphName) -c $(compileMode) -r $(runMode) -x $(partitionMode) \
+		-m 3 -d 3 -n 9 -s $(dataSource) -a $(alveoProject) 
+
 help:
+	@echo "Valid make targets:"
+	@echo "run-cluster: Run the example on the cluster of 3 nodes, 3 devices/node, 9 partitions"
+	@echo ""
 	@echo "Optional make parameters"
 	@echo "alveoProject     : Alveo partition project basename"
 	@echo "compileMode      : 0: recreate database and compile all (default); 1: only compile query gsql; 2: skip database creation and gsql compilation"
