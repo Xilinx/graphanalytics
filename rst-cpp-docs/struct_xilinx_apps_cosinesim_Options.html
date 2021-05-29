@@ -483,8 +483,18 @@
 
     <span class="n">ColIndex</span> <a class="reference internal" href="#doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a6afc35f870a7d8bce2ecddd5c65def58"><span class="std std-ref">vecLength</span></a><span></span><span class="p">;</span>
     <span class="n">std</span><span class="o">::</span><span class="kt">int32_t</span> <a class="reference internal" href="#doxid-structxilinx-apps-1-1cosinesim-1-1-options-1aebdcc42b66255b4861d3b95824c6a30d"><span class="std std-ref">numDevices</span></a><span></span><span class="p">;</span>
-    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="doxyrest-code-target target" id="doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a7d8a619ad998c843b6abcc6368b1be75"><span></span><span class="n">xclbinPath</span></span><span></span><span class="p">;</span>
-    <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="doxyrest-code-target target" id="doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a21e1c2076f944b3485648f806344a8dd"><span></span><span class="n">xclbinPathCStr</span></span><span></span> <span class="o">=</span> <span class="k">nullptr</span><span class="p">;</span>
+    <span class="kt">char</span><span class="o">*</span> <a class="reference internal" href="#doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a29ab724352dd5933bba9e030934ac324"><span class="std std-ref">xclbinPath</span></a><span></span> <span class="o">=</span> <span class="k">nullptr</span><span class="p">;</span>
+
+    <span class="c1">// construction</span>
+
+    <a class="reference internal" href="#doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a664ea080b203625f179f9db942e56afd"><span class="std std-ref">Options</span></a><span></span><span class="p">();</span>
+    <a class="reference internal" href="#doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a20645f50d1eff280bc971557e17b28ba"><span class="std std-ref">Options</span></a><span></span><span class="p">(</span><span class="k">const</span> <span class="n">Options</span><span class="o">&amp;</span> <span class="n">opt</span><span class="p">);</span>
+
+    <span class="c1">// methods</span>
+
+    <span class="n">Options</span><span class="o">&amp;</span> <a class="reference internal" href="#doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a09a8c07480926e07c4b57dc3f22de8cf"><span class="std std-ref">operator =</span></a><span></span> <span class="p">(</span><span class="k">const</span> <span class="n">Options</span><span class="o">&amp;</span> <span class="n">opt</span><span class="p">);</span>
+    <span class="kt">void</span> <a class="reference internal" href="#doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a96cb8c3d3362284a7353321918021d64"><span class="std std-ref">setXclbinPath</span></a><span></span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">newXclbinPath</span><span class="p">);</span>
+    <span class="kt">void</span> <a class="reference internal" href="#doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a66ad92e5b8228678e0eb8a386862934d"><span class="std std-ref">setXclbinPath</span></a><span></span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span> <span class="n">xclbinPath</span><span class="p">);</span>
 <span class="p">};</span></pre>
 </div>
 <div class="section" id="detailed-documentation">
@@ -496,6 +506,75 @@
 <p>vector length of all population and target vectors. Default is 200.</p>
 <pre class="highlight doxyrest-title-code-block literal-block" id="doxid-structxilinx-apps-1-1cosinesim-1-1-options-1aebdcc42b66255b4861d3b95824c6a30d"><span id="index-2"></span><span></span><span class="n">std</span><span class="o">::</span><span class="kt">int32_t</span> <span class="n">numDevices</span></pre>
 <p>number of Alveo accelerator cards to use. Default is 1.</p>
+<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a29ab724352dd5933bba9e030934ac324"><span id="index-3"></span><span></span><span class="kt">char</span><span class="o">*</span> <span class="n">xclbinPath</span> <span class="o">=</span> <span class="k">nullptr</span></pre>
+<p>FPGA binary file (XCLBIN) path. Default is the package installation path.</p>
+<p>When setting this field, the field takes ownership of the buffer pointed to. To avoid dealing with allocation, use the <a class="reference internal" href="#doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a96cb8c3d3362284a7353321918021d64"><span class="std std-ref">setXclbinPath()</span></a> function instead.</p>
+</div>
+<div class="section" id="construction">
+<h3>Construction<a class="headerlink" href="#construction" title="Permalink to this headline">¶</a></h3>
+<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a664ea080b203625f179f9db942e56afd"><span id="index-4"></span><span></span><span class="n">Options</span><span class="p">()</span></pre>
+<p>Constructs an <a class="reference internal" href="#doxid-structxilinx-apps-1-1cosinesim-1-1-options"><span class="std std-ref">Options</span></a> object with default values.</p>
+<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a20645f50d1eff280bc971557e17b28ba"><span id="index-5"></span><span></span><span class="n">Options</span><span class="p">(</span><span class="k">const</span> <span class="n">Options</span><span class="o">&amp;</span> <span class="n">opt</span><span class="p">)</span></pre>
+<p>Copy constructor, which deep-copies the reference <a class="reference internal" href="#doxid-structxilinx-apps-1-1cosinesim-1-1-options"><span class="std std-ref">Options</span></a> object.</p>
+<p class="rubric">Parameters:</p>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 80%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>opt</p></td>
+<td><p>the <a class="reference internal" href="#doxid-structxilinx-apps-1-1cosinesim-1-1-options"><span class="std std-ref">Options</span></a> object to copy from</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="methods">
+<h3>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h3>
+<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a09a8c07480926e07c4b57dc3f22de8cf"><span id="index-6"></span><span></span><span class="n">Options</span><span class="o">&amp;</span> <span class="k">operator</span> <span class="o">=</span> <span class="p">(</span><span class="k">const</span> <span class="n">Options</span><span class="o">&amp;</span> <span class="n">opt</span><span class="p">)</span></pre>
+<p>Deep-copies the reference <a class="reference internal" href="#doxid-structxilinx-apps-1-1cosinesim-1-1-options"><span class="std std-ref">Options</span></a> object into this <a class="reference internal" href="#doxid-structxilinx-apps-1-1cosinesim-1-1-options"><span class="std std-ref">Options</span></a> object.</p>
+<p class="rubric">Parameters:</p>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 80%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>opt</p></td>
+<td><p>the <a class="reference internal" href="#doxid-structxilinx-apps-1-1cosinesim-1-1-options"><span class="std std-ref">Options</span></a> object to copy from</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Returns:</p>
+<p>this <a class="reference internal" href="#doxid-structxilinx-apps-1-1cosinesim-1-1-options"><span class="std std-ref">Options</span></a> object</p>
+<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a96cb8c3d3362284a7353321918021d64"><span id="index-7"></span><span></span><span class="kt">void</span> <span class="n">setXclbinPath</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">newXclbinPath</span><span class="p">)</span></pre>
+<p>Sets the <a class="reference internal" href="#doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a29ab724352dd5933bba9e030934ac324"><span class="std std-ref">xclbinPath</span></a> field to the given string, which is deep-copied.</p>
+<p class="rubric">Parameters:</p>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 80%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>newXclbinPath</p></td>
+<td><p>the XCLBIN path string to set <a class="reference internal" href="#doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a29ab724352dd5933bba9e030934ac324"><span class="std std-ref">xclbinPath</span></a> to</p></td>
+</tr>
+</tbody>
+</table>
+<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a66ad92e5b8228678e0eb8a386862934d"><span id="index-8"></span><span></span><span class="kt">void</span> <span class="n">setXclbinPath</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span> <span class="n">xclbinPath</span><span class="p">)</span></pre>
+<p>Sets the <a class="reference internal" href="#doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a29ab724352dd5933bba9e030934ac324"><span class="std std-ref">xclbinPath</span></a> field to the given string, which is deep-copied.</p>
+<p class="rubric">Parameters:</p>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 80%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>newXclbinPath</p></td>
+<td><p>the XCLBIN path string to set <a class="reference internal" href="#doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a29ab724352dd5933bba9e030934ac324"><span class="std std-ref">xclbinPath</span></a> to</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </div>
@@ -529,7 +608,7 @@
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on May 14, 2021.
+        Last updated on May 29, 2021.
       </span>
 
     </p>

@@ -453,28 +453,23 @@
 <p>NOTE: The Jupyter Notebook can be installed on any machine provided the machine
 can connect to TigerGraph server via HTTP connections.</p>
 <ul class="simple">
-<li><p>Install conda by following instructions on
-<a class="reference external" href="https://conda.io/projects/conda/en/latest/user-guide/install/index.html">https://conda.io/projects/conda/en/latest/user-guide/install/index.html</a></p></li>
-<li><p>Create and activate a new conda environment</p></li>
+<li><p>Install conda by following instructions on <a class="reference external" href="https://docs.conda.io/en/latest/miniconda.html">https://docs.conda.io/en/latest/miniconda.html</a></p></li>
+<li><p>Create and activate a new conda environment and install all required packages</p></li>
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">$conda</span> env list
-<span class="nv">$conda</span> create -n alveo-demo <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.6
-<span class="nv">$conda</span> activate alveo-demo
-</pre></div>
-</div>
-<ul class="simple">
-<li><p>Install Jupyter Notebook and PyTigerGraph</p></li>
-</ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>alveo-demo<span class="o">)</span><span class="nv">$conda</span> install -c conda-forge notebook jupyter_contrib_nbextensions
-<span class="o">(</span>alveo-demo<span class="o">)</span><span class="nv">$pip</span> install PyTigerGraph
+<span class="nv">$conda</span> create -n fpga <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.6
+<span class="nv">$conda</span> activate fpga
+<span class="o">(</span>fpga<span class="o">)</span><span class="nv">$git</span> clone https://github.com/Xilinx/graphanalytics
+<span class="o">(</span>fpga<span class="o">)</span><span class="nv">$cd</span> graphanalytics
+<span class="o">(</span>fpga<span class="o">)</span><span class="nv">$conda</span> install -r requirements.txt
 </pre></div>
 </div>
 </div>
 <div class="section" id="start-jupyter-notebook">
 <h2>Start Jupyter Notebook<a class="headerlink" href="#start-jupyter-notebook" title="Permalink to this headline">¶</a></h2>
 <p>Run the command below to start Jupyter Notebook</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>alveo-demo<span class="o">)</span><span class="nv">$cd</span> /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/examples/synthea/jupyter-demo
-<span class="o">(</span>alveo-demo<span class="o">)</span><span class="nv">$jupyter</span> notebook
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span><span class="nv">$cd</span> graphanalytics/plugin/tigergraph/examples/synthea/jupyter-demo
+<span class="o">(</span>fpga<span class="o">)</span><span class="nv">$jupyter</span> notebook
 </pre></div>
 </div>
 <p>Follow the step-by-step instructions in the notebook once it is loaded in your browser.</p>
@@ -514,7 +509,7 @@ to learn more about this demo.</p>
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on May 14, 2021.
+        Last updated on May 29, 2021.
       </span>
 
     </p>
