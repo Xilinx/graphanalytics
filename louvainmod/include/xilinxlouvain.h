@@ -40,11 +40,6 @@ enum {
     ALVEOAPI_RUN
 };
 
-enum {
-	ZMQ_NONE=0,
-	ZMQ_DRIVER,
-	ZMQ_WORKER
-};
 
 /**
  * Define this macro to make functions in louvainmod_loader.cpp inline instead of extern.  You would use this macro
