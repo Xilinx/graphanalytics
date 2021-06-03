@@ -1306,7 +1306,6 @@ void findCorrelationDense(hls::stream<ap_int<WData> >& row_id,
 template <typename DT>
 DT adder(bool enable0, bool enable1, DT a, DT b) {
 #pragma HLS inline
-#pragma HLS PIPELINE
 
     DT result, in0, in1;
     if (enable0)
@@ -1326,7 +1325,6 @@ DT adder(bool enable0, bool enable1, DT a, DT b) {
 template <typename DT>
 DT adder(DT a, DT b) {
 #pragma HLS inline
-#pragma HLS PIPELINE
 
     DT result;
     result = a + b;
