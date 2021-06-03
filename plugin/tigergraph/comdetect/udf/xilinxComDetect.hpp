@@ -29,7 +29,25 @@
 namespace UDIMPL {
 
 // mergeHeaders 1 section body start xilinxComDetect DO NOT REMOVE!
+inline void udf_reset_nextId() {
 
+    xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+    std::cout << "nextId_ = " << pContext->nextId_ <<std::endl;
+    pContext->nextId_ = 0 ;
+}
+inline uint64_t udf_get_nextId(){
+    std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
+    xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+    std::cout << "louvainId = " << pContext->nextId_ <<std::endl;
+    return pContext->nextId_++;
+}
+
+inline uint64_t udf_get_partition_size(){
+    std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
+     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+     std::cout << "Partition Size = " << pContext->nextId_ <<std::endl;
+     return pContext->nextId_;
+}
 inline int udf_xilinx_comdetect_set_node_id(uint nodeId)
 {
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
@@ -39,6 +57,28 @@ inline int udf_xilinx_comdetect_set_node_id(uint nodeId)
     pContext->setNodeId(unsigned(nodeId));
     return nodeId;
 }
+//add new
+inline uint64_t udf_get_global_louvain_id(uint64_t louvain_id){
+    std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
+    xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+    return pContext->louvain_offset + louvain_id ;
+}
+
+inline void udf_set_louvain_offset(uint64_t louvain_offset){
+    std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
+    xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+    std::cout << "Louvain Offsets = " << louvain_offset <<std::endl;
+    pContext->louvain_offset = louvain_offset;
+}
+/*
+//TODO
+inline void udf_set_louvain_edge_list() {
+
+}
+//Data has been populated and send to FPGA
+inline void udf_send_data() {
+
+}*/
 
 inline int udf_xilinx_comdetect_setup_nodes(std::string nodeNames, 
                                             std::string nodeIps)

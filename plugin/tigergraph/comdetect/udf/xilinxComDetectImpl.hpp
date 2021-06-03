@@ -71,8 +71,12 @@ private:
     unsigned nodeId_ = 0;
     unsigned numNodes_ = 1;
     State state_ = UninitializedState;
-    
+
+
 public:
+    uint64_t nextId_ = 0 ;
+    uint64_t louvain_offset = 0 ;
+    
     static Context *getInstance() {
         static Context *s_pContext = nullptr;
         if (s_pContext == nullptr)
@@ -82,6 +86,7 @@ public:
     
     Context() = default;
     ~Context() {}
+
 
     void setAlveoProject(std::string alveoProject) {
         std::cout << "DEBUG: " << __FUNCTION__ << " AlveoProject=" << alveoProject << std::endl;
@@ -112,7 +117,7 @@ public:
         nodeId_ = nodeId;
     }
     unsigned getNodeId() { return nodeId_; }
-    
+
     void setNumNodes(unsigned numNodes) 
     {
         std::cout << "DEBUG: " << __FUNCTION__ << " numNodes=" << numNodes << std::endl;
