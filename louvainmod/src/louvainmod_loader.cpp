@@ -104,17 +104,37 @@ extern "C" {
 //}
 
 XILINX_LOUVAINMOD_IMPL_DEF
-int create_alveo_partitions(int argc, char *argv[]) {
+int load_alveo_partitions(int argc, char *argv[]) {
     typedef int (*CreatePartitionsFunc)(int, char *[]);
-    CreatePartitionsFunc pCreateFunc = (CreatePartitionsFunc) getDynamicFunction("create_alveo_partitions");
+    CreatePartitionsFunc pCreateFunc = (CreatePartitionsFunc) getDynamicFunction("load_alveo_partitions");
     return pCreateFunc(argc, argv);
 }
 
 XILINX_LOUVAINMOD_IMPL_DEF
-float load_alveo_partitions(int argc, char *argv[]) {
-    typedef float (*LoadPartitionsFunc)(int, char *[]);
-    LoadPartitionsFunc pLoadFunc = (LoadPartitionsFunc) getDynamicFunction("load_alveo_partitions");
-    return pLoadFunc(argc, argv);
+int create_and_load_alveo_partitions(int argc, char *argv[]) {
+    typedef int (*CreatePartitionsFunc)(int, char *[]);
+    CreatePartitionsFunc pCreateFunc = (CreatePartitionsFunc) getDynamicFunction("create_and_load_alveo_partitions");
+    return pCreateFunc(argc, argv);
+}
+
+XILINX_LOUVAINMOD_IMPL_DEF
+float compute_louvain_alveo(    
+    char* xclbinPath, bool flowFast, unsigned numDevices, 
+    unsigned num_par, char* alveoProject, 
+    unsigned mode_zmq, unsigned numPureWorker, char* nameWorkers[128], unsigned nodeID,
+    char* opts_outputFile, int64_t max_iter, int64_t max_level, float tolerence, bool intermediateResult,
+    bool verbose, bool final_Q, bool all_Q) 
+{
+    typedef float (*LoadPartitionsFunc)(char*, bool, unsigned, 
+                                        unsigned, char*, 
+                                        unsigned, unsigned, char* [], unsigned,
+                                        char*, unsigned, unsigned, float, bool, bool, bool, bool);
+    LoadPartitionsFunc pLoadFunc = (LoadPartitionsFunc) getDynamicFunction("compute_louvain_alveo");
+    return pLoadFunc(xclbinPath, flowFast, numDevices, 
+                     num_par, alveoProject, 
+                     mode_zmq, numPureWorker, nameWorkers, nodeID,
+                     opts_outputFile, max_iter, max_level, tolerence, intermediateResult,
+		     verbose, final_Q, all_Q);
 }
 
 }  // extern "C"

@@ -22,6 +22,8 @@
 # The plugin depends on its corresponding Alveo Product.  The following variables
 # determine the names and locations of the components of that Alveo Product.
 #
+# Alveo product name
+pluginAlveoProductName="Xilinx Community Detection Engine"
 
 # The usual place where the Alveo Product is installed
 pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/louvainmod/1.0
@@ -70,3 +72,7 @@ pluginExtraFiles=
 # List of files (name only, no path) that need to have the identifier PLUGIN_XCLBIN_PATH
 # replaced with the XCLBIN path.
 pluginXclbinPathFiles=xilinxComDetect.hpp
+
+# List of files (name only, no path) that need to have the identifier PLUGIN_CONFIG_PATH
+# replaced with the config path.
+pluginConfigPathFiles=xilinxComDetect.hpp

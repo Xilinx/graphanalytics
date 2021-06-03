@@ -59,22 +59,6 @@ class opSimilarityDense : public opBase {
 
     void loadGraphMultiCardBlocking(unsigned int deviceID, unsigned int cuID, xf::graph::Graph<int32_t, int32_t> g);
 
-    static int compute(unsigned int deviceID,
-                       unsigned int cuID,
-                       unsigned int channelID,
-                       xrmContext* ctx,
-                       xrmCuResource* resR,
-                       std::string instanceName,
-                       clHandle* handles,
-                       uint32_t similarityType,
-                       uint32_t dataType,
-                       uint32_t sourceNUM,
-                       uint32_t* sourceWeight,
-                       uint32_t topK,
-                       xf::graph::Graph<uint32_t, float> g,
-                       uint32_t* resultID,
-                       float* similarity);
-
     static int computeInt(unsigned int deviceID,
                           unsigned int cuID,
                           unsigned int channelID,
@@ -86,24 +70,17 @@ class opSimilarityDense : public opBase {
                           int32_t dataType,
                           int32_t sourceNUM,
                           int32_t* sourceWeight,
+                          int32_t* sourceCoeffs,
                           int32_t topK,
                           xf::graph::Graph<int32_t, int32_t> g,
                           int32_t* resultID,
                           float* similarity);
 
-    event<int> addwork(uint32_t similarityType,
-                       uint32_t dataType,
-                       uint32_t sourceNUM,
-                       uint32_t* sourceWeight,
-                       uint32_t topK,
-                       xf::graph::Graph<uint32_t, float> g,
-                       uint32_t* resultID,
-                       float* similarity);
-
     event<int> addworkInt(int32_t similarityType,
                           int32_t dataType,
                           int32_t sourceNUM,
                           int32_t* sourceWeight,
+                          int32_t* sourceCoeffs,
                           int32_t topK,
                           xf::graph::Graph<int32_t, int32_t> g,
                           int32_t* resultID,
@@ -114,21 +91,6 @@ class opSimilarityDense : public opBase {
     uint32_t numDevices_;
     uint32_t maxCU_;
 
-    static void bufferInit(clHandle* hds,
-                           std::string instanceName0,
-                           xf::graph::Graph<uint32_t, float> g,
-                           int similarityType,
-                           int dataType,
-                           uint32_t topK,
-                           unsigned int sourceNUM,
-                           uint32_t* sourceWeight,
-                           uint32_t* config,
-                           uint32_t* resultID,
-                           float* similarity,
-                           cl::Kernel& kernel0,
-                           std::vector<cl::Memory>& ob_in,
-                           std::vector<cl::Memory>& ob_out);
-
     static void bufferInitInt(clHandle* hds,
                               std::string instanceName0,
                               xf::graph::Graph<int32_t, int32_t> g,
@@ -138,6 +100,7 @@ class opSimilarityDense : public opBase {
                               int32_t topK,
                               int sourceNUM,
                               int32_t* sourceWeight,
+                              int32_t* sourceCoeffs,
                               uint32_t* config,
                               int32_t* resultID,
                               float* similarity,

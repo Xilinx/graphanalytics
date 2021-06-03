@@ -488,7 +488,7 @@ inline void worker(queue& q,
         }
 
 #ifndef NDEBUG
-        std::cout << "DEBUG: ---------" << __FUNCTION__ 
+        std::cout << "DEBUG: " << __FUNCTION__ 
                   << " pendingRequests" << pendingRequests 
                   << " curRequestId " << curRequestId << std::endl;
 #endif                  

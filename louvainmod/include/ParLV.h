@@ -1,3 +1,20 @@
+/*
+ * Copyright 2021 Xilinx, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WANCUNCUANTIES ONCU CONDITIONS OF ANY KIND, either express or
+ * implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #ifndef _PARLV_H_
 #define _PARLV_H_
 #include "string.h"
@@ -10,6 +27,7 @@
 #include "zmq.h"
 #define MAX_PARTITION (512)
 #define MAX_DEVICE (64)
+#define MAX_SERVER (64)
 
 const long headGLVBin = 0xffff5555ffff5555;
 
@@ -39,7 +57,6 @@ struct TimePartition {
 	double timeMerge;
 	double timeFinal;
 	double timeAll;
-
 };
 
 struct ParLVVar{
@@ -129,6 +146,7 @@ public:
 	int   th_prun;
 	///////////////////////////////////
 	int num_server;// default '1' means using concentration partition
+	int numServerCard[MAX_SERVER];
 	int parInServer[MAX_PARTITION];
 	long parOffsets[MAX_PARTITION];//start vertex for each partition. Currently no use for it. Just recored in .par.proj file
 	///////////////////////////////////

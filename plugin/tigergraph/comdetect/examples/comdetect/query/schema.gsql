@@ -14,9 +14,9 @@
 # limitations under the License.
 
 USE GRAPH @graph
-DROP QUERY ALL
-DROP JOB ALL
-DROP GRAPH @graph
+//DROP QUERY ALL
+//DROP JOB ALL
+DROP GRAPH @graph CASCADE
 
 CREATE GRAPH @graph()
 

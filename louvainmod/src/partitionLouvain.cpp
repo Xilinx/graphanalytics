@@ -1,3 +1,20 @@
+/*
+ * Copyright 2021 Xilinx, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WANCUNCUANTIES ONCU CONDITIONS OF ANY KIND, either express or
+ * implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include "defs.h"
 #include "partitionLouvain.hpp"
 #include "ctrlLV.h"
@@ -222,7 +239,8 @@ void printG_NOWeight(
 		long* M,
 		long star,
 		long end
-		){
+		)
+{
 	long NV        = G->numVertices;
 	long NE        = G->numEdges;
 	long* vtxPtr   = G->edgeListPtrs;
@@ -244,8 +262,8 @@ void printG_NOWeight(
 		if(m<0)
 			printf(" \033[1;31;40mc=%-5d v=%-5d m=%-5d\033[0m", c, v, m);
 		else
-			printf(" c=%-5d v=%-5d m=%-5d", c, v, m);
-		printf(" o=%-5d d=%-4d |", adj1, degree);
+			printf(" c=%-5ld v=%-5d m=%-5ld", c, v, m);
+		printf(" o=%-5ld d=%-4d |", adj1, degree);
 		for(int d=0; d<degree; d++){
 			//\033[1;31;40mERROR\033[0m
 			long t = vtxInd[adj1+d].tail;
@@ -257,6 +275,7 @@ void printG_NOWeight(
 		printf("\n");
 	}
 }
+
 void printG_old2(
 		graphNew* G,
 		long* C,
@@ -799,9 +818,9 @@ void GLV::printSimple(){
 	//Q = com_list.back().Q;
 	//long NC = this->NC;//com_list.back().NC;
 	if(NC==NV)
-		printf("| GLV ID: %-2ld| NC/NV: \033[1;37;40m%8ld\033[0m/", ID, NC);
+		printf("| GLV ID: %-2d| NC/NV: \033[1;37;40m%8ld\033[0m/", ID, NC);
 	else
-		printf("| GLV ID: %-2ld| NC/NV: \033[1;31;40m%8ld\033[0m/", ID, NC);
+		printf("| GLV ID: %-2d| NC/NV: \033[1;31;40m%8ld\033[0m/", ID, NC);
 	if(NV<(1)){
 			if(NV==NVl)
 				printf(" \033[1;37;40m%-3ld\033[0m(%-3ld/%2d%%)", NV, (NV-NVl), (int)(100*(float)(NV-NVl)/(float)NV));

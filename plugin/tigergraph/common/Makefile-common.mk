@@ -49,6 +49,7 @@ STAGE_COPY_COMMON_FILES = \
     install.sh \
     \
     bin/common.sh \
+	bin/gen-cluster-info.py \
     bin/install-plugin-cluster.sh \
     bin/install-plugin-node.sh\
     \
@@ -95,7 +96,7 @@ STAGE_ALL_FILES = \
 STAGE_SUBDIRS = $(sort $(dir $(STAGE_ALL_FILES)))
 
 stage: $(STAGE_DIR) $(STAGE_SUBDIRS) $(STAGE_ALL_FILES)
-	
+
 
 $(STAGE_DIR):
 	mkdir -p $@
@@ -116,6 +117,8 @@ else ifeq ($(OSDIST),CentOS)
     DIST_TARGET = RPM
 endif
 
+all : install
+
 .PHONY: dist
 
 dist: stage
@@ -127,6 +130,13 @@ dist: stage
 	    make ; \
 	fi
 
+ifdef sshKey
+    SSH_KEY_OPT=-i $(sshKey)
+endif
+
+.PHONY: install
+install: stage
+	./staging/install.sh $(SSH_KEY_OPT)
 
 #######################################################################################################################
 #
@@ -143,4 +153,9 @@ help:
 	@echo "Valid make targets:"
 	@echo "stage   : Generate staging directory"
 	@echo "dist    : Generate installation package (RPM or DEB) for the current OS and architecture"
+	@echo "install : Make stage and run insta.sh"
+	@echo ""
+	@echo "Examples:"
+	@echo "Install plugin files with SSH key file"
+	@echo "make sshKey=~/.ssh/tigergraph_rsa"
 

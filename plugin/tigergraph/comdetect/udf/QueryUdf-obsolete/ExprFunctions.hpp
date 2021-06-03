@@ -258,7 +258,9 @@ namespace UDIMPL {
         return ret;
     }
 
-    inline int udf_louvain_alveo(int64_t max_iter, int64_t max_level, float tolerence, bool intermediateResult, bool verbose, string result_file, bool print_final_Q, bool print_all_Q)
+    inline int udf_louvain_alveo(int64_t max_iter, int64_t max_level, 
+        float tolerence, bool intermediateResult, bool verbose, 
+        string result_file, bool print_final_Q, bool print_all_Q)
     {
 
         std::lock_guard<std::mutex> lockGuard(xai::writeMutex);

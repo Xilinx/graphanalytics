@@ -20,7 +20,7 @@
     }, 
     "launch": [
         {
-            "cmd_args": "-weight PROJECT/data/cosine_dense_weight.csr -golden PROJECT/data/cosine_dense.mtx -topK 100 ", 
+            "cmd_args": "-coeffs PROJECT/data/coeffs.csr -golden PROJECT/data/cosine_dense.mtx -topK 100 ", 
             "ld_library_path": ["PROJECT/../../lib",
                                 "$(XILINX_XRT)/lib",
                                 "$(XILINX_XRM)/lib"
@@ -36,7 +36,8 @@
                 "LIB_DIR/ext/xcl2/xcl2.cpp"
             ], 
             "includepaths": [
-                "LIB_DIR/L3/include"
+                "LIB_DIR/L3/include",
+                "LIB_DIR/ext/xcl2/"
             ], 
             "options": "-O3 -I$(XILINX_XRM)/include"
         }, 
@@ -45,7 +46,8 @@
                 "LIB_DIR/L3/lib"
             ], 
             "libraries": [
-                "graphL3"
+                "graphL3",
+                "zmq"
             ], 
             "options": "-L$(XILINX_XRM)/lib -lxrm "
         }
@@ -55,14 +57,7 @@
             "includepaths": [
                 "LIB_DIR/L1/include/hw", 
                 "LIB_DIR/L2/include/hw", 
-                "LIB_DIR/L2/tests/dense_similarity_multi_kernel/kernel"
-            ]
-        }, 
-        "linker": {
-            "includepaths": [
-                "LIB_DIR/L1/include/hw", 
-                "LIB_DIR/L2/include/hw", 
-                "LIB_DIR/L2/tests/dense_similarity_multi_kernel/kernel"
+                "LIB_DIR/L2/dense_similarity_multi_kernel/kernel"
             ]
         }
     }, 
@@ -70,7 +65,7 @@
         {
             "accelerators": [
                 {
-                    "location": "LIB_DIR/L2/tests/dense_similarity_multi_kernel/kernel/denseSimilarityKernel.cpp", 
+                    "location": "LIB_DIR/L2/dense_similarity_multi_kernel/kernel/denseSimilarityKernel.cpp", 
                     "frequency": 300.0, 
                     "clflags": " -D KERNEL_NAME=denseSimilarityKernel", 
                     "name": "denseSimilarityKernel", 
@@ -87,6 +82,10 @@
                                 {
                                     "name": "sourceWeight", 
                                     "memory": "HBM[24]"
+                                },
+                                {
+                                    "name": "sourceCoeffs",
+                                    "memory": "HBM[24]"  
                                 }, 
                                 {
                                     "name": "resultID", 
@@ -157,7 +156,11 @@
                                 {
                                     "name": "sourceWeight", 
                                     "memory": "HBM[28]"
-                                }, 
+                                },
+                                {
+                                    "name": "sourceCoeffs",
+                                    "memory": "HBM[28]"
+                                },
                                 {
                                     "name": "resultID", 
                                     "memory": "HBM[28]"

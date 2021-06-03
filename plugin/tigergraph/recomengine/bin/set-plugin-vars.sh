@@ -22,6 +22,9 @@
 # determine the names and locations of the components of that Alveo Product.
 #
 
+# Alveo product name
+pluginAlveoProductName="Xilinx Recommendation Engine"
+
 # The usual place where the Alveo Product is installed
 pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/cosinesim/1.1
 

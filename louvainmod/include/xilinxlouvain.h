@@ -59,10 +59,10 @@ enum {
 extern "C" {
 
 XILINX_LOUVAINMOD_IMPL_DECL
-int create_alveo_partitions(int argc, char *argv[]);
+int create_and_load_alveo_partitions(int argc, char *argv[]);
 
 XILINX_LOUVAINMOD_IMPL_DECL
-float load_alveo_partitions(int argc, char *argv[]);
+float load_alveo_partitions_wrapper(int argc, char *argv[]);
 
 XILINX_LOUVAINMOD_IMPL_DECL
 xilinx_apps::louvainmod::LouvainModImpl *xilinx_louvainmod_createImpl(const xilinx_apps::louvainmod::Options& options);

@@ -40,15 +40,167 @@ inline int udf_xilinx_comdetect_set_node_id(uint nodeId)
     return nodeId;
 }
 
-inline int udf_xilinx_comdetect_set_num_nodes(uint numNodes)
+inline int udf_xilinx_comdetect_setup_nodes(std::string nodeNames, 
+                                            std::string nodeIps)
 {
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
-    std::cout << "DEBUG: " << __FUNCTION__ << " numNodes=" << numNodes << std::endl;
+    std::cout << "DEBUG: " << __FUNCTION__  
+              << " nodeNames=" << nodeNames 
+              << " nodeIps=" << nodeIps << std::endl;
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+
+    std::istringstream issNodeNames(nodeNames);
+    std::istringstream issNodeIps(nodeIps);
+    std::string nodeName;
+    std::string nodeIp;
+    unsigned numNodes = 0;
+    while ((issNodeNames >> nodeName) && (issNodeIps >> nodeIp))
+    {
+        std::cout << "DEBUG " << numNodes++ << ":" << nodeName 
+                  << nodeIp << std::endl;
+    } while (issNodeNames && issNodeIps);
+
 
     pContext->setNumNodes(unsigned(numNodes));
     return numNodes;
 }
+
+//inline string udf_open_alveo(int mode)
+//{
+//    std::lock_guard<std::mutex> lockGuard(xai::writeMutexOpenAlveo);
+//    if (!xai::openedAlveo) {
+//        std::cout << "DEBUG: " << __FUNCTION__ << " xai::openedAlveo=" << xai::openedAlveo << std::endl;
+//        if(xai::openedAlveo) return "";
+//        xai::openedAlveo = true;
+//        string result("Initialized Alveo");
+//        try
+//        {
+//            std::cout << "DEBUG: Opening XAI library " << std::endl;
+//            xai::xaiLoader.load_library(xai::host_libname);
+//            std::cout << "DEBUG: Opened XAI library " << std::endl;
+//        }
+//        catch (std::exception& e) {
+//            std::cerr << "ERROR: An exception occurred: " << e.what() << std::endl;
+//            (result += ": STD Exception:")+=e.what();
+//        }
+//        catch (...) {
+//            std::cerr << "ERROR: An unknown exception occurred." << std::endl;
+//            (result += ": Unknown Exception:")+=" Reason unknown, check LD_LIBRARY_PATH";
+//        }
+//        return result;
+//    }
+//    return "";
+//}
+
+// TODO: Change signature as needed
+// This function combined with GSQL code should traverse memory of TigerGraph on Each
+// server and build the partitions for each server in the form Louvain host code can consume it
+inline int udf_load_alveo(uint num_partitions, uint num_devices)
+{
+    std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
+    xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+    int retVal = 0;
+    retVal = load_alveo_partitions(num_partitions, num_devices);    
+
+ /* TODO
+    std::lock_guard<std::mutex> lockGuard(xai::writeMutex);
+    int ret=0;
+    if (!xai::loadedAlveo) {
+        if(xai::loadedAlveo) return 0;
+        xai::loadedAlveo = true;
+        xai::num_partitions = num_partitions;
+        xai::num_devices = num_devices;
+    }
+*/    
+    // TODO: make call into host code and add needed functions
+    return retVal;
+}
+
+
+inline int udf_create_and_load_alveo_partitions(bool use_saved_partition, 
+    string graph_file, string alveo_project, uint num_nodes, uint num_partitions, 
+    uint num_devices)
+{
+    std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
+    xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+    int ret=0;
+
+    std::string cur_node_hostname, cur_node_ip, node_ips;
+    // PLUGIN_CONFIG_PATH will be replaced by the actual config path during plugin installation
+    std::fstream config_json(PLUGIN_CONFIG_PATH, std::ios::in);
+    if (!config_json) {
+        std::cout << "ERROR: config file doesn't exist:" << PLUGIN_CONFIG_PATH << std::endl;
+        return(2);
+    }
+
+    char line[1024] = {0};
+    char* token;
+    node_ips = "";
+    bool scanNodeIp;
+    while (config_json.getline(line, sizeof(line))) {
+        token = strtok(line, "\"\t ,}:{\n");
+        scanNodeIp = false;
+        while (token != NULL) {
+            if (!std::strcmp(token, "curNodeHostname")) {
+                token = strtok(NULL, "\"\t ,}:{\n");
+                cur_node_hostname = token;
+            } else if (!std::strcmp(token, "curNodeIp")) {
+                token = strtok(NULL, "\"\t ,}:{\n");
+                cur_node_ip = token;
+            } else if (!std::strcmp(token, "nodeIps")) {
+                // this field has multipe space separated IPs
+                scanNodeIp = true;
+                // read the next token
+                token = strtok(NULL, "\"\t ,}:{\n");
+                node_ips += token;
+                std::cout << "node_ips=" << node_ips << std::endl;
+            } else if (scanNodeIp) {
+                // In the middle of nodeIps field
+                node_ips += " ";
+                node_ips += token;
+                std::cout << "node_ips=" << node_ips << std::endl;
+            }
+            token = strtok(NULL, "\"\t ,}:{\n");
+        }
+    }
+    config_json.close();
+
+    pContext->setAlveoProject(alveo_project);
+    pContext->setNumNodes(num_nodes);
+    pContext->setNumPartitions(num_partitions);
+    pContext->setNumDevices(num_devices);
+    pContext->setCurNodeIp(cur_node_ip);
+    pContext->setNodeIps(node_ips);
+
+/*
+    std::lock_guard<std::mutex> lockGuard(xai::writeMutex);
+    int ret=0;
+    if (!xai::loadedAlveo) {
+        if(xai::loadedAlveo) return 0;
+        xai::loadedAlveo = true;
+        xai::graph_file = graph_file;
+*/      
+
+    unsigned nodeId = pContext->getNodeId();
+    int argc = 9;
+    char* argv[] = {"host.exe", graph_file.c_str(), "-fast", "-par_num", std::to_string(num_partitions).c_str(),
+        "-create_alveo_partitions", "-name", alveo_project.c_str(), "-server_par", NULL};
+    std::cout << "DEBUG: " << __FUNCTION__ << " nodeId=" << nodeId
+              << " graph_file=" << graph_file.c_str() 
+              << " num_partitions=" << num_partitions 
+              << " louvain project=" << alveo_project.c_str() 
+              << " cur_node_ip=" << cur_node_ip 
+              << " cur_node_hostname=" << cur_node_hostname 
+              << " node_ips=" << node_ips << std::endl;
+        
+    
+    if (!use_saved_partition && nodeId == 0) {
+        std::cout << "DEBUG: Calling create_alveo_partitions" << std::endl;
+        ret = create_and_load_alveo_partitions(argc, (char**)(argv));
+    }
+    return ret;
+}
+
 
 inline bool udf_close_alveo(int mode)
 {
@@ -56,7 +208,7 @@ inline bool udf_close_alveo(int mode)
     return true;
 }
 
-
+/*
 inline int udf_create_alveo_partitions(std::string input_graph, std::string partitions_project, std::string num_patitions)
 {
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
@@ -72,7 +224,7 @@ inline int udf_create_alveo_partitions(std::string input_graph, std::string part
 //        std::cout << "create partitions arg " << i << " = " << argv[i] << std::endl;
     return create_alveo_partitions(argc, (char**)(argv));
 }
-
+*/
 
 inline int udf_execute_reset(int mode) {
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
@@ -81,14 +233,20 @@ inline int udf_execute_reset(int mode) {
 }
 
 
-inline float udf_execute_alveo_louvain(
-    std::string input_graph, std::string partitions_project, 
-    std::string num_devices, std::string num_patitions, 
-    std::string num_workers, std::string community_file)
+inline float udf_louvain_alveo(
+    int64_t max_iter, int64_t max_level, float tolerence, bool intermediateResult,
+    bool verbose, string result_file, bool final_Q, bool all_Q)
 {        
-
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+
+    unsigned nodeId = pContext->getNodeId();
+    std::string alveoProject = pContext->getAlveoProject() + ".par.proj";
+    unsigned numWorkers = pContext->getNumNodes() - 1;
+    unsigned numDevices = pContext->getNumDevices();
+    unsigned numPartitions = pContext->getNumPartitions(); 
+    std::string curNodeIp = pContext->getCurNodeIp();
+    std::string nodeIps = pContext->getNodeIps();
 
     //if (pContext->getState() >= xilComDetect::Context::CalledExecuteLouvainState)
     //    return 0;
@@ -97,45 +255,57 @@ inline float udf_execute_alveo_louvain(
     //          << " Context::getState()=" << pContext->getState() << std::endl;
 
     //pContext->setState(xilComDetect::Context::CalledExecuteLouvainState);
-    std::string workernum;
+    unsigned modeZmq;
 
-    std::string worker_or_driver("-workerAlone");
-    int my_argc = 18;
-    char* optional_arg = nullptr;
+    std::istringstream issNodeIps(nodeIps);
+    //std::string nodeName;
+    std::string nodeIp;
+    //char hostname[64 + 1];
+    char* nameWorkers[128];
+    //int  res_hostname = gethostname(hostname, 64 + 1);
+    //if (res_hostname != 0) {
+    //    std::cout << "ERROR: gethostname failed" << std::endl;
+    //    return res_hostname;
+    //}
+    std::string tcpConn;
+    //std::cout << "DEBUG: nodeId " << nodeId << " hostname=" << hostString << std::endl;
+    unsigned iTcpConn = 0;
+    while (issNodeIps >> nodeIp) {
+        if (nodeIp != curNodeIp) {
+            tcpConn = "tcp://" + nodeIp + ":5555";
+            std::cout << "DEBUG: zmq=" << tcpConn << std::endl;
+            nameWorkers[iTcpConn] = strcpy(new char[tcpConn.length() + 1], 
+                                           tcpConn.c_str());
+            iTcpConn++;
+        } else
+            std::cout << "DEBUG: skip nodeIp " << nodeIp << std::endl;
+    };
+
+    for (int i=0; i < iTcpConn; i++)
+        std::cout << "DEBUG: nameWorker " << i << "=" << nameWorkers[i] << std::endl;
 
     // nodeId 0 is always the driver. All other nodes are workers.
-    unsigned nodeId = pContext->getNodeId();
     if (nodeId == 0) {
-        worker_or_driver = "-driverAlone";
+        modeZmq = 1; // driver
     } else {
-        optional_arg = (char*) workernum.c_str();
-        my_argc++;
+        modeZmq = 2; // worker
     }
-    workernum = std::to_string(nodeId);
-
-    std::cout << "DEBUG: " << __FUNCTION__ << " workernum=" << workernum 
-              << " isdriver=" << (nodeId == 0) << std::endl;
-
-    char* my_argv[] = {"host.exe", "-x", PLUGIN_XCLBIN_PATH, input_graph.c_str(), 
-                       "-o", community_file.c_str(), "-fast", "-dev", 
-                       num_devices.c_str(), "-par_num", num_patitions.c_str(),
-                       "-load_alveo_partitions", partitions_project.c_str(), 
-                       "-setwkr", num_workers.c_str(), "tcp://192.168.1.21:5555", "tcp://192.168.1.31:5555", 
-                           worker_or_driver.c_str(), optional_arg, nullptr};
-
+    
     std::cout
-        << "DEBUG: "
-        << "Calling execute_louvain. input_graph: " <<  input_graph.c_str()
-        << " num_partitions: " << num_patitions.c_str()
-        << " project: " << partitions_project.c_str()
-        << " num workers: " << num_workers.c_str()
-        << " worker_or_driver: " << worker_or_driver.c_str()
-        << " worker num: " << workernum.c_str() << "\n"
-        << std::flush;
-
-//    for (int i = 0; i < sizeof(my_argv)/sizeof(char *) - 1; ++i)
-//        std::cout << "load partitions arg " << i << " = " << my_argv[i] << std::endl;
-    float retVal = load_alveo_partitions(my_argc, (char**)(my_argv));
+        << "DEBUG: " << __FUNCTION__ 
+        << " XCLBIN_PATH=" << PLUGIN_XCLBIN_PATH
+        << " numDevices=" << numDevices << " numPartitions=" << numPartitions
+        << " alveoProject=" << alveoProject << " numWorkers=" << numWorkers
+        << " nodeId=" << nodeId << std::endl;
+    
+    float retVal = 0;
+    retVal = compute_louvain_alveo(    
+                    PLUGIN_XCLBIN_PATH, true, numDevices, 
+                    numPartitions, alveoProject.c_str(), 
+                    modeZmq, numWorkers, nameWorkers, nodeId,
+                    result_file.c_str(),
+		    max_iter, max_level, tolerence, intermediateResult, verbose, final_Q, all_Q); 
+    
     std::cout << "DEBUG: Returned from execute_louvain. Q=" << retVal << std::endl;
     return retVal;
 }

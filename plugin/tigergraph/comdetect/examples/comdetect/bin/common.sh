@@ -39,7 +39,7 @@ function usage() {
     echo "Usage: $0 -u TG-username -p TG-password [optional options]"
     echo "Optional options:"
     echo "  -a alveoProject     : Alveo partition project basename "
-    echo "  -c compileMode      : 0: recreate database and compile all; 1: only compile query gsql; 2: skip database creation and gsql compilation "
+    echo "  -c compileMode      : 0: recreate database and compile all (default); 1: only compile query gsql; 2: skip database creation and gsql compilation"
     echo "  -d numDevices       : number of FPGAs needed (default=1)"
     echo "  -f                  : Force (re)install"
     echo "  -g graphName        : graph name (default=social_<username>"
@@ -47,13 +47,14 @@ function usage() {
     echo "  -l 0|1              : 0: Do not load FPGA; 1: Load FPGA(default)>"
     echo "  -m numNodes         : Number of nodes in Tigergraph cluster"
     echo "  -n numPartitions    : Number of Alveo partitions "
-    echo "  -r runMode          : 0: Run only on CPU; 1: Run only on Alveo; 2: Run on both CPU and Alveo "
+    echo "  -r runMode          : 0: Run only on CPU (default); 1: Run only on Alveo; 2: Run on both CPU and Alveo"
     echo "  -s dataSource       : A .mtx file containing input graph. default=./as-Skitter/as-Skitter-wt-e110k.mtx"
     echo "  -v                  : Print verbose messages"
-    echo "  -x partitionMode    : 0: from TigerGraph memory; 1: from dataSource (.mtx); 2: load saved (alveo project)"
+    echo "  -x partitionMode    : 0: from TigerGraph memory; 1: from dataSource (.mtx) (default); 2: load saved (alveo project)"
     echo "  -h                  : Print this help message"
 }
 
+tg_home=$(readlink -f ~tigergraph)
 # default values for optional options
 hostname=$(hostname)
 username=$USER
@@ -64,7 +65,8 @@ load_fpga=1
 num_devices=1
 num_partitions=1
 num_nodes=1
-alveo_prj="$script_dir/as-skitter/as-skitter-partitions/louvain_partitions"
+num_partitions=9
+alveo_prj="$tg_home/as-skitter-partitions"
 verbose=0
 xgraph="social_$username"
 force_clean=0
@@ -97,7 +99,7 @@ case $opt in
     u) username=$OPTARG;;
     v) verbose=1; verbose_flag=-v;;
     x) partition_mode=$OPTARG;;
-    h) usage; exit 1;;
+    h) usage; exit 0;;
     ?) echo "ERROR: Unknown option: -$OPTARG"; usage; exit 1;;
 esac
 done

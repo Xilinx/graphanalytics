@@ -38,14 +38,6 @@ script_dir=`dirname $SCRIPT`
 
 . $script_dir/bin/common.sh
 
-#temporary protection for old install method
-if [ -x $script_dir/bin/install-udf.sh ]
-then
-echo "Installing UDF files"
-$script_dir/bin/install-udf.sh $ssh_key_flag $verbose_flag $force_clean_flag
-else
-echo "Skipping UDF installation.  ExprFunctions.hpp is expected to have these UDFs already."
-fi
 tg_partition="FALSE"
 use_saved_partition="FALSE"
 if [ "$partition_mode" -eq 0 ]; then
@@ -118,26 +110,20 @@ if [ "$run_mode" -eq 0 ] || [ "$run_mode" -eq 2 ]; then
 fi
 
 if [ "$run_mode" -eq 1 ] || [ "$run_mode" -eq 2 ]; then
-    START=$(date +%s%3N)
-    echo "Running open_alveo"
-    echo gsql -u $username -p $password -g $xgraph \'run query open_alveo\(\)\'
-    time gsql -u $username -p $password -g $xgraph "run query open_alveo()"
-    TOTAL_TIME=$(($(date +%s%3N) - START))
-    echo "open_alveo: " $TOTAL_TIME
-
+    # no need to run open_alveo in production flow. The context is automatically created when needed
     START=$(date +%s%3N)
     echo "Running load_alveo"
-    echo gsql -u $username -p $password -g $xgraph \'run query load_alveo\([\"Person\"], [\"Coworker\"], \"weight\", $tg_partition, $use_saved_partition, \"$data_source\", \"$alveo_prj\", \"$num_partitions\", \"$num_devices\"\)\'
+    echo gsql -u $username -p $password -g $xgraph \'run query load_alveo\([\"Person\"], [\"Coworker\"], \"weight\", $tg_partition, $use_saved_partition, \"$data_source\", \"$alveo_prj\", $num_partitions, $num_devices\)\'
     time gsql -u $username -p $password -g $xgraph "run query load_alveo([\"Person\"], [\"Coworker\"], \
-         \"weight\", $tg_partition, $use_saved_partition, \"$data_source\", \"$alveo_prj\", \"$num_partitions\", \"$num_devices\")"
+         \"weight\", $tg_partition, $use_saved_partition, \"$data_source\", \"$alveo_prj\", $num_partitions, $num_devices)"
     TOTAL_TIME=$(($(date +%s%3N) - START))
     echo "load_alveo: " $TOTAL_TIME
 
     START=$(date +%s%3N)
     echo "Running louvain_alveo"
-    echo gsql -g $xgraph \'run query louvain_alveo\([\"Person\"], [\"Coworker\"], \"weight\",20,1,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_alveo.txt\",TRUE,FALSE\)\'
-    time gsql -g $xgraph "run query louvain_alveo([\"Person\"], [\"Coworker\"], \
-         \"weight\",20,1,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_alveo.txt\",TRUE,FALSE)"
+    echo gsql -u $username -p $password -g $xgraph \'run query louvain_alveo\([\"Person\"], [\"Coworker\"], \"weight\",20,20,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_alveo.txt\",TRUE,FALSE\)\'
+    time gsql -u $username -p $password -g $xgraph "run query louvain_alveo([\"Person\"], [\"Coworker\"], \
+         \"weight\",20,20,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_alveo.txt\",TRUE,FALSE)"
     TOTAL_TIME=$(($(date +%s%3N) - START))
     echo "louvain_alveo: " $TOTAL_TIME
 fi

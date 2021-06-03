@@ -1,3 +1,20 @@
+/*
+ * Copyright 2020 Xilinx, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WANCUNCUANTIES ONCU CONDITIONS OF ANY KIND, either express or
+ * implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 DROP QUERY louvain_distributed_q_cpu
 
 //Example invocations:
@@ -38,6 +55,7 @@ CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(
 	DOUBLE vm_peak, vm_hwm;
 	INT ret;
     DOUBLE udf_time;
+    DOUBLE epsilon = 0.0001;
 
 	Start = {v_type};
     udf_reset_timer(true);
@@ -63,7 +81,8 @@ CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(
 					t.@cc += getCc(t.@best_move),
 					t.@ccWeight = -getWeight(t.@best_move)
 				ELSE
-					IF -getWeight(t.@best_move) == t.@ccWeight AND getvid(t) < getvid(getCc(t.@best_move))  THEN
+					//IF -getWeight(t.@best_move) == t.@ccWeight AND getvid(t) < getvid(getCc(t.@best_move))  THEN
+                    IF abs((-getWeight(t.@best_move)) - (t.@ccWeight)) < epsilon AND getvid(t) < getvid(getCc(t.@best_move))  THEN
 						t.@cc.clear(),
 						t.@cc += getCc(t.@best_move),
 						t.@ccWeight = -getWeight(t.@best_move)
@@ -129,7 +148,8 @@ CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(
 						s.@cc += getCc(s.@best_move),
 						s.@ccWeight = -getWeight(s.@best_move)
 					ELSE
-						IF -getWeight(s.@best_move) == s.@ccWeight AND getvid(s.@cc.get(0)) < getvid(getCc(s.@best_move))  THEN
+                        //IF -getWeight(s.@best_move) == s.@ccWeight AND getvid(s.@cc.get(0)) < getvid(getCc(s.@best_move))  THEN
+						IF abs((-getWeight(s.@best_move)) - (s.@ccWeight)) < epsilon AND getvid(s.@cc.get(0)) < getvid(getCc(s.@best_move))  THEN
 							s.@cc.clear(),
 							s.@cc += getCc(s.@best_move),
 							s.@ccWeight = -getWeight(s.@best_move)
