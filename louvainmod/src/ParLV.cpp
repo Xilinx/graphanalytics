@@ -1209,6 +1209,15 @@ int host_ParserParameters(int argc,
     return 0;
 }
 
+ToolOptions::ToolOptions(int argcIn, char** argvIn) {
+    argc = argcIn;
+    argv = argvIn;
+    host_ParserParameters(argc, argv, opts_C_thresh, opts_minGraphSize, opts_threshold, opts_ftype, opts_inFile,
+        opts_coloring, opts_output, opts_outputFile, opts_VF, opts_xclbinPath, numThreads, num_par,
+        gh_par, flow_fast, devNeed, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
+        nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par, max_num_level, max_num_iter);
+}
+
 void PrintTimeRpt(GLV* glv, int num_dev, bool isHead) {
     int num_phase = 6;
     if (isHead) {

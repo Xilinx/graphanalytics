@@ -219,7 +219,8 @@ LDLIBS_test = \
 	
 
 SRC_FILE_NAMES_test = \
-    louvainmod_test.cpp
+    louvainmod_test.cpp \
+    apitest.cpp
 
 SRCS_test = $(addprefix $(TEST_DIR)/,$(SRC_FILE_NAMES_test))
 OBJS_test = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_test:.cpp=.o)))
@@ -227,7 +228,8 @@ DEPS_test = $(OBJS_test:.o=.d)
 
 # List of all test executables to build
 EXEC_FILE_NAMES_test = \
-    louvainmod_test
+    louvainmod_test \
+    apitest
 
 EXECS_test = $(addprefix $(CPP_BUILD_DIR)/,$(EXEC_FILE_NAMES_test))
 
@@ -255,6 +257,20 @@ run-test: cppTest
 #run-dyn-test: cppTest
 #	LD_PRELOAD=$(PWD)/$(CPP_BUILD_DIR)/$(LIB_NAME) LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) \
 #	    $(CPP_BUILD_DIR)/cosinesim_dyn_test $(NUMDEVICES)
+
+
+$(CPP_BUILD_DIR)/apitest: $(CPP_BUILD_DIR)/apitest.o $(CPP_BUILD_DIR)/$(LIB_NAME)
+	$(LINK.cc) -o $@ $< $(LDFLAGS_test) $(LIB_DEPS)
+
+#$(CPP_BUILD_DIR)/cosinesim_dyn_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUILD_DIR)/$(LOADER_NAME) $(CPP_BUILD_DIR)/$(LIB_NAME)
+#	$(LINK.cc) -o $@ $< -fPIC -w -L $(CPP_BUILD_DIR) -l$(LOADER_SHORT_NAME) -ldl $(LIB_DEPS)
+
+CMDLINE = ../plugin/tigergraph/comdetect/examples/comdetect/as-skitter/as-skitter-wt-e110k.mtx -fast -par_num 9 \
+    -create_alveo_partitions -name as-skillter-par9 -server_par 3
+
+run-apitest: cppTest
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE)
+
 
 #LDFLAGS_fakeudf = -fPIC -w -L /scratch/tigergraph/tigergraph/app/3.1.0/dev/gdk/gsql/src/QueryUdf -lgraphL3wrapper -ldl
 #LDFLAGS_fakeudf = -fPIC -w -L $(CPP_BUILD_DIR) -l$(LIB_SHORT_NAME)

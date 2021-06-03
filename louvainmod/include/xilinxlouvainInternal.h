@@ -1,5 +1,6 @@
 #ifndef _XILINXLOUVAININTERNAL_H_
 #define _XILINXLOUVAININTERNAL_H_
+#include "xilinxlouvain.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,12 +44,15 @@ typedef double DWEIGHT;
 #define MAX_NUM_TOTITR  (10000)
 #define MAX_NUM_DEV     (64)
 
-typedef struct /* the edge data structure */
-{
-    long head;
-    long tail;
-    double weight;
-} edge;
+
+//typedef struct /* the edge data structure */
+//{
+//    long head;
+//    long tail;
+//    double weight;
+//} edge;
+
+using edge = xilinx_apps::louvainmod::Edge;
 
 class graphNew {
    public:
@@ -486,10 +490,5 @@ double PhaseLoop_UsingFPGA_Prep_Read_buff_host_prune(
 		double*         currMod
 		);
 //New from host/////////////////////////////////////////////////////////////////////
-enum {
-	ZMQ_NONE=0,
-	ZMQ_DRIVER,
-	ZMQ_WORKER
-};
 
 #endif

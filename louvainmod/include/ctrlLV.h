@@ -249,8 +249,8 @@ void WriteAdjMatrix2Raw(
 		char* nm_file
 		);
 
-char* NameNoPath(char* name);
+const char* NameNoPath(const char* name);
 
-void PathNoName(char* des, char* name);
+void PathNoName(char* des, const char* name);
         
 #endif 

@@ -576,7 +576,7 @@ int SaveG_general(graphNew* g, char* fileName){
 	return 0;
 }
 
-char* NameNoPath(char* name){
+const char* NameNoPath(const char* name){
 	assert (name);
 	int len = strlen(name)-1;
 	char c = name[len];
@@ -589,7 +589,7 @@ char* NameNoPath(char* name){
 		return name+len+1;
 }
 
-void PathNoName(char* des, char* name){
+void PathNoName(char* des, const char* name){
 	assert (name);
 	int len = strlen(name)-1;
 	char c = name[len];

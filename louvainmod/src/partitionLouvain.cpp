@@ -1344,31 +1344,43 @@ GLV* SttGPar::ParNewGlv_Prun(graphNew* G, long st, long ed, int& id_glv, int th_
 	free(M_v);
 	return glv;
 }
-GLV* SttGPar::ParNewGlv_Prun(long start_tg, long* offsets_tg, edge* edgelist_tg, long* dgrlist_tg, long start_par, long size_par, int& id_glv, int th_maxGhost){
-	start = start_par;
-	long ed_par = start_par+size_par;
-	end = ed_par;
-	long NV_par_local = end - start;
-	long NE_par = offsets_tg[end-start_tg]- offsets_tg[start-start_tg];
-	edge* elist = (edge*)malloc(sizeof(edge) * (NE_par));
-	long* M_v   = (long*)malloc(sizeof(long) * (NE_par));
+GLV* SttGPar::ParNewGlv_Prun(long start_tg, long* offsets_tg, edge* edgelist_tg, long* dgrlist_tg, long start_par,
+    long size_par, int& id_glv, int th_maxGhost)
+{
+    start = start_par;  // global ID of first local vertex (vertex in the partition)
+    long ed_par = start_par+size_par;  // 1 + global ID of last local vertex
+    end = ed_par;
+    long NV_par_local = end - start;  // number of local vertices
+    long NE_par = offsets_tg[end-start_tg]- offsets_tg[start-start_tg];  // number of edges connected to local vertices
+    edge* elist = (edge*)malloc(sizeof(edge) * (NE_par));  // output partition edge list with local vertex IDs
 
-	//long off = end - start;
+    // Array of local IDs for all local vertices followed by encoded global IDs of ghost nodes for the current
+    // partition.  The array size is the sum of the number of local nodes plus the number of edges to cover the
+    // worst-case scenario that every edge connects to a different ghost node.
+    const unsigned long M_v_size = NV_par_local + NE_par;
+    long* M_v   = (long*)malloc(sizeof(long) * (M_v_size));
 
+    //long off = end - start;
 
-	for(int i=0; i<NE_par; i++){
-		M_v[i] = i<NV_par_local? i + start : -2;
-	}
-	long cnt_e_input = offsets_tg[start_par-start_tg];
-    for(long v = start; v < end; v++){
+    // Initialize M_v with all local vertices and set all possible ghost vertices to a dummy value
+
+    for(int i=0; i < M_v_size; i++){
+        M_v[i] = i<NV_par_local? i + start : -2;
+    }
+    long cnt_e_input = offsets_tg[start_par-start_tg];  // index of current edge (used for dgrlist_tg)
+
+    // Iterate through all local vertices of the partition, building the output edgelist 
+    for (long v = start; v < end; v++) {
         map<long , long>::iterator itr;
-        VGMinDgr gMinDgr;
-        long num_vg = 0;
-        long head_m = 0, tail_m = 0;
-        long adj1    = offsets_tg[v - start_tg];
-        long adj2    = offsets_tg[v+1 - start_tg];
-        int degree   = adj2-adj1;
-        for(int d=0; d<degree; d++){
+        VGMinDgr gMinDgr;  // list of ghost vertices for the current local vertex sorted from smallest degree to largest
+        long num_vg = 0;  // number of ghost vertices for the current local vertex
+        long head_m = 0, tail_m = 0;  // locally (to the partition) renumbered vertices of the current edge
+        long adj1    = offsets_tg[v - start_tg];  // index of first edge of current vertex
+        long adj2    = offsets_tg[v+1 - start_tg];  // 1 + index of last edge of current vertex
+        int degree   = adj2-adj1;  // number of edges of current vertex
+        
+        // Add each edge of v to elist (if tail is local) or gMinDgr (if tail is a ghost)
+        for (int d = 0; d < degree; d++) {
             long e = edgelist_tg[adj1+d].tail;
             double w = edgelist_tg[adj1+d].weight;
             long e_dgr2 = dgrlist_tg[cnt_e_input];
@@ -1376,15 +1388,17 @@ GLV* SttGPar::ParNewGlv_Prun(long start_tg, long* offsets_tg, edge* edgelist_tg,
             EdgePruning(elist, v, e, w, M_v, gMinDgr, num_vg, e_dgr2, th_maxGhost);
             cnt_e_input++;
         }
+        
+        // Add edges for ghost nodes collected in gMinDgr, limited to th_maxGhost edges
         long smallest = num_vg < th_maxGhost ? num_vg : th_maxGhost;
         for(int i = 0; i < smallest; i++) {
             itr = map_v_g.find(gMinDgr.tail[i]);
             if(itr == map_v_g.end()){
-                tail_m = num_v_g + NV_par_local;
-                M_v[tail_m] = -gMinDgr.tail[i]-1;
-                map_v_g[gMinDgr.tail[i]] = num_v_g++;
+                tail_m = num_v_g + NV_par_local;  // next free slot in M_v
+                M_v[tail_m] = -gMinDgr.tail[i]-1;  // Save encoded global ID of ghost node in M_v
+                map_v_g[gMinDgr.tail[i]] = num_v_g++;  // Maps from ghost global ID to slot in M_v
             } else {
-                tail_m = itr->second + NV_par_local;
+                tail_m = itr->second + NV_par_local;  // Reuse ghost node already seen
             }
             elist[num_e_dir].head = head_m;
             elist[num_e_dir].tail = tail_m;
@@ -1395,19 +1409,24 @@ GLV* SttGPar::ParNewGlv_Prun(long start_tg, long* offsets_tg, edge* edgelist_tg,
             //printf("DBG_PAR:vertex= %ld\t nGhost= %ld\t sGhost= %ld\t  degree= %ld\t\n", v, num_vg, gMinDgr.tail[i], gMinDgr.dgrs[i]);
         }
     }
+    
+    // Convert the new edgelist and M_v into a GLV.  The offset list is inferred from the edgelist.
+    
     num_v_l = end - start;
     num_v   = num_v_l + num_v_g;
-	graphNew* Gnew = (graphNew*)malloc(sizeof(graphNew));
-	GLV* glv = new GLV(id_glv);
+    graphNew* Gnew = (graphNew*)malloc(sizeof(graphNew));
+    GLV* glv = new GLV(id_glv);
 
-	GetGFromEdge(Gnew, elist, num_v, num_e_dir);
-	glv->SetByOhterG(Gnew);
-	glv->SetM(M_v);
+    GetGFromEdge(Gnew, elist, num_v, num_e_dir);
+    glv->SetByOhterG(Gnew);
+    glv->SetM(M_v);
 
-	free(elist);
-	free(M_v);
-	return glv;
+    free(elist);
+    free(M_v);
+    return glv;
 }
+
+
 void SttGPar::CountV(graphNew* G, edge* elist, long* M_g)
 {
 	long NV = G->numVertices;
