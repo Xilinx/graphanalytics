@@ -24,6 +24,7 @@
 #include "xilinxComDetectImpl.hpp"
 #include <cstdint>
 #include <vector>
+#include <map>
 // mergeHeaders 1 section include end xilinxComDetect DO NOT REMOVE!
 
 namespace UDIMPL {
@@ -34,11 +35,14 @@ inline void udf_reset_nextId() {
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     std::cout << "nextId_ = " << pContext->nextId_ <<std::endl;
     pContext->nextId_ = 0 ;
+    pContext->degree_list.clear();
+    pContext->edge_list.clear();
 }
-inline uint64_t udf_get_nextId(){
+inline uint64_t udf_get_nextId(uint64_t out_degree){
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
-    std::cout << "louvainId = " << pContext->nextId_ <<std::endl;
+    pContext->degree_list.push_back((long)out_degree);
+    std::cout << "louvainId = " << pContext->nextId_ <<" out_degree = " << out_degree <<std::endl;
     return pContext->nextId_++;
 }
 
@@ -70,15 +74,26 @@ inline void udf_set_louvain_offset(uint64_t louvain_offset){
     std::cout << "Louvain Offsets = " << louvain_offset <<std::endl;
     pContext->louvain_offset = louvain_offset;
 }
-/*
-//TODO
-inline void udf_set_louvain_edge_list() {
 
+//TODO
+inline void udf_set_louvain_edge_list(uint64_t start_louvain_id, uint64_t tail_louvain_id, double weight, uint64_t tail_out_degree) {
+  
+  // GraphEdgeProperty l_edge = {(long)tail_louvain_id + pContext->louvain_offset, weight,(long)tail_out_degree};
+  std::cout << "tail_louvain_id = " << tail_louvain_id <<" weight = "<< weight<<" tail_out_degree ="<<tail_out_degree<< std::endl;
+  //insert to map ...
 }
 //Data has been populated and send to FPGA
-inline void udf_send_data() {
-
-}*/
+inline void udf_save_alveo_partition() {
+    std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
+    xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+    //build offsets_tg
+    int offsets_tg_size = (pContext->degree_list).size();
+    pContext->offsets_tg = &pContext->degree_list[0];
+    for(int i = 1;i < offsets_tg_size;i++){
+        pContext->offsets_tg[i] += pContext->offsets_tg[i-1];
+    }
+    std::cout<<"Last offsets_tg "<<pContext->offsets_tg[offsets_tg_size-1]<<std::endl;
+}
 
 inline int udf_xilinx_comdetect_setup_nodes(std::string nodeNames, 
                                             std::string nodeIps)

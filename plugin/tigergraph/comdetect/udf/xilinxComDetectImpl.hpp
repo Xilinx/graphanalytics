@@ -53,6 +53,12 @@ inline Mutex &getMutex() {
     return *pMutex;
 }
 
+struct GraphEdgeProperty {
+        long tail;
+        double weight;
+        long tail_out_degree;
+};
+
 
 class Context {
 public:
@@ -61,6 +67,8 @@ public:
         CalledExecuteLouvainState,  // after execute called
         NumStates
     };
+    
+
     
 private:
     std::string alveoProject_;
@@ -76,6 +84,9 @@ private:
 public:
     uint64_t nextId_ = 0 ;
     uint64_t louvain_offset = 0 ;
+    std::vector<long>  degree_list;
+    long* offsets_tg;
+    std::map<long, std::vector<GraphEdgeProperty>> edge_list;
     
     static Context *getInstance() {
         static Context *s_pContext = nullptr;

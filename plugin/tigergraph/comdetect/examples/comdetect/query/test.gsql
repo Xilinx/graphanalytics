@@ -18,6 +18,7 @@ CREATE DISTRIBUTED QUERY load_alveo_dev(
     MapAccum<UINT,UINT> @@parSize; //nodeid-> parSize
     MapAccum<UINT,UINT> @@offsets; //nodeid -> offsets
     FILE f ("/home2/tigergraph/load_alveo_dev_output.txt");
+    SumAccum<UINT> @@total_out_degree;
 
     
     Start = {v_type};
@@ -31,11 +32,13 @@ CREATE DISTRIBUTED QUERY load_alveo_dev(
  
     A1 = SELECT n FROM nodes:n
              // Local to each server, louvainid is local increasing id
-            POST-ACCUM n.setAttr(louvainId_attr, udf_get_nextId())
+            ACCUM @@total_out_degree+=n.outdegree()
+            POST-ACCUM n.setAttr(louvainId_attr, udf_get_nextId(n.outdegree()))
             ORDER BY n.louvainId;
             
     //print attribute louvainId
     PRINT A1[A1.louvainId];
+    PRINT @@total_out_degree;
     
     //print to file
     
@@ -57,12 +60,12 @@ CREATE DISTRIBUTED QUERY load_alveo_dev(
 
     PRINT @@offsets;
 
-    /*Start = SELECT s FROM Start:s-(e_type:e)->:t
+    Start = SELECT s FROM Start:s-(e_type:e)->:t
             ACCUM udf_set_louvain_edge_list(s.louvainId,t.louvainId,e.getAttr(wt_attr,"FLOAT"),t.outdegree());
-     
+    
     parList = SELECT n FROM dnodes:n
             ACCUM udf_save_alveo_partition();
-    */
+    
 }
 
 INSTALL QUERY load_alveo_dev
