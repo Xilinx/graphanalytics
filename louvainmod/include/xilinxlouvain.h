@@ -176,7 +176,7 @@ public:
     using VertexIndex = std::uint64_t;
     
     struct PartitionOptions {
-        bool flow_fast = false;  // C
+        int flow_fast = 2;  // C
         XString nameProj;  // C
         int num_par = 1;  // total number of partitions (across all servers)?  // CF
         int devNeed_cmd = 1;  // C

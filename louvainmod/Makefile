@@ -266,11 +266,15 @@ $(CPP_BUILD_DIR)/apitest: $(CPP_BUILD_DIR)/apitest.o $(CPP_BUILD_DIR)/$(LIB_NAME
 #$(CPP_BUILD_DIR)/cosinesim_dyn_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUILD_DIR)/$(LOADER_NAME) $(CPP_BUILD_DIR)/$(LIB_NAME)
 #	$(LINK.cc) -o $@ $< -fPIC -w -L $(CPP_BUILD_DIR) -l$(LOADER_SHORT_NAME) -ldl $(LIB_DEPS)
 
+APITEST_OUT_DIR = $(CPP_BUILD_DIR)/apitest-out
 CMDLINE = ../plugin/tigergraph/comdetect/examples/comdetect/as-skitter/as-skitter-wt-e110k.mtx -fast -par_num 9 \
-    -create_alveo_partitions -name as-skillter-par9 -server_par 3
+    -create_alveo_partitions -name $(APITEST_OUT_DIR)/as-skitter-par9 -server_par 3
 
 run-apitest: cppTest
+	rm -rf $(APITEST_OUT_DIR)
+	mkdir -p $(APITEST_OUT_DIR)
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE)
+#	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); totalview $(CPP_BUILD_DIR)/apitest -a $(CMDLINE)
 
 
 #LDFLAGS_fakeudf = -fPIC -w -L /scratch/tigergraph/tigergraph/app/3.1.0/dev/gdk/gsql/src/QueryUdf -lgraphL3wrapper -ldl

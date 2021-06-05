@@ -3285,7 +3285,7 @@ int create_alveo_partitions(char* inFile, int num_partition, int par_prune, char
 			end_vertex[i_svr] = start_vertex[i_svr] + NV / num_server;
 		else
 			end_vertex[i_svr] = NV;
-		vInServer[i_svr] = end_vertex[i_svr] - start_vertex[3];
+		vInServer[i_svr] = end_vertex[i_svr] - start_vertex[i_svr];
 	}
 	//For simulation: create server-level partition
 	int start_par[MAX_PARTITION];// eg. {0, 3, 6} when par_num == 9
@@ -3909,6 +3909,7 @@ extern "C" float load_alveo_partitions(unsigned int num_partitions, unsigned int
 #ifndef NDEBUG    
     std::cout << "load_alveo_partitions not implemented yet" << std::endl; 
 #endif
+    return 0.0;
 }
 
 extern "C" float compute_louvain_alveo_seperated_load(

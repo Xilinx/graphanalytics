@@ -6,6 +6,7 @@
 #include <memory>
 #include <cstdio>
 #include <cstring>
+#include <sstream>
 
 
 namespace {
@@ -21,6 +22,7 @@ long NV_par_max = 64*1000*1000;
 class PartitionRun {
 public:
     LouvainMod::PartitionOptions partOpts_;
+    bool isVerbose_ = false;
     ParLV parlv_;
     std::string projName_;
     std::string projPath_;
@@ -28,10 +30,29 @@ public:
     std::vector<int> parInServer_;  // number of partitions for each server
     std::string inputFileName_;  // file name for the source file for the graph, or empty if no file
 
-    PartitionRun(const LouvainMod::PartitionOptions &partOpts)
-    : partOpts_(partOpts)
+    PartitionRun(const LouvainMod::PartitionOptions &partOpts, bool isVerbose)
+    : partOpts_(partOpts), isVerbose_(isVerbose)
     {
-        int flowMode = partOpts.flow_fast ? 2 : 1;
+        int flowMode = 2;
+        switch (partOpts.flow_fast) {
+        case 1:
+            flowMode = 1;
+            break;
+        case 2:
+            flowMode = 2;
+            break;
+        case 3:
+            flowMode = 3;
+            break;
+        default:
+            {
+                std::ostringstream oss;
+                oss << "Invalid flow_fast value " << partOpts.flow_fast << ".  The supported values are 1, 2, and 3.";
+                throw Exception(oss.str());
+            }
+            break;
+        }
+        
         parlv_.Init(flowMode, nullptr, partOpts.num_par, partOpts.devNeed_cmd, true, partOpts.par_prune);
         parlv_.num_par = partOpts.num_par;
         parlv_.th_prun = partOpts.par_prune;
@@ -114,7 +135,14 @@ public:
             NV_par_recommand,  // Allow to partition small graphs not bigger than FPGA limitation
             NV_par_max
         );
+        if (numPartitionsCreated < 0) {
+            std::ostringstream oss;
+            oss << "ERROR: Failed to create Alveo partition #" << parInServer_.size() << " for server partition "
+                << "start_vertex=" << partitionData.start_vertex << ", end_vertex=" << partitionData.end_vertex << ".";
+            throw Exception(oss.str());
+        }
         parInServer_.push_back(numPartitionsCreated);
+        ++i_svr_;
         return numPartitionsCreated;
     }
 
@@ -152,6 +180,33 @@ public:
         SaveParLV(pathName_tmp, &parlv_);
         std::sprintf(pathName_tmp, "%s%s.par.src", projPath_.c_str(), projName_.c_str());
         SaveHead<GLVHead>(pathName_tmp, (GLVHead*)parlv_.plv_src);
+
+        if (isVerbose_) {
+            printf("************************************************************************************************\n");
+            printf("*****************************  Louvain Partition Summary   *************************************\n");
+            printf("************************************************************************************************\n");
+
+            std::cout << "Number of servers                  : " << partOpts_.numServers << std::endl;
+            std::cout << "Output Alveo partition project     : " << partOpts_.nameProj << std::endl;
+            std::cout << "Number of partitions               : " << partOpts_.num_par << std::endl;
+            printf("Time for partitioning the graph    : %lf = ",
+                   (parlv_.timesPar.timePar_all + parlv_.timesPar.timePar_save));
+            printf(" partitioning +  saving \n");
+            printf("    Time for partition             : %lf (s)\n",
+                   parlv_.timesPar.timePar_all);
+            printf("    Time for saving                : %lf (s)\n",
+                   parlv_.timesPar.timePar_save);
+            printf("************************************************************************************************\n");
+        }
+    #ifdef PRINTINFO
+        printf("Deleting... \n");
+    #endif
+        // CleanTmpGlv appears not to be necessary, as partitioning doesn't set any of the fields cleaned by this function,
+        // and those fields are never uninitialized, leaving them filled with garbage.
+    //    parlv_.CleanTmpGlv();
+
+        if (isVerbose_)
+            parlv_.plv_src->printSimple();
     }
 };
 
@@ -271,34 +326,12 @@ void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions 
         free(drglist_tg);
     }
 
-    if (pImpl_->options_.verbose) {
-        printf("************************************************************************************************\n");
-        printf("***********************************  Louvain Summary   *****************************************\n");
-        printf("************************************************************************************************\n");
-        printf(
-            "\033[1;31;40m    1.    Time for partition the graph \033[0m                              : "
-            "\033[1;31;40m%lf\033[0m (s) =",
-            (parlv.timesPar.timePar_all + parlv.timesPar.timePar_save));
-        printf(" partition +  saving \n");
-        printf("    1.1   Time for partition                                         : %lf (s)\n",
-               parlv.timesPar.timePar_all);
-        printf("    1.2   Time for saving                                            : %lf (s)\n",
-               parlv.timesPar.timePar_save);
-        printf("************************************************************************************************\n");
-    }
-#ifdef PRINTINFO
-    printf("Deleting... \n");
-#endif
-    parlv.CleanTmpGlv();
-    if (pImpl_->options_.verbose)
-        parlv.plv_src->printSimple();
-
     finishPartitioning();
 }
 
 
 void LouvainMod::startPartitioning(const PartitionOptions &options) {
-    pImpl_->partitionRun_.reset(new PartitionRun(options));
+    pImpl_->partitionRun_.reset(new PartitionRun(options, pImpl_->options_.verbose));
 }
 
 

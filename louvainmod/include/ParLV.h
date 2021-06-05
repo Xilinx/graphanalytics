@@ -211,20 +211,20 @@ struct ToolOptions {
     char opts_inFile[4096];  //;
     bool opts_coloring;     //
     bool opts_output;       //;
-    char opts_outputFile[4096];
+    std::string opts_outputFile;
     bool opts_VF; //;
-    char opts_xclbinPath[4096];
+    std::string opts_xclbinPath;
     int numThreads;
     int num_par;
     int gh_par;  // same as par_prune
-    bool flow_fast;
+    int flow_fast;
     int devNeed;
     int mode_zmq;
     char path_zmq[4096];
     bool useCmd;
     int mode_alveo;
     char nameProj[4096];
-    char nameMetaFile[4096];
+    std::string nameMetaFile;
     int numPureWorker;
     char *nameWorkers[128];
     int nodeID;
