@@ -24,7 +24,8 @@
 // Enable this to turn on debug output
 #define XILINX_COM_DETECT_DEBUG_ON
 
-
+#include <vector>
+#include <map>
 namespace xilComDetect {
 
 using Mutex = std::mutex;
@@ -53,12 +54,6 @@ inline Mutex &getMutex() {
     return *pMutex;
 }
 
-struct GraphEdgeProperty {
-        long tail;
-        double weight;
-        long tail_out_degree;
-};
-
 
 class Context {
 public:
@@ -68,8 +63,18 @@ public:
         NumStates
     };
     
+    struct GraphEdge/* the edge data structure */
+    {
+        long head;
+        long tail;
+        double weight;
+        GraphEdge(long head_, long tail_, double weight_) {
+            head = head_ ;
+            tail = tail_;
+            weight = weight_;
+        }
+    };
 
-    
 private:
     std::string alveoProject_;
     unsigned numPartitions_;
@@ -84,10 +89,23 @@ private:
 public:
     uint64_t nextId_ = 0 ;
     uint64_t louvain_offset = 0 ;
-    std::vector<long>  degree_list;
+    // partion data
     long* offsets_tg;
-    std::map<long, std::vector<GraphEdgeProperty>> edge_list;
+    GraphEdge* edgelist_tg;
+    long* drglist_tg;
+    long  start_vertex;     // If a vertex is smaller than star_vertex, it is a ghost
+    long  end_vertex;
+
+    // use the below to store the information and build final partition data
+    std::vector<uint64_t> degree_list;//long* offsets_tg; //travel and add i-1 to i to build the offset_tg
     
+    // this map is used to build GraphEdge* edgelistTG and drglistTG
+    //key-> value : louvainId->graphedge
+    std::map<uint64_t, std::vector<GraphEdge>> edgeListMap;
+    std::map<uint64_t, long> dgrListMap;
+    std::vector<GraphEdge> edgeListVec;
+    std::vector<long> dgrListVec;
+
     static Context *getInstance() {
         static Context *s_pContext = nullptr;
         if (s_pContext == nullptr)

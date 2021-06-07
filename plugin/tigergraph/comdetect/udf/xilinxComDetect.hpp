@@ -24,7 +24,6 @@
 #include "xilinxComDetectImpl.hpp"
 #include <cstdint>
 #include <vector>
-#include <map>
 // mergeHeaders 1 section include end xilinxComDetect DO NOT REMOVE!
 
 namespace UDIMPL {
@@ -36,7 +35,7 @@ inline void udf_reset_nextId() {
     std::cout << "nextId_ = " << pContext->nextId_ <<std::endl;
     pContext->nextId_ = 0 ;
     pContext->degree_list.clear();
-    pContext->edge_list.clear();
+    pContext->edgeListMap.clear();
 }
 inline uint64_t udf_get_nextId(uint64_t out_degree){
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
@@ -44,6 +43,7 @@ inline uint64_t udf_get_nextId(uint64_t out_degree){
     pContext->degree_list.push_back((long)out_degree);
     std::cout << "louvainId = " << pContext->nextId_ <<" out_degree = " << out_degree <<std::endl;
     return pContext->nextId_++;
+
 }
 
 inline uint64_t udf_get_partition_size(){
@@ -75,14 +75,17 @@ inline void udf_set_louvain_offset(uint64_t louvain_offset){
     pContext->louvain_offset = louvain_offset;
 }
 
-//TODO
-inline void udf_set_louvain_edge_list(uint64_t start_louvain_id, uint64_t tail_louvain_id, double weight, uint64_t tail_out_degree) {
-  
-  // GraphEdgeProperty l_edge = {(long)tail_louvain_id + pContext->louvain_offset, weight,(long)tail_out_degree};
-  std::cout << "tail_louvain_id = " << tail_louvain_id <<" weight = "<< weight<<" tail_out_degree ="<<tail_out_degree<< std::endl;
-  //insert to map ...
+
+inline void udf_set_louvain_edge_list(uint64_t louvainIdSource, uint64_t louvainIdTarget, float wtAttr, uint64_t outDgr) {
+    std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
+    std::cout << "louvainIdSource: " << louvainIdSource << ";louvainIdTarget: " << louvainIdTarget << "; weight: " << wtAttr << "; outDgr: " << outDgr << std::endl;
+    xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+    pContext->edgeListMap[louvainIdSource].push_back(xilComDetect::Context::GraphEdge(louvainIdSource+pContext->louvain_offset,louvainIdTarget+pContext->louvain_offset, wtAttr));
+    pContext->dgrListMap[louvainIdSource]=outDgr;
 }
+
 //Data has been populated and send to FPGA
+
 inline void udf_save_alveo_partition() {
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
@@ -93,7 +96,32 @@ inline void udf_save_alveo_partition() {
         pContext->offsets_tg[i] += pContext->offsets_tg[i-1];
     }
     std::cout<<"Last offsets_tg "<<pContext->offsets_tg[offsets_tg_size-1]<<std::endl;
+
+    //build dgr list and edgelist
+    //traverse the partition size for each louvainId, populate edgelist from edgeListMap
+    for(int i=0;i< pContext->nextId_; i++) {
+        pContext->edgeListVec.insert(pContext->edgeListVec.end(),pContext->edgeListMap[i].begin(),pContext->edgeListMap[i].end());
+        for(auto& it:pContext->edgeListMap[i]) {
+            pContext->dgrListVec.push_back(pContext->dgrListMap[it.head]);
+        }
+    }
+    pContext->drglist_tg = pContext->dgrListVec.data();
+    pContext->edgelist_tg = pContext->edgeListVec.data();
+
+    std::cout << "edgelist size:" << pContext->edgeListVec.size() << std::endl;
+    std::cout << "dgrlist size:" << pContext->dgrListVec.size() << std::endl;
+    for(int i=0; i < 10; i++) {
+        std::cout << i << " dgrlist: " << pContext->drglist_tg[i] <<std::endl;
+        std::cout << i << " edgelist: " << pContext->edgelist_tg[i].head <<std::endl;
+    }
+
+    pContext->start_vertex = pContext->louvain_offset;
+    pContext->end_vertex = pContext->louvain_offset + pContext->nextId_ ;
+    std::cout << "start_vertex: " << pContext->start_vertex<<std::endl;
+    std::cout << "end_vertex: " << pContext->end_vertex <<std::endl;
+
 }
+
 
 inline int udf_xilinx_comdetect_setup_nodes(std::string nodeNames, 
                                             std::string nodeIps)

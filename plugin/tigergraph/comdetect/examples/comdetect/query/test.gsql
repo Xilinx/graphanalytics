@@ -69,3 +69,4 @@ CREATE DISTRIBUTED QUERY load_alveo_dev(
 }
 
 INSTALL QUERY load_alveo_dev
+
