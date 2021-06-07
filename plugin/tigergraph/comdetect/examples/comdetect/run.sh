@@ -113,17 +113,17 @@ if [ "$run_mode" -eq 1 ] || [ "$run_mode" -eq 2 ]; then
     # no need to run open_alveo in production flow. The context is automatically created when needed
     START=$(date +%s%3N)
     echo "Running load_alveo"
-    echo gsql -u $username -p $password -g $xgraph \'run query load_alveo\([\"Person\"], [\"Coworker\"], \"weight\", $tg_partition, $use_saved_partition, \"$data_source\", \"$alveo_prj\", $num_partitions, $num_devices\)\'
+    echo gsql -u $username -p $password -g $xgraph \'run query load_alveo\([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\",$tg_partition, $use_saved_partition, \"$data_source\", \"$alveo_prj\", $num_partitions, $num_devices\)\'
     time gsql -u $username -p $password -g $xgraph "run query load_alveo([\"Person\"], [\"Coworker\"], \
-         \"weight\", $tg_partition, $use_saved_partition, \"$data_source\", \"$alveo_prj\", $num_partitions, $num_devices)"
+         \"weight\", \"louvainId\", $tg_partition, $use_saved_partition, \"$data_source\", \"$alveo_prj\", $num_partitions, $num_devices)"
     TOTAL_TIME=$(($(date +%s%3N) - START))
     echo "load_alveo: " $TOTAL_TIME
 
-    START=$(date +%s%3N)
-    echo "Running louvain_alveo"
-    echo gsql -u $username -p $password -g $xgraph \'run query louvain_alveo\([\"Person\"], [\"Coworker\"], \"weight\",20,20,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_alveo.txt\",TRUE,FALSE\)\'
-    time gsql -u $username -p $password -g $xgraph "run query louvain_alveo([\"Person\"], [\"Coworker\"], \
-         \"weight\",20,20,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_alveo.txt\",TRUE,FALSE)"
-    TOTAL_TIME=$(($(date +%s%3N) - START))
-    echo "louvain_alveo: " $TOTAL_TIME
+    #START=$(date +%s%3N)
+    #echo "Running louvain_alveo"
+    #echo gsql -u $username -p $password -g $xgraph \'run query louvain_alveo\([\"Person\"], [\"Coworker\"], \"weight\",20,20,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_alveo.txt\",TRUE,FALSE\)\'
+    #time gsql -u $username -p $password -g $xgraph "run query louvain_alveo([\"Person\"], [\"Coworker\"], \
+    #     \"weight\",20,20,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_alveo.txt\",TRUE,FALSE)"
+    #TOTAL_TIME=$(($(date +%s%3N) - START))
+    #echo "louvain_alveo: " $TOTAL_TIME
 fi
