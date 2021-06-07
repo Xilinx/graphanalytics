@@ -107,11 +107,7 @@ void louvainModularity(xf::graph::L3::Handle& handle,
 					   int flowMode,
                        GLV* glv,
                        GLV* pglv,
-                       bool opts_coloring,
-                       long opts_minGraphSize,
-                       double opts_threshold,
-                       double opts_C_thresh,
-                       int numThreads) 
+					   LouvainPara* para_lv)
 {
 #ifndef NDEBUG
     std::cout << "DEBUG: " << __FUNCTION__ << " handle=" << &handle << std::endl;
@@ -120,7 +116,7 @@ void louvainModularity(xf::graph::L3::Handle& handle,
     //              ->addwork(glv, opts_C_thresh, buff_cl, buff_host, kernel_louvain, q, eachItrs, currMod,
     //              eachTimeInitBuff, eachTimeReadBuff);
     (handle.oplouvainmod)
-        ->demo_par_core(0, flowMode, glv, pglv, opts_coloring, opts_minGraphSize, opts_threshold, opts_C_thresh, numThreads);
+        ->demo_par_core(0, flowMode, glv, pglv, para_lv);
 };
 #endif
 

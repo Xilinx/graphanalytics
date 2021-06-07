@@ -551,5 +551,13 @@ enum {
 	ZMQ_DRIVER=1,
 	ZMQ_WORKER=2
 };
-
+struct LouvainPara{
+    bool   opts_coloring; //whether use coloring; It always be true for FPGA flow
+    long   opts_minGraphSize; //Minimal number of community for stopping Louvain phase
+    double opts_threshold; //dQ threshold for Non-coloring flow
+    double opts_C_thresh; //dQ threshold for coloring flow
+    int    numThreads; //Number of threads
+    int    max_num_level;
+    int    max_num_iter;
+};
 #endif

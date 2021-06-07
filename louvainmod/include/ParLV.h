@@ -268,11 +268,7 @@ void ParLV_general_batch_thread(
 GLV* LouvainGLV_general_top(xf::graph::L3::Handle* handle0,
                             ParLV& parlv,
                             int& id_glv,
-                            bool opts_coloring,
-                            long opts_minGraphSize,
-                            double opts_threshold,
-                            double opts_C_thresh,
-                            int numThreads);
+							LouvainPara* para_lv);
 
 GLV* CreateByFile_general(char* inFile, int& id_glv);
 
