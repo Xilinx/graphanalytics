@@ -26,10 +26,6 @@
 
 using namespace std;
 
-//extern int glb_max_num_level;
-//extern int glb_max_num_iter;
-int glb_max_num_level = MAX_NUM_PHASE;
-int glb_max_num_iter = MAX_NUM_TOTITR;
 // time functions
 
 typedef std::chrono::time_point<std::chrono::high_resolution_clock> TimePointType;
@@ -3880,8 +3876,6 @@ extern "C" float compute_louvain_alveo_seperated_load(
 
 #endif
     // TODO: We should remove globals as this is quite confusing
-    glb_max_num_level = max_level;
-    glb_max_num_iter = max_iter;
     int mode_alveo = ALVEOAPI_LOAD;
     std::string opName = "louvainModularity";
     std::string kernelName = "kernel_louvain";
@@ -4017,8 +4011,6 @@ extern "C" float compute_louvain_alveo_seperated_compute(
 
 #endif
     // TODO: We should remove globals as this is quite confusing
-    glb_max_num_level = max_level;
-    glb_max_num_iter = max_iter;
     int mode_alveo = ALVEOAPI_RUN;
     double opts_C_thresh = tolerance;   // Threshold with coloring on
     long opts_minGraphSize = 10;        // Min |V| to enable coloring
