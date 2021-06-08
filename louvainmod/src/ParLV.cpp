@@ -2695,7 +2695,7 @@ void Louvain_thread_core(xf::graph::L3::Handle* handle0,
 {
 #ifndef NDEBUG
     std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__ 
-              << " numThreads=" << numThreads << " flowMode=" << flowMode << std::endl;
+              << " flowMode=" << flowMode << std::endl;
 #endif
     xf::graph::L3::louvainModularity(handle0[0], flowMode, glv_src, glv, para_lv);
 }
@@ -2707,7 +2707,7 @@ GLV* L3_LouvainGLV_general(int& id_glv,
 						   LouvainPara* para_lv)
 {
 #ifndef NDEBUG
-    std::cout << "DEBUG: " << __FUNCTION__ << " numThreads=" << numThreads << std::endl;
+    std::cout << "DEBUG: " << __FUNCTION__ << std::endl;
 #endif
     GLV* glv_iter;
     std::thread td;
@@ -3856,8 +3856,8 @@ extern "C" float compute_louvain_alveo_seperated_load(
     char* xclbinPath, bool flow_fast, unsigned int numDevices,
     unsigned int num_par, char* alveoProject,
     int mode_zmq, int numPureWorker, char* nameWorkers[128], unsigned int nodeID,
-    char* opts_outputFile, unsigned int max_iter, unsigned int max_level, float tolerance, bool intermediateResult,
-    bool verbose, bool final_Q, bool all_Q, xf::graph::L3::Handle* handle0, ParLV* p_parlv_dvr, ParLV* p_parlv_wkr)
+    float tolerance, bool verbose, 
+    xf::graph::L3::Handle* handle0, ParLV* p_parlv_dvr, ParLV* p_parlv_wkr)
 {
 #ifndef NDEBUG
     std::cout << "DEBUG: " << __FUNCTION__ <<  " xclbinPath=" << xclbinPath
@@ -3865,10 +3865,8 @@ extern "C" float compute_louvain_alveo_seperated_load(
               << " num_par=" << num_par << " alveoProject=" << alveoProject
               << " mode_zmq=" << mode_zmq << " numPureWorker=" << numPureWorker
               << " nodeID=" << nodeID
-              << " opts_outputFile=" << opts_outputFile
-              << " max_iter=" << max_iter << " max_level=" << max_level
-              << " tolerance=" << tolerance << " intermediateResult=" << intermediateResult
-              << " verbose=" << verbose << " final_Q=" << final_Q << " all_Q=" << all_Q
+              << " tolerance=" << tolerance 
+              << " verbose=" << verbose 
               << std::endl;
 
     for (int i=0; i<numPureWorker; i++)
@@ -3988,16 +3986,13 @@ extern "C" float compute_louvain_alveo_seperated_load(
 }
 
 extern "C" float compute_louvain_alveo_seperated_compute(
-    char* xclbinPath, bool flow_fast, unsigned int numDevices,
-    unsigned int num_par, char* alveoProject,
     int mode_zmq, int numPureWorker, char* nameWorkers[128], unsigned int nodeID,
-    char* opts_outputFile, unsigned int max_iter, unsigned int max_level, float tolerance, bool intermediateResult,
-    bool verbose, bool final_Q, bool all_Q, xf::graph::L3::Handle* handle0,  ParLV* p_parlv_dvr, ParLV* p_parlv_wkr)
+    char* opts_outputFile, unsigned int max_iter, unsigned int max_level, 
+    float tolerance, bool intermediateResult, bool verbose, bool final_Q, bool all_Q, 
+    xf::graph::L3::Handle* handle0,  ParLV* p_parlv_dvr, ParLV* p_parlv_wkr)
 {
 #ifndef NDEBUG
-    std::cout << "DEBUG: " << __FUNCTION__ <<  " xclbinPath=" << xclbinPath
-              << " flow_fast=" << flow_fast << " numDevices=" << numDevices
-              << " num_par=" << num_par << " alveoProject=" << alveoProject
+    std::cout << "DEBUG: " << __FUNCTION__ 
               << " mode_zmq=" << mode_zmq << " numPureWorker=" << numPureWorker
               << " nodeID=" << nodeID
               << " opts_outputFile=" << opts_outputFile
@@ -4090,12 +4085,10 @@ extern "C" float compute_louvain_alveo(
         xclbinPath, flow_fast, numDevices,
         num_par, alveoProject,
         mode_zmq, numPureWorker, nameWorkers, nodeID,
-        opts_outputFile, max_iter, max_level,  tolerance, intermediateResult,
-        verbose, final_Q, all_Q, &handle0, &parlv_dvr, &parlv_wkr);
+        tolerance, 
+        verbose, &handle0, &parlv_dvr, &parlv_wkr);
 
     float ret = compute_louvain_alveo_seperated_compute(
-        xclbinPath, flow_fast, numDevices,
-        num_par, alveoProject,
         mode_zmq, numPureWorker, nameWorkers, nodeID,
         opts_outputFile, max_iter, max_level,  tolerance, intermediateResult,
         verbose, final_Q, all_Q, &handle0, &parlv_dvr, &parlv_wkr);
@@ -4159,8 +4152,7 @@ float load_alveo_partitions_wrapper(int argc, char* argv[], xf::graph::L3::Handl
     compute_louvain_alveo_seperated_load((char *)xclbinPath.c_str(), flow_fast, numDevices,
             num_par, (char *)nameMetaFile.c_str(),
             mode_zmq, numPureWorker, nameWorkers, nodeID,
-            (char *)opts_outputFile.c_str(),max_num_iter, max_num_level,
-             opts_threshold, false, false, true, false, p_handle0, p_parlv_dvr, p_parlv_wkr);
+            opts_threshold, false, p_handle0, p_parlv_dvr, p_parlv_wkr);
 
     return retVal;
 }
@@ -4214,13 +4206,10 @@ float louvain_modularity_alveo_wrapper(int argc, char* argv[], xf::graph::L3::Ha
     if (devNeed_cmd > 0)
         numDevices = devNeed_cmd;
 
-    retVal = compute_louvain_alveo_seperated_compute((char *)xclbinPath.c_str(), flow_fast, numDevices,
-            num_par, (char *)nameMetaFile.c_str(),
+    retVal = compute_louvain_alveo_seperated_compute(
             mode_zmq, numPureWorker, nameWorkers, nodeID,
             (char *)opts_outputFile.c_str(),max_num_iter, max_num_level,
             opts_threshold, false, false, true, false, p_handle0, p_parlv_dvr, p_parlv_wkr);
-
-
 
     return retVal;
 }
