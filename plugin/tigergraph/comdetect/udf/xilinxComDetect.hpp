@@ -36,6 +36,9 @@ inline void udf_reset_nextId() {
     pContext->nextId_ = 0 ;
     pContext->degree_list.clear();
     pContext->edgeListMap.clear();
+    pContext->dgrListMap.clear();
+    pContext->edgeListVec.clear();
+    pContext->dgrListVec.clear();
 }
 inline uint64_t udf_get_nextId(uint64_t out_degree){
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
