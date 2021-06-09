@@ -81,11 +81,7 @@ class opLouvainModularity : public opBase {
     				   int flowMode,
                        GLV* pglv_orig,
                        GLV* pglv_iter,
-                       bool opts_coloring,
-                       long opts_minGraphSize,
-                       double opts_threshold,
-                       double opts_C_thresh,
-                       int numThreads);
+		       LouvainPara* para_lv );
 
     event<int> addwork(GLV* glv, int flowMode,
                        double opts_C_thresh,

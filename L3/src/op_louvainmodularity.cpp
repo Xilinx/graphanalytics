@@ -16,10 +16,7 @@
 
 #include "op_louvainmodularity.hpp"
 #include <unordered_map>
-//int glb_max_num_level = MAX_NUM_PHASE;
-//int glb_max_num_iter = MAX_NUM_TOTITR;
-extern int glb_max_num_level;
-extern int glb_max_num_iter;
+
 namespace xf {
 namespace graph {
 namespace L3 {
@@ -762,15 +759,18 @@ void opLouvainModularity::postProcess(){};
 void opLouvainModularity::demo_par_core(int id_dev, int flowMode,
                                         GLV* pglv_orig,
                                         GLV* pglv_iter,
-                                        bool opts_coloring,
-                                        long opts_minGraphSize,
-                                        double opts_threshold,
-                                        double opts_C_thresh,
-                                        int numThreads) 
+										LouvainPara* para_lv )
 {
 #ifndef NDEBUG    
     std::cout << "DEBUG: ------------- " << __FUNCTION__ << " id_dev=" << id_dev << std::endl;
-#endif    
+#endif
+    bool opts_coloring = para_lv->opts_coloring;
+    long opts_minGraphSize = para_lv->opts_minGraphSize;
+    double opts_threshold = para_lv->opts_threshold;
+    double opts_C_thresh = para_lv->opts_C_thresh;
+    int numThreads = para_lv->numThreads;
+    int max_num_level = para_lv->max_num_level;
+    int max_num_iter = para_lv->max_num_iter;
     pglv_orig->times.totTimeAll = omp_get_wtime();
 
     pglv_orig->times.phase = 1;        // Total phase counter
@@ -881,7 +881,7 @@ void opLouvainModularity::demo_par_core(int id_dev, int flowMode,
         pglv_orig->times.totTimeFeature += pglv_orig->times.eachTimeFeature[pglv_orig->times.phase - 1];
 
 
-        if ((pglv_orig->times.phase >= glb_max_num_level) || (pglv_orig->times.totItr >= glb_max_num_iter)) {
+        if ((pglv_orig->times.phase >= max_num_level) || (pglv_orig->times.totItr >= max_num_iter)) {
             isItrStop = true; // Break if too many phases or iterations
         } else if ((currMod[0] - prevMod) <= opts_threshold) {
             isItrStop = true;

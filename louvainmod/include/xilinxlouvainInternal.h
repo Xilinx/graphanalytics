@@ -17,6 +17,7 @@
 
 #ifndef _XILINXLOUVAININTERNAL_H_
 #define _XILINXLOUVAININTERNAL_H_
+#include "xilinxlouvain.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,12 +61,15 @@ typedef double DWEIGHT;
 #define MAX_NUM_TOTITR  (10000)
 #define MAX_NUM_DEV     (64)
 
-typedef struct /* the edge data structure */
-{
-    long head;
-    long tail;
-    double weight;
-} edge;
+
+//typedef struct /* the edge data structure */
+//{
+//    long head;
+//    long tail;
+//    double weight;
+//} edge;
+
+using edge = xilinx_apps::louvainmod::Edge;
 
 class graphNew {
    public:
@@ -547,5 +551,13 @@ enum {
 	ZMQ_DRIVER=1,
 	ZMQ_WORKER=2
 };
-
+struct LouvainPara{
+    bool   opts_coloring; //whether use coloring; It always be true for FPGA flow
+    long   opts_minGraphSize; //Minimal number of community for stopping Louvain phase
+    double opts_threshold; //dQ threshold for Non-coloring flow
+    double opts_C_thresh; //dQ threshold for coloring flow
+    int    numThreads; //Number of threads
+    int    max_num_level;
+    int    max_num_iter;
+};
 #endif

@@ -593,7 +593,7 @@ int SaveG_general(graphNew* g, char* fileName){
 	return 0;
 }
 
-char* NameNoPath(char* name){
+const char* NameNoPath(const char* name){
 	assert (name);
 	int len = strlen(name)-1;
 	char c = name[len];
@@ -1219,11 +1219,7 @@ GLV* L3_LouvainGLV_general(
 		xf::graph::L3::Handle *p_handle0,
 		 int flowMode,
         GLV *glv_src,
-        bool opts_coloring,
-        long opts_minGraphSize,
-        double opts_threshold,
-        double opts_C_thresh,
-        int numThreads);
+		LouvainPara* para_lv);
 #endif//#ifnodef ONLY_FOR_L2
 int CtrlLouvain::exe_LV_LV(){
 	CHECKCURR;
@@ -1235,9 +1231,8 @@ int CtrlLouvain::exe_LV_LV(){
 		    printf("\033[1;31;40mERROR\033[0m: L3 can't be support if p_handle0==NULL \n");
 			return -1;
 		}
-		glv_temp = L3_LouvainGLV_general(id_glv, p_handle0, flowMode, glv_curr,
-						this->coloring, this->minGraphSize, this->threshold,
-						this->C_threshold, this->numThreads);
+		LouvainPara* para_lv=new(LouvainPara);
+		glv_temp = L3_LouvainGLV_general(id_glv, p_handle0, flowMode, glv_curr, para_lv);
 		return 0;
 #endif//#ifnodef ONLY_FOR_L2
 

@@ -348,6 +348,7 @@ struct Options {
      * FPGA binary file (XCLBIN) path.  Default is the package installation path.
      * 
      * When setting this field, the field takes ownership of the buffer pointed to.
+     * The buffer must have been allocated with new[].
      * To avoid dealing with allocation, use the @ref setXclbinPath() function instead.
      */
     char *xclbinPath = nullptr;
@@ -356,7 +357,7 @@ struct Options {
      * Destroys this Options object.
      */
     ~Options() {
-        delete xclbinPath;
+        delete[] xclbinPath;
     }
     
     /**
@@ -384,7 +385,7 @@ struct Options {
      * @param newXclbinPath the XCLBIN path string to set @ref xclbinPath to
      */
     void setXclbinPath(const char *newXclbinPath) {
-        delete xclbinPath;
+        delete[] xclbinPath;
         xclbinPath = nullptr;
         if (newXclbinPath != nullptr) {
             xclbinPath = new char[std::strlen(newXclbinPath) + 1];

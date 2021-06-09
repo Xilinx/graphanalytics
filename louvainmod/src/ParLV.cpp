@@ -26,10 +26,6 @@
 
 using namespace std;
 
-//extern int glb_max_num_level;
-//extern int glb_max_num_iter;
-int glb_max_num_level = MAX_NUM_PHASE;
-int glb_max_num_iter = MAX_NUM_TOTITR;
 // time functions
 
 typedef std::chrono::time_point<std::chrono::high_resolution_clock> TimePointType;
@@ -1224,6 +1220,15 @@ int host_ParserParameters(int argc,
     return 0;
 }
 
+ToolOptions::ToolOptions(int argcIn, char** argvIn) {
+    argc = argcIn;
+    argv = argvIn;
+    host_ParserParameters(argc, argv, opts_C_thresh, opts_minGraphSize, opts_threshold, opts_ftype, opts_inFile,
+        opts_coloring, opts_output, opts_outputFile, opts_VF, opts_xclbinPath, numThreads, num_par,
+        gh_par, flow_fast, devNeed, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
+        nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par, max_num_level, max_num_iter);
+}
+
 void PrintTimeRpt(GLV* glv, int num_dev, bool isHead) {
     int num_phase = 6;
     if (isHead) {
@@ -1331,7 +1336,7 @@ T SummArrayByNum(int num, T* array){
 }
 
 int FindMinLevel(ParLV& parlv){
-	int ret=glb_max_num_level;
+	int ret=MAX_NUM_PHASE;
 	for(int i=0; i < parlv.num_par; i++)
 		ret = ret >  parlv.par_src[i]->times.phase ? parlv.par_src[i]->times.phase: ret;
 	return ret;
@@ -2686,32 +2691,23 @@ void Louvain_thread_core(xf::graph::L3::Handle* handle0,
                          int flowMode,
                          GLV* glv_src,
                          GLV* glv,
-                         bool opts_coloring,
-                         long opts_minGraphSize,
-                         double opts_threshold,
-                         double opts_C_thresh,
-                         int numThreads) 
+						 LouvainPara* para_lv)
 {
 #ifndef NDEBUG
     std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__ 
-              << " numThreads=" << numThreads << " flowMode=" << flowMode << std::endl;
+              << " flowMode=" << flowMode << std::endl;
 #endif
-    xf::graph::L3::louvainModularity(handle0[0], flowMode, glv_src, glv, opts_coloring, opts_minGraphSize,
-                                     opts_threshold, opts_C_thresh, numThreads);
+    xf::graph::L3::louvainModularity(handle0[0], flowMode, glv_src, glv, para_lv);
 }
 
 GLV* L3_LouvainGLV_general(int& id_glv,
                            xf::graph::L3::Handle* handle0,
                            int flowMode,
                            GLV* glv_src,
-                           bool opts_coloring,
-                           long opts_minGraphSize,
-                           double opts_threshold,
-                           double opts_C_thresh,
-                           int numThreads) 
+						   LouvainPara* para_lv)
 {
 #ifndef NDEBUG
-    std::cout << "DEBUG: " << __FUNCTION__ << " numThreads=" << numThreads << std::endl;
+    std::cout << "DEBUG: " << __FUNCTION__ << std::endl;
 #endif
     GLV* glv_iter;
     std::thread td;
@@ -2720,8 +2716,7 @@ GLV* L3_LouvainGLV_general(int& id_glv,
     assert(glv_iter);
     glv_iter->SetName_lv(glv_iter->ID, glv_src->ID);
 
-    td = std::thread(Louvain_thread_core, handle0, flowMode, glv_src, glv_iter, opts_coloring, opts_minGraphSize,
-                     opts_threshold, opts_C_thresh, numThreads);
+    td = std::thread(Louvain_thread_core, handle0, flowMode, glv_src, glv_iter, para_lv);
     td.join();
     return glv_iter;
 }
@@ -2732,11 +2727,7 @@ GLV* L3_LouvainGLV_general(int& id_glv,
 void Server_SubLouvain(xf::graph::L3::Handle* handle0,
                        ParLV& parlv,
                        int& id_glv,
-                       bool opts_coloring,
-                       long opts_minGraphSize,
-                       double opts_threshold,
-                       double opts_C_thresh,
-                       int numThreads) 
+					   LouvainPara* para_lv)
 {
 #ifndef NDEBUG
     std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__ 
@@ -2760,8 +2751,7 @@ void Server_SubLouvain(xf::graph::L3::Handle* handle0,
             parlv.timesPar.timeLv[parCnt+dev] = getTime();
             assert(glv[parCnt+dev]);
             td[parCnt+dev] = std::thread(Louvain_thread_core, handle0, parlv.flowMode, 
-                                         parlv.par_src[parCnt+dev], glv[parCnt+dev], opts_coloring,
-                                         opts_minGraphSize, opts_threshold, opts_C_thresh, numThreads);
+                                         parlv.par_src[parCnt+dev], glv[parCnt+dev], para_lv);
             parlv.par_lved[parCnt+dev] = glv[parCnt+dev];
             char tmp_name[1024];
             strcpy(tmp_name, parlv.par_src[parCnt+dev]->name);
@@ -2782,11 +2772,7 @@ void Server_SubLouvain(xf::graph::L3::Handle* handle0,
 GLV* Driver_Merge_Final(xf::graph::L3::Handle* handle0,
                         ParLV& parlv,
                         int& id_glv,
-                        bool opts_coloring,
-                        long opts_minGraphSize,
-                        double opts_threshold,
-                        double opts_C_thresh,
-                        int numThreads) {
+						LouvainPara* para_lv) {
     parlv.timesPar.timePre = getTime();
     parlv.PreMerge();
     parlv.timesPar.timePre = getTime() - parlv.timesPar.timePre;
@@ -2812,8 +2798,7 @@ GLV* Driver_Merge_Final(xf::graph::L3::Handle* handle0,
     glv_final->SetName_lv(glv_final->ID, parlv.plv_merged->ID);
 
     // parlv.timesPar.timeFinal = getTime();
-    Louvain_thread_core(handle0, parlv.flowMode, parlv.plv_merged, glv_final, opts_coloring, opts_minGraphSize,
-                        opts_threshold, opts_C_thresh, numThreads);
+    Louvain_thread_core(handle0, parlv.flowMode, parlv.plv_merged, glv_final, para_lv);
     for (int p = 0; p < parlv.num_par; p++) {
         for (long v_sub = 0; v_sub < parlv.par_src[p]->NVl; v_sub++) {
             long v_orig = v_sub + parlv.off_src[p];
@@ -2869,21 +2854,16 @@ void LouvainProcess_part1(int& nodeID, ParLV& parlv, char* tmp_msg_d2w, ParLV& p
 
 void LouvainProcess_part2(int nodeID,
                           xf::graph::L3::Handle* handle0,
-                          long opts_minGraphSize,
-                          double opts_threshold,
-                          double opts_C_thresh,
-                          int numThreads,
+						  LouvainPara* para_lv,
                           char* tmp_msg_w2d,
                           ParLV& parlv_wkr,
                           Node* worker_node) {
     int id_glv = 0;
-    bool opts_coloring = true;
     char* path_worker = (char*)"./";
     // Louvain
     TimePointType l_compute_start = chrono::high_resolution_clock::now();
     TimePointType l_compute_end;
-    Server_SubLouvain(handle0, parlv_wkr, id_glv, opts_coloring, opts_minGraphSize, opts_threshold, opts_C_thresh,
-                      numThreads);
+    Server_SubLouvain(handle0, parlv_wkr, id_glv, para_lv);
     getDiffTime(l_compute_start, l_compute_end, parlv_wkr.timesPar.timeWrkCompute[0]);
 
     // worker: send(save) file////////////////
@@ -2929,11 +2909,7 @@ GLV* UpdateCwithFinal(xf::graph::L3::Handle* handle0,
                       bool isPrun,
                       int par_prune,
                       int& id_glv,
-                      bool opts_coloring,
-                      long opts_minGraphSize,
-                      double opts_threshold,
-                      double opts_C_thresh,
-                      int numThreads) {
+					  LouvainPara* para_lv) {
     const long MaxSize = 64000000;
     const long safeSize = MaxSize * 0.9;
     long NV = glv_orig->NV;
@@ -2948,8 +2924,7 @@ GLV* UpdateCwithFinal(xf::graph::L3::Handle* handle0,
 #endif
         ParLV parlv;
         parlv.Init(flowMode, glv_orig, num_par, num_dev, isPrun, par_prune);
-        GLV* glv_final = LouvainGLV_general_top(handle0, parlv, id_glv, opts_coloring, opts_minGraphSize,
-                                                opts_threshold, opts_C_thresh, numThreads);
+        GLV* glv_final = LouvainGLV_general_top(handle0, parlv, id_glv, para_lv);
         return glv_final;
     } else {
 #ifdef PRINTINFO
@@ -2957,8 +2932,7 @@ GLV* UpdateCwithFinal(xf::graph::L3::Handle* handle0,
 #endif
         GLV* glv_final = glv_orig->CloneSelf(id_glv);
         glv_final->SetName_lv(glv_final->ID, glv_orig->ID);
-        Louvain_thread_core(handle0, flowMode, glv_orig, glv_final, opts_coloring, opts_minGraphSize, opts_threshold,
-                            opts_C_thresh, numThreads);
+        Louvain_thread_core(handle0, flowMode, glv_orig, glv_final, para_lv);
         return glv_final;
     }
 }
@@ -2966,11 +2940,7 @@ GLV* UpdateCwithFinal(xf::graph::L3::Handle* handle0,
 GLV* Driver_Merge_Final_LoacalPar(xf::graph::L3::Handle* handle0,
                                   ParLV& parlv,
                                   int& id_glv,
-                                  bool opts_coloring,
-                                  long opts_minGraphSize,
-                                  double opts_threshold,
-                                  double opts_C_thresh,
-                                  int numThreads) {
+								  LouvainPara* para_lv) {
     parlv.timesPar.timePre = getTime();
 #ifdef PRINTINFO_2
     printf("\033[1;37;40mINFO: Now doing PreMerging... \033[0m\n");
@@ -3002,8 +2972,7 @@ GLV* Driver_Merge_Final_LoacalPar(xf::graph::L3::Handle* handle0,
 #endif
     /*GLV* glv_final = UpdateCwithFinal(handle0, parlv.flowMode,
                                       parlv.plv_merged, // C will be updated
-                                      parlv.num_dev, parlv.isPrun, 1, id_glv, opts_coloring, opts_minGraphSize,
-                                      opts_threshold, opts_C_thresh, numThreads);*/
+                                      parlv.num_dev, parlv.isPrun, 1, id_glv, para_lv);*/
     GLV* glv_final = parlv.plv_merged;//->CloneSelf(id_glv);
 #ifdef PRINTINFO_2
     printf("\033[1;37;40mINFO: Now doing BackAnnotationg... \033[0m\n");
@@ -3021,11 +2990,7 @@ GLV* Driver_Merge_Final_LoacalPar(xf::graph::L3::Handle* handle0,
 GLV* LouvainGLV_general_top(xf::graph::L3::Handle* handle0,
                             ParLV& parlv,
                             int& id_glv,
-                            bool opts_coloring,
-                            long opts_minGraphSize,
-                            double opts_threshold,
-                            double opts_C_thresh,
-                            int numThreads) {
+							LouvainPara* para_lv) {
     GLV* glv_final;
     TimePointType l_start = chrono::high_resolution_clock::now();
     TimePointType l_end;
@@ -3044,16 +3009,14 @@ GLV* LouvainGLV_general_top(xf::graph::L3::Handle* handle0,
         //////////Step-4: Actual compute //////////////////////
         TimePointType l_compute_start = chrono::high_resolution_clock::now();
         TimePointType l_compute_end;
-        Server_SubLouvain(handle0, parlv, id_glv, opts_coloring, opts_minGraphSize, opts_threshold, opts_C_thresh,
-                          numThreads);
+        Server_SubLouvain(handle0, parlv, id_glv, para_lv);
         getDiffTime(l_compute_start, l_compute_end, parlv.timesPar.timeWrkCompute[0]);
         //////////Step-5 save & send distribute results
         parlv.timesPar.timeWrkSend[0] = 0;
         ///////////////Step-6 Merge and Final louvain on driver ///////////////
         TimePointType l_merge_start = chrono::high_resolution_clock::now();
         TimePointType l_merge_end;
-        glv_final = Driver_Merge_Final_LoacalPar(handle0, parlv, id_glv, opts_coloring, opts_minGraphSize,
-                                                 opts_threshold, opts_C_thresh, numThreads);
+        glv_final = Driver_Merge_Final_LoacalPar(handle0, parlv, id_glv, para_lv);
         getDiffTime(l_merge_start, l_merge_end, parlv.timesPar.time_done_mg);
     }
     getDiffTime(l_start, l_end, parlv.timesPar.timeAll);
@@ -3276,7 +3239,7 @@ int create_alveo_partitions(char* inFile, int num_partition, int par_prune, char
 			end_vertex[i_svr] = start_vertex[i_svr] + NV / num_server;
 		else
 			end_vertex[i_svr] = NV;
-		vInServer[i_svr] = end_vertex[i_svr] - start_vertex[3];
+		vInServer[i_svr] = end_vertex[i_svr] - start_vertex[i_svr];
 	}
 	//For simulation: create server-level partition
 	int start_par[MAX_PARTITION];// eg. {0, 3, 6} when par_num == 9
@@ -3572,10 +3535,7 @@ int load_alveo_partitions_WorkerSelf( // for both driver; no zmq communications 
 GLV* louvain_modularity_alveo(xf::graph::L3::Handle* handle0,
                               ParLV& parlv,     // To collect time and necessary data
                               ParLV& parlv_wkr, // Driver's self data for sub-louvain
-                              long opts_minGraphSize,
-                              double opts_threshold,
-                              double opts_C_thresh,
-                              int numThreads,
+							  LouvainPara* para_lv,
                               int numNode,
                               int numPureWorker,
                               char** nameWorkers // To enalbe all workers for Louvain
@@ -3585,7 +3545,6 @@ GLV* louvain_modularity_alveo(xf::graph::L3::Handle* handle0,
     std::cout << "DEBUG: " << __FUNCTION__ << " handle0=" << handle0 << std::endl;
 #endif
     int id_glv = 0;
-    bool opts_coloring = true;
     int nodeID = 0;
     GLV* glv_final;
 
@@ -3609,8 +3568,7 @@ GLV* louvain_modularity_alveo(xf::graph::L3::Handle* handle0,
         // Louvain
         TimePointType l_compute_start = chrono::high_resolution_clock::now();
         TimePointType l_compute_end;
-        Server_SubLouvain(handle0, parlv_wkr, id_glv, opts_coloring, opts_minGraphSize, opts_threshold, opts_C_thresh,
-                          numThreads);
+        Server_SubLouvain(handle0, parlv_wkr, id_glv, para_lv);
         getDiffTime(l_compute_start, l_compute_end, parlv_wkr.timesPar.timeWrkCompute[0]);
 
         // worker: send(save) file////////////////
@@ -3674,8 +3632,7 @@ GLV* louvain_modularity_alveo(xf::graph::L3::Handle* handle0,
         if (parlv.plv_src->C != NULL) free(parlv.plv_src->C);
         parlv.plv_src->C = (long*)malloc(sizeof(long) * parlv.plv_src->NV);
 
-        glv_final = Driver_Merge_Final_LoacalPar(handle0, parlv, id_glv, opts_coloring, opts_minGraphSize,
-                                                 opts_threshold, opts_C_thresh, numThreads);
+        glv_final = Driver_Merge_Final_LoacalPar(handle0, parlv, id_glv, para_lv);
 
         getDiffTime(l_merge_start, l_merge_end, parlv.timesPar.time_done_mg);
     }
@@ -3726,12 +3683,12 @@ extern "C" int create_and_load_alveo_partitions(int argc, char* argv[]) {
     int nodeID;
     int server_par = 1;
     int status = 0;
-    //int max_num_level;
-    //int max_num_iter;
+    int max_num_level;
+    int max_num_iter;
     host_ParserParameters(argc, argv, opts_C_thresh, opts_minGraphSize, opts_threshold, opts_ftype, opts_inFile,
                           opts_coloring, opts_output, opts_outputFile, opts_VF, xclbinPath, numThreads, num_par,
                           par_prune, flow_fast, devNeed_cmd, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
-                          nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par, glb_max_num_level, glb_max_num_iter);
+                          nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par, max_num_level, max_num_iter);
 
     if (flow_fast == 1) {
         flowMode = 1; // normal kernel MD_NORMAL
@@ -3784,10 +3741,6 @@ extern "C" int create_and_load_alveo_partitions(int argc, char* argv[]) {
 
 void LouvainGLV_general_top_zmq_worker_new_part1(
                                                  ParLV& parlv,
-                                                 long opts_minGraphSize,
-                                                 double opts_threshold,
-                                                 double opts_C_thresh,
-                                                 int numThreads,
                                                  int nodeID,
                                                  ParLV& parlv_wkr,
                                                  char* LoadCommand) {
@@ -3831,12 +3784,9 @@ void LouvainGLV_general_top_zmq_worker_new_part1(
 }
 
 void LouvainGLV_general_top_zmq_worker_new_part2(xf::graph::L3::Handle* handle0,
-                                                 long opts_minGraphSize,
-                                                 double opts_threshold,
-                                                 double opts_C_thresh,
-                                                 int numThreads,
-                                                 int nodeID,
-                                                 ParLV& parlv_wkr) 
+													LouvainPara* para_lv,
+													int nodeID,
+													ParLV& parlv_wkr)
 {
 #ifndef NDEBUG
     std::cout << __FILE__ << "::" << __FUNCTION__ 
@@ -3852,8 +3802,7 @@ void LouvainGLV_general_top_zmq_worker_new_part2(xf::graph::L3::Handle* handle0,
         worker_node.receive(MSG_LV_START, 4096);
         MessageParser_D2W(MSG_LV_START);
 
-        LouvainProcess_part2(nodeID, handle0, opts_minGraphSize, opts_threshold, opts_C_thresh, numThreads, MSG_LV_DONE,
-                             parlv_wkr, &worker_node);
+        LouvainProcess_part2(nodeID, handle0, para_lv, MSG_LV_DONE, parlv_wkr, &worker_node);
 
         worker_node.send(MSG_LV_DONE, MAX_LEN_MESSAGE, 0);
         parlv_wkr.timesPar.timeAll = getTime() - parlv_wkr.timesPar.timeAll;
@@ -3900,14 +3849,15 @@ extern "C" float load_alveo_partitions(unsigned int num_partitions, unsigned int
 #ifndef NDEBUG    
     std::cout << "load_alveo_partitions not implemented yet" << std::endl; 
 #endif
+    return 0.0;
 }
 
 extern "C" float compute_louvain_alveo_seperated_load(
     char* xclbinPath, bool flow_fast, unsigned int numDevices,
     unsigned int num_par, char* alveoProject,
     int mode_zmq, int numPureWorker, char* nameWorkers[128], unsigned int nodeID,
-    char* opts_outputFile, unsigned int max_iter, unsigned int max_level, float tolerance, bool intermediateResult,
-    bool verbose, bool final_Q, bool all_Q, xf::graph::L3::Handle* handle0, ParLV* p_parlv_dvr, ParLV* p_parlv_wkr)
+    float tolerance, bool verbose, 
+    xf::graph::L3::Handle* handle0, ParLV* p_parlv_dvr, ParLV* p_parlv_wkr)
 {
 #ifndef NDEBUG
     std::cout << "DEBUG: " << __FUNCTION__ <<  " xclbinPath=" << xclbinPath
@@ -3915,10 +3865,8 @@ extern "C" float compute_louvain_alveo_seperated_load(
               << " num_par=" << num_par << " alveoProject=" << alveoProject
               << " mode_zmq=" << mode_zmq << " numPureWorker=" << numPureWorker
               << " nodeID=" << nodeID
-              << " opts_outputFile=" << opts_outputFile
-              << " max_iter=" << max_iter << " max_level=" << max_level
-              << " tolerance=" << tolerance << " intermediateResult=" << intermediateResult
-              << " verbose=" << verbose << " final_Q=" << final_Q << " all_Q=" << all_Q
+              << " tolerance=" << tolerance 
+              << " verbose=" << verbose 
               << std::endl;
 
     for (int i=0; i<numPureWorker; i++)
@@ -3926,8 +3874,6 @@ extern "C" float compute_louvain_alveo_seperated_load(
 
 #endif
     // TODO: We should remove globals as this is quite confusing
-    glb_max_num_level = max_level;
-    glb_max_num_iter = max_iter;
     int mode_alveo = ALVEOAPI_LOAD;
     std::string opName = "louvainModularity";
     std::string kernelName = "kernel_louvain";
@@ -3935,10 +3881,10 @@ extern "C" float compute_louvain_alveo_seperated_load(
     bool isPrun = true;
     const int cuNm = 1;
 
-    //double opts_C_thresh = 0.0002;   // Threshold with coloring on
+    //double opts_C_thresh = 0.0002;    // Threshold with coloring on
     double opts_C_thresh = tolerance;   // Threshold with coloring on
-    long opts_minGraphSize = 10; // Min |V| to enable coloring
-    double opts_threshold = 0.000001;  // Value of threshold
+    long opts_minGraphSize = 10;        // Min |V| to enable coloring
+    double opts_threshold = 0.000001;   // Value of threshold, no impect on for FPGA related flows.
     int par_prune = 1;
     int numThreads = 16;
     bool opts_coloring = false;
@@ -4031,8 +3977,7 @@ extern "C" float compute_louvain_alveo_seperated_load(
                 ParLV parlv_tmp;
                 parlv_tmp.Init(flowMode, NULL, num_par, numDevices, isPrun, par_prune);
 
-                LouvainGLV_general_top_zmq_worker_new_part1(parlv_tmp, opts_minGraphSize, opts_threshold,
-                                                            opts_C_thresh, numThreads, nodeID, (*p_parlv_wkr), NULL);
+                LouvainGLV_general_top_zmq_worker_new_part1(parlv_tmp, nodeID, (*p_parlv_wkr), NULL);
             }
         }
     }
@@ -4041,16 +3986,13 @@ extern "C" float compute_louvain_alveo_seperated_load(
 }
 
 extern "C" float compute_louvain_alveo_seperated_compute(
-    char* xclbinPath, bool flow_fast, unsigned int numDevices,
-    unsigned int num_par, char* alveoProject,
     int mode_zmq, int numPureWorker, char* nameWorkers[128], unsigned int nodeID,
-    char* opts_outputFile, unsigned int max_iter, unsigned int max_level, float tolerance, bool intermediateResult,
-    bool verbose, bool final_Q, bool all_Q, xf::graph::L3::Handle* handle0,  ParLV* p_parlv_dvr, ParLV* p_parlv_wkr)
+    char* opts_outputFile, unsigned int max_iter, unsigned int max_level, 
+    float tolerance, bool intermediateResult, bool verbose, bool final_Q, bool all_Q, 
+    xf::graph::L3::Handle* handle0,  ParLV* p_parlv_dvr, ParLV* p_parlv_wkr)
 {
 #ifndef NDEBUG
-    std::cout << "DEBUG: " << __FUNCTION__ <<  " xclbinPath=" << xclbinPath
-              << " flow_fast=" << flow_fast << " numDevices=" << numDevices
-              << " num_par=" << num_par << " alveoProject=" << alveoProject
+    std::cout << "DEBUG: " << __FUNCTION__ 
               << " mode_zmq=" << mode_zmq << " numPureWorker=" << numPureWorker
               << " nodeID=" << nodeID
               << " opts_outputFile=" << opts_outputFile
@@ -4064,14 +4006,21 @@ extern "C" float compute_louvain_alveo_seperated_compute(
 
 #endif
     // TODO: We should remove globals as this is quite confusing
-    glb_max_num_level = max_level;
-    glb_max_num_iter = max_iter;
     int mode_alveo = ALVEOAPI_RUN;
     double opts_C_thresh = tolerance;   // Threshold with coloring on
     long opts_minGraphSize = 10;        // Min |V| to enable coloring
     double opts_threshold = 0.000001;  // Value of threshold
     int numThreads = 16;
     int numNode = numPureWorker + 1;
+
+    LouvainPara* para_lv=new(LouvainPara);
+    para_lv->opts_coloring = true;
+    para_lv->opts_minGraphSize = opts_minGraphSize;
+    para_lv->opts_threshold = opts_threshold;
+    para_lv->opts_C_thresh = opts_C_thresh;
+    para_lv->numThreads = numThreads;
+    para_lv->max_num_level = max_level;
+    para_lv->max_num_iter = max_iter;
 
     if (mode_alveo == ALVEOAPI_RUN) {
         if (mode_zmq == ZMQ_DRIVER) {
@@ -4089,8 +4038,7 @@ extern "C" float compute_louvain_alveo_seperated_compute(
             TimePointType l_execute_start = chrono::high_resolution_clock::now();
             TimePointType l_execute_end;
 
-            glv_final = louvain_modularity_alveo(handle0, *p_parlv_dvr, *p_parlv_wkr, opts_minGraphSize, opts_threshold,
-                                                     opts_C_thresh, numThreads, numNode, numPureWorker, nameWorkers);
+            glv_final = louvain_modularity_alveo(handle0, *p_parlv_dvr, *p_parlv_wkr, para_lv, numNode, numPureWorker, nameWorkers);
 
             getDiffTime(l_execute_start, l_execute_end, p_parlv_dvr->timesPar.timeDriverExecute);
             glv_final->PushFeature(0, 0, 0.0, true);
@@ -4116,8 +4064,7 @@ extern "C" float compute_louvain_alveo_seperated_compute(
             double ret = glv_final->Q;
             return ret;
         } else if (mode_zmq == ZMQ_WORKER) {
-            LouvainGLV_general_top_zmq_worker_new_part2(handle0, opts_minGraphSize, opts_threshold,
-                                                            opts_C_thresh, numThreads, nodeID, *p_parlv_wkr);
+            LouvainGLV_general_top_zmq_worker_new_part2(handle0, para_lv, nodeID, *p_parlv_wkr);
         }
     }
 
@@ -4138,12 +4085,10 @@ extern "C" float compute_louvain_alveo(
         xclbinPath, flow_fast, numDevices,
         num_par, alveoProject,
         mode_zmq, numPureWorker, nameWorkers, nodeID,
-        opts_outputFile, max_iter, max_level,  tolerance, intermediateResult,
-        verbose, final_Q, all_Q, &handle0, &parlv_dvr, &parlv_wkr);
+        tolerance, 
+        verbose, &handle0, &parlv_dvr, &parlv_wkr);
 
     float ret = compute_louvain_alveo_seperated_compute(
-        xclbinPath, flow_fast, numDevices,
-        num_par, alveoProject,
         mode_zmq, numPureWorker, nameWorkers, nodeID,
         opts_outputFile, max_iter, max_level,  tolerance, intermediateResult,
         verbose, final_Q, all_Q, &handle0, &parlv_dvr, &parlv_wkr);
@@ -4194,11 +4139,12 @@ float load_alveo_partitions_wrapper(int argc, char* argv[], xf::graph::L3::Handl
     int status;
     int server_par=1;
     float retVal = 0.0;
-
+    int max_num_level;
+    int max_num_iter;
     host_ParserParameters(argc, argv, opts_C_thresh, opts_minGraphSize, opts_threshold, opts_ftype, opts_inFile,
                           opts_coloring, opts_output, opts_outputFile, opts_VF, xclbinPath, numThreads, num_par,
                           par_prune, flow_fast, devNeed_cmd, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
-                          nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par, glb_max_num_level, glb_max_num_iter);
+                          nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par, max_num_level, max_num_iter);
 
     if (devNeed_cmd > 0)
         numDevices = devNeed_cmd;
@@ -4206,8 +4152,7 @@ float load_alveo_partitions_wrapper(int argc, char* argv[], xf::graph::L3::Handl
     compute_louvain_alveo_seperated_load((char *)xclbinPath.c_str(), flow_fast, numDevices,
             num_par, (char *)nameMetaFile.c_str(),
             mode_zmq, numPureWorker, nameWorkers, nodeID,
-            (char *)opts_outputFile.c_str(),glb_max_num_iter, glb_max_num_level,
-             opts_threshold, false, false, true, false, p_handle0, p_parlv_dvr, p_parlv_wkr);
+            opts_threshold, false, p_handle0, p_parlv_dvr, p_parlv_wkr);
 
     return retVal;
 }
@@ -4250,22 +4195,21 @@ float louvain_modularity_alveo_wrapper(int argc, char* argv[], xf::graph::L3::Ha
     int status;
     int server_par=1;
     float retVal = 0.0;
+    int max_num_level;
+    int max_num_iter;
 
     host_ParserParameters(argc, argv, opts_C_thresh, opts_minGraphSize, opts_threshold, opts_ftype, opts_inFile,
                           opts_coloring, opts_output, opts_outputFile, opts_VF, xclbinPath, numThreads, num_par,
                           par_prune, flow_fast, devNeed_cmd, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
-                          nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par, glb_max_num_level, glb_max_num_iter);
+                          nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par, max_num_level, max_num_iter);
 
     if (devNeed_cmd > 0)
         numDevices = devNeed_cmd;
 
-    retVal = compute_louvain_alveo_seperated_compute((char *)xclbinPath.c_str(), flow_fast, numDevices,
-            num_par, (char *)nameMetaFile.c_str(),
+    retVal = compute_louvain_alveo_seperated_compute(
             mode_zmq, numPureWorker, nameWorkers, nodeID,
-            (char *)opts_outputFile.c_str(),glb_max_num_iter, glb_max_num_level,
+            (char *)opts_outputFile.c_str(),max_num_iter, max_num_level,
             opts_threshold, false, false, true, false, p_handle0, p_parlv_dvr, p_parlv_wkr);
-
-
 
     return retVal;
 }

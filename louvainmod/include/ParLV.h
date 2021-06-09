@@ -200,6 +200,41 @@ public:
     double TimeAll_Done();
 };
 
+struct ToolOptions {
+    int argc;
+    char** argv;  // strings not owned!
+    
+    double opts_C_thresh;   //; //Threshold with coloring on
+    long opts_minGraphSize; //; //Min |V| to enable coloring
+    double opts_threshold;  //; //Value of threshold
+    int opts_ftype;         //; //File type
+    char opts_inFile[4096];  //;
+    bool opts_coloring;     //
+    bool opts_output;       //;
+    std::string opts_outputFile;
+    bool opts_VF; //;
+    std::string opts_xclbinPath;
+    int numThreads;
+    int num_par;
+    int gh_par;  // same as par_prune
+    int flow_fast;
+    int devNeed;
+    int mode_zmq;
+    char path_zmq[4096];
+    bool useCmd;
+    int mode_alveo;
+    char nameProj[4096];
+    std::string nameMetaFile;
+    int numPureWorker;
+    char *nameWorkers[128];
+    int nodeID;
+    int server_par;
+    int max_num_level;
+    int max_num_iter;
+    
+    ToolOptions(int argc, char **argv);
+};
+
 GLV* par_general(GLV* src, SttGPar* pstt, int&id_glv, long start, long end, bool isPrun, int th_prun);
 GLV* par_general(GLV* src, int&id_glv, long start, long end, bool isPrun,  int th_prun);
 
@@ -233,14 +268,36 @@ void ParLV_general_batch_thread(
 GLV* LouvainGLV_general_top(xf::graph::L3::Handle* handle0,
                             ParLV& parlv,
                             int& id_glv,
-                            bool opts_coloring,
-                            long opts_minGraphSize,
-                            double opts_threshold,
-                            double opts_C_thresh,
-                            int numThreads);
+							LouvainPara* para_lv);
 
 GLV* CreateByFile_general(char* inFile, int& id_glv);
 
 int SaveGLVBin(char* name, GLV* glv);
+
+double getTime();
+
+int xai_save_partition(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
+		long  start_vertex,     // If a vertex is smaller than star_vertex, it is a ghost
+		long  end_vertex,	    // If a vertex is larger than star_vertex-1, it is a ghost
+		char* path_prefix,      // For saving the partition files like <path_prefix>_xxx.par
+							    // Different server can have different path_prefix
+		int par_prune,          // Can always be set with value '1'
+		long NV_par_recommand,  // Allow to partition small graphs not bigger than FPGA limitation
+		long NV_par_max		    //  64*1000*1000;
+		);
+
+void SaveParLV(char* name, ParLV* p_parlv);
+
+void sim_getServerPar(
+  //input
+  graphNew* G,   //Looks like a Global Graph but here only access dataset within
+  long start_vertex, // a range from start_vertex to end_vertex, which is stored locally
+  long end_vertex,   // Here we assume that the vertices of a TigerGraph partition
+                 // stored on a node are continuous
+  //Output
+  long* offsets_tg, // we can also use �degree� instead of �offsets�
+  edge* edges_tg,   //
+  long* dgr_tail_tg // degrees for the tail of each edge;
+);
 
 #endif
