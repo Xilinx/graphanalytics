@@ -40,11 +40,11 @@ inline void udf_reset_nextId() {
     pContext->edgeListVec.clear();
     pContext->dgrListVec.clear();
 }
-inline uint64_t udf_get_nextId(uint64_t out_degree){
+inline uint64_t udf_get_nextId(uint64_t primary_id, uint64_t out_degree){
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     pContext->degree_list.push_back((long)out_degree);
-    std::cout << "louvainId = " << pContext->nextId_ <<" out_degree = " << out_degree <<std::endl;
+    std::cout << "primary_id = " << primary_id << " louvainId = " << pContext->nextId_ <<" out_degree = " << out_degree <<std::endl;
     return pContext->nextId_++;
 
 }
@@ -79,9 +79,9 @@ inline void udf_set_louvain_offset(uint64_t louvain_offset){
 }
 
 
-inline void udf_set_louvain_edge_list(uint64_t louvainIdSource, uint64_t louvainIdTarget, float wtAttr, uint64_t outDgr) {
+inline void udf_set_louvain_edge_list(uint64_t primaryIdSource, uint64_t primaryIdTarget, uint64_t louvainIdSource, uint64_t louvainIdTarget, float wtAttr, uint64_t outDgr) {
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
-    std::cout << "louvainIdSource: " << louvainIdSource << ";louvainIdTarget: " << louvainIdTarget << "; weight: " << wtAttr << "; outDgr: " << outDgr << std::endl;
+    std::cout <<"primaryIdSource = "<<primaryIdSource<< " primaryIdTarget = "<<primaryIdTarget <<" louvainIdSource: " << louvainIdSource << ";louvainIdTarget: " << louvainIdTarget << "; weight: " << wtAttr << "; outDgr: " << outDgr << std::endl;
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     pContext->edgeListMap[louvainIdSource].push_back(xilComDetect::Context::GraphEdge(louvainIdSource+pContext->louvain_offset,louvainIdTarget+pContext->louvain_offset, wtAttr));
     pContext->dgrListMap[louvainIdSource]=outDgr;

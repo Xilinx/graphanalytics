@@ -79,11 +79,11 @@ if [ "$compile_mode" -eq 0 ]; then
 fi
 
 if [ "$compile_mode" -eq 0 ] || [ "$compile_mode" -eq 1 ]; then
-    echo "-------------------------------------------------------------------------"
-    echo "Installing louvain_distributed_cpu query"
-    echo "gsql -u $username -p $password -g $xgraph \"$script_dir/query/louvain_distributed_q_cpu.gsql\""
-    echo "-------------------------------------------------------------------------"
-    gsql -u $username -p $password -g $xgraph "$script_dir/query/louvain_distributed_q_cpu.gsql"
+    #echo "-------------------------------------------------------------------------"
+    #echo "Installing louvain_distributed_cpu query"
+    #echo "gsql -u $username -p $password -g $xgraph \"$script_dir/query/louvain_distributed_q_cpu.gsql\""
+    #echo "-------------------------------------------------------------------------"
+    #gsql -u $username -p $password -g $xgraph "$script_dir/query/louvain_distributed_q_cpu.gsql"
 
     echo "-------------------------------------------------------------------------"
     echo "Installing Louvain Alveo queries"
@@ -98,27 +98,34 @@ fi
 echo "-------------------------------------------------------------------------"
 echo "Run mode: $run_mode"
 
-if [ "$run_mode" -eq 0 ] || [ "$run_mode" -eq 2 ]; then
-   echo "Running louvain_distributed_q_cpu"
-   echo gsql -u $username -p $password -g $xgraph \'run query louvain_distributed_q_cpu\([\"Person\"], [\"Coworker\"],\"weight\",20,1,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_cpu.txt\",TRUE,FALSE\)\'
-   echo "-------------------------------------------------------------------------"
-   START=$(date +%s%3N)
-   time gsql -u $username -p $password -g $xgraph "run query louvain_distributed_q_cpu([\"Person\"], [\"Coworker\"], \
-        \"weight\",20,1,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_cpu.txt\",TRUE,FALSE)"
-   TOTAL_TIME=$(($(date +%s%3N) - START))
-   echo "louvain_distributed_cpu runtime: " $TOTAL_TIME
-fi
+#if [ "$run_mode" -eq 0 ] || [ "$run_mode" -eq 2 ]; then
+   #echo "Running louvain_distributed_q_cpu"
+   #echo gsql -u $username -p $password -g $xgraph \'run query louvain_distributed_q_cpu\([\"Person\"], [\"Coworker\"],\"weight\",20,1,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_cpu.txt\",TRUE,FALSE\)\'
+   #echo "-------------------------------------------------------------------------"
+   #START=$(date +%s%3N)
+   #time gsql -u $username -p $password -g $xgraph "run query louvain_distributed_q_cpu([\"Person\"], [\"Coworker\"], \
+   #     \"weight\",20,1,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_cpu.txt\",TRUE,FALSE)"
+   #TOTAL_TIME=$(($(date +%s%3N) - START))
+   #echo "louvain_distributed_cpu runtime: " $TOTAL_TIME
+#fi
+
 
 if [ "$run_mode" -eq 1 ] || [ "$run_mode" -eq 2 ]; then
     # no need to run open_alveo in production flow. The context is automatically created when needed
     START=$(date +%s%3N)
-    echo "Running load_alveo"
-    echo gsql -u $username -p $password -g $xgraph \'run query load_alveo\([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\",$tg_partition, $use_saved_partition, \"$data_source\", \"$alveo_prj\", $num_partitions, $num_devices\)\'
-    time gsql -u $username -p $password -g $xgraph "run query load_alveo([\"Person\"], [\"Coworker\"], \
-         \"weight\", \"louvainId\", $tg_partition, $use_saved_partition, \"$data_source\", \"$alveo_prj\", $num_partitions, $num_devices)"
+    echo "Running tg_partition_phase_1"
+    echo gsql -u $username -p $password -g $xgraph \'run query tg_partition_phase_1\([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\"\)\'
+    time gsql -u $username -p $password -g $xgraph "run query tg_partition_phase_1([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\")"
     TOTAL_TIME=$(($(date +%s%3N) - START))
-    echo "load_alveo: " $TOTAL_TIME
+    echo "tg_partition_phase_1: " $TOTAL_TIME
 
+    START=$(date +%s%3N)
+    echo "Running tg_partition_phase_2"
+    echo gsql -u $username -p $password -g $xgraph \'run query tg_partition_phase_2\([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\"\)\'
+    time gsql -u $username -p $password -g $xgraph "run query tg_partition_phase_2([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\")"
+    TOTAL_TIME=$(($(date +%s%3N) - START))
+    echo "tg_partition_phase_2: " $TOTAL_TIME
+    
     #START=$(date +%s%3N)
     #echo "Running louvain_alveo"
     #echo gsql -u $username -p $password -g $xgraph \'run query louvain_alveo\([\"Person\"], [\"Coworker\"], \"weight\",20,20,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_alveo.txt\",TRUE,FALSE\)\'
