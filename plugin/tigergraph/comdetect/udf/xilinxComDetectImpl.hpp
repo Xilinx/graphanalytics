@@ -26,6 +26,8 @@
 
 #include <vector>
 #include <map>
+#include <fstream>
+
 namespace xilComDetect {
 
 using Mutex = std::mutex;
@@ -84,7 +86,7 @@ private:
     unsigned nodeId_ = 0;
     unsigned numNodes_ = 1;
     State state_ = UninitializedState;
-
+    xilinx_apps::louvainmod::LouvainMod *pLouvainMod_ = nullptr;
 
 public:
     uint64_t nextId_ = 0 ;
@@ -114,7 +116,75 @@ public:
     }
     
     Context() = default;
-    ~Context() {}
+    ~Context() { delete pLouvainMod_; }
+
+    CosineSim *getLouvainModObj() {
+        if (pLouvainMod_ == nullptr) {
+            xilinx_apps::louvainmod::Options options;
+
+        std::string cur_node_hostname, cur_node_ip, node_ips;
+        // PLUGIN_CONFIG_PATH will be replaced by the actual config path during plugin installation
+        std::fstream config_json(PLUGIN_CONFIG_PATH, std::ios::in);
+        if (!config_json) {
+            std::cout << "ERROR: config file doesn't exist:" << PLUGIN_CONFIG_PATH << std::endl;
+            return(2);
+        }
+
+        char line[1024] = {0};
+        char* token;
+        node_ips = "";
+        bool scanNodeIp;
+        while (config_json.getline(line, sizeof(line))) {
+            token = strtok(line, "\"\t ,}:{\n");
+            scanNodeIp = false;
+            while (token != NULL) {
+                if (!std::strcmp(token, "curNodeHostname")) {
+                    token = strtok(NULL, "\"\t ,}:{\n");
+                    cur_node_hostname = token;
+                } else if (!std::strcmp(token, "curNodeIp")) {
+                    token = strtok(NULL, "\"\t ,}:{\n");
+                    cur_node_ip = token;
+                } else if (!std::strcmp(token, "nodeIps")) {
+                    // this field has multipe space separated IPs
+                    scanNodeIp = true;
+                    // read the next token
+                    token = strtok(NULL, "\"\t ,}:{\n");
+                    node_ips += token;
+                    std::cout << "node_ips=" << node_ips << std::endl;
+                } else if (scanNodeIp) {
+                    // In the middle of nodeIps field
+                    node_ips += " ";
+                    node_ips += token;
+                    std::cout << "node_ips=" << node_ips << std::endl;
+                }
+                token = strtok(NULL, "\"\t ,}:{\n");
+            }
+        }
+        config_json.close();
+
+        options.xclbinPath = PLUGIN_XCLBIN_PATH;
+        options.nameProj = alveoProject_;
+        options.devNeed_cmd = numNodes_;
+        options.nodeId = nodeId_;
+        options.hostName = cur_node_hostname;
+        options.clusterIpAddresses = node_ips;
+        options.hostIpAddress = cur_node_ip;
+        
+#if 0 // ifdef XILINX_COM_DETECT_DEBUG_ON
+            std::cout << "DEBUG: louvainmod options: vecLength=" << options.vecLength
+                    << ", numDevices=" << options.numDevices
+                    << ", xclbinPath=" << options.xclbinPath << std::endl;
+#endif
+            pLouvainMod_= new xilinx_apps::louvainmod::LouvainMod(options);
+#if 0 // ifdef XILINX_COM_DETECT_DEBUG_ON
+            std::cout << "DEBUG: Created cosinesim object " << pCosineSim_
+                    << " with vecLength=" << options.vecLength
+                    << ", numDevices=" << options.numDevices << std::endl;
+#endif
+        }
+        
+        return pLouvainMod_;
+    }
 
 
     void setAlveoProject(std::string alveoProject) {

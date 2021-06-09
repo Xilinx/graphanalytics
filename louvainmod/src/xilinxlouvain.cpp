@@ -26,12 +26,13 @@ struct ComputedSettings {
     int mode_zmq = ZMQ_NONE;
     int numPureWorker = 0;
     std::vector<std::string> nameWorkers;
-    unsigned int nodeID = 0;
+//    unsigned int nodeID = 0;  moved to Options
     
     ComputedSettings(const Options &options) {
         const std::string delimiters(" ");
         const std::string hostIpStr = options.clusterIpAddresses;
         const std::string hostIpAddress = options.hostIpAddress;
+        mode_zmq = (options.nodeId == 0) ? ZMQ_DRIVER : ZMQ_WORKER;
         for (int i = hostIpStr.find_first_not_of(delimiters, 0); i != std::string::npos;
             i = hostIpStr.find_first_not_of(delimiters, i))
         {
@@ -40,15 +41,12 @@ struct ComputedSettings {
                 tokenEnd = hostIpStr.size();
             const std::string token = hostIpStr.substr(i, tokenEnd - i);
             hostIps.push_back(token);
-            if (token == hostIpAddress)
-                nodeID = hostIps.size();
-            else
+            if (mode_zmq == ZMQ_WORKER)
                 nameWorkers.push_back(std::string("tcp://" + token + ":5555"));
             i = tokenEnd;
         }
         
         numServers = hostIps.size();
-        mode_zmq = (nodeID == 0) ? ZMQ_DRIVER : ZMQ_WORKER;
         numPureWorker = nameWorkers.size();
     }
 };

@@ -43,6 +43,7 @@ int main(int argc, char **argv) {
             options.flow_fast = toolOptions.flow_fast;
             options.nameProj = toolOptions.nameProj;
             options.devNeed_cmd = toolOptions.devNeed;
+            options.nodeId = 0;
             options.hostName = "Server";
             options.hostIpAddress = serverIp.str();
             options.clusterIpAddresses = clusterIps.str();

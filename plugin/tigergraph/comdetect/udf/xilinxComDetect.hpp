@@ -214,53 +214,12 @@ inline int udf_create_and_load_alveo_partitions(bool use_saved_partition,
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     int ret=0;
 
-    std::string cur_node_hostname, cur_node_ip, node_ips;
-    // PLUGIN_CONFIG_PATH will be replaced by the actual config path during plugin installation
-    std::fstream config_json(PLUGIN_CONFIG_PATH, std::ios::in);
-    if (!config_json) {
-        std::cout << "ERROR: config file doesn't exist:" << PLUGIN_CONFIG_PATH << std::endl;
-        return(2);
-    }
-
-    char line[1024] = {0};
-    char* token;
-    node_ips = "";
-    bool scanNodeIp;
-    while (config_json.getline(line, sizeof(line))) {
-        token = strtok(line, "\"\t ,}:{\n");
-        scanNodeIp = false;
-        while (token != NULL) {
-            if (!std::strcmp(token, "curNodeHostname")) {
-                token = strtok(NULL, "\"\t ,}:{\n");
-                cur_node_hostname = token;
-            } else if (!std::strcmp(token, "curNodeIp")) {
-                token = strtok(NULL, "\"\t ,}:{\n");
-                cur_node_ip = token;
-            } else if (!std::strcmp(token, "nodeIps")) {
-                // this field has multipe space separated IPs
-                scanNodeIp = true;
-                // read the next token
-                token = strtok(NULL, "\"\t ,}:{\n");
-                node_ips += token;
-                std::cout << "node_ips=" << node_ips << std::endl;
-            } else if (scanNodeIp) {
-                // In the middle of nodeIps field
-                node_ips += " ";
-                node_ips += token;
-                std::cout << "node_ips=" << node_ips << std::endl;
-            }
-            token = strtok(NULL, "\"\t ,}:{\n");
-        }
-    }
-    config_json.close();
 
     pContext->setAlveoProject(alveo_project);
-    pContext->setNumNodes(num_nodes);
-    pContext->setNumPartitions(num_partitions);
-    pContext->setNumDevices(num_devices);
-    pContext->setCurNodeIp(cur_node_ip);
-    pContext->setNodeIps(node_ips);
-
+    xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
+    xilinx_apps::louvainmod::LouvainMod::PartitionOptions options;
+    pLouvainMod->startPartitioning(options);
+    
 /*
     std::lock_guard<std::mutex> lockGuard(xai::writeMutex);
     int ret=0;
@@ -328,6 +287,7 @@ inline float udf_louvain_alveo(
 {        
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+    xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
 
     unsigned nodeId = pContext->getNodeId();
     std::string alveoProject = pContext->getAlveoProject() + ".par.proj";

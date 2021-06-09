@@ -173,6 +173,7 @@ struct Options {
     XString nameProj;  // -name option: location of "partition project" created by partitioning, read by load/compute
     int flow_fast = 2;  // C
     int devNeed_cmd = 1;  // C
+    unsigned nodeId = 0;  // node ID 0 will be the driver, all others will be workers
     XString hostName;  // optional host name of this server for debugging purposes
     XString clusterIpAddresses;  // space-separated list of server IP addresses in the cluster
     XString hostIpAddress;  // IP address of this server
