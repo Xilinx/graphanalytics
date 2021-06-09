@@ -116,9 +116,10 @@ inline void udf_save_alveo_partition() {
     std::cout << "edgelist size:" << pContext->edgeListVec.size() << std::endl;
     std::cout << "dgrlist size:" << pContext->dgrListVec.size() << std::endl;
     for(int i=0; i < 10; i++) {
-        std::cout << i << " dgrlist: " << pContext->drglist_tg[i] <<std::endl;
-        std::cout << i << " edgelist: " << pContext->edgelist_tg[i].head <<std::endl;
-        std::cout << i << " edgelist: " << pContext->edgelist_tg[i].tail <<std::endl;
+
+        std::cout << i << " head from edgelist  " << pContext->edgelist_tg[i].head <<"; ";
+        std::cout << " tail from edgelist: " << pContext->edgelist_tg[i].tail <<"; ";
+        std::cout << " outDgr from dgrlist: " << pContext->drglist_tg[i] << std::endl;
     }
 
 
