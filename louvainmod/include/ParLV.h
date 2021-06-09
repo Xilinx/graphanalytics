@@ -300,4 +300,6 @@ void sim_getServerPar(
   long* dgr_tail_tg // degrees for the tail of each edge;
 );
 
+int getNumPartitions(std::string alveoProjectFile);
+
 #endif

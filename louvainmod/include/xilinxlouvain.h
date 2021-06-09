@@ -56,8 +56,15 @@ extern "C" {
 XILINX_LOUVAINMOD_IMPL_DECL
 int create_and_load_alveo_partitions(int argc, char *argv[]);
 
+
+
 XILINX_LOUVAINMOD_IMPL_DECL
-float load_alveo_partitions_wrapper(int argc, char *argv[]);
+float loadAlveoProjectAndComputeLouvain(    
+    char* xclbinPath, bool flow_fast, unsigned int numDevices,
+    std::string alveoProject, int mode_zmq, int numPureWorker, 
+    char* nameWorkers[128], unsigned int nodeID,  char* opts_outputFile, 
+    unsigned int max_iter, unsigned int max_level, float tolerance, 
+    bool intermediateResult, bool verbose, bool final_Q, bool all_Q);
 
 XILINX_LOUVAINMOD_IMPL_DECL
 xilinx_apps::louvainmod::LouvainModImpl *xilinx_louvainmod_createImpl(const xilinx_apps::louvainmod::Options& options);
@@ -67,6 +74,7 @@ void xilinx_louvainmod_destroyImpl(xilinx_apps::louvainmod::LouvainModImpl *pImp
 
 }
 
+float loadAlveoProjectAndComputeLouvainWrapper(int argc, char *argv[]);
 float louvain_modularity_alveo(int argc, char *argv[]);
 int compute_modularity(char* inFile, char* clusterInfoFile, int offset);
 

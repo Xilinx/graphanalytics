@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     	if (0 == strcmp(argv[i], "-create_alveo_partitions"))
     		return create_and_load_alveo_partitions(argc, argv);
     	else if (0 == strcmp(argv[i], "-load_alveo_partitions")) {
-    		float modularity_q = load_alveo_partitions_wrapper(argc, argv);
+    		float modularity_q = loadAlveoProjectAndComputeLouvainWrapper(argc, argv);
             return 0;
         } else if (0 == strcmp(argv[i], "-compute_modularity")) {
             // argv2: in-mtx-file
