@@ -117,9 +117,11 @@ public:
     XString(const XString &other) { copyIn(other.data); }
     XString(XString &&other) { steal(std::forward<XString>(other)); }
     XString(const char *cstr) { copyIn(cstr); }
+    XString(const std::string &str) { copyIn(str.c_str()); }
     XString &operator=(const XString &other) { copyIn(other.data); return *this; }
     XString &operator=(XString &&other) { steal(std::forward<XString>(other)); return *this; }
     XString &operator=(const char *cstr) { copyIn(cstr); return *this; }
+    XString &operator=(const std::string &str) { copyIn(str.c_str()); return *this; }
     operator std::string() const { return (data == nullptr) ? std::string() : std::string(data); }
     operator const char *() const { return data; }
     const char *c_str() const { return data; }
@@ -167,6 +169,13 @@ struct Edge {
 
 struct Options {
     bool verbose = true;
+    XString xclbinPath;
+    XString nameProj;  // -name option: location of "partition project" created by partitioning, read by load/compute
+    int flow_fast = 2;  // C
+    int devNeed_cmd = 1;  // C
+    XString hostName;  // optional host name of this server for debugging purposes
+    XString clusterIpAddresses;  // space-separated list of server IP addresses in the cluster
+    XString hostIpAddress;  // IP address of this server
 };
 
 
@@ -176,12 +185,10 @@ public:
     using VertexIndex = std::uint64_t;
     
     struct PartitionOptions {
-        int flow_fast = 2;  // C
-        XString nameProj;  // C
-        int num_par = 1;  // total number of partitions (across all servers)?  // CF
-        int devNeed_cmd = 1;  // C
-        int par_prune = 1;  // C
-        int numServers = 1;  // number of servers // CF
+        int num_par = 1;  // total desired number of partitions across all servers
+        int par_prune = 1;  // ghost pruning technique (1 means single ghost node of smallest degree per local node)
+                // >1 means keep that many ghost nodes per local node (TODO: verify description for >1)
+//        int numServers = 1;  // number of servers, probably should be made obsolete
         
         PartitionOptions() = default;
         PartitionOptions(const PartitionOptions &opt) = default;
@@ -197,8 +204,15 @@ public:
         long NV_par_recommand = 0;  // Recommended NV per partition.  Leave as 0 to calculate from num Alveo cards on each server
     };
 
-    struct RunOptions {
-        
+    
+    struct ComputeOptions {
+        XString opts_outputFile;
+        unsigned max_iter;
+        unsigned max_level;
+        float tolerance;
+        bool intermediateResult;
+        bool final_Q;
+        bool all_Q;
     };
     
     LouvainMod(const Options &options) : pImpl_(xilinx_louvainmod_createImpl(options)) {}
@@ -216,7 +230,7 @@ public:
     void finishPartitioning();
     
     void loadAlveo();  // Loads .par files into CPU memory.  Can we load first .par per card into HBM here?
-    void runLouvain(const RunOptions &);
+    void computeLouvain(const ComputeOptions &computeOpts);
     
 private:
     LouvainModImpl *pImpl_ = nullptr;

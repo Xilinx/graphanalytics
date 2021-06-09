@@ -16,6 +16,7 @@
 
 #include "xilinxlouvain.h"
 #include "ParLV.h"
+#include <sstream>
 
 using namespace xilinx_apps::louvainmod;
 
@@ -27,16 +28,29 @@ int main(int argc, char **argv) {
         {
             std::cout << "Partitioning input file " << toolOptions.opts_inFile << std::endl;
             
+            // Fake server IP addresses, which aren't really needed for partitioning
+            std::ostringstream clusterIps;
+            std::ostringstream serverIp;
+            for (int i = 0; i < toolOptions.server_par; ++i) {
+                if (i == 0)
+                    serverIp << "192.168.0." << i * 10 + 1;
+                else
+                    clusterIps << ' ';
+                clusterIps << "192.168.0." << i * 10 + 1;
+            }
+            
             Options options;
+            options.flow_fast = toolOptions.flow_fast;
+            options.nameProj = toolOptions.nameProj;
+            options.devNeed_cmd = toolOptions.devNeed;
+            options.hostName = "Server";
+            options.hostIpAddress = serverIp.str();
+            options.clusterIpAddresses = clusterIps.str();
             LouvainMod louvainMod(options);
             
             LouvainMod::PartitionOptions partOpts;
-            partOpts.flow_fast = toolOptions.flow_fast;
-            partOpts.nameProj = toolOptions.nameProj;
             partOpts.num_par = toolOptions.num_par;
-            partOpts.devNeed_cmd = toolOptions.devNeed;
             partOpts.par_prune = toolOptions.gh_par;
-            partOpts.numServers = toolOptions.server_par;
             louvainMod.partitionDataFile(toolOptions.opts_inFile, partOpts);
         }
         break;

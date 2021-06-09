@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <cstring>
 #include <sstream>
+#include <string>
 
 
 namespace {
@@ -17,10 +18,46 @@ using namespace xilinx_apps::louvainmod;
 long NV_par_max = 64*1000*1000;
 
 
+// Values determined from the global options
+//
+struct ComputedSettings {
+    std::vector<std::string> hostIps;
+    int numServers = 1;
+    int mode_zmq = ZMQ_NONE;
+    int numPureWorker = 0;
+    std::vector<std::string> nameWorkers;
+    unsigned int nodeID = 0;
+    
+    ComputedSettings(const Options &options) {
+        const std::string delimiters(" ");
+        const std::string hostIpStr = options.clusterIpAddresses;
+        const std::string hostIpAddress = options.hostIpAddress;
+        for (int i = hostIpStr.find_first_not_of(delimiters, 0); i != std::string::npos;
+            hostIpStr.find_first_not_of(delimiters, i))
+        {
+            auto tokenEnd = hostIpStr.find_first_of(delimiters, i);
+            if (tokenEnd == std::string::npos)
+                tokenEnd = hostIpStr.size();
+            const std::string token = hostIpStr.substr(i, tokenEnd - i);
+            hostIps.push_back(token);
+            if (token == hostIpAddress)
+                nodeID = hostIps.size();
+            else
+                nameWorkers.push_back(std::string("tcp://" + token + ":5555"));
+        }
+        
+        numServers = hostIps.size();
+        mode_zmq = (nodeID == 0) ? ZMQ_DRIVER : ZMQ_WORKER;
+        numPureWorker = nameWorkers.size();
+    }
+};
+
 // Keeps all state for a partition run
 //
 class PartitionRun {
 public:
+    const Options &globalOpts_;
+    const ComputedSettings &settings_;
     LouvainMod::PartitionOptions partOpts_;
     bool isVerbose_ = false;
     ParLV parlv_;
@@ -30,11 +67,12 @@ public:
     std::vector<int> parInServer_;  // number of partitions for each server
     std::string inputFileName_;  // file name for the source file for the graph, or empty if no file
 
-    PartitionRun(const LouvainMod::PartitionOptions &partOpts, bool isVerbose)
-    : partOpts_(partOpts), isVerbose_(isVerbose)
+    PartitionRun(const Options &globalOpts, const ComputedSettings &settings,
+        const LouvainMod::PartitionOptions &partOpts)
+    : globalOpts_(globalOpts), settings_(settings), partOpts_(partOpts), isVerbose_(globalOpts.verbose)
     {
         int flowMode = 2;
-        switch (partOpts.flow_fast) {
+        switch (globalOpts.flow_fast) {
         case 1:
             flowMode = 1;
             break;
@@ -47,23 +85,23 @@ public:
         default:
             {
                 std::ostringstream oss;
-                oss << "Invalid flow_fast value " << partOpts.flow_fast << ".  The supported values are 1, 2, and 3.";
+                oss << "Invalid flow_fast value " << globalOpts.flow_fast << ".  The supported values are 1, 2, and 3.";
                 throw Exception(oss.str());
             }
             break;
         }
         
-        parlv_.Init(flowMode, nullptr, partOpts.num_par, partOpts.devNeed_cmd, true, partOpts.par_prune);
+        parlv_.Init(flowMode, nullptr, partOpts.num_par, globalOpts.devNeed_cmd, true, partOpts.par_prune);
         parlv_.num_par = partOpts.num_par;
         parlv_.th_prun = partOpts.par_prune;
-        parlv_.num_server = partOpts.numServers;
+        parlv_.num_server = settings_.numServers;
 
         assert(!partOpts.nameProj.empty());
         //////////////////////////// Set the name for partition project////////////////////////////
         char path_proj[1024];
         char name_proj[256];
-        std::strcpy(name_proj, NameNoPath(partOpts.nameProj));
-        PathNoName(path_proj, partOpts.nameProj);
+        std::strcpy(name_proj, NameNoPath(globalOpts.nameProj));
+        PathNoName(path_proj, globalOpts.nameProj);
         projName_ = name_proj;
         projPath_ = path_proj;
 
@@ -84,10 +122,10 @@ public:
         // Determine the prefix string for each partition (.par) file
         //For compatibility, when num_server is 1, no 'srv<n>' surfix used
         char pathName_proj_svr[1024];
-        if (partOpts_.numServers > 1)
-            std::sprintf(pathName_proj_svr, "%s_svr%d", partOpts_.nameProj.c_str(), i_svr_);//louvain_partitions_svr0_000.par
+        if (settings_.numServers > 1)
+            std::sprintf(pathName_proj_svr, "%s_svr%d", globalOpts_.nameProj.c_str(), i_svr_);//louvain_partitions_svr0_000.par
         else
-            std::strcpy(pathName_proj_svr, partOpts_.nameProj);                    //louvain_partitions_000.par
+            std::strcpy(pathName_proj_svr, globalOpts_.nameProj);                    //louvain_partitions_000.par
 
         // If the client has supplied a desired partition size, use that
 
@@ -97,19 +135,19 @@ public:
 
         if (NV_par_recommand == 0) {
             // Assume that we want one partition per Alveo card unless overridden by num_par option
-            int numPartitionsThisServer = partOpts_.devNeed_cmd;
+            int numPartitionsThisServer = globalOpts_.devNeed_cmd;
 
             // If num_par specifies more partitions than we have total number of devices in the cluster,
             // create num_par devices instead.  This feature is for testing partitioning of smaller graphs,
             // but can also be used to pre-calculate the partitions for graphs that are so large that each
             // Alveo card needs to process more than its maximum number of vertices.
-            int totalNumDevices = partOpts_.numServers * partOpts_.devNeed_cmd;
+            int totalNumDevices = settings_.numServers * globalOpts_.devNeed_cmd;
             if (partOpts_.num_par > totalNumDevices) {
                 // Distribute partitions evenly among servers
-                numPartitionsThisServer = partOpts_.num_par / partOpts_.numServers;
+                numPartitionsThisServer = partOpts_.num_par / settings_.numServers;
                 // Distribute the L leftover partitions (where L = servers % partitions) among the first
                 // L servers
-                int extraPartitions = partOpts_.num_par % partOpts_.numServers;
+                int extraPartitions = partOpts_.num_par % settings_.numServers;
                 if (extraPartitions > getCurServerNum())
                     ++numPartitionsThisServer;
             }
@@ -157,11 +195,11 @@ public:
         std::sprintf(pathName_tmp, "%s%s.par.proj", projPath_.c_str(), projName_.c_str());
         std::sprintf(meta, "-create_alveo_partitions %s -par_num %d -par_prune %d -name %s -time_par %f -time_save %f ",
                 inputFileName_.c_str(), partOpts_.num_par, partOpts_.par_prune,
-                partOpts_.nameProj.c_str(), parlv_.timesPar.timePar_all, parlv_.timesPar.timePar_save);
+                globalOpts_.nameProj.c_str(), parlv_.timesPar.timePar_all, parlv_.timesPar.timePar_save);
         ///////////////////////////////////////////////////////////////////////
         //adding : -server_par <num_server> <num_par on server0> �..<num_par on server?>
         char tmp_str[128];
-        std::sprintf(tmp_str, "-server_par %d ", partOpts_.numServers);
+        std::sprintf(tmp_str, "-server_par %d ", settings_.numServers);
         std::strcat(meta, tmp_str);
         for(int i_svr = 0, end = parInServer_.size(); i_svr < end; i_svr++){
              std::sprintf(tmp_str, "%d ",  parInServer_[i_svr]);
@@ -186,8 +224,8 @@ public:
             printf("*****************************  Louvain Partition Summary   *************************************\n");
             printf("************************************************************************************************\n");
 
-            std::cout << "Number of servers                  : " << partOpts_.numServers << std::endl;
-            std::cout << "Output Alveo partition project     : " << partOpts_.nameProj << std::endl;
+            std::cout << "Number of servers                  : " << settings_.numServers << std::endl;
+            std::cout << "Output Alveo partition project     : " << globalOpts_.nameProj << std::endl;
             std::cout << "Number of partitions               : " << partOpts_.num_par << std::endl;
             printf("Time for partitioning the graph    : %lf = ",
                    (parlv_.timesPar.timePar_all + parlv_.timesPar.timePar_save));
@@ -221,21 +259,11 @@ namespace louvainmod {
 class LouvainModImpl {
 public:
     Options options_;  // copy of options passed to LouvainMod constructor
+    ComputedSettings settings_;
     std::unique_ptr<PartitionRun> partitionRun_;  // the active or most recent partition run
     
-    LouvainModImpl(const Options &options) : options_(options) {}
+    LouvainModImpl(const Options &options) : options_(options), settings_(options) {}
 
-    void startPartitioning(const LouvainMod::PartitionOptions &options) {
-    }
-    
-    int addPartitionData(const LouvainMod::PartitionData &partitionData) {
-        return partitionRun_->addPartitionData(partitionData);
-    }
-    
-    void finishPartitioning() {
-        partitionRun_->finishPartitioning();
-    }
-    
 };
 
 //#####################################################################################################################
@@ -244,7 +272,7 @@ public:
 // LouvainMod Members
 //
 
-void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions &options) {
+void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions &partOptions) {
 //        create_alveo_partitions(options.opts_inFile, options.num_par, options.par_prune, options.nameProj, parlv);
 
     assert(fileName);
@@ -254,14 +282,14 @@ void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions 
         throw Exception("Unable to read data file");  // TODO: better error message
     const long NV = glv_src->NV;
 
-    startPartitioning(options);
+    startPartitioning(partOptions);
     pImpl_->partitionRun_->setFileName(fileName);
     ParLV &parlv = pImpl_->partitionRun_->parlv_;
     parlv.plv_src = glv_src;
 
     //////////////////////////// partition ////////////////////////////
 
-    const int num_server = options.numServers;
+    const int num_server = pImpl_->settings_.numServers;
 
     //For simulation: create server-level partition
     std::vector<long> start_vertex(num_server);
@@ -277,7 +305,7 @@ void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions 
     }
 
     //For simulation: create server-level partition
-    int num_partition = options.num_par;
+    int num_partition = partOptions.num_par;
     int start_par[MAX_PARTITION];// eg. {0, 3, 6} when par_num == 9
     int end_par[MAX_PARTITION];  // eg. {3, 6, 9}  when par_num == 9
     int parInServer[MAX_PARTITION];//eg. {3, 3, 3} when par_num == 9 and num_server==3
@@ -308,8 +336,8 @@ void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions 
 #endif
 
         long NV_par_recommand = 0;
-        if (options.num_par>1)
-            NV_par_recommand = (NV + options.num_par-1) / options.num_par;//allow to partition small graph with -par_num
+        if (partOptions.num_par>1)
+            NV_par_recommand = (NV + partOptions.num_par-1) / partOptions.num_par;//allow to partition small graph with -par_num
 
         LouvainMod::PartitionData partitionData;
         partitionData.offsets_tg = offsets_tg;
@@ -330,8 +358,8 @@ void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions 
 }
 
 
-void LouvainMod::startPartitioning(const PartitionOptions &options) {
-    pImpl_->partitionRun_.reset(new PartitionRun(options, pImpl_->options_.verbose));
+void LouvainMod::startPartitioning(const PartitionOptions &partOpts) {
+    pImpl_->partitionRun_.reset(new PartitionRun(pImpl_->options_, pImpl_->settings_, partOpts));
 }
 
 
@@ -346,7 +374,7 @@ void LouvainMod::finishPartitioning() {
 
 
 void LouvainMod::loadAlveo() {}
-void LouvainMod::runLouvain(const RunOptions &) {}
+void LouvainMod::computeLouvain(const ComputeOptions &computeOpts) {}
 
 
 }  // namespace louvainmod
