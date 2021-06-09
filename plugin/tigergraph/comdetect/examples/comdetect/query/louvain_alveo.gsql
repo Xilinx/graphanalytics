@@ -16,7 +16,7 @@
  */
 
 USE GRAPH @graph
-DROP QUERY load_alveo, louvain_alveo, close_alveo, tg_partition_phase_1, tg_partition_phase_2
+DROP QUERY load_alveo, louvain_alveo, close_alveo, tg_partition_phase_1, tg_partition_phase_2, tg_partition_phase_3
 
 //CREATE DISTRIBUTED QUERY open_alveo() FOR GRAPH @graph {
 //   DOUBLE udf_time;
@@ -69,7 +69,8 @@ CREATE DISTRIBUTED QUERY tg_partition_phase_2(
 {
   
     ListAccum<UINT> @@nodeAccum;
-
+    SumAccum<UINT> @globalId;
+    
     MapAccum<UINT,UINT> @@parSize; //nodeid-> parSize
     MapAccum<UINT,UINT> @@offsets; //nodeid -> offsets
     
@@ -93,8 +94,27 @@ CREATE DISTRIBUTED QUERY tg_partition_phase_2(
         ACCUM udf_set_louvain_offset(@@offsets.get(n.NODE_ID));
 
     PRINT @@offsets;
+    
 
-    Start = SELECT s FROM Start:s-(e_types:e)->:t
+    
+    //assign global id
+    louvainGlobal = SELECT s FROM Start:s
+        ACCUM s.@globalId = udf_get_global_louvain_id(s.getAttr(louvainId_attr,"UINT"))
+        POST-ACCUM s.setAttr(louvainId_attr ,s.@globalId);
+        //POST-ACCUM s.setAttr(louvainId_attr , udf_get_global_louvain_id(s.getAttr(louvainId_attr,"UINT")));
+    
+}
+
+CREATE DISTRIBUTED QUERY tg_partition_phase_3(
+    SET<STRING> v_types,            // List of vertex types that would participate in Louvain Modularity
+    SET<STRING> e_types,            // List of edge types that would participate in Louvain Modularity
+    STRING weight_attr,             // Name of the edge attribute that has weight of the edge
+    STRING louvainId_attr
+) FOR GRAPH @graph 
+{
+    Start = {v_types};
+    nodes = {dummy_nodes.*};
+    vertexList = SELECT s FROM Start:s-(e_types:e)->:t
         ACCUM udf_set_louvain_edge_list(s.num,t.num, s.louvainId,t.louvainId,e.getAttr(weight_attr,"FLOAT"),t.outdegree());
             
     parList = SELECT n FROM nodes:n
@@ -211,4 +231,4 @@ CREATE DISTRIBUTED QUERY close_alveo() for GRAPH @graph {
    print udf_time, b;
 }
 
-install query close_alveo, louvain_alveo, load_alveo, tg_partition_phase_1, tg_partition_phase_2
+install query close_alveo, louvain_alveo, load_alveo, tg_partition_phase_1, tg_partition_phase_2,tg_partition_phase_3

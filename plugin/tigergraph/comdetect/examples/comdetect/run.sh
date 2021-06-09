@@ -126,6 +126,13 @@ if [ "$run_mode" -eq 1 ] || [ "$run_mode" -eq 2 ]; then
     TOTAL_TIME=$(($(date +%s%3N) - START))
     echo "tg_partition_phase_2: " $TOTAL_TIME
     
+    START=$(date +%s%3N)
+    echo "Running tg_partition_phase_3"
+    echo gsql -u $username -p $password -g $xgraph \'run query tg_partition_phase_3\([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\"\)\'
+    time gsql -u $username -p $password -g $xgraph "run query tg_partition_phase_3([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\")"
+    TOTAL_TIME=$(($(date +%s%3N) - START))
+    echo "tg_partition_phase_3 " $TOTAL_TIME
+    
     #START=$(date +%s%3N)
     #echo "Running louvain_alveo"
     #echo gsql -u $username -p $password -g $xgraph \'run query louvain_alveo\([\"Person\"], [\"Coworker\"], \"weight\",20,20,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_alveo.txt\",TRUE,FALSE\)\'

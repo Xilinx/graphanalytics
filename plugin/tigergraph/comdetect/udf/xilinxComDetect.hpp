@@ -83,8 +83,8 @@ inline void udf_set_louvain_edge_list(uint64_t primaryIdSource, uint64_t primary
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     std::cout <<"primaryIdSource = "<<primaryIdSource<< " primaryIdTarget = "<<primaryIdTarget <<" louvainIdSource: " << louvainIdSource << ";louvainIdTarget: " << louvainIdTarget << "; weight: " << wtAttr << "; outDgr: " << outDgr << std::endl;
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
-    pContext->edgeListMap[louvainIdSource].push_back(xilComDetect::Context::GraphEdge(louvainIdSource+pContext->louvain_offset,louvainIdTarget+pContext->louvain_offset, wtAttr));
-    pContext->dgrListMap[louvainIdSource]=outDgr;
+    pContext->edgeListMap[louvainIdSource].push_back(xilComDetect::Context::GraphEdge(louvainIdSource,louvainIdTarget, wtAttr));
+    pContext->dgrListMap[louvainIdTarget]=outDgr;
 }
 
 //Data has been populated and send to FPGA
@@ -102,10 +102,12 @@ inline void udf_save_alveo_partition() {
 
     //build dgr list and edgelist
     //traverse the partition size for each louvainId, populate edgelist from edgeListMap
-    for(int i=0;i< pContext->nextId_; i++) {
+    pContext->start_vertex = pContext->louvain_offset;
+    pContext->end_vertex = pContext->louvain_offset + pContext->nextId_ ;
+    for(int i= pContext->start_vertex;i < pContext->end_vertex ; i++) {
         pContext->edgeListVec.insert(pContext->edgeListVec.end(),pContext->edgeListMap[i].begin(),pContext->edgeListMap[i].end());
         for(auto& it:pContext->edgeListMap[i]) {
-            pContext->dgrListVec.push_back(pContext->dgrListMap[it.head]);
+            pContext->dgrListVec.push_back(pContext->dgrListMap[it.tail]);
         }
     }
     pContext->drglist_tg = pContext->dgrListVec.data();
@@ -116,10 +118,10 @@ inline void udf_save_alveo_partition() {
     for(int i=0; i < 10; i++) {
         std::cout << i << " dgrlist: " << pContext->drglist_tg[i] <<std::endl;
         std::cout << i << " edgelist: " << pContext->edgelist_tg[i].head <<std::endl;
+        std::cout << i << " edgelist: " << pContext->edgelist_tg[i].tail <<std::endl;
     }
 
-    pContext->start_vertex = pContext->louvain_offset;
-    pContext->end_vertex = pContext->louvain_offset + pContext->nextId_ ;
+
     std::cout << "start_vertex: " << pContext->start_vertex<<std::endl;
     std::cout << "end_vertex: " << pContext->end_vertex <<std::endl;
 
