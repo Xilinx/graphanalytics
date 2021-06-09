@@ -33,7 +33,7 @@ struct ComputedSettings {
         const std::string hostIpStr = options.clusterIpAddresses;
         const std::string hostIpAddress = options.hostIpAddress;
         for (int i = hostIpStr.find_first_not_of(delimiters, 0); i != std::string::npos;
-            hostIpStr.find_first_not_of(delimiters, i))
+            i = hostIpStr.find_first_not_of(delimiters, i))
         {
             auto tokenEnd = hostIpStr.find_first_of(delimiters, i);
             if (tokenEnd == std::string::npos)
@@ -44,6 +44,7 @@ struct ComputedSettings {
                 nodeID = hostIps.size();
             else
                 nameWorkers.push_back(std::string("tcp://" + token + ":5555"));
+            i = tokenEnd;
         }
         
         numServers = hostIps.size();
@@ -96,7 +97,7 @@ public:
         parlv_.th_prun = partOpts.par_prune;
         parlv_.num_server = settings_.numServers;
 
-        assert(!partOpts.nameProj.empty());
+        assert(!globalOpts.nameProj.empty());
         //////////////////////////// Set the name for partition project////////////////////////////
         char path_proj[1024];
         char name_proj[256];

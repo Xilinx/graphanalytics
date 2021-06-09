@@ -33,10 +33,10 @@ int main(int argc, char **argv) {
             std::ostringstream serverIp;
             for (int i = 0; i < toolOptions.server_par; ++i) {
                 if (i == 0)
-                    serverIp << "192.168.0." << i * 10 + 1;
+                    serverIp << "192.168.0." << (i + 1) * 10 + 1;
                 else
                     clusterIps << ' ';
-                clusterIps << "192.168.0." << i * 10 + 1;
+                clusterIps << "192.168.0." << (i + 1) * 10 + 1;
             }
             
             Options options;
