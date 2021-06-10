@@ -234,7 +234,7 @@ inline int udf_execute_reset(int mode) {
 
 
 inline float udf_louvain_alveo(
-    int64_t max_iter, int64_t max_level, float tolerence, bool intermediateResult,
+    int64_t max_iter, int64_t max_level, float tolerance, bool intermediateResult,
     bool verbose, string result_file, bool final_Q, bool all_Q)
 {        
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
@@ -247,7 +247,7 @@ inline float udf_louvain_alveo(
     unsigned numPartitions = pContext->getNumPartitions(); 
     std::string curNodeIp = pContext->getCurNodeIp();
     std::string nodeIps = pContext->getNodeIps();
-
+    xilComDetect::LouvainMod::ComputeOptions computeOpts;
     //if (pContext->getState() >= xilComDetect::Context::CalledExecuteLouvainState)
     //    return 0;
     
@@ -270,6 +270,8 @@ inline float udf_louvain_alveo(
     std::string tcpConn;
     //std::cout << "DEBUG: nodeId " << nodeId << " hostname=" << hostString << std::endl;
     unsigned iTcpConn = 0;
+    float finalQ;
+
     while (issNodeIps >> nodeIp) {
         if (nodeIp != curNodeIp) {
             tcpConn = "tcp://" + nodeIp + ":5555";
@@ -281,6 +283,7 @@ inline float udf_louvain_alveo(
             std::cout << "DEBUG: skip nodeIp " << nodeIp << std::endl;
     };
 
+
     for (int i=0; i < iTcpConn; i++)
         std::cout << "DEBUG: nameWorker " << i << "=" << nameWorkers[i] << std::endl;
 
@@ -291,13 +294,17 @@ inline float udf_louvain_alveo(
         modeZmq = 2; // worker
     }
     
+    xilComDetect::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
+
     std::cout
         << "DEBUG: " << __FUNCTION__ 
-        << " XCLBIN_PATH=" << PLUGIN_XCLBIN_PATH
-        << " numDevices=" << numDevices << " numPartitions=" << numPartitions
-        << " alveoProject=" << alveoProject << " numWorkers=" << numWorkers
-        << " nodeId=" << nodeId << std::endl;
+        << "\n    numDevices=" << numDevices 
+        << "\n    numPartitions=" << numPartitions
+        << "\n    alveoProject=" << alveoProject 
+        << "\n    numWorkers=" << numWorkers
+        << "\n    nodeId=" << nodeId << std::endl;
     
+    /*
     float retVal = 0;
     retVal = loadAlveoAndComputeLouvain(    
                     PLUGIN_XCLBIN_PATH, true, numDevices, 
@@ -306,9 +313,31 @@ inline float udf_louvain_alveo(
                     result_file.c_str(),
 		            max_iter, max_level, tolerence, 
                     intermediateResult, verbose, final_Q, all_Q); 
-    
-    std::cout << "DEBUG: Returned from execute_louvain. Q=" << retVal << std::endl;
-    return retVal;
+    */
+    //computeOpts.outputFile = (char *)result_file.c_str();
+    computeOpts.max_iter = max_iter;
+    computeOpts.max_level = max_level; 
+    computeOpts.tolerance = tolerance; 
+    computeOpts.intermediateResult = intermediateResult;
+    computeOpts.final_Q = final_Q;
+    computeOpts.all_Q = all_Q; 
+
+    std::cout
+        << "DEBUG: " << __FUNCTION__ 
+        << "\n    computeOpts.max_iter=" << computeOpts.max_iter 
+        << "\n    computeOpts.max_level=" << computeOpts.max_level
+        << "\n    computeOpts.tolerance=" << computeOpts.tolerance 
+        << "\n    computeOpts.intermediateResult=" << computeOpts.intermediateResult
+        << "\n    computeOpts.final_Q=" << computeOpts.final_Q 
+        << "\n    computeOpts.all_Q=" << computeOpts.all_Q 
+        << std::endl;
+ 
+    finalQ = pLouvainMod->loadAlveoAndComputeLouvain(computeOpts); 
+
+    std::cout << "DEBUG: Returned from " << __FUNCTION__ 
+              << " finalQ=" << finalQ << std::endl;
+
+    return finalQ;
 }
 
 // mergeHeaders 1 section body end xilinxComDetect DO NOT REMOVE!

@@ -383,6 +383,8 @@ float LouvainMod::loadAlveoAndComputeLouvain(const ComputeOptions &computeOpts)
     float finalQ;
     char* nameWorkers[128];
 
+    std::cout << "DEBUG: " << __FUNCTION__ << std::endl;
+    
     int i = 0;
     for (auto it = pImpl_->settings_.nameWorkers.begin(); it != pImpl_->settings_.nameWorkers.end(); ++it){
         nameWorkers[i++] = (char *)it->c_str();

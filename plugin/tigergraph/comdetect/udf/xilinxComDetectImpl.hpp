@@ -53,6 +53,7 @@ inline Mutex &getMutex() {
     return *pMutex;
 }
 
+using LouvainMod = xilinx_apps::louvainmod::LouvainMod;
 
 class Context {
 public:
@@ -71,6 +72,7 @@ private:
     unsigned nodeId_ = 0;
     unsigned numNodes_ = 1;
     State state_ = UninitializedState;
+    LouvainMod *pLouvainMod_ = nullptr;
     
 public:
     static Context *getInstance() {
@@ -81,7 +83,21 @@ public:
     }
     
     Context() = default;
-    ~Context() {}
+    ~Context() {delete pLouvainMod_;}
+
+    LouvainMod *getLouvainModObj() {
+        if (pLouvainMod_ == nullptr) {
+            xilinx_apps::louvainmod::Options options;
+            options.xclbinPath = PLUGIN_XCLBIN_PATH;
+            //options.flow_fast: use the default
+            options.numDevices = numDevices_;
+            
+            pLouvainMod_ = new LouvainMod(options);
+        }
+
+        return pLouvainMod_;
+    }
+
 
     void setAlveoProject(std::string alveoProject) {
         std::cout << "DEBUG: " << __FUNCTION__ << " AlveoProject=" << alveoProject << std::endl;

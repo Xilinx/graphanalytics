@@ -24,8 +24,8 @@ partitionMode=1
 numDevices=1
 numNodes=1
 numPartitions=9
-dataSource=/proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx
-alveoProject=/proj/gdba/tg-common/alveo-projects/as-skitter-partition
+dataSource=$(CURDIR)/as-skitter/as-Skitter-wt-r100.mtx
+alveoProject=$(CURDIR)/as-skitter/as-skitter-partition
 
 all: run
 
