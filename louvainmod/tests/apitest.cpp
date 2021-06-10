@@ -41,6 +41,7 @@ int main(int argc, char **argv) {
 
     options.xclbinPath = toolOptions.xclbinPath;
     options.flow_fast = toolOptions.flow_fast;
+    options.nameProj = toolOptions.nameProj;
     options.alveoProject = toolOptions.alveoProject;
     options.numDevices = toolOptions.numDevices;
     options.hostName = "Server";
