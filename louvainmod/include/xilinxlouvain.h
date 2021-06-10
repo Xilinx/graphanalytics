@@ -175,8 +175,8 @@ struct Options {
     int devNeed_cmd = 1;  // C
     unsigned nodeId = 0;  // node ID 0 will be the driver, all others will be workers
     XString hostName;  // optional host name of this server for debugging purposes
-    XString clusterIpAddresses;  // space-separated list of server IP addresses in the cluster
-    XString hostIpAddress;  // IP address of this server
+    XString clusterIpAddresses;  // space-separated list of server IP addresses in the cluster, or empty for 1 server
+    XString hostIpAddress;  // IP address of this server, or empty for 1 server
 };
 
 
@@ -203,6 +203,7 @@ public:
         long start_vertex = 0;
         long end_vertex = 0;
         long NV_par_recommand = 0;  // Recommended NV per partition.  Leave as 0 to calculate from num Alveo cards on each server
+        int nodeId = -1;  // Node ID for the server, or -1 to use Options::nodeId
     };
 
     

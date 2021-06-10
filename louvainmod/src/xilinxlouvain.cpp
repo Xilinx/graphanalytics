@@ -115,14 +115,13 @@ public:
 
     void setFileName(const char *inFileName) { inputFileName_ = inFileName; }
 
-    int getCurServerNum() const { return int(parInServer_.size()); }
-
     int addPartitionData(const LouvainMod::PartitionData &partitionData) {
         // Determine the prefix string for each partition (.par) file
         //For compatibility, when num_server is 1, no 'srv<n>' surfix used
         char pathName_proj_svr[1024];
+        int serverNum = (partitionData.nodeId >= 0) ? partitionData.nodeId : i_svr_++;
         if (settings_.numServers > 1)
-            std::sprintf(pathName_proj_svr, "%s_svr%d", globalOpts_.nameProj.c_str(), i_svr_);//louvain_partitions_svr0_000.par
+            std::sprintf(pathName_proj_svr, "%s_svr%d", globalOpts_.nameProj.c_str(), serverNum);//louvain_partitions_svr0_000.par
         else
             std::strcpy(pathName_proj_svr, globalOpts_.nameProj);                    //louvain_partitions_000.par
 
@@ -147,7 +146,7 @@ public:
                 // Distribute the L leftover partitions (where L = servers % partitions) among the first
                 // L servers
                 int extraPartitions = partOpts_.num_par % settings_.numServers;
-                if (extraPartitions > getCurServerNum())
+                if (extraPartitions > serverNum)
                     ++numPartitionsThisServer;
             }
 
@@ -345,6 +344,7 @@ void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions 
         partitionData.start_vertex = start_vertex[i_svr];
         partitionData.end_vertex = end_vertex[i_svr];
         partitionData.NV_par_recommand = NV_par_recommand;
+        partitionData.nodeId = i_svr;
         parInServer[i_svr] = addPartitionData(partitionData);
 
         num_partition +=parInServer[i_svr] ;
