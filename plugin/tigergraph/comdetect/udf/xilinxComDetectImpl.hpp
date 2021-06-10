@@ -93,7 +93,7 @@ public:
     uint64_t louvain_offset = 0 ;
     // partion data
     long* offsets_tg;
-    GraphEdge* edgelist_tg;
+    xilinx_apps::louvainmod::Edge* edgelist_tg;
     long* drglist_tg;
     long  start_vertex;     // If a vertex is smaller than star_vertex, it is a ghost
     long  end_vertex;
@@ -103,9 +103,9 @@ public:
     
     // this map is used to build GraphEdge* edgelistTG and drglistTG
     //key-> value : louvainId->graphedge
-    std::map<uint64_t, std::vector<GraphEdge>> edgeListMap;
+    std::map<uint64_t, std::vector<xilinx_apps::louvainmod::Edge>> edgeListMap;
     std::map<uint64_t, long> dgrListMap;
-    std::vector<GraphEdge> edgeListVec;
+    std::vector<xilinx_apps::louvainmod::Edge> edgeListVec;
     std::vector<long> dgrListVec;
 
     static Context *getInstance() {
@@ -122,54 +122,54 @@ public:
         if (pLouvainMod_ == nullptr) {
             xilinx_apps::louvainmod::Options options;
 
-        std::string cur_node_hostname, cur_node_ip, node_ips;
-        // PLUGIN_CONFIG_PATH will be replaced by the actual config path during plugin installation
-        std::fstream config_json(PLUGIN_CONFIG_PATH, std::ios::in);
-        if (!config_json) {
-            std::cout << "ERROR: config file doesn't exist:" << PLUGIN_CONFIG_PATH << std::endl;
-            return(2);
-        }
-
-        char line[1024] = {0};
-        char* token;
-        node_ips = "";
-        bool scanNodeIp;
-        while (config_json.getline(line, sizeof(line))) {
-            token = strtok(line, "\"\t ,}:{\n");
-            scanNodeIp = false;
-            while (token != NULL) {
-                if (!std::strcmp(token, "curNodeHostname")) {
-                    token = strtok(NULL, "\"\t ,}:{\n");
-                    cur_node_hostname = token;
-                } else if (!std::strcmp(token, "curNodeIp")) {
-                    token = strtok(NULL, "\"\t ,}:{\n");
-                    cur_node_ip = token;
-                } else if (!std::strcmp(token, "nodeIps")) {
-                    // this field has multipe space separated IPs
-                    scanNodeIp = true;
-                    // read the next token
-                    token = strtok(NULL, "\"\t ,}:{\n");
-                    node_ips += token;
-                    std::cout << "node_ips=" << node_ips << std::endl;
-                } else if (scanNodeIp) {
-                    // In the middle of nodeIps field
-                    node_ips += " ";
-                    node_ips += token;
-                    std::cout << "node_ips=" << node_ips << std::endl;
-                }
-                token = strtok(NULL, "\"\t ,}:{\n");
+            std::string cur_node_hostname, cur_node_ip, node_ips;
+            // PLUGIN_CONFIG_PATH will be replaced by the actual config path during plugin installation
+            std::fstream config_json(PLUGIN_CONFIG_PATH, std::ios::in);
+            if (!config_json) {
+                std::cout << "ERROR: config file doesn't exist:" << PLUGIN_CONFIG_PATH << std::endl;
+                return(2);
             }
-        }
-        config_json.close();
 
-        //options.xclbinPath = PLUGIN_XCLBIN_PATH;
-        options.nameProj = alveoProject_;
-        options.devNeed_cmd = numNodes_;
-        options.nodeId = nodeId_;
-        options.hostName = cur_node_hostname;
-        options.clusterIpAddresses = node_ips;
-        options.hostIpAddress = cur_node_ip;
-        
+            char line[1024] = {0};
+            char* token;
+            node_ips = "";
+            bool scanNodeIp;
+            while (config_json.getline(line, sizeof(line))) {
+                token = strtok(line, "\"\t ,}:{\n");
+                scanNodeIp = false;
+                while (token != NULL) {
+                    if (!std::strcmp(token, "curNodeHostname")) {
+                        token = strtok(NULL, "\"\t ,}:{\n");
+                        cur_node_hostname = token;
+                    } else if (!std::strcmp(token, "curNodeIp")) {
+                        token = strtok(NULL, "\"\t ,}:{\n");
+                        cur_node_ip = token;
+                    } else if (!std::strcmp(token, "nodeIps")) {
+                        // this field has multipe space separated IPs
+                        scanNodeIp = true;
+                        // read the next token
+                        token = strtok(NULL, "\"\t ,}:{\n");
+                        node_ips += token;
+                        std::cout << "node_ips=" << node_ips << std::endl;
+                    } else if (scanNodeIp) {
+                        // In the middle of nodeIps field
+                        node_ips += " ";
+                        node_ips += token;
+                        std::cout << "node_ips=" << node_ips << std::endl;
+                    }
+                    token = strtok(NULL, "\"\t ,}:{\n");
+                }
+            }
+            config_json.close();
+
+            //options.xclbinPath = PLUGIN_XCLBIN_PATH;
+            options.nameProj = alveoProject_;
+            options.devNeed_cmd = numNodes_;
+            options.nodeId = nodeId_;
+            options.hostName = cur_node_hostname;
+            options.clusterIpAddresses = node_ips;
+            options.hostIpAddress = cur_node_ip;
+
 #if 0 // ifdef XILINX_COM_DETECT_DEBUG_ON
             std::cout << "DEBUG: louvainmod options: vecLength=" << options.vecLength
                     << ", numDevices=" << options.numDevices

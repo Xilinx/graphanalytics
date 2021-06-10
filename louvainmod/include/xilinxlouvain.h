@@ -164,6 +164,11 @@ struct Edge {
     long head;
     long tail;
     double weight;
+    Edge(long head_, long tail_, double weight_) {
+                head = head_ ;
+                tail = tail_;
+                weight = weight_;
+            }
 };
 
 

@@ -83,7 +83,7 @@ inline void udf_set_louvain_edge_list(uint64_t primaryIdSource, uint64_t primary
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     std::cout <<"primaryIdSource = "<<primaryIdSource<< " primaryIdTarget = "<<primaryIdTarget <<" louvainIdSource: " << louvainIdSource << ";louvainIdTarget: " << louvainIdTarget << "; weight: " << wtAttr << "; outDgr: " << outDgr << std::endl;
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
-    pContext->edgeListMap[louvainIdSource].push_back(xilComDetect::Context::GraphEdge(louvainIdSource,louvainIdTarget, wtAttr));
+    pContext->edgeListMap[louvainIdSource].push_back(xilinx_apps::louvainmod::Edge((long)louvainIdSource,(long)louvainIdTarget, (double)wtAttr));
     pContext->dgrListMap[louvainIdTarget]=outDgr;
 }
 
@@ -91,7 +91,7 @@ inline void udf_start_partition(){
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
-    xilinx_apps::louvainmod::LouvainMod::PartitionOptions options;//need to write options
+    xilinx_apps::louvainmod::LouvainMod::PartitionOptions options; //use default value
     pLouvainMod->startPartitioning(options);
 }
 
@@ -138,6 +138,11 @@ inline void udf_save_alveo_partition() {
     
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
     xilinx_apps::louvainmod::LouvainMod::PartitionData partitionData;//write into partionData = {pContext->offsets_tg, pContext->edgelist_tg, pContext->drglist_tg, pContext->start_vertex,pContext->end_vertex, 0};
+    partitionData.offsets_tg = pContext->offsets_tg;
+    partitionData.edgelist_tg = pContext->edgelist_tg;
+    partitionData.drglist_tg = pContext->drglist_tg;
+    partitionData.start_vertex = pContext->start_vertex;
+    partitionData.end_vertex = pContext->end_vertex;
     pLouvainMod->addPartitionData(partitionData);
 
 }
@@ -176,32 +181,7 @@ inline int udf_xilinx_comdetect_setup_nodes(std::string nodeNames,
     return numNodes;
 }
 
-//inline string udf_open_alveo(int mode)
-//{
-//    std::lock_guard<std::mutex> lockGuard(xai::writeMutexOpenAlveo);
-//    if (!xai::openedAlveo) {
-//        std::cout << "DEBUG: " << __FUNCTION__ << " xai::openedAlveo=" << xai::openedAlveo << std::endl;
-//        if(xai::openedAlveo) return "";
-//        xai::openedAlveo = true;
-//        string result("Initialized Alveo");
-//        try
-//        {
-//            std::cout << "DEBUG: Opening XAI library " << std::endl;
-//            xai::xaiLoader.load_library(xai::host_libname);
-//            std::cout << "DEBUG: Opened XAI library " << std::endl;
-//        }
-//        catch (std::exception& e) {
-//            std::cerr << "ERROR: An exception occurred: " << e.what() << std::endl;
-//            (result += ": STD Exception:")+=e.what();
-//        }
-//        catch (...) {
-//            std::cerr << "ERROR: An unknown exception occurred." << std::endl;
-//            (result += ": Unknown Exception:")+=" Reason unknown, check LD_LIBRARY_PATH";
-//        }
-//        return result;
-//    }
-//    return "";
-//}
+
 
 // TODO: Change signature as needed
 // This function combined with GSQL code should traverse memory of TigerGraph on Each
