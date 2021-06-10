@@ -87,6 +87,16 @@ inline void udf_set_louvain_edge_list(uint64_t primaryIdSource, uint64_t primary
     pContext->dgrListMap[louvainIdTarget]=outDgr;
 }
 
+inline void udf_start_partition(){
+    std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
+    xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+    xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
+    xilinx_apps::louvainmod::LouvainMod::PartitionOptions options;//need to write options
+    pLouvainMod->startPartitioning(options);
+}
+
+
+
 //Data has been populated and send to FPGA
 
 inline void udf_save_alveo_partition() {
@@ -125,8 +135,20 @@ inline void udf_save_alveo_partition() {
 
     std::cout << "start_vertex: " << pContext->start_vertex<<std::endl;
     std::cout << "end_vertex: " << pContext->end_vertex <<std::endl;
+    
+    xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
+    xilinx_apps::louvainmod::LouvainMod::PartitionData partitionData;//write into partionData = {pContext->offsets_tg, pContext->edgelist_tg, pContext->drglist_tg, pContext->start_vertex,pContext->end_vertex, 0};
+    pLouvainMod->addPartitionData(partitionData);
 
 }
+
+inline void udf_finish_partition(){
+    std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
+    xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+    xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
+    pLouvainMod->finishPartitioning();
+}
+
 
 
 inline int udf_xilinx_comdetect_setup_nodes(std::string nodeNames, 
@@ -237,9 +259,10 @@ inline int udf_create_and_load_alveo_partitions(bool use_saved_partition,
               << " graph_file=" << graph_file.c_str() 
               << " num_partitions=" << num_partitions 
               << " louvain project=" << alveo_project.c_str() 
-              << " cur_node_ip=" << cur_node_ip 
-              << " cur_node_hostname=" << cur_node_hostname 
-              << " node_ips=" << node_ips << std::endl;
+//              << " cur_node_ip=" << cur_node_ip 
+//              << " cur_node_hostname=" << cur_node_hostname 
+//              << " node_ips=" << node_ips 
+              << std::endl;
         
     
     if (!use_saved_partition && nodeId == 0) {

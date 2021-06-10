@@ -118,7 +118,7 @@ public:
     Context() = default;
     ~Context() { delete pLouvainMod_; }
 
-    CosineSim *getLouvainModObj() {
+    xilinx_apps::louvainmod::LouvainMod *getLouvainModObj() {
         if (pLouvainMod_ == nullptr) {
             xilinx_apps::louvainmod::Options options;
 
@@ -162,7 +162,7 @@ public:
         }
         config_json.close();
 
-        options.xclbinPath = PLUGIN_XCLBIN_PATH;
+        //options.xclbinPath = PLUGIN_XCLBIN_PATH;
         options.nameProj = alveoProject_;
         options.devNeed_cmd = numNodes_;
         options.nodeId = nodeId_;

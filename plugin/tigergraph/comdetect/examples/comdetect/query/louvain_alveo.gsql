@@ -107,11 +107,22 @@ CREATE DISTRIBUTED QUERY tg_partition_phase_3(
     nodes = {dummy_nodes.*};
     vertexList = SELECT s FROM Start:s-(e_types:e)->:t
         ACCUM udf_set_louvain_edge_list(s.num,t.num, s.louvainId,t.louvainId,e.getAttr(weight_attr,"FLOAT"),t.outdegree());
-    //1) call start_partition if node_id = 0
+        
+    nodeList = SELECT n FROM nodes:n
+        ACCUM
+            IF n.NODE_ID == 0 THEN
+                udf_start_partition()
+            END
+    ;
     // 2) add_partiton inside udf_save_alveo_partition, save path  = /home2/tigergraph/_xilinx_graph_name_prefix(input file name)       
     parList = SELECT n FROM nodes:n
         ACCUM udf_save_alveo_partition();
-    // 3) call close_partion if node_id  = 0
+    nodeList = SELECT n FROM nodes:n
+        ACCUM
+            IF n.NODE_ID == 0 THEN
+                udf_finish_partition()
+            END
+    ;
   
 }
 
