@@ -25,15 +25,17 @@ numDevices=1
 numNodes=1
 numPartitions=9
 dataSource=$(CURDIR)/as-skitter/as-Skitter-wt-r100.mtx
-alveoProject=$(CURDIR)/as-skitter/as-skitter-partition
+alveoProject=$(CURDIR)/as-skitter/as-skitter-par9
 
 all: run
 
-../../../../../louvainmod/staging/lib/libXilinxLouvain.so: ../../../../../louvainmod/src/louvainmod_loader.cpp \
-                                                           ../../../../../louvainmod/src/ParLV.cpp
+PLUGIN_DEPS = ../../udf/xilinxComDetect.hpp \
+              ../../udf/xilinxComDetectImpl.hpp \
+			  ../../../../../louvainmod/include/xilinxlouvain.h \
+			  ../../../../../louvainmod/src/ParLV.cpp
+
+.install-plugin-done: $(PLUGIN_DEPS)
 	cd ../../../../../louvainmod && make DEBUG=$(DEBUG)
-	
-.install-plugin-done: ../../udf/xilinxComDetect.hpp ../../udf/xilinxComDetectImpl.hpp ../../../../../louvainmod/staging/lib/libXilinxLouvain.so
 	@echo "-------------------------------------------------------"
 	@echo "Installing plugin files into TigerGraph software"
 	@echo "-------------------------------------------------------"

@@ -172,14 +172,14 @@ struct Edge {
 
 struct Options {
     bool verbose = true;
-    XString xclbinPath;
-    XString nameProj;  // -name option: location of "partition project" created by partitioning, read by load/compute
-    XString alveoProject; // Alveo project file .par.proj TODO: to be combined with nameProj
+    XString xclbinPath =  "";
+    XString nameProj = "";  // -name option: location of "partition project" created by partitioning, read by load/compute
+    XString alveoProject = ""; // Alveo project file .par.proj TODO: to be combined with nameProj
     int flow_fast = 2;  // C
     int numDevices = 1;  // C
-    XString hostName;  // optional host name of this server for debugging purposes
-    XString clusterIpAddresses;  // space-separated list of server IP addresses in the cluster
-    XString hostIpAddress;  // IP address of this server
+    XString hostName = "";  // optional host name of this server for debugging purposes
+    XString clusterIpAddresses  = "";  // space-separated list of server IP addresses in the cluster
+    XString hostIpAddress =  "";  // IP address of this server
 };
 
 
@@ -233,10 +233,11 @@ public:
     int addPartitionData(const PartitionData &);  // Returns actual number of partitions created
     void finishPartitioning();
     
+    void setAlveoProject(const char* alveoProject);
     void loadAlveo();  // Loads .par files into CPU memory.  Can we load first .par per card into HBM here?
     void computeLouvain(const ComputeOptions &computeOpts);
     float loadAlveoAndComputeLouvain(const ComputeOptions &computeOpts);
-    
+
 private:
     LouvainModImpl *pImpl_ = nullptr;
 };

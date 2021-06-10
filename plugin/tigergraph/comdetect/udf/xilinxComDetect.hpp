@@ -314,7 +314,9 @@ inline float udf_louvain_alveo(
 		            max_iter, max_level, tolerence, 
                     intermediateResult, verbose, final_Q, all_Q); 
     */
-    //computeOpts.outputFile = (char *)result_file.c_str();
+    pLouvainMod->setAlveoProject((char *)alveoProject.c_str());
+
+    computeOpts.outputFile = (char *)result_file.c_str();
     computeOpts.max_iter = max_iter;
     computeOpts.max_level = max_level; 
     computeOpts.tolerance = tolerance; 
@@ -333,7 +335,7 @@ inline float udf_louvain_alveo(
         << std::endl;
  
     finalQ = pLouvainMod->loadAlveoAndComputeLouvain(computeOpts); 
-
+    
     std::cout << "DEBUG: Returned from " << __FUNCTION__ 
               << " finalQ=" << finalQ << std::endl;
 

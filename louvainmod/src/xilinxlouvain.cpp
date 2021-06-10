@@ -374,6 +374,7 @@ void LouvainMod::finishPartitioning() {
     pImpl_->partitionRun_->finishPartitioning();
 }
 
+void LouvainMod::setAlveoProject(const char* alveoProject) { pImpl_->options_.alveoProject = alveoProject; }
 
 void LouvainMod::loadAlveo() {}
 void LouvainMod::computeLouvain(const ComputeOptions &computeOpts) {}
@@ -386,9 +387,9 @@ float LouvainMod::loadAlveoAndComputeLouvain(const ComputeOptions &computeOpts)
     std::cout << "DEBUG: " << __FUNCTION__ << std::endl;
     
     int i = 0;
-    for (auto it = pImpl_->settings_.nameWorkers.begin(); it != pImpl_->settings_.nameWorkers.end(); ++it){
-        nameWorkers[i++] = (char *)it->c_str();
-    }
+    //for (auto it = pImpl_->settings_.nameWorkers.begin(); it != pImpl_->settings_.nameWorkers.end(); ++it){
+    //    nameWorkers[i++] = (char *)it->c_str();
+    //}
   
 #ifndef NDEBUG  
     std::cout << "DEBUG: " << __FUNCTION__ 
