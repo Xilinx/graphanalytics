@@ -83,9 +83,19 @@ inline void udf_set_louvain_edge_list(uint64_t primaryIdSource, uint64_t primary
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     std::cout <<"primaryIdSource = "<<primaryIdSource<< " primaryIdTarget = "<<primaryIdTarget <<" louvainIdSource: " << louvainIdSource << ";louvainIdTarget: " << louvainIdTarget << "; weight: " << wtAttr << "; outDgr: " << outDgr << std::endl;
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
-    pContext->edgeListMap[louvainIdSource].push_back(xilComDetect::Context::GraphEdge(louvainIdSource,louvainIdTarget, wtAttr));
+    pContext->edgeListMap[louvainIdSource].push_back(xilinx_apps::louvainmod::Edge((long)louvainIdSource,(long)louvainIdTarget, (double)wtAttr));
     pContext->dgrListMap[louvainIdTarget]=outDgr;
 }
+
+inline void udf_start_partition(){
+    std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
+    xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+    xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
+    xilinx_apps::louvainmod::LouvainMod::PartitionOptions options; //use default value
+    pLouvainMod->startPartitioning(options);
+}
+
+
 
 //Data has been populated and send to FPGA
 
@@ -125,8 +135,25 @@ inline void udf_save_alveo_partition() {
 
     std::cout << "start_vertex: " << pContext->start_vertex<<std::endl;
     std::cout << "end_vertex: " << pContext->end_vertex <<std::endl;
+    
+    xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
+    xilinx_apps::louvainmod::LouvainMod::PartitionData partitionData;//write into partionData = {pContext->offsets_tg, pContext->edgelist_tg, pContext->drglist_tg, pContext->start_vertex,pContext->end_vertex, 0};
+    partitionData.offsets_tg = pContext->offsets_tg;
+    partitionData.edgelist_tg = pContext->edgelist_tg;
+    partitionData.drglist_tg = pContext->drglist_tg;
+    partitionData.start_vertex = pContext->start_vertex;
+    partitionData.end_vertex = pContext->end_vertex;
+    pLouvainMod->addPartitionData(partitionData);
 
 }
+
+inline void udf_finish_partition(){
+    std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
+    xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+    xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
+    pLouvainMod->finishPartitioning();
+}
+
 
 
 inline int udf_xilinx_comdetect_setup_nodes(std::string nodeNames, 
@@ -154,32 +181,7 @@ inline int udf_xilinx_comdetect_setup_nodes(std::string nodeNames,
     return numNodes;
 }
 
-//inline string udf_open_alveo(int mode)
-//{
-//    std::lock_guard<std::mutex> lockGuard(xai::writeMutexOpenAlveo);
-//    if (!xai::openedAlveo) {
-//        std::cout << "DEBUG: " << __FUNCTION__ << " xai::openedAlveo=" << xai::openedAlveo << std::endl;
-//        if(xai::openedAlveo) return "";
-//        xai::openedAlveo = true;
-//        string result("Initialized Alveo");
-//        try
-//        {
-//            std::cout << "DEBUG: Opening XAI library " << std::endl;
-//            xai::xaiLoader.load_library(xai::host_libname);
-//            std::cout << "DEBUG: Opened XAI library " << std::endl;
-//        }
-//        catch (std::exception& e) {
-//            std::cerr << "ERROR: An exception occurred: " << e.what() << std::endl;
-//            (result += ": STD Exception:")+=e.what();
-//        }
-//        catch (...) {
-//            std::cerr << "ERROR: An unknown exception occurred." << std::endl;
-//            (result += ": Unknown Exception:")+=" Reason unknown, check LD_LIBRARY_PATH";
-//        }
-//        return result;
-//    }
-//    return "";
-//}
+
 
 // TODO: Change signature as needed
 // This function combined with GSQL code should traverse memory of TigerGraph on Each
@@ -237,9 +239,10 @@ inline int udf_create_and_load_alveo_partitions(bool use_saved_partition,
               << " graph_file=" << graph_file.c_str() 
               << " num_partitions=" << num_partitions 
               << " louvain project=" << alveo_project.c_str() 
-              << " cur_node_ip=" << cur_node_ip 
-              << " cur_node_hostname=" << cur_node_hostname 
-              << " node_ips=" << node_ips << std::endl;
+//              << " cur_node_ip=" << cur_node_ip 
+//              << " cur_node_hostname=" << cur_node_hostname 
+//              << " node_ips=" << node_ips 
+              << std::endl;
         
     
     if (!use_saved_partition && nodeId == 0) {

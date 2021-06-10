@@ -40,16 +40,14 @@ CREATE DISTRIBUTED QUERY tg_partition_phase_1(
     STRING louvainId_attr
 ) FOR GRAPH @graph
 {
-    ListAccum<UINT> @@nodeAccum;
+    //ListAccum<UINT> @@nodeAccum;
     SumAccum<UINT> @@total_out_degree;
 
     Start = {v_types};
     nodes = {dummy_nodes.*};
-    //pnodes = {Person.*};
-
 
     nodeList = SELECT n FROM nodes:n
-        ACCUM @@nodeAccum += udf_xilinx_comdetect_set_node_id(n.NODE_ID), udf_reset_nextId();
+        ACCUM udf_xilinx_comdetect_set_node_id(n.NODE_ID), udf_reset_nextId();
 
     A1 = SELECT n FROM Start:n
         // Local to each server, louvainid is local increasing id
@@ -67,8 +65,6 @@ CREATE DISTRIBUTED QUERY tg_partition_phase_2(
     STRING louvainId_attr
 ) FOR GRAPH @graph
 {
-  
-    ListAccum<UINT> @@nodeAccum;
     SumAccum<UINT> @globalId;
     
     MapAccum<UINT,UINT> @@parSize; //nodeid-> parSize
@@ -78,15 +74,12 @@ CREATE DISTRIBUTED QUERY tg_partition_phase_2(
     nodes = {dummy_nodes.*};
     @@offsets += (0 -> 0);
   
-    nodeList = SELECT n FROM nodes:n
-        ACCUM @@nodeAccum += udf_xilinx_comdetect_set_node_id(n.NODE_ID);
-        
     partitionSizeList = SELECT n FROM nodes:n
         ACCUM @@parSize += (n.NODE_ID -> udf_get_partition_size() );
     
     PRINT @@parSize;
 
-    FOREACH n IN RANGE[0,@@nodeAccum.size()-1] DO
+    FOREACH n IN RANGE[0,nodes.size()-1] DO
         @@offsets += (n+1 -> @@offsets.get(n)+@@parSize.get(n));
     END;
 
@@ -94,8 +87,6 @@ CREATE DISTRIBUTED QUERY tg_partition_phase_2(
         ACCUM udf_set_louvain_offset(@@offsets.get(n.NODE_ID));
 
     PRINT @@offsets;
-    
-
     
     //assign global id
     louvainGlobal = SELECT s FROM Start:s
@@ -116,9 +107,22 @@ CREATE DISTRIBUTED QUERY tg_partition_phase_3(
     nodes = {dummy_nodes.*};
     vertexList = SELECT s FROM Start:s-(e_types:e)->:t
         ACCUM udf_set_louvain_edge_list(s.num,t.num, s.louvainId,t.louvainId,e.getAttr(weight_attr,"FLOAT"),t.outdegree());
-            
+        
+    nodeList = SELECT n FROM nodes:n
+        ACCUM
+            IF n.NODE_ID == 0 THEN
+                udf_start_partition()
+            END
+    ;
+    // 2) add_partiton inside udf_save_alveo_partition, save path  = /home2/tigergraph/_xilinx_graph_name_prefix(input file name)       
     parList = SELECT n FROM nodes:n
         ACCUM udf_save_alveo_partition();
+    nodeList = SELECT n FROM nodes:n
+        ACCUM
+            IF n.NODE_ID == 0 THEN
+                udf_finish_partition()
+            END
+    ;
   
 }
 
