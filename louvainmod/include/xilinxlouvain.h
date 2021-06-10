@@ -123,11 +123,14 @@ public:
     XString(const XString &other) { copyIn(other.data); }
     XString(XString &&other) { steal(std::forward<XString>(other)); }
     XString(const char *cstr) { copyIn(cstr); }
+    XString(const std::string &str) { copyIn(str.c_str()); }
     XString &operator=(const XString &other) { copyIn(other.data); return *this; }
     XString &operator=(XString &&other) { steal(std::forward<XString>(other)); return *this; }
     XString &operator=(const char *cstr) { copyIn(cstr); return *this; }
-    operator const char *() const { return data; }
-    const char *c_str() const { return data; }
+    XString &operator=(const std::string &str) { copyIn(str.c_str()); return *this; }
+    operator std::string() const { return std::string(c_str()); }
+    operator const char *() const { return c_str(); }
+    const char *c_str() const { return data == nullptr ? "" : data; }
     bool empty() const { return data == nullptr || std::strlen(data) == 0; }
 
     bool operator==(const XString &other) const {

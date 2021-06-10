@@ -39,14 +39,14 @@ int main(int argc, char **argv) {
     serverIp << "192.168.0.41";
     clusterIps << "192.168.0.41";
 
-    options.xclbinPath = toolOptions.xclbinPath.c_str();
+    options.xclbinPath = toolOptions.xclbinPath;
     options.flow_fast = toolOptions.flow_fast;
     options.nameProj = toolOptions.nameProj;
-    options.alveoProject = toolOptions.alveoProject.c_str();
+    options.alveoProject = toolOptions.alveoProject;
     options.numDevices = toolOptions.numDevices;
     options.hostName = "Server";
-    options.hostIpAddress = serverIp.str().c_str();
-    options.clusterIpAddresses = clusterIps.str().c_str();
+    options.hostIpAddress = serverIp.str();
+    options.clusterIpAddresses = clusterIps.str();
     LouvainMod louvainMod(options);
 
     switch (toolOptions.mode_alveo) {
@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
     case ALVEOAPI_LOAD: // 2
         std::cout << "ALVEOAPI_LOAD" << std::endl;
 
-        computeOpts.outputFile = toolOptions.outputFile.c_str();
+        computeOpts.outputFile = toolOptions.outputFile;
         computeOpts.max_iter = toolOptions.max_iter;
         computeOpts.max_level = toolOptions.max_level; 
         computeOpts.tolerance = toolOptions.threshold; 

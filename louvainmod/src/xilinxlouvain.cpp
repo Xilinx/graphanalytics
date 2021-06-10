@@ -30,8 +30,8 @@ struct ComputedSettings {
     
     ComputedSettings(const Options &options) {
         const std::string delimiters(" ");
-        const std::string hostIpStr = options.clusterIpAddresses.c_str();
-        const std::string hostIpAddress = options.hostIpAddress.c_str();
+        const std::string hostIpStr = options.clusterIpAddresses;
+        const std::string hostIpAddress = options.hostIpAddress;
         for (int i = hostIpStr.find_first_not_of(delimiters, 0); i != std::string::npos;
             i = hostIpStr.find_first_not_of(delimiters, i))
         {
@@ -415,7 +415,7 @@ float LouvainMod::loadAlveoAndComputeLouvain(const ComputeOptions &computeOpts)
                 pImpl_->options_.verbose, computeOpts.final_Q, computeOpts.all_Q); 
     
     std::cout << "DEBUG: " << __FUNCTION__ << " finalQ=" << finalQ << std::endl;
-    return finalQ;
+    
 }
 
 }  // namespace louvainmod
