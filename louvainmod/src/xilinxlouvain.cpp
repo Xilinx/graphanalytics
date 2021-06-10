@@ -23,10 +23,10 @@ long NV_par_max = 64*1000*1000;
 struct ComputedSettings {
     std::vector<std::string> hostIps;
     int numServers = 1;
-    int mode_zmq = ZMQ_NONE;
+    int modeZmq = ZMQ_NONE;
     int numPureWorker = 0;
     std::vector<std::string> nameWorkers;
-    unsigned int nodeID = 0;
+    unsigned int nodeId = 0;
     
     ComputedSettings(const Options &options) {
         const std::string delimiters(" ");
@@ -41,14 +41,15 @@ struct ComputedSettings {
             const std::string token = hostIpStr.substr(i, tokenEnd - i);
             hostIps.push_back(token);
             if (token == hostIpAddress)
-                nodeID = hostIps.size();
+                //TODO: nodeId = hostIps.size();
+                nodeId = 0;
             else
                 nameWorkers.push_back(std::string("tcp://" + token + ":5555"));
             i = tokenEnd;
         }
         
         numServers = hostIps.size();
-        mode_zmq = (nodeID == 0) ? ZMQ_DRIVER : ZMQ_WORKER;
+        modeZmq = (nodeId == 0) ? ZMQ_DRIVER : ZMQ_WORKER;
         numPureWorker = nameWorkers.size();
     }
 };
@@ -92,7 +93,7 @@ public:
             break;
         }
         
-        parlv_.Init(flowMode, nullptr, partOpts.num_par, globalOpts.devNeed_cmd, true, partOpts.par_prune);
+        parlv_.Init(flowMode, nullptr, partOpts.num_par, globalOpts.numDevices, true, partOpts.par_prune);
         parlv_.num_par = partOpts.num_par;
         parlv_.th_prun = partOpts.par_prune;
         parlv_.num_server = settings_.numServers;
@@ -136,13 +137,13 @@ public:
 
         if (NV_par_recommand == 0) {
             // Assume that we want one partition per Alveo card unless overridden by num_par option
-            int numPartitionsThisServer = globalOpts_.devNeed_cmd;
+            int numPartitionsThisServer = globalOpts_.numDevices;
 
             // If num_par specifies more partitions than we have total number of devices in the cluster,
             // create num_par devices instead.  This feature is for testing partitioning of smaller graphs,
             // but can also be used to pre-calculate the partitions for graphs that are so large that each
             // Alveo card needs to process more than its maximum number of vertices.
-            int totalNumDevices = settings_.numServers * globalOpts_.devNeed_cmd;
+            int totalNumDevices = settings_.numServers * globalOpts_.numDevices;
             if (partOpts_.num_par > totalNumDevices) {
                 // Distribute partitions evenly among servers
                 numPartitionsThisServer = partOpts_.num_par / settings_.numServers;
@@ -377,6 +378,42 @@ void LouvainMod::finishPartitioning() {
 void LouvainMod::loadAlveo() {}
 void LouvainMod::computeLouvain(const ComputeOptions &computeOpts) {}
 
+float LouvainMod::loadAlveoAndComputeLouvain(const ComputeOptions &computeOpts)
+{
+    float finalQ;
+    char* nameWorkers[128];
+
+    int i = 0;
+    for (auto it = pImpl_->settings_.nameWorkers.begin(); it != pImpl_->settings_.nameWorkers.end(); ++it){
+        nameWorkers[i++] = (char *)it->c_str();
+    }
+  
+#ifndef NDEBUG  
+    std::cout << "DEBUG: " << __FUNCTION__ 
+              << "\n    xclbinPath=" << pImpl_->options_.xclbinPath
+              << "\n    alveoProject=" << pImpl_->options_.alveoProject 
+              << "\n    nodeId=" << pImpl_->settings_.nodeId
+              << "\n    modeZmq=" << pImpl_->settings_.modeZmq
+              << "\n    numPureWorker=" << pImpl_->settings_.numPureWorker
+              << std::endl;
+#endif              
+    finalQ = ::loadAlveoAndComputeLouvain(
+                (char *)(pImpl_->options_.xclbinPath.c_str()), 
+                pImpl_->options_.flow_fast, 
+                pImpl_->options_.numDevices, 
+                (char*)(pImpl_->options_.alveoProject.c_str()),
+                pImpl_->settings_.modeZmq, 
+                pImpl_->settings_.numPureWorker, 
+                nameWorkers, 
+                pImpl_->settings_.nodeId, 
+                (char *)(computeOpts.outputFile.c_str()), 
+                computeOpts.max_iter, computeOpts.max_level, 
+                computeOpts.tolerance, computeOpts.intermediateResult, 
+                pImpl_->options_.verbose, computeOpts.final_Q, computeOpts.all_Q); 
+    
+    std::cout << "DEBUG: " << __FUNCTION__ << " finalQ=" << finalQ << std::endl;
+    
+}
 
 }  // namespace louvainmod
 }  // namespace xilinx_apps

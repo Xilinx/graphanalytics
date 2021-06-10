@@ -299,12 +299,13 @@ inline float udf_louvain_alveo(
         << " nodeId=" << nodeId << std::endl;
     
     float retVal = 0;
-    retVal = compute_louvain_alveo(    
+    retVal = loadAlveoAndComputeLouvain(    
                     PLUGIN_XCLBIN_PATH, true, numDevices, 
-                    numPartitions, alveoProject.c_str(), 
+                    alveoProject.c_str(), 
                     modeZmq, numWorkers, nameWorkers, nodeId,
                     result_file.c_str(),
-		    max_iter, max_level, tolerence, intermediateResult, verbose, final_Q, all_Q); 
+		            max_iter, max_level, tolerence, 
+                    intermediateResult, verbose, final_Q, all_Q); 
     
     std::cout << "DEBUG: Returned from execute_louvain. Q=" << retVal << std::endl;
     return retVal;

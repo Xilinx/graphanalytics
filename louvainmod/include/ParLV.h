@@ -206,31 +206,31 @@ struct ToolOptions {
     
     double opts_C_thresh;   //; //Threshold with coloring on
     long opts_minGraphSize; //; //Min |V| to enable coloring
-    double opts_threshold;  //; //Value of threshold
+    double threshold;  //; //Value of threshold
     int opts_ftype;         //; //File type
     char opts_inFile[4096];  //;
     bool opts_coloring;     //
     bool opts_output;       //;
-    std::string opts_outputFile;
+    std::string outputFile;
     bool opts_VF; //;
-    std::string opts_xclbinPath;
+    std::string xclbinPath;
     int numThreads;
     int num_par;
     int gh_par;  // same as par_prune
     int flow_fast;
-    int devNeed;
+    int numDevices;
     int mode_zmq;
     char path_zmq[4096];
     bool useCmd;
     int mode_alveo;
-    char nameProj[4096];
-    std::string nameMetaFile;
+    char nameProj[4096];  // used for create partitions
+    std::string alveoProject; // used for load/compute TODO: consolidate with nameProj
     int numPureWorker;
     char *nameWorkers[128];
     int nodeID;
     int server_par;
-    int max_num_level;
-    int max_num_iter;
+    int max_level;
+    int max_iter;
     
     ToolOptions(int argc, char **argv);
 };
@@ -301,5 +301,12 @@ void sim_getServerPar(
 );
 
 int getNumPartitions(std::string alveoProjectFile);
+/*
+float loadAlveoAndComputeLouvain(    
+    char* xclbinPath, bool flow_fast, unsigned int numDevices,
+    char* alveoProject, unsigned mode_zmq, unsigned numPureWorker, 
+    char* nameWorkers[128], unsigned int nodeID,  char* opts_outputFile, 
+    unsigned int max_iter, unsigned int max_level, float tolerance, 
+    bool intermediateResult, bool verbose, bool final_Q, bool all_Q);*/
 
 #endif

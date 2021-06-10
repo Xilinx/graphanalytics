@@ -56,12 +56,10 @@ extern "C" {
 XILINX_LOUVAINMOD_IMPL_DECL
 int create_and_load_alveo_partitions(int argc, char *argv[]);
 
-
-
 XILINX_LOUVAINMOD_IMPL_DECL
-float loadAlveoProjectAndComputeLouvain(    
+float loadAlveoAndComputeLouvain(    
     char* xclbinPath, bool flow_fast, unsigned int numDevices,
-    std::string alveoProject, int mode_zmq, int numPureWorker, 
+    char* alveoProject, unsigned mode_zmq, unsigned numPureWorker, 
     char* nameWorkers[128], unsigned int nodeID,  char* opts_outputFile, 
     unsigned int max_iter, unsigned int max_level, float tolerance, 
     bool intermediateResult, bool verbose, bool final_Q, bool all_Q);
@@ -74,7 +72,7 @@ void xilinx_louvainmod_destroyImpl(xilinx_apps::louvainmod::LouvainModImpl *pImp
 
 }
 
-float loadAlveoProjectAndComputeLouvainWrapper(int argc, char *argv[]);
+float loadAlveoAndComputeLouvainWrapper(int argc, char *argv[]);
 float louvain_modularity_alveo(int argc, char *argv[]);
 int compute_modularity(char* inFile, char* clusterInfoFile, int offset);
 
@@ -179,8 +177,9 @@ struct Options {
     bool verbose = true;
     XString xclbinPath;
     XString nameProj;  // -name option: location of "partition project" created by partitioning, read by load/compute
+    XString alveoProject; // Alveo project file .par.proj TODO: to be combined with nameProj
     int flow_fast = 2;  // C
-    int devNeed_cmd = 1;  // C
+    int numDevices = 1;  // C
     XString hostName;  // optional host name of this server for debugging purposes
     XString clusterIpAddresses;  // space-separated list of server IP addresses in the cluster
     XString hostIpAddress;  // IP address of this server
@@ -214,7 +213,7 @@ public:
 
     
     struct ComputeOptions {
-        XString opts_outputFile;
+        XString outputFile;
         unsigned max_iter;
         unsigned max_level;
         float tolerance;
@@ -239,6 +238,7 @@ public:
     
     void loadAlveo();  // Loads .par files into CPU memory.  Can we load first .par per card into HBM here?
     void computeLouvain(const ComputeOptions &computeOpts);
+    float loadAlveoAndComputeLouvain(const ComputeOptions &computeOpts);
     
 private:
     LouvainModImpl *pImpl_ = nullptr;

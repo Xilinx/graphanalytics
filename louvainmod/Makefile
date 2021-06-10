@@ -267,18 +267,27 @@ $(CPP_BUILD_DIR)/apitest: $(CPP_BUILD_DIR)/apitest.o $(CPP_BUILD_DIR)/$(LIB_NAME
 #	$(LINK.cc) -o $@ $< -fPIC -w -L $(CPP_BUILD_DIR) -l$(LOADER_SHORT_NAME) -ldl $(LIB_DEPS)
 
 APITEST_OUT_DIR = $(CPP_BUILD_DIR)/apitest-out
-CMDLINE = ../plugin/tigergraph/comdetect/examples/comdetect/as-skitter/as-skitter-wt-e110k.mtx -fast -par_num 9 \
-    -create_alveo_partitions -name $(APITEST_OUT_DIR)/as-skitter-par9 -server_par 3
+CMDLINE_CREATE_PARTITIONS = ../plugin/tigergraph/comdetect/examples/comdetect/as-skitter/as-Skitter-wt-r100.mtx -fast -par_num 9 \
+    -create_alveo_partitions -name $(APITEST_OUT_DIR)/as-skitter-par9 -server_par 1
 
-run-apitest: cppTest
+WORKERS="tcp://192.168.1.21:5555 tcp://192.168.1.31:5555"
+CMDLINE_LOAD_COMPUTE = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
+                     -fast -dev 1 -num_level 100 -par_num 9 \
+                     -load_alveo_partitions $(APITEST_OUT_DIR)/as-skitter-par9.par.proj -setwkr 0 \
+				      $(WORKERS) -driverAlone
+
+run-apitest-create-partitions: cppTest
 	rm -rf $(APITEST_OUT_DIR)
 	mkdir -p $(APITEST_OUT_DIR)
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE)
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_CREATE_PARTITIONS)
+
+run-apitest-load-compute: cppTest
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE)
 
 debug-apitest: cppTest
 	rm -rf $(APITEST_OUT_DIR)
 	mkdir -p $(APITEST_OUT_DIR)
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); totalview $(CPP_BUILD_DIR)/apitest -a $(CMDLINE)
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); totalview $(CPP_BUILD_DIR)/apitest -a $(CMDLINE_CREATE_PARTITIONS)
 
 
 #LDFLAGS_fakeudf = -fPIC -w -L /scratch/tigergraph/tigergraph/app/3.1.0/dev/gdk/gsql/src/QueryUdf -lgraphL3wrapper -ldl
@@ -490,4 +499,6 @@ help:
 	@echo "Valid make targets:"
 	@echo "dist     : Generate product installation package (RPM or DEB) for the current OS and architecture"
 	@echo "doxy-cpp : Generate CPP documentation using doxygen. The default html output directory is ./build/cppdocs"
+	@echo "run-apitest-create-partitions : Run API test of create partitions"
+	@echo "run-apitest-load-compute : Run API test of load and compute"
 	

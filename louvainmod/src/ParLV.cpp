@@ -1227,10 +1227,10 @@ int host_ParserParameters(int argc,
 ToolOptions::ToolOptions(int argcIn, char** argvIn) {
     argc = argcIn;
     argv = argvIn;
-    host_ParserParameters(argc, argv, opts_C_thresh, opts_minGraphSize, opts_threshold, opts_ftype, opts_inFile,
-        opts_coloring, opts_output, opts_outputFile, opts_VF, opts_xclbinPath, numThreads, num_par,
-        gh_par, flow_fast, devNeed, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
-        nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par, max_num_level, max_num_iter);
+    host_ParserParameters(argc, argv, opts_C_thresh, opts_minGraphSize, threshold, opts_ftype, opts_inFile,
+        opts_coloring, opts_output, outputFile, opts_VF, xclbinPath, numThreads, num_par,
+        gh_par, flow_fast, numDevices, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
+        alveoProject, numPureWorker, nameWorkers, nodeID, server_par, max_level, max_iter);
 }
 
 void PrintTimeRpt(GLV* glv, int num_dev, bool isHead) {
@@ -4076,10 +4076,10 @@ extern "C" float compute_louvain_alveo_seperated_compute(
     return 0;
 }
 
-extern "C" float loadAlveoProjectAndComputeLouvain (
+extern "C" float loadAlveoAndComputeLouvain (
     char* xclbinPath, bool flow_fast, unsigned int numDevices,
-    std::string alveoProject,
-    int mode_zmq, int numPureWorker, char* nameWorkers[128], unsigned int nodeID,
+    char* alveoProject,
+    unsigned mode_zmq, unsigned numPureWorker, char* nameWorkers[128], unsigned int nodeID,
     char* opts_outputFile, unsigned int max_iter, unsigned int max_level, 
     float tolerance, bool intermediateResult, bool verbose, bool final_Q, bool all_Q) {
 
@@ -4101,7 +4101,7 @@ extern "C" float loadAlveoProjectAndComputeLouvain (
     
     compute_louvain_alveo_seperated_load(
         xclbinPath, flow_fast, numDevices,
-        numPartitions, (char *)alveoProject.c_str(),
+        numPartitions, alveoProject,
         mode_zmq, numPureWorker, nameWorkers, nodeID,
         tolerance, 
         verbose, &handle0, &parlv_drv, &parlv_wkr);
@@ -4220,7 +4220,7 @@ int getNumPartitions(std::string alveoProjectFile)
 
 }
 
-float loadAlveoProjectAndComputeLouvainWrapper(int argc, char* argv[]) {
+float loadAlveoAndComputeLouvainWrapper(int argc, char* argv[]) {
 #ifndef NDEBUG
     std::cout << "DEBUG: " << __FUNCTION__ << std::endl;
 #endif
@@ -4235,16 +4235,13 @@ float loadAlveoProjectAndComputeLouvainWrapper(int argc, char* argv[]) {
     int numDevices = 1;
     float retVal = 0;
 
-    if (toolOptions.devNeed > 0)
-        numDevices = toolOptions.devNeed;
-
-    retVal = loadAlveoProjectAndComputeLouvain (
-        (char *)toolOptions.opts_xclbinPath.c_str(), toolOptions.flow_fast, 
-        numDevices, toolOptions.nameMetaFile,
+    retVal = loadAlveoAndComputeLouvain (
+        (char *)toolOptions.xclbinPath.c_str(), toolOptions.flow_fast, 
+        toolOptions.numDevices, (char*)toolOptions.alveoProject.c_str(),
         toolOptions.mode_zmq, toolOptions.numPureWorker, toolOptions.nameWorkers, 
-        toolOptions.nodeID, (char *)toolOptions.opts_outputFile.c_str(), 
-        toolOptions.max_num_iter, toolOptions.max_num_level, 
-        toolOptions.opts_threshold, false, false, true, false);
+        toolOptions.nodeID, (char *)toolOptions.outputFile.c_str(), 
+        toolOptions.max_iter, toolOptions.max_level, 
+        toolOptions.threshold, false, false, true, false);
 
     return retVal;
 }

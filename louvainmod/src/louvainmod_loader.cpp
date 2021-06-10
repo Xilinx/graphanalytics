@@ -118,23 +118,24 @@ int create_and_load_alveo_partitions(int argc, char *argv[]) {
 }
 
 XILINX_LOUVAINMOD_IMPL_DEF
-float compute_louvain_alveo(    
+float loadAlveoProjectAndComputeLouvain(    
     char* xclbinPath, bool flowFast, unsigned numDevices, 
-    unsigned num_par, char* alveoProject, 
+    char* alveoProject, 
     unsigned mode_zmq, unsigned numPureWorker, char* nameWorkers[128], unsigned nodeID,
-    char* opts_outputFile, int64_t max_iter, int64_t max_level, float tolerence, bool intermediateResult,
-    bool verbose, bool final_Q, bool all_Q) 
+    char* opts_outputFile, unsigned max_iter, unsigned max_level, float tolerence, 
+    bool intermediateResult, bool verbose, bool final_Q, bool all_Q) 
 {
     typedef float (*LoadPartitionsFunc)(char*, bool, unsigned, 
-                                        unsigned, char*, 
+                                        char*, 
                                         unsigned, unsigned, char* [], unsigned,
-                                        char*, unsigned, unsigned, float, bool, bool, bool, bool);
-    LoadPartitionsFunc pLoadFunc = (LoadPartitionsFunc) getDynamicFunction("compute_louvain_alveo");
+                                        char*, unsigned, unsigned, float, 
+                                        bool, bool, bool, bool);
+    LoadPartitionsFunc pLoadFunc = (LoadPartitionsFunc) getDynamicFunction("loadAlveoProjectAndComputeLouvain");
     return pLoadFunc(xclbinPath, flowFast, numDevices, 
-                     num_par, alveoProject, 
+                     alveoProject, 
                      mode_zmq, numPureWorker, nameWorkers, nodeID,
-                     opts_outputFile, max_iter, max_level, tolerence, intermediateResult,
-		     verbose, final_Q, all_Q);
+                     opts_outputFile, max_iter, max_level, tolerence, 
+                     intermediateResult, verbose, final_Q, all_Q);
 }
 
 }  // extern "C"
