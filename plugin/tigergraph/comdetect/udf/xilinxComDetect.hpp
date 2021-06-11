@@ -87,9 +87,11 @@ inline void udf_set_louvain_edge_list(uint64_t primaryIdSource, uint64_t primary
     pContext->dgrListMap[louvainIdTarget]=outDgr;
 }
 
-inline void udf_start_partition(){
+inline void udf_start_partition(string alveo_project){
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+    std::string alveo_parj_path = "/home2/tigergraph/" + alveo_project;
+    pContext->setAlveoProject(alveo_parj_path);
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
     xilinx_apps::louvainmod::LouvainMod::PartitionOptions options; //use default value
     pLouvainMod->startPartitioning(options);
@@ -99,7 +101,7 @@ inline void udf_start_partition(){
 
 //Data has been populated and send to FPGA
 
-inline void udf_save_alveo_partition() {
+inline void udf_save_alveo_partition(std::string alveo_project) {
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     //build offsets_tg
@@ -113,8 +115,8 @@ inline void udf_save_alveo_partition() {
     //build dgr list and edgelist
     //traverse the partition size for each louvainId, populate edgelist from edgeListMap
     pContext->start_vertex = pContext->louvain_offset;
-    pContext->end_vertex = pContext->louvain_offset + pContext->nextId_ ;
-    for(int i= pContext->start_vertex;i < pContext->end_vertex ; i++) {
+    pContext->end_vertex = pContext->louvain_offset + pContext->nextId_ -1 ; // the end vertex on local partition
+    for(int i= pContext->start_vertex;i <= pContext->end_vertex ; i++) {
         pContext->edgeListVec.insert(pContext->edgeListVec.end(),pContext->edgeListMap[i].begin(),pContext->edgeListMap[i].end());
         for(auto& it:pContext->edgeListMap[i]) {
             pContext->dgrListVec.push_back(pContext->dgrListMap[it.tail]);
@@ -136,6 +138,8 @@ inline void udf_save_alveo_partition() {
     std::cout << "start_vertex: " << pContext->start_vertex<<std::endl;
     std::cout << "end_vertex: " << pContext->end_vertex <<std::endl;
     
+    std::string alveo_parj_path = "/home2/tigergraph/" + alveo_project;
+    pContext->setAlveoProject(alveo_parj_path);
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
     xilinx_apps::louvainmod::LouvainMod::PartitionData partitionData;//write into partionData = {pContext->offsets_tg, pContext->edgelist_tg, pContext->drglist_tg, pContext->start_vertex,pContext->end_vertex, 0};
     partitionData.offsets_tg = pContext->offsets_tg;

@@ -64,18 +64,7 @@ public:
         CalledExecuteLouvainState,  // after execute called
         NumStates
     };
-    
-    struct GraphEdge/* the edge data structure */
-    {
-        long head;
-        long tail;
-        double weight;
-        GraphEdge(long head_, long tail_, double weight_) {
-            head = head_ ;
-            tail = tail_;
-            weight = weight_;
-        }
-    };
+
 
 private:
     std::string alveoProject_;
@@ -162,7 +151,7 @@ public:
             }
             config_json.close();
 
-            //options.xclbinPath = PLUGIN_XCLBIN_PATH;
+            options.xclbinPath = PLUGIN_XCLBIN_PATH;
             options.nameProj = alveoProject_;
             options.devNeed_cmd = numNodes_;
             options.nodeId = nodeId_;
@@ -170,16 +159,15 @@ public:
             options.clusterIpAddresses = node_ips;
             options.hostIpAddress = cur_node_ip;
 
-#if 0 // ifdef XILINX_COM_DETECT_DEBUG_ON
-            std::cout << "DEBUG: louvainmod options: vecLength=" << options.vecLength
-                    << ", numDevices=" << options.numDevices
-                    << ", xclbinPath=" << options.xclbinPath << std::endl;
+#if 1
+            std::cout << "DEBUG: louvainmod options: = xclbinPath" << options.xclbinPath
+                    << ", nameProj=" << options.nameProj
+                    << ", devNeed_cmd=" << options.devNeed_cmd << std::endl;
 #endif
             pLouvainMod_= new xilinx_apps::louvainmod::LouvainMod(options);
-#if 0 // ifdef XILINX_COM_DETECT_DEBUG_ON
-            std::cout << "DEBUG: Created cosinesim object " << pCosineSim_
-                    << " with vecLength=" << options.vecLength
-                    << ", numDevices=" << options.numDevices << std::endl;
+#if 1
+            std::cout << "DEBUG: Created cosinesim object " << pLouvainMod_
+                    << " with options :  nameProj=" << options.nameProj << std::endl;
 #endif
         }
         

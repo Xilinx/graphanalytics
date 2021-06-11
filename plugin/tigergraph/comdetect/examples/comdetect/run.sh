@@ -129,9 +129,9 @@ if [ "$run_mode" -eq 1 ] || [ "$run_mode" -eq 2 ]; then
     START=$(date +%s%3N)
     echo "Running tg_partition_phase_3"
     echo gsql -u $username -p $password -g $xgraph \'run query tg_partition_phase_3\([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\"\)\'
-    time gsql -u $username -p $password -g $xgraph "run query tg_partition_phase_3([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\")"
-    TOTAL_TIME=$(($(date +%s%3N) - START))
-    echo "tg_partition_phase_3 " $TOTAL_TIME
+    #time gsql -u $username -p $password -g $xgraph "run query tg_partition_phase_3([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\")"
+    #TOTAL_TIME=$(($(date +%s%3N) - START))
+    #echo "tg_partition_phase_3 " $TOTAL_TIME
     
     #START=$(date +%s%3N)
     #echo "Running louvain_alveo"
