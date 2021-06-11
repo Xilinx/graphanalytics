@@ -175,14 +175,14 @@ struct Edge {
 
 struct Options {
     bool verbose = true;
-    XString xclbinPath =  "";
-    XString nameProj = "";  // -name option: location of "partition project" created by partitioning, read by load/compute
-    XString alveoProject = ""; // Alveo project file .par.proj TODO: to be combined with nameProj
+    XString xclbinPath;
+    XString nameProj;  // -name option: location of "partition project" created by partitioning, read by load/compute
+    XString alveoProject; // Alveo project file .par.proj TODO: to be combined with nameProj
     int flow_fast = 2;  // C
     int numDevices = 1;  // C
-    XString hostName = "";  // optional host name of this server for debugging purposes
-    XString clusterIpAddresses  = "";  // space-separated list of server IP addresses in the cluster
-    XString hostIpAddress =  "";  // IP address of this server
+    XString hostName;  // optional host name of this server for debugging purposes
+    XString clusterIpAddresses;  // space-separated list of server IP addresses in the cluster
+    XString hostIpAddress;  // IP address of this server
 };
 
 

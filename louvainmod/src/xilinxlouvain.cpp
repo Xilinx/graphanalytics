@@ -413,8 +413,11 @@ float LouvainMod::loadAlveoAndComputeLouvain(const ComputeOptions &computeOpts)
                 computeOpts.max_iter, computeOpts.max_level, 
                 computeOpts.tolerance, computeOpts.intermediateResult, 
                 pImpl_->options_.verbose, computeOpts.final_Q, computeOpts.all_Q); 
-    
+
+#ifndef NDEBUG  
     std::cout << "DEBUG: " << __FUNCTION__ << " finalQ=" << finalQ << std::endl;
+#endif    
+    return finalQ;
     
 }
 

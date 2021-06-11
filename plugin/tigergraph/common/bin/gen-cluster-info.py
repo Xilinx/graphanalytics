@@ -26,6 +26,7 @@ import socket
 from pathlib import Path
 
 pluginConfigFile = Path(sys.argv[1])
+tgDataRoot = sys.argv[2]
 
 # get IP addresses from TG configuration
 command = 'gadmin config dump'
@@ -64,7 +65,8 @@ print('nodeIps', nodeIps)
 
 pluginConfigDict = {'curNodeHostname': curNodeHostname,
                     'curNodeIp': curNodeIp,
-                    'nodeIps': ' '.join(nodeIps)}
+                    'nodeIps': ' '.join(nodeIps),
+                    'xGraphStore': tgDataRoot + '/xgstore'}
 
 with pluginConfigFile.open(mode='w') as fh:
     json.dump(pluginConfigDict, fh, indent=4)
