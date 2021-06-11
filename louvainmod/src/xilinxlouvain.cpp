@@ -62,7 +62,6 @@ public:
     ParLV parlv_;
     std::string projName_;
     std::string projPath_;
-    int i_svr_ = 0;  // current server number
     std::vector<int> parInServer_;  // number of partitions for each server
     std::string inputFileName_;  // file name for the source file for the graph, or empty if no file
 
@@ -119,7 +118,7 @@ public:
         // Determine the prefix string for each partition (.par) file
         //For compatibility, when num_server is 1, no 'srv<n>' surfix used
         char pathName_proj_svr[1024];
-        int serverNum = (partitionData.nodeId >= 0) ? partitionData.nodeId : i_svr_++;
+        int serverNum = (partitionData.nodeId >= 0) ? partitionData.nodeId : globalOpts_.nodeId;
         if (settings_.numServers > 1)
             std::sprintf(pathName_proj_svr, "%s_svr%d", globalOpts_.nameProj.c_str(), serverNum);//louvain_partitions_svr0_000.par
         else
@@ -178,7 +177,6 @@ public:
             throw Exception(oss.str());
         }
         parInServer_.push_back(numPartitionsCreated);
-        ++i_svr_;
         return numPartitionsCreated;
     }
 
