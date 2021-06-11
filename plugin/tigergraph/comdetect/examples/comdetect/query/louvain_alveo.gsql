@@ -114,7 +114,7 @@ CREATE DISTRIBUTED QUERY tg_partition_phase_3(
  
     
     nodeList = SELECT n FROM nodes:n 
-        ACCUM udf_start_partition(gName);
+        ACCUM udf_start_partition(gName, Start.size());
         
     // 2) add_partiton inside udf_save_alveo_partition, save path  = /home2/tigergraph/_xilinx_graph_name_prefix(input file name)    
     

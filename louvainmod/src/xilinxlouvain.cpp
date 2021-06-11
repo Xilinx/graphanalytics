@@ -242,9 +242,9 @@ public:
         // CleanTmpGlv appears not to be necessary, as partitioning doesn't set any of the fields cleaned by this function,
         // and those fields are never uninitialized, leaving them filled with garbage.
     //    parlv_.CleanTmpGlv();
-
+/*TODO: commented out for now to avoid segment fault
         if (isVerbose_)
-            parlv_.plv_src->printSimple();
+            parlv_.plv_src->printSimple(); */
     }
 };
 
