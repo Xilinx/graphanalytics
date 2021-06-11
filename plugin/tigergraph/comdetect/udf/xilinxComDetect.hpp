@@ -33,26 +33,24 @@ inline void udf_reset_nextId() {
 
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     std::cout << "nextId_ = " << pContext->nextId_ <<std::endl;
-    pContext->nextId_ = 0 ;
-    pContext->degree_list.clear();
-    pContext->edgeListMap.clear();
-    pContext->dgrListMap.clear();
-    pContext->edgeListVec.clear();
-    pContext->dgrListVec.clear();
+    pContext->clearPartitionData();
 }
-inline uint64_t udf_get_nextId(uint64_t primary_id, uint64_t out_degree){
+inline uint64_t udf_get_nextId(uint64_t out_degree){
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
-    pContext->degree_list.push_back((long)out_degree);
-    std::cout << "primary_id = " << primary_id << " louvainId = " << pContext->nextId_ <<" out_degree = " << out_degree <<std::endl;
+    pContext->addDegreeList((long)out_degree);
+#ifdef XILINX_COM_DETECT_DEBUG_ON
+    std::cout << " louvainId = " << pContext->nextId_ <<" out_degree = " << out_degree <<std::endl;
+#endif
     return pContext->nextId_++;
-
 }
 
 inline uint64_t udf_get_partition_size(){
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
      xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+#ifdef XILINX_COM_DETECT_DEBUG_ON
      std::cout << "Partition Size = " << pContext->nextId_ <<std::endl;
+#endif
      return pContext->nextId_;
 }
 inline int udf_xilinx_comdetect_set_node_id(uint nodeId)
@@ -74,14 +72,18 @@ inline uint64_t udf_get_global_louvain_id(uint64_t louvain_id){
 inline void udf_set_louvain_offset(uint64_t louvain_offset){
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+#ifdef XILINX_COM_DETECT_DEBUG_ON
     std::cout << "Louvain Offsets = " << louvain_offset <<std::endl;
+#endif
     pContext->louvain_offset = louvain_offset;
 }
 
 
-inline void udf_set_louvain_edge_list(uint64_t primaryIdSource, uint64_t primaryIdTarget, uint64_t louvainIdSource, uint64_t louvainIdTarget, float wtAttr, uint64_t outDgr) {
+inline void udf_set_louvain_edge_list(uint64_t louvainIdSource, uint64_t louvainIdTarget, float wtAttr, uint64_t outDgr) {
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
-    std::cout <<"primaryIdSource = "<<primaryIdSource<< " primaryIdTarget = "<<primaryIdTarget <<" louvainIdSource: " << louvainIdSource << ";louvainIdTarget: " << louvainIdTarget << "; weight: " << wtAttr << "; outDgr: " << outDgr << std::endl;
+#ifdef XILINX_COM_DETECT_DEBUG_ON
+    std::cout <<" louvainIdSource: " << louvainIdSource << ";louvainIdTarget: " << louvainIdTarget << "; weight: " << wtAttr << "; outDgr: " << outDgr << std::endl;
+#endif
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     pContext->edgeListMap[louvainIdSource].push_back(xilinx_apps::louvainmod::Edge((long)louvainIdSource,(long)louvainIdTarget, (double)wtAttr));
     pContext->dgrListMap[louvainIdTarget]=outDgr;
@@ -95,7 +97,9 @@ inline void udf_start_partition(string alveo_project, int numVertices){
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
     xilinx_apps::louvainmod::LouvainMod::PartitionOptions options; //use default value
     options.totalNumVertices = numVertices;
+#ifdef XILINX_COM_DETECT_DEBUG_ON
     std::cout << "DEBUG: totalNumVertices: " << numVertices << std::endl;
+#endif
     pLouvainMod->startPartitioning(options);
 }
 
@@ -107,13 +111,14 @@ inline void udf_save_alveo_partition() {
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     //build offsets_tg
-    int offsets_tg_size = (pContext->degree_list).size();
-    pContext->offsets_tg = &pContext->degree_list[0];
+    int offsets_tg_size = pContext->getDegreeListSize();
+    pContext->offsets_tg = pContext->getDegreeList();
     for(int i = 1;i < offsets_tg_size;i++){
         pContext->offsets_tg[i] += pContext->offsets_tg[i-1];
     }
+#ifdef XILINX_COM_DETECT_DEBUG_ON
     std::cout<<"Last offsets_tg "<<pContext->offsets_tg[offsets_tg_size-1]<<std::endl;
-
+#endif
     //build dgr list and edgelist
     //traverse the partition size for each louvainId, populate edgelist from edgeListMap
     pContext->start_vertex = pContext->louvain_offset;
@@ -127,20 +132,18 @@ inline void udf_save_alveo_partition() {
     pContext->drglist_tg = pContext->dgrListVec.data();
     pContext->edgelist_tg = pContext->edgeListVec.data();
 
+#ifdef XILINX_COM_DETECT_DEBUG_ON
     std::cout << "edgelist size:" << pContext->edgeListVec.size() << std::endl;
     std::cout << "dgrlist size:" << pContext->dgrListVec.size() << std::endl;
     for(int i=0; i < 10; i++) {
-
         std::cout << i << " head from edgelist  " << pContext->edgelist_tg[i].head <<"; ";
         std::cout << " tail from edgelist: " << pContext->edgelist_tg[i].tail <<"; ";
         std::cout << " outDgr from dgrlist: " << pContext->drglist_tg[i] << std::endl;
     }
-
-
     std::cout << "start_vertex: " << pContext->start_vertex<<std::endl;
     std::cout << "end_vertex: " << pContext->end_vertex <<std::endl;
+#endif
     
-
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
     xilinx_apps::louvainmod::LouvainMod::PartitionData partitionData;
     partitionData.offsets_tg = pContext->offsets_tg;

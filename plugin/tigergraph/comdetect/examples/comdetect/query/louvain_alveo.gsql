@@ -52,7 +52,7 @@ CREATE DISTRIBUTED QUERY tg_partition_phase_1(
     A1 = SELECT n FROM Start:n
         // Local to each server, louvainid is local increasing id
         ACCUM @@total_out_degree+=n.outdegree()
-        POST-ACCUM n.setAttr(louvainId_attr, udf_get_nextId(n.num, n.outdegree()))
+        POST-ACCUM n.setAttr(louvainId_attr, udf_get_nextId(n.outdegree()))
         ORDER BY n.louvainId;
             
     PRINT @@total_out_degree;
@@ -109,21 +109,16 @@ CREATE DISTRIBUTED QUERY tg_partition_phase_3(
     Start = {v_types};
     nodes = {dummy_nodes.*};
     vertexList = SELECT s FROM Start:s-(e_types:e)->:t
-        ACCUM udf_set_louvain_edge_list(s.num,t.num, s.louvainId,t.louvainId,e.getAttr(weight_attr,"FLOAT"),t.outdegree());
-        
- 
-    
+        ACCUM udf_set_louvain_edge_list(s.louvainId, t.louvainId, e.getAttr(weight_attr,"FLOAT"), t.outdegree());
+
     nodeList = SELECT n FROM nodes:n 
         ACCUM udf_start_partition(gName, Start.size());
-        
-    // 2) add_partiton inside udf_save_alveo_partition, save path  = /home2/tigergraph/_xilinx_graph_name_prefix(input file name)    
-    
+            
     parList = SELECT n FROM nodes:n
         ACCUM udf_save_alveo_partition();
-       
-    
+
     nodeList = SELECT n FROM nodes:n
-        ACCUM   udf_finish_partition();
+        ACCUM udf_finish_partition();
   
 }
 

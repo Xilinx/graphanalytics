@@ -76,6 +76,8 @@ private:
     unsigned numNodes_ = 1;
     State state_ = UninitializedState;
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod_ = nullptr;
+    std::vector<long> degree_list;//long* offsets_tg; //travel and add i-1 to i to build the offset_tg
+
 
 public:
     uint64_t nextId_ = 0 ;
@@ -86,9 +88,9 @@ public:
     long* drglist_tg;
     long  start_vertex;     // If a vertex is smaller than star_vertex, it is a ghost
     long  end_vertex;
-
+    
     // use the below to store the information and build final partition data
-    std::vector<uint64_t> degree_list;//long* offsets_tg; //travel and add i-1 to i to build the offset_tg
+    
     
     // this map is used to build GraphEdge* edgelistTG and drglistTG
     //key-> value : louvainId->graphedge
@@ -159,16 +161,17 @@ public:
             options.clusterIpAddresses = node_ips;
             options.hostIpAddress = cur_node_ip;
 
-#if 1
+#ifdef XILINX_COM_DETECT_DEBUG_ON
             std::cout << "DEBUG: louvainmod options: = xclbinPath" << options.xclbinPath
                     << ", nameProj=" << options.nameProj
-                    << ", devNeed_cmd=" << options.devNeed_cmd << std::endl;
+                    << ", devNeed_cmd=" << options.devNeed_cmd
+                    << ", nodeId=" <<options.nodeId
+                    << ", hostName=" << options.hostName
+                    << ", clusterIpAddresses=" << options.clusterIpAddresses
+                    << ", hostIpAddress=" << options.hostIpAddress <<std::endl;
 #endif
             pLouvainMod_= new xilinx_apps::louvainmod::LouvainMod(options);
-#if 1
-            std::cout << "DEBUG: Created cosinesim object " << pLouvainMod_
-                    << " with options :  nameProj=" << options.nameProj << std::endl;
-#endif
+            
         }
         
         return pLouvainMod_;
@@ -222,6 +225,27 @@ public:
     
     State getState() const { return state_; }
     void setState(State state) { state_ = state; }
+    
+    void addDegreeList(long p_degree){
+        degree_list.push_back(p_degree); 
+    }
+    
+    int getDegreeListSize(){
+        return degree_list.size(); 
+    }
+    
+    long* getDegreeList(){
+        return degree_list.data(); 
+    }
+    
+    void clearPartitionData(){
+        nextId_ = 0 ;
+        degree_list.clear();
+        edgeListMap.clear();
+        dgrListMap.clear();
+        edgeListVec.clear();
+        dgrListVec.clear();  
+    }
     
     void clear() {
         state_ = UninitializedState;
