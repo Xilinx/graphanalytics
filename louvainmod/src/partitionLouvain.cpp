@@ -63,7 +63,7 @@ void printG(graphNew* G, long* C, long* M, long star, long end){
 	for(long v=star; v< end; v++){
 		long adj1    = vtxPtr[v];
 		long adj2    = vtxPtr[v+1];
-		int degree = adj2-adj1;
+		long degree = adj2 - adj1;
 		//printf("c=%4ld : v=%4ld\t adj1=%4ld, adj2=%4ld, degree=%4ld\t",C[v], v, adj1, adj2, degree);
 		//printf("c=%4ld : v=%4ld\t adj1=%4ld, adj2=%4ld, degree=%4ld\t",C[v], v, adj1, adj2, degree);
 		//printf("c=%-4d : v=%-4d m=%-4d off=%4d, dgr=%-3d\t",C[v], v, M[v], adj1, degree);
@@ -74,15 +74,15 @@ void printG(graphNew* G, long* C, long* M, long star, long end){
 			printf(" \033[1;31;40mc=%-5ld v=%-5ld m=%-5ld\033[0m", c, v, m);
 		else
 			printf(" c=%-5ld v=%-5ld m=%-5ld", c, v, m);
-		printf(" o=%-5d d=%-4d |", adj1, degree);
-		for(int d=0; d<degree; d++){
+		printf(" o=%-5ld d=%-4ld |", adj1, degree);
+		for(long d=0; d<degree; d++){
 			//\033[1;31;40mERROR\033[0m
 			long t = vtxInd[adj1+d].tail;
 			double w =  vtxInd[adj1+d].weight;
 			if(M!=NULL&&M[t]<0)
-				printf("\033[1;31;40m%5ld\033[0m\/%1.0f ", t, w);
+				printf("\033[1;31;40m%5ld\033[0m/%1.0f ", t, w);
 			else
-				printf("%5ld\/%1.0f ", t, w);
+				printf("%5ld/%1.0f ", t, w);
 		}
 		printf("\n");
 	}
@@ -96,40 +96,39 @@ void printG(graphNew* G, long* C, long* M, long star, long end, bool isCid, bool
 	if(star<0) star=0;
 	if(end >NV) end=NV;
 	//printf("|==C==|==V==|==M==|=OFF=|=Dgr=|\n");
-	for(int v=star; v< end; v++){
+	for(long v=star; v< end; v++){
 		long adj1    = vtxPtr[v];
 		long adj2    = vtxPtr[v+1];
-		int degree = adj2-adj1;
+		long degree = adj2-adj1;
 		long m = M==NULL?v:M[v];
 		long c = C==NULL?v:C[v];
 		long c_final = c+p_par->off_lved[idx];
 		//printf(" c=%-4d, v=%-4d,", c, v, m, adj1, degree);
-		if(m<0 ){
+		if (m<0){
 			if(p_par->st_PreMerged==true)
 				c_final = p_par->p_v_new[idx][v];
-			printf(" \033[1;31;40mc=%-5d (%-5d)   v=%-5d m=%-5d c(m)=%-5d\033[0m", c, c_final, v, m, p_par->FindC_nhop(m));
+			printf(" \033[1;31;40mc=%-5ld (%-5ld)   v=%-5ld m=%-5ld c(m)=%-5ld\033[0m", c, c_final, v, m, p_par->FindC_nhop(m));
 		}
 		else
-			printf(" c=%-5d (%-5d)   v=%-5d m=%-5d c(m)=%-5d", c, c_final, v, m, c);
-		printf(" o=%-5d d=%-4d |", adj1, degree);
-		for(int d=0; d<degree; d++){
+			printf(" c=%-5ld (%-5ld)   v=%-5ld m=%-5ld c(m)=%-5ld", c, c_final, v, m, c);
+		printf(" o=%-5ld d=%-4ld |", adj1, degree);
+		for(long d=0; d<degree; d++){
 
 			long t = vtxInd[adj1+d].tail;
-			if(isDir){
-				if(isCid){
+			if (isDir){
+				if (isCid){
 					if(C[v] < C[t])
 						continue;
-				}
-				else{
+				} else{
 					if(v < t)
 						continue;
 				}
 			}
-			double w =  vtxInd[adj1+d].weight;
-			if(M!=NULL&&M[t]<0)
-				printf("\033[1;31;40m%5d\033[0m\/%1.0f ", isCid?C[t]:t, w);
+			double w = vtxInd[adj1+d].weight;
+			if ( M != NULL && M[t]<0)
+				printf("\033[1;31;40m%5ld\033[0m/%1.0f ", (isCid ? C[t] : t), w);
 			else
-				printf("%5d\/%1.0f ", isCid?C[t]:t, w);
+				printf("%5ld/%1.0f ", (isCid ? C[t] : t), w);
 		}
 		printf("\n");
 	}
@@ -143,19 +142,19 @@ void printG(graphNew* G, long* C, long* M, long star, long end, bool isCid, bool
 	if(star<0) star=0;
 	if(end >NV) end=NV;
 	//printf("|==C==|==V==|==M==|=OFF=|=Dgr=|\n");
-	for(int v=star; v< end; v++){
+	for(long v=star; v< end; v++){
 		long adj1    = vtxPtr[v];
 		long adj2    = vtxPtr[v+1];
-		int degree = adj2-adj1;
+		long degree = adj2-adj1;
 		long m = M==NULL?v:M[v];
 		long c = C==NULL?v:C[v];
 
 		if (m < 0)
-			printf(" \033[1;31;40mc=%-5d v=%-5d m=%-5d\033[0m", c, v, m);
+			printf(" \033[1;31;40mc=%-5ld v=%-5ld m=%-5ld\033[0m", c, v, m);
 		else
-			printf(" c=%-5ld v=%-5d m=%-5ld", c, v, m);
+			printf(" c=%-5ld v=%-5ld m=%-5ld", c, v, m);
 		
-        printf(" o=%-5ld d=%-4d |", adj1, degree);
+        printf(" o=%-5ld d=%-4ld |", adj1, degree);
 		for(int d=0; d<degree; d++){
 
 			long t = vtxInd[adj1+d].tail;
@@ -171,9 +170,9 @@ void printG(graphNew* G, long* C, long* M, long star, long end, bool isCid, bool
 			}
 			double w =  vtxInd[adj1+d].weight;
 			if(M!=NULL&&M[t]<0)
-				printf("\033[1;31;40m%5d\033[0m/%1.0f ", isCid?C[t]:t, w);
+				printf("\033[1;31;40m%5ld\033[0m/%1.0f ", isCid?C[t]:t, w);
 			else
-				printf("%5d/%1.0f ", isCid?C[t]:t, w);
+				printf("%5ld/%1.0f ", isCid?C[t]:t, w);
 		}
 		printf("\n");
 	}
@@ -197,10 +196,10 @@ void printG(
 	if(star<0) star=0;
 	if(end >NV) end=NV;
 	//printf("|==C==|==V==|==M==|=OFF=|=Dgr=|\n");
-	for(int v=star; v< end; v++){
+	for(long v=star; v< end; v++){
 		long adj1    = vtxPtr[v];
 		long adj2    = vtxPtr[v+1];
-		int degree = adj2-adj1;
+		long degree = adj2-adj1;
 		//printf("c=%4ld : v=%4ld\t adj1=%4ld, adj2=%4ld, degree=%4ld\t",C[v], v, adj1, adj2, degree);
 		//printf("c=%4ld : v=%4ld\t adj1=%4ld, adj2=%4ld, degree=%4ld\t",C[v], v, adj1, adj2, degree);
 		//printf("c=%-4d : v=%-4d m=%-4d off=%4d, dgr=%-3d\t",C[v], v, M[v], adj1, degree);
@@ -208,26 +207,26 @@ void printG(
 		long c = C==NULL?v:C[v];
 		//printf(" c=%-4d, v=%-4d,", c, v, m, adj1, degree);
 		if(m<0)
-			printf(" \033[1;31;40mc=%-5d v=%-5d m=%-5d\033[0m", c, v, m);
+			printf(" \033[1;31;40mc=%-5ld v=%-5ld m=%-5ld\033[0m", c, v, m);
 		else
-			printf(" c=%-5d v=%-5d m=%-5d", c, v, m);
+			printf(" c=%-5ld v=%-5ld m=%-5ld", c, v, m);
 		if(m<0)
-			fprintf(fp,"[c=%-5d v=%-5d m=%-5d]", c, v, m);
+			fprintf(fp,"[c=%-5ld v=%-5ld m=%-5ld]", c, v, m);
 		else
-			fprintf(fp," c=%-5d v=%-5d m=%-5d", c, v, m);
-		fprintf(fp," o=%-5d d=%-4d |", adj1, degree);
-		for(int d=0; d<degree; d++){
+			fprintf(fp," c=%-5ld v=%-5ld m=%-5ld", c, v, m);
+		fprintf(fp," o=%-5ld d=%-4ld |", adj1, degree);
+		for (long d=0; d<degree; d++){
 			//\033[1;31;40mERROR\033[0m
 			long t = vtxInd[adj1+d].tail;
 			double w =  vtxInd[adj1+d].weight;
 			if(M!=NULL&&M[t]<0)
-				fprintf(fp,"[%5d]%1.0f ", t, w);
+				fprintf(fp,"[%5ld]%1.0f ", t, w);
 			else
-				fprintf(fp,"%5d\/%1.0f ", t, w);
+				fprintf(fp,"%5ld/%1.0f ", t, w);
 			if(M!=NULL&&M[t]<0)
-				printf("\033[1;31;40m%5d\033[0m\/%1.0f ", t, w);
+				printf("\033[1;31;40m%5ld\033[0m/%1.0f ", t, w);
 			else
-				printf("%5d\/%1.0f ", t, w);
+				printf("%5ld/%1.0f ", t, w);
 		}
 		fprintf(fp,"\n");
 	}
@@ -249,10 +248,10 @@ void printG_NOWeight(
 	if(star<0) star=0;
 	if(end >NV) end=NV;
 	//printf("|==C==|==V==|==M==|=OFF=|=Dgr=|\n");
-	for(int v=star; v< end; v++){
+	for(long v=star; v< end; v++){
 		long adj1    = vtxPtr[v];
 		long adj2    = vtxPtr[v+1];
-		int degree = adj2-adj1;
+		long degree = adj2-adj1;
 		//printf("c=%4ld : v=%4ld\t adj1=%4ld, adj2=%4ld, degree=%4ld\t",C[v], v, adj1, adj2, degree);
 		//printf("c=%4ld : v=%4ld\t adj1=%4ld, adj2=%4ld, degree=%4ld\t",C[v], v, adj1, adj2, degree);
 		//printf("c=%-4d : v=%-4d m=%-4d off=%4d, dgr=%-3d\t",C[v], v, M[v], adj1, degree);
@@ -260,17 +259,17 @@ void printG_NOWeight(
 		long c = C==NULL?v:C[v];
 		//printf(" c=%-4d, v=%-4d,", c, v, m, adj1, degree);
 		if(m<0)
-			printf(" \033[1;31;40mc=%-5d v=%-5d m=%-5d\033[0m", c, v, m);
+			printf(" \033[1;31;40mc=%-5ld v=%-5ld m=%-5ld\033[0m", c, v, m);
 		else
-			printf(" c=%-5ld v=%-5d m=%-5ld", c, v, m);
-		printf(" o=%-5ld d=%-4d |", adj1, degree);
+			printf(" c=%-5ld v=%-5ld m=%-5ld", c, v, m);
+		printf(" o=%-5ld d=%-4ld |", adj1, degree);
 		for(int d=0; d<degree; d++){
 			//\033[1;31;40mERROR\033[0m
 			long t = vtxInd[adj1+d].tail;
 			if(M!=NULL&&M[t]<0)
-				printf("\033[1;31;40m%5d\033[0m ", t);
+				printf("\033[1;31;40m%5ld\033[0m ", t);
 			else
-				printf("%5d ", t);
+				printf("%5ld ", t);
 		}
 		printf("\n");
 	}
@@ -290,12 +289,12 @@ void printG_old2(
 	printf("v=%ld\t; e=%ld \n", NV, NE);
 	if(star<0) star=0;
 	if(end >NV) end=NV;
-	for(int v=star; v< end; v++){
+	for(long v=star; v< end; v++){
 		long adj1    = vtxPtr[v];
 		long adj2    = vtxPtr[v+1];
-		int degree = adj2-adj1;
-		printf("c=%-4ld : v=%-4d m=%-4d off=%4ld, dgr=%-3d\t",C[v], v, M[v], adj1, degree);
-		for(int d=0; d<degree; d++){
+		long degree = adj2-adj1;
+		printf("c=%-4ld : v=%-4ld m=%-4ld off=%4ld, dgr=%-3ld\t",C[v], v, M[v], adj1, degree);
+		for(long d=0; d<degree; d++){
 			printf(" %4ld  ", vtxInd[adj1+d].tail);
 		}
 		printf("\n");
@@ -572,7 +571,7 @@ void InitC(long* C, long NV){
 GLV::GLV(int& id){
 	InitVar();
 	ID=id;
-	sprintf(name, "%d\0", id);
+	sprintf(name, "%d", id);
 	id++;
 }
 
@@ -615,7 +614,7 @@ void GLV::InitByFile(char* name_file){
 	G  = host_PrepareGraph( 3, name_file, 0);
 	SyncWithG();
 	InitM();
-	printf("GLV: displayGraphCharacteristics\n", name_file);
+	printf("GLV: displayGraphCharacteristics\n");
 	displayGraphCharacteristics(G);
 	printf("GLV: NV = %ld\t NE = %ld\t numColor = %d \n", NV, NE, numColors);
 }

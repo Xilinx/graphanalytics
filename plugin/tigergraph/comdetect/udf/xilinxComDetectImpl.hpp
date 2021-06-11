@@ -90,7 +90,7 @@ public:
             xilinx_apps::louvainmod::Options options;
             options.xclbinPath = PLUGIN_XCLBIN_PATH;
             //options.flow_fast: use the default
-            options.numDevices = numDevices_;
+            options.devNeed_cmd = numDevices_;
             
             pLouvainMod_ = new LouvainMod(options);
         }

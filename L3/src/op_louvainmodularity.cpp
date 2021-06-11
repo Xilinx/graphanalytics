@@ -234,8 +234,8 @@ int opLouvainModularity::compute(unsigned int deviceID,
     cl::Kernel kernel_louvain = hds[0].kernel;
 
 #ifndef NDEBUG
-    std::cout << "DEBUG: " << __FUNCTION__ 
-              << " kernel=" << &kernel_louvain << " which=" << which << std::endl;
+    //std::cout << "DEBUG: " << __FUNCTION__ 
+    //          << " kernel=" << &kernel_louvain << " which=" << which << std::endl;
 #endif
 
 
@@ -762,7 +762,7 @@ void opLouvainModularity::demo_par_core(int id_dev, int flowMode,
 										LouvainPara* para_lv )
 {
 #ifndef NDEBUG    
-    std::cout << "DEBUG: ------------- " << __FUNCTION__ << " id_dev=" << id_dev << std::endl;
+    //std::cout << "DEBUG: ------------- " << __FUNCTION__ << " id_dev=" << id_dev << std::endl;
 #endif
     bool opts_coloring = para_lv->opts_coloring;
     long opts_minGraphSize = para_lv->opts_minGraphSize;

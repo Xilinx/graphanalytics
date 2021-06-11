@@ -488,9 +488,9 @@ inline void worker(queue& q,
         }
 
 #ifndef NDEBUG
-        std::cout << "DEBUG: " << __FUNCTION__ 
-                  << " pendingRequests" << pendingRequests 
-                  << " curRequestId " << curRequestId << std::endl;
+        //std::cout << "DEBUG: " << __FUNCTION__ 
+        //          << " pendingRequests" << pendingRequests 
+        //          << " curRequestId " << curRequestId << std::endl;
 #endif                  
         bool toStop = false;
         for (int i = 0; i < pendingRequests; ++i) {
