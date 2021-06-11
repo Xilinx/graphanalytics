@@ -215,7 +215,9 @@ public:
         std::sprintf(pathName_tmp, "%s%s.par.parlv", projPath_.c_str(), projName_.c_str());
         SaveParLV(pathName_tmp, &parlv_);
         std::sprintf(pathName_tmp, "%s%s.par.src", projPath_.c_str(), projName_.c_str());
-        SaveHead<GLVHead>(pathName_tmp, (GLVHead*)parlv_.plv_src);
+        GLVHead dummyGlvHead;
+        dummyGlvHead.NV = partOpts_.totalNumVertices;
+        SaveHead<GLVHead>(pathName_tmp, &dummyGlvHead);
 
         if (isVerbose_) {
             printf("************************************************************************************************\n");
