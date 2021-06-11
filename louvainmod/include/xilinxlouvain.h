@@ -243,10 +243,11 @@ public:
     int addPartitionData(const PartitionData &);  // Returns actual number of partitions created
     void finishPartitioning();
     
+    void setAlveoProject(const char* alveoProject);
     void loadAlveo();  // Loads .par files into CPU memory.  Can we load first .par per card into HBM here?
     void computeLouvain(const ComputeOptions &computeOpts);
     float loadAlveoAndComputeLouvain(const ComputeOptions &computeOpts);
-    
+
 private:
     LouvainModImpl *pImpl_ = nullptr;
 };

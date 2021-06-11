@@ -371,6 +371,7 @@ void LouvainMod::finishPartitioning() {
     pImpl_->partitionRun_->finishPartitioning();
 }
 
+void LouvainMod::setAlveoProject(const char* alveoProject) { pImpl_->options_.alveoProject = alveoProject; }
 
 void LouvainMod::loadAlveo() {}
 void LouvainMod::computeLouvain(const ComputeOptions &computeOpts) {}
@@ -380,10 +381,12 @@ float LouvainMod::loadAlveoAndComputeLouvain(const ComputeOptions &computeOpts)
     float finalQ;
     char* nameWorkers[128];
 
+    std::cout << "DEBUG: " << __FUNCTION__ << std::endl;
+    
     int i = 0;
-    for (auto it = pImpl_->settings_.nameWorkers.begin(); it != pImpl_->settings_.nameWorkers.end(); ++it){
-        nameWorkers[i++] = (char *)it->c_str();
-    }
+    //for (auto it = pImpl_->settings_.nameWorkers.begin(); it != pImpl_->settings_.nameWorkers.end(); ++it){
+    //    nameWorkers[i++] = (char *)it->c_str();
+    //}
   
 #ifndef NDEBUG  
     std::cout << "DEBUG: " << __FUNCTION__ 
@@ -407,8 +410,11 @@ float LouvainMod::loadAlveoAndComputeLouvain(const ComputeOptions &computeOpts)
                 computeOpts.max_iter, computeOpts.max_level, 
                 computeOpts.tolerance, computeOpts.intermediateResult, 
                 pImpl_->options_.verbose, computeOpts.final_Q, computeOpts.all_Q); 
-    
+
+#ifndef NDEBUG  
     std::cout << "DEBUG: " << __FUNCTION__ << " finalQ=" << finalQ << std::endl;
+#endif    
+    return finalQ;
     
 }
 

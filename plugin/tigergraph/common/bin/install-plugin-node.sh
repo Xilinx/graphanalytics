@@ -156,10 +156,6 @@ fi
 # copy stock ExprUtil.hpp to the new gsql UDF directory under TG data 
 cp $tg_app_udf_dir/ExprUtil.hpp $tg_udf_dir
 
-
-#source $xrtPath/setup.sh
-#source $xrmPath/setup.sh
-
 # Copy files to TigerGraph UDF area
 
 echo "INFO: Installing $pluginAlveoProductName auxiliary files"
@@ -171,9 +167,12 @@ for i in $app_alveo_product_files; do
     cp -f $pluginAlveoProductPath/$i $tg_udf_dir
 done
 
+# Create Xilinx graph store directory
+mkdir -p $tg_data_root/xgstore
+
 # Generate cluster configuration file
-echo "INFO: Generate plugin configration file $tg_udf_dir/plugin-config.json"
-python3 $SCRIPTPATH/gen-cluster-info.py $tg_udf_dir/plugin-config.json
+echo "INFO: Generate plugin configration file $tg_udf_dir/xilinx-plugin-config.json"
+python3 $SCRIPTPATH/gen-cluster-info.py $tg_udf_dir/xilinx-plugin-config.json $tg_data_root
 
 # Substitute the XCLBIN path for PLUGIN_XCLBIN_PATH in all files that need the substitution
 
@@ -183,7 +182,7 @@ done
 
 # Substitute the config path for PLUGIN_CONFIG_PATH in all files that need the substituion
 for i in $pluginConfigPathFiles; do
-    sed -i "s|PLUGIN_CONFIG_PATH|\"$tg_udf_dir/plugin-config.json\"|" $tg_udf_dir/${i##*/}
+    sed -i "s|PLUGIN_CONFIG_PATH|\"$tg_udf_dir/xilinx-plugin-config.json\"|" $tg_udf_dir/${i##*/}
 done
 
 # Install plugin to ExprFunctions.hpp file

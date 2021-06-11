@@ -3859,7 +3859,7 @@ extern "C" float load_alveo_partitions(unsigned int num_partitions, unsigned int
     return 0.0;
 }
 
-extern "C" float compute_louvain_alveo_seperated_load(
+extern "C" int compute_louvain_alveo_seperated_load(
     char* xclbinPath, bool flow_fast, unsigned int numDevices,
     unsigned int num_par, char* alveoProject,
     int mode_zmq, int numPureWorker, char* nameWorkers[128], unsigned int nodeID,
@@ -4099,12 +4099,16 @@ extern "C" float loadAlveoAndComputeLouvain (
         }     
     }
     
-    compute_louvain_alveo_seperated_load(
-        xclbinPath, flow_fast, numDevices,
-        numPartitions, alveoProject,
-        mode_zmq, numPureWorker, nameWorkers, nodeID,
-        tolerance, 
-        verbose, &handle0, &parlv_drv, &parlv_wkr);
+    ret = compute_louvain_alveo_seperated_load(
+            xclbinPath, flow_fast, numDevices,
+            numPartitions, alveoProject,
+            mode_zmq, numPureWorker, nameWorkers, nodeID,
+            tolerance, 
+            verbose, &handle0, &parlv_drv, &parlv_wkr);
+    
+    // return right away if load returns an error code
+    if (ret < 0)
+        return ret;
 
     ret = compute_louvain_alveo_seperated_compute(
         mode_zmq, numPureWorker, nameWorkers, nodeID,

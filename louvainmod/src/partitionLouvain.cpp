@@ -39,10 +39,10 @@ void printG_org(
 	long* vtxPtr   = G->edgeListPtrs;
 	edge* vtxInd   = G->edgeList;
 	printf("v=%ld\t; e=%ld \n", vertexNum, NE);
-	for(int v=0; v< vertexNum; v++){
+	for(long v=0; v< vertexNum; v++){
 		long adj1    = vtxPtr[v];
 		long adj2    = vtxPtr[v+1];
-		int degree = adj2-adj1;
+		long degree = adj2-adj1;
 		printf("v=%4ld\t adj1=%4ld, adj2=%4ld, degree=%4ld\t", v, adj1, adj2, degree);
 		for(int d=0; d<degree; d++){
 			printf(" %4ld\t", vtxInd[adj1+d].tail);
@@ -60,7 +60,7 @@ void printG(graphNew* G, long* C, long* M, long star, long end){
 	if(star<0) star=0;
 	if(end >NV) end=NV;
 	//printf("|==C==|==V==|==M==|=OFF=|=Dgr=|\n");
-	for(int v=star; v< end; v++){
+	for(long v=star; v< end; v++){
 		long adj1    = vtxPtr[v];
 		long adj2    = vtxPtr[v+1];
 		int degree = adj2-adj1;
@@ -71,18 +71,18 @@ void printG(graphNew* G, long* C, long* M, long star, long end){
 		long c = C==NULL?v:C[v];
 		//printf(" c=%-4d, v=%-4d,", c, v, m, adj1, degree);
 		if(m<0)
-			printf(" \033[1;31;40mc=%-5d v=%-5d m=%-5d\033[0m", c, v, m);
+			printf(" \033[1;31;40mc=%-5ld v=%-5ld m=%-5ld\033[0m", c, v, m);
 		else
-			printf(" c=%-5d v=%-5d m=%-5d", c, v, m);
+			printf(" c=%-5ld v=%-5ld m=%-5ld", c, v, m);
 		printf(" o=%-5d d=%-4d |", adj1, degree);
 		for(int d=0; d<degree; d++){
 			//\033[1;31;40mERROR\033[0m
 			long t = vtxInd[adj1+d].tail;
 			double w =  vtxInd[adj1+d].weight;
 			if(M!=NULL&&M[t]<0)
-				printf("\033[1;31;40m%5d\033[0m\/%1.0f ", t, w);
+				printf("\033[1;31;40m%5ld\033[0m\/%1.0f ", t, w);
 			else
-				printf("%5d\/%1.0f ", t, w);
+				printf("%5ld\/%1.0f ", t, w);
 		}
 		printf("\n");
 	}
