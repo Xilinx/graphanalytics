@@ -101,7 +101,7 @@ inline void udf_start_partition(string alveo_project){
 
 //Data has been populated and send to FPGA
 
-inline void udf_save_alveo_partition(std::string alveo_project) {
+inline void udf_save_alveo_partition() {
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     //build offsets_tg
@@ -138,8 +138,7 @@ inline void udf_save_alveo_partition(std::string alveo_project) {
     std::cout << "start_vertex: " << pContext->start_vertex<<std::endl;
     std::cout << "end_vertex: " << pContext->end_vertex <<std::endl;
     
-    std::string alveo_parj_path = "/home2/tigergraph/" + alveo_project;
-    pContext->setAlveoProject(alveo_parj_path);
+
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
     xilinx_apps::louvainmod::LouvainMod::PartitionData partitionData;//write into partionData = {pContext->offsets_tg, pContext->edgelist_tg, pContext->drglist_tg, pContext->start_vertex,pContext->end_vertex, 0};
     partitionData.offsets_tg = pContext->offsets_tg;
