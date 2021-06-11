@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
     options.flow_fast = toolOptions.flow_fast;
     options.nameProj = toolOptions.nameProj;
     options.alveoProject = toolOptions.alveoProject;
-    options.numDevices = toolOptions.numDevices;
+    options.devNeed_cmd = toolOptions.numDevices;
     options.hostName = "Server";
     options.hostIpAddress = serverIp.str();
     options.clusterIpAddresses = clusterIps.str();

@@ -170,6 +170,11 @@ struct Edge {
     long head;
     long tail;
     double weight;
+    Edge(long head_, long tail_, double weight_) {
+                head = head_ ;
+                tail = tail_;
+                weight = weight_;
+            }
 };
 
 
@@ -179,10 +184,11 @@ struct Options {
     XString nameProj;  // -name option: location of "partition project" created by partitioning, read by load/compute
     XString alveoProject; // Alveo project file .par.proj TODO: to be combined with nameProj
     int flow_fast = 2;  // C
-    int numDevices = 1;  // C
+    int devNeed_cmd = 1;  // C
+    unsigned nodeId = 0;  // node ID 0 will be the driver, all others will be workers
     XString hostName;  // optional host name of this server for debugging purposes
-    XString clusterIpAddresses;  // space-separated list of server IP addresses in the cluster
-    XString hostIpAddress;  // IP address of this server
+    XString clusterIpAddresses;  // space-separated list of server IP addresses in the cluster, or empty for 1 server
+    XString hostIpAddress;  // IP address of this server, or empty for 1 server
 };
 
 
@@ -209,6 +215,7 @@ public:
         long start_vertex = 0;
         long end_vertex = 0;
         long NV_par_recommand = 0;  // Recommended NV per partition.  Leave as 0 to calculate from num Alveo cards on each server
+        int nodeId = -1;  // Node ID for the server, or -1 to use Options::nodeId
     };
 
     
