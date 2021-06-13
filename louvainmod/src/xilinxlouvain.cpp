@@ -32,6 +32,10 @@ struct ComputedSettings {
         const std::string delimiters(" ");
         const std::string hostIpStr = options.clusterIpAddresses;
         const std::string hostIpAddress = options.hostIpAddress;
+        std::cout << "---------------" << __FUNCTION__  
+                  << "\n    hostIpStr=" << hostIpStr
+                  << "\n    hostIpAddress=" << hostIpAddress << std::endl;
+
         modeZmq = (options.nodeId == 0) ? ZMQ_DRIVER : ZMQ_WORKER;
         for (int i = hostIpStr.find_first_not_of(delimiters, 0); i != std::string::npos;
             i = hostIpStr.find_first_not_of(delimiters, i))
@@ -41,7 +45,7 @@ struct ComputedSettings {
                 tokenEnd = hostIpStr.size();
             const std::string token = hostIpStr.substr(i, tokenEnd - i);
             hostIps.push_back(token);
-            if (modeZmq == ZMQ_WORKER)
+            if (modeZmq == ZMQ_DRIVER && token != hostIpAddress)
                 nameWorkers.push_back(std::string("tcp://" + token + ":5555"));
             i = tokenEnd;
         }
@@ -381,22 +385,22 @@ float LouvainMod::loadAlveoAndComputeLouvain(const ComputeOptions &computeOpts)
     float finalQ;
     char* nameWorkers[128];
 
-    std::cout << "DEBUG: " << __FUNCTION__ << std::endl;
-    
-    int i = 0;
-    //for (auto it = pImpl_->settings_.nameWorkers.begin(); it != pImpl_->settings_.nameWorkers.end(); ++it){
-    //    nameWorkers[i++] = (char *)it->c_str();
-    //}
-  
 #ifndef NDEBUG  
     std::cout << "DEBUG: " << __FUNCTION__ 
               << "\n    xclbinPath=" << pImpl_->options_.xclbinPath
               << "\n    alveoProject=" << pImpl_->options_.alveoProject 
               << "\n    nodeId=" << pImpl_->options_.nodeId
               << "\n    modeZmq=" << pImpl_->settings_.modeZmq
-              << "\n    numPureWorker=" << pImpl_->settings_.numPureWorker
-              << std::endl;
-#endif              
+              << "\n    numPureWorker=" << pImpl_->settings_.numPureWorker;
+#endif    
+
+    int i = 0;
+    for (auto it = pImpl_->settings_.nameWorkers.begin(); it != pImpl_->settings_.nameWorkers.end(); ++it){
+        nameWorkers[i++] = (char *)it->c_str();
+        std::cout << "\n    nameWorker " << i << "=" << nameWorkers[i-1];
+    }
+    std::cout << std::endl;
+        
     finalQ = ::loadAlveoAndComputeLouvain(
                 (char *)(pImpl_->options_.xclbinPath.c_str()), 
                 pImpl_->options_.flow_fast, 

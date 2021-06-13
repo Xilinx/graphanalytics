@@ -20,6 +20,9 @@
 
 using namespace xilinx_apps::louvainmod;
 
+/*
+    -driverAlone: ToolOptionssets mode_zmq to ZMQ_DRIVER
+*/
 int main(int argc, char **argv) {
     float finalQ;
     ToolOptions toolOptions(argc, argv);
@@ -29,22 +32,37 @@ int main(int argc, char **argv) {
     
     std::ostringstream clusterIps;
     std::ostringstream serverIp;
-    /*for (int i = 0; i < toolOptions.server_par; ++i) {
-        if (i == 0)
-            serverIp << "192.168.0." << (i + 1) * 10 + 1;
-        else
-            clusterIps << ' ';
-        clusterIps << "192.168.0." << (i + 1) * 10 + 1;
-    }*/
-    serverIp << "192.168.0.41";
-    clusterIps << "192.168.0.41";
+
+    if (toolOptions.mode_alveo == ALVEOAPI_PARTITION) {
+        for (int i = 0; i < toolOptions.server_par; ++i) {
+            if (i == 0)
+                serverIp << "192.168.0." << (i + 1) * 10 + 1;
+            else
+                clusterIps << ' ';
+            clusterIps << "192.168.0." << (i + 1) * 10 + 1;
+        }
+    }
+    if (toolOptions.mode_alveo == ALVEOAPI_LOAD) {
+        serverIp << "127.0.0.1";  // serverIp is not used. set it to localhost for future use
+        clusterIps << "127.0.0.1";
+        for (int i = 0; i < toolOptions.numPureWorker; i++) {
+            clusterIps << ' ' << toolOptions.nameWorkers[i];
+            std::cout << "------------" << i << " " << toolOptions.nameWorkers[i] << std::endl;
+        }
+    }
+
 
     options.xclbinPath = toolOptions.xclbinPath;
     options.flow_fast = toolOptions.flow_fast;
     options.nameProj = toolOptions.nameProj;
     options.alveoProject = toolOptions.alveoProject;
     options.devNeed_cmd = toolOptions.numDevices;
-    options.hostName = "Server";
+    if (toolOptions.mode_zmq == ZMQ_DRIVER)
+        options.nodeId = 0;
+    else if (toolOptions.mode_zmq == ZMQ_WORKER)
+        options.nodeId = toolOptions.nodeID;
+
+    options.hostName = "localhost";
     options.hostIpAddress = serverIp.str();
     options.clusterIpAddresses = clusterIps.str();
     LouvainMod louvainMod(options);

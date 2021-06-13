@@ -14,31 +14,36 @@
 # limitations under the License.
 
 # partitions=9, devices=1, workers=0 (node=1), levels=100 (all)
+graph=../../plugin/tigergraph/comdetect/examples/comdetect/as-skitter/as-Skitter-wt-r100.mtx
+alveoProject=../../plugin/tigergraph/comdetect/examples/comdetect/as-skitter/as-skitter-par9
 run-n1d1:
 	cd .. && make DEBUG=$(DEBUG)
-	DEBUG=$(DEBUG) ./run_driver.sh /proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx as-skitter-par9 9  1  0 100
+	DEBUG=$(DEBUG) ./run_driver.sh  $(graph) $(alveoProject) 9  1  0 100
 
 .PHONY: run-driver
 run-driver:
 # partitions=9, devices=3, workers=2 (nodes=3)
 	cd .. && make DEBUG=$(DEBUG)
-	DEBUG=$(DEBUG) ./run_driver.sh /proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx as-skitter-par9 9 3 2 100
+	DEBUG=$(DEBUG) ./run_driver.sh $(graph) $(alveoProject) 9 3 2 100
 
 .PHONY: run-worker1
 run-worker1:
 	cd .. && make DEBUG=$(DEBUG)
-	DEBUG=$(DEBUG) ./run_worker.sh /proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx as-skitter-par9 9 100 1
+	DEBUG=$(DEBUG) ./run_worker.sh $(graph) $(alveoProject) 9 100 1
 
 .PHONY: run-worker2
 run-worker2:
 	cd .. && make DEBUG=$(DEBUG)
-	DEBUG=$(DEBUG) ./run_worker.sh /proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx as-skitter-par9 9 100 2
+	DEBUG=$(DEBUG) ./run_worker.sh $(graph) $(alveoProject) 9 100 2
 
-.PHONY: run-driver
+.PHONY: create-partitions
 create-partitions:
 	cd ../ && make DEBUG=$(DEBUG)
-	rm -rf as-skitter-par9
-	DEBUG=$(DEBUG) ./create_partitions.sh /proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx as-skitter-par9 9
+	rm -rf $(alveoProject)
+	DEBUG=$(DEBUG) ./create_partitions.sh $(graph) $(alveoProject) 9
+
+clean:
+	cd ../ && make clean
 
 help:
 	@echo "Make targets:"

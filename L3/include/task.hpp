@@ -215,23 +215,23 @@ class openXRM {
 #ifndef NDEBUG                
                 printf("INFO: Allocated cu list: cu %d\n", i);
                 printf("   xclbinFileName is:  %s\n", cuListResR.cuResources[i].xclbinFileName);
-                printf("   kernelPluginFileName is:  %s\n", cuListResR.cuResources[i].kernelPluginFileName);
+                //printf("   kernelPluginFileName is:  %s\n", cuListResR.cuResources[i].kernelPluginFileName);
                 printf("   kernelName is:  %s\n", cuListResR.cuResources[i].kernelName);
-                printf("   kernelAlias is:  %s\n", cuListResR.cuResources[i].kernelAlias);
+                //printf("   kernelAlias is:  %s\n", cuListResR.cuResources[i].kernelAlias);
                 printf("   instanceName is:  %s\n", cuListResR.cuResources[i].instanceName);
                 printf("   cuName is:  %s\n", cuListResR.cuResources[i].cuName);
                 printf("   deviceId is:  %d\n", cuListResR.cuResources[i].deviceId);
                 printf("   cuId is:  %d\n", cuListResR.cuResources[i].cuId);
                 printf("   channelId is:  %d\n", cuListResR.cuResources[i].channelId);
-                printf("   cuType is:  %d\n", cuListResR.cuResources[i].cuType);
-                printf("   baseAddr is:  0x%lx\n", cuListResR.cuResources[i].baseAddr);
-                printf("   membankId is:  %d\n", cuListResR.cuResources[i].membankId);
-                printf("   membankType is:  %d\n", cuListResR.cuResources[i].membankType);
-                printf("   membankSize is:  %ld Byte\n", maxChannelSize);
-                printf("   membankBaseAddr is:  0x%lx\n", cuListResR.cuResources[i].membankBaseAddr);
-                printf("   allocServiceId is:  %lu\n", cuListResR.cuResources[i].allocServiceId);
-                printf("   poolId is:  %lu\n", cuListResR.cuResources[i].poolId);
-                printf("   channelLoad is:  %d\n", cuListResR.cuResources[i].channelLoad);
+                //printf("   cuType is:  %d\n", cuListResR.cuResources[i].cuType);
+                //printf("   baseAddr is:  0x%lx\n", cuListResR.cuResources[i].baseAddr);
+                //printf("   membankId is:  %d\n", cuListResR.cuResources[i].membankId);
+                //printf("   membankType is:  %d\n", cuListResR.cuResources[i].membankType);
+                //printf("   membankSize is:  %ld Byte\n", maxChannelSize);
+                //printf("   membankBaseAddr is:  0x%lx\n", cuListResR.cuResources[i].membankBaseAddr);
+                //printf("   allocServiceId is:  %lu\n", cuListResR.cuResources[i].allocServiceId);
+                //printf("   poolId is:  %lu\n", cuListResR.cuResources[i].poolId);
+                //printf("   channelLoad is:  %d\n", cuListResR.cuResources[i].channelLoad);
 #endif
                 cus[i] = cuListResR.cuResources[i].cuId;
                 devices[i] = cuListResR.cuResources[i].deviceId;

@@ -2862,7 +2862,12 @@ void LouvainProcess_part2(int nodeID,
 						  LouvainPara* para_lv,
                           char* tmp_msg_w2d,
                           ParLV& parlv_wkr,
-                          Node* worker_node) {
+                          Node* worker_node) 
+{
+
+#ifndef NDEBUG
+    printf("DEBUG: LouvainProcess_part2 nodeID=%d num_par=%d\n", nodeID, parlv_wkr.num_par);
+#endif
     int id_glv = 0;
     char* path_worker = (char*)"./";
     // Louvain
@@ -3997,14 +4002,18 @@ extern "C" float compute_louvain_alveo_seperated_compute(
     xf::graph::L3::Handle* handle0,  ParLV* p_parlv_dvr, ParLV* p_parlv_wkr)
 {
 #ifndef NDEBUG
-    std::cout << "DEBUG: " << __FUNCTION__ 
-              << " mode_zmq=" << mode_zmq << " numPureWorker=" << numPureWorker
-              << " nodeID=" << nodeID
-              << " opts_outputFile=" << opts_outputFile
-              << " max_iter=" << max_iter << " max_level=" << max_level
-              << " tolerance=" << tolerance << " intermediateResult=" << intermediateResult
-              << " verbose=" << verbose << " final_Q=" << final_Q << " all_Q=" << all_Q
-              << std::endl;
+    printf("DEBUG:  compute_louvain_alveo_seperated_compute");
+    printf("\n    mode_zmq=%d", mode_zmq);
+    printf("\n    numPureWorker=%d", numPureWorker);
+    printf("\n    nodeID=%d", nodeID);
+    printf("\n    opts_outputFile=%s", opts_outputFile);
+    printf("\n    max_iter=%d", max_iter);
+    printf("\n    max_level=%d", max_level);
+    printf("\n    tolerance=%f", tolerance);
+    printf("\n    intermediateResult=%d", intermediateResult);
+    printf("\n    verbose=%d", verbose);
+    printf("\n    final_Q=%d", final_Q);
+    printf("\n    all_Q=%d\n", all_Q);
 
     for (int i=0; i<numPureWorker; i++)
         std::cout << "DEBUG: nameWorker " << i << "=" << nameWorkers[i] << std::endl;
@@ -4076,6 +4085,11 @@ extern "C" float compute_louvain_alveo_seperated_compute(
     return 0;
 }
 
+/*
+    Return values:
+    -1: Error in getNumPartitions
+    -2: Error in compute_louvain_alveo_seperated_load
+*/
 extern "C" float loadAlveoAndComputeLouvain (
     char* xclbinPath, bool flow_fast, unsigned int numDevices,
     char* alveoProject,
@@ -4088,6 +4102,9 @@ extern "C" float loadAlveoAndComputeLouvain (
     float ret = 0;
 
     int numPartitions = getNumPartitions(alveoProject);
+
+    if (numPartitions < 0)
+        return -1;
 
     // Allocating memory for load
     if (mode_zmq == ZMQ_DRIVER) {
@@ -4108,11 +4125,11 @@ extern "C" float loadAlveoAndComputeLouvain (
     
     // return right away if load returns an error code
     if (ret < 0)
-        return ret;
+        return -2;
 
     ret = compute_louvain_alveo_seperated_compute(
         mode_zmq, numPureWorker, nameWorkers, nodeID,
-        opts_outputFile, max_iter, max_level,  tolerance, intermediateResult,
+        opts_outputFile, max_iter, max_level, tolerance, intermediateResult,
         verbose, final_Q, all_Q, &handle0, &parlv_drv, &parlv_wkr);
 
 

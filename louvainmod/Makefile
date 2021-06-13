@@ -267,14 +267,27 @@ $(CPP_BUILD_DIR)/apitest: $(CPP_BUILD_DIR)/apitest.o $(CPP_BUILD_DIR)/$(LIB_NAME
 #	$(LINK.cc) -o $@ $< -fPIC -w -L $(CPP_BUILD_DIR) -l$(LOADER_SHORT_NAME) -ldl $(LIB_DEPS)
 
 APITEST_OUT_DIR = $(CPP_BUILD_DIR)/apitest-out
+graph = ../plugin/tigergraph/comdetect/examples/comdetect/as-skitter/as-Skitter-wt-r100.mtx
+alveoProject = $(APITEST_OUT_DIR)/as-skitter-par9
 CMDLINE_CREATE_PARTITIONS = ../plugin/tigergraph/comdetect/examples/comdetect/as-skitter/as-Skitter-wt-r100.mtx -fast -par_num 9 \
     -create_alveo_partitions -name $(APITEST_OUT_DIR)/as-skitter-par9 -server_par 1
 
-WORKERS="tcp://192.168.1.21:5555 tcp://192.168.1.31:5555"
+WORKERS=192.168.1.21 192.168.1.31
 CMDLINE_LOAD_COMPUTE = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
-                     -fast -dev 1 -num_level 100 -par_num 9 \
-                     -load_alveo_partitions $(APITEST_OUT_DIR)/as-skitter-par9.par.proj -setwkr 0 \
-				      $(WORKERS) -driverAlone
+    -fast -dev 1 -num_level 100 -load_alveo_partitions \
+	$(alveoProject).par.proj -setwkr 2 $(WORKERS) -driverAlone
+
+CMDLINE_LOAD_COMPUTE_DRIVER = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
+    -fast -dev 3 -num_level 100 -load_alveo_partitions \
+	$(alveoProject).par.proj -setwkr 2 $(WORKERS) -driverAlone
+
+CMDLINE_LOAD_COMPUTE_WORKER1 = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
+    -fast -dev 3 -num_level 100 -load_alveo_partitions \
+	$(alveoProject).par.proj -workerAlone 1
+
+CMDLINE_LOAD_COMPUTE_WORKER2 = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
+    -fast -dev 3 -num_level 100 -load_alveo_partitions \
+	$(alveoProject).par.proj -workerAlone 2
 
 run-apitest-create-partitions: cppTest
 	rm -rf $(APITEST_OUT_DIR)
@@ -283,6 +296,16 @@ run-apitest-create-partitions: cppTest
 
 run-apitest-load-compute: cppTest
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE)
+
+
+run-apitest-load-compute-driver: cppTest
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE_DRIVER)
+
+run-apitest-load-compute-worker1: cppTest
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE_WORKER1)
+
+run-apitest-load-compute-worker2: cppTest
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE_WORKER2)	
 
 debug-apitest: cppTest
 	rm -rf $(APITEST_OUT_DIR)
@@ -499,6 +522,14 @@ help:
 	@echo "Valid make targets:"
 	@echo "dist     : Generate product installation package (RPM or DEB) for the current OS and architecture"
 	@echo "doxy-cpp : Generate CPP documentation using doxygen. The default html output directory is ./build/cppdocs"
-	@echo "run-apitest-create-partitions : Run API test of create partitions"
-	@echo "run-apitest-load-compute : Run API test of load and compute"
+	@echo "run-apitest-create-partitions : Run API test of create partitions on a single node"
+	@echo "run-apitest-load-compute : Run API test of load and compute on a single node"
+	@echo "-------- Run API test in a cluster with 3 nodes --------"
+	@echo "run-apitest-load-compute-driver: Run API test of load and compute on driver"
+	@echo "run-apitest-load-compute-worker1: Run API test of load and compute on worker 1"
+	@echo "run-apitest-load-compute-worker2: Run API test of load and compute on worker 2"
+	@echo ""
+	@echo "-------- Options --------"
+	@echo "graph: change graph input .mtx file"
+	@echo "alveoProject: Alveo project name without .par.proj extension"
 	
