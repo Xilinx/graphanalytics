@@ -274,19 +274,19 @@ CMDLINE_CREATE_PARTITIONS = ../plugin/tigergraph/comdetect/examples/comdetect/as
 
 WORKERS=192.168.1.21 192.168.1.31
 CMDLINE_LOAD_COMPUTE = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
-    -fast -dev 1 -num_level 100 -load_alveo_partitions \
-	$(alveoProject).par.proj -setwkr 2 $(WORKERS) -driverAlone
+    -fast -dev 1 -num_level 100 -num_iter 100 -load_alveo_partitions \
+	$(alveoProject).par.proj -setwkr 0 -driverAlone
 
 CMDLINE_LOAD_COMPUTE_DRIVER = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
-    -fast -dev 3 -num_level 100 -load_alveo_partitions \
+    -fast -dev 3 -num_level 100 -num_iter 100 -load_alveo_partitions \
 	$(alveoProject).par.proj -setwkr 2 $(WORKERS) -driverAlone
 
 CMDLINE_LOAD_COMPUTE_WORKER1 = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
-    -fast -dev 3 -num_level 100 -load_alveo_partitions \
+    -fast -dev 3 -num_level 100 -num_iter 100 -load_alveo_partitions \
 	$(alveoProject).par.proj -workerAlone 1
 
 CMDLINE_LOAD_COMPUTE_WORKER2 = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
-    -fast -dev 3 -num_level 100 -load_alveo_partitions \
+    -fast -dev 3 -num_level 100 -num_iter 100 -load_alveo_partitions \
 	$(alveoProject).par.proj -workerAlone 2
 
 run-apitest-create-partitions: cppTest
