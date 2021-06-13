@@ -68,7 +68,7 @@ public:
     std::string projPath_;
     int i_svr_ = 0;  // current server number
     std::vector<int> parInServer_;  // number of partitions for each server
-    std::string inputFileName_;  // file name for the source file for the graph, or empty if no file
+    std::string inputFileName_ = "no-file";  // file name for the source file for the graph, or a dummy string if no file
 
     PartitionRun(const Options &globalOpts, const ComputedSettings &settings,
         const LouvainMod::PartitionOptions &partOpts)
