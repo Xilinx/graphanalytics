@@ -184,7 +184,7 @@ public:
         return numPartitionsCreated;
     }
 
-    void finishPartitioning() {
+    void finishPartitioning(int numAlveoPartitions[]) {
         parlv_.st_Partitioned = true;
         parlv_.timesPar.timePar_all = getTime() - parlv_.timesPar.timePar_all;
 
@@ -201,8 +201,12 @@ public:
         char tmp_str[128];
         std::sprintf(tmp_str, "-server_par %d ", settings_.numServers);
         std::strcat(meta, tmp_str);
-        for(int i_svr = 0, end = parInServer_.size(); i_svr < end; i_svr++){
-             std::sprintf(tmp_str, "%d ",  parInServer_[i_svr]);
+//        for(int i_svr = 0, end = parInServer_.size(); i_svr < end; i_svr++){
+//             std::sprintf(tmp_str, "%d ",  parInServer_[i_svr]);
+//             std::strcat(meta, tmp_str);
+//        }///////////////////////////////////////////////////////////////////////
+        for(int i_svr = 0, end = settings_.numServers; i_svr < end; i_svr++){
+             std::sprintf(tmp_str, "%d ",  numAlveoPartitions[i_svr]);
              std::strcat(meta, tmp_str);
         }///////////////////////////////////////////////////////////////////////
         std::strcat(meta, "\n");
@@ -361,7 +365,7 @@ void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions 
         free(drglist_tg);
     }
 
-    finishPartitioning();
+    finishPartitioning(parInServer);
 }
 
 
@@ -375,8 +379,8 @@ int LouvainMod::addPartitionData(const PartitionData &partitionData) {
 }
 
 
-void LouvainMod::finishPartitioning() {
-    pImpl_->partitionRun_->finishPartitioning();
+void LouvainMod::finishPartitioning(int numAlveoPartitions[]) {
+    pImpl_->partitionRun_->finishPartitioning(numAlveoPartitions);
 }
 
 void LouvainMod::setAlveoProject(const char* alveoProject) { pImpl_->options_.alveoProject = alveoProject; }
