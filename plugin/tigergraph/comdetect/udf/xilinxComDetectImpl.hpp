@@ -24,6 +24,9 @@
 // Enable this to turn on debug output
 #define XILINX_COM_DETECT_DEBUG_ON
 
+#include <vector>
+#include <map>
+#include <fstream>
 
 namespace xilComDetect {
 
@@ -62,7 +65,8 @@ public:
         CalledExecuteLouvainState,  // after execute called
         NumStates
     };
-    
+
+
 private:
     std::string alveoProject_;
     unsigned numPartitions_;
@@ -73,8 +77,29 @@ private:
     unsigned numNodes_ = 1;
     State state_ = UninitializedState;
     LouvainMod *pLouvainMod_ = nullptr;
-    
+    std::vector<long> degree_list;//long* offsets_tg; //travel and add i-1 to i to build the offset_tg
+
+
 public:
+    uint64_t nextId_ = 0 ;
+    uint64_t louvain_offset = 0 ;
+    // partion data
+    long* offsets_tg;
+    xilinx_apps::louvainmod::Edge* edgelist_tg;
+    long* drglist_tg;
+    long  start_vertex;     // If a vertex is smaller than star_vertex, it is a ghost
+    long  end_vertex;
+    
+    // use the below to store the information and build final partition data
+    
+    
+    // this map is used to build GraphEdge* edgelistTG and drglistTG
+    //key-> value : louvainId->graphedge
+    std::map<uint64_t, std::vector<xilinx_apps::louvainmod::Edge>> edgeListMap;
+    std::map<uint64_t, long> dgrListMap;
+    std::vector<xilinx_apps::louvainmod::Edge> edgeListVec;
+    std::vector<long> dgrListVec;
+
     static Context *getInstance() {
         static Context *s_pContext = nullptr;
         if (s_pContext == nullptr)
@@ -83,20 +108,76 @@ public:
     }
     
     Context() = default;
-    ~Context() {delete pLouvainMod_;}
+    ~Context() { delete pLouvainMod_; }
 
-    LouvainMod *getLouvainModObj() {
+    xilinx_apps::louvainmod::LouvainMod *getLouvainModObj() {
         if (pLouvainMod_ == nullptr) {
             xilinx_apps::louvainmod::Options options;
-            options.xclbinPath = PLUGIN_XCLBIN_PATH;
-            //options.flow_fast: use the default
-            options.devNeed_cmd = numDevices_;
-            
-            pLouvainMod_ = new LouvainMod(options);
-        }
 
+            std::string cur_node_hostname, cur_node_ip, node_ips;
+            // PLUGIN_CONFIG_PATH will be replaced by the actual config path during plugin installation
+            std::fstream config_json(PLUGIN_CONFIG_PATH, std::ios::in);
+            if (!config_json) {
+                std::cout << "ERROR: config file doesn't exist:" << PLUGIN_CONFIG_PATH << std::endl;
+                return(2);
+            }
+
+            char line[1024] = {0};
+            char* token;
+            node_ips = "";
+            bool scanNodeIp;
+            while (config_json.getline(line, sizeof(line))) {
+                token = strtok(line, "\"\t ,}:{\n");
+                scanNodeIp = false;
+                while (token != NULL) {
+                    if (!std::strcmp(token, "curNodeHostname")) {
+                        token = strtok(NULL, "\"\t ,}:{\n");
+                        cur_node_hostname = token;
+                    } else if (!std::strcmp(token, "curNodeIp")) {
+                        token = strtok(NULL, "\"\t ,}:{\n");
+                        cur_node_ip = token;
+                    } else if (!std::strcmp(token, "nodeIps")) {
+                        // this field has multipe space separated IPs
+                        scanNodeIp = true;
+                        // read the next token
+                        token = strtok(NULL, "\"\t ,}:{\n");
+                        node_ips += token;
+                        std::cout << "node_ips=" << node_ips << std::endl;
+                    } else if (scanNodeIp) {
+                        // In the middle of nodeIps field
+                        node_ips += " ";
+                        node_ips += token;
+                        std::cout << "node_ips=" << node_ips << std::endl;
+                    }
+                    token = strtok(NULL, "\"\t ,}:{\n");
+                }
+            }
+            config_json.close();
+
+            options.xclbinPath = PLUGIN_XCLBIN_PATH;
+            options.nameProj = alveoProject_;
+            options.devNeed_cmd = numNodes_;
+            options.nodeId = nodeId_;
+            options.hostName = cur_node_hostname;
+            options.clusterIpAddresses = node_ips;
+            options.hostIpAddress = cur_node_ip;
+
+#ifdef XILINX_COM_DETECT_DEBUG_ON
+            std::cout << "DEBUG: louvainmod options: = xclbinPath" << options.xclbinPath
+                    << ", nameProj=" << options.nameProj
+                    << ", devNeed_cmd=" << options.devNeed_cmd
+                    << ", nodeId=" <<options.nodeId
+                    << ", hostName=" << options.hostName
+                    << ", clusterIpAddresses=" << options.clusterIpAddresses
+                    << ", hostIpAddress=" << options.hostIpAddress <<std::endl;
+#endif
+            pLouvainMod_= new xilinx_apps::louvainmod::LouvainMod(options);
+            
+        }
+        
         return pLouvainMod_;
     }
+
 
     void setAlveoProject(std::string alveoProject) {
         std::cout << "DEBUG: " << __FUNCTION__ << " AlveoProject=" << alveoProject << std::endl;
@@ -127,7 +208,7 @@ public:
         nodeId_ = nodeId;
     }
     unsigned getNodeId() { return nodeId_; }
-    
+
     void setNumNodes(unsigned numNodes) 
     {
         std::cout << "DEBUG: " << __FUNCTION__ << " numNodes=" << numNodes << std::endl;
@@ -145,6 +226,27 @@ public:
     
     State getState() const { return state_; }
     void setState(State state) { state_ = state; }
+    
+    void addDegreeList(long p_degree){
+        degree_list.push_back(p_degree); 
+    }
+    
+    int getDegreeListSize(){
+        return degree_list.size(); 
+    }
+    
+    long* getDegreeList(){
+        return degree_list.data(); 
+    }
+    
+    void clearPartitionData(){
+        nextId_ = 0 ;
+        degree_list.clear();
+        edgeListMap.clear();
+        dgrListMap.clear();
+        edgeListVec.clear();
+        dgrListVec.clear();  
+    }
     
     void clear() {
         state_ = UninitializedState;

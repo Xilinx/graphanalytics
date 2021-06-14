@@ -36,7 +36,10 @@ STAGE_COPY_FILES = \
     $(EXAMPLE_DIR)/query/louvain_alveo.gsql \
     $(EXAMPLE_DIR)/query/louvain_distributed_q_cpu.gsql \
     $(EXAMPLE_DIR)/query/schema.gsql \
-    $(EXAMPLE_DIR)/run.sh
+    \
+    $(EXAMPLE_DIR)/run.sh \
+    $(EXAMPLE_DIR)/compute.sh \
+    $(EXAMPLE_DIR)/partition.sh
 
 # Example directories into which to copy example common files
 STAGE_EXAMPLES_DIRS = $(EXAMPLE_DIR)
