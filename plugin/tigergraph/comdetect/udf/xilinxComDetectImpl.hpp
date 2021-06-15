@@ -24,6 +24,9 @@
 // Enable this to turn on debug output
 #define XILINX_COM_DETECT_DEBUG_ON
 
+// Enable this to dump graph vertices and edges, as seen by the partitioning logic
+//#define XILINX_COM_DETECT_DUMP_GRAPH
+
 #include <vector>
 #include <map>
 #include <fstream>

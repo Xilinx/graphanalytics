@@ -40,7 +40,7 @@ inline uint64_t udf_get_nextId(uint64_t out_degree){
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     pContext->addDegreeList((long)out_degree);
-#ifdef XILINX_COM_DETECT_DEBUG_ON
+#ifdef  XILINX_COM_DETECT_DUMP_GRAPH
     std::cout << " louvainId = " << pContext->getNextId() <<" out_degree = " << out_degree <<std::endl;
 #endif
     uint64_t nextId = pContext->getNextId();
@@ -76,7 +76,7 @@ inline uint64_t udf_get_global_louvain_id(uint64_t louvain_id){
 inline void udf_set_louvain_offset(uint64_t louvain_offset){
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
-#ifdef XILINX_COM_DETECT_DEBUG_ON
+#ifdef XILINX_COM_DETECT_DUMP_GRAPH
     std::cout << "Louvain Offsets = " << louvain_offset <<std::endl;
 #endif
     pContext->setLouvainOffset(louvain_offset);
@@ -85,7 +85,7 @@ inline void udf_set_louvain_offset(uint64_t louvain_offset){
 
 inline void udf_set_louvain_edge_list(uint64_t louvainIdSource, uint64_t louvainIdTarget, float wtAttr, uint64_t outDgr) {
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
-#ifdef XILINX_COM_DETECT_DEBUG_ON
+#ifdef XILINX_COM_DETECT_DUMP_GRAPH
     std::cout <<" louvainIdSource: " << louvainIdSource << ";louvainIdTarget: " << louvainIdTarget << "; weight: " << wtAttr << "; outDgr: " << outDgr << std::endl;
 #endif
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
