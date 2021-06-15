@@ -107,7 +107,7 @@ inline void udf_start_partition(string alveo_project, int numVertices){
 
 //Data has been populated and send to FPGA
 
-inline void udf_save_alveo_partition() {
+inline int udf_save_alveo_partition() {
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     //build offsets_tg
@@ -151,15 +151,24 @@ inline void udf_save_alveo_partition() {
     partitionData.drglist_tg = pContext->drglist_tg;
     partitionData.start_vertex = pContext->start_vertex;
     partitionData.end_vertex = pContext->end_vertex;
-    pLouvainMod->addPartitionData(partitionData);
+    int64_t number_of_partitions = (int64_t)pLouvainMod->addPartitionData(partitionData);
+    return number_of_partitions;
 
 }
 
-inline void udf_finish_partition(){
+inline void udf_finish_partition(MapAccum<uint64_t, int64_t> numAlveoPars){
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
-    pLouvainMod->finishPartitioning();
+    for(int i=0;i<numAlveoPars.size();i++){
+        pContext->numAlveoPartitions.push_back((int)numAlveoPars.get(i));  
+    }
+#ifdef XILINX_COM_DETECT_DEBUG_ON
+    for(int i=0;i<numAlveoPars.size();i++){
+        std::cout << "numAlveoPartition: " << pContext->numAlveoPartitions[i] <<std::endl;      
+    }
+#endif
+    pLouvainMod->finishPartitioning(pContext->numAlveoPartitions.data());
 }
 
 

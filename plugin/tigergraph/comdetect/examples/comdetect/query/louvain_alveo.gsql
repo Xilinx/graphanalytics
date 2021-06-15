@@ -104,6 +104,7 @@ CREATE DISTRIBUTED QUERY tg_partition_phase_3(
 ) FOR GRAPH @graph 
 {
     STRING gName = "@graph" ;
+    MapAccum<UINT,INT> @@nodeAccum;
     
     print gName;
     Start = {v_types};
@@ -115,10 +116,11 @@ CREATE DISTRIBUTED QUERY tg_partition_phase_3(
         ACCUM udf_start_partition(gName, Start.size());
             
     parList = SELECT n FROM nodes:n
-        ACCUM udf_save_alveo_partition();
+        ACCUM @@nodeAccum += (n.NODE_ID -> udf_save_alveo_partition());
+    PRINT @@nodeAccum;
 
     nodeList = SELECT n FROM nodes:n
-        ACCUM udf_finish_partition();
+        ACCUM udf_finish_partition(@@nodeAccum);
   
 }
 
@@ -141,7 +143,7 @@ CREATE DISTRIBUTED QUERY load_alveo(
     //TODO
     //udf_reset_states(1);
     udf_execute_reset(1);
-    udf_reset_timer(true);
+    //udf_reset_timer(true);
 
     // Traverse TigerGraph memory and load partitions on each node
     Start = {v_types};
@@ -162,8 +164,8 @@ CREATE DISTRIBUTED QUERY load_alveo(
                graph_file, louvain_project, nodes.size(), num_partitions, num_devices);
     END;
 
-    udf_time = udf_elapsed_time(true);
-    print tg_partition, use_saved_partition, status;
+    //udf_time = udf_elapsed_time(true);
+    //print tg_partition, use_saved_partition, status;
 
 }
 
@@ -194,13 +196,13 @@ CREATE DISTRIBUTED QUERY louvain_alveo(
     //nodeList = SELECT n FROM nodes:n
     //    ACCUM @@nodeAccum += udf_xilinx_comdetect_set_num_nodes(1);
 
-    udf_reset_timer(true);
+    //udf_reset_timer(true);
     udf_execute_reset(0);
 
     // each node will get this UDF call for each vertex, but the actual execution
     // is only run once guarded by a flag. Each node checks if it's master or slave
     // and run the task accordingly.
-    //nodelist = SELECT n FROM nodes:n
+//     //nodelist = SELECT n FROM nodes:n
     //       ACCUM @@executeAlveoStatus += udf_louvain_alveo(
     //       max_iter, max_level, tolerence, intermediateResult,
     //       verbose, result_file, print_final_Q, print_all_Q);
@@ -209,8 +211,8 @@ CREATE DISTRIBUTED QUERY louvain_alveo(
            max_iter, max_level, tolerence, intermediateResult,
            verbose, result_file, print_final_Q, print_all_Q);
 
-    udf_time = udf_elapsed_time(true);
-    ret = udf_peak_memory_usage(vm_peak, vm_hwm);
+    //udf_time = udf_elapsed_time(true);
+    //ret = udf_peak_memory_usage(vm_peak, vm_hwm);
     print nodes.size() as NumOfNodes;
     print @@modularityAccum as ModularityQValues;
     print "Xilinx Alveo U50" AS ComputationTechnique;
@@ -222,13 +224,13 @@ CREATE DISTRIBUTED QUERY louvain_alveo(
 CREATE DISTRIBUTED QUERY close_alveo() for GRAPH @graph {
    DOUBLE udf_time;
    BOOL b;
-   udf_reset_timer(true);
+   //udf_reset_timer(true);
    Start = {Person.*};
    A = SELECT v
        FROM Start:v
        ACCUM udf_close_alveo(1);
-   udf_time = udf_elapsed_time(true);
-   print udf_time, b;
+   //udf_time = udf_elapsed_time(true);
+   //print udf_time, b;
 }
 
 install query close_alveo, louvain_alveo, load_alveo, tg_partition_phase_1, tg_partition_phase_2,tg_partition_phase_3
