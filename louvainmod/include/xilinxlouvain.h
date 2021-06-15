@@ -202,6 +202,7 @@ public:
         int par_prune = 1;  // ghost pruning technique (1 means single ghost node of smallest degree per local node)
                 // >1 means keep that many ghost nodes per local node (TODO: verify description for >1)
 //        int numServers = 1;  // number of servers, probably should be made obsolete
+        long totalNumVertices = 0;  // TODO: figure this out internally during compute, eliminate need for .par.src file
         
         PartitionOptions() = default;
         PartitionOptions(const PartitionOptions &opt) = default;
@@ -241,7 +242,7 @@ public:
     
     void startPartitioning(const PartitionOptions &options);
     int addPartitionData(const PartitionData &);  // Returns actual number of partitions created
-    void finishPartitioning();
+    void finishPartitioning(int numAlveoPartitions[]);
     
     void setAlveoProject(const char* alveoProject);
     void loadAlveo();  // Loads .par files into CPU memory.  Can we load first .par per card into HBM here?

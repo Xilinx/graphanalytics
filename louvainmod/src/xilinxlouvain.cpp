@@ -66,7 +66,6 @@ public:
     ParLV parlv_;
     std::string projName_;
     std::string projPath_;
-    int i_svr_ = 0;  // current server number
     std::vector<int> parInServer_;  // number of partitions for each server
     std::string inputFileName_ = "no-file";  // file name for the source file for the graph, or a dummy string if no file
 
@@ -123,7 +122,7 @@ public:
         // Determine the prefix string for each partition (.par) file
         //For compatibility, when num_server is 1, no 'srv<n>' surfix used
         char pathName_proj_svr[1024];
-        int serverNum = (partitionData.nodeId >= 0) ? partitionData.nodeId : i_svr_++;
+        int serverNum = (partitionData.nodeId >= 0) ? partitionData.nodeId : globalOpts_.nodeId;
         if (settings_.numServers > 1)
             std::sprintf(pathName_proj_svr, "%s_svr%d", globalOpts_.nameProj.c_str(), serverNum);//louvain_partitions_svr0_000.par
         else
@@ -182,11 +181,10 @@ public:
             throw Exception(oss.str());
         }
         parInServer_.push_back(numPartitionsCreated);
-        ++i_svr_;
         return numPartitionsCreated;
     }
 
-    void finishPartitioning() {
+    void finishPartitioning(int numAlveoPartitions[]) {
         parlv_.st_Partitioned = true;
         parlv_.timesPar.timePar_all = getTime() - parlv_.timesPar.timePar_all;
 
@@ -203,8 +201,12 @@ public:
         char tmp_str[128];
         std::sprintf(tmp_str, "-server_par %d ", settings_.numServers);
         std::strcat(meta, tmp_str);
-        for(int i_svr = 0, end = parInServer_.size(); i_svr < end; i_svr++){
-             std::sprintf(tmp_str, "%d ",  parInServer_[i_svr]);
+//        for(int i_svr = 0, end = parInServer_.size(); i_svr < end; i_svr++){
+//             std::sprintf(tmp_str, "%d ",  parInServer_[i_svr]);
+//             std::strcat(meta, tmp_str);
+//        }///////////////////////////////////////////////////////////////////////
+        for(int i_svr = 0, end = settings_.numServers; i_svr < end; i_svr++){
+             std::sprintf(tmp_str, "%d ",  numAlveoPartitions[i_svr]);
              std::strcat(meta, tmp_str);
         }///////////////////////////////////////////////////////////////////////
         std::strcat(meta, "\n");
@@ -219,7 +221,13 @@ public:
         std::sprintf(pathName_tmp, "%s%s.par.parlv", projPath_.c_str(), projName_.c_str());
         SaveParLV(pathName_tmp, &parlv_);
         std::sprintf(pathName_tmp, "%s%s.par.src", projPath_.c_str(), projName_.c_str());
-        SaveHead<GLVHead>(pathName_tmp, (GLVHead*)parlv_.plv_src);
+        GLVHead dummyGlvHead;
+        dummyGlvHead.NV = (parlv_.plv_src == nullptr) ? partOpts_.totalNumVertices : parlv_.plv_src->NV;
+        if (dummyGlvHead.NV < 1)
+            throw Exception("ERROR: Number of vertices appears not to be set."
+                "  Ensure that your graph source file has at least one vertex or that you have set"
+                " PartitionOptions::totalNumVertices.");
+        SaveHead<GLVHead>(pathName_tmp, &dummyGlvHead);
 
         if (isVerbose_) {
             printf("************************************************************************************************\n");
@@ -244,9 +252,9 @@ public:
         // CleanTmpGlv appears not to be necessary, as partitioning doesn't set any of the fields cleaned by this function,
         // and those fields are never uninitialized, leaving them filled with garbage.
     //    parlv_.CleanTmpGlv();
-
+/*TODO: commented out for now to avoid segment fault
         if (isVerbose_)
-            parlv_.plv_src->printSimple();
+            parlv_.plv_src->printSimple(); */
     }
 };
 
@@ -357,7 +365,7 @@ void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions 
         free(drglist_tg);
     }
 
-    finishPartitioning();
+    finishPartitioning(parInServer);
 }
 
 
@@ -371,8 +379,8 @@ int LouvainMod::addPartitionData(const PartitionData &partitionData) {
 }
 
 
-void LouvainMod::finishPartitioning() {
-    pImpl_->partitionRun_->finishPartitioning();
+void LouvainMod::finishPartitioning(int numAlveoPartitions[]) {
+    pImpl_->partitionRun_->finishPartitioning(numAlveoPartitions);
 }
 
 void LouvainMod::setAlveoProject(const char* alveoProject) { pImpl_->options_.alveoProject = alveoProject; }
