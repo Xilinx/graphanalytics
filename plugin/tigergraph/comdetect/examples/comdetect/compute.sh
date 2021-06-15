@@ -45,5 +45,3 @@ script_dir=`dirname $SCRIPT`
          \"weight\",20,20,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_alveo.txt\",TRUE,FALSE)"
     TOTAL_TIME=$(($(date +%s%3N) - START))
     echo "louvain_alveo: " $TOTAL_TIME
-fi
-
