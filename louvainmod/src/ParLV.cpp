@@ -2736,8 +2736,9 @@ void Server_SubLouvain(xf::graph::L3::Handle* handle0,
 {
 #ifndef NDEBUG
     std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__ 
-              << " handle0=" << handle0 << " parlv.num_par=" << parlv.num_par 
-              << " parlv.num_dev=" << parlv.num_dev
+              << "\n    handle0=" << handle0 << " parlv.num_par=" << parlv.num_par 
+              << "\n    parlv.num_dev=" << parlv.num_dev
+              << "\n    id_glv=" << id_glv
               << std::endl;
 #endif
     parlv.timesPar.timeLv_all = getTime();
@@ -3156,7 +3157,11 @@ int xai_save_partition(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
 		) 
 {
 #ifndef NDEBUG    
-    std::cout << "DEBUG: " << __FUNCTION__ << std::endl;
+    std::cout << "DEBUG: " << __FUNCTION__ 
+              << "\n    start_vertex=" << start_vertex
+              << "\n    end_vertex=" << end_vertex
+              << "\n    par_prune=" << par_prune
+              << std::endl;
 #endif
     int status = 0;
 
@@ -3166,10 +3171,10 @@ int xai_save_partition(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
 	long average_stride = NV_par_recommand;
     long start_vertext_par = start_vertex;
     int p=0;
-    while(start_vertext_par != end_vertex){
+    while(start_vertext_par != end_vertex) {
 		long NV_par = (end_vertex - start_vertext_par ) > average_stride ? average_stride: end_vertex - start_vertext_par;
-		do{
-			parlv_par_src[p] = par_general_4TG(
+		do {
+		    parlv_par_src[p] = par_general_4TG(
 				//Input data from TG
 				start_vertex,
 				offsets_tg,
@@ -3293,6 +3298,7 @@ int create_alveo_partitions(char* inFile, int num_partition, int par_prune, char
 			NV_par_recommand = (NV + parlv.num_par-1) / parlv.num_par;//allow to partition small graph with -par_num
 		else
 			NV_par_recommand = (long)((float)NV_par_max * 0.80);//20% space for ghosts.
+
 		parInServer[i_svr] = xai_save_partition(
 				offsets_tg,  edgelist_tg,  drglist_tg,
     			start_vertex[i_svr],
@@ -3575,7 +3581,6 @@ GLV* louvain_modularity_alveo(xf::graph::L3::Handle* handle0,
         TimePointType l_par_end;
         int id_glv = 0;
         bool opts_coloring = true;
-        char* path_worker = (char*)"./";
         // Louvain
         TimePointType l_compute_start = chrono::high_resolution_clock::now();
         TimePointType l_compute_end;
@@ -3872,13 +3877,17 @@ extern "C" int compute_louvain_alveo_seperated_load(
     xf::graph::L3::Handle* handle0, ParLV* p_parlv_dvr, ParLV* p_parlv_wkr)
 {
 #ifndef NDEBUG
-    std::cout << "DEBUG: " << __FUNCTION__ <<  " xclbinPath=" << xclbinPath
-              << " flow_fast=" << flow_fast << " numDevices=" << numDevices
-              << " num_par=" << num_par << " alveoProject=" << alveoProject
-              << " mode_zmq=" << mode_zmq << " numPureWorker=" << numPureWorker
-              << " nodeID=" << nodeID
-              << " tolerance=" << tolerance 
-              << " verbose=" << verbose 
+    std::cout << "DEBUG: " << __FUNCTION__   
+              << "\n     xclbinPath=" << xclbinPath
+              << "\n     flow_fast=" << flow_fast 
+              << "\n     numDevices=" << numDevices
+              << "\n     num_par=" << num_par 
+              << "\n     alveoProject=" << alveoProject
+              << "\n     mode_zmq=" << mode_zmq 
+              << "\n     numPureWorker=" << numPureWorker
+              << "\n     nodeID=" << nodeID
+              << "\n     tolerance=" << tolerance 
+              << "\n     verbose=" << verbose 
               << std::endl;
 
     for (int i=0; i<numPureWorker; i++)
