@@ -92,6 +92,8 @@ public:
     long* drglist_tg;
     long  start_vertex;     // If a vertex is smaller than star_vertex, it is a ghost
     long  end_vertex;
+    std::vector<int> numAlveoPartitions;
+
     
     // use the below to store the information and build final partition data
     
