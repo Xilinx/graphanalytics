@@ -2680,9 +2680,15 @@ void SaveParLV(char* name, ParLV* p_parlv) {
     fclose(fp);
 }
 
-void LoadParLV(char* name, ParLV* p_parlv) {
+int LoadParLV(char* name, ParLV* p_parlv) {
     assert(name);
     FILE* fp = fopen(name, "rb");
+
+    if (fp == NULL) {
+        printf("ERROR: Failed to open ParLV file %s\n", name);
+        return -1;
+    }
+
     char* ptr = (char*)p_parlv;
     int flowMode = p_parlv->flowMode;
     int num_dev = p_parlv->num_dev;
@@ -2690,6 +2696,8 @@ void LoadParLV(char* name, ParLV* p_parlv) {
     p_parlv->flowMode = flowMode;
     p_parlv->num_dev = num_dev;
     fclose(fp);
+
+    return 0;
 }
 
 void Louvain_thread_core(xf::graph::L3::Handle* handle0,
@@ -3353,7 +3361,15 @@ int create_alveo_partitions(char* inFile, int num_partition, int par_prune, char
 }
 
 //getNumPartitions
-int Parser_ParProjFile(std::string projFile, ParLV& parlv, char* path, char* name, char* name_inFile) {
+// Return value:
+// -2: ParLV file cannot be opened 
+//
+int Parser_ParProjFile(std::string projFile, ParLV& parlv, char* path, char* name, char* name_inFile) 
+{
+#ifndef NDEBUG    
+    printf("DEBUG:\n    projFile=%s\n    path=%s\n    name=%s\n    name_inFile=%s\n", 
+            projFile.c_str(), path, name, name_inFile);
+#endif    
     // Format: -create_alveo_partitions <inFile> -par_num <par_num> -par_prune <par_prune> -name <ProjectFile>
     assert(path);
     assert(name);
@@ -3419,11 +3435,25 @@ int Parser_ParProjFile(std::string projFile, ParLV& parlv, char* path, char* nam
     int id_glv = 0;
     char namePath_tmp[1024];
     sprintf(namePath_tmp, "%s/%s.par.parlv", path, name);
-    LoadParLV(namePath_tmp, &parlv);
+    printf("DEBUG: start LoadParLV\n");
+    if (LoadParLV(namePath_tmp, &parlv) < 0)
+        return -2;
+
+    
+    printf("DEBUG: start LoadParLV\n");
     sprintf(namePath_tmp, "%s/%s.par.src", path, name);
     std::cout << "------------" << __FUNCTION__ << " id_glv=" << id_glv << std::endl;
     parlv.plv_src = new GLV(id_glv);
+    printf("DEBUG: start LoadHead\n");
     LoadHead<GLVHead>(namePath_tmp, (GLVHead*)parlv.plv_src);
+    printf("DEBUG: end LoadHead\n");
+#ifndef NDEBUG
+    printf("DEBUG: LoadHead results \nNV=%ld \nNVl=%ld \nNE=%ld \nNElg=%ld \nNC=%ld \nQ=%f \nnumColors=%d  \nnumThreads=%d \nname=%s \nID=%d",
+        parlv.plv_src->NV, parlv.plv_src->NVl, parlv.plv_src->NE, parlv.plv_src->NElg, 
+        parlv.plv_src->NC, parlv.plv_src->Q, parlv.plv_src->numColors, parlv.plv_src->numThreads, 
+        parlv.plv_src->name, parlv.plv_src->ID);
+#endif
+
 #ifdef PRINTINFO
     printf("\033[1;37;40mINFO\033[0m:Partition Project: path = %s name = %s\n", path, name);
 #endif

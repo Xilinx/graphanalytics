@@ -116,7 +116,7 @@ public:
         if (pLouvainMod_ == nullptr) {
             xilinx_apps::louvainmod::Options options;
 
-            std::string cur_node_hostname, cur_node_ip, node_ips;
+            std::string cur_node_hostname, cur_node_ip, node_ips, xGstorePath;
             // PLUGIN_CONFIG_PATH will be replaced by the actual config path during plugin installation
             std::fstream config_json(PLUGIN_CONFIG_PATH, std::ios::in);
             if (!config_json) {
@@ -138,6 +138,9 @@ public:
                     } else if (!std::strcmp(token, "curNodeIp")) {
                         token = strtok(NULL, "\"\t ,}:{\n");
                         cur_node_ip = token;
+                    } else if (!std::strcmp(token, "xGraphStore")) {
+                        token = strtok(NULL, "\"\t ,}:{\n");
+                        xGstorePath = token;
                     } else if (!std::strcmp(token, "nodeIps")) {
                         // this field has multipe space separated IPs
                         scanNodeIp = true;

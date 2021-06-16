@@ -269,9 +269,11 @@ $(CPP_BUILD_DIR)/apitest: $(CPP_BUILD_DIR)/apitest.o $(CPP_BUILD_DIR)/$(LIB_NAME
 APITEST_OUT_DIR = $(CPP_BUILD_DIR)/apitest-out
 graph = ../plugin/tigergraph/comdetect/examples/comdetect/as-skitter/as-Skitter-wt-r100.mtx
 alveoProject = $(APITEST_OUT_DIR)/as-skitter-par9
+numPars=1
 serverPar=1 9
-CMDLINE_CREATE_PARTITIONS = ../plugin/tigergraph/comdetect/examples/comdetect/as-skitter/as-Skitter-wt-r100.mtx -fast -par_num 9 \
-    -create_alveo_partitions -name $(APITEST_OUT_DIR)/as-skitter-par9 -server_par $(serverPar)
+CMDLINE_CREATE_PARTITIONS = ../plugin/tigergraph/comdetect/examples/comdetect/as-skitter/as-Skitter-wt-r100.mtx \
+    -fast -par_num $(numPars) -create_alveo_partitions -name $(APITEST_OUT_DIR)/as-skitter-par9 \
+	-server_par $(serverPar)
 
 WORKERS=192.168.1.21 192.168.1.31
 CMDLINE_LOAD_COMPUTE = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
