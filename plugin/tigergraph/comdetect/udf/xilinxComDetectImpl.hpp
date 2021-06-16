@@ -24,6 +24,9 @@
 // Enable this to turn on debug output
 #define XILINX_COM_DETECT_DEBUG_ON
 
+// Enable this to dump graph vertices and edges, as seen by the partitioning logic
+//#define XILINX_COM_DETECT_DUMP_GRAPH
+
 #include <vector>
 #include <map>
 #include <fstream>
@@ -78,29 +81,28 @@ private:
     State state_ = UninitializedState;
     LouvainMod *pLouvainMod_ = nullptr;
     std::vector<long> degree_list;//long* offsets_tg; //travel and add i-1 to i to build the offset_tg
+    std::vector<int> numAlveoPartitions;
 
-
-public:
-    uint64_t nextId_ = 0 ;
+    uint64_t nextId_ = 0 ; // can be used as partition size after traverse the graph done
     uint64_t louvain_offset = 0 ;
-    // partion data
+    // Partition data
     long* offsets_tg;
     xilinx_apps::louvainmod::Edge* edgelist_tg;
     long* drglist_tg;
     long  start_vertex;     // If a vertex is smaller than star_vertex, it is a ghost
     long  end_vertex;
-    std::vector<int> numAlveoPartitions;
 
-    
+
     // use the below to store the information and build final partition data
-    
-    
-    // this map is used to build GraphEdge* edgelistTG and drglistTG
-    //key-> value : louvainId->graphedge
+    //key-> value : louvainId->set of graphEdge
     std::map<uint64_t, std::vector<xilinx_apps::louvainmod::Edge>> edgeListMap;
     std::map<uint64_t, long> dgrListMap;
     std::vector<xilinx_apps::louvainmod::Edge> edgeListVec;
     std::vector<long> dgrListVec;
+
+
+public:
+
 
     static Context *getInstance() {
         static Context *s_pContext = nullptr;
@@ -255,6 +257,128 @@ public:
     
     void clear() {
         state_ = UninitializedState;
+    }
+
+    std::map<uint64_t, long>& getDgrListMap() {
+        return dgrListMap;
+    }
+
+    void setDgrListMap(std::map<uint64_t, long> dgrListMap) {
+        this->dgrListMap = dgrListMap;
+    }
+
+
+    const std::vector<long>& getDgrListVec() {
+        return dgrListVec;
+    }
+
+    void setDgrListVec(const std::vector<long>& dgrListVec) {
+        this->dgrListVec = dgrListVec;
+    }
+
+    void addDgrListVec(const long dgr) {
+        this->dgrListVec.push_back(dgr);
+    }
+
+    long *getDrglistTg() {
+        return drglist_tg;
+    }
+
+    void setDrglistTg(long * drglistTg) {
+        drglist_tg = drglistTg;
+    }
+
+    const xilinx_apps::louvainmod::Edge* getEdgelistTg() {
+        return edgelist_tg;
+    }
+
+    void setEdgelistTg(const xilinx_apps::louvainmod::Edge* edgelistTg) {
+        edgelist_tg = edgelistTg;
+    }
+
+    std::map<uint64_t, std::vector<xilinx_apps::louvainmod::Edge> >& getEdgeListMap() {
+        return edgeListMap;
+    }
+
+    void setEdgeListMap(
+            std::map<uint64_t, std::vector<xilinx_apps::louvainmod::Edge> >& edgeListMap) {
+        this->edgeListMap = edgeListMap;
+    }
+
+    void addEdgeListMap(
+            uint64_t s, xilinx_apps::louvainmod::Edge e) {
+        this->edgeListMap[s].push_back(e);
+    }
+
+    std::vector<xilinx_apps::louvainmod::Edge>& getEdgeListVec() {
+        return edgeListVec;
+    }
+
+    void setEdgeListVec(
+            const std::vector<xilinx_apps::louvainmod::Edge>& edgeListVec) {
+        this->edgeListVec = edgeListVec;
+    }
+
+    long getEndVertex() {
+        return end_vertex;
+    }
+
+    void setEndVertex(long endVertex) {
+        end_vertex = endVertex;
+    }
+
+    uint64_t getLouvainOffset() const {
+        return louvain_offset;
+    }
+
+
+    void setLouvainOffset(uint64_t louvainOffset = 0) {
+        louvain_offset = louvainOffset;
+    }
+
+    uint64_t getNextId() const {
+        return nextId_;
+    }
+
+    void setNextId(uint64_t nextId = 0) {
+        nextId_ = nextId;
+    }
+
+    const std::vector<int>& getNumAlveoPartitions() {
+        return numAlveoPartitions;
+    }
+
+    void setNumAlveoPartitions(const std::vector<int>& numAlveoPartitions) {
+        this->numAlveoPartitions = numAlveoPartitions;
+    }
+
+    void addNumAlveoPartitions(const int num) {
+        this->numAlveoPartitions.push_back(num);
+    }
+
+    long *getOffsetsTg() const {
+        return offsets_tg;
+    }
+
+    void setOffsetsTg(long * offsetsTg) {
+        offsets_tg = offsetsTg;
+    }
+
+    long getOffsetTg(int idx) const {
+          return offsets_tg[idx];
+      }
+
+    void setOffsetsTg(int idx, long offsetsTg) {
+        offsets_tg[idx] = offsetsTg;
+    }
+
+
+    long getStartVertex() const {
+        return start_vertex;
+    }
+
+    void setStartVertex(long startVertex) {
+        start_vertex = startVertex;
     }
 };
 

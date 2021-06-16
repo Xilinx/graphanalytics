@@ -32,26 +32,30 @@ namespace UDIMPL {
 inline void udf_reset_nextId() {
 
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
-    std::cout << "nextId_ = " << pContext->nextId_ <<std::endl;
+    std::cout << "nextId_ = " << pContext->getNextId() <<std::endl;
     pContext->clearPartitionData();
 }
+
 inline uint64_t udf_get_nextId(uint64_t out_degree){
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     pContext->addDegreeList((long)out_degree);
-#ifdef XILINX_COM_DETECT_DEBUG_ON
-    std::cout << " louvainId = " << pContext->nextId_ <<" out_degree = " << out_degree <<std::endl;
+#ifdef  XILINX_COM_DETECT_DUMP_GRAPH
+    std::cout << " louvainId = " << pContext->getNextId() <<" out_degree = " << out_degree <<std::endl;
 #endif
-    return pContext->nextId_++;
+    uint64_t nextId = pContext->getNextId();
+    uint64_t nextIdIncr = nextId +1 ;
+    pContext->setNextId(nextIdIncr);
+    return nextId;
 }
 
 inline uint64_t udf_get_partition_size(){
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
      xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
 #ifdef XILINX_COM_DETECT_DEBUG_ON
-     std::cout << "Partition Size = " << pContext->nextId_ <<std::endl;
+     std::cout << "Partition Size = " << pContext->getNextId()<<std::endl;
 #endif
-     return pContext->nextId_;
+     return pContext->getNextId();
 }
 inline int udf_xilinx_comdetect_set_node_id(uint nodeId)
 {
@@ -66,27 +70,27 @@ inline int udf_xilinx_comdetect_set_node_id(uint nodeId)
 inline uint64_t udf_get_global_louvain_id(uint64_t louvain_id){
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
-    return pContext->louvain_offset + louvain_id ;
+    return pContext->getLouvainOffset() + louvain_id ;
 }
 
 inline void udf_set_louvain_offset(uint64_t louvain_offset){
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
-#ifdef XILINX_COM_DETECT_DEBUG_ON
+#ifdef XILINX_COM_DETECT_DUMP_GRAPH
     std::cout << "Louvain Offsets = " << louvain_offset <<std::endl;
 #endif
-    pContext->louvain_offset = louvain_offset;
+    pContext->setLouvainOffset(louvain_offset);
 }
 
 
 inline void udf_set_louvain_edge_list(uint64_t louvainIdSource, uint64_t louvainIdTarget, float wtAttr, uint64_t outDgr) {
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
-#ifdef XILINX_COM_DETECT_DEBUG_ON
+#ifdef XILINX_COM_DETECT_DUMP_GRAPH
     std::cout <<" louvainIdSource: " << louvainIdSource << ";louvainIdTarget: " << louvainIdTarget << "; weight: " << wtAttr << "; outDgr: " << outDgr << std::endl;
 #endif
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
-    pContext->edgeListMap[louvainIdSource].push_back(xilinx_apps::louvainmod::Edge((long)louvainIdSource,(long)louvainIdTarget, (double)wtAttr));
-    pContext->dgrListMap[louvainIdTarget]=outDgr;
+    pContext->addEdgeListMap(louvainIdSource,xilinx_apps::louvainmod::Edge((long)louvainIdSource,(long)louvainIdTarget, (double)wtAttr));
+    pContext->getDgrListMap()[louvainIdTarget]=outDgr;
 }
 
 inline void udf_start_partition(string alveo_project, int numVertices){
@@ -112,45 +116,45 @@ inline int udf_save_alveo_partition() {
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     //build offsets_tg
     int offsets_tg_size = pContext->getDegreeListSize();
-    pContext->offsets_tg = pContext->getDegreeList();
+    pContext->setOffsetsTg(pContext->getDegreeList()) ;
     for(int i = 1;i < offsets_tg_size;i++){
-        pContext->offsets_tg[i] += pContext->offsets_tg[i-1];
+        pContext->setOffsetsTg(i,pContext->getOffsetTg(i) + pContext->getOffsetTg(i-1)); //offsets_tg[i] += pContext->offsets_tg[i-1];
     }
 #ifdef XILINX_COM_DETECT_DEBUG_ON
-    std::cout<<"Last offsets_tg "<<pContext->offsets_tg[offsets_tg_size-1]<<std::endl;
+    std::cout<<"Last offsets_tg "<<pContext->getOffsetTg(offsets_tg_size-1)<<std::endl;
 #endif
     //build dgr list and edgelist
     //traverse the partition size for each louvainId, populate edgelist from edgeListMap
-    pContext->start_vertex = pContext->louvain_offset;
-    pContext->end_vertex = pContext->louvain_offset + pContext->nextId_ -1 ; // the end vertex on local partition
-    for(int i= pContext->start_vertex;i <= pContext->end_vertex ; i++) {
-        pContext->edgeListVec.insert(pContext->edgeListVec.end(),pContext->edgeListMap[i].begin(),pContext->edgeListMap[i].end());
-        for(auto& it:pContext->edgeListMap[i]) {
-            pContext->dgrListVec.push_back(pContext->dgrListMap[it.tail]);
+    pContext->setStartVertex(long(pContext->getLouvainOffset()));
+    pContext->setEndVertex(long(pContext->getLouvainOffset() + pContext->getNextId()-1)) ; // the end vertex on local partition
+    for(int i= pContext->getStartVertex();i <= pContext->getEndVertex() ; i++) {
+        pContext->getEdgeListVec().insert(pContext->getEdgeListVec().end(),pContext->getEdgeListMap()[i].begin(),pContext->getEdgeListMap()[i].end());
+        for(auto& it:pContext->getEdgeListMap()[i]) {
+            pContext->addDgrListVec(pContext->getDgrListMap()[it.tail]);
         }
     }
-    pContext->drglist_tg = pContext->dgrListVec.data();
-    pContext->edgelist_tg = pContext->edgeListVec.data();
+    pContext->setDrglistTg((long int*)pContext->getDgrListVec().data());
+    pContext->setEdgelistTg(pContext->getEdgeListVec().data());
 
 #ifdef XILINX_COM_DETECT_DEBUG_ON
-    std::cout << "edgelist size:" << pContext->edgeListVec.size() << std::endl;
-    std::cout << "dgrlist size:" << pContext->dgrListVec.size() << std::endl;
+    std::cout << "edgelist size:" << pContext->getDgrListVec().size() << std::endl;
+    std::cout << "dgrlist size:" << pContext->getEdgeListVec().size() << std::endl;
     for(int i=0; i < 10; i++) {
-        std::cout << i << " head from edgelist  " << pContext->edgelist_tg[i].head <<"; ";
-        std::cout << " tail from edgelist: " << pContext->edgelist_tg[i].tail <<"; ";
-        std::cout << " outDgr from dgrlist: " << pContext->drglist_tg[i] << std::endl;
+        std::cout << i << " head from edgelist  " << pContext->getEdgelistTg()[i].head <<"; ";
+        std::cout << " tail from edgelist: " << pContext->getEdgelistTg()[i].tail <<"; ";
+        std::cout << " outDgr from dgrlist: " << pContext->getDrglistTg()[i] << std::endl;
     }
-    std::cout << "start_vertex: " << pContext->start_vertex<<std::endl;
-    std::cout << "end_vertex: " << pContext->end_vertex <<std::endl;
+    std::cout << "start_vertex: " << pContext->getStartVertex()<<std::endl;
+    std::cout << "end_vertex: " << pContext->getEndVertex() <<std::endl;
 #endif
     
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
     xilinx_apps::louvainmod::LouvainMod::PartitionData partitionData;
-    partitionData.offsets_tg = pContext->offsets_tg;
-    partitionData.edgelist_tg = pContext->edgelist_tg;
-    partitionData.drglist_tg = pContext->drglist_tg;
-    partitionData.start_vertex = pContext->start_vertex;
-    partitionData.end_vertex = pContext->end_vertex;
+    partitionData.offsets_tg = pContext->getOffsetsTg(); //offsets_tg;
+    partitionData.edgelist_tg = pContext->getEdgelistTg(); // edgelist_tg;
+    partitionData.drglist_tg = pContext->getDrglistTg(); //drglist_tg;
+    partitionData.start_vertex = pContext->getStartVertex(); //start_vertex;
+    partitionData.end_vertex = pContext->getEndVertex(); //end_vertex;
     int64_t number_of_partitions = (int64_t)pLouvainMod->addPartitionData(partitionData);
     return number_of_partitions;
 
@@ -161,14 +165,14 @@ inline void udf_finish_partition(MapAccum<uint64_t, int64_t> numAlveoPars){
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
     for(int i=0;i<numAlveoPars.size();i++){
-        pContext->numAlveoPartitions.push_back((int)numAlveoPars.get(i));  
+        pContext->addNumAlveoPartitions(((int)numAlveoPars.get(i)));
     }
 #ifdef XILINX_COM_DETECT_DEBUG_ON
     for(int i=0;i<numAlveoPars.size();i++){
-        std::cout << "numAlveoPartition: " << pContext->numAlveoPartitions[i] <<std::endl;      
+        std::cout << "numAlveoPartition: " << pContext->getNumAlveoPartitions()[i] <<std::endl;
     }
 #endif
-    pLouvainMod->finishPartitioning(pContext->numAlveoPartitions.data());
+    pLouvainMod->finishPartitioning(pContext->getNumAlveoPartitions().data());
 }
 
 
