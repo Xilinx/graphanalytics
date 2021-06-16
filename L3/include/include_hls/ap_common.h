@@ -1,52 +1,17 @@
-// 67d7842dbbe25473c3c32b93c0da8047785f30d78e8a024de1b57352245f9689
 /*
-#-  (c) Copyright 2011-2019 Xilinx, Inc. All rights reserved.
-#-
-#-  This file contains confidential and proprietary information
-#-  of Xilinx, Inc. and is protected under U.S. and
-#-  international copyright and other intellectual property
-#-  laws.
-#-
-#-  DISCLAIMER
-#-  This disclaimer is not a license and does not grant any
-#-  rights to the materials distributed herewith. Except as
-#-  otherwise provided in a valid license issued to you by
-#-  Xilinx, and to the maximum extent permitted by applicable
-#-  law: (1) THESE MATERIALS ARE MADE AVAILABLE "AS IS" AND
-#-  WITH ALL FAULTS, AND XILINX HEREBY DISCLAIMS ALL WARRANTIES
-#-  AND CONDITIONS, EXPRESS, IMPLIED, OR STATUTORY, INCLUDING
-#-  BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, NON-
-#-  INFRINGEMENT, OR FITNESS FOR ANY PARTICULAR PURPOSE; and
-#-  (2) Xilinx shall not be liable (whether in contract or tort,
-#-  including negligence, or under any other theory of
-#-  liability) for any loss or damage of any kind or nature
-#-  related to, arising under or in connection with these
-#-  materials, including for any direct, or any indirect,
-#-  special, incidental, or consequential loss or damage
-#-  (including loss of data, profits, goodwill, or any type of
-#-  loss or damage suffered as a result of any action brought
-#-  by a third party) even if such damage or loss was
-#-  reasonably foreseeable or Xilinx had been advised of the
-#-  possibility of the same.
-#-
-#-  CRITICAL APPLICATIONS
-#-  Xilinx products are not designed or intended to be fail-
-#-  safe, or for use in any application requiring fail-safe
-#-  performance, such as life-support or safety devices or
-#-  systems, Class III medical devices, nuclear facilities,
-#-  applications related to the deployment of airbags, or any
-#-  other applications that could lead to death, personal
-#-  injury, or severe property or environmental damage
-#-  (individually and collectively, "Critical
-#-  Applications"). Customer assumes the sole risk and
-#-  liability of any use of Xilinx products in Critical
-#-  Applications, subject only to applicable laws and
-#-  regulations governing limitations on product liability.
-#-
-#-  THIS COPYRIGHT NOTICE AND DISCLAIMER MUST BE RETAINED AS
-#-  PART OF THIS FILE AT ALL TIMES. 
-#- ************************************************************************
-
+ * Copyright 2011-2019 Xilinx, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #ifndef __AP_COMMON_H__
@@ -54,7 +19,27 @@
 
 // ----------------------------------------------------------------------
 
+// Forward declaration of all AP types.
 #include <ap_decl.h>
+
+
+#ifdef __SYNTHESIS__
+#error "The open-source version of AP types does not support synthesis."
+#endif // ifdef __SYNTHESIS__
+#define _AP_ENABLE_HALF_ 0
+
+
+#if _AP_ENABLE_HALF_ == 1
+// Before ap_private definition.
+#ifdef __SYNTHESIS__
+#define _HLS_HALF_DEFINED_
+typedef __fp16 half;
+#else
+class half;
+#endif // __SYNTHESIS__
+#endif // _AP_ENABLE_HALF_
+
+// ----------------------------------------------------------------------
 
 // Macro functions
 #define AP_MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -208,362 +193,7 @@ struct remove_const<_Tp const> {
 // ----------------------------------------------------------------------
 
 // Define ssdm_int and _ssdm_op.
-#ifdef __SYNTHESIS__
-
-#if ((__clang_major__ == 3) && (__clang_minor__ == 1))
-
-/* HECTOR is a tool for formal system-level to RTL equivalence checking.
- * https://www.research.ibm.com/haifa/conferences/hvc2008/present/CarlPixleyHVC08.pdf
- * we used to used Hector.h here instead of following ssdm_int definition,
- * but now it is deleted.
- */
-template <int _AP_N, bool _AP_S>
-struct ssdm_int;
-
-#define AP_INT_BASE(_AP_N, mode)                                   \
-  template <>                                                      \
-  struct ssdm_int<_AP_N + 1024 * mode, true> {                     \
-    int V __attribute__((bitwidth(_AP_N + 1024 * mode)));          \
-    INLINE ssdm_int<_AP_N + 1024 * mode, true>(){};                \
-  };                                                               \
-  template <>                                                      \
-  struct ssdm_int<_AP_N + 1024 * mode, false> {                    \
-    unsigned int V __attribute__((bitwidth(_AP_N + 1024 * mode))); \
-    INLINE ssdm_int<_AP_N + 1024 * mode, false>(){};               \
-  };
-
-#if MAX_MODE(AP_INT_MAX_W) >= 1
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 0)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 2
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 1)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 3
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 2)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 4
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 3)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 5
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 4)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 6
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 5)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 7
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 6)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 8
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 7)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 9
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 8)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 10
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 9)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 11
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 10)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 12
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 11)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 13
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 12)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 14
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 13)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 15
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 14)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 16
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 15)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 17
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 16)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 18
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 17)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 19
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 18)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 20
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 19)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 21
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 20)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 22
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 21)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 23
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 22)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 24
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 23)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 25
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 24)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 26
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 25)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 27
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 26)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 28
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 27)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 29
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 28)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 30
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 29)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 31
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 30)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#if MAX_MODE(AP_INT_MAX_W) >= 32
-#define HANDLE_BAT(TYPE, _AP_N) AP_INT_BASE(_AP_N, 31)
-#define APINT_DEFINE_INT64
-#include "etc/autopilot_dt.def"
-#undef APINT_DEFINE_INT64
-#undef HANDLE_BAT
-#endif
-
-#undef MAX_MODE
-#undef AP_INT_BASE
-
-#else // HLS clang of higher version than 3.1
-
-template <int _AP_N, bool _AP_S>
-struct ssdm_int;
-
-template <int _AP_N>
-struct ssdm_int<_AP_N, true> {
-  int V __attribute__((bitwidth(_AP_N)));
-  INLINE ssdm_int<_AP_N, true>(){};
-};
-
-template <int _AP_N>
-struct ssdm_int<_AP_N, false> {
-  unsigned V __attribute__((bitwidth(_AP_N)));
-  INLINE ssdm_int<_AP_N, false>(){};
-};
-
-#endif // clang 3.1 test
-
-// FIXME typeof is an compiler extension.
-// FIXME use ({}) to return value is GCC extension.
-
-#define _ssdm_op_concat(Ret, X, Y)                               \
-  ({                                                             \
-    typeof(Ret) __Result__ = 0;                                  \
-    typeof(X) __X2__ = X;                                        \
-    typeof(Y) __Y2__ = Y;                                        \
-    __builtin_bit_concat((void*)(&__Result__), (void*)(&__X2__), \
-                         (void*)(&__Y2__));                      \
-    __Result__;                                                  \
-  })
-
-#define _ssdm_op_get_bit(Val, Bit)                                   \
-  ({                                                                 \
-    typeof(Val) __Val2__ = Val;                                      \
-    bool __Result__ = __builtin_bit_select((void*)(&__Val2__), Bit); \
-    __Result__;                                                      \
-  })
-
-#define _ssdm_op_set_bit(Val, Bit, Repl)                               \
-  ({                                                                   \
-    typename _ap_type::remove_const<typeof(Val)>::type __Result__ = 0; \
-    typeof(Val) __Val2__ = Val;                                        \
-    typeof(Repl) __Repl2__ = !!Repl;                                   \
-    __builtin_bit_part_set((void*)(&__Result__), (void*)(&__Val2__),   \
-                           (void*)(&__Repl2__), Bit, Bit);             \
-    __Result__;                                                        \
-  })
-
-#define _ssdm_op_get_range(Val, Lo, Hi)                                     \
-  ({                                                                        \
-    typename _ap_type::remove_const<typeof(Val)>::type __Result__ = 0;      \
-    typeof(Val) __Val2__ = Val;                                             \
-    __builtin_bit_part_select((void*)(&__Result__), (void*)(&__Val2__), Lo, \
-                              Hi);                                          \
-    __Result__;                                                             \
-  })
-
-#define _ssdm_op_set_range(Val, Lo, Hi, Repl)                          \
-  ({                                                                   \
-    typename _ap_type::remove_const<typeof(Val)>::type __Result__ = 0; \
-    typeof(Val) __Val2__ = Val;                                        \
-    typeof(Repl) __Repl2__ = Repl;                                     \
-    __builtin_bit_part_set((void*)(&__Result__), (void*)(&__Val2__),   \
-                           (void*)(&__Repl2__), Lo, Hi);               \
-    __Result__;                                                        \
-  })
-
-#include "etc/autopilot_ssdm_bits.h"
-
-extern "C" void _ssdm_string2bits(...);
-
-#endif // ifdef __SYNTHESIS__
+// XXX deleted in open-source version
 
 #ifndef NON_C99STRING
 #define _AP_C99 true
@@ -590,25 +220,6 @@ static inline unsigned char guess_radix(const char* s) {
   }
   return rd;
 }
-
-// ----------------------------------------------------------------------
-
-// Forward declaration of all AP types.
-// Before ap_private definition.
-#ifdef __SYNTHESIS__
-#define _HLS_HALF_DEFINED_
-typedef __fp16 half;
-#else
-class half;
-#endif
-
-// FIXME previously, ap_int_syn.h includes hls_half.h, which includes cmath.h
-// even during synthesis. Some test cases are spoiled...
-#ifdef __cplusplus
-#ifndef __SYNTHESIS__
-#include <cmath>
-#endif
-#endif
 
 // ----------------------------------------------------------------------
 
@@ -706,6 +317,7 @@ INLINE unsigned int floatToRawBits(float pf) {
   return LD.__L;
 }
 
+#if _AP_ENABLE_HALF_ == 1
 INLINE unsigned short halfToRawBits(half pf) {
 #ifdef __SYNTHESIS__
   union {
@@ -718,6 +330,7 @@ INLINE unsigned short halfToRawBits(half pf) {
   return pf.get_bits();
 #endif
 }
+#endif
 
 // usigned long long is at least 64-bit
 INLINE double rawBitsToDouble(ap_ulong pi) {
@@ -739,6 +352,7 @@ INLINE float rawBitsToFloat(unsigned long pi) {
   return LD.__D;
 }
 
+#if _AP_ENABLE_HALF_ == 1
 // short is at least 16-bit
 INLINE half rawBitsToHalf(unsigned short pi) {
 #ifdef __SYNTHESIS__
@@ -755,10 +369,8 @@ INLINE half rawBitsToHalf(unsigned short pi) {
   return __D;
 #endif
 }
+#endif
 
-#endif // ifndef __AP_COMMON_H__ else
+#endif // ifndef __AP_COMMON_H__
 
 // -*- cpp -*-
-// vim: fdm=marker:foldmarker=#if,#endif:nofoldenable
-
-
