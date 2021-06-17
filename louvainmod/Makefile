@@ -294,22 +294,22 @@ CMDLINE_LOAD_COMPUTE_WORKER2 = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xi
     -fast -dev 3 -num_level 100 -num_iter 100 -load_alveo_partitions \
 	$(alveoProject).par.proj -workerAlone 2
 
-run-apitest-create-partitions: cppTest
+run-apitest-create-partitions: stage cppTest
 	rm -rf $(APITEST_OUT_DIR)
 	mkdir -p $(APITEST_OUT_DIR)
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_CREATE_PARTITIONS)
 
-run-apitest-load-compute: cppTest
+run-apitest-load-compute: stage cppTest
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE)
 
 
-run-apitest-load-compute-driver: cppTest
+run-apitest-load-compute-driver: stage cppTest
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE_DRIVER)
 
-run-apitest-load-compute-worker1: cppTest
+run-apitest-load-compute-worker1: stage cppTest
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE_WORKER1)
 
-run-apitest-load-compute-worker2: cppTest
+run-apitest-load-compute-worker2: stage cppTest
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE_WORKER2)	
 
 debug-apitest: cppTest
