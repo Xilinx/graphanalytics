@@ -214,7 +214,7 @@ public:
         const Edge* edgelist_tg = nullptr; // head and tail are global vertex ids
         const long* drglist_tg = nullptr;
         long start_vertex = 0;
-        long end_vertex = 0;
+        long end_vertex = 0;  // one vertex ID BEYOND the last vertex of the server partition
         long NV_par_recommand = 0;  // Recommended NV per partition.  Leave as 0 to calculate from num Alveo cards on each server
         int nodeId = -1;  // Node ID for the server, or -1 to use Options::nodeId
     };

@@ -126,7 +126,7 @@ inline int udf_save_alveo_partition() {
     //build dgr list and edgelist
     //traverse the partition size for each louvainId, populate edgelist from edgeListMap
     pContext->setStartVertex(long(pContext->getLouvainOffset()));
-    pContext->setEndVertex(long(pContext->getLouvainOffset() + pContext->getNextId()-1)) ; // the end vertex on local partition
+    pContext->setEndVertex(long(pContext->getLouvainOffset() + pContext->getNextId())) ; // the end vertex on local partition
     for(int i= pContext->getStartVertex();i <= pContext->getEndVertex() ; i++) {
         pContext->getEdgeListVec().insert(pContext->getEdgeListVec().end(),pContext->getEdgeListMap()[i].begin(),pContext->getEdgeListMap()[i].end());
         for(auto& it:pContext->getEdgeListMap()[i]) {
