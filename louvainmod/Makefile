@@ -271,7 +271,7 @@ graph = ../plugin/tigergraph/comdetect/examples/comdetect/as-skitter/as-Skitter-
 alveoProject = $(APITEST_OUT_DIR)/as-skitter-par9
 numPars=1
 serverPar=1 9
-CMDLINE_CREATE_PARTITIONS = ../plugin/tigergraph/comdetect/examples/comdetect/as-skitter/as-Skitter-wt-r100.mtx \
+CMDLINE_CREATE_PARTITIONS = $(graph) \
     -fast -par_num $(numPars) -create_alveo_partitions -name $(APITEST_OUT_DIR)/as-skitter-par9 \
 	-server_par $(serverPar)
 
@@ -533,6 +533,6 @@ help:
 	@echo "run-apitest-load-compute-worker2: Run API test of load and compute on worker 2"
 	@echo ""
 	@echo "-------- Options --------"
-	@echo "graph: change graph input .mtx file"
+	@echo "graph: graph input .mtx file"
 	@echo "alveoProject: Alveo project name without .par.proj extension"
 	

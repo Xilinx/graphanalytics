@@ -20,7 +20,7 @@ import sys
 
 in_file = sys.argv[1]
 out_file = sys.argv[2]
-factor = sys.argv[3]
+factor = int(sys.argv[3])
 
 out_fh = open(out_file, 'w')
 line_cnt = 1
@@ -39,7 +39,7 @@ with open(in_file) as in_fh:
             if fields[0] == '*Vertices':
                 num_vertices = int(fields[1])
                 print('INFO: number of vertices from the input graph:', num_vertices)
-                out_num_vertices = int(num_vertices/100)
+                out_num_vertices = int(num_vertices/factor)
 
             if fields[0] == '*Edges':
                 num_edges = int(fields[1])
@@ -78,6 +78,6 @@ with open(in_file) as in_fh:
 out_fh.close()
 print('INFO: the output graph is saved to', out_file)
 print('INFO: number of vertices in the output graph', out_num_vertices)
-print('INFO: number of vertices in the output graph', out_num_edges)
+print('INFO: number of edges in the output graph', out_num_edges)
 
 

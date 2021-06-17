@@ -39,14 +39,14 @@ PLUGIN_DEPS = ../../udf/xilinxComDetect.hpp \
 	@echo "-------------------------------------------------------"
 	@echo "Installing plugin files into TigerGraph software"
 	@echo "-------------------------------------------------------"
-	cd ../../ && make && ./staging/install.sh -v -f $(SSH_KEY_OPT) && \
+	cd ../../ && make DEBUG=$(DEBUG) && ./staging/install.sh -v -f $(SSH_KEY_OPT) && \
 	cd - && touch .install-plugin-done
 
 .install-udf-done: .install-plugin-done udf/louvainDemo.hpp
 	@echo "--------------------------------------------------------------"
 	@echo "Installing application specific UDFs into TigerGraph software"
 	@echo "--------------------------------------------------------------"
-	cd ../../ && make stage && \
+	cd ../../ && make DEBUG=$(DEBUG) stage && \
 	./staging/examples/comdetect/bin/install-udf.sh -v -f $(SSH_KEY_OPT) && \
 	cd - && touch .install-udf-done
 
@@ -70,7 +70,7 @@ run: .install-udf-done
 	@echo "-------------------------------------------------------"
 	@echo "Running run.sh from staging "
 	@echo "-------------------------------------------------------"
-	cd ../../ && make stage && ./staging/examples/comdetect/run.sh -v \
+	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/examples/comdetect/run.sh -v \
 	    -g $(graphName) -c $(compileMode) -r $(runMode) -x $(partitionMode) \
 		-m $(numNodes) -d $(numDevices) \
 	    -s $(dataSource) -a $(alveoProject) -n $(numPartitions)
@@ -80,7 +80,7 @@ run-cluster: .install-udf-done
 	@echo "-------------------------------------------------------"
 	@echo "Running run.sh from staging "
 	@echo "-------------------------------------------------------"
-	cd ../../ && make stage && ./staging/examples/comdetect/run.sh -v \
+	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/examples/comdetect/run.sh -v \
 	    -g $(graphName) -c $(compileMode) -r $(runMode) -x $(partitionMode) \
 		-m 3 -d 3 -n 9 -s $(dataSource) -a $(alveoProject) 
 
