@@ -115,11 +115,14 @@ inline int udf_save_alveo_partition() {
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     //build offsets_tg
-    int offsets_tg_size = pContext->getDegreeListSize();
-    pContext->setOffsetsTg(pContext->getDegreeList()) ;
-    for(int i = 1;i < offsets_tg_size;i++){
+    std::vector<long> offsetVec = pContext->getDegreeList();
+    offsetVec.insert(offsetVec.begin(), 0);
+    pContext->setOffsetsTg(offsetVec.data());
+    int offsets_tg_size = offsetVec.size();
+    for(int i = 2;i < offsets_tg_size;i++){
         pContext->setOffsetsTg(i,pContext->getOffsetTg(i) + pContext->getOffsetTg(i-1)); //offsets_tg[i] += pContext->offsets_tg[i-1];
     }
+    
 #ifdef XILINX_COM_DETECT_DEBUG_ON
     std::cout<<"Last offsets_tg "<<pContext->getOffsetTg(offsets_tg_size-1)<<std::endl;
 #endif
