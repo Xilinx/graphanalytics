@@ -1,61 +1,24 @@
-// 67d7842dbbe25473c3c32b93c0da8047785f30d78e8a024de1b57352245f9689
 /*
-#-  (c) Copyright 2011-2019 Xilinx, Inc. All rights reserved.
-#-
-#-  This file contains confidential and proprietary information
-#-  of Xilinx, Inc. and is protected under U.S. and
-#-  international copyright and other intellectual property
-#-  laws.
-#-
-#-  DISCLAIMER
-#-  This disclaimer is not a license and does not grant any
-#-  rights to the materials distributed herewith. Except as
-#-  otherwise provided in a valid license issued to you by
-#-  Xilinx, and to the maximum extent permitted by applicable
-#-  law: (1) THESE MATERIALS ARE MADE AVAILABLE "AS IS" AND
-#-  WITH ALL FAULTS, AND XILINX HEREBY DISCLAIMS ALL WARRANTIES
-#-  AND CONDITIONS, EXPRESS, IMPLIED, OR STATUTORY, INCLUDING
-#-  BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, NON-
-#-  INFRINGEMENT, OR FITNESS FOR ANY PARTICULAR PURPOSE; and
-#-  (2) Xilinx shall not be liable (whether in contract or tort,
-#-  including negligence, or under any other theory of
-#-  liability) for any loss or damage of any kind or nature
-#-  related to, arising under or in connection with these
-#-  materials, including for any direct, or any indirect,
-#-  special, incidental, or consequential loss or damage
-#-  (including loss of data, profits, goodwill, or any type of
-#-  loss or damage suffered as a result of any action brought
-#-  by a third party) even if such damage or loss was
-#-  reasonably foreseeable or Xilinx had been advised of the
-#-  possibility of the same.
-#-
-#-  CRITICAL APPLICATIONS
-#-  Xilinx products are not designed or intended to be fail-
-#-  safe, or for use in any application requiring fail-safe
-#-  performance, such as life-support or safety devices or
-#-  systems, Class III medical devices, nuclear facilities,
-#-  applications related to the deployment of airbags, or any
-#-  other applications that could lead to death, personal
-#-  injury, or severe property or environmental damage
-#-  (individually and collectively, "Critical
-#-  Applications"). Customer assumes the sole risk and
-#-  liability of any use of Xilinx products in Critical
-#-  Applications, subject only to applicable laws and
-#-  regulations governing limitations on product liability.
-#-
-#-  THIS COPYRIGHT NOTICE AND DISCLAIMER MUST BE RETAINED AS
-#-  PART OF THIS FILE AT ALL TIMES. 
-#- ************************************************************************
-
-*/
+ * Copyright 2011-2019 Xilinx, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #ifndef __AP_INT_BASE_H__
 #define __AP_INT_BASE_H__
 
 #ifndef __AP_INT_H__
-// TODO make this an error
-#pragma message \
-    "Only ap_fixed.h and ap_int.h can be included directly in user code."
+#error "Only ap_fixed.h and ap_int.h can be included directly in user code."
 #endif
 
 #ifndef __cplusplus
@@ -64,7 +27,9 @@
 
 #include <ap_common.h>
 #ifndef __SYNTHESIS__
+#if _AP_ENABLE_HALF_ == 1
 #include <hls_half.h>
+#endif
 #include <iostream>
 #include <string.h>
 #endif
@@ -248,12 +213,14 @@ struct ap_int_base : public _AP_ROOT_TYPE<_AP_W, _AP_S> {
   CTOR_FROM_INT(ap_ulong, _AP_SIZE_ap_slong, false)
 #undef CTOR_FROM_INT
 
+#if _AP_ENABLE_HALF_ == 1
   /// ctor from half.
   //  TODO optimize
   INLINE ap_int_base(half op) {
     ap_int_base<_AP_W, _AP_S> t((float)op);
     Base::V = t.V;
   }
+#endif
 
   /// ctor from float.
   INLINE ap_int_base(float op) {
@@ -1424,7 +1391,9 @@ OP_BIN_WITH_PTR(-)
   OP_BIN_WITH_FLOAT(+, C_TYPE) \
   OP_BIN_WITH_FLOAT(-, C_TYPE)
 
+#if _AP_ENABLE_HALF_ == 1
 ALL_OP_WITH_FLOAT(half)
+#endif
 ALL_OP_WITH_FLOAT(float)
 ALL_OP_WITH_FLOAT(double)
 
@@ -1670,21 +1639,19 @@ OP_BIN_WITH_RANGE(<<, arg1)
 #undef OP_BIN_WITH_RANGE
 
 // compound assignment operators.
-#define OP_ASSIGN_WITH_RANGE(ASSIGN_OP)                       \
-  template <int _AP_W1, bool _AP_S1, int _AP_W2, bool _AP_S2> \
-  INLINE ap_int_base<_AP_W1, _AP_S1>& operator ASSIGN_OP(     \
-      ap_int_base<_AP_W1, _AP_S1>& op1,                       \
-      const ap_range_ref<_AP_W2, _AP_S2>& op2) {              \
-    return op1 ASSIGN_OP ap_int_base<_AP_W2, false>(op2);     \
-  }                                                           \
-  template <int _AP_W1, bool _AP_S1, int _AP_W2, bool _AP_S2> \
-  INLINE ap_range_ref<_AP_W1, _AP_S1>& operator ASSIGN_OP(    \
-      ap_range_ref<_AP_W1, _AP_S1>& op1,                      \
-      const ap_int_base<_AP_W2, _AP_S2>& op2) {               \
-    ap_int_base<_AP_W1, false> tmp(op1);                      \
-    tmp ASSIGN_OP op2;                                        \
-    op1 = tmp;                                                \
-    return op1;                                               \
+#define OP_ASSIGN_WITH_RANGE(ASSIGN_OP)                                      \
+  template <int _AP_W1, bool _AP_S1, int _AP_W2, bool _AP_S2>                \
+  INLINE ap_int_base<_AP_W1, _AP_S1>& operator ASSIGN_OP(                    \
+      ap_int_base<_AP_W1, _AP_S1>& op1, ap_range_ref<_AP_W2, _AP_S2>& op2) { \
+    return op1 ASSIGN_OP ap_int_base<_AP_W2, false>(op2);                    \
+  }                                                                          \
+  template <int _AP_W1, bool _AP_S1, int _AP_W2, bool _AP_S2>                \
+  INLINE ap_range_ref<_AP_W1, _AP_S1>& operator ASSIGN_OP(                   \
+      ap_range_ref<_AP_W1, _AP_S1>& op1, ap_int_base<_AP_W2, _AP_S2>& op2) { \
+    ap_int_base<_AP_W1, false> tmp(op1);                                     \
+    tmp ASSIGN_OP op2;                                                       \
+    op1 = tmp;                                                               \
+    return op1;                                                              \
   }
 
 OP_ASSIGN_WITH_RANGE(+=)
@@ -1692,36 +1659,11 @@ OP_ASSIGN_WITH_RANGE(-=)
 OP_ASSIGN_WITH_RANGE(*=)
 OP_ASSIGN_WITH_RANGE(/=)
 OP_ASSIGN_WITH_RANGE(%=)
-OP_ASSIGN_WITH_RANGE(>>=)
-OP_ASSIGN_WITH_RANGE(<<=)
-
-#undef OP_ASSIGN_WITH_RANGE
-
-// compound assignment operators
-// as range could be dynamic, do not check whether two integers are of same
-// width.
-#define OP_ASSIGN_WITH_RANGE(ASSIGN_OP)                       \
-  template <int _AP_W1, bool _AP_S1, int _AP_W2, bool _AP_S2> \
-  INLINE ap_int_base<_AP_W1, _AP_S1>& operator ASSIGN_OP(     \
-      ap_int_base<_AP_W1, _AP_S1>& op1,                       \
-      const ap_range_ref<_AP_W2, _AP_S2>& op2) {              \
-    ap_int_base<_AP_W2, false> tmp(op2);                      \
-    op1.V ASSIGN_OP tmp.V;                                    \
-    return op1;                                               \
-  }                                                           \
-  template <int _AP_W1, bool _AP_S1, int _AP_W2, bool _AP_S2> \
-  INLINE ap_range_ref<_AP_W1, _AP_S1>& operator ASSIGN_OP(    \
-      ap_range_ref<_AP_W1, _AP_S1>& op1,                      \
-      const ap_int_base<_AP_W2, _AP_S2>& op2) {               \
-    ap_int_base<_AP_W1, false> tmp(op1);                      \
-    tmp.V ASSIGN_OP op2.V;                                    \
-    op1 = tmp;                                                \
-    return op1;                                               \
-  }
-
 OP_ASSIGN_WITH_RANGE(&=)
 OP_ASSIGN_WITH_RANGE(|=)
 OP_ASSIGN_WITH_RANGE(^=)
+OP_ASSIGN_WITH_RANGE(>>=)
+OP_ASSIGN_WITH_RANGE(<<=)
 
 #undef OP_ASSIGN_WITH_RANGE
 
@@ -1779,21 +1721,19 @@ OP_BIN_WITH_BIT(<<, arg1)
 #undef OP_BIN_WITH_BIT
 
 // compound assignment operators.
-#define OP_ASSIGN_WITH_BIT(ASSIGN_OP)                         \
-  template <int _AP_W1, bool _AP_S1, int _AP_W2, bool _AP_S2> \
-  INLINE ap_int_base<_AP_W1, _AP_S1>& operator ASSIGN_OP(     \
-      ap_int_base<_AP_W1, _AP_S1>& op1,                       \
-      const ap_bit_ref<_AP_W2, _AP_S2>& op2) {                \
-    return op1 ASSIGN_OP ap_int_base<1, false>(op2);          \
-  }                                                           \
-  template <int _AP_W1, bool _AP_S1, int _AP_W2, bool _AP_S2> \
-  INLINE ap_bit_ref<_AP_W1, _AP_S1>& operator ASSIGN_OP(      \
-      ap_bit_ref<_AP_W1, _AP_S1>& op1,                        \
-      const ap_int_base<_AP_W2, _AP_S2>& op2) {               \
-    ap_int_base<1, false> tmp(op1);                           \
-    tmp ASSIGN_OP op2;                                        \
-    op1 = tmp;                                                \
-    return op1;                                               \
+#define OP_ASSIGN_WITH_BIT(ASSIGN_OP)                                      \
+  template <int _AP_W1, bool _AP_S1, int _AP_W2, bool _AP_S2>              \
+  INLINE ap_int_base<_AP_W1, _AP_S1>& operator ASSIGN_OP(                  \
+      ap_int_base<_AP_W1, _AP_S1>& op1, ap_bit_ref<_AP_W2, _AP_S2>& op2) { \
+    return op1 ASSIGN_OP ap_int_base<1, false>(op2);                       \
+  }                                                                        \
+  template <int _AP_W1, bool _AP_S1, int _AP_W2, bool _AP_S2>              \
+  INLINE ap_bit_ref<_AP_W1, _AP_S1>& operator ASSIGN_OP(                   \
+      ap_bit_ref<_AP_W1, _AP_S1>& op1, ap_int_base<_AP_W2, _AP_S2>& op2) { \
+    ap_int_base<1, false> tmp(op1);                                        \
+    tmp ASSIGN_OP op2;                                                     \
+    op1 = tmp;                                                             \
+    return op1;                                                            \
   }
 
 OP_ASSIGN_WITH_BIT(+=)
@@ -1801,36 +1741,11 @@ OP_ASSIGN_WITH_BIT(-=)
 OP_ASSIGN_WITH_BIT(*=)
 OP_ASSIGN_WITH_BIT(/=)
 OP_ASSIGN_WITH_BIT(%=)
-OP_ASSIGN_WITH_BIT(>>=)
-OP_ASSIGN_WITH_BIT(<<=)
-
-#undef OP_ASSIGN_WITH_BIT
-
-// compound assignment operators.
-// as range could be dynamic, do not check whether two integers are of same
-// width.
-#define OP_ASSIGN_WITH_BIT(ASSIGN_OP)                         \
-  template <int _AP_W1, bool _AP_S1, int _AP_W2, bool _AP_S2> \
-  INLINE ap_int_base<_AP_W1, _AP_S1>& operator ASSIGN_OP(     \
-      ap_int_base<_AP_W1, _AP_S1>& op1,                       \
-      const ap_bit_ref<_AP_W2, _AP_S2>& op2) {                \
-    ap_int_base<1, false> tmp(op2);                           \
-    op1.V ASSIGN_OP tmp.V;                                    \
-    return op1;                                               \
-  }                                                           \
-  template <int _AP_W1, bool _AP_S1, int _AP_W2, bool _AP_S2> \
-  INLINE ap_bit_ref<_AP_W1, _AP_S1>& operator ASSIGN_OP(      \
-      ap_bit_ref<_AP_W1, _AP_S1>& op1,                        \
-      const ap_int_base<_AP_W2, _AP_S2>& op2) {               \
-    ap_int_base<1, false> tmp(op1);                           \
-    tmp.V ASSIGN_OP op2.V;                                    \
-    op1 = tmp;                                                \
-    return op1;                                               \
-  }
-
 OP_ASSIGN_WITH_BIT(&=)
 OP_ASSIGN_WITH_BIT(|=)
 OP_ASSIGN_WITH_BIT(^=)
+OP_ASSIGN_WITH_BIT(>>=)
+OP_ASSIGN_WITH_BIT(<<=)
 
 #undef OP_ASSIGN_WITH_BIT
 
@@ -1964,7 +1879,7 @@ OP_REL_WITH_CONCAT(<=)
 
 #undef OP_REL_WITH_CONCAT
 
-#endif // ifndef __cplusplus else
-#endif // ifndef __AP_INT_BASE_H__ else
+#endif // ifndef __cplusplus
+#endif // ifndef __AP_INT_BASE_H__
 
-
+// -*- cpp -*-

@@ -242,8 +242,8 @@ public:
         return degree_list.size(); 
     }
     
-    long* getDegreeList(){
-        return degree_list.data(); 
+    std::vector<long> getDegreeList(){
+        return degree_list; 
     }
     
     void clearPartitionData(){
