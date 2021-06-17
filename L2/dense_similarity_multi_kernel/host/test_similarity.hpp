@@ -106,7 +106,7 @@ int computeSimilarity0(std::string xclbinPath,
 
     // platform related operations
     std::vector<cl::Device> devices = xcl::get_xil_devices();
-    cl::Device device = devices[1];
+    cl::Device device = devices[0];
 
     // Creating Context and Command Queue for selected Device
     cl::Context context(device, NULL, NULL, NULL, &fail);
@@ -348,7 +348,7 @@ int computeSimilarity1(std::string xclbinPath,
 
     // platform related operations
     std::vector<cl::Device> devices = xcl::get_xil_devices();
-    cl::Device device = devices[1];
+    cl::Device device = devices[0];
 
     // Creating Context and Command Queue for selected Device
     cl::Context context(device, NULL, NULL, NULL, &fail);
