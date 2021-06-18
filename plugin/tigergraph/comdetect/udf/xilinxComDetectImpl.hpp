@@ -71,11 +71,13 @@ public:
 
 
 private:
+    std::string curNodeHostname_;
+    std::string curNodeIp_;
+    std::string nodeIps_;
+    std::string xGraphStorePath_;
     std::string alveoProject_;
     unsigned numPartitions_;
     unsigned numDevices_ = 1;
-    std::string curNodeIp_;
-    std::string nodeIps_;
     unsigned nodeId_ = 0;
     unsigned numNodes_ = 1;
     State state_ = UninitializedState;
@@ -87,7 +89,7 @@ private:
     uint64_t louvain_offset = 0 ;
     // Partition data
     long* offsets_tg;
-    xilinx_apps::louvainmod::Edge* edgelist_tg;
+    const xilinx_apps::louvainmod::Edge* edgelist_tg;
     long* drglist_tg;
     long  start_vertex;     // If a vertex is smaller than star_vertex, it is a ghost
     long  end_vertex;
@@ -111,63 +113,62 @@ public:
         return s_pContext;
     }
     
-    Context() = default;
+    Context() {
+        // PLUGIN_CONFIG_PATH will be replaced by the actual config path during plugin installation
+        std::fstream config_json(PLUGIN_CONFIG_PATH, std::ios::in);
+        if (!config_json) {
+            std::cout << "ERROR: config file doesn't exist:" << PLUGIN_CONFIG_PATH << std::endl;
+            return;
+        }
+
+        char line[1024] = {0};
+        char* token;
+        nodeIps_.clear();
+        bool scanNodeIp;
+        while (config_json.getline(line, sizeof(line))) {
+            token = strtok(line, "\"\t ,}:{\n");
+            scanNodeIp = false;
+            while (token != NULL) {
+                if (!std::strcmp(token, "curNodeHostname")) {
+                    token = strtok(NULL, "\"\t ,}:{\n");
+                    curNodeHostname_ = token;
+                } else if (!std::strcmp(token, "curNodeIp")) {
+                    token = strtok(NULL, "\"\t ,}:{\n");
+                    curNodeIp_ = token;
+                } else if (!std::strcmp(token, "xGraphStore")) {
+                    token = strtok(NULL, "\"\t ,}:{\n");
+                    xGraphStorePath_ = token;
+                } else if (!std::strcmp(token, "nodeIps")) {
+                    // this field has multipe space separated IPs
+                    scanNodeIp = true;
+                    // read the next token
+                    token = strtok(NULL, "\"\t ,}:{\n");
+                    nodeIps_ += token;
+                    std::cout << "node_ips=" << nodeIps_ << std::endl;
+                } else if (scanNodeIp) {
+                    // In the middle of nodeIps field
+                    nodeIps_ += " ";
+                    nodeIps_ += token;
+                    std::cout << "node_ips=" << nodeIps_ << std::endl;
+                }
+                token = strtok(NULL, "\"\t ,}:{\n");
+            }
+        }
+        config_json.close();
+    }
+    
     ~Context() { delete pLouvainMod_; }
 
     xilinx_apps::louvainmod::LouvainMod *getLouvainModObj() {
         if (pLouvainMod_ == nullptr) {
             xilinx_apps::louvainmod::Options options;
-
-            std::string cur_node_hostname, cur_node_ip, node_ips, xGstorePath;
-            // PLUGIN_CONFIG_PATH will be replaced by the actual config path during plugin installation
-            std::fstream config_json(PLUGIN_CONFIG_PATH, std::ios::in);
-            if (!config_json) {
-                std::cout << "ERROR: config file doesn't exist:" << PLUGIN_CONFIG_PATH << std::endl;
-                return(2);
-            }
-
-            char line[1024] = {0};
-            char* token;
-            node_ips = "";
-            bool scanNodeIp;
-            while (config_json.getline(line, sizeof(line))) {
-                token = strtok(line, "\"\t ,}:{\n");
-                scanNodeIp = false;
-                while (token != NULL) {
-                    if (!std::strcmp(token, "curNodeHostname")) {
-                        token = strtok(NULL, "\"\t ,}:{\n");
-                        cur_node_hostname = token;
-                    } else if (!std::strcmp(token, "curNodeIp")) {
-                        token = strtok(NULL, "\"\t ,}:{\n");
-                        cur_node_ip = token;
-                    } else if (!std::strcmp(token, "xGraphStore")) {
-                        token = strtok(NULL, "\"\t ,}:{\n");
-                        xGstorePath = token;
-                    } else if (!std::strcmp(token, "nodeIps")) {
-                        // this field has multipe space separated IPs
-                        scanNodeIp = true;
-                        // read the next token
-                        token = strtok(NULL, "\"\t ,}:{\n");
-                        node_ips += token;
-                        std::cout << "node_ips=" << node_ips << std::endl;
-                    } else if (scanNodeIp) {
-                        // In the middle of nodeIps field
-                        node_ips += " ";
-                        node_ips += token;
-                        std::cout << "node_ips=" << node_ips << std::endl;
-                    }
-                    token = strtok(NULL, "\"\t ,}:{\n");
-                }
-            }
-            config_json.close();
-
             options.xclbinPath = PLUGIN_XCLBIN_PATH;
             options.nameProj = alveoProject_;
             options.devNeed_cmd = numNodes_;
             options.nodeId = nodeId_;
-            options.hostName = cur_node_hostname;
-            options.clusterIpAddresses = node_ips;
-            options.hostIpAddress = cur_node_ip;
+            options.hostName = curNodeHostname_;
+            options.clusterIpAddresses = nodeIps_;
+            options.hostIpAddress = curNodeIp_;
 
 #ifdef XILINX_COM_DETECT_DEBUG_ON
             std::cout << "DEBUG: louvainmod options: = xclbinPath" << options.xclbinPath
@@ -379,6 +380,10 @@ public:
 
     void setStartVertex(long startVertex) {
         start_vertex = startVertex;
+    }
+    
+    const std::string &getXGraphStorePath() const {
+        return xGraphStorePath_;
     }
 };
 

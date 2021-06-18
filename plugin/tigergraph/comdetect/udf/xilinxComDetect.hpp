@@ -96,7 +96,9 @@ inline void udf_set_louvain_edge_list(uint64_t louvainIdSource, uint64_t louvain
 inline void udf_start_partition(string alveo_project, int numVertices){
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
-    std::string alveo_parj_path = "/home2/tigergraph/" + alveo_project;
+    std::cout << "DEBUG: before alveo_parj_path" << std::endl;
+    std::string alveo_parj_path = pContext->getXGraphStorePath() + "/" + alveo_project;
+    std::cout << "DEBUG: alveo_parj_path = " << alveo_parj_path << std::endl;
     pContext->setAlveoProject(alveo_parj_path);
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
     xilinx_apps::louvainmod::LouvainMod::PartitionOptions options; //use default value
@@ -130,7 +132,7 @@ inline int udf_save_alveo_partition() {
     //traverse the partition size for each louvainId, populate edgelist from edgeListMap
     pContext->setStartVertex(long(pContext->getLouvainOffset()));
     pContext->setEndVertex(long(pContext->getLouvainOffset() + pContext->getNextId())) ; // the end vertex on local partition
-    for(int i= pContext->getStartVertex();i <= pContext->getEndVertex() ; i++) {
+    for(long i= pContext->getStartVertex();i <= pContext->getEndVertex() ; i++) {
         pContext->getEdgeListVec().insert(pContext->getEdgeListVec().end(),pContext->getEdgeListMap()[i].begin(),pContext->getEdgeListMap()[i].end());
         for(auto& it:pContext->getEdgeListMap()[i]) {
             pContext->addDgrListVec(pContext->getDgrListMap()[it.tail]);
@@ -167,11 +169,11 @@ inline void udf_finish_partition(MapAccum<uint64_t, int64_t> numAlveoPars){
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
-    for(int i=0;i<numAlveoPars.size();i++){
+    for(unsigned i=0;i<numAlveoPars.size();i++){
         pContext->addNumAlveoPartitions(((int)numAlveoPars.get(i)));
     }
 #ifdef XILINX_COM_DETECT_DEBUG_ON
-    for(int i=0;i<numAlveoPars.size();i++){
+    for(unsigned i=0;i<numAlveoPars.size();i++){
         std::cout << "numAlveoPartition: " << pContext->getNumAlveoPartitions()[i] <<std::endl;
     }
 #endif
