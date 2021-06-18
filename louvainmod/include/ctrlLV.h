@@ -143,12 +143,12 @@ public:
 	int cnt_his;
 	list<string> his_cmd;
 	myCmd();//{cnt_his=0; argc=0; cmd_last=-1;};
-	char* cmd_SkipSpace(char* str);
-	int cmd_CpyWord(char* des, char* src);
+	const char* cmd_SkipSpace(const char* str);
+	int cmd_CpyWord(char* des, const char* src);
 	int cmd_Getline();
-	int cmd_Getline(char* str);
+	int cmd_Getline(const char* str);
 	int cmd_GetCmd();
-	int cmd_GetCmd(char* str);
+	int cmd_GetCmd(const char* str);
 	void cmd_resetArg();
 	int cmd_findPara(const char* para);
 	int PrintHistory();

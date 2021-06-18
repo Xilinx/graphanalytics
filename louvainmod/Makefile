@@ -54,8 +54,9 @@ BUILD_DIR = build
 
 CCC = g++
 CXX = g++
-CXXFLAGS = -std=c++11 -DPRAGMA -Ofast -fopenmp -fmessage-length=0  -fPIC -Wall -Wno-unknown-pragmas -Wno-unused-label -Wno-unused-variable -Wno-sign-compare -Wno-unused-result  \
-           -Wno-narrowing -D USE_HBM -fmessage-length=0 -D USE_HBM -D LOUVAINMOD
+CXXFLAGS = -std=c++11 -DPRAGMA -Ofast -fopenmp -fmessage-length=0  -fPIC -Wall -Wno-unknown-pragmas -Wno-unused-label \
+    -Wno-unused-variable -Wno-sign-compare -Wno-unused-result -Wno-unused-but-set-variable \
+    -Wno-narrowing -D USE_HBM -fmessage-length=0 -D LOUVAINMOD
 
 # Define the target directories.
 
@@ -76,7 +77,7 @@ INCLUDES_libLouvain = \
 	-I$(XILINX_XRM)/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L2/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L3/include \
-	-I$(GRAPH_ANALYTICS_DIR)/L3/include/include_hls \
+	-isystem $(GRAPH_ANALYTICS_DIR)/L3/include/include_hls \
 	-I$(GRAPH_ANALYTICS_DIR)/ext/xcl2 \
 	-I$(GRAPH_ANALYTICS_DIR)/plugin/tigergraph/comdetect/udf/QueryUdf \
 #	-I${JAVA_HOME}/include \

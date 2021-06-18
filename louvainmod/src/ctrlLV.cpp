@@ -28,8 +28,8 @@ void TimeStt::Print(){printf("TIME_STT: %s =%lf sec\n",name, time);};
 void TimeStt::EndPrint(){End();Print();};
 
 myCmd::myCmd(){cnt_his=0; argc=0; cmd_last=-1;};
-char* myCmd::cmd_SkipSpace(char* str){
-	char* pch=str;
+const char* myCmd::cmd_SkipSpace(const char* str){
+	const char* pch=str;
 	while(*pch!=0){
 		if(*pch==' '|| *pch=='\t'){
 			pch++;
@@ -41,7 +41,7 @@ char* myCmd::cmd_SkipSpace(char* str){
 bool isChNormal(char ch){
 	return (ch!='\0') && (ch!='\n') && (ch!=' ') && (ch!='\t' && (ch!='#'));
 }
-int myCmd::cmd_CpyWord(char* des, char* src){
+int myCmd::cmd_CpyWord(char* des, const char* src){
 	int cnt=0;
 	assert(des);
 	assert(src);
@@ -88,12 +88,12 @@ int myCmd::cmd_Getline(){//( char** argv){
 
 	cmd_resetArg();
 	//printf("$LVCMD:\/");
-	printf("\033[1;31;40m$\033[0m\033[1;34;40m[LVCMD]$:\ \033[0m");
+	printf("\033[1;31;40m$\033[0m\033[1;34;40m[LVCMD]$: \033[0m");
 	//scanf("%[^\n]", str);
 	Getline(str);
 	line_last = str;
 	//his_cmd.push_back(line_last);
-	char* pch=str;
+	const char* pch=str;
 	do{
 		pch = cmd_SkipSpace(pch);
 		if(isChNormal(*pch)){
@@ -102,11 +102,11 @@ int myCmd::cmd_Getline(){//( char** argv){
 	}while(*pch!='\n' && *pch!='\0' && *pch!='#');
 	return argc;
 }
-int myCmd::cmd_Getline(char* str){//( char** argv){
+int myCmd::cmd_Getline(const char* str){//( char** argv){
 	cmd_resetArg();
 	line_last = str;
 	//his_cmd.push_back(line_last);
-	char* pch=str;
+	const char* pch=str;
 	do{
 		pch = cmd_SkipSpace(pch);
 		if(isChNormal(*pch)){
@@ -133,7 +133,7 @@ int myCmd::cmd_GetCmd(){
 	}
 	return cmd_last;
 }
-int myCmd::cmd_GetCmd(char* str) {
+int myCmd::cmd_GetCmd(const char* str) {
 	cmd_Getline(str);
 	if(argc==0){
 		printf("\033[1;31;40mERROR\033[0m: No valid command\n");
@@ -664,7 +664,7 @@ int CtrlLouvain::exe_LV_SAVE()
 }
 
 int CtrlLouvain::exe_LV_DEMO(){
-	mycmd.cmd_GetCmd((const char*)("loadg ../data/as-Skitter-wt.mtx"));
+	mycmd.cmd_GetCmd("loadg ../data/as-Skitter-wt.mtx");
 	ExeCmd();
 	return 0;
 }

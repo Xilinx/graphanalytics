@@ -4182,7 +4182,7 @@ float louvain_modularity_alveo_wrapper(int argc, char* argv[], xf::graph::L3::Ha
     int requestLoad = 100;
     std::string xclbinPath = "/opt/xilinx/apps/graphanalytics/louvainmod/1.0/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin";
     const int cuNm = 1;
-    int numDevices = 1;
+//    int numDevices = 1;  unused
 
     //--------------- Parse Input parameters
     double opts_C_thresh;   // Threshold with coloring on
@@ -4222,8 +4222,8 @@ float louvain_modularity_alveo_wrapper(int argc, char* argv[], xf::graph::L3::Ha
                           par_prune, flow_fast, devNeed_cmd, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
                           nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par, max_num_level, max_num_iter);
 
-    if (devNeed_cmd > 0)
-        numDevices = devNeed_cmd;
+//    if (devNeed_cmd > 0)
+//        numDevices = devNeed_cmd;  unused
 
     retVal = compute_louvain_alveo_seperated_compute(
             mode_zmq, numPureWorker, nameWorkers, nodeID,

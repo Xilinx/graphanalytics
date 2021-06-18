@@ -934,7 +934,7 @@ void inline PhaseLoop_MapHostBuff_prune(
     ap_uint<CSRWIDTHS>* axi_indicesdup = reinterpret_cast<ap_uint<CSRWIDTHS>*>(buff_host.indicesdup);
     ap_uint<CSRWIDTHS>* axi_weights = reinterpret_cast<ap_uint<CSRWIDTHS>*>(buff_host.weights);
     ap_uint<CSRWIDTHS>* axi_indices2;
-    ap_uint<CSRWIDTHS>* axi_indicesdup2;
+    ap_uint<CSRWIDTHS>* axi_indicesdup2 = nullptr;
     ap_uint<CSRWIDTHS>* axi_weights2;
     if(NE_mem_2>0){
     	axi_indices2 = reinterpret_cast<ap_uint<CSRWIDTHS>*>(buff_host.indices2);
@@ -1286,7 +1286,7 @@ void runLouvainWithFPGA_demo(graphNew* G,
     assert(NV < MAXNV);
     assert(NE_org < MAXNE);
 
-    int* colors;
+    int* colors = nullptr;
     if (opts_coloring) {
         colors = (int*)malloc(G->numVertices * sizeof(int));
         assert(colors != 0);
