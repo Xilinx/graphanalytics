@@ -113,7 +113,7 @@ inline void udf_start_partition(string alveo_project, int numVertices){
 
 //Data has been populated and send to FPGA
 
-inline int udf_save_alveo_partition() {
+inline int udf_save_alveo_partition(uint numPar) {
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     //build offsets_tg
@@ -153,6 +153,13 @@ inline int udf_save_alveo_partition() {
     std::cout << "end_vertex: " << pContext->getEndVertex() <<std::endl;
 #endif
     
+    long NV_par_recommand;
+    long NV_par_max = 64*1000*1000;
+    if(numPar>1)
+                NV_par_recommand = ( pContext->getNextId()+ numPar-1) / numPar;//allow to partition small graph with -par_num
+        else
+                NV_par_recommand = (long)((float)NV_par_max * 0.80);//20% space for ghosts.
+
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
     xilinx_apps::louvainmod::LouvainMod::PartitionData partitionData;
     partitionData.offsets_tg = pContext->getOffsetsTg(); //offsets_tg;
@@ -160,6 +167,7 @@ inline int udf_save_alveo_partition() {
     partitionData.drglist_tg = pContext->getDrglistTg(); //drglist_tg;
     partitionData.start_vertex = pContext->getStartVertex(); //start_vertex;
     partitionData.end_vertex = pContext->getEndVertex(); //end_vertex;
+    partitionData.NV_par_recommand = NV_par_recommand;
     int64_t number_of_partitions = (int64_t)pLouvainMod->addPartitionData(partitionData);
     return number_of_partitions;
 

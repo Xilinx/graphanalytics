@@ -100,7 +100,8 @@ CREATE DISTRIBUTED QUERY tg_partition_phase_3(
     SET<STRING> v_types,            // List of vertex types that would participate in Louvain Modularity
     SET<STRING> e_types,            // List of edge types that would participate in Louvain Modularity
     STRING weight_attr,             // Name of the edge attribute that has weight of the edge
-    STRING louvainId_attr
+    STRING louvainId_attr,
+    UINT numPar = 1
 ) FOR GRAPH @graph 
 {
     STRING gName = "@graph" ;
@@ -115,8 +116,9 @@ CREATE DISTRIBUTED QUERY tg_partition_phase_3(
     nodeList = SELECT n FROM nodes:n 
         ACCUM udf_start_partition(gName, Start.size());
             
+ 
     parList = SELECT n FROM nodes:n
-        ACCUM @@nodeAccum += (n.NODE_ID -> udf_save_alveo_partition());
+        ACCUM @@nodeAccum += (n.NODE_ID -> udf_save_alveo_partition(numPar));
     PRINT @@nodeAccum;
 
     nodeList = SELECT n FROM nodes:n
