@@ -53,8 +53,8 @@ STAGE_COPY_COMMON_FILES = \
     bin/install-plugin-cluster.sh \
     bin/install-plugin-node.sh\
     \
-    udf/ExprFunctions.hpp \
     udf/mergeHeaders.py \
+    udf/prepExprFunctions.py
 
 define STAGE_COPY_COMMON_RULE
 $$(STAGE_DIR)/$(1): $(TG_PLUGIN_COMMON_DIR)/$(1)
