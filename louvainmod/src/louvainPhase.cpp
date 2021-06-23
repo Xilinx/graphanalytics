@@ -814,7 +814,7 @@ void PhaseLoop_UsingFPGA_Prep(
 	edge* vtxInd   = G->edgeList;
 	long NE = G->numEdges;
 	long NEx2 = NE<<1;
-	long NE1 = NEx2< (1<<26)? NEx2 : (1<<26);//256MB/sizeof(int/float)=64M
+	long NE1 = NEx2< (MAXNV)? NEx2 : (MAXNV);//256MB/sizeof(int/float)=64M
 
 	long cnt_e=0;
             for (int i = 0; i < vertexNum + 1; i++) {
@@ -1198,7 +1198,7 @@ void runLouvainWithFPGA(graphNew* G,                 //Input graphNew, undirecti
     KMemorys_host   buff_host;
     KMemorys_clBuff buff_cl;
     long NE_mem      = NE_org * 2;//number for real edge to be stored in memory
-    long NE_mem_1    = NE_mem < (1<<26)? NE_mem :(1<<26) ;
+    long NE_mem_1    = NE_mem < (MAXNV)? NE_mem :(MAXNV) ;
     long NE_mem_2    = NE_mem - NE_mem_1;
     UsingFPGA_MapHostClBuff( NV, NE_mem_1, NE_mem_2, context, buff_host, buff_cl);
 
@@ -1424,7 +1424,7 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host(int numColors,
     edge* vtxInd = G->edgeList;
     long NE = G->numEdges;
     long NEx2 = NE << 1;
-    long NE1 = NEx2 < (1 << 26) ? NEx2 : (1 << 26); // 256MB/sizeof(int/float)=64M
+    long NE1 = NEx2 < (MAXNV) ? NEx2 : (MAXNV); // 256MB/sizeof(int/float)=64M
 
     long cnt_e = 0;
     for (int i = 0; i < vertexNum + 1; i++) {
@@ -1523,7 +1523,7 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune(
 	edge* vtxInd   = G->edgeList;
 	long NE = G->numEdges;
 	long NEx2 = NE<<1;
-	long NE1 = NEx2< (1<<26)? NEx2 : (1<<26);//256MB/sizeof(int/float)=64M
+	long NE1 = NEx2< (MAXNV)? NEx2 : (MAXNV);//256MB/sizeof(int/float)=64M
 
 	long cnt_e=0;
             for (int i = 0; i < vertexNum + 1; i++) {
@@ -1577,6 +1577,7 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune(
             buff_host[0].config1[0] = opts_C_thresh;
             buff_host[0].config1[1] = currMod[0];
             time1  = omp_get_wtime() - time1;
+printf("maxv:%d, NEx2:%ld, vertexNum: %d, numColors:%d, edgeNum:%d, opts_C_thresh:%d, currMod:%d\n", MAXNV, NEx2, vertexNum,numColors,edgeNum,opts_C_thresh,          currMod);
             return time1;
 #ifdef PRINTINFO_LVPHASE
             std::cout << "INFO: eachItrs" <<buff_host[0].config0[2] <<", "<<"eachItr[0] = "<<buff_host[0].config0[2]<<", "<<"currMod[0] = "<<buff_host[0].config1[1]<< std::endl;
@@ -1602,7 +1603,7 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_renumber(
 	edge* vtxInd   = G->edgeList;
 	long NE = G->numEdges;
 	long NEx2 = NE<<1;
-	long NE1 = NEx2< (1<<26)? NEx2 : (1<<26);//256MB/sizeof(int/float)=64M
+	long NE1 = NEx2< (MAXNV)? NEx2 : (MAXNV);//256MB/sizeof(int/float)=64M
 
 	long cnt_e=0;
             for (int i = 0; i < vertexNum + 1; i++) {
@@ -1682,7 +1683,7 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_local(
 	edge* vtxInd   = G->edgeList;
 	long NE = G->numEdges;
 	long NEx2 = NE<<1;
-	long NE1 = NEx2< (1<<26)? NEx2 : (1<<26);//256MB/sizeof(int/float)=64M
+	long NE1 = NEx2< (MAXNV)? NEx2 : (MAXNV);//256MB/sizeof(int/float)=64M
 
 	long cnt_e=0;
             for (int i = 0; i < vertexNum + 1; i++) {
@@ -1734,6 +1735,8 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_local(
             buff_host.config1[0] = opts_C_thresh;
             buff_host.config1[1] = currMod;
             time1  = omp_get_wtime() - time1;
+            
+            printf("maxv:%d, NEx2:%ld, vertexNum: %d, numColors:%d, edgeNum:%d, opts_C_thresh:%d, currMod:%d\n", MAXNV, NEx2, vertexNum,numColors,edgeNum,                           opts_C_thresh,          currMod);
             return time1;
 }
 double PhaseLoop_UsingFPGA_Prep_Read_buff_host_prune(
