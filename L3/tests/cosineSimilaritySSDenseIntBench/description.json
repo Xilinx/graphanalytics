@@ -4,15 +4,15 @@
     "description": "", 
     "flow": "vitis", 
     "platform_whitelist": [
-        "u50"
+        "u55c"
     ], 
     "platform_blacklist": [], 
     "platform_properties": {
-        "u50": {
+        "u55c": {
             "v++": {
                 "compiler": {
                     "cflags": [
-                        "--config PROJECT/conn_u50_u280.cfg"
+                        "--config PROJECT/conn_u50_u55c_u280.cfg"
                     ]
                 }
             }
