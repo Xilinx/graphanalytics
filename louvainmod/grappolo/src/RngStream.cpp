@@ -10,6 +10,18 @@
  *
 \***********************************************************************/
 
+/***********************************************************************\
+ *
+ * P. L'Ecuyer, ``Good Parameter Sets for Combined Multiple Recursive Random Number Generators'', 
+   Operations Research, 47, 1 (1999), 159--164.
+
+
+  * P. L'Ecuyer, R. Simard, E. J. Chen, and W. D. Kelton, 
+    ``An Objected-Oriented Random-Number Package with Many Long Streams and Substreams'', 
+     Operations Research, 50, 6 (2002), 1073--1075
+
+ \***************************************************************************************/
+
 #include "RngStream.h"
 #include <cstdlib>
 #include <iostream>
