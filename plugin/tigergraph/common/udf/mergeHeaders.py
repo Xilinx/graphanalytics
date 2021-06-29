@@ -35,7 +35,7 @@ class MergeException(Exception):
 
     @staticmethod
     def make_error_string(message, file_name, line_num):
-        return file_name + ':' + line_num + ':' + 'error: ' + message
+        return file_name + ':' + str(line_num) + ':' + ' error: ' + message
 
 
 class VarProcessor:

@@ -150,7 +150,9 @@ fi
 
 if [ $force -eq 1 ] || [ ! -f $tg_udf_dir/ExprFunctions.hpp ] || [ $(grep -c mergeHeaders $tg_udf_dir/ExprFunctions.hpp) -eq 0 ]; then
     echo "INFO: TigerGraph UDF file ExprFunctions.hpp has no plugin tags.  Installing base UDF file with tags"
-    cp -f $plugin_udf_dir/ExprFunctions.hpp $tg_udf_dir
+    cp $plugin_udf_dir/prepExprFunctions.py $tg_udf_dir
+    cp -f $tg_app_udf_dir/ExprFunctions.hpp $tg_udf_dir/ExprFunctions.hpp.orig
+    python3 $tg_udf_dir/prepExprFunctions.py $tg_udf_dir/ExprFunctions.hpp.orig > $tg_udf_dir/ExprFunctions.hpp
 fi
 
 # copy stock ExprUtil.hpp to the new gsql UDF directory under TG data 
