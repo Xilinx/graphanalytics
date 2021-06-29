@@ -20,7 +20,6 @@ ifdef sshKey
 endif	
 compileMode=0
 runMode=0
-partitionMode=1
 numDevices=1
 numNodes=1
 numPartitions=9
@@ -71,7 +70,7 @@ run: .install-udf-done
 	@echo "Running run.sh from staging "
 	@echo "-------------------------------------------------------"
 	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/examples/comdetect/run.sh -v \
-	    -g $(graphName) -c $(compileMode) -r $(runMode) -x $(partitionMode) \
+	    -g $(graphName) -c $(compileMode) -r $(runMode) \
 		-m $(numNodes) -d $(numDevices) \
 	    -s $(dataSource) -a $(alveoProject) -n $(numPartitions)
 
@@ -81,7 +80,7 @@ run-cluster: .install-udf-done
 	@echo "Running run.sh from staging "
 	@echo "-------------------------------------------------------"
 	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/examples/comdetect/run.sh -v \
-	    -g $(graphName) -c $(compileMode) -r $(runMode) -x $(partitionMode) \
+	    -g $(graphName) -c $(compileMode) -r $(runMode) \
 		-m 3 -d 3 -n 9 -s $(dataSource) -a $(alveoProject) 
 
 help:
@@ -98,7 +97,6 @@ help:
 	@echo "numPartitions    : Number of Alveo partitions"
 	@echo "runMode          : 0: Run only on CPU (default); 1: Run only on Alveo; 2: Run on both CPU and Alveo"
 	@echo "dataSource       : A .mtx file containing input graph. default=./as-Skitter/as-Skitter-wt-e110k.mtx"
-	@echo "partitionMode    : 0: from TigerGraph memory; 1: from dataSource (.mtx) (default); 2: load saved (alveo project)"
 	@echo " "
 	@echo "Examples:"
 	@echo "make alveoProject=/proj/gdba/tg-common/alveo-projects/as-skitter-partition"

@@ -72,7 +72,6 @@ xgraph="social_$username"
 force_clean=0
 run_mode=0
 compile_mode=0
-partition_mode=1
 force_clean_flag=
 verbose_flag=
 
@@ -81,7 +80,7 @@ if [ -f ~/.ssh/tigergraph_rsa ]; then
     ssh_key_flag="-i ~/.ssh/tigergraph_rsa"
 fi
 
-while getopts "a:c:d:fg:i:l:m:n:p:r:s:u:x:vh" opt
+while getopts "a:c:d:fg:i:l:m:n:p:r:s:u:vh" opt
 do
 case $opt in
     a) alveo_prj=$OPTARG;;
@@ -98,7 +97,6 @@ case $opt in
     s) data_source=$OPTARG; data_source_set=1;;
     u) username=$OPTARG;;
     v) verbose=1; verbose_flag=-v;;
-    x) partition_mode=$OPTARG;;
     h) usage; exit 0;;
     ?) echo "ERROR: Unknown option: -$OPTARG"; usage; exit 1;;
 esac
@@ -148,7 +146,6 @@ if [ $verbose -eq 1 ]; then
     echo "      num_devices=$num_devices"
     echo "      run_mode=$run_mode"
     echo "      compile_mode=$compile_mode"
-    echo "      partition_mode=$partition_mode"
     echo "      ssh_key=$ssh_key"
     echo "      hostname=$hostname"
 fi
