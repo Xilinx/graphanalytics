@@ -59,7 +59,7 @@ CXXFLAGS = -std=c++11 -DPRAGMA -Ofast -fopenmp -fmessage-length=0  -fPIC -Wall -
     -Wno-narrowing -D USE_HBM -fmessage-length=0 -D LOUVAINMOD
 
 # Define the target directories.
-#DEBUG = 1
+DEBUG = 1
 ifdef DEBUG
 CPP_BUILD_DIR = Debug
 CXXFLAGS += -O0 -g
