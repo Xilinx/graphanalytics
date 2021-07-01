@@ -77,7 +77,7 @@ int algoDistanceOneVertexColoringOpt(graphNew* G, int* vtxColor, int nThreads, d
     // Build a vector of random numbers
     double* randValues = (double*)malloc(NVer * sizeof(double));
     assert(randValues != 0);
-    generateRandomNumbers(randValues, NVer);
+    //generateRandomNumbers(randValues, NVer);
 
     long* Q = (long*)malloc(NVer * sizeof(long));
     assert(Q != 0);
@@ -162,7 +162,7 @@ int algoDistanceOneVertexColoringOpt(graphNew* G, int* vtxColor, int nThreads, d
         // Add the conflicting vertices into a Q:
         // Conflicts are resolved by changing the color of only one of the
         // two conflicting vertices, based on their random values
-        time2 = omp_get_wtime();
+        /* time2 = omp_get_wtime();
 #pragma omp parallel for
         for (long Qi = 0; Qi < QTail; Qi++) {
             long v = Q[Qi]; // Q.pop_front();
@@ -187,6 +187,7 @@ int algoDistanceOneVertexColoringOpt(graphNew* G, int* vtxColor, int nThreads, d
         totalTime += time2;
         nConflicts += QtmpTail;
         nLoops++;
+        */
 #ifdef PRINT_DETAILED_STATS_
         printf("Num conflicts      : %ld \n", QtmpTail);
         printf("Time for detection : %lf sec\n", time2);
@@ -283,7 +284,7 @@ int algoDistanceOneVertexColoring(graphNew* G, int* vtxColor, int nThreads, doub
         printf("Not enough memory to allocate for random numbers \n");
         exit(1);
     }
-    generateRandomNumbers(randValues, NVer);
+    // generateRandomNumbers(randValues, NVer);
 
     // The Queue Data Structure for the storing the vertices
     //   the need to be colored/recolored
@@ -366,7 +367,7 @@ int algoDistanceOneVertexColoring(graphNew* G, int* vtxColor, int nThreads, doub
         // Add the conflicting vertices into a Q:
         // Conflicts are resolved by changing the color of only one of the
         // two conflicting vertices, based on their random values
-        time2 = omp_get_wtime();
+        /* time2 = omp_get_wtime();
 #pragma omp parallel for
         for (long Qi = 0; Qi < QTail; Qi++) {
             long v = Q[Qi]; // Q.pop_front();
@@ -392,6 +393,7 @@ int algoDistanceOneVertexColoring(graphNew* G, int* vtxColor, int nThreads, doub
         totalTime += time2;
         nConflicts += QtmpTail;
         nLoops++;
+        */
         printf("Conflicts          : %ld \n", QtmpTail);
         printf("Time for detection : %lf sec\n", time2);
         // Swap the two queues:
