@@ -20,4 +20,4 @@ cd ../../lib/
 ./build_so.sh
 cd ../tests/cosineSimilaritySSDenseIntBench
 make host TARGET=hw
-LD_LIBRARY_PATH=../../lib:/opt/xilinx/xrm/lib:/opt/xilinx/xrt/lib:$LD_LIBRARY_PATH  build_dir.hw.xilinx_u50_gen3x16_xdma_201920_3/host.exe -weight ./data/cosine_dense_weight.csr -golden ./data/cosine_dense.mtx -topK 100
+LD_LIBRARY_PATH=../../lib:/opt/xilinx/xrm/lib:/opt/xilinx/xrt/lib:$LD_LIBRARY_PATH  build_dir.hw.xilinx_u50_gen3x16_xdma_201920_3/host.exe -coeffs ./data/coeffs.csr -golden ./data/cosine_dense.mtx -topK 100

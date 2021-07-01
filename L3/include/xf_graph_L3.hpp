@@ -26,26 +26,6 @@ namespace graph {
 namespace L3 {
 
 /**
- * @brief The single source cosine similarity API for dense graph.
- *
- * @param handle Graph library L3 handle
- * @param sourceNUM Input, sourceWeights buffer length of source vertex
- * @param sourceWeights Input, weights of the source vertex's out members
- * @param topK Input, the output similarity buffer length
- * @param gr Input, CSR graph of IDs' type of uint32_t and weights' type of float
- * @param resultID Output, the topK highest similarity IDs
- * @param similarity Output, similarity values corresponding to theirs IDs
- *
- */
-event<int> cosineSimilaritySSDense(xf::graph::L3::Handle& handle,
-                                   uint32_t sourceNUM,
-                                   uint32_t* sourceWeights,
-                                   uint32_t topK,
-                                   xf::graph::Graph<uint32_t, float> gr,
-                                   uint32_t* resultID,
-                                   float* similarity);
-
-/**
  * @brief The Multi-cards' single source cosine similarity API for dense graph.
  *
  * @param handle Graph library L3 handle
@@ -62,6 +42,7 @@ int cosineSimilaritySSDenseMultiCardBlocking(xf::graph::L3::Handle& handle,
                                              int32_t deviceNm,
                                              int32_t sourceNUM,
                                              int32_t* sourceWeights,
+                                             int32_t* sourceCoeffs,
                                              int32_t topK,
                                              xf::graph::Graph<int32_t, int32_t>** gr,
                                              int32_t* resultID,
@@ -84,6 +65,7 @@ std::vector<event<int> > cosineSimilaritySSDenseMultiCard(xf::graph::L3::Handle&
                                                           int32_t deviceNm,
                                                           int32_t sourceNUM,
                                                           int32_t* sourceWeights,
+                                                          int32_t* sourceCoeffs,
                                                           int32_t topK,
                                                           xf::graph::Graph<int32_t, int32_t>** g,
                                                           int32_t** resultID,
@@ -92,15 +74,10 @@ std::vector<event<int> > cosineSimilaritySSDenseMultiCard(xf::graph::L3::Handle&
 
 #ifdef LOUVAINMOD
 void louvainModularity(xf::graph::L3::Handle& handle,
-							 int flowMode,
-		                     GLV* glv,
-							 GLV* pglv,
-							 bool opts_coloring,
-							 long opts_minGraphSize,
-							 double opts_threshold,
-							 double opts_C_thresh,
-							 int numThreads
-                             );
+							int flowMode,
+		                     			GLV* glv,
+							GLV* pglv,
+                             				LouvainPara* para_lv);
 #endif                             
 } // L3
 } // graph

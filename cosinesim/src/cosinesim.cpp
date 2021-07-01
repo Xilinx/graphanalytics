@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Xilinx, Inc.
+ * Copyright 2021 Xilinx, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,12 +102,10 @@ public:
             numDevices = options.numDevices;
 
         xclbinPath = "/opt/xilinx/apps/graphanalytics/cosinesim/1.0/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin";
-//        if (options.xclbinPathCStr != nullptr)
-//            xclbinPath = options.xclbinPathCStr;
-//        else if (!options.xclbinPath.empty()){
-//           xclbinPath = options.xclbinPath;
-//        }
-        std::cout << "options::xclbinPath = " << options.xclbinPath << std::endl;
+        std::cout << "INFO: Options::xcbinPath = " << (options.xclbinPath == nullptr ? "null"
+            : options.xclbinPath) << std::endl;
+        if (options.xclbinPath != nullptr)
+            xclbinPath = options.xclbinPath;
         std::cout << "INFO: xclbinPath set to " <<xclbinPath<<std::endl;
         std::cout << "INFO: numDevices set to " <<numDevices<<std::endl;
 

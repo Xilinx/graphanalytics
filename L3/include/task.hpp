@@ -215,23 +215,23 @@ class openXRM {
 #ifndef NDEBUG                
                 printf("INFO: Allocated cu list: cu %d\n", i);
                 printf("   xclbinFileName is:  %s\n", cuListResR.cuResources[i].xclbinFileName);
-                printf("   kernelPluginFileName is:  %s\n", cuListResR.cuResources[i].kernelPluginFileName);
+                //printf("   kernelPluginFileName is:  %s\n", cuListResR.cuResources[i].kernelPluginFileName);
                 printf("   kernelName is:  %s\n", cuListResR.cuResources[i].kernelName);
-                printf("   kernelAlias is:  %s\n", cuListResR.cuResources[i].kernelAlias);
+                //printf("   kernelAlias is:  %s\n", cuListResR.cuResources[i].kernelAlias);
                 printf("   instanceName is:  %s\n", cuListResR.cuResources[i].instanceName);
                 printf("   cuName is:  %s\n", cuListResR.cuResources[i].cuName);
                 printf("   deviceId is:  %d\n", cuListResR.cuResources[i].deviceId);
                 printf("   cuId is:  %d\n", cuListResR.cuResources[i].cuId);
                 printf("   channelId is:  %d\n", cuListResR.cuResources[i].channelId);
-                printf("   cuType is:  %d\n", cuListResR.cuResources[i].cuType);
-                printf("   baseAddr is:  0x%lx\n", cuListResR.cuResources[i].baseAddr);
-                printf("   membankId is:  %d\n", cuListResR.cuResources[i].membankId);
-                printf("   membankType is:  %d\n", cuListResR.cuResources[i].membankType);
-                printf("   membankSize is:  %ld Byte\n", maxChannelSize);
-                printf("   membankBaseAddr is:  0x%lx\n", cuListResR.cuResources[i].membankBaseAddr);
-                printf("   allocServiceId is:  %lu\n", cuListResR.cuResources[i].allocServiceId);
-                printf("   poolId is:  %lu\n", cuListResR.cuResources[i].poolId);
-                printf("   channelLoad is:  %d\n", cuListResR.cuResources[i].channelLoad);
+                //printf("   cuType is:  %d\n", cuListResR.cuResources[i].cuType);
+                //printf("   baseAddr is:  0x%lx\n", cuListResR.cuResources[i].baseAddr);
+                //printf("   membankId is:  %d\n", cuListResR.cuResources[i].membankId);
+                //printf("   membankType is:  %d\n", cuListResR.cuResources[i].membankType);
+                //printf("   membankSize is:  %ld Byte\n", maxChannelSize);
+                //printf("   membankBaseAddr is:  0x%lx\n", cuListResR.cuResources[i].membankBaseAddr);
+                //printf("   allocServiceId is:  %lu\n", cuListResR.cuResources[i].allocServiceId);
+                //printf("   poolId is:  %lu\n", cuListResR.cuResources[i].poolId);
+                //printf("   channelLoad is:  %d\n", cuListResR.cuResources[i].channelLoad);
 #endif
                 cus[i] = cuListResR.cuResources[i].cuId;
                 devices[i] = cuListResR.cuResources[i].deviceId;
@@ -241,23 +241,28 @@ class openXRM {
                         flag = true;
                     }
                 }
-                if (flag == false) {
+                if (!flag) {
                     availNumDevices += 1;
                 }
             }
             *cuID = cus;
             *deviceID = devices;
             assert(availNumDevices != 0);
-            if (xrmCuListRelease(ctx, &cuListResR))
-                std::cout << "INFO: Success to release cu list\n" << std::endl;
-            else
-                std::cout << "Error: Fail to release cu list\n" << std::endl;
+            if (!xrmCuListRelease(ctx, &cuListResR)) {
+                std::cout << "ERORR: Fail to release cu list" << std::endl;
+                return -2;
+            }
         }
         std::cout << "INFO: Available device number = " << availNumDevices << std::endl;
         std::cout << "INFO: Available CU number = " << availMaxCU << std::endl;
         if (availNumDevices >= numDevices) {
             // has sufficient devices. adjust maxCU based on requested numDevices
             maxCU = numDevices*availMaxCU/availNumDevices;
+        } else {
+            std::cout << "ERROR: number of available devices " << availNumDevices 
+                      << " is less than number of devices requested " << numDevices
+                      << std::endl;
+            return -1;
         }
         return 0;
     }
@@ -482,10 +487,11 @@ inline void worker(queue& q,
             if (q.empty()) break; // no more requests execute pending ones.
         }
 
-        std::cout << "DEBUG: ---------" << __FUNCTION__ 
-                  << " pendingRequests" << pendingRequests 
-                  << " curRequestId " << curRequestId << std::endl;
-                  
+#ifndef NDEBUG
+        //std::cout << "DEBUG: " << __FUNCTION__ 
+        //          << " pendingRequests" << pendingRequests 
+        //          << " curRequestId " << curRequestId << std::endl;
+#endif                  
         bool toStop = false;
         for (int i = 0; i < pendingRequests; ++i) {
             if (!t[i].valid()) toStop = true;

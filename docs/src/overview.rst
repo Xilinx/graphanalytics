@@ -28,7 +28,14 @@ General use cases
 
 Synthea use case
 ********************
-Health and medical professionals are required to make predictions for diagnosis and prognosis in various medical problems. Individualized predictive analytics based on patient similarity is becoming popular in this field to identify similar patients to an index patient, derive insights from the records of the similar patients, and provide personalized predictions. Studies have shown that Consine similarity metrics can outperform conventional predictive modeling in which all available patient data are analyzed. The improved prediction performance is achieved at the cost of increased computational burden. 
+Health and medical professionals are required to make predictions for diagnosis 
+and prognosis in various medical problems. Individualized predictive analytics 
+based on patient similarity is becoming popular in this field to identify similar 
+patients to an index patient, derive insights from the records of the similar 
+patients, and provide personalized predictions. Studies have shown that cosine 
+similarity metrics can outperform conventional predictive modeling in which all 
+available patient data are analyzed. The improved prediction performance is 
+achieved at the cost of increased computational burden. 
 
 Xilinx Graph Analytics library optimized for `Alveo Adaptable Accelerator Cards <https://www.xilinx.com/products/boards-and-kits/alveo.html>`_ 
 has been demonstrated on `Synthea <https://synthetichealth.github.io/synthea/>`_ generated 
@@ -94,8 +101,8 @@ and edges in a graph database as shown below:
 
 Each attribute (e.g. age, gender, race, immunization, etc) of a patient is mapped to 
 a numerical value and becomes a feature of the patient vector. In our PoC design each 
-paitent vector consists of 198 features and each feature is stored as a 32-bit 
-integer. Consine similarity is calcualted between the index patient vector and all 
+patient vector consists of 198 features and each feature is stored as a 32-bit 
+integer. Cosine similarity is calculated between the index patient vector and all 
 other patient vectors. The results are then sorted and the top 100 patients with 
 highest scores are presented. Below are the details of the feature map:
 
@@ -136,9 +143,11 @@ highest scores are presented. Below are the details of the feature map:
 Cosine similarity GSQL
 ######################
 
-TigerGraph uses GSQL query language for fast and scalable graph operations and analytics. A GSQL script of patient similarity using cosine similarity is created to baseline the 
-functionalities and computation complexity of the algorithm. It is used to verify and validate the functional 
-correctness and performance improvement of the Alveo accelerated desgin. Below is the block diagram of cosine 
+TigerGraph uses GSQL query language for fast and scalable graph operations and 
+analytics. A GSQL script of patient similarity using cosine similarity is 
+created to baseline the functionalities and computation complexity of the algorithm. 
+It is used to verify and validate the functional correctness and performance 
+improvement of the Alveo accelerated design. Below is the block diagram of cosine 
 similarity computation in GSQL, which is executed entirely on CPU.
 
 .. image:: /images/cosine-similarity-gsql.png
@@ -194,7 +203,7 @@ Below is the code snippet of cosine similarity accelerated on Alveo card using T
 
 The kernel design for each CU is illustrated in the block diagram below. Each CU 
 contains 16 fully pipelined cosine similarity processing elements (PEs) and one 
-MaxK components to choose the top similarities. The 16 PEs are connected to 16 
+MaxK component to choose the top similarities. The 16 PEs are connected to 16 
 channels to access 5M patients' data in parallel. The incoming new patient's record 
 is transmitted to the FPGA's PLRAM by the host and then duplicated to 16 PEs. The MaxK 
 primitive calculates the top cosine similarities and their corresponding indices and 
@@ -225,32 +234,16 @@ A demo utilizing Xilinx TigerGraph plugin with Alveo U50 acceleration card is in
 in this repository to show the general usage of the plugin and the development 
 flow of custom graph algorithm accelerators on Xilinx Alveo cards in TigerGraph. 
 
-License
------------------------
 
-Licensed using the [Apache 2.0 license](https://www.apache.org/licenses/LICENSE-2.0).
+Related Links
+---------------
 
-    Copyright 2020-2021 Xilinx, Inc.
-    
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-    
-        http://www.apache.org/licenses/LICENSE-2.0
-    
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-    Copyright 2020-2021 Xilinx, Inc.
+Webinars
+########
 
-Trademark Notice
-----------------
+* `Xilinx Cosine Similarity and Recommendation Engine Webinar 
+  <https://www.xilinx.com/video/application/cosine-similarity-and-recommendation-enginewebinar..html>`_
 
-    Xilinx, the Xilinx logo, Artix, ISE, Kintex, Spartan, Virtex, Zynq, and
-    other designated brands included herein are trademarks of Xilinx in the
-    United States and other countries.
-    
-    All other trademarks are the property of their respective owners.
+
+
     

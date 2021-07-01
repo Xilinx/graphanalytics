@@ -25,6 +25,7 @@
 #include <vector>
 #include <limits>
 #include <unordered_map>
+#include <algorithm>
 
 #include "denseSimilarityKernel.hpp"
 
@@ -170,6 +171,28 @@ void readInWeight(std::fstream& fstream,      // input: file stream
 }
 
 template <int PUNUM>
+void readInCoeffs(std::fstream& fstream, // input: file stream
+                  unsigned int length,   // input: numbers
+                  ap_int<32>** buffer) { // output: output buffers
+    int id = 0;
+    int row = 0;
+    char line[1024] = {0};
+    if (!fstream) {
+        for (int j = 0; j < length; ++j) {
+            buffer[0][j] = 1;
+        }
+    } else {
+        while (fstream.getline(line, sizeof(line))) {
+            std::stringstream data(line);
+            int tmp;
+            data >> tmp;
+            buffer[0][id] = tmp;
+            id++;
+        }
+    }
+}
+
+template <int PUNUM>
 void readInIndiceWeight(std::fstream& fstream, // input: file stream
                         int dataType,
                         unsigned int length[PUNUM], // input: value numbers of each buffer
@@ -215,6 +238,7 @@ template <int PUNUM>
 void readInDataFile(std::string offsetFile,
                     std::string indiceFile,
                     std::string weightFile,
+                    std::string coeffsFile,
                     int graphType,
                     int dataType,
                     unsigned int numVerticesPU[PUNUM],
@@ -224,7 +248,8 @@ void readInDataFile(std::string offsetFile,
                     ap_int<32>* offset32[PUNUM],
                     ap_int<32>* indice32[PUNUM],
                     float* weightSparse[PUNUM],
-                    float* weightDense[4 * PUNUM]) {
+                    float* weightDense[4 * PUNUM],
+                    ap_int<32>** sourceCoeffs) {
     if (graphType == 0) {
         // read in numVertices numEdges from files ////////////////////////
         std::fstream offsetfstream(offsetFile.c_str(), std::ios::in);
@@ -282,9 +307,15 @@ void readInDataFile(std::string offsetFile,
 
     } else {
         // check files exist//////////////////////////////////////////////////
-        std::fstream indicefstream(weightFile.c_str(), std::ios::in);
-        if (!indicefstream) {
+        std::fstream weightfstream(weightFile.c_str(), std::ios::in);
+        if (!weightfstream) {
             std::cout << "Error: " << weightFile << "weight file doesn't exist !" << std::endl;
+            exit(1);
+        }
+
+        std::fstream coeffsfstream(coeffsFile.c_str(), std::ios::in);
+        if (!coeffsfstream) {
+            std::cout << "Error: " << coeffsFile << "coefficient file doesn't exist !" << std::endl;
             exit(1);
         }
 
@@ -309,7 +340,11 @@ void readInDataFile(std::string offsetFile,
         for (int i = 0; i < 4 * PUNUM; i++) {
             weightDense[i] = aligned_alloc<float>(numVerticesPU[i / 4] * numEdges);
         }
-        readInWeight<PUNUM>(indicefstream, dataType, numElementsPU, weightDense);
+        readInWeight<PUNUM>(weightfstream, dataType, numElementsPU, weightDense);
+
+        // read in coeffs///////////////////////////////////////////
+        *sourceCoeffs = aligned_alloc<ap_int<32> >(numEdges);
+        readInCoeffs<PUNUM>(coeffsfstream, numEdges, sourceCoeffs);
 
         std::cout << "INFO: numVertice=" << numVertices << std::endl;
         std::cout << "INFO: numEdges=" << numEdges << std::endl;
