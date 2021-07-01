@@ -39,6 +39,7 @@ fi
 workers="tcp://192.168.1.21:5555 tcp://192.168.1.31:5555"
 #workers="tcp://10.18.5.112:5555 tcp://10.18.5.113:5555"
 #xclbinfile=$SCRIPTPATH/../staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+#xclbinfile=$SCRIPTPATH/../staging/xclbin/louvainmod_opt_xilinx_u55c_gen3x16_xdma_base_1.xclbin
 xclbinfile=/proj/autoesl/yunleiz/kernel55c.xclbin
 
 exe_dir="Release"
