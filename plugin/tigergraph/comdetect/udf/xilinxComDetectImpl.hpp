@@ -104,8 +104,6 @@ private:
 
 
 public:
-
-
     static Context *getInstance() {
         static Context *s_pContext = nullptr;
         if (s_pContext == nullptr)
@@ -138,6 +136,10 @@ public:
                 } else if (!std::strcmp(token, "xGraphStore")) {
                     token = strtok(NULL, "\"\t ,}:{\n");
                     xGraphStorePath_ = token;
+                } else if (!std::strcmp(token, "numDevices")) {
+                    token = strtok(NULL, "\"\t ,}:{\n");
+                    numDevices_ = atoi(token);
+                    std::cout << "numDevices=" << numDevices_ << std::endl;
                 } else if (!std::strcmp(token, "nodeIps")) {
                     // this field has multipe space separated IPs
                     scanNodeIp = true;
@@ -164,20 +166,21 @@ public:
             xilinx_apps::louvainmod::Options options;
             options.xclbinPath = PLUGIN_XCLBIN_PATH;
             options.nameProj = alveoProject_;
-            options.devNeed_cmd = numNodes_;
+            options.devNeed_cmd = numDevices_;
             options.nodeId = nodeId_;
             options.hostName = curNodeHostname_;
             options.clusterIpAddresses = nodeIps_;
             options.hostIpAddress = curNodeIp_;
 
 #ifdef XILINX_COM_DETECT_DEBUG_ON
-            std::cout << "DEBUG: louvainmod options: = xclbinPath" << options.xclbinPath
-                    << ", nameProj=" << options.nameProj
-                    << ", devNeed_cmd=" << options.devNeed_cmd
-                    << ", nodeId=" <<options.nodeId
-                    << ", hostName=" << options.hostName
-                    << ", clusterIpAddresses=" << options.clusterIpAddresses
-                    << ", hostIpAddress=" << options.hostIpAddress <<std::endl;
+            std::cout << "DEBUG: louvainmod options:"
+                    << "\n    xclbinPath=" << options.xclbinPath
+                    << "\n    nameProj=" << options.nameProj
+                    << "\n    devNeed_cmd=" << options.devNeed_cmd
+                    << "\n    nodeId=" << options.nodeId
+                    << "\n    hostName=" << options.hostName
+                    << "\n    clusterIpAddresses=" << options.clusterIpAddresses
+                    << "\n    hostIpAddress=" << options.hostIpAddress <<std::endl;
 #endif
             pLouvainMod_= new xilinx_apps::louvainmod::LouvainMod(options);
             

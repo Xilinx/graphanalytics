@@ -274,6 +274,7 @@ graph = ../plugin/tigergraph/comdetect/examples/comdetect/as-skitter/as-Skitter-
 alveoProject = $(APITEST_OUT_DIR)/as-skitter-par9
 numPars=1
 serverPar=1 9
+numDevices=3
 CMDLINE_CREATE_PARTITIONS = $(graph) \
     -fast -par_num $(numPars) -create_alveo_partitions -name $(APITEST_OUT_DIR)/as-skitter-par9 \
 	-server_par $(serverPar)
@@ -284,15 +285,15 @@ CMDLINE_LOAD_COMPUTE = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50
 	$(alveoProject).par.proj -setwkr 0 -driverAlone
 
 CMDLINE_LOAD_COMPUTE_DRIVER = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
-    -fast -dev 3 -num_level 100 -num_iter 100 -load_alveo_partitions \
+    -fast -dev $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
 	$(alveoProject).par.proj -setwkr 2 $(WORKERS) -driverAlone
 
 CMDLINE_LOAD_COMPUTE_WORKER1 = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
-    -fast -dev 3 -num_level 100 -num_iter 100 -load_alveo_partitions \
+    -fast -dev $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
 	$(alveoProject).par.proj -workerAlone 1
 
 CMDLINE_LOAD_COMPUTE_WORKER2 = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
-    -fast -dev 3 -num_level 100 -num_iter 100 -load_alveo_partitions \
+    -fast -dev $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
 	$(alveoProject).par.proj -workerAlone 2
 
 run-apitest-create-partitions: stage cppTest
@@ -541,4 +542,8 @@ help:
 	@echo "-------- Options --------"
 	@echo "graph: graph input .mtx file"
 	@echo "alveoProject: Alveo project name without .par.proj extension"
+	@echo "numPars: Number of partitions (default=1)"
+	@echo "serverPar: Multi-server partition setting (default=\"1 9\")"
+	@echo "numDevices: Number of devices (default=3)"
+
 	

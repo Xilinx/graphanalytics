@@ -16,7 +16,7 @@
  */
 
 USE GRAPH @graph
-DROP QUERY load_alveo, louvain_alveo, close_alveo, tg_partition_phase_1, tg_partition_phase_2, tg_partition_phase_3
+DROP QUERY louvain_alveo, close_alveo, tg_partition_phase_1, tg_partition_phase_2, tg_partition_phase_3
 
 //CREATE DISTRIBUTED QUERY open_alveo() FOR GRAPH @graph {
 //   DOUBLE udf_time;
@@ -126,6 +126,7 @@ CREATE DISTRIBUTED QUERY tg_partition_phase_3(
   
 }
 
+/*
 CREATE DISTRIBUTED QUERY load_alveo(
     SET<STRING> v_types,            // List of vertex types that would participate in Louvain Modularity
     SET<STRING> e_types,            // List of edge types that would participate in Louvain Modularity
@@ -170,6 +171,7 @@ CREATE DISTRIBUTED QUERY load_alveo(
     //print tg_partition, use_saved_partition, status;
 
 }
+*/
 
 CREATE DISTRIBUTED QUERY louvain_alveo(
     SET<STRING> v_type,             // Set of names of vertex types to be considered. Example: ["Person", "Animal"]
@@ -235,4 +237,4 @@ CREATE DISTRIBUTED QUERY close_alveo() for GRAPH @graph {
    //print udf_time, b;
 }
 
-install query close_alveo, louvain_alveo, load_alveo, tg_partition_phase_1, tg_partition_phase_2,tg_partition_phase_3
+install query close_alveo, louvain_alveo, tg_partition_phase_1, tg_partition_phase_2,tg_partition_phase_3

@@ -186,6 +186,7 @@ struct Options {
     int flow_fast = 2;  // C
     int devNeed_cmd = 1;  // C
     unsigned nodeId = 0;  // node ID 0 will be the driver, all others will be workers
+    unsigned serverIndex = 0;  // node ID 0 will be the driver, all others will be workers
     XString hostName;  // optional host name of this server for debugging purposes
     XString clusterIpAddresses;  // space-separated list of server IP addresses in the cluster, or empty for 1 server
     XString hostIpAddress;  // IP address of this server, or empty for 1 server

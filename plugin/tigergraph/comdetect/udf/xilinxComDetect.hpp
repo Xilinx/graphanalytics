@@ -114,6 +114,8 @@ inline void udf_start_partition(string alveo_project, int numVertices){
 //Data has been populated and send to FPGA
 
 inline int udf_save_alveo_partition(uint numPar) {
+    std::cout << "INFO: " << __FUNCTION__ << " numPar=" << numPar << std::endl;
+
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     //build offsets_tg
@@ -155,10 +157,10 @@ inline int udf_save_alveo_partition(uint numPar) {
     
     long NV_par_recommand;
     long NV_par_max = 64*1000*1000;
-    if(numPar>1)
-                NV_par_recommand = ( pContext->getNextId()+ numPar-1) / numPar;//allow to partition small graph with -par_num
-        else
-                NV_par_recommand = (long)((float)NV_par_max * 0.80);//20% space for ghosts.
+    if (numPar>1)
+        NV_par_recommand = ( pContext->getNextId()+ numPar-1) / numPar;//allow to partition small graph with -par_num
+    else
+        NV_par_recommand = (long)((float)NV_par_max * 0.80);//20% space for ghosts.
 
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
     xilinx_apps::louvainmod::LouvainMod::PartitionData partitionData;
@@ -188,35 +190,6 @@ inline void udf_finish_partition(MapAccum<uint64_t, int64_t> numAlveoPars){
     pLouvainMod->finishPartitioning(pContext->getNumAlveoPartitions().data());
 }
 
-
-
-inline int udf_xilinx_comdetect_setup_nodes(std::string nodeNames, 
-                                            std::string nodeIps)
-{
-    std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
-    std::cout << "DEBUG: " << __FUNCTION__  
-              << " nodeNames=" << nodeNames 
-              << " nodeIps=" << nodeIps << std::endl;
-    xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
-
-    std::istringstream issNodeNames(nodeNames);
-    std::istringstream issNodeIps(nodeIps);
-    std::string nodeName;
-    std::string nodeIp;
-    unsigned numNodes = 0;
-    while ((issNodeNames >> nodeName) && (issNodeIps >> nodeIp))
-    {
-        std::cout << "DEBUG " << numNodes++ << ":" << nodeName 
-                  << nodeIp << std::endl;
-    } while (issNodeNames && issNodeIps);
-
-
-    pContext->setNumNodes(unsigned(numNodes));
-    return numNodes;
-}
-
-
-
 // TODO: Change signature as needed
 // This function combined with GSQL code should traverse memory of TigerGraph on Each
 // server and build the partitions for each server in the form Louvain host code can consume it
@@ -241,75 +214,11 @@ inline int udf_load_alveo(uint num_partitions, uint num_devices)
     return retVal;
 }
 
-
-inline int udf_create_and_load_alveo_partitions(bool use_saved_partition, 
-    string graph_file, string alveo_project, uint num_nodes, uint num_partitions, 
-    uint num_devices)
-{
-    std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
-    xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
-    int ret=0;
-
-
-    pContext->setAlveoProject(alveo_project);
-    xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
-    xilinx_apps::louvainmod::LouvainMod::PartitionOptions options;
-    pLouvainMod->startPartitioning(options);
-    
-/*
-    std::lock_guard<std::mutex> lockGuard(xai::writeMutex);
-    int ret=0;
-    if (!xai::loadedAlveo) {
-        if(xai::loadedAlveo) return 0;
-        xai::loadedAlveo = true;
-        xai::graph_file = graph_file;
-*/      
-
-    unsigned nodeId = pContext->getNodeId();
-    int argc = 9;
-    char* argv[] = {"host.exe", graph_file.c_str(), "-fast", "-par_num", std::to_string(num_partitions).c_str(),
-        "-create_alveo_partitions", "-name", alveo_project.c_str(), "-server_par", NULL};
-    std::cout << "DEBUG: " << __FUNCTION__ << " nodeId=" << nodeId
-              << " graph_file=" << graph_file.c_str() 
-              << " num_partitions=" << num_partitions 
-              << " louvain project=" << alveo_project.c_str() 
-//              << " cur_node_ip=" << cur_node_ip 
-//              << " cur_node_hostname=" << cur_node_hostname 
-//              << " node_ips=" << node_ips 
-              << std::endl;
-        
-    
-    if (!use_saved_partition && nodeId == 0) {
-        std::cout << "DEBUG: Calling create_alveo_partitions" << std::endl;
-        ret = create_and_load_alveo_partitions(argc, (char**)(argv));
-    }
-    return ret;
-}
-
-
 inline bool udf_close_alveo(int mode)
 {
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     return true;
 }
-
-/*
-inline int udf_create_alveo_partitions(std::string input_graph, std::string partitions_project, std::string num_patitions)
-{
-    std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
-    xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
-    pContext->clear();
-    int argc = 8;
-    char* argv[] = {"host.exe", input_graph.c_str(), "-fast", "-par_num", num_patitions.c_str(),
-          "-create_alveo_partitions", "-name", partitions_project.c_str(), nullptr};
-    std::cout << "DEBUG: Calling create_partitions. input_graph: " <<  input_graph.c_str()
-              << " num_partitions: " << num_patitions.c_str() << " project: " << partitions_project.c_str()
-              << std::flush;
-//    for (int i = 0; i < argc; ++i)
-//        std::cout << "create partitions arg " << i << " = " << argv[i] << std::endl;
-    return create_alveo_partitions(argc, (char**)(argv));
-}
-*/
 
 inline int udf_execute_reset(int mode) {
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());

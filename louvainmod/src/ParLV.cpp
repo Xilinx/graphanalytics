@@ -147,7 +147,7 @@ GLV* receiveGLV(Node* driver_node, int& id_glv) {
     driver_node->receive(g->edgeListPtrs, sizeof(long) * (nv + 1));
     driver_node->receive(g->edgeList, sizeof(edge) * ne_undir);
     driver_node->receive(M, sizeof(long) * nv);
-    std::cout << "------------" << __FUNCTION__ << " id_glv=" << id_glv << std::endl;
+    //std::cout << "------------" << __FUNCTION__ << " id_glv=" << id_glv << std::endl;
     GLV* glv = new GLV(id_glv);
     glv->SetByOhterG(g, M);
     driver_node->receive(glv->C, sizeof(long) * nv);
@@ -304,6 +304,7 @@ int MessageParser_D2W(char* msg) {
 
 int MessageGen_D2W(char* msg, ParLV& parlv, char* path, int start, int end, int nodeID) 
 { 
+    printf("DEBUG: MessageGen_D2W start=%d, end=%d\n", start, end);
     // Format:  parlv_req -num <> -path <> [name]*
     assert(msg);
     assert(path);
@@ -336,6 +337,9 @@ int MessageGen_D2W(char* msg, ParLV& parlv, char* path, int start, int end, int 
 */
 int MessageParser_D2W(char* msg, ParLV& parlv, char* path_driver, char names[][256], int& nodeID) 
 {
+#ifndef NDEBUG    
+    printf("DEBUG: MessageParser_D2W msg=%s", msg);
+#endif    
     assert(msg);
     myCmd ps;
     ps.cmd_Getline(msg);
@@ -428,6 +432,9 @@ long UseInt(long nv, long* src, FILE* fp) {
 }
 
 int SaveGLVBin(char* name, GLV* glv, bool useInt) {
+#ifndef NDEBUG
+    std::cout << "DEBUG:" << __FUNCTION__ << " name=" << name << std::endl;
+#endif    
     assert(name);
     assert(glv);
     graphNew* g = glv->G;
@@ -736,7 +743,7 @@ int LoadGLVBin_OnlyC_malloc(char* path, char* file, GLV* glv) {
 GLV* LoadGLVBin(char* name, int& id_glv) {
     assert(name);
 
-    printf("------------------DEBUG: LoadGLVBin filename=%s, id_glv=%d\n", name, id_glv);
+    //printf("------------------DEBUG: LoadGLVBin filename=%s, id_glv=%d\n", name, id_glv);
     graphNew* g = (graphNew*)malloc(sizeof(graphNew));
     long nv = 0;
     long ne = 0;
@@ -749,8 +756,8 @@ GLV* LoadGLVBin(char* name, int& id_glv) {
 
     FILE* fp = fopen(name, "rb");
     if (fp == NULL) {
-        printf("ERROR: LoadGLVBin failed for open %s \n", name);
-        fclose(fp);
+        printf("ERROR: LoadGLVBin failed to open %s \n", name);
+        //fclose(fp);
         return NULL;
     }
     fread(&head, sizeof(long), 1, fp);
@@ -813,7 +820,7 @@ GLV* LoadGLVBin(char* name, int& id_glv) {
     fread(g->edgeListPtrs, sizeof(long), nv + 1, fp);
     fread(g->edgeList, sizeof(edge), ne_undir, fp);
     fread(M, sizeof(long), nv, fp);
-    std::cout << "------------" << __FUNCTION__ << " id_glv=" << id_glv << std::endl;
+    //std::cout << "------------" << __FUNCTION__ << " id_glv=" << id_glv << std::endl;
     GLV* glv = new GLV(id_glv);
     glv->SetByOhterG(g, M);
     fread(glv->C, sizeof(long), nv, fp);
@@ -2756,12 +2763,13 @@ void Server_SubLouvain(xf::graph::L3::Handle* handle0,
         glv[p] = parlv.par_src[p]->CloneSelf(id_glv);
     }
     int parCnt = 0;
-
     while (parCnt < parlv.num_par) {
         // Can only launch as many threads as numDevices
         for (int dev=0; dev < parlv.num_dev; dev++) {
-            std::cout << "INFO:     start Louvain_thread_core thread " << parCnt+dev
-                      << std::endl; 
+            // also need to handle when num_par is not divisible by num_dev
+            if (parCnt+dev >= parlv.num_par) 
+                break;
+            printf("INFO:     start Louvain_thread_core thread %d\n", parCnt+dev); 
             parlv.timesPar.timeLv[parCnt+dev] = getTime();
             assert(glv[parCnt+dev]);
             td[parCnt+dev] = std::thread(Louvain_thread_core, handle0, parlv.flowMode, 
@@ -2773,6 +2781,8 @@ void Server_SubLouvain(xf::graph::L3::Handle* handle0,
         }
         
         for (int dev=0; dev < parlv.num_dev; dev++) {
+            if (parCnt+dev >= parlv.num_par) 
+                break;
             td[parCnt+dev].join();
             parlv.timesPar.timeLv[parCnt+dev] = getTime() - parlv.timesPar.timeLv[parCnt+dev];
         }
@@ -2829,12 +2839,16 @@ GLV* Driver_Merge_Final(xf::graph::L3::Handle* handle0,
     return glv_final;
 }
 
-void LouvainProcess_part1(int& nodeID, ParLV& parlv, char* tmp_msg_d2w, ParLV& parlv_wkr) 
+// Return values
+//  0: Success
+// -2: Fail to load partition file
+int LouvainProcess_part1(int& nodeID, ParLV& parlv, char* tmp_msg_d2w, ParLV& parlv_wkr) 
 {
-//#ifndef NDEBUG
+#ifndef NDEBUG
     std::cout << "DEBUG:" << __FILE__ << "::" << __FUNCTION__ 
-              << " parlv_wkr num_par=" << parlv_wkr.num_par << std::endl;
-//#endif
+              << "\n    msg_d2w=" << tmp_msg_d2w
+              << "\n    parlv_wkr num_par=" << parlv_wkr.num_par << std::endl;
+#endif
 
     // this will be initialized by message again
     parlv_wkr.Init(parlv.flowMode, NULL, parlv.num_par, parlv.num_dev, parlv.isPrun, parlv.th_prun);
@@ -2852,10 +2866,12 @@ void LouvainProcess_part1(int& nodeID, ParLV& parlv, char* tmp_msg_d2w, ParLV& p
     char* path_worker = (char*)"./";
     // Worker: Loading from disk
     for (int p = 0; p < parlv_wkr.num_par; p++) {
-#ifdef PRINTINFO_2
-    printf("\033[1;37;40mINFO: Loading partition file %s%s \033[0m\n",  path_driver, names[p]);
+#ifndef NDEBUG
+    printf("INFO: Loading partition file %s%s \n",  path_driver, names[p]);
 #endif
         parlv_wkr.par_src[p] = LoadGLVBin(path_driver, names[p], id_glv_wkr);
+        if (parlv_wkr.par_src[p] == NULL)
+            return -2;
         parlv_wkr.par_src[p]->SetName(names[p]);
         parlv_wkr.st_Partitioned = true;
 #ifdef PRINTINFO
@@ -3154,20 +3170,22 @@ GLV* par_general_4TG(long start_vertexInGlb, long* offsets_tg, edge* edgelist_tg
 }
 
 
-int xai_save_partition(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
-		long  start_vertex,     // If a vertex is smaller than star_vertex, it is a ghost
-		long  end_vertex,	    // If a vertex is larger than star_vertex-1, it is a ghost
-		char* path_prefix,      // For saving the partition files like <path_prefix>_xxx.par
-							    // Different server can have different path_prefix
-		int par_prune,          // Can always be set with value '1'
-		long NV_par_recommand,  // Allow to partition small graphs not bigger than FPGA limitation
-		long NV_par_max		    //  64*1000*1000;
-		) 
+int xai_save_partition(
+    long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
+	long  start_vertex,     // If a vertex is smaller than star_vertex, it is a ghost
+	long  end_vertex,	    // If a vertex is larger than star_vertex-1, it is a ghost
+	char* path_prefix,      // For saving the partition files like <path_prefix>_xxx.par
+						    // Different server can have different path_prefix
+	int par_prune,          // Can always be set with value '1'
+	long NV_par_recommand,  // Allow to partition small graphs not bigger than FPGA limitation
+	long NV_par_max		    //  64*1000*1000;
+	) 
 {
 #ifndef NDEBUG    
     std::cout << "DEBUG: " << __FUNCTION__ 
               << "\n    start_vertex=" << start_vertex
               << "\n    end_vertex=" << end_vertex
+              << "\n    path_prefix=" << path_prefix
               << "\n    par_prune=" << par_prune
               << std::endl;
 #endif
@@ -3442,13 +3460,13 @@ int Parser_ParProjFile(std::string projFile, ParLV& parlv, char* path, char* nam
     
     printf("DEBUG: start LoadParLV\n");
     sprintf(namePath_tmp, "%s/%s.par.src", path, name);
-    std::cout << "------------" << __FUNCTION__ << " id_glv=" << id_glv << std::endl;
+    //std::cout << "------------" << __FUNCTION__ << " id_glv=" << id_glv << std::endl;
     parlv.plv_src = new GLV(id_glv);
     printf("DEBUG: start LoadHead\n");
     LoadHead<GLVHead>(namePath_tmp, (GLVHead*)parlv.plv_src);
     printf("DEBUG: end LoadHead\n");
 #ifndef NDEBUG
-    printf("DEBUG: LoadHead results \nNV=%ld \nNVl=%ld \nNE=%ld \nNElg=%ld \nNC=%ld \nQ=%f \nnumColors=%d  \nnumThreads=%d \nname=%s \nID=%d",
+    printf("DEBUG: LoadHead results\n    NV=%ld\n    NVl=%ld\n    NE=%ld\n    NElg=%ld\n    NC=%ld\n    Q=%f\n    numColors=%d\n    numThreads=%d\n    name=%s\n    ID=%d\n",
         parlv.plv_src->NV, parlv.plv_src->NVl, parlv.plv_src->NE, parlv.plv_src->NElg, 
         parlv.plv_src->NC, parlv.plv_src->Q, parlv.plv_src->numColors, parlv.plv_src->numThreads, 
         parlv.plv_src->name, parlv.plv_src->ID);
@@ -3459,43 +3477,41 @@ int Parser_ParProjFile(std::string projFile, ParLV& parlv, char* path, char* nam
 #endif
     if (parlv.num_par != atoi(str_par_num)) {
         printf("\033[1;31;40mWARNING\033[0m: parlv.num_par(%d) != %d; Value in file will be used\n", parlv.num_par, atoi(str_par_num));
-        //getchar();
     }
     parlv.num_par = atoi(str_par_num);
     parlv.th_prun = atoi(str_par_prune);
 
     int cnt_file = 0;
-    //for (int p = 0; p < parlv.num_par; p++)
+    
     int p=0;
     int i_svr=0;
     int p_svr=0;
     while (p < parlv.num_par){
         char nm[1024];
-        if(parlv.num_server==1)
+        if (parlv.num_server == 1)
         	sprintf(nm, "%s_%1d%1d%1d.par", name, p / 100, (p / 10) % 10, p % 10);
-        else{
+        else {
         	sprintf(nm, "%s_svr%d_%1d%1d%1d.par", name,i_svr, p_svr / 100, (p_svr / 10) % 10, p_svr % 10);
         }
+        printf("DEBUG:     par_src->name[%d]=%s\n", p, nm);
         parlv.par_src[p]->SetName(nm);
-#ifndef NDEBUG        
-        printf("Checking: %s\n", parlv.par_src[p]->name);
-#endif        
-        char pathName[1024];
-        strcpy(pathName, path);
-        FILE* fp = fopen(strcat(pathName, parlv.par_src[p]->name), "r");
-        if (fp != NULL) {
-            fclose(fp);
-            cnt_file++;
-        } else
-            printf("\033[1;31;40mERROR\033[0m: Partition Share %s not Found\n", pathName);
-
-        if (p_svr == parlv.parInServer[i_svr]-1){
+        // Do not check .par files from the driver as they are saved locally on each node
+        //char pathName[1024];
+        //strcpy(pathName, path);
+        //FILE* fp = fopen(strcat(pathName, parlv.par_src[p]->name), "r");
+        //if (fp != NULL) {
+        //    fclose(fp);
+        //    cnt_file++;
+        //} else
+        //    printf("\033[1;31;40mERROR\033[0m: Partition Share %s not Found\n", pathName);
+        cnt_file++;
+        if (p_svr == parlv.parInServer[i_svr]-1) {
             i_svr++;
             p_svr=0;
-        }else
+        } else
         	p_svr++;
         p++;
-    }//
+    }
     free(fdata);
     if (cnt_file != parlv.num_par)
         return -1;
@@ -3505,13 +3521,17 @@ int Parser_ParProjFile(std::string projFile, ParLV& parlv, char* path, char* nam
 
 /*
     For both driver; no zmq communications occur
+    Return values:
+    0: Success
+    -1: Error in Parser_ParProjFile
+    -2: Error in LouvainProcess_part1
 */
-
 int load_alveo_partitions_DriverSelf(Driver* drivers,
     std::string projFile, int numNode, int numPureWorker, 
     // output
     ParLV& parlv_drv, ParLV& parlv_wkr, char* name_inFile) 
 {
+    int status = 0;
 #ifndef NDEBUG
     std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__ 
               << " numNode=" << numNode << " numPureWorker=" << numPureWorker 
@@ -3527,6 +3547,13 @@ int load_alveo_partitions_DriverSelf(Driver* drivers,
     }
     int id_glv = 0;
 
+    // Assign partitions to the driver and all workers.
+    // The driver gets the last partitions.
+    // Each worker gets numPartitions/numNode partitions.
+    // Below is an example of partition assignment for 10 partitions on 3 servers (a.k.a nodes)
+    // worker1: par_svr0_000.par par_svr0_001.par par_svr0_002.par
+    // worker2: par_svr1_000.par par_svr1_001.par par_svr1_002.par
+    // driver : par_svr2_000.par par_svr2_001.par par_svr2_002.par par_svr2_003.par
     char msg_d2w[numPureWorker][MAX_LEN_MESSAGE];
     char msg_driver[MAX_LEN_MESSAGE];
     {
@@ -3534,12 +3561,13 @@ int load_alveo_partitions_DriverSelf(Driver* drivers,
         TimePointType l_send_start = chrono::high_resolution_clock::now();
         TimePointType l_send_end;
         int stride = parlv_drv.num_par / numNode;
+        // Generate message to driver itself, which always gets the last partition files
         MessageGen_D2W(msg_driver, parlv_drv, path_proj, stride * (numNode - 1), parlv_drv.num_par, 0);
 
         //////////////////////////// CreateSendMessage for worker to be sent ////////////////////////////
         for(int nodeID = 1; nodeID<=numPureWorker; nodeID++){
         	MessageGen_D2W(msg_d2w[nodeID-1], parlv_drv, path_proj, stride * (nodeID - 1), stride * nodeID, nodeID);
-        	//printf("DBG_WR: %s\n", msg_d2w[nodeID-1]);
+        	printf("DEBUG: after MessageGen_D2W msg_d2w=%s\n", msg_d2w[nodeID-1]);
         	drivers[nodeID-1].send(msg_d2w[nodeID-1], MAX_LEN_MESSAGE, 0);
         }
 
@@ -3547,9 +3575,11 @@ int load_alveo_partitions_DriverSelf(Driver* drivers,
     }
     int nodeID = 0;
     char msg_w2d[numNode][MAX_LEN_MESSAGE];
-    { LouvainProcess_part1(nodeID, parlv_drv, msg_driver, parlv_wkr); }
+    { 
+        status = LouvainProcess_part1(nodeID, parlv_drv, msg_driver, parlv_wkr); 
+    }
 
-    return 0;
+    return status;
 }
 /*
 int load_alveo_partitions_WorkerSelf( // for both driver; no zmq communications occur
@@ -3785,31 +3815,40 @@ extern "C" int create_and_load_alveo_partitions(int argc, char* argv[]) {
     return 0;
 }
 
-void LouvainGLV_general_top_zmq_worker_new_part1(
-                                                 ParLV& parlv,
-                                                 int nodeID,
-                                                 ParLV& parlv_wkr,
-                                                 char* LoadCommand) {
+/*
+ Arguments:
+    LoadCommand: example:
+                 parlv_req -num 3 -path as-skitter-par9/ louvain_partitions_000.par 
+                 louvain_partitions_001.par louvain_partitions_002.par -node 1
+
+Return values:
+ 0: Success
+-1:  
+*/
+int LouvainGLV_general_top_zmq_worker_new_part1(
+    ParLV& parlv, int nodeID, ParLV& parlv_wkr, char* LoadCommand) 
+{
 #ifndef NDEBUG
     std::cout << "DEBUG:" << __FILE__ << "::" << __FUNCTION__ 
               << " parlv_wkr num_par=" << parlv_wkr.num_par 
               << " LoadCommand=" << LoadCommand << std::endl;
-// LoadCommand= parlv_req -num 3 -path as-skitter-par9/  louvain_partitions_000.par 
-//              louvain_partitions_001.par louvain_partitions_002.par -node 1              
 #endif
+    int status = 0;
     char MSG_LOAD_START[MAX_LEN_MESSAGE]; // 4096 usually// for dirver itself
     if (LoadCommand == NULL) {
-        printf("\nListen to the driver\n");
+        printf("\nINFO: Listen to the driver\n");
         Worker worker(5555);
         worker.receive(MSG_LOAD_START, 4096);
-        printf("Received %s\n", MSG_LOAD_START);
+        printf("INFO: Received %s\n", MSG_LOAD_START);
 
         parlv.timesPar.timeAll = getTime();
-        printf("------Just before LouvainProcess_part1\n");
-        LouvainProcess_part1(nodeID, parlv, MSG_LOAD_START, parlv_wkr);
+        status = LouvainProcess_part1(nodeID, parlv, MSG_LOAD_START, parlv_wkr);
+        // TODO: need to send error status to the driver
+        if (status < 0)
+            return status;
         char MSG_LOAD_DONE[MAX_LEN_MESSAGE]; // 4096 usually
         MessageGen_W2D(MSG_LOAD_DONE, nodeID);
-        printf("MSG_LOAD_DONE to the driver\n");
+        printf("INFO: MSG_LOAD_DONE to the driver\n");
         worker.send(MSG_LOAD_DONE, MAX_LEN_MESSAGE, 0);
     } else {
         strcpy(MSG_LOAD_START, LoadCommand);
@@ -3818,16 +3857,17 @@ void LouvainGLV_general_top_zmq_worker_new_part1(
         printf("Using Command for loading %s\n", MSG_LOAD_START);
 
         parlv.timesPar.timeAll = getTime();
-        LouvainProcess_part1(nodeID, parlv, MSG_LOAD_START, parlv_wkr);
+        status = LouvainProcess_part1(nodeID, parlv, MSG_LOAD_START, parlv_wkr);
+        if (status < 0)
+            return status;
         char MSG_LOAD_DONE[MAX_LEN_MESSAGE]; // 4096 usually
         MessageGen_W2D(MSG_LOAD_DONE, nodeID);
-        printf("\n\n\033[1;31;40mWorker-%d\033[0m LOADING DONE\n", nodeID);
+        printf("\n\nINFO: Worker-%d LOADING DONE\n", nodeID);
         printf("MSG_LOAD_DONE to the driver\n");
         worker.receive(MSG_LOAD_START, 4096);
         worker.send(MSG_LOAD_DONE, MAX_LEN_MESSAGE, 0);
     }
-    std::cout << "DEBUG: end of " << __FILE__ << "::" << __FUNCTION__ 
-              << " parlv_wkr num_par=" << parlv_wkr.num_par << std::endl;
+    return status;
 }
 
 void LouvainGLV_general_top_zmq_worker_new_part2(xf::graph::L3::Handle* handle0,
@@ -3899,9 +3939,16 @@ extern "C" float load_alveo_partitions(unsigned int num_partitions, unsigned int
     return 0.0;
 }
 
+/*
+ Return values:
+  0: Success
+ -1: 
+ -2:
+ -3:
+*/
 extern "C" int compute_louvain_alveo_seperated_load(
     char* xclbinPath, bool flow_fast, unsigned int numDevices,
-    unsigned int num_par, char* alveoProject,
+    unsigned int numPartitions, char* alveoProject,
     int mode_zmq, int numPureWorker, char* nameWorkers[128], unsigned int nodeID,
     float tolerance, bool verbose, 
     xf::graph::L3::Handle* handle0, ParLV* p_parlv_dvr, ParLV* p_parlv_wkr)
@@ -3911,7 +3958,7 @@ extern "C" int compute_louvain_alveo_seperated_load(
               << "\n     xclbinPath=" << xclbinPath
               << "\n     flow_fast=" << flow_fast 
               << "\n     numDevices=" << numDevices
-              << "\n     num_par=" << num_par 
+              << "\n     numPartitions=" << numPartitions 
               << "\n     alveoProject=" << alveoProject
               << "\n     mode_zmq=" << mode_zmq 
               << "\n     numPureWorker=" << numPureWorker
@@ -3924,7 +3971,7 @@ extern "C" int compute_louvain_alveo_seperated_load(
         std::cout << "DEBUG: nameWorker " << i << "=" << nameWorkers[i] << std::endl;
 
 #endif
-    // TODO: We should remove globals as this is quite confusing
+    int status = 0;
     std::string opName = "louvainModularity";
     std::string kernelName = "kernel_louvain";
     int requestLoad = 100;
@@ -3938,7 +3985,6 @@ extern "C" int compute_louvain_alveo_seperated_load(
     int par_prune = 1;
     int numThreads = 16;
     bool opts_coloring = false;
-    int status = 0;
     int flowMode = 1;
 
     int numNode = numPureWorker + 1;
@@ -3979,8 +4025,8 @@ extern "C" int compute_louvain_alveo_seperated_load(
         //-----------------------------------------------------------------
         char inFile[1024];
 
-        p_parlv_dvr->Init(flowMode, NULL, num_par, numDevices, isPrun, par_prune);
-        p_parlv_wkr->Init(flowMode, NULL, num_par, numDevices, isPrun, par_prune);
+        p_parlv_dvr->Init(flowMode, NULL, numPartitions, numDevices, isPrun, par_prune);
+        p_parlv_wkr->Init(flowMode, NULL, numPartitions, numDevices, isPrun, par_prune);
 
             // API FOR LOADING
         {
@@ -3988,8 +4034,9 @@ extern "C" int compute_louvain_alveo_seperated_load(
             ConnectWorkers(drivers, numPureWorker, nameWorkers);
             TimePointType l_load_start = chrono::high_resolution_clock::now();
             TimePointType l_load_end;
-            if (load_alveo_partitions_DriverSelf(drivers, alveoProject, numNode, numPureWorker, (*p_parlv_dvr), (*p_parlv_wkr), inFile) != 0)
-                return -1;
+            status = load_alveo_partitions_DriverSelf(drivers, alveoProject, numNode, numPureWorker, (*p_parlv_dvr), (*p_parlv_wkr), inFile);
+            if (status < 0)
+               return status;
 
             getDiffTime(l_load_start, l_load_end, p_parlv_dvr->timesPar.timeDriverLoad);
 
@@ -4019,19 +4066,19 @@ extern "C" int compute_louvain_alveo_seperated_load(
         //-----------------------------------------------------------------
         // WORKER
         //-----------------------------------------------------------------
-    	p_parlv_wkr->Init(flowMode, NULL, num_par, numDevices, isPrun, par_prune);
+    	p_parlv_wkr->Init(flowMode, NULL, numPartitions, numDevices, isPrun, par_prune);
     	p_parlv_wkr->timesPar.timeAll = getTime();
         char LoadCommand[MAX_LEN_MESSAGE];
         {
             char inFile[1024];
             ParLV parlv_tmp;
-            parlv_tmp.Init(flowMode, NULL, num_par, numDevices, isPrun, par_prune);
+            parlv_tmp.Init(flowMode, NULL, numPartitions, numDevices, isPrun, par_prune);
 
-            LouvainGLV_general_top_zmq_worker_new_part1(parlv_tmp, nodeID, (*p_parlv_wkr), NULL);
+            status = LouvainGLV_general_top_zmq_worker_new_part1(parlv_tmp, nodeID, (*p_parlv_wkr), NULL);
         }
     }
 
-    return 0;
+    return status;
 }
 
 extern "C" float compute_louvain_alveo_seperated_compute(
@@ -4066,7 +4113,7 @@ extern "C" float compute_louvain_alveo_seperated_compute(
     int numThreads = 16;
     int numNode = numPureWorker + 1;
 
-    LouvainPara* para_lv=new(LouvainPara);
+    LouvainPara* para_lv = new(LouvainPara);
     para_lv->opts_coloring = true;
     para_lv->opts_minGraphSize = opts_minGraphSize;
     para_lv->opts_threshold = opts_threshold;
@@ -4077,15 +4124,6 @@ extern "C" float compute_louvain_alveo_seperated_compute(
 
     if (mode_alveo == ALVEOAPI_RUN) {
         if (mode_zmq == ZMQ_DRIVER) {
-#ifdef PRINTINFO
-            printf("\n\n\033[1;31;40mDriver's LOADING DONE \033[0m\n");
-            printf("\n\n\033[1;31;40mPlease Wait for Workers' Done\033[0m\n");
-            printf("\n\033[1;31;40mTO START LOUVAIN PUT ANY KEY: \033[0m");
-            // getchar();
-
-            // TODO Add synchronization here
-            printf("\n\033[1;31;40mTO RUNNING LOUVAIN \033[0m\n");
-#endif
             // API FOR RUNNING LOUVAIN
             GLV* glv_final;
             TimePointType l_execute_start = chrono::high_resolution_clock::now();
@@ -4149,7 +4187,7 @@ extern "C" float loadAlveoAndComputeLouvain (
     if (mode_zmq == ZMQ_DRIVER) {
         int id_glv = 0;
         for (int i=0; i<numPartitions; i++) {
-            std::cout << "------------" << __FUNCTION__ << " id_glv=" << id_glv << std::endl;
+            //std::cout << "------------" << __FUNCTION__ << " id_glv=" << id_glv << std::endl;
 
             parlv_drv.par_src[i] = new GLV(id_glv);
         }     

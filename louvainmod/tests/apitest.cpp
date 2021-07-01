@@ -24,6 +24,7 @@ using namespace xilinx_apps::louvainmod;
     -driverAlone: ToolOptionssets mode_zmq to ZMQ_DRIVER
 */
 int main(int argc, char **argv) {
+    int status = 0;
     float finalQ;
     ToolOptions toolOptions(argc, argv);
     Options options;
@@ -84,8 +85,12 @@ int main(int argc, char **argv) {
         computeOpts.final_Q = true;
         computeOpts.all_Q = false; 
 
-        finalQ = louvainMod.loadAlveoAndComputeLouvain(computeOpts);   
-        std::cout << "INFO: " << __FUNCTION__ << " finalQ=" << finalQ << std::endl;
+        finalQ = louvainMod.loadAlveoAndComputeLouvain(computeOpts);
+        if (finalQ < 0) {
+            std::cout << "ERROR: loadAlveoAndComputeLouvain completed with error. ErrorCode=" << finalQ << std::endl;
+            status = -1;
+        } else
+            std::cout << "INFO: loadAlveoAndComputeLouvain completed. finalQ=" << finalQ << std::endl;
         break;
     case ALVEOAPI_RUN:  // 3
         std::cout << "ALVEOAPI_RUN" << std::endl;
@@ -94,5 +99,5 @@ int main(int argc, char **argv) {
         std::cout << "ERROR: Unknown tool mode " << toolOptions.mode_alveo << std::endl;
         break;
     }
-    return 0;
+    return status;
 }

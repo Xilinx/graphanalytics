@@ -63,9 +63,30 @@ curNodeHostname = socket.gethostname()
 print('curNodeHostname=', curNodeHostname, 'curNodeIp=', curNodeIp)
 print('nodeIps', nodeIps)
 
+# Get number of U50 devices
+re_u50 = re.compile('xilinx_u50_gen3x16_xdma_201920_3')
+command = '/opt/xilinx/xrt/bin/xbutil scan'
+p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+p_out = p.stdout.readlines()
+p_returncode = p.wait()
+if p_returncode != 0:
+    print(p_out)
+
+numDevices = 0
+for line in p_out:
+    lineStr = line.decode('utf-8')
+    m = re_u50.findall(lineStr)
+    if m:
+        numDevices += 1
+
+curNodeHostname = socket.gethostname()
+print('numDevices=', numDevices)
+
 pluginConfigDict = {'curNodeHostname': curNodeHostname,
-                    'curNodeIp': curNodeIp,
-                    'nodeIps': ' '.join(nodeIps),
+                    'curNodeIp'  : curNodeIp,
+                    'nodeIps'    : ' '.join(nodeIps),
+                    'numNodes'   : len(nodeIps),
+                    'numDevices' : numDevices,
                     'xGraphStore': tgDataRoot + '/xgstore'}
 
 with pluginConfigFile.open(mode='w') as fh:
