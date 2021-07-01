@@ -56,10 +56,10 @@ CCC = /usr/bin/g++
 CXX = /usr/bin/g++
 CXXFLAGS = -std=c++11 -DPRAGMA -Ofast -fopenmp -fmessage-length=0  -fPIC -Wall -Wno-unknown-pragmas -Wno-unused-label \
     -Wno-unused-variable -Wno-sign-compare -Wno-unused-result -Wno-unused-but-set-variable \
-    -Wno-narrowing -D USE_U55C -fmessage-length=0 -D LOUVAINMOD
+    -Wno-narrowing -D USE_HBM -fmessage-length=0 -D LOUVAINMOD
 
 # Define the target directories.
-
+#DEBUG = 1
 ifdef DEBUG
 CPP_BUILD_DIR = Debug
 CXXFLAGS += -O0 -g
@@ -68,6 +68,10 @@ CPP_BUILD_DIR = Release
 CXXFLAGS += -O3 -DNDEBUG
 endif
 
+USE_U55C = 1
+ifdef USE_U55C
+CXXFLAGS += -D USE_U55C
+endif
 
 ## Target: libLouvain.so
 INCLUDES_libLouvain = \
@@ -361,7 +365,15 @@ endif
 # XCLBIN
 #
 
-
+ifdef USE_U55C
+L2_TOP_DIR = $(GRAPH_ANALYTICS_DIR)/L2/louvainmod_u55c_kernel
+L2_XDEVICE = xilinx_u55c_gen3x16_xdma_1
+L2_BUILD_DIR = $(L2_TOP_DIR)/build_dir.hw.$(L2_XDEVICE)
+XCLBIN_NAME = kernel_louvain_u55c.xclbin
+XCLBIN_FILE = $(L2_BUILD_DIR)/$(XCLBIN_NAME)
+XCLBIN_INSTALLED_NAME = louvainmod_pruning_$(L2_XDEVICE).xclbin
+XCLBIN_INSTALLED =/opt/xilinx/apps/graphanalytics/louvainmod/1.0/xclbin/$(XCLBIN_INSTALLED_NAME)
+else
 L2_TOP_DIR = $(GRAPH_ANALYTICS_DIR)/L2/louvainmod_pruning_kernel
 L2_XDEVICE = xilinx_u50_gen3x16_xdma_201920_3
 L2_BUILD_DIR = $(L2_TOP_DIR)/build_dir.hw.$(L2_XDEVICE)
@@ -369,7 +381,7 @@ XCLBIN_NAME = kernel_louvain_pruning.xclbin
 XCLBIN_FILE = $(L2_BUILD_DIR)/$(XCLBIN_NAME)
 XCLBIN_INSTALLED_NAME = louvainmod_pruning_$(L2_XDEVICE).xclbin
 XCLBIN_INSTALLED =/opt/xilinx/apps/graphanalytics/louvainmod/1.0/xclbin/$(XCLBIN_INSTALLED_NAME)
-
+endif
 .PHONY: xclbin
 
 xclbin:
