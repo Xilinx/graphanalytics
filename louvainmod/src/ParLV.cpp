@@ -3301,7 +3301,7 @@ int create_alveo_partitions(char* inFile, int num_partition, int par_prune, char
 			strcpy(pathName_proj_svr, pathName_proj);                    //louvain_partitions_000.par
 
 		long NV_par_recommand;//(long)(64000000.0 * 0.80);
-		long NV_par_max = 64*1000*1000;
+		long NV_par_max = MAXNV;//64*1024*1024;
 		if(parlv.num_par>1)
 			NV_par_recommand = (NV + parlv.num_par-1) / parlv.num_par;//allow to partition small graph with -par_num
 		else
