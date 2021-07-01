@@ -1948,7 +1948,7 @@ void runLouvainWithFPGA_demo_par_core (
 	timePrePre = omp_get_wtime();
     long NV_orig     = pglv_orig->G->numVertices;
     long NE_orig     = pglv_orig->G->numEdges;
-    long NE_max      = 64000000;//NE_orig;//hasGhost?(1.4 * NE_orig):NE_orig;//1.4 is Experience value, make clbuffer enough space
+    long NE_max      = MAXNV_M;//NE_orig;//hasGhost?(1.4 * NE_orig):NE_orig;//1.4 is Experience value, make clbuffer enough space
     long numClusters;
 
     assert(NV_orig < MAXNV);
@@ -2223,6 +2223,7 @@ void runLouvainWithFPGA_demo_par_core_prune(
     	printf("\033[1;31;40mERROR\033[0m: id_dev(%d) >= d_num(%d)\n", id_dev,d_num );
     	return ;
     }
+    
     cl::Device              device  = devices[id_dev];
     cl::Context             context(device);
     std::string             devName = device.getInfo<CL_DEVICE_NAME>();
@@ -2244,7 +2245,7 @@ void runLouvainWithFPGA_demo_par_core_prune(
     /* Memories mapping */
     KMemorys_host_prune   buff_host;
     KMemorys_clBuff_prune buff_cl;
-    long NE_max      = 64000000;//NE_orig;//hasGhost?(1.4 * NE_orig):NE_orig;//Experience value, make clbuffer enough space
+    long NE_max      = MAXNV_M;//NE_orig;//hasGhost?(1.4 * NE_orig):NE_orig;//Experience value, make clbuffer enough space
     long NE_mem      = NE_max * 2;//number for real edge to be stored in memory
     long NE_mem_1    = NE_mem < (MAXNV)? NE_mem :(MAXNV) ;
     long NE_mem_2    = NE_mem - NE_mem_1;
