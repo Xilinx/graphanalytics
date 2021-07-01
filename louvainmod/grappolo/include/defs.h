@@ -134,7 +134,7 @@ void duplicateGivenGraph(graphNew* Gin, graphNew* Gout);
 void writeEdgeListToFile(graphNew* G, FILE* out);
 
 // Random Number Generation:
-//void generateRandomNumbers(double* RandVec, long size);
+void generateRandomNumbers(double* RandVec, long size);
 
 void displayGraph(graphNew* G);
 void displayGraphCharacteristics(graphNew* G);

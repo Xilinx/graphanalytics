@@ -39,11 +39,11 @@
 //
 // ************************************************************************
 
+#include "RngStream.h"
 #include "defs.h"
 
 using namespace std;
 
-/*
 void generateRandomNumbers(double* RandVec, long size) {
     int nT;
 #pragma omp parallel
@@ -53,6 +53,8 @@ void generateRandomNumbers(double* RandVec, long size) {
 #endif
     // Initialize parallel pseudo-random number generator
     unsigned long seed[6] = {1, 2, 3, 4, 5, 6};
+    RngStream::SetPackageSeed(seed);
+    RngStream RngArray[nT]; // array of RngStream Objects
 
     long block = size / nT;
 #ifdef PRINT_DETAILED_STATS_
@@ -63,12 +65,12 @@ void generateRandomNumbers(double* RandVec, long size) {
 #pragma omp parallel
     {
         int myRank = omp_get_thread_num();
-#pragma omp for schedule(static)      for (long i = 0; i < size; i++) {
+#pragma omp for schedule(static)
         for (long i = 0; i < size; i++) {
+            RandVec[i] = RngArray[myRank].RandU01();
         }
     } // End of parallel region
 } // End of generateRandomNumbers()
-*/
 
 void displayGraphCharacteristics(graphNew* G) {
     printf("Within displayGraphCharacteristics()\n");
