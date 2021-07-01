@@ -155,8 +155,8 @@ void opLouvainModularity::loadGraph(
     unsigned long NV_orig;// = G->numVertices;
     unsigned long NE_orig;// = G->numEdges;
     
-    NV_orig = 64000000;//Now using fixed size for L3
-    NE_orig = (1<<26);//Now using fixed size for L3
+    NV_orig = MAXNV_M;//Now using fixed size for L3
+    NE_orig = (MAXNV);//Now using fixed size for L3
     if(NV_orig >=  MAXNV-1)
     {
         printf("WARNING: G->numVertices(%lx) is more than MAXNV(%lx), partition should be used\n", NV_orig, MAXNV);

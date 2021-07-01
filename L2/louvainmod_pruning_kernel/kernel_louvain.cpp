@@ -125,7 +125,6 @@ extern "C" void kernel_louvain(int64_t* config0,
 #pragma HLS INTERFACE s_axilite port = flagUpdate bundle = control
 #pragma HLS INTERFACE s_axilite port = return bundle = control
 
-
     xf::graph::initComm<DWEIGHT, DWIDTHS, VERTEXS, EDGES>(config0[0], config0[3], offsets, weights, cidPrev, cidCurr, cidSizePrev,
                                                           totPrev, constant_recip);
 

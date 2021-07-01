@@ -1373,7 +1373,7 @@ void PrintRptPartition_Summary(
 	printf("Number of vertices           : %ld\n"  , parlv.plv_src->NV);
 	printf("Number of edges              : %ld\n"  , parlv.plv_src->NE);
 	printf("Number of partitions         : %d\n"   , parlv.num_par);
-	printf("Partition size               : < %d\n" , 64000000);
+	printf("Partition size               : < %d\n" , MAXNV_M);
 	printf("Number of nodes (machines)   : %d\n"   , numNode);
 	printf("Number of Xilinx Alveo cards : %d"     , SummArrayByNum<int>(numNode, card_Node));
 	PrintArrayByNum<int>(numNode, card_Node);//[3, 3,3]
@@ -2945,7 +2945,7 @@ GLV* UpdateCwithFinal(xf::graph::L3::Handle* handle0,
                       int par_prune,
                       int& id_glv,
 					  LouvainPara* para_lv) {
-    const long MaxSize = 64000000;
+    const long MaxSize = MAXNV_M;
     const long safeSize = MaxSize * 0.9;
     long NV = glv_orig->NV;
     long NE = glv_orig->NE;
@@ -3319,7 +3319,7 @@ int create_alveo_partitions(char* inFile, int num_partition, int par_prune, char
 			strcpy(pathName_proj_svr, pathName_proj);                    //louvain_partitions_000.par
 
 		long NV_par_recommand;//(long)(64000000.0 * 0.80);
-		long NV_par_max = 64*1000*1000;
+		long NV_par_max = MAXNV_M;//64*1000*1000;
 		if(parlv.num_par>1)
 			NV_par_recommand = (NV + parlv.num_par-1) / parlv.num_par;//allow to partition small graph with -par_num
 		else
