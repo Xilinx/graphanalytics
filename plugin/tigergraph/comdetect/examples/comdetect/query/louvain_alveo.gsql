@@ -108,21 +108,30 @@ CREATE DISTRIBUTED QUERY tg_partition_phase_3(
     MapAccum<UINT,INT> @@nodeAccum;
     
     print gName;
+
+    udf_reset_timer(true);
     Start = {v_types};
     nodes = {dummy_nodes.*};
     vertexList = SELECT s FROM Start:s-(e_types:e)->:t
         ACCUM udf_set_louvain_edge_list(s.louvainId, t.louvainId, e.getAttr(weight_attr,"FLOAT"), t.outdegree());
-
+    PRINT udf_elapsed_time(true) AS SetLouvainEdgeListTime;
+    
+    udf_reset_timer(true);
     nodeList = SELECT n FROM nodes:n 
         ACCUM udf_start_partition(gName, Start.size());
+    PRINT udf_elapsed_time(true) AS StartPartitionTime;
             
  
+    udf_reset_timer(true);
     parList = SELECT n FROM nodes:n
         ACCUM @@nodeAccum += (n.NODE_ID -> udf_save_alveo_partition(numPar));
     PRINT @@nodeAccum;
+    PRINT udf_elapsed_time(true) AS SaveAlveoPartitionTime;
 
+    udf_reset_timer(true);
     nodeList = SELECT n FROM nodes:n
         ACCUM udf_finish_partition(@@nodeAccum);
+    PRINT udf_elapsed_time(true) AS FinishPartitionTime;
   
 }
 
