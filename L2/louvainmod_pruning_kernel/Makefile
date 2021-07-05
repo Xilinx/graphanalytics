@@ -216,13 +216,17 @@ kernel_louvain_VPP_CFLAGS += -I$(KSRC_DIR)
 
 #VPP_CFLAGS += -I$(XFLIB_DIR)/L1/include/hw/ -I$(XFLIB_DIR)/L2/include/hw
 
-ifneq (,$(shell echo $(XPLATFORM) | awk '/u50/ || /u280/'))
-    VPP_CFLAGS += --config conn_u50_u280.ini
+ifneq (,$(shell echo $(XPLATFORM) | awk '/u50/ || /u280/ || /u55c/'))
+    VPP_CFLAGS += --config conn_u50_u55c_u280.ini
 else
 $(warning Unsupported platform $(XPLATFORM))
 endif
+ifneq (,$(shell echo $(XPLATFORM) | awk '/u55c/'))
+CXXFLAGS += -D USE_U55C
+VPP_CFLAGS += -D USE_U55C
+endif
 
-VPP_LFLAGS += $(foreach k,$(KERNELS), --nk $(k):1:$(k))
+#VPP_LFLAGS += $(foreach k,$(KERNELS), --nk $(k):1:$(k))
 
 # -----------------------------------------------------------------------------
 # TODO:                           host setup
@@ -302,6 +306,7 @@ VPP_CFLAGS += -I$(KSRC_DIR)
 VPP_CFLAGS += --target $(TARGET) --platform $(XPLATFORM) --temp_dir $(VPP_DIR) --save-temps --debug
 VPP_CFLAGS += --kernel_frequency $(XFREQUENCY) --report_level 2
 VPP_LFLAGS += --optimize 2 --jobs 8
+VPP_CFLAGS += --advanced.param compiler.userPostSysLinkOverlayTcl=$(KSRC_DIR)/postSysLink.tcl
 
 KERNEL_NAMES := $(foreach k,$(KERNELS),$(word 1, $(subst :, ,$(k))))
 XO_FILES := $(foreach k,$(KERNEL_NAMES),$(XO_DIR)/$(k).xo)

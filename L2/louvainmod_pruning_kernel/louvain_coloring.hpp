@@ -429,7 +429,7 @@ void initComm(int64_t numVertex,
 
     hls::stream<ap_uint<DWIDTH> > weight_strm0("load_weight");
 #pragma HLS RESOURCE variable = weight_strm0 core = FIFO_SRL
-#pragma HLS STREAM variable = totPrev_strm0 depth = 64
+#pragma HLS STREAM variable = weight_strm0 depth = 64
 
     hls::stream<ap_uint<32> > offset_strm1("transform_offset");
 #pragma HLS RESOURCE variable = offset_strm1 core = FIFO_SRL
@@ -437,7 +437,7 @@ void initComm(int64_t numVertex,
 
     hls::stream<float> weight_strm1("transform_weight");
 #pragma HLS RESOURCE variable = weight_strm1 core = FIFO_SRL
-#pragma HLS STREAM variable = totPrev_strm1 depth = 32
+#pragma HLS STREAM variable = weight_strm1 depth = 32
 
     hls::stream<float> totPrev_strm("init_tot");
 #pragma HLS RESOURCE variable = totPrev_strm core = FIFO_SRL
@@ -588,7 +588,7 @@ void update_color_inx(int numVertex, hls::stream<int>& addr_strm, ap_uint<COLORW
 REMAP_VERTEX:
     for (int i = 0; i < numVertex; i++) {
 #pragma HLS PIPELINE II = 1
-#pragma HLS DEPENDENCE variable = colorPtr inter false
+#pragma HLS DEPENDENCE variable = colorInx inter false
 
         int addr = addr_strm.read();
         colorInx[addr] = i;
