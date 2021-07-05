@@ -40,8 +40,8 @@ extern "C" void kernel_louvain(int64_t* config0,
                                ap_uint<DWIDTHS>* cWeight,
                                ap_uint<CSRWIDTHS>* offsetsDup,
                                ap_uint<CSRWIDTHS>* indicesDup,
-							   ap_uint<8>* flag,
-							   ap_uint<8>* flagUpdate) {
+                               ap_uint<8>* flag,
+                               ap_uint<8>* flagUpdate) {
     DWEIGHT constant_recip = 0;
 #pragma HLS INTERFACE m_axi offset = slave bundle = gmem0 port = config0 latency = 32 num_read_outstanding = \
     64 max_read_burst_length = 64 num_write_outstanding = 64 max_write_burst_length = 32 depth = 4
@@ -125,12 +125,12 @@ extern "C" void kernel_louvain(int64_t* config0,
 #pragma HLS INTERFACE s_axilite port = flagUpdate bundle = control
 #pragma HLS INTERFACE s_axilite port = return bundle = control
 
-    xf::graph::initComm<DWEIGHT, DWIDTHS, VERTEXS, EDGES>(config0[0], config0[3], offsets, weights, cidPrev, cidCurr, cidSizePrev,
-                                                          totPrev, constant_recip);
+    xf::graph::initComm<DWEIGHT, DWIDTHS, VERTEXS, EDGES>(config0[0], config0[3], offsets, weights, cidPrev, cidCurr,
+                                                          cidSizePrev, totPrev, constant_recip);
 
-    xf::graph::louvainWithColoring<DWEIGHT, DWIDTHS, CSRWIDTHS, COLORWIDTHS, VERTEXS, EDGES, DEGREES, COLORS>(//config0[2], config1[0]
-        config0[0], config0[1], config0[4], config1[0], constant_recip, offsets, indices, weights, colorAxi, colorInx, cidPrev,
+    xf::graph::louvainWithColoring<DWEIGHT, DWIDTHS, CSRWIDTHS, COLORWIDTHS, VERTEXS, EDGES, DEGREES,
+                                   COLORS>( // config0[2], config1[0]
+        config0[0], config0[1], 0, config1[0], constant_recip, offsets, indices, weights, colorAxi, colorInx, cidPrev,
         cidSizePrev, totPrev, cidCurr, cidSizeCurr, totCurr, cidSizeUpdate, totUpdate, cWeight, offsetsDup, indicesDup,
-		flag, flagUpdate, config0[2], config1[1]);
+        flag, flagUpdate, config0[2], config1[1]);
 }
-

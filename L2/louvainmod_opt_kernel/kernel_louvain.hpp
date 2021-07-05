@@ -21,27 +21,21 @@
 
 #include "louvain_modularity.hpp"
 
-
 #include <ap_fixed.h>
 #include <ap_int.h>
 #include <hls_math.h>
 #include <hls_stream.h>
 
-#define DWIDTHS  (256)
-#define CSRWIDTHS  (256)
+#define DWIDTHS (256)
+#define CSRWIDTHS (256)
 #define COLORWIDTHS (32)
-#define NUM     (DWIDTHS/32)
-#ifndef USE_U55C
-#define MAXNV   (1<<26)
-#define MAXNE   (1<<27)
-#else
-#define MAXNV   (1<<27)
-#define MAXNE   (1<<28)
-#endif
-#define VERTEXS (MAXNV/NUM)
-#define EDGES   (MAXNE/NUM)
-#define DEGREES (1<<17)
-#define COLORS  (4096)
+#define NUM (DWIDTHS / 32)
+#define MAXNV (1 << 27)
+#define MAXNE (1 << 28)
+#define VERTEXS (MAXNV / NUM)
+#define EDGES (MAXNE / NUM)
+#define DEGREES (1 << 17)
+#define COLORS (4096)
 
 const int depthVertex = VERTEXS;
 const int depthEdge = EDGES;
@@ -66,5 +60,5 @@ extern "C" void kernel_louvain(int64_t* config0,
                                ap_uint<DWIDTHS>* cWeight,
                                ap_uint<CSRWIDTHS>* offsetsDup,
                                ap_uint<CSRWIDTHS>* indicesDup,
-							   ap_uint<8>* flag,
-							   ap_uint<8>* flagUpdate);
+                               ap_uint<8>* flag,
+                               ap_uint<8>* flagUpdate);

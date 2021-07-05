@@ -778,8 +778,8 @@ MODULARITY:
             }
 #ifndef __SYNTHESIS__
 #if DEBUG_CALCMODULARITY1
-            std::cout << "j=" << j << " tmp1=" << (int)tmp1 << " eTot=" << eTot.f << " tmp2=" << (int)tmp2 << " eIn=" << eIn.f
-                      << " totTmp=" << totTmp_i[j] << " inTmp=" << inTmp_i[j] << std::endl;
+            std::cout << "j=" << j << " tmp1=" << (int)tmp1 << " eTot=" << eTot.f << " tmp2=" << (int)tmp2
+                      << " eIn=" << eIn.f << " totTmp=" << totTmp_i[j] << " inTmp=" << inTmp_i[j] << std::endl;
 #endif
 #if DEBUG_CALCMODULARITY
             std::cout << "i=" << (i * NV + j) << " tmp1=" << ToDouble(tmp1, scl_sqr) << " tmp2=" << ToDouble(tmp2, scl)
@@ -793,17 +793,20 @@ Fraction:
     for (int j = 0; j < NV; j++) {
         totalTot_i += totTmp_i[j];
         totalIn_i += inTmp_i[j];
-//#if DEBUG_CALCMODULARITY
-//            std::cout << "i=" << j << " tmp1=" << ToDouble(totTmp_i[j], scl_sqr) << " tmp2=" << ToDouble(inTmp_i[j], scl)
-//                      << std::endl;
-//#endif
+        //#if DEBUG_CALCMODULARITY
+        //            std::cout << "i=" << j << " tmp1=" << ToDouble(totTmp_i[j], scl_sqr) << " tmp2=" <<
+        //            ToDouble(inTmp_i[j], scl)
+        //                      << std::endl;
+        //#endif
     }
 
-    Q_curr = ToDouble(totalIn_i, scl) * constant_recip - ToDouble(totalTot_i, scl_sqr) * constant_recip * constant_recip;
+    Q_curr =
+        ToDouble(totalIn_i, scl) * constant_recip - ToDouble(totalTot_i, scl_sqr) * constant_recip * constant_recip;
     deltaQ = Q_curr - Q_prev;
 
 #ifndef __SYNTHESIS__
-    std::cout << "totalIn="<<ToDouble(totalIn_i, scl)<<" totalTot="<<ToDouble(totalTot_i, scl_sqr)<<" Q_prev=" << Q_prev << " Q_curr=" << Q_curr << " deltaQ=" << deltaQ << std::endl;
+    std::cout << "totalIn=" << ToDouble(totalIn_i, scl) << " totalTot=" << ToDouble(totalTot_i, scl_sqr)
+              << " Q_prev=" << Q_prev << " Q_curr=" << Q_curr << " deltaQ=" << deltaQ << std::endl;
 #endif
 }
 
@@ -812,9 +815,8 @@ void initSameColor(int c,
                    int numVertex,
                    ap_uint<DWIDTH> cidSizeUpdate[MAXVERTEX],
                    ap_uint<DWIDTH> totUpdate[MAXVERTEX],
-                   ap_uint<DWIDTH> commWeight[MAXVERTEX]
-				   ,ap_uint<FLAGW> flagUpdate[MAXVERTEX]
-											 ) {
+                   ap_uint<DWIDTH> commWeight[MAXVERTEX],
+                   ap_uint<FLAGW> flagUpdate[MAXVERTEX]) {
 #pragma HLS INLINE off
 
     const int NvBt = 32;                           // 32 bits
@@ -827,9 +829,9 @@ INIT_SAME_COLOR:
 #pragma HLS PIPELINE II = 1
         cidSizeUpdate[i] = 0;
         totUpdate[i] = 0;
-        if (c == 0){
-        	commWeight[i] = 0;
-        	flagUpdate[i] = 0;
+        if (c == 0) {
+            commWeight[i] = 0;
+            flagUpdate[i] = 0;
         }
     }
 }
@@ -843,8 +845,8 @@ void sameColorWrapper(int numVertex,
                       DWEIGHT& constant_recip,
                       int* colorPtr,
                       ap_uint<32>& loop_cnt,
-					  bool use_push_flag,
-					  bool write_push_flag,
+                      bool use_push_flag,
+                      bool write_push_flag,
                       ap_uint<CSRWIDTH>* offset,
                       ap_uint<CSRWIDTH>* index,
                       ap_uint<CSRWIDTH>* weight,
@@ -858,23 +860,23 @@ void sameColorWrapper(int numVertex,
                       ap_uint<DWIDTH>* cidSizeUpdate,
                       ap_uint<DWIDTH>* totUpdate,
                       ap_uint<DWIDTH>* commWeight,
-					  ap_uint<CSRWIDTH>* offsetDup,
-					  ap_uint<CSRWIDTH>* indexDup,
-					  ap_uint<8>* flag,
-					  ap_uint<8>* flagUpdate) {
+                      ap_uint<CSRWIDTH>* offsetDup,
+                      ap_uint<CSRWIDTH>* indexDup,
+                      ap_uint<8>* flag,
+                      ap_uint<8>* flagUpdate) {
 #pragma HLS INLINE off
 
 COLOR:
     for (int c = 0; c < numColor; c++) {
-        initSameColor<DWIDTH, MAXVERTEX>(c, numVertex, cidSizeUpdate, totUpdate, commWeight, flagUpdate);//, flagUpdate
+        initSameColor<DWIDTH, MAXVERTEX>(c, numVertex, cidSizeUpdate, totUpdate, commWeight, flagUpdate); //, flagUpdate
 
         int coloradj1 = c == 0 ? 0 : colorPtr[c - 1];
         int coloradj2 = colorPtr[c];
 
         if (loop_cnt[0] == 0) {
             // cidSize and tot are ping_pong buffers
-            SameColor_dataflow<DWIDTH, CSRWIDTH, COLORWIDTH>(numVertex, coloradj1, coloradj2, moves, scalor, total_w_i, use_push_flag, write_push_flag,
-                                                             constant_recip,
+            SameColor_dataflow<DWIDTH, CSRWIDTH, COLORWIDTH>(numVertex, coloradj1, coloradj2, moves, scalor, total_w_i,
+                                                             use_push_flag, write_push_flag, constant_recip,
                                                              offset,        //[MAXVERTEX],
                                                              index,         //[MAXEDGE],
                                                              weight,        //[MAXEDGE],
@@ -885,17 +887,14 @@ COLOR:
                                                              cidCurr,       //[MAXVERTEX],
                                                              cidSizeUpdate, //[MAXVERTEX],
                                                              totUpdate,     //[MAXVERTEX],
-                                                             commWeight,
-															 offsetDup,
-															 indexDup,
-															 flag,
-															 flagUpdate);   //[MAXVERTEX]);
+                                                             commWeight, offsetDup, indexDup, flag,
+                                                             flagUpdate); //[MAXVERTEX]);
 
             updateSameColor<DWIDTH, MAXVERTEX>(numVertex, cidPrev, cidCurr, cidSizePrev, cidSizeUpdate, cidSizeCurr,
                                                totPrev, totUpdate, totCurr);
         } else {
-            SameColor_dataflow<DWIDTH, CSRWIDTH, COLORWIDTH>(numVertex, coloradj1, coloradj2, moves, scalor, total_w_i, use_push_flag, write_push_flag,
-                                                             constant_recip,
+            SameColor_dataflow<DWIDTH, CSRWIDTH, COLORWIDTH>(numVertex, coloradj1, coloradj2, moves, scalor, total_w_i,
+                                                             use_push_flag, write_push_flag, constant_recip,
                                                              offset,        //[MAXVERTEX],
                                                              index,         //[MAXEDGE],
                                                              weight,        //[MAXEDGE],
@@ -906,12 +905,8 @@ COLOR:
                                                              cidCurr,       //[MAXVERTEX],
                                                              cidSizeUpdate, //[MAXVERTEX],
                                                              totUpdate,     //[MAXVERTEX],
-                                                             commWeight,
-															 offsetDup,
-															 indexDup,
-															 flag,
-															 flagUpdate
-															 );   //[MAXVERTEX]);
+                                                             commWeight, offsetDup, indexDup, flag,
+                                                             flagUpdate); //[MAXVERTEX]);
 
             updateSameColor<DWIDTH, MAXVERTEX>(numVertex, cidPrev, cidCurr, cidSizeCurr, cidSizeUpdate, cidSizePrev,
                                                totCurr, totUpdate, totPrev);
@@ -930,7 +925,7 @@ template <typename DWEIGHT,
           int MAXCOLOR>
 void louvainWithColoring(int64_t numVertex,
                          int64_t numColor,
-						 int64_t totItr,
+                         int64_t totItr,
                          DWEIGHT epsilon,
                          DWEIGHT& constant_recip,
                          ap_uint<CSRWIDTH> offset[MAXVERTEX],
@@ -947,10 +942,10 @@ void louvainWithColoring(int64_t numVertex,
                          ap_uint<DWIDTH> cidSizeUpdate[MAXVERTEX],
                          ap_uint<DWIDTH> totUpdate[MAXVERTEX],
                          ap_uint<DWIDTH> commWeight[MAXVERTEX],
-						 ap_uint<CSRWIDTH> offsetDup[MAXVERTEX],
-						 ap_uint<CSRWIDTH> indexDup[MAXEDGE],
-						 ap_uint<8> flag[MAXVERTEX],
-						 ap_uint<8> flagUpdate[MAXVERTEX],
+                         ap_uint<CSRWIDTH> offsetDup[MAXVERTEX],
+                         ap_uint<CSRWIDTH> indexDup[MAXEDGE],
+                         ap_uint<8> flag[MAXVERTEX],
+                         ap_uint<8> flagUpdate[MAXVERTEX],
                          int64_t& iteration,
                          DWEIGHT& modularity) {
 #pragma HLS INLINE off
@@ -962,7 +957,7 @@ void louvainWithColoring(int64_t numVertex,
         if ((total_w_i >> scalor) == 0) break;
     scalor = 63 - scalor;
 #ifndef __SYNTHESIS__
-        printf("INFO total_w_i: %ld,  scalor = %d, totItr=%ld\n", total_w_i, (int) scalor, totItr);
+    printf("INFO total_w_i: %ld,  scalor = %d, totItr=%ld\n", total_w_i, (int)scalor, totItr);
 #endif
 
     DWEIGHT Q_prev = modularity;
@@ -999,32 +994,31 @@ INIT_COLOR_DEGREE:
     bool config_push_flag = 0;
     bool wirte_push_flag = 0;
 
-
 MOVE:
     do {
         moves = 0;
 
-        ap_uint<32> tmpItrop = tmpItr + (ap_uint<32>) totItr;
-        if (tmpItrop == 1){
-        	wirte_push_flag = 1;
+        ap_uint<32> tmpItrop = tmpItr + (ap_uint<32>)totItr;
+        if (tmpItrop == 1) {
+            wirte_push_flag = 1;
         }
-        if (tmpItrop < 2){
-        	config_push_flag = 0;
-        }else{
-        	config_push_flag = 1;
+        if (tmpItrop < 2) {
+            config_push_flag = 0;
+        } else {
+            config_push_flag = 1;
         }
 
         pushcnt = 0;
-        if(tmpItrop[0] == 0){
-			sameColorWrapper<DWEIGHT, DWIDTH, CSRWIDTH, COLORWIDTH, MAXVERTEX>(
-				numVertex, numColor, moves, total_w_i, scalor, constant_recip, colorPtr, loop_cnt, config_push_flag, wirte_push_flag, offset, index, weight,
-				colorInx, cidPrev, cidSizePrev, totPrev, cidCurr, cidSizeCurr, totCurr, cidSizeUpdate, totUpdate,
-				commWeight, offsetDup, indexDup, flag, flagUpdate);
-        }else{
-			sameColorWrapper<DWEIGHT, DWIDTH, CSRWIDTH, COLORWIDTH, MAXVERTEX>(
-				numVertex, numColor, moves, total_w_i, scalor, constant_recip, colorPtr, loop_cnt, config_push_flag, wirte_push_flag, offset, index, weight,
-				colorInx, cidPrev, cidSizePrev, totPrev, cidCurr, cidSizeCurr, totCurr, cidSizeUpdate, totUpdate,
-				commWeight, offsetDup, indexDup, flagUpdate, flag);
+        if (tmpItrop[0] == 0) {
+            sameColorWrapper<DWEIGHT, DWIDTH, CSRWIDTH, COLORWIDTH, MAXVERTEX>(
+                numVertex, numColor, moves, total_w_i, scalor, constant_recip, colorPtr, loop_cnt, config_push_flag,
+                wirte_push_flag, offset, index, weight, colorInx, cidPrev, cidSizePrev, totPrev, cidCurr, cidSizeCurr,
+                totCurr, cidSizeUpdate, totUpdate, commWeight, offsetDup, indexDup, flag, flagUpdate);
+        } else {
+            sameColorWrapper<DWEIGHT, DWIDTH, CSRWIDTH, COLORWIDTH, MAXVERTEX>(
+                numVertex, numColor, moves, total_w_i, scalor, constant_recip, colorPtr, loop_cnt, config_push_flag,
+                wirte_push_flag, offset, index, weight, colorInx, cidPrev, cidSizePrev, totPrev, cidCurr, cidSizeCurr,
+                totCurr, cidSizeUpdate, totUpdate, commWeight, offsetDup, indexDup, flagUpdate, flag);
         }
 
 #ifndef __SYNTHESIS__
