@@ -4149,7 +4149,7 @@ extern "C" float compute_louvain_alveo_seperated_compute(
             printf("Deleting orignal graph... \n");
 #endif
 #ifdef PRINTINFO
-            parlv_dvr.plv_src->printSimple();
+            p_parlv_dvr->plv_src->printSimple();
 #endif
             glv_final->printSimple();
             double ret = glv_final->Q;

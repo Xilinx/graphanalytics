@@ -375,7 +375,7 @@ void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions 
                 offsets_tg, edgelist_tg, drglist_tg);
 #ifdef PRINTINFO
                 printf("DBG:: SERVER(%d): start_vertex=%d, end_vertex=%d, NV_tg=%d, start_par=%d, parInServer=%d, pathName:%s\n",
-        i_svr, start_vertex[i_svr], end_vertex[i_svr], vInServer[i_svr], start_par[i_svr], parInServer[i_svr], pathName_proj);
+        i_svr, start_vertex[i_svr], end_vertex[i_svr], vInServer[i_svr], start_par[i_svr], parInServer[i_svr], fileName);
 #endif
 
         long NV_par_recommand = 0;
