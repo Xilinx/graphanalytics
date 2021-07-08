@@ -1,0 +1,124 @@
+/*
+ * Copyright 2020-2021 Xilinx, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+USE GRAPH @graph
+DROP QUERY client_cosinesim_embed_vectors, client_cosinesim_embed_normals, client_cosinesim_match_sw,
+    client_cosinesim_set_num_devices,
+    client_cosinesim_get_alveo_status, client_cosinesim_load_alveo, client_cosinesim_match_alveo
+
+
+CREATE QUERY client_cosinesim_embed_vectors() FOR GRAPH @graph {
+    DOUBLE run_time;
+    udf_reset_timer(true);
+    cosinesim_embed_vectors();
+    run_time = udf_elapsed_time(true);
+    PRINT run_time AS ExecTimeInMs;
+}
+
+
+CREATE QUERY client_cosinesim_embed_normals() FOR GRAPH @graph {
+    DOUBLE run_time;
+    udf_reset_timer(true);
+    cosinesim_embed_normals();
+    run_time = udf_elapsed_time(true);
+    PRINT run_time AS ExecTimeInMs;
+}
+
+
+#CREATE QUERY client_cosinesim_load_cache() FOR GRAPH @graph {
+#    DOUBLE run_time;
+#    udf_reset_timer(true);
+#    cosinesim_cache_to_vertices();
+#    run_time = udf_elapsed_time(true);
+#    PRINT run_time AS ExecTimeInMs;
+#}
+
+
+CREATE QUERY client_cosinesim_match_sw(VERTEX<patients> newPatient, UINT topK) FOR GRAPH @graph {
+    DOUBLE run_time;
+    ListAccum<XilCosinesimMatch> @@result;
+    udf_reset_timer(true);
+    @@result = cosinesim_match_sw(newPatient, topK);
+    run_time = udf_elapsed_time(true);
+    PRINT "Software UDF" AS ComputationTechnique, newPatient.FIRST_NAME + " " + newPatient.LAST_NAME AS Patient,
+        run_time AS ExecTimeInMs, @@result AS Matches;
+}
+
+
+CREATE QUERY client_cosinesim_set_num_devices(UINT numDevices) FOR GRAPH @graph {
+    cosinesim_set_num_devices(numDevices);
+    PRINT numDevices AS NumDevices;
+}
+
+
+CREATE QUERY client_cosinesim_get_alveo_status() FOR GRAPH @graph {
+    BOOL is_initialized;
+    UINT num_devices;
+    is_initialized = cosinesim_is_fpga_initialized();
+    num_devices = cosinesim_get_num_devices();
+    PRINT is_initialized AS IsInitialized, num_devices AS NumDevices;
+}
+
+
+CREATE QUERY client_cosinesim_load_alveo() FOR GRAPH @graph 
+{
+    DOUBLE run_time;
+    STRING status;
+    INT ret;
+    EXCEPTION cosinesimLoadFailed(40001);
+
+    udf_reset_timer(true);
+    ret = load_graph_cosinesim_ss_fpga_core();
+    run_time = udf_elapsed_time(true);
+    IF ret == 0 THEN
+        status = "Graph data loaded successfully";
+    ELSE IF ret == -2 THEN
+        RAISE cosinesimLoadFailed("ERROR: Cosine Similarity load operation failed.  Number of vectors does not match number of IDs.");
+    ELSE
+        RAISE cosinesimLoadFailed("ERROR: Cosine Similarity load operation failed.  Please see the GPE log for details.");
+    END;
+    PRINT ret AS StatusCode, status AS StatusMessage, run_time AS ExecTimeInMs;
+}
+
+#CREATE QUERY client_cosinesim_load_alveo_cluster() FOR GRAPH @graph 
+#{
+#    BOOL ret;
+#
+#    ret = cosinesim_start_population();
+#    PRINT ret AS Status;
+#}
+
+CREATE QUERY client_cosinesim_match_alveo(VERTEX<patients> newPatient, UINT topK) FOR GRAPH @graph {
+    DOUBLE run_time;
+    ListAccum<XilCosinesimMatch> @@result;
+    EXCEPTION cosinesimMatchFailed(40002);
+
+    udf_reset_timer(true);
+    @@result = cosinesim_ss_fpga_core(newPatient, topK);
+    run_time = udf_elapsed_time(true);
+
+    IF @@result.size() < 1 THEN
+        RAISE cosinesimMatchFailed("ERROR: Cosine Similarity match operation failed.  Please see the GPE log for details.");
+    END;
+
+    PRINT "Xilinx Alveo U50" AS ComputationTechnique, newPatient.FIRST_NAME + " " + newPatient.LAST_NAME AS Patient,
+        run_time AS ExecTimeInMs, @@result AS Matches;
+}
+
+
+INSTALL QUERY client_cosinesim_embed_vectors, client_cosinesim_embed_normals, client_cosinesim_match_sw,
+              client_cosinesim_set_num_devices,
+              client_cosinesim_get_alveo_status, client_cosinesim_load_alveo, client_cosinesim_match_alveo

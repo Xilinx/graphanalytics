@@ -10,7 +10,7 @@ To run a test for a specific kernel, execute the following command:
 
 ```
 cd <KERNEL-NAME>
-source <install path>/Vitis/2019.2/settings64.sh
+source <install path>/Vitis/2020.2/settings64.sh
 source /opt/xilinx/xrt/setup.sh
 export PLATFORM_REPO_PATHS=/opt/xilinx/platforms
 make run TARGET=sw_emu DEVICE=xilinx_u50_gen3x16_xdma_201920_3

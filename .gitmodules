@@ -1,0 +1,3 @@
+[submodule "ext/HLS_arbitrary_Precision_Types"]
+	path = ext/HLS_arbitrary_Precision_Types
+	url = https://github.com/Xilinx/HLS_arbitrary_Precision_Types
