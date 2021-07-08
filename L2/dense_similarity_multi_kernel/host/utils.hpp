@@ -34,7 +34,7 @@
 #define XCL_BANK0 XCL_BANK(0)
 #define XCL_BANK1 XCL_BANK(1)
 #define XCL_BANK2 XCL_BANK(2)
-
+#define XCL_BANK3 XCL_BANK(3)
 #define XCL_BANK4 XCL_BANK(4)
 #define XCL_BANK5 XCL_BANK(5)
 #define XCL_BANK6 XCL_BANK(6)
