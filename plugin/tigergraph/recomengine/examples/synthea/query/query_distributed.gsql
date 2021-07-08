@@ -1,0 +1,104 @@
+/*
+ * Copyright 2020-2021 Xilinx, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+USE GRAPH @graph
+DROP QUERY match_distributed
+
+CREATE DISTRIBUTED QUERY match_distributed() FOR GRAPH  @graph 
+{
+    ListAccum<int> @@nodeSetNodeAccum;
+    ListAccum<BOOL> @@nodeStartPopAccum, @@nodeFinishPopAccum;
+
+    ListAccum<int > @@patientVectors;
+
+    ListAccum<UINT> @@patientIds, @@nodeIds;
+    int ret;
+    ArrayAccum<SumAccum<uint>> @@numVertices[16];
+
+    uint topK = 100;
+    vertex<patients> newPatient;
+    //ListAccum<XilCosinesimMatch> @@results;
+    ListAccum<ListAccum<XilCosinesimMatch> > @@topKAccum;
+
+    ListAccum<int> @@targetPatientVector;
+    HeapAccum<XilCosinesimMatch>(topK, score DESC, Id ASC) @@topK_Heap;
+
+    //-------------------------------------------------------------------------
+    // run load vectors
+    //-------------------------------------------------------------------------
+    nodes = {dummy_nodes.*};
+    nodeList = SELECT n FROM nodes:n
+        ACCUM @@nodeSetNodeAccum += udf_xilinx_recom_set_node_id(n.NODE_ID);
+
+    population = {patients.*};
+    patientList = select p from population:p
+        ACCUM @@nodeIds += udf_xilinx_recom_get_node_id();
+
+    // call once per node
+    FOREACH nodeId in @@nodeIds DO
+        @@numVertices[nodeId] = @@numVertices[nodeId] + 1;
+    END;
+
+    // call once per node
+    nodeList = SELECT n from nodes:n
+        ACCUM @@nodeStartPopAccum += udf_xilinx_recom_start_load_population(@@numVertices, n.NODE_ID);
+    
+    PRINT @@nodeStartPopAccum;
+
+    // call for every vertex
+    population = {patients.*};
+    patientList = select p from population:p
+        ACCUM @@patientVectors += udf_xilinx_recom_load_population_vector(p.COSINE_SIM_VECTOR, getvid(p));
+
+    print @@patientVectors;
+    
+    // call once per node
+    nodeList = SELECT n from nodes:n
+        ACCUM @@nodeFinishPopAccum += udf_xilinx_recom_finish_load_population(n.NODE_ID);
+
+    //print @@nodeFinishPopAccum;
+    
+    //-------------------------------------------------------------------------
+    // run match vector
+    //-------------------------------------------------------------------------
+    topK = 100;
+    # Patient Population
+    population = {patients.*};
+    # Pick one random patient
+    randomPatient = select p from population:p 
+        Limit 10;
+    # Assign to a patient vertex
+    randomPatient = select p from randomPatient:p
+        ACCUM newPatient = p;
+
+    @@targetPatientVector = patient_vector(newPatient);
+
+    // call once per node
+    nodeList = SELECT n from nodes:n
+        ACCUM @@topKAccum += udf_xilinx_recom_match_target_vector(topK, @@targetPatientVector);
+    PRINT @@topKAccum;
+
+    FOREACH node IN @@topKAccum DO
+        FOREACH score IN node DO
+            @@topK_Heap += score; 
+        END;
+    END;
+
+    print @@topK_Heap, @@topK_Heap.size();
+
+}
+
+INSTALL QUERY match_distributed

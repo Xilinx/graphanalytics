@@ -23,7 +23,7 @@
 #include "op_base.hpp"
 #include "openclHandle.hpp"
 
-#include "xilinxlouvain.h"
+#include "xilinxlouvainInternal.h"
 #include <time.h>
 #include "common.hpp"
 
@@ -73,6 +73,7 @@ class opLouvainModularity : public opBase {
 					   KMemorys_host_prune* buff_host_prune,
                        int* eachItrs,
                        double* currMod,
+                       long*   numClusters,
                        double* eachTimeInitBuff,
                        double* eachTimeReadBuff);
 
@@ -80,16 +81,13 @@ class opLouvainModularity : public opBase {
     				   int flowMode,
                        GLV* pglv_orig,
                        GLV* pglv_iter,
-                       bool opts_coloring,
-                       long opts_minGraphSize,
-                       double opts_threshold,
-                       double opts_C_thresh,
-                       int numThreads);
+		       LouvainPara* para_lv );
 
     event<int> addwork(GLV* glv, int flowMode,
                        double opts_C_thresh,
                        int* eachItrs,
                        double* currMod,
+                       long*   numClusters,
                        double* eachTimeInitBuff,
                        double* eachTimeReadBuff);
 

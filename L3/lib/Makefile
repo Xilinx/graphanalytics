@@ -35,7 +35,7 @@ CXXFLAGS += -I$(XFLIB_DIR)/L3/include
 CXXFLAGS += -I$(XFLIB_DIR)/L3/include/include_hls
 
 # for Xilinx Alveo Interface (XAI) to allow third party software to make a call
-CXXFLAGS += -I$(XFLIB_DIR)/louvainmod/integration/tigergraph/udf/QueryUdf
+CXXFLAGS += -I$(XFLIB_DIR)/plugin/tigergraph/louvainmod/udf/QueryUdf
 
 XILINX_XRM=/opt/xilinx/xrm
 

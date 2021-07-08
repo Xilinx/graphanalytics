@@ -1,0 +1,4 @@
+python-louvain
+matplotlib
+networkx
+scipy
