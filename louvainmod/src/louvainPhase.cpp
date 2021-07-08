@@ -1515,7 +1515,7 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune(
 		KMemorys_host_prune *buff_host)
 {
 
-	int edgeNum;
+	long edgeNum;
 	double time1 = omp_get_wtime();
 	assert(numColors < COLORS);
 	long vertexNum = G->numVertices;
@@ -1577,7 +1577,8 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune(
             buff_host[0].config1[0] = opts_C_thresh;
             buff_host[0].config1[1] = currMod[0];
             time1  = omp_get_wtime() - time1;
-printf("maxv:%d, NEx2:%ld, vertexNum: %d, numColors:%d, edgeNum:%d, opts_C_thresh:%d, currMod:%d\n", MAXNV, NEx2, vertexNum,numColors,edgeNum,opts_C_thresh,          currMod);
+            printf("maxv:%ld, NEx2:%ld, vertexNum: %ld, numColors:%d, edgeNum:%ld, opts_C_thresh:%f, currMod:%f\n", 
+                    MAXNV, NEx2, vertexNum, numColors, edgeNum, opts_C_thresh, currMod[0]);
             return time1;
 #ifdef PRINTINFO_LVPHASE
             std::cout << "INFO: eachItrs" <<buff_host[0].config0[2] <<", "<<"eachItr[0] = "<<buff_host[0].config0[2]<<", "<<"currMod[0] = "<<buff_host[0].config1[1]<< std::endl;
@@ -1595,7 +1596,7 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_renumber(
 		KMemorys_host_prune *buff_host)
 {
 
-	int edgeNum;
+	long edgeNum;
 	double time1 = omp_get_wtime();
 	assert(numColors < COLORS);
 	long vertexNum = G->numVertices;
@@ -1606,64 +1607,66 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_renumber(
 	long NE1 = NEx2< (MAXNV)? NEx2 : (MAXNV);//256MB/sizeof(int/float)=64M
 
 	long cnt_e=0;
-            for (int i = 0; i < vertexNum + 1; i++) {
-            	buff_host[0].offsets[i] = (int)vtxPtr[i];
-                if(i!=vertexNum){
-                	if(M[i]<0)
-                		buff_host[0].offsets[i]  = (int) (0x80000000 |(unsigned int)vtxPtr[i]);
-                }else
-                    buff_host[0].offsets[i]  = (int) ( vtxPtr[i]);
-            }
-            edgeNum = buff_host[0].offsets[vertexNum];
-            for (int i = 0; i < vertexNum + 1; i++) {
-            	buff_host[0].offsets[i] = (int)vtxPtr[i];
-            	buff_host[0].offsetsdup[i] = buff_host[0].offsets[i];// zyl
-                if(i!=vertexNum){
-                	if(M[i]<0)
-                		buff_host[0].offsets[i]  = (int) (0x80000000 |(unsigned int)vtxPtr[i]);
-                }else
-                    buff_host[0].offsets[i]  = (int) ( vtxPtr[i]);
-            }
-            edgeNum = buff_host[0].offsets[vertexNum];
+    for (int i = 0; i < vertexNum + 1; i++) {
+    	buff_host[0].offsets[i] = (int)vtxPtr[i];
+        if (i!=vertexNum){
+        	if (M[i]<0)
+        		buff_host[0].offsets[i]  = (int) (0x80000000 |(unsigned int)vtxPtr[i]);
+        } else
+            buff_host[0].offsets[i]  = (int) ( vtxPtr[i]);
+    }
+    edgeNum = buff_host[0].offsets[vertexNum];
+    for (int i = 0; i < vertexNum + 1; i++) {
+    	buff_host[0].offsets[i] = (int)vtxPtr[i];
+    	buff_host[0].offsetsdup[i] = buff_host[0].offsets[i];// zyl
+        if(i!=vertexNum){
+        	if(M[i]<0)
+        		buff_host[0].offsets[i]  = (int) (0x80000000 |(unsigned int)vtxPtr[i]);
+        }else
+            buff_host[0].offsets[i]  = (int) ( vtxPtr[i]);
+    }
+    edgeNum = buff_host[0].offsets[vertexNum];
 
-            for (int i = 0; i < vertexNum; i++) {
-                int adj1 = vtxPtr[i];
-                int adj2 = vtxPtr[i + 1];
-                buff_host[0].flag[i] = 0;// zyl
-                buff_host[0].flagUpdate[i] = 0;// zyl
-                for (int j = adj1; j < adj2; j++) {
-                	if(cnt_e<NE1){
-                		buff_host[0].indices[j] = (int)vtxInd[j].tail;
-                		buff_host[0].indicesdup[j] = (int)vtxInd[j].tail;
-						buff_host[0].weights[j] = vtxInd[j].weight;
-                	}else{
-                		buff_host[0].indices2[j-NE1] = (int)vtxInd[j].tail;
-                		buff_host[0].indicesdup2[j-NE1] = (int)vtxInd[j].tail;
-						buff_host[0].weights2[j-NE1] = vtxInd[j].weight;
-                	}
-                    cnt_e++;
-                }
-            }
-            for (int i = 0; i < vertexNum; i++) {
-                buff_host[0].colorAxi[i] = colors[i];
-            }
+    for (int i = 0; i < vertexNum; i++) {
+        int adj1 = vtxPtr[i];
+        int adj2 = vtxPtr[i + 1];
+        buff_host[0].flag[i] = 0;// zyl
+        buff_host[0].flagUpdate[i] = 0;// zyl
+        for (int j = adj1; j < adj2; j++) {
+        	if(cnt_e<NE1){
+        		buff_host[0].indices[j] = (int)vtxInd[j].tail;
+        		buff_host[0].indicesdup[j] = (int)vtxInd[j].tail;
+				buff_host[0].weights[j] = vtxInd[j].weight;
+        	}else{
+        		buff_host[0].indices2[j-NE1] = (int)vtxInd[j].tail;
+        		buff_host[0].indicesdup2[j-NE1] = (int)vtxInd[j].tail;
+				buff_host[0].weights2[j-NE1] = vtxInd[j].weight;
+        	}
+            cnt_e++;
+        }
+    }
+    for (int i = 0; i < vertexNum; i++) {
+        buff_host[0].colorAxi[i] = colors[i];
+    }
 
-            buff_host[0].config0[0] = vertexNum;
-            buff_host[0].config0[1] = numColors;
-            buff_host[0].config0[2] = 0;
-            buff_host[0].config0[3] = edgeNum;
-            //buff_host[0].config0[4] = 0;//zyl totItr? 0?
-            buff_host[0].config0[4] = 0;//zyx renumber
-            buff_host[0].config0[5] = NVl;
+    buff_host[0].config0[0] = vertexNum;
+    buff_host[0].config0[1] = numColors;
+    buff_host[0].config0[2] = 0;
+    buff_host[0].config0[3] = edgeNum;
+    //buff_host[0].config0[4] = 0;//zyl totItr? 0?
+    buff_host[0].config0[4] = 0;//zyx renumber
+    buff_host[0].config0[5] = NVl;
 
-            buff_host[0].config1[0] = opts_C_thresh;
-            buff_host[0].config1[1] = currMod[0];
-            time1  = omp_get_wtime() - time1;
-            return time1;
+    buff_host[0].config1[0] = opts_C_thresh;
+    buff_host[0].config1[1] = currMod[0];
+    time1  = omp_get_wtime() - time1;
+    return time1;
 #ifdef PRINTINFO_LVPHASE
-            std::cout << "INFO: eachItrs" <<buff_host[0].config0[2] <<", "<<"eachItr[0] = "<<buff_host[0].config0[2]<<", "<<"currMod[0] = "<<buff_host[0].config1[1]<< std::endl;
+    std::cout << "INFO: eachItrs" <<buff_host[0].config0[2] <<", "<<"eachItr[0] = "<<buff_host[0].config0[2]<<", "<<"currMod[0] = "<<buff_host[0].config1[1]<< std::endl;
 #endif
 }
+
+
 double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_local(
 		int 				numColors,
 		graphNew*        		G,
@@ -1675,7 +1678,7 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_local(
 		KMemorys_host_prune &buff_host)
 {
 
-	int edgeNum;
+	long edgeNum;
 	double time1 = omp_get_wtime();
 	assert(numColors < COLORS);
 	long vertexNum = G->numVertices;
@@ -1686,59 +1689,60 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_local(
 	long NE1 = NEx2< (MAXNV)? NEx2 : (MAXNV);//256MB/sizeof(int/float)=64M
 
 	long cnt_e=0;
-            for (int i = 0; i < vertexNum + 1; i++) {
-            	buff_host.offsets[i] = (int)vtxPtr[i];
-                if(i!=vertexNum){
-                	if(M[i]<0)
-                		buff_host.offsets[i]  = (int) (0x80000000 |(unsigned int)vtxPtr[i]);
-                }else
-                    buff_host.offsets[i]  = (int) ( vtxPtr[i]);
-            }
-            edgeNum = buff_host.offsets[vertexNum];
-            for (int i = 0; i < vertexNum + 1; i++) {
-            	buff_host.offsets[i] = (int)vtxPtr[i];
-            	buff_host.offsetsdup[i] = buff_host.offsets[i];// zyl
-                if(i!=vertexNum){
-                	if(M[i]<0)
-                		buff_host.offsets[i]  = (int) (0x80000000 |(unsigned int)vtxPtr[i]);
-                }else
-                    buff_host.offsets[i]  = (int) ( vtxPtr[i]);
-            }
-            edgeNum = buff_host.offsets[vertexNum];
-            for (int i = 0; i < vertexNum; i++) {
-                int adj1 = vtxPtr[i];
-                int adj2 = vtxPtr[i + 1];
-                buff_host.flag[i] = 0;// zyl
-                buff_host.flagUpdate[i] = 0;// zyl
-                for (int j = adj1; j < adj2; j++) {
-                	if(cnt_e<NE1){
-                		buff_host.indices[j] = (int)vtxInd[j].tail;
-                		buff_host.indicesdup[j] = (int)vtxInd[j].tail;
-						buff_host.weights[j] = vtxInd[j].weight;
-                	}else{
-                		buff_host.indices2[j-NE1] = (int)vtxInd[j].tail;
-                		buff_host.indicesdup2[j-NE1] = (int)vtxInd[j].tail;
-						buff_host.weights2[j-NE1] = vtxInd[j].weight;
-                	}
-                    cnt_e++;
-                }
-            }
-            for (int i = 0; i < vertexNum; i++) {
-                buff_host.colorAxi[i] = colors[i];
-            }
-            buff_host.config0[0] = vertexNum;
-            buff_host.config0[1] = numColors;
-            buff_host.config0[2] = 0;
-            buff_host.config0[3] = edgeNum;
-            buff_host.config0[4] = 0;//zyl totItr? 0?
+    for (int i = 0; i < vertexNum + 1; i++) {
+    	buff_host.offsets[i] = (int)vtxPtr[i];
+        if(i!=vertexNum){
+        	if(M[i]<0)
+        		buff_host.offsets[i]  = (int) (0x80000000 |(unsigned int)vtxPtr[i]);
+        }else
+            buff_host.offsets[i]  = (int) ( vtxPtr[i]);
+    }
+    edgeNum = buff_host.offsets[vertexNum];
+    for (int i = 0; i < vertexNum + 1; i++) {
+    	buff_host.offsets[i] = (int)vtxPtr[i];
+    	buff_host.offsetsdup[i] = buff_host.offsets[i];// zyl
+        if(i!=vertexNum){
+        	if(M[i]<0)
+        		buff_host.offsets[i]  = (int) (0x80000000 |(unsigned int)vtxPtr[i]);
+        }else
+            buff_host.offsets[i]  = (int) ( vtxPtr[i]);
+    }
+    edgeNum = buff_host.offsets[vertexNum];
+    for (int i = 0; i < vertexNum; i++) {
+        int adj1 = vtxPtr[i];
+        int adj2 = vtxPtr[i + 1];
+        buff_host.flag[i] = 0;// zyl
+        buff_host.flagUpdate[i] = 0;// zyl
+        for (int j = adj1; j < adj2; j++) {
+        	if(cnt_e<NE1){
+        		buff_host.indices[j] = (int)vtxInd[j].tail;
+        		buff_host.indicesdup[j] = (int)vtxInd[j].tail;
+				buff_host.weights[j] = vtxInd[j].weight;
+        	}else{
+        		buff_host.indices2[j-NE1] = (int)vtxInd[j].tail;
+        		buff_host.indicesdup2[j-NE1] = (int)vtxInd[j].tail;
+				buff_host.weights2[j-NE1] = vtxInd[j].weight;
+        	}
+            cnt_e++;
+        }
+    }
+    for (int i = 0; i < vertexNum; i++) {
+        buff_host.colorAxi[i] = colors[i];
+    }
+    buff_host.config0[0] = vertexNum;
+    buff_host.config0[1] = numColors;
+    buff_host.config0[2] = 0;
+    buff_host.config0[3] = edgeNum;
+    buff_host.config0[4] = 0;//zyl totItr? 0?
 
-            buff_host.config1[0] = opts_C_thresh;
-            buff_host.config1[1] = currMod;
-            time1  = omp_get_wtime() - time1;
-            
-            printf("maxv:%d, NEx2:%ld, vertexNum: %d, numColors:%d, edgeNum:%d, opts_C_thresh:%d, currMod:%d\n", MAXNV, NEx2, vertexNum,numColors,edgeNum,                           opts_C_thresh,          currMod);
-            return time1;
+    buff_host.config1[0] = opts_C_thresh;
+    buff_host.config1[1] = currMod;
+    time1  = omp_get_wtime() - time1;
+    
+    printf("maxv:%ld, NEx2:%ld, vertexNum: %ld, numColors:%d, edgeNum:%ld, opts_C_thresh:%f, currMod:%f\n", MAXNV, NEx2, vertexNum,numColors,edgeNum,                           opts_C_thresh,          currMod);
+    return time1;
 }
+
 double PhaseLoop_UsingFPGA_Prep_Read_buff_host_prune(
 		long           		vertexNum,
 		KMemorys_host_prune *buff_host,
@@ -1848,6 +1852,8 @@ void PhaseLoop_UsingFPGA_Post_par_noRead(
     std::cout << "-------------------------------------------------------" << std::endl;
     *p_eachTimeE2E = (1.0 * exec_timeE2E * 1e-6);
 }
+
+
 double PhaseLoop_CommPostProcessing_par(
 		GLV* pglv_orig,
 		GLV* pglv_iter,
@@ -1866,6 +1872,8 @@ double PhaseLoop_CommPostProcessing_par(
 		double &time_buid,
 		double &time_set
 		);
+
+
 double PhaseLoop_CommPostProcessing(
 		GLV* pglv_orig,
 		GLV* pglv_iter,
@@ -1884,6 +1892,7 @@ double PhaseLoop_CommPostProcessing(
 		double &time_buid,
 		double &time_set
 		);
+
 
 void ConsumingOnePhase(
 		GLV*                   pglv_iter,

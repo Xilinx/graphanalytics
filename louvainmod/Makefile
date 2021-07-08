@@ -68,9 +68,9 @@ CPP_BUILD_DIR = Release
 CXXFLAGS += -O3 -DNDEBUG
 endif
 
-USE_U55C = 1
-ifdef USE_U55C
-CXXFLAGS += -D USE_U55C
+USE_U55C = 0
+ifeq ($(USE_U55C),1)
+    CXXFLAGS += -D USE_U55C
 endif
 
 ## Target: libLouvain.so
@@ -370,7 +370,7 @@ endif
 # XCLBIN
 #
 
-ifdef USE_U55C
+ifeq ($(USE_U55C),1)
 L2_TOP_DIR = $(GRAPH_ANALYTICS_DIR)/L2/louvainmod_opt_kernel
 L2_XDEVICE = xilinx_u55c_gen3x16_xdma_1
 L2_BUILD_DIR = $(L2_TOP_DIR)/build_dir.hw.$(L2_XDEVICE)
@@ -550,6 +550,7 @@ help:
 	@echo "doxy-cpp : Generate CPP documentation using doxygen. The default html output directory is ./build/cppdocs"
 	@echo "run-apitest-create-partitions : Run API test of create partitions on a single node"
 	@echo "run-apitest-load-compute : Run API test of load and compute on a single node"
+	@echo ""
 	@echo "-------- Run API test in a cluster with 3 nodes --------"
 	@echo "run-apitest-load-compute-driver: Run API test of load and compute on driver"
 	@echo "run-apitest-load-compute-worker1: Run API test of load and compute on worker 1"
@@ -561,5 +562,9 @@ help:
 	@echo "numPars: Number of partitions (default=1)"
 	@echo "serverPar: Multi-server partition setting (default=\"1 9\")"
 	@echo "numDevices: Number of devices (default=3)"
+	@echo ""
+	@echo "-------- Examples --------"
+	@echo "Create partion in debug mode"
+	@echo "    make DEBUG=1 run-apitest-create-partitions"
 
 	
