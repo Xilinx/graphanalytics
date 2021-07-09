@@ -226,7 +226,7 @@ CXXFLAGS += -D USE_U55C
 VPP_CFLAGS += -D USE_U55C                         
 endif                                             
 
-VPP_LFLAGS += $(foreach k,$(KERNELS), --nk $(k):1:$(k))
+#VPP_LFLAGS += $(foreach k,$(KERNELS), --nk $(k):1:$(k))
 
 # -----------------------------------------------------------------------------
 # TODO:                           host setup
