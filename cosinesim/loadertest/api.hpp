@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
+ * Copyright 2020 Xilinx, Inc.
+=======
  * Copyright 2021 Xilinx, Inc.
+>>>>>>> dev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +19,10 @@
  * limitations under the License.
  */
 
+<<<<<<< HEAD
+
+=======
+>>>>>>> dev
 #ifndef API_HPP
 #define API_HPP
 

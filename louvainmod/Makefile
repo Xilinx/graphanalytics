@@ -81,7 +81,7 @@ INCLUDES_libLouvain = \
 	-I$(XILINX_XRM)/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L2/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L3/include \
-	-isystem $(GRAPH_ANALYTICS_DIR)/L3/include/include_hls \
+	-isystem $(GRAPH_ANALYTICS_DIR)/ext/HLS_arbitrary_Precision_Types/include \
 	-I$(GRAPH_ANALYTICS_DIR)/ext/xcl2 \
 	-I$(GRAPH_ANALYTICS_DIR)/plugin/tigergraph/comdetect/udf/QueryUdf \
 #	-I${JAVA_HOME}/include \
@@ -219,7 +219,7 @@ INCLUDES_test = \
 	-I$(GRAPH_ANALYTICS_DIR)/L2/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L3/include \
 	-I$(GRAPH_ANALYTICS_DIR)/ext/xcl2 \
-	-I$(GRAPH_ANALYTICS_DIR)/L3/include/include_hls \
+	-isystem $(GRAPH_ANALYTICS_DIR)/ext/HLS_arbitrary_Precision_Types/include 
 
 LDLIBS_test = \
 	
@@ -285,7 +285,7 @@ CMDLINE_CREATE_PARTITIONS = $(graph) \
 
 WORKERS=192.168.1.21 192.168.1.31
 CMDLINE_LOAD_COMPUTE = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
-    -fast -dev 1 -num_level 100 -num_iter 100 -load_alveo_partitions \
+    -fast -dev $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
 	$(alveoProject).par.proj -setwkr 0 -driverAlone
 
 CMDLINE_LOAD_COMPUTE_DRIVER = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
@@ -300,12 +300,17 @@ CMDLINE_LOAD_COMPUTE_WORKER2 = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xi
     -fast -dev $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
 	$(alveoProject).par.proj -workerAlone 2
 
+.PHONY: run-apitest-create-partition run-apitest-load-compute run-apitest-load-compute-driver \
+        run-apitest-load-compute-worker1 run-apitest-load-compute-worker2
+
 run-apitest-create-partitions: stage cppTest
 	rm -rf $(APITEST_OUT_DIR)
 	mkdir -p $(APITEST_OUT_DIR)
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_CREATE_PARTITIONS)
 
-run-apitest-load-compute: stage cppTest
+$(alveoProject).par.proj: run-apitest-create-partitions
+
+run-apitest-load-compute: stage cppTest $(alveoProject).par.proj
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE)
 
 
@@ -322,7 +327,6 @@ debug-apitest: cppTest
 	rm -rf $(APITEST_OUT_DIR)
 	mkdir -p $(APITEST_OUT_DIR)
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); totalview $(CPP_BUILD_DIR)/apitest -a $(CMDLINE_CREATE_PARTITIONS)
-
 
 #LDFLAGS_fakeudf = -fPIC -w -L /scratch/tigergraph/tigergraph/app/3.1.0/dev/gdk/gsql/src/QueryUdf -lgraphL3wrapper -ldl
 #LDFLAGS_fakeudf = -fPIC -w -L $(CPP_BUILD_DIR) -l$(LIB_SHORT_NAME)

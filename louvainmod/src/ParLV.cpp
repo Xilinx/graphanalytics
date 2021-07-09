@@ -2850,6 +2850,8 @@ int LouvainProcess_part1(int& nodeID, ParLV& parlv, char* tmp_msg_d2w, ParLV& pa
               << "\n    parlv_wkr num_par=" << parlv_wkr.num_par << std::endl;
 #endif
 
+    int status = 0;
+
     // this will be initialized by message again
     parlv_wkr.Init(parlv.flowMode, NULL, parlv.num_par, parlv.num_dev, parlv.isPrun, parlv.th_prun);
     char path_driver[1024];
@@ -2880,6 +2882,8 @@ int LouvainProcess_part1(int& nodeID, ParLV& parlv, char* tmp_msg_d2w, ParLV& pa
     }
 
     getDiffTime(l_load_start, l_load_end, parlv_wkr.timesPar.timeWrkLoad[0]);
+
+    return status;
 } 
 
 void LouvainProcess_part2(int nodeID,
