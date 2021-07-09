@@ -192,7 +192,7 @@ public:
 
     void setAlveoProject(std::string alveoProject) {
         std::cout << "DEBUG: " << __FUNCTION__ << " AlveoProject=" << alveoProject << std::endl;
-        alveoProject_ = alveoProject;
+        alveoProject_ = this->getXGraphStorePath() + "/" + alveoProject;
     }
     std::string getAlveoProject() { return alveoProject_; }
 
