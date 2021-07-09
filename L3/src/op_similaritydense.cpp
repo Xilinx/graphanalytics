@@ -259,7 +259,7 @@ void loadGraphCoreSimDenseInt(clHandle *hds, int nrows, int nnz, int cuID,
   // declare map of host buffers
   std::vector<cl_mem_ext_ptr_t> mext_o(4 * splitNm);
   for (unsigned int i = 0; i < splitNm; i++) {
-    if (cuID == 0) {
+    if (std::string(hds[0].resR->instanceName) == "denseSimilarityKernel_0") {
       mext_o[4 * i + 0] = {(uint32_t)(8 * i) | XCL_MEM_TOPOLOGY,
                            g.weightsDense[4 * i], 0};
       mext_o[4 * i + 1] = {(uint32_t)(8 * i + 1) | XCL_MEM_TOPOLOGY,
@@ -496,8 +496,8 @@ void opSimilarityDense::bufferInitInt(clHandle *hds, std::string instanceName0,
 
   // declare map of host buffers
   std::vector<cl_mem_ext_ptr_t> mext_o(5);
-  if (cuID == 0) {
-    mext_o[0] = {(int32_t)(24) | XCL_MEM_TOPOLOGY, config, 0};
+  if (std::string(hds[0].resR->instanceName) == "denseSimilarityKernel_0") {
+    mext_o[0] = {(unsigned int32_t)(24) | XCL_MEM_TOPOLOGY, config, 0};
     mext_o[1] = {(int32_t)(24) | XCL_MEM_TOPOLOGY, sourceWeight, 0};
     mext_o[2] = {(int32_t)(24) | XCL_MEM_TOPOLOGY, sourceCoeffs, 0};
     mext_o[3] = {(int32_t)(24) | XCL_MEM_TOPOLOGY, resultID, 0};

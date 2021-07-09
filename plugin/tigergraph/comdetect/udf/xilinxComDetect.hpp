@@ -93,13 +93,11 @@ inline void udf_set_louvain_edge_list(uint64_t louvainIdSource, uint64_t louvain
     pContext->getDgrListMap()[louvainIdTarget]=outDgr;
 }
 
-inline void udf_start_partition(string alveo_project, int numVertices){
+inline void udf_start_partition(std::string alveo_project, int numVertices){
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     std::cout << "DEBUG: before alveo_parj_path" << std::endl;
-    std::string alveo_parj_path = pContext->getXGraphStorePath() + "/" + alveo_project;
-    std::cout << "DEBUG: alveo_parj_path = " << alveo_parj_path << std::endl;
-    pContext->setAlveoProject(alveo_parj_path);
+    pContext->setAlveoProject(alveo_project);
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
     xilinx_apps::louvainmod::LouvainMod::PartitionOptions options; //use default value
     options.totalNumVertices = numVertices;
@@ -228,85 +226,26 @@ inline int udf_execute_reset(int mode) {
 
 
 inline float udf_louvain_alveo(
-    int64_t max_iter, int64_t max_level, float tolerance, bool intermediateResult,
+    std::string graph_name, int64_t max_iter, int64_t max_level, float tolerance, bool intermediateResult,
     bool verbose, string result_file, bool final_Q, bool all_Q)
 {        
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+
+    //std::string alveo_parj_path = pContext->getXGraphStorePath() + "/" + graph_name;
+    //std::cout << "DEBUG: in udf_louvain_alveo alveo_parj_path = " << alveo_parj_path << std::endl;
+    //pContext->setAlveoProject(alveo_parj_path);
+    pContext->setAlveoProject(graph_name);
+
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
 
-    unsigned nodeId = pContext->getNodeId();
+    // when restore pContext, nodeId  is missing
+ //   unsigned nodeId = pContext->getNodeId();
     std::string alveoProject = pContext->getAlveoProject() + ".par.proj";
-    unsigned numWorkers = pContext->getNumNodes() - 1;
-    unsigned numDevices = pContext->getNumDevices();
-    unsigned numPartitions = pContext->getNumPartitions(); 
-    std::string curNodeIp = pContext->getCurNodeIp();
-    std::string nodeIps = pContext->getNodeIps();
     xilComDetect::LouvainMod::ComputeOptions computeOpts;
-    //if (pContext->getState() >= xilComDetect::Context::CalledExecuteLouvainState)
-    //    return 0;
-    
-    //std::cout << "DEBUG: " << __FUNCTION__ 
-    //          << " Context::getState()=" << pContext->getState() << std::endl;
 
-    //pContext->setState(xilComDetect::Context::CalledExecuteLouvainState);
-    unsigned modeZmq;
-
-    std::istringstream issNodeIps(nodeIps);
-    //std::string nodeName;
-    std::string nodeIp;
-    //char hostname[64 + 1];
-    char* nameWorkers[128];
-    //int  res_hostname = gethostname(hostname, 64 + 1);
-    //if (res_hostname != 0) {
-    //    std::cout << "ERROR: gethostname failed" << std::endl;
-    //    return res_hostname;
-    //}
-    std::string tcpConn;
-    //std::cout << "DEBUG: nodeId " << nodeId << " hostname=" << hostString << std::endl;
-    unsigned iTcpConn = 0;
     float finalQ;
 
-    while (issNodeIps >> nodeIp) {
-        if (nodeIp != curNodeIp) {
-            tcpConn = "tcp://" + nodeIp + ":5555";
-            std::cout << "DEBUG: zmq=" << tcpConn << std::endl;
-            nameWorkers[iTcpConn] = strcpy(new char[tcpConn.length() + 1], 
-                                           tcpConn.c_str());
-            iTcpConn++;
-        } else
-            std::cout << "DEBUG: skip nodeIp " << nodeIp << std::endl;
-    };
-
-
-    for (int i=0; i < iTcpConn; i++)
-        std::cout << "DEBUG: nameWorker " << i << "=" << nameWorkers[i] << std::endl;
-
-    // nodeId 0 is always the driver. All other nodes are workers.
-    if (nodeId == 0) {
-        modeZmq = 1; // driver
-    } else {
-        modeZmq = 2; // worker
-    }
-    
-    std::cout
-        << "DEBUG: " << __FUNCTION__ 
-        << "\n    numDevices=" << numDevices 
-        << "\n    numPartitions=" << numPartitions
-        << "\n    alveoProject=" << alveoProject 
-        << "\n    numWorkers=" << numWorkers
-        << "\n    nodeId=" << nodeId << std::endl;
-    
-    /*
-    float retVal = 0;
-    retVal = loadAlveoAndComputeLouvain(    
-                    PLUGIN_XCLBIN_PATH, true, numDevices, 
-                    alveoProject.c_str(), 
-                    modeZmq, numWorkers, nameWorkers, nodeId,
-                    result_file.c_str(),
-		            max_iter, max_level, tolerence, 
-                    intermediateResult, verbose, final_Q, all_Q); 
-    */
     pLouvainMod->setAlveoProject((char *)alveoProject.c_str());
 
     computeOpts.outputFile = (char *)result_file.c_str();

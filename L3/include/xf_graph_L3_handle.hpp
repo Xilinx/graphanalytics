@@ -19,6 +19,7 @@
 #ifndef _XF_GRAPH_L3_HANDLE_HPP_
 #define _XF_GRAPH_L3_HANDLE_HPP_
 
+#define XF_GRAPH_L3_MAX_DEVICES_PER_NODE 16   // maximu supported devices per node
 #define XF_GRAPH_L3_SUCCESS 0
 #define XF_GRAPH_L3_ERROR_CONFIG_FILE_NOT_EXIST -2
 #define XF_GRAPH_L3_ERROR_XCLBIN_FILE_NOT_EXIST -3
@@ -112,7 +113,7 @@ class Handle {
 
     int setUp();
 
-    void getEnv();
+    void getEnv(std::vector<std::string> supportedDevices);
 
     void addOp(singleOP op);
 
@@ -120,13 +121,10 @@ class Handle {
 
    private:
     uint32_t maxCU_;
-
     uint32_t numDevices_;
-
-    uint32_t totalDevices;
-
+    uint32_t totalSupportedDevices_;
+    uint32_t supportedDeviceIds_[XF_GRAPH_L3_MAX_DEVICES_PER_NODE];
     uint64_t maxChannelSize;
-
     std::vector<singleOP> ops;
 
     void loadXclbin(unsigned int deviceId, char* xclbinName);

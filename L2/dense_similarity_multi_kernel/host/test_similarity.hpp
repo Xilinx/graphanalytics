@@ -116,6 +116,7 @@ int computeSimilarity0(std::string xclbinPath,
 
     cl::Program::Binaries xclBins = xcl::import_binary_file(xclbinPath);
     devices.resize(1);
+    devices[0] = device;
     cl::Program program(context, devices, xclBins, NULL, &fail);
 
     // create kernels
@@ -357,12 +358,13 @@ int computeSimilarity1(std::string xclbinPath,
 
     cl::Program::Binaries xclBins = xcl::import_binary_file(xclbinPath);
     devices.resize(1);
+    devices[0] = device;
     cl::Program program(context, devices, xclBins, NULL, &fail);
 
     // create kernels
     std::vector<cl::Kernel> similarity_kernel(repInt);
     for (int i = 0; i < repInt; i++) {
-        similarity_kernel[i] = cl::Kernel(program, "denseSimilarityKernel", &fail);
+        similarity_kernel[i] = cl::Kernel(program, "denseSimilarityKernel:{denseSimilarityKernel_1}", &fail);
     }
     std::cout << "INFO: kernel has been created" << std::endl;
 
@@ -401,7 +403,6 @@ int computeSimilarity1(std::string xclbinPath,
 
     source_weight_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
                                    sizeof(ap_int<32>) * (sourceNUM + CHANNEL_NUMBER), &mext_o[4 * PUNUM]);
-
     source_coeffs_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
                                    sizeof(ap_int<32>) * (sourceNUM + CHANNEL_NUMBER), &mext_o[4 * PUNUM + 1]);
 
@@ -429,6 +430,7 @@ int computeSimilarity1(std::string xclbinPath,
         init.push_back(similarity_buf[i]);
     }
     init.push_back(source_weight_buf);
+    init.push_back(source_coeffs_buf);
 
     // migrate data from host to device
     q.enqueueMigrateMemObjects(init, CL_MIGRATE_MEM_OBJECT_CONTENT_UNDEFINED, nullptr, nullptr);
@@ -531,8 +533,7 @@ int computeSimilarity1(std::string xclbinPath,
 
     // need to write a compare function in order to compare golden values with results and put it here
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    int err = checkData<PU_NUMBER>(goldenFile, result_id[0], similarity[0]);
- 
+    int err = checkData<PU_NUMBER>(goldenFile, result_id[0], similarity[0]); 
     return err;
 }
 
