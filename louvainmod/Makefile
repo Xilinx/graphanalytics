@@ -225,7 +225,6 @@ LDLIBS_test = \
 	
 
 SRC_FILE_NAMES_test = \
-    louvainmod_test.cpp \
     apitest.cpp \
     pardump.cpp
 
@@ -557,6 +556,7 @@ help:
 	@echo "run-apitest-load-compute-worker2: Run API test of load and compute on worker 2"
 	@echo ""
 	@echo "-------- Options --------"
+	@echo "DEBUG: 1: build application in debug mode. 0: build application in release mode."
 	@echo "graph: graph input .mtx file"
 	@echo "alveoProject: Alveo project name without .par.proj extension"
 	@echo "numPars: Number of partitions (default=1)"
