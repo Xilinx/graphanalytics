@@ -4223,7 +4223,8 @@ extern "C" float loadAlveoAndComputeLouvain (
 
 }
 
-float louvain_modularity_alveo_wrapper(int argc, char* argv[], xf::graph::L3::Handle* p_handle0, ParLV* p_parlv_dvr, ParLV* p_parlv_wkr ) {
+/*
+float louvain_modularity_alveo_wrapper_OBSOLETE(int argc, char* argv[], xf::graph::L3::Handle* p_handle0, ParLV* p_parlv_dvr, ParLV* p_parlv_wkr ) {
     std::string opName = "louvainModularity";
     std::string kernelName = "kernel_louvain";
     int requestLoad = 100;
@@ -4279,6 +4280,7 @@ float louvain_modularity_alveo_wrapper(int argc, char* argv[], xf::graph::L3::Ha
 
     return retVal;
 }
+*/
 
 /*
     Return values:
@@ -4327,7 +4329,7 @@ int getNumPartitions(std::string alveoProjectFile)
 
 }
 
-float loadAlveoAndComputeLouvainWrapper(int argc, char* argv[]) {
+float loadAlveoAndComputeLouvainWrapperOBSOLETE(int argc, char* argv[]) {
 #ifndef NDEBUG
     std::cout << "DEBUG: " << __FUNCTION__ << std::endl;
 #endif
@@ -4353,7 +4355,8 @@ float loadAlveoAndComputeLouvainWrapper(int argc, char* argv[]) {
     return retVal;
 }
 
-float louvain_modularity_alveo(int argc, char* argv[]) {
+/*
+float louvain_modularity_alveo_OBSOLETE(int argc, char* argv[]) {
 #ifdef PRINTINFO
     printf("\033[1;31;40mMUST DO LOADING BEFORE RUNNING\033[0m\n");
 #endif
@@ -4361,6 +4364,8 @@ float louvain_modularity_alveo(int argc, char* argv[]) {
     ParLV parlv_dvr, parlv_wkr; //Global structure in TG memory
     return louvain_modularity_alveo_wrapper(argc, argv, &handle0, &parlv_dvr, &parlv_wkr );
 }
+*/
+
 /* 
 Compute modularity based on user provided cluster information file
 */

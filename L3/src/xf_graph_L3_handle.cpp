@@ -144,10 +144,14 @@ int Handle::setUp() {
                     << " Available: " << totalSupportedDevices_ << std::endl;
                 return XF_GRAPH_L3_ERROR_NOT_ENOUGH_DEVICES;
             }
+
             // Unload existing xclbin first if present
             std::thread thUn[boardNm];
             for (int j = 0; j < boardNm; ++j) {
-                thUn[j] = xrm->unloadXclbinNonBlock(deviceCounter + j);
+#ifndef NDEBUG__
+                std::cout << "DEBUG: " << "xrm->unloadXclbinNonBlock devId=" << supportedDeviceIds_[j] << std::endl;                
+#endif
+                thUn[j] = xrm->unloadXclbinNonBlock(supportedDeviceIds_[j]);\
             }
             for (int j = 0; j < boardNm; ++j) {
                 thUn[j].join();
