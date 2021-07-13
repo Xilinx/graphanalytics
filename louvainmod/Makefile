@@ -234,7 +234,6 @@ DEPS_test = $(OBJS_test:.o=.d)
 
 # List of all test executables to build
 EXEC_FILE_NAMES_test = \
-    louvainmod_test \
     apitest \
     pardump
 
@@ -251,15 +250,6 @@ cppTest2: $(EXECS_test)
 # Test executables
 
 LDFLAGS_test = -fPIC -w -L $(CPP_BUILD_DIR) -l$(LIB_SHORT_NAME) -lzmq -fopenmp -m64
-
-$(CPP_BUILD_DIR)/louvainmod_test: $(CPP_BUILD_DIR)/louvainmod_test.o $(CPP_BUILD_DIR)/$(LIB_NAME)
-	$(LINK.cc) -o $@ $< $(LDFLAGS_test) $(LIB_DEPS)
-
-#$(CPP_BUILD_DIR)/cosinesim_dyn_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUILD_DIR)/$(LOADER_NAME) $(CPP_BUILD_DIR)/$(LIB_NAME)
-#	$(LINK.cc) -o $@ $< -fPIC -w -L $(CPP_BUILD_DIR) -l$(LOADER_SHORT_NAME) -ldl $(LIB_DEPS)
-
-run-test: cppTest
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) $(CPP_BUILD_DIR)/louvainModularity_test $(NUMDEVICES)
 
 #run-dyn-test: cppTest
 #	LD_PRELOAD=$(PWD)/$(CPP_BUILD_DIR)/$(LIB_NAME) LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) \

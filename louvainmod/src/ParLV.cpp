@@ -914,6 +914,7 @@ void ParameterError(const char* msg) {
     exit(1);
 }
 
+
 int host_ParserParameters(int argc,
                           char** argv,
                           double& opts_C_thresh,   //; //Threshold with coloring on
@@ -926,6 +927,7 @@ int host_ParserParameters(int argc,
                           std::string& opts_outputFile,
                           bool& opts_VF, //;
                           std::string& xclbinPath,
+                          //std::string& deviceName    // select target device name. Default="xilinx_u50_gen3x16_xdma_201920_3"
                           int& numThread,
                           int& num_par,
                           int& gh_par,
@@ -942,7 +944,9 @@ int host_ParserParameters(int argc,
                           int& nodeID,
 						  int& server_par,
 						  int& max_num_level,
-						  int& max_num_iter) {
+						  int& max_num_iter
+                          ) 
+{
     const int max_parameter = 100;
     bool rec[max_parameter];
     for (int i = 1; i < argc; i++) rec[i] = false;
@@ -1012,8 +1016,7 @@ int host_ParserParameters(int argc,
                 }
             }
         }
-    } //
-    else if (general_findPara(argc, argv, "-louvain_modularity_alveo") != -1)
+    } else if (general_findPara(argc, argv, "-louvain_modularity_alveo") != -1)
         mode_alveo = ALVEOAPI_RUN;
     else
         mode_alveo = ALVEOAPI_NONE;
@@ -1234,7 +1237,8 @@ int host_ParserParameters(int argc,
 ToolOptions::ToolOptions(int argcIn, char** argvIn) {
     argc = argcIn;
     argv = argvIn;
-    host_ParserParameters(argc, argv, opts_C_thresh, opts_minGraphSize, threshold, opts_ftype, opts_inFile,
+    host_ParserParameters(argc, argv, 
+        opts_C_thresh, opts_minGraphSize, threshold, opts_ftype, opts_inFile,
         opts_coloring, opts_output, outputFile, opts_VF, xclbinPath, numThreads, num_par,
         gh_par, flow_fast, numDevices, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
         alveoProject, numPureWorker, nameWorkers, nodeID, server_par, max_level, max_iter);
@@ -3613,6 +3617,7 @@ int load_alveo_partitions_WorkerSelf( // for both driver; no zmq communications 
     return 0;
 }
 */
+
 GLV* louvain_modularity_alveo(xf::graph::L3::Handle* handle0,
                               ParLV& parlv,     // To collect time and necessary data
                               ParLV& parlv_wkr, // Driver's self data for sub-louvain
