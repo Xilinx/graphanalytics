@@ -68,9 +68,9 @@ CPP_BUILD_DIR = Release
 CXXFLAGS += -O3 -DNDEBUG
 endif
 
-USE_U55C = 1
-ifdef USE_U55C
-CXXFLAGS += -D USE_U55C
+USE_U55C = 0
+ifeq ($(USE_U55C),1)
+    CXXFLAGS += -D USE_U55C
 endif
 
 ## Target: libLouvain.so
@@ -225,7 +225,6 @@ LDLIBS_test = \
 	
 
 SRC_FILE_NAMES_test = \
-    louvainmod_test.cpp \
     apitest.cpp \
     pardump.cpp
 
@@ -235,7 +234,6 @@ DEPS_test = $(OBJS_test:.o=.d)
 
 # List of all test executables to build
 EXEC_FILE_NAMES_test = \
-    louvainmod_test \
     apitest \
     pardump
 
@@ -252,15 +250,6 @@ cppTest2: $(EXECS_test)
 # Test executables
 
 LDFLAGS_test = -fPIC -w -L $(CPP_BUILD_DIR) -l$(LIB_SHORT_NAME) -lzmq -fopenmp -m64
-
-$(CPP_BUILD_DIR)/louvainmod_test: $(CPP_BUILD_DIR)/louvainmod_test.o $(CPP_BUILD_DIR)/$(LIB_NAME)
-	$(LINK.cc) -o $@ $< $(LDFLAGS_test) $(LIB_DEPS)
-
-#$(CPP_BUILD_DIR)/cosinesim_dyn_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUILD_DIR)/$(LOADER_NAME) $(CPP_BUILD_DIR)/$(LIB_NAME)
-#	$(LINK.cc) -o $@ $< -fPIC -w -L $(CPP_BUILD_DIR) -l$(LOADER_SHORT_NAME) -ldl $(LIB_DEPS)
-
-run-test: cppTest
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) $(CPP_BUILD_DIR)/louvainModularity_test $(NUMDEVICES)
 
 #run-dyn-test: cppTest
 #	LD_PRELOAD=$(PWD)/$(CPP_BUILD_DIR)/$(LIB_NAME) LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) \
@@ -370,7 +359,7 @@ endif
 # XCLBIN
 #
 
-ifdef USE_U55C
+ifeq ($(USE_U55C),1)
 L2_TOP_DIR = $(GRAPH_ANALYTICS_DIR)/L2/louvainmod_opt_kernel
 L2_XDEVICE = xilinx_u55c_gen3x16_xdma_1
 L2_BUILD_DIR = $(L2_TOP_DIR)/build_dir.hw.$(L2_XDEVICE)
@@ -550,16 +539,22 @@ help:
 	@echo "doxy-cpp : Generate CPP documentation using doxygen. The default html output directory is ./build/cppdocs"
 	@echo "run-apitest-create-partitions : Run API test of create partitions on a single node"
 	@echo "run-apitest-load-compute : Run API test of load and compute on a single node"
+	@echo ""
 	@echo "-------- Run API test in a cluster with 3 nodes --------"
 	@echo "run-apitest-load-compute-driver: Run API test of load and compute on driver"
 	@echo "run-apitest-load-compute-worker1: Run API test of load and compute on worker 1"
 	@echo "run-apitest-load-compute-worker2: Run API test of load and compute on worker 2"
 	@echo ""
 	@echo "-------- Options --------"
+	@echo "DEBUG: 1: build application in debug mode. 0: build application in release mode."
 	@echo "graph: graph input .mtx file"
 	@echo "alveoProject: Alveo project name without .par.proj extension"
 	@echo "numPars: Number of partitions (default=1)"
 	@echo "serverPar: Multi-server partition setting (default=\"1 9\")"
 	@echo "numDevices: Number of devices (default=3)"
+	@echo ""
+	@echo "-------- Examples --------"
+	@echo "Create partion in debug mode"
+	@echo "    make DEBUG=1 run-apitest-create-partitions"
 
 	

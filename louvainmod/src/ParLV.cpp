@@ -914,6 +914,7 @@ void ParameterError(const char* msg) {
     exit(1);
 }
 
+
 int host_ParserParameters(int argc,
                           char** argv,
                           double& opts_C_thresh,   //; //Threshold with coloring on
@@ -926,6 +927,7 @@ int host_ParserParameters(int argc,
                           std::string& opts_outputFile,
                           bool& opts_VF, //;
                           std::string& xclbinPath,
+                          //std::string& deviceName    // select target device name. Default="xilinx_u50_gen3x16_xdma_201920_3"
                           int& numThread,
                           int& num_par,
                           int& gh_par,
@@ -942,7 +944,9 @@ int host_ParserParameters(int argc,
                           int& nodeID,
 						  int& server_par,
 						  int& max_num_level,
-						  int& max_num_iter) {
+						  int& max_num_iter
+                          ) 
+{
     const int max_parameter = 100;
     bool rec[max_parameter];
     for (int i = 1; i < argc; i++) rec[i] = false;
@@ -1012,8 +1016,7 @@ int host_ParserParameters(int argc,
                 }
             }
         }
-    } //
-    else if (general_findPara(argc, argv, "-louvain_modularity_alveo") != -1)
+    } else if (general_findPara(argc, argv, "-louvain_modularity_alveo") != -1)
         mode_alveo = ALVEOAPI_RUN;
     else
         mode_alveo = ALVEOAPI_NONE;
@@ -1234,7 +1237,8 @@ int host_ParserParameters(int argc,
 ToolOptions::ToolOptions(int argcIn, char** argvIn) {
     argc = argcIn;
     argv = argvIn;
-    host_ParserParameters(argc, argv, opts_C_thresh, opts_minGraphSize, threshold, opts_ftype, opts_inFile,
+    host_ParserParameters(argc, argv, 
+        opts_C_thresh, opts_minGraphSize, threshold, opts_ftype, opts_inFile,
         opts_coloring, opts_output, outputFile, opts_VF, xclbinPath, numThreads, num_par,
         gh_par, flow_fast, numDevices, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
         alveoProject, numPureWorker, nameWorkers, nodeID, server_par, max_level, max_iter);
@@ -3613,6 +3617,7 @@ int load_alveo_partitions_WorkerSelf( // for both driver; no zmq communications 
     return 0;
 }
 */
+
 GLV* louvain_modularity_alveo(xf::graph::L3::Handle* handle0,
                               ParLV& parlv,     // To collect time and necessary data
                               ParLV& parlv_wkr, // Driver's self data for sub-louvain
@@ -4153,7 +4158,7 @@ extern "C" float compute_louvain_alveo_seperated_compute(
             printf("Deleting orignal graph... \n");
 #endif
 #ifdef PRINTINFO
-            parlv_dvr.plv_src->printSimple();
+            p_parlv_dvr->plv_src->printSimple();
 #endif
             glv_final->printSimple();
             double ret = glv_final->Q;
@@ -4218,63 +4223,6 @@ extern "C" float loadAlveoAndComputeLouvain (
 
 }
 
-float louvain_modularity_alveo_wrapper(int argc, char* argv[], xf::graph::L3::Handle* p_handle0, ParLV* p_parlv_dvr, ParLV* p_parlv_wkr ) {
-    std::string opName = "louvainModularity";
-    std::string kernelName = "kernel_louvain";
-    int requestLoad = 100;
-    std::string xclbinPath = "/opt/xilinx/apps/graphanalytics/louvainmod/1.0/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin";
-    const int cuNm = 1;
-//    int numDevices = 1;  unused
-
-    //--------------- Parse Input parameters
-    double opts_C_thresh;   // Threshold with coloring on
-    long opts_minGraphSize; // Min |V| to enable coloring
-    double opts_threshold;  // Value of threshold
-    int opts_ftype;         // File type
-    char opts_inFile[4096];
-    bool opts_coloring;
-    bool opts_output;
-    std::string opts_outputFile;
-    bool opts_VF;
-    int flow_fast = 2;
-    int flowMode = 1;
-    int num_par;
-    bool isPrun = true;
-    int par_prune = 1;
-    int numThreads = NUMTHREAD; // using fixed number of thread instead of
-    //int numThreads = 1; // using fixed number of thread instead of
-    int devNeed_cmd = 1;
-    int mode_zmq = ZMQ_NONE;
-    char path_zmq[1024]; // default will be set as "./"
-    bool useCmd = false;
-    int mode_alveo = ALVEOAPI_NONE;
-    char nameProj[1024];
-    int numPureWorker;
-    std::string nameMetaFile;
-    char* nameWorkers[128];
-    int nodeID;
-    int status;
-    int server_par=1;
-    float retVal = 0.0;
-    int max_num_level;
-    int max_num_iter;
-
-    host_ParserParameters(argc, argv, opts_C_thresh, opts_minGraphSize, opts_threshold, opts_ftype, opts_inFile,
-                          opts_coloring, opts_output, opts_outputFile, opts_VF, xclbinPath, numThreads, num_par,
-                          par_prune, flow_fast, devNeed_cmd, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
-                          nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par, max_num_level, max_num_iter);
-
-//    if (devNeed_cmd > 0)
-//        numDevices = devNeed_cmd;  unused
-
-    retVal = compute_louvain_alveo_seperated_compute(
-            mode_zmq, numPureWorker, nameWorkers, nodeID,
-            (char *)opts_outputFile.c_str(),max_num_iter, max_num_level,
-            opts_threshold, false, false, true, false, p_handle0, p_parlv_dvr, p_parlv_wkr);
-
-    return retVal;
-}
-
 /*
     Return values:
     -1:
@@ -4322,40 +4270,6 @@ int getNumPartitions(std::string alveoProjectFile)
 
 }
 
-float loadAlveoAndComputeLouvainWrapper(int argc, char* argv[]) {
-#ifndef NDEBUG
-    std::cout << "DEBUG: " << __FUNCTION__ << std::endl;
-#endif
-#ifdef PRINTINFO
-    printf("\033[1;31;40mMUST DO LOADING BEFORE RUNNING\033[0m\n");
-#endif
-
-    ToolOptions toolOptions(argc, argv);
-
-    xf::graph::L3::Handle handle0;//Global structure in TG memory
-    ParLV parlv_drv, parlv_wkr;   //Global structure in TG memory
-    int numDevices = 1;
-    float retVal = 0;
-
-    retVal = loadAlveoAndComputeLouvain (
-        (char *)toolOptions.xclbinPath.c_str(), toolOptions.flow_fast, 
-        toolOptions.numDevices, (char*)toolOptions.alveoProject.c_str(),
-        toolOptions.mode_zmq, toolOptions.numPureWorker, toolOptions.nameWorkers, 
-        toolOptions.nodeID, (char *)toolOptions.outputFile.c_str(), 
-        toolOptions.max_iter, toolOptions.max_level, 
-        toolOptions.threshold, false, false, true, false);
-
-    return retVal;
-}
-
-float louvain_modularity_alveo(int argc, char* argv[]) {
-#ifdef PRINTINFO
-    printf("\033[1;31;40mMUST DO LOADING BEFORE RUNNING\033[0m\n");
-#endif
-    xf::graph::L3::Handle handle0;
-    ParLV parlv_dvr, parlv_wkr; //Global structure in TG memory
-    return louvain_modularity_alveo_wrapper(argc, argv, &handle0, &parlv_dvr, &parlv_wkr );
-}
 /* 
 Compute modularity based on user provided cluster information file
 */
