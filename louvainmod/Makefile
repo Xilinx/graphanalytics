@@ -289,27 +289,26 @@ CMDLINE_LOAD_COMPUTE_WORKER2 = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xi
     -fast -dev $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
 	$(alveoProject).par.proj -workerAlone 2
 
-.PHONY: run-apitest-create-partition run-apitest-load-compute run-apitest-load-compute-driver \
-        run-apitest-load-compute-worker1 run-apitest-load-compute-worker2
+.PHONY: run-create-partition run-load-compute run-load-compute-driver run-load-compute-worker1 run-load-compute-worker2
 
-run-apitest-create-partitions: stage cppTest
+run-create-partitions: stage cppTest
 	rm -rf $(APITEST_OUT_DIR)
 	mkdir -p $(APITEST_OUT_DIR)
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_CREATE_PARTITIONS)
 
-$(alveoProject).par.proj: run-apitest-create-partitions
+$(alveoProject).par.proj: run-create-partitions
 
-run-apitest-load-compute: stage cppTest $(alveoProject).par.proj
+run-load-compute: stage cppTest $(alveoProject).par.proj
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE)
 
 
-run-apitest-load-compute-driver: stage cppTest
+run-load-compute-driver: stage cppTest
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE_DRIVER)
 
-run-apitest-load-compute-worker1: stage cppTest
+run-load-compute-worker1: stage cppTest
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE_WORKER1)
 
-run-apitest-load-compute-worker2: stage cppTest
+run-load-compute-worker2: stage cppTest
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE_WORKER2)	
 
 debug-apitest: cppTest
@@ -537,8 +536,8 @@ help:
 	@echo "Valid make targets:"
 	@echo "dist     : Generate product installation package (RPM or DEB) for the current OS and architecture"
 	@echo "doxy-cpp : Generate CPP documentation using doxygen. The default html output directory is ./build/cppdocs"
-	@echo "run-apitest-create-partitions : Run API test of create partitions on a single node"
-	@echo "run-apitest-load-compute : Run API test of load and compute on a single node"
+	@echo "run-create-partitions : Run API test of create partitions on a single node"
+	@echo "run-load-compute : Run API test of load and compute on a single node"
 	@echo ""
 	@echo "-------- Run API test in a cluster with 3 nodes --------"
 	@echo "run-apitest-load-compute-driver: Run API test of load and compute on driver"
@@ -554,7 +553,15 @@ help:
 	@echo "numDevices: Number of devices (default=3)"
 	@echo ""
 	@echo "-------- Examples --------"
-	@echo "Create partion in debug mode"
-	@echo "    make DEBUG=1 run-apitest-create-partitions"
-
-	
+	@echo "Create partion on a single node"
+	@echo "    make run-create-partitions"
+	@echo "Load partition and compute Louvain modularity on a single node"
+	@echo "    make run-load-compute"
+	@echo ""
+	@echo "Load partition and compute Louvain modularity on driver in a cluster"
+	@echo "    make run-load-compute-driver"
+	@echo "Load partition and compute Louvain modularity on worker-1 in a cluster"
+	@echo "    make run-load-compute-worker1"
+	@echo "Load partition and compute Louvain modularity on worker-2 in a cluster"
+	@echo "    make run-load-compute-worker2"
+	@echo ""

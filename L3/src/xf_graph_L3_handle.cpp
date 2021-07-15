@@ -230,7 +230,7 @@ void Handle::getEnv(std::vector<std::string> supportedDevices) {
     err2 = clGetDeviceIDs(platforms[platformID], CL_DEVICE_TYPE_ALL, totalXilinxDevices, devices, NULL);
     size_t valueSize;
     char* value;
-#ifndef NDEBUG    
+
     for (uint32_t i = 0; i < totalXilinxDevices; ++i) {
         // print device name
         clGetDeviceInfo(devices[i], CL_DEVICE_NAME, 0, NULL, &valueSize);
@@ -244,7 +244,6 @@ void Handle::getEnv(std::vector<std::string> supportedDevices) {
         delete[] value;
     }
     std::cout << "INFO: " << __FUNCTION__ << ": Total supported devices: " << totalSupportedDevices_ << std::endl; 
-#endif    
 }
 
 void Handle::showHandleInfo() {
