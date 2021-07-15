@@ -214,6 +214,7 @@ struct ToolOptions {
     std::string outputFile;
     bool opts_VF; //;
     std::string xclbinPath;
+    std::string deviceName;
     int numThreads;
     int num_par;
     int gh_par;  // same as par_prune

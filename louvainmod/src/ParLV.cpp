@@ -927,7 +927,7 @@ int host_ParserParameters(int argc,
                           std::string& opts_outputFile,
                           bool& opts_VF, //;
                           std::string& xclbinPath,
-                          //std::string& deviceName    // select target device name. Default="xilinx_u50_gen3x16_xdma_201920_3"
+                          std::string& deviceName,    // select target device name. Default="xilinx_u50_gen3x16_xdma_201920_3"
                           int& numThread,
                           int& num_par,
                           int& gh_par,
@@ -1239,9 +1239,10 @@ ToolOptions::ToolOptions(int argcIn, char** argvIn) {
     argv = argvIn;
     host_ParserParameters(argc, argv, 
         opts_C_thresh, opts_minGraphSize, threshold, opts_ftype, opts_inFile,
-        opts_coloring, opts_output, outputFile, opts_VF, xclbinPath, numThreads, num_par,
-        gh_par, flow_fast, numDevices, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
-        alveoProject, numPureWorker, nameWorkers, nodeID, server_par, max_level, max_iter);
+        opts_coloring, opts_output, outputFile, opts_VF, xclbinPath, deviceName, 
+        numThreads, num_par, gh_par, flow_fast, numDevices, mode_zmq, path_zmq, 
+        useCmd, mode_alveo, nameProj, alveoProject, numPureWorker, nameWorkers, 
+        nodeID, server_par, max_level, max_iter);
 }
 
 void PrintTimeRpt(GLV* glv, int num_dev, bool isHead) {
@@ -3732,6 +3733,7 @@ GLV* louvain_modularity_alveo(xf::graph::L3::Handle* handle0,
     // delete( glv_final);
 }
 
+/*
 extern "C" int create_and_load_alveo_partitions(int argc, char* argv[]) {
 //    for (int i = 0; i < argc; ++i)
 //        std::cout << "internal create partitions arg " << i << " = " << argv[i] << std::endl;
@@ -3823,6 +3825,7 @@ extern "C" int create_and_load_alveo_partitions(int argc, char* argv[]) {
     }
     return 0;
 }
+*/
 
 /*
  Arguments:
