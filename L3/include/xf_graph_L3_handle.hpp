@@ -65,12 +65,13 @@ class Handle {
         std::string xclbinPath;              // xclbin full path
         unsigned int numDevices = 0;         // requested FPGA device number
         unsigned int cuPerBoard = 1;         // requested FPGA device number
-        std::vector<unsigned int> deviceIDs; // deviceID
+
         void setKernelName(char* input) {
             std::string tmp = "";
             kernelName = input;
             kernelAlias = (char*)tmp.c_str();
         }
+
         void setKernelAlias(char* input) {
             std::string tmp = "";
             kernelName = (char*)tmp.c_str();
@@ -111,9 +112,10 @@ class Handle {
 
     void showHandleInfo();
 
-    int setUp();
+    int setUp();  // Set up the handle with the default device names
+    int setUp(std::string deviceNames);  // Set up the handle with specified device names
 
-    void getEnv(std::vector<std::string> supportedDevices);
+    void getEnv();
 
     void addOp(singleOP op);
 
@@ -121,8 +123,9 @@ class Handle {
 
    private:
     uint32_t maxCU_;
-    uint32_t numDevices_;
-    uint32_t totalSupportedDevices_;
+    uint32_t numDevices_;                          // Number of devices requested by current operation
+    uint32_t totalSupportedDevices_;               // Total number of supported devices
+    std::vector<string> supportedDeviceNames_;     // Supported device names
     uint32_t supportedDeviceIds_[XF_GRAPH_L3_MAX_DEVICES_PER_NODE];
     uint64_t maxChannelSize;
     std::vector<singleOP> ops;

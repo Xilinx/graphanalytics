@@ -268,25 +268,28 @@ alveoProject = $(APITEST_OUT_DIR)/as-skitter-par9
 numPars=1
 serverPar=1 9
 numDevices=3
+#deviceNames="xilinx_u50_gen3x16_xdma_201920_3 xilinx_u55c_gen3x16_xdma_base_1"
+#deviceNames="xilinx_u50_gen3x16_xdma_201920_3"
+deviceNames="xilinx_u55c_gen3x16_xdma_base_1"
 CMDLINE_CREATE_PARTITIONS = $(graph) \
     -fast -par_num $(numPars) -create_alveo_partitions -name $(APITEST_OUT_DIR)/as-skitter-par9 \
 	-server_par $(serverPar)
 
-WORKERS=192.168.1.21 192.168.1.31
+WORKERS="192.168.1.21 192.168.1.31"
 CMDLINE_LOAD_COMPUTE = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
-    -fast -dev $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
+    -fast -num_devices $(numDevices) -devices $(deviceNames) -num_level 100 -num_iter 100 -load_alveo_partitions \
 	$(alveoProject).par.proj -setwkr 0 -driverAlone
 
 CMDLINE_LOAD_COMPUTE_DRIVER = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
-    -fast -dev $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
+    -fast -num_devices $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
 	$(alveoProject).par.proj -setwkr 2 $(WORKERS) -driverAlone
 
 CMDLINE_LOAD_COMPUTE_WORKER1 = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
-    -fast -dev $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
+    -fast -num_devices $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
 	$(alveoProject).par.proj -workerAlone 1
 
 CMDLINE_LOAD_COMPUTE_WORKER2 = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
-    -fast -dev $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
+    -fast -num_devices $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
 	$(alveoProject).par.proj -workerAlone 2
 
 .PHONY: run-create-partition run-load-compute run-load-compute-driver run-load-compute-worker1 run-load-compute-worker2

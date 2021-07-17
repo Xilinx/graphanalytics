@@ -430,6 +430,7 @@ float LouvainMod::loadAlveoAndComputeLouvain(const ComputeOptions &computeOpts)
     std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__ 
               << "\n    xclbinPath=" << pImpl_->options_.xclbinPath
               << "\n    alveoProject=" << pImpl_->options_.alveoProject 
+              << "\n    deviceNames=" << pImpl_->options_.deviceNames
               << "\n    nodeId=" << pImpl_->options_.nodeId
               << "\n    modeZmq=" << pImpl_->settings_.modeZmq
               << "\n    numPureWorker=" << pImpl_->settings_.numPureWorker;
@@ -446,6 +447,7 @@ float LouvainMod::loadAlveoAndComputeLouvain(const ComputeOptions &computeOpts)
                 (char *)(pImpl_->options_.xclbinPath.c_str()), 
                 pImpl_->options_.flow_fast, 
                 pImpl_->options_.devNeed_cmd, 
+                pImpl_->options_.deviceNames,
                 (char*)(pImpl_->options_.alveoProject.c_str()),
                 pImpl_->settings_.modeZmq, 
                 pImpl_->settings_.numPureWorker, 

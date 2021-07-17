@@ -80,9 +80,22 @@ void Handle::addOp(singleOP op) {
     ops.push_back(op);
 }
 
-int Handle::setUp() {
-    std::vector<std::string> supportedDevices = {"xilinx_u50_gen3x16_xdma_201920_3"};
-    getEnv(supportedDevices);
+int Handle::setUp(std::string deviceNames)
+{
+    const std::string delimiters(" ");
+    for (int i = deviceNames.find_first_not_of(delimiters, 0); i != std::string::npos;
+            i = deviceNames.find_first_not_of(delimiters, i)) {
+        auto tokenEnd = deviceNames.find_first_of(delimiters, i);
+        if (tokenEnd == std::string::npos)
+            tokenEnd = deviceNames.size();
+        const std::string token = deviceNames.substr(i, tokenEnd - i);
+        supportedDeviceNames_.push_back(token);
+        i = tokenEnd;
+        std::cout << "------------------ " << i << "    " << token << std::endl;
+    }
+
+    getEnv();
+
     unsigned int opNm = ops.size();
     unsigned int deviceCounter = 0;
     int32_t status = 0;
@@ -195,9 +208,17 @@ int Handle::setUp() {
         }
     }
     return 0;
+
 }
 
-void Handle::getEnv(std::vector<std::string> supportedDevices) {
+
+int Handle::setUp() 
+{
+    std::string deviceNames = "xilinx_u50_gen3x16_xdma_201920_3";
+    return setUp(deviceNames);
+}
+
+void Handle::getEnv() {
     cl_uint platformID = 0;
     cl_platform_id* platforms = NULL;
     char vendor_name[128] = {0};
@@ -237,7 +258,7 @@ void Handle::getEnv(std::vector<std::string> supportedDevices) {
         value = new char[valueSize];
         clGetDeviceInfo(devices[i], CL_DEVICE_NAME, valueSize, value, NULL);
         std::cout << "INFO: " << __FUNCTION__ << ": Scanned device " << i << ":" << value << std::endl;
-        if (std::find(supportedDevices.begin(), supportedDevices.end(), value) != supportedDevices.end()) {
+        if (std::find(supportedDeviceNames_.begin(), supportedDeviceNames_.end(), value) != supportedDeviceNames_.end()) {
             std::cout << "    Supported device found:" << value << std::endl;            
             supportedDeviceIds_[totalSupportedDevices_++] = i;  // save curret supported supported devices
         }      
