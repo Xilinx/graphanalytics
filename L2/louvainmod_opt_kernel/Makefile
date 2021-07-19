@@ -1,5 +1,5 @@
 #
-# Copyright 2019 Xilinx, Inc.
+# Copyright 2019-2020 Xilinx, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,470 +12,227 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# makefile-generator v1.0.3
 #
 
-# -----------------------------------------------------------------------------
-#                          project common settings
-
-MK_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
-CUR_DIR := $(patsubst %/,%,$(dir $(MK_PATH)))
-XF_PROJ_ROOT ?= $(shell bash -c 'export MK_PATH=$(MK_PATH); echo $${MK_PATH%L2/tests/*}')
-
-.SECONDEXPANSION:
-
-# -----------------------------------------------------------------------------
-#                            tool common setup
-
-# MK_INC_BEGIN vitis_help.mk
-
+# ####################################### Help Section #####################################
 .PHONY: help
 
 help::
-	@echo ""
-	@echo "Makefile Usage:"
-	@echo ""
-	@echo "  make host xclbin TARGET=<sw_emu|hw_emu|hw> DEVICE=<FPGA platform>"
-	@echo "      Command to generate the design for specified target and device."
-	@echo ""
-	@echo "      TARGET defaults to sw_emu."
-	@echo ""
-	@echo "      DEVICE is case-insensitive and support awk regex."
-	@echo "      For example, \`make xclbin TARGET=hw DEVICE='u200.*qdma'\`"
-	@echo "      It can also be an absolute path to platform file."
-	@echo ""
-	@echo "  make run TARGET=<sw_emu|hw_emu|hw> DEVICE=<FPGA platform>"
-	@echo "      Command to run application in emulation."
-	@echo ""
-	@echo "  make clean "
-	@echo "      Command to remove the generated non-hardware files."
-	@echo ""
-	@echo "  make cleanall"
-	@echo "      Command to remove all the generated files."
-	@echo ""
-	@echo "  make xclbin TARGET=hw DEVICE=xilinx_u50_gen3x16_xdma_201920_3"
-	@echo "      Command to build xclbins for U50"
+	$(ECHO) "Makefile Usage:"
+	$(ECHO) "  make all TARGET=<sw_emu/hw_emu/hw> DEVICE=<FPGA platform> HOST_ARCH=<aarch32/aarch64/x86>"
+	$(ECHO) "      Command to generate the design for specified Target and Shell."
+	$(ECHO) "      By default, HOST_ARCH=x86. HOST_ARCH is required for SoC shells"
+	$(ECHO) ""
+	$(ECHO) "  make clean "
+	$(ECHO) "      Command to remove the generated non-hardware files."
+	$(ECHO) ""
+	$(ECHO) "  make cleanall"
+	$(ECHO) "      Command to remove all the generated files."
+	$(ECHO) ""
+	$(ECHO) "  make TARGET=<sw_emu/hw_emu/hw> DEVICE=<FPGA platform> HOST_ARCH=<aarch32/aarch64/x86>"
+	$(ECHO) "      By default, HOST_ARCH=x86. HOST_ARCH is required for SoC shells"
+	$(ECHO) ""
+	$(ECHO) "  make run TARGET=<sw_emu/hw_emu/hw> DEVICE=<FPGA platform> HOST_ARCH=<aarch32/aarch64/x86>"
+	$(ECHO) "      Command to run application in emulation."
+	$(ECHO) "      By default, HOST_ARCH=x86. HOST_ARCH required for SoC shells"
+	$(ECHO) ""
+	$(ECHO) "  make build TARGET=<sw_emu/hw_emu/hw> DEVICE=<FPGA platform> HOST_ARCH=<aarch32/aarch64/x86>"
+	$(ECHO) "      Command to build xclbin application."
+	$(ECHO) "      By default, HOST_ARCH=x86. HOST_ARCH is required for SoC shells"
+	$(ECHO) ""
+	$(ECHO) "  make host HOST_ARCH=<aarch32/aarch64/x86>"
+	$(ECHO) "      Command to build host application."
+	$(ECHO) "      By default, HOST_ARCH=x86. HOST_ARCH is required for SoC shells"
+	$(ECHO) ""
+	$(ECHO) "  NOTE: For SoC shells, ENV variable SYSROOT needs to be set."
+	$(ECHO) ""
 
-# MK_INC_END vitis_help.mk
-
-# MK_INC_BEGIN vivado.mk
-
-
-TOOL_VERSION ?= 2020.2
-
-ifeq (,$(XILINX_VIVADO))
-XILINX_VIVADO = /opt/xilinx/Vivado/$(TOOL_VERSION)
-endif
-export XILINX_VIVADO
-
-.PHONY: check_vivado
-check_vivado:
-ifeq (,$(wildcard $(XILINX_VIVADO)/bin/vivado))
-	@echo "Cannot locate Vivado installation. Please set XILINX_VIVADO variable." && false
-endif
-
-export PATH := $(XILINX_VIVADO)/bin:$(PATH)
-
-# MK_INC_END vivado.mk
-
-# MK_INC_BEGIN vitis.mk
-
-
-ifeq (,$(XILINX_VITIS))
-XILINX_VITIS = /opt/xilinx/Vitis/$(TOOL_VERSION)
-endif
-export XILINX_VITIS
-.PHONY: check_vpp
-check_vpp:
-ifeq (,$(wildcard $(XILINX_VITIS)/bin/v++))
-	@echo "Cannot locate Vitis installation. Please set XILINX_VITIS variable." && false
-endif
-
-XILINX_HLS=/proj/xbuilds/SWIP/2020.2_0827_2001/installs/lin64/Vitis_HLS/2020.2
-echo "Warning: Please use specific hls version for best performance! ex 2020.2_0828_0936 or 2020.2_0827_2001 on xco"
-echo "XILINX_HLS: $(XILINX_HLS)"
-
-ifeq (,$(XILINX_XRT))
-XILINX_XRT = /opt/xilinx/xrt
-endif
-export XILINX_XRT
-.PHONY: check_xrt
-check_xrt:
-ifeq (,$(wildcard $(XILINX_XRT)/lib/libxilinxopencl.so))
-	@echo "Cannot locate XRT installation. Please set XILINX_XRT variable." && false
-endif
-
-export PATH := $(XILINX_VITIS)/bin:$(XILINX_XRT)/bin:$(PATH)
-
-ifeq (,$(LD_LIBRARY_PATH))
-LD_LIBRARY_PATH := $(XILINX_XRT)/lib
-else
-LD_LIBRARY_PATH := $(XILINX_XRT)/lib:$(LD_LIBRARY_PATH)
-endif
-ifneq (,$(wildcard $(XILINX_VITIS)/bin/ldlibpath.sh))
-export LD_LIBRARY_PATH := $(shell $(XILINX_VITIS)/bin/ldlibpath.sh $(XILINX_VITIS)/lib/lnx64.o):$(LD_LIBRARY_PATH)
-endif
-
-# Target check
+# ##################### Setting up default value of TARGET ##########################
 TARGET ?= sw_emu
-ifeq ($(filter $(TARGET),sw_emu hw_emu hw),)
-$(error TARGET is not sw_emu, hw_emu or hw)
+
+# ################### Setting up default value of DEVICE ##############################
+DEVICE ?= xilinx_u50_gen3x16_xdma_201920_3
+
+# ###################### Setting up default value of HOST_ARCH ####################### 
+HOST_ARCH ?= x86
+
+# #################### Checking if DEVICE in blacklist #############################
+ifeq ($(findstring zc, $(DEVICE)), zc)
+$(error [ERROR]: This project is not supported for $(DEVICE).)
 endif
 
-# MK_INC_END vitis.mk
-
-# MK_INC_BEGIN vitis_set_platform.mk
-
-ifneq (,$(wildcard $(DEVICE)))
-# Use DEVICE as a file path
-XPLATFORM := $(DEVICE)
-else
-# Use DEVICE as a file name pattern
-DEVICE_L := $(shell echo $(DEVICE) | tr A-Z a-z)
-# Match the name
-ifneq (,$(PLATFORM_REPO_PATHS))
-XPLATFORMS := $(foreach p, $(subst :, ,$(PLATFORM_REPO_PATHS)), $(wildcard $(p)/*/*.xpfm))
-XPLATFORM := $(strip $(foreach p, $(XPLATFORMS), $(shell echo $(p) | awk '$$1 ~ /$(DEVICE_L)/')))
-endif
-ifeq (,$(XPLATFORM))
-XPLATFORMS := $(wildcard $(XILINX_VITIS)/platforms/*/*.xpfm)
-XPLATFORM := $(strip $(foreach p, $(XPLATFORMS), $(shell echo $(p) | awk '$$1 ~ /$(DEVICE_L)/')))
-endif
-ifeq (,$(XPLATFORM))
-XPLATFORMS := $(wildcard /opt/xilinx/platforms/*/*.xpfm)
-XPLATFORM := $(strip $(foreach p, $(XPLATFORMS), $(shell echo $(p) | awk '$$1 ~ /$(DEVICE_L)/')))
-endif
+# #################### Checking if DEVICE in whitelist ############################
+ifneq ($(findstring u50, $(DEVICE)), u50)
+$(warning [WARNING]: This project has not been tested for $(DEVICE). It may or may not work.)
 endif
 
-define MSG_PLATFORM
-No platform matched pattern '$(DEVICE)'.
-Available platforms are: $(XPLATFORMS)
-To add more platform directories, set the PLATFORM_REPO_PATHS variable.
-endef
-export MSG_PLATFORM
-
-define MSG_DEVICE
-More than one platform matched: $(XPLATFORM)
-Please set DEVICE variable more accurately to select only one platform file. For example: DEVICE='u200.*xdma'
-endef
-export MSG_DEVICE
-
-.PHONY: check_platform
-check_platform:
-ifeq (,$(XPLATFORM))
-	@echo "$${MSG_PLATFORM}" && false
-endif
-ifneq (,$(word 2,$(XPLATFORM)))
-	@echo "$${MSG_DEVICE}" && false
-endif
-
-XDEVICE := $(basename $(notdir $(firstword $(XPLATFORM))))
-
-# MK_INC_END vitis_set_platform.mk
-
-# -----------------------------------------------------------------------------
-# BEGIN_XF_MK_USER_SECTION
-# -----------------------------------------------------------------------------
-# TODO:                 data creation and other user targets
-
-# a (typically hidden) file as stamp
-DATA_STAMP :=
-$(DATA_STAMP):
-.PHONY: data
-data: $(DATA_STAMP)
-
-.PHONY: debug
-debug:
-	@echo "KERNELS are $(KERNELS)"
-	@echo "> KERNEL_NAMES are $(KERNEL_NAMES)"
-	@echo
-	@echo "> kernel_louvain_SRCS is $(kernel_louvain_SRCS)"
-	@echo "> kernel_louvain_HDRS is $(kernel_louvain_HDRS)"
-	@echo
-	@echo "test_louvain_EXTRA_HDRS is $(louvainMultiPhaseRun_EXTRA_HDRS)"
-	@echo "> test_louvain_HDRS is $(louvainMultiPhaseRun_HDRS)"
-
-# -----------------------------------------------------------------------------
-# TODO:                          kernel setup
-
+# ######################## Setting up Project Variables #################################
+MK_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
+XF_PROJ_ROOT ?= $(shell bash -c 'export MK_PATH=$(MK_PATH); echo $${MK_PATH%/L2/*}')
+CUR_DIR := $(patsubst %/,%,$(dir $(MK_PATH)))
 XFLIB_DIR = $(XF_PROJ_ROOT)
-KSRC_DIR = $(CUR_DIR)
 
-HLS_DIR	= $(XF_PROJ_ROOT)/L1/include/hw
-HLS_DIR2 = $(XF_PROJ_ROOT)/L2/include/hw/
+# ######################### Include environment variables in utils.mk ####################
+include ./utils.mk
+XDEVICE := $(call device2xsa, $(DEVICE))
+TEMP_DIR := _x_temp.$(TARGET).$(XDEVICE)
+TEMP_REPORT_DIR := $(CUR_DIR)/reports/_x.$(TARGET).$(XDEVICE)
+BUILD_DIR := build_dir.$(TARGET).$(XDEVICE)
+BUILD_REPORT_DIR := $(CUR_DIR)/reports/_build.$(TARGET).$(XDEVICE)
+EMCONFIG_DIR := $(BUILD_DIR)
+XCLBIN_DIR := $(CUR_DIR)/$(BUILD_DIR)
+export XCL_BINDIR = $(XCLBIN_DIR)
 
-$(info, HLS_DIR=$HLS_DIR)
-$(info, HLS_DIR2=$HLS_DIR2)
-
-XCLBIN_NAME := kernel_louvain
-KERNEL_IDS = 0
-KERNELS := kernel_louvain
-
-kernel_louvain_EXTRA_HDRS += $(wildcard $(HLS_DIR)/*.hpp) $(wildcard $(HLS_DIR2)/*.hpp)
-
-kernel_louvain_VPP_CFLAGS += -I$(KSRC_DIR)
-
-#VPP_CFLAGS += -I$(XFLIB_DIR)/L1/include/hw/ -I$(XFLIB_DIR)/L2/include/hw
-
-ifneq (,$(shell echo $(XPLATFORM) | awk '/u50/ || /u280/ || /u55c/'))
-    VPP_CFLAGS += --config conn_u50_u55c_u280.ini
-else
-$(warning Unsupported platform $(XPLATFORM))
-endif
-ifneq (,$(shell echo $(XPLATFORM) | awk '/u55c/'))
-CXXFLAGS += -D USE_U55C                           
-VPP_CFLAGS += -D USE_U55C                         
-endif                                             
-
-#VPP_LFLAGS += $(foreach k,$(KERNELS), --nk $(k):1:$(k))
-
-# -----------------------------------------------------------------------------
-# TODO:                           host setup
-TB ?= jaccard_sparse
-REP ?= 1
-SRC_DIR = $(CUR_DIR)/host
-
-EXE_NAME = host
-HOST_ARGS = $(CUR_DIR)/data/example-wt.txt -x $(XCLBIN_FILE) -f 3 -c -o -m 10
-#HOST_ARGS = $(CUR_DIR)/data/karate-wt.txt -x $(XCLBIN_FILE) -f 3 -c -o -m 10
-#HOST_ARGS = $(CUR_DIR)/data/gen3000_sp2_51631_m1204_d34-wt.txt -x $(XCLBIN_FILE) -f 3 -c -o -m 1000
-#HOST_ARGS = $(CUR_DIR)/data/coPapersCiteseer.mtx -x $(XCLBIN_FILE) -f 3 -c -o -m 10000 
-#HOST_ARGS = $(CUR_DIR)/data/coPapersDBLP.mtx -x $(XCLBIN_FILE) -f 3 -c -o -m 10000 
-#HOST_ARGS = $(CUR_DIR)/data/europe_osm-wt.mtx -x $(XCLBIN_FILE) -f 3 -c -o -m 10000 
-#HOST_ARGS = $(CUR_DIR)/data/soc-LiveJournal1.mtx -x $(XCLBIN_FILE) -f 3 -c -o -m 10000 
-
-SRCS += driverForGraphClustering \
-        RngStream \
-		utilityFunctions \
-		parseInputFiles  \
-		writeGraphDimacsFormat \
-		buildNextPhase \
-		coloringDistanceOne \
-		utilityClusteringFunctions \
-		parallelLouvainMethod \
-		parallelLouvainWithColoring \
-		louvainMultiPhaseRun \
-		parseInputParameters \
-		vertexFollowing 
-
-louvainMultiPhaseRun_EXTRA_HDRS += $(KSRC_DIR)/kernel_louvain.hpp
-louvainMultiPhaseRun_CXXFLAGS += -I$(KSRC_DIR) -I$(EXT_DIR)/xcl2
-
-CXXFLAGS += -D XDEVICE=$(XDEVICE) -I$(XFLIB_DIR)/L1/include/hw/ -I$(XFLIB_DIR)/L2/include/hw/ 
-CXXFLAGS += -DPRAGMA  
-
-#HOST_CCOPT = DBG
-HOST_CCOPT = OPT
-ifeq (${HOST_CCOPT},DBG)
-    CXXFLAGS += -g
-endif
-ifeq (${HOST_CCOPT},OPT)
-    CXXFLAGS += -O3
-endif
-
-# EXTRA_OBJS is cannot be compiled from SRC_DIR, user should provide the rule
-EXTRA_OBJS += xcl2
-
-EXT_DIR = $(XFLIB_DIR)/ext
-xcl2_SRCS = $(EXT_DIR)/xcl2/xcl2.cpp
-xcl2_HDRS = $(EXT_DIR)/xcl2/xcl2.hpp
-xcl2_CXXFLAGS = -I $(EXT_DIR)/xcl2
-
-# -----------------------------------------------------------------------------
-# END_XF_MK_USER_SECTION
-# -----------------------------------------------------------------------------
-
-.PHONY: all
-all: host xclbin
-
-# MK_INC_BEGIN vitis_kernel_rules.mk
-
-VPP_DIR_BASE ?= _x
-XO_DIR_BASE ?= xo
-XCLBIN_DIR_BASE ?= xclbin
-
-XCLBIN_DIR_SUFFIX ?= _$(XDEVICE)_$(TARGET)
-
-VPP_DIR = $(CUR_DIR)/$(VPP_DIR_BASE)$(XCLBIN_DIR_SUFFIX)
-XO_DIR = $(CUR_DIR)/$(XO_DIR_BASE)$(XCLBIN_DIR_SUFFIX)
-XCLBIN_DIR = $(CUR_DIR)/$(XCLBIN_DIR_BASE)$(XCLBIN_DIR_SUFFIX)
-
-XFREQUENCY ?= 300
-
-VPP = v++
-VPP_CFLAGS += -I$(KSRC_DIR)
-VPP_CFLAGS += --target $(TARGET) --platform $(XPLATFORM) --temp_dir $(VPP_DIR) --save-temps --debug
-VPP_CFLAGS += --kernel_frequency $(XFREQUENCY) --report_level 2
-VPP_LFLAGS += --optimize 2 --jobs 8
-VPP_CFLAGS += --advanced.param compiler.userPostSysLinkOverlayTcl=$(KSRC_DIR)/postSysLink.tcl
-
-KERNEL_NAMES := $(foreach k,$(KERNELS),$(word 1, $(subst :, ,$(k))))
-XO_FILES := $(foreach k,$(KERNEL_NAMES),$(XO_DIR)/$(k).xo)
-XCLBIN_FILE ?= $(XCLBIN_DIR)/$(XCLBIN_NAME).xclbin
-
-define kernel_src_dep
-kernelname := $(word 1, $(subst :, ,$(1)))
-kernelfile := $(if $(findstring :, $(1)),$(word 2, $(subst :, ,$(1))),$$(kernelname).cpp)
-$$(kernelname)_SRCS := $(KSRC_DIR)/$$(kernelfile)
-$$(kernelname)_SRCS += $$($$(kernelname)_EXTRA_SRCS)
-endef
-
-$(foreach k,$(KERNELS),$(eval $(call kernel_src_dep,$(k))))
-
-define kernel_hdr_dep
-kernelname := $(word 1, $(subst :, ,$(1)))
-kernelfile := $(if $(findstring :, $(1)),$(basename $(word 2, $(subst :, ,$(1)))),$$(kernelname))
-$$(kernelname)_HDRS := $$(wildcard $(KSRC_DIR)/$$(kernelfile).h $(KSRC_DIR)/$$(kernelfile).hpp)
-$$(kernelname)_HDRS += $$($(1)_EXTRA_HDRS)
-endef
-
-$(foreach k,$(KERNELS),$(eval $(call kernel_hdr_dep,$(k))))
-
-$(XO_DIR)/%.xo: VPP_CFLAGS += $($(*)_VPP_CFLAGS)
-$(XO_DIR)/%.xo: $$($$(*)_SRCS) $$($$(*)_HDRS) | check_vpp
-	@echo -e "----\nCompiling kernel $*..."
-	mkdir -p $(XO_DIR)
-	$(VPP) -o $@ --kernel $* --compile $(filter %.cpp,$^) \
-		$(VPP_CFLAGS)
-
-$(XCLBIN_FILE): $(XO_FILES) | check_vpp
-	@echo -e "----\nCompiling xclbin..."
-	mkdir -p $(XCLBIN_DIR)
-	$(VPP) -o $@ --link $^ \
-		$(VPP_CFLAGS) $(VPP_LFLAGS) \
-		$(foreach k,$(KERNEL_NAMES),$($(k)_VPP_CFLAGS)) \
-		$(foreach k,$(KERNEL_NAMES),$($(k)_VPP_LFLAGS))
-
-.PHONY: xo xclbin
-
-xo: $(XO_FILES) | check_vpp check_platform
-
-xclbin: $(XCLBIN_FILE) | check_vpp check_platform
-
-# MK_INC_END vitis_kernel_rules.mk
-
-# MK_INC_BEGIN vitis_host_rules.mk
-
-OBJ_DIR_BASE ?= obj
-BIN_DIR_BASE ?= bin
-
-BIN_DIR_SUFFIX ?= _$(XDEVICE)
-
-OBJ_DIR = $(CUR_DIR)/$(OBJ_DIR_BASE)$(BIN_DIR_SUFFIX)
-BIN_DIR = $(CUR_DIR)/$(BIN_DIR_BASE)$(BIN_DIR_SUFFIX)
-
-CXX := g++
-CC := gcc
-
-CXXFLAGS += -std=c++11 -Ofast -fopenmp -fPIC \
-	-I$(SRC_DIR) -I$(XILINX_XRT)/include -I$(XILINX_VIVADO)/include \
-	-Wall -Wno-unknown-pragmas -Wno-unused-label \
-	-pthread -DMULTITHREAD
-CFLAGS +=
-LDFLAGS += -pthread -L$(XILINX_XRT)/lib -lxilinxopencl
-LDFLAGS += -L$(XILINX_VIVADO)/lnx64/tools/fpo_v7_0 -Wl,--as-needed -lgmp -lmpfr \
-	   -lIp_floating_point_v7_0_bitacc_cmodel
-
-OBJ_FILES = $(foreach s,$(SRCS),$(OBJ_DIR)/$(basename $(s)).o)
-
-define host_hdr_dep
-$(1)_HDRS := $$(wildcard $(SRC_DIR)/$(1).h $(SRC_DIR)/$(1).hpp)
-$(1)_HDRS += $$($(1)_EXTRA_HDRS)
-endef
-
-$(foreach s,$(SRCS),$(eval $(call host_hdr_dep,$(basename $(s)))))
-$(OBJ_DIR)/%.o: CXXFLAGS += $($(*)_CXXFLAGS)
-$(OBJ_FILES): $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $$($$(*)_HDRS) | check_vpp check_xrt check_platform
-	@echo -e "----\nCompiling object $*..."
-	mkdir -p $(@D)
-	$(CXX) -o $@ -c $< $(CXXFLAGS)
-
-EXTRA_OBJ_FILES = $(foreach f,$(EXTRA_OBJS),$(OBJ_DIR)/$(f).o)
-
-$(EXTRA_OBJ_FILES): $(OBJ_DIR)/%.o: $$($$(*)_SRCS) $$($$(*)_HDRS) | check_vpp check_xrt check_platform
-	@echo -e "----\nCompiling extra object $@..."
-	mkdir -p $(@D)
-	$(CXX) -o $@ -c $< $(CXXFLAGS)
-
-EXE_EXT ?= exe
-EXE_FILE ?= $(BIN_DIR)/$(EXE_NAME)$(if $(EXE_EXT),.,)$(EXE_EXT)
-
-$(EXE_FILE): $(OBJ_FILES) $(EXTRA_OBJ_FILES) | check_vpp check_xrt check_platform
-	@echo -e "----\nCompiling host $(notdir $@)..."
-	mkdir -p $(BIN_DIR)
-	$(CXX) -o $@ $^ $(CXXFLAGS) $(LDFLAGS)
-
-.PHONY: host
-host: $(EXE_FILE) | check_vpp check_xrt check_platform
-
-# MK_INC_END vitis_host_rules.mk
-
-# MK_INC_BEGIN vitis_test_rules.mk
-
-# -----------------------------------------------------------------------------
-#                                clean up
-
-clean:
-ifneq (,$(OBJ_DIR_BASE))
-	rm -rf $(CUR_DIR)/$(OBJ_DIR_BASE)*
-endif
-ifneq (,$(BIN_DIR_BASE))
-	rm -rf $(CUR_DIR)/$(BIN_DIR_BASE)*
-endif
-
-cleanx:
-ifneq (,$(VPP_DIR_BASE))
-	rm -rf $(CUR_DIR)/$(VPP_DIR_BASE)*
-endif
-ifneq (,$(XO_DIR_BASE))
-	rm -rf $(CUR_DIR)/$(XO_DIR_BASE)*
-endif
-ifneq (,$(XCLBIN_DIR_BASE))
-	rm -rf $(CUR_DIR)/$(XCLBIN_DIR_BASE)*
-endif
-ifneq (,$(BIN_DIR_BASE))
-	rm -rf $(CUR_DIR)/$(BIN_DIR_BASE)*/emconfig.json
-endif
-
-cleanall: clean cleanx
-	rm -rf *.log plist $(DATA_STAMP)
-
-# -----------------------------------------------------------------------------
-#                                simulation run
-
-$(BIN_DIR)/emconfig.json :
-	emconfigutil --platform $(XPLATFORM) --od $(BIN_DIR)
+# ######################### Setting up Host Variables #########################
+#Include Required Host Source Files
+HOST_SRCS += $(XFLIB_DIR)/louvainmod/grappolo/src/driverForGraphClustering.cpp
+HOST_SRCS += $(XFLIB_DIR)/louvainmod/grappolo/src/RngStream.cpp
+HOST_SRCS += $(XFLIB_DIR)/louvainmod/grappolo/src/utilityFunctions.cpp
+HOST_SRCS += $(XFLIB_DIR)/louvainmod/grappolo/src/parseInputFiles.cpp
+HOST_SRCS += $(XFLIB_DIR)/louvainmod/grappolo/src/buildNextPhase.cpp
+HOST_SRCS += $(XFLIB_DIR)/louvainmod/grappolo/src/coloringDistanceOne.cpp
+HOST_SRCS += $(XFLIB_DIR)/louvainmod/grappolo/src/utilityClusteringFunctions.cpp
+HOST_SRCS += $(XFLIB_DIR)/louvainmod/grappolo/src/parallelLouvainMethod.cpp
+HOST_SRCS += $(XFLIB_DIR)/louvainmod/grappolo/src/parallelLouvainWithColoring.cpp
+HOST_SRCS += $(XFLIB_DIR)/louvainmod/grappolo/src/louvainMultiPhaseRun.cpp
+HOST_SRCS += $(XFLIB_DIR)/louvainmod/grappolo/src/parseInputParameters.cpp
+HOST_SRCS += $(XFLIB_DIR)/louvainmod/grappolo/src/vertexFollowing.cpp
+HOST_SRCS += $(XFLIB_DIR)/L2/louvainmod_opt_kernel/partition/test.cpp
+HOST_SRCS += $(XFLIB_DIR)/L2/louvainmod_opt_kernel/partition/ParLV.cpp
+HOST_SRCS += $(XFLIB_DIR)/L2/louvainmod_opt_kernel/partition/ctrlLV.cpp
+HOST_SRCS += $(XFLIB_DIR)/L2/louvainmod_opt_kernel/partition/louvainPhase.cpp
+HOST_SRCS += $(XFLIB_DIR)/L2/louvainmod_opt_kernel/partition/partitionLouvain.cpp
+HOST_SRCS += $(XFLIB_DIR)/ext/xcl2/xcl2.cpp
+CXXFLAGS += -I$(XFLIB_DIR)/L2/include/hw
+CXXFLAGS += -I$(XFLIB_DIR)/louvainmod/grappolo/include
+#CXXFLAGS += -I$(XFLIB_DIR)/louvainmod/include
+CXXFLAGS += -I$(XFLIB_DIR)/L2/louvainmod_opt_kernel/partition
+CXXFLAGS += -I$(XFLIB_DIR)/L2/louvainmod_opt_kernel
+#CXXFLAGS += -I$(XFLIB_DIR)/../utils/L1/include
+CXXFLAGS += -I$(XFLIB_DIR)/ext/xcl2
+CXXFLAGS += -I$(XFLIB_DIR)/L2/include
+#CXXFLAGS += -I$(XFLIB_DIR)/../utils/L1/include
+CXXFLAGS += -I$(XFLIB_DIR)/ext/xcl2
 
 ifeq ($(TARGET),sw_emu)
-RUN_ENV += export XCL_EMULATION_MODE=sw_emu;
-EMU_CONFIG = $(BIN_DIR)/emconfig.json
-else ifeq ($(TARGET),hw_emu)
-RUN_ENV += export XCL_EMULATION_MODE=hw_emu;
-EMU_CONFIG = $(BIN_DIR)/emconfig.json
-else ifeq ($(TARGET),hw)
-RUN_ENV += echo "TARGET=hw";
-EMU_CONFIG =
+CXXFLAGS += -D SW_EMU_TEST
 endif
 
-.PHONY: run run_sw_emu run_hw_emu run_hw check
+ifeq ($(TARGET),hw_emu)
+CXXFLAGS += -D HW_EMU_TEST
+endif
 
-run_sw_emu:
-	make TARGET=sw_emu run
+# ######################### Host compiler global settings ############################
+CXXFLAGS += -I$(XILINX_XRT)/include -I$(XILINX_VIVADO)/include -std=c++11 -O3 -Wall -Wno-unknown-pragmas
+LDFLAGS += -L$(XILINX_XRT)/lib -lOpenCL -lpthread -lrt -Wno-unused-label -Wno-unused-variable -Wno-write-strings -Wno-narrowing -DVERBOSE -Wno-format
+CXXFLAGS += -fmessage-length=0 -O3 -DPRAGMA -Ofast -fopenmp -fPIC -DMULTITHREAD
+CXXFLAGS += -I$(CUR_DIR)/src/ 
 
-run_hw_emu:
-	make TARGET=hw_emu run
+ifeq ($(HOST_ARCH), x86)
+LDFLAGS += -L$(XILINX_VIVADO)/lnx64/tools/fpo_v7_0 -Wl,--as-needed -lgmp -lmpfr -lIp_floating_point_v7_0_bitacc_cmodel
+endif
+ifneq (,$(shell echo $(XPLATFORM) | awk '/u50/'))
+CXXFLAGS += -D USE_HBM
+endif
 
-run_hw:
-	make TARGET=hw run
+ifneq (,$(shell echo $(XPLATFORM) | awk '/u55c/'))
+VPP_CFLAGS += -D USE_U55C
+CXXFLAGS += -D USE_U55C
+endif
+# ################### Setting package and image directory #######################
 
-run: host xclbin $(EMU_CONFIG) $(DATA_STAMP)
-	$(RUN_ENV) \
-	$(EXE_FILE) $(HOST_ARGS)
+EXE_NAME := host.exe
+EXE_FILE := $(BUILD_DIR)/$(EXE_NAME)
+HOST_ARGS :=  -x $(BUILD_DIR)/kernel_louvain.xclbin -f 3 -c -o -m 10000 -prun $(XFLIB_DIR)/L2/louvainmod_opt_kernel/data/example-wt.txt
 
-check: run
+# ##################### Kernel compiler global settings ##########################
+VPP_FLAGS += -t $(TARGET) --platform $(XPLATFORM) --save-temps --optimize 2
+VPP_FLAGS += --jobs 8
+VPP_FLAGS += --config $(CUR_DIR)/conn_u50_u55c_u280.ini
+
+VPP_FLAGS += -I$(XFLIB_DIR)/L2/include
+VPP_FLAGS += -I$(XFLIB_DIR)/../database/L1/include/hw
+VPP_FLAGS += -I$(XFLIB_DIR)/../quantitative_finance/L1/include
+VPP_FLAGS += -I$(XFLIB_DIR)/../utils/L1/include
+
+VPP_FLAGS += -I$(XFLIB_DIR)/L2/include
+VPP_FLAGS += -I$(XFLIB_DIR)/L2/include/hw
+VPP_FLAGS += -I$(XFLIB_DIR)/../utils/L1/include
+VPP_FLAGS += -I$(XFLIB_DIR)/L2/louvainmod_opt_kernel
+VPP_FLAGS += --advanced.param compiler.userPostSysLinkOverlayTcl=$(CUR_DIR)/postSysLink.tcl
+
+kernel_louvain_VPP_FLAGS +=  -D KERNEL_NAME=kernel_louvain
+kernel_louvain_VPP_FLAGS += --hls.clock 300000000:kernel_louvain
+VPP_LDFLAGS_kernel_louvain += --kernel_frequency 300
+
+
+# ############################ Declaring Binary Containers ##########################
+
+BINARY_CONTAINERS += $(BUILD_DIR)/kernel_louvain.xclbin
+BINARY_CONTAINER_kernel_louvain_OBJS += $(TEMP_DIR)/kernel_louvain.xo
+
+# ######################### Setting Targets of Makefile ################################
+DATA_DIR += $(CUR_DIR)/data
+
+.PHONY: all clean cleanall docs emconfig
+all: check_vpp check_platform  $(EXE_FILE) $(BINARY_CONTAINERS) emconfig
+
+.PHONY: host
+host: check_xrt check_sysroot $(EXE_FILE)
+
+.PHONY: xclbin
+xclbin: check_vpp check_sysroot $(BINARY_CONTAINERS)
 
 .PHONY: build
+build: xclbin
 
-build: xclbin host
+# ################ Setting Rules for Binary Containers (Building Kernels) ################
+$(TEMP_DIR)/kernel_louvain.xo: $(XFLIB_DIR)/L2/louvainmod_opt_kernel/kernel_louvain.cpp
+	$(ECHO) "Compiling Kernel: kernel_louvain"
+	mkdir -p $(TEMP_DIR)
+	$(VPP) -c $(kernel_louvain_VPP_FLAGS) $(VPP_FLAGS) -k kernel_louvain -I'$(<D)' --temp_dir $(TEMP_DIR) --report_dir $(TEMP_REPORT_DIR) -o'$@' '$<'
 
-# MK_INC_END vitis_test_rules.mk
 
+$(BUILD_DIR)/kernel_louvain.xclbin: $(BINARY_CONTAINER_kernel_louvain_OBJS)
+	mkdir -p $(BUILD_DIR)
+	$(VPP) -l $(VPP_FLAGS) --temp_dir $(BUILD_DIR) --report_dir $(BUILD_REPORT_DIR)/kernel_louvain $(VPP_LDFLAGS) $(VPP_LDFLAGS_kernel_louvain) -o '$@' $(+)
+
+
+# ################# Setting Rules for Host (Building Host Executable) ################
+$(EXE_FILE): $(HOST_SRCS) | check_xrt
+	mkdir -p $(BUILD_DIR)
+	$(CXX) -o $@ $^ $(CXXFLAGS) $(LDFLAGS)
+
+emconfig:$(EMCONFIG_DIR)/emconfig.json
+$(EMCONFIG_DIR)/emconfig.json:
+	emconfigutil --platform $(XPLATFORM) --od $(EMCONFIG_DIR)
+
+
+# ###############Setting Essential Checks And Running Rules For Vitis Flow #############
+run: all
+ifeq ($(TARGET),$(filter $(TARGET),sw_emu hw_emu))
+	$(CP) $(EMCONFIG_DIR)/emconfig.json .
+	XCL_EMULATION_MODE=$(TARGET) $(EXE_FILE) $(HOST_ARGS)
+else
+	$(EXE_FILE) $(HOST_ARGS)
+endif
+
+# ################################# Cleaning Rules ##################################
+cleanh:
+	-$(RMDIR) $(EXE_FILE) vitis_* TempConfig system_estimate.xtxt *.rpt .run/
+	-$(RMDIR) src/*.ll _xocc_* .Xil dltmp* xmltmp* *.log *.jou *.wcfg *.wdb sample_link.ini sample_compile.ini obj* bin* *.csv *.jpg *.jpeg *.png
+
+cleank:
+	-$(RMDIR) $(BUILD_DIR)/*.xclbin _vimage *xclbin.run_summary qemu-memory-_* emulation/ _vimage/ pl* start_simulation.sh *.xclbin
+	-$(RMDIR) _x_temp.*/_x.* _x_temp.*/.Xil _x_temp.*/profile_summary.* xo_* _x*
+	-$(RMDIR) _x_temp.*/dltmp* _x_temp.*/kernel_info.dat _x_temp.*/*.log 
+	-$(RMDIR) _x_temp.* 
+
+cleanall: cleanh cleank
+	-$(RMDIR) $(BUILD_DIR)  build_dir.* emconfig.json *.html $(TEMP_DIR) $(CUR_DIR)/reports *.csv *.run_summary $(CUR_DIR)/*.raw package_* run_script.sh .ipcache *.str
+	-$(RMDIR) $(XFLIB_DIR)/common/data/*.xe2xd* $(XFLIB_DIR)/common/data/*.orig*
+
+	-$(RMDIR) $(AIE_CONTAINERS) $(CUR_DIR)/Work $(CUR_DIR)/*.xpe $(CUR_DIR)/hw.o $(CUR_DIR)/*.xsa $(CUR_DIR)/xnwOut aiesimulator_output .AIE_SIM_CMD_LINE_OPTIONS
+
+clean: cleanh
