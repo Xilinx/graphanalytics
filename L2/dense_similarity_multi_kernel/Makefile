@@ -38,6 +38,10 @@ help::
 	$(ECHO) "  make host HOST_ARCH=<x86>"
 	$(ECHO) "      Command to build host application."
 	$(ECHO) ""
+	$(ECHO) "  Supported devices: "
+	$(ECHO) "      xilinx_u50_gen3x16_xdma_201920_3"
+	$(ECHO) "      xilinx_u55c_gen3x16_xdma_1_202110_1"
+	$(ECHO) ""
 
 # ##################### Setting up default value of TARGET ##########################
 TARGET ?= sw_emu
@@ -54,9 +58,7 @@ $(error [ERROR]: This project is not supported for $(DEVICE).)
 endif
 
 # #################### Checking if DEVICE in whitelist ############################
-ifneq ($(findstring u55, $(DEVICE)), u55)
-$(warning [WARNING]: This project has not been tested for $(DEVICE). It may or may not work.)
-endif
+
 
 # ######################## Setting up Project Variables #################################
 MK_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))

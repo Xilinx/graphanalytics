@@ -22,7 +22,7 @@
 #include "xilinxlouvain.h"
 
 // Enable this to turn on debug output
-#define XILINX_COM_DETECT_DEBUG_ON
+//#define XILINX_COM_DETECT_DEBUG_ON
 
 // Enable this to dump graph vertices and edges, as seen by the partitioning logic
 //#define XILINX_COM_DETECT_DUMP_GRAPH
@@ -35,7 +35,7 @@ namespace xilComDetect {
 
 using Mutex = std::mutex;
 
-//#define XILINX_COM_DETECT_DEBUG_MUTEX
+#define XILINX_COM_DETECT_DEBUG_MUTEX
 
 #ifdef XILINX_COM_DETECT_DEBUG_MUTEX
 struct Lock {
@@ -78,6 +78,7 @@ private:
     std::string alveoProject_;
     unsigned numPartitions_;
     unsigned numDevices_ = 1;
+    std::string deviceNames_ = "xilinx_u50_gen3x16_xdma_201920_3";
     unsigned nodeId_ = 0;
     unsigned numNodes_ = 1;
     State state_ = UninitializedState;
@@ -167,6 +168,7 @@ public:
             options.xclbinPath = PLUGIN_XCLBIN_PATH;
             options.nameProj = alveoProject_;
             options.devNeed_cmd = numDevices_;
+            options.deviceNames = deviceNames_;
             options.nodeId = nodeId_;
             options.hostName = curNodeHostname_;
             options.clusterIpAddresses = nodeIps_;
@@ -177,6 +179,7 @@ public:
                     << "\n    xclbinPath=" << options.xclbinPath
                     << "\n    nameProj=" << options.nameProj
                     << "\n    devNeed_cmd=" << options.devNeed_cmd
+                    << "\n    deviceNames=" << options.deviceNames
                     << "\n    nodeId=" << options.nodeId
                     << "\n    hostName=" << options.hostName
                     << "\n    clusterIpAddresses=" << options.clusterIpAddresses
