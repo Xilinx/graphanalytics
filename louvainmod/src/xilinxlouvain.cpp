@@ -41,18 +41,16 @@ struct ComputedSettings {
     int numServers = 1;
     int modeZmq = ZMQ_NONE;
     int numPureWorker = 0;
+    int serverIndex = 0;  // this is the index of hostIp in hostIpAddresses 
+                               // It's used to construct partition file name
     std::vector<std::string> nameWorkers;
-//    unsigned int nodeID = 0;  moved to Options
     
     ComputedSettings(const Options &options) {
         const std::string delimiters(" ");
         const std::string hostIpStr = options.clusterIpAddresses;
         const std::string hostIpAddress = options.hostIpAddress;
-        std::cout << "---------------" << __FUNCTION__  
-                  << "\n    hostIpStr=" << hostIpStr
-                  << "\n    hostIpAddress=" << hostIpAddress << std::endl;
-
         modeZmq = (options.nodeId == 0) ? ZMQ_DRIVER : ZMQ_WORKER;
+        int idx = 0; 
         for (int i = hostIpStr.find_first_not_of(delimiters, 0); i != std::string::npos;
             i = hostIpStr.find_first_not_of(delimiters, i))
         {
@@ -61,6 +59,9 @@ struct ComputedSettings {
                 tokenEnd = hostIpStr.size();
             const std::string token = hostIpStr.substr(i, tokenEnd - i);
             hostIps.push_back(token);
+            if (hostIpAddress == token)
+                serverIndex = idx;
+            idx++;
             if (modeZmq == ZMQ_DRIVER && token != hostIpAddress)
                 nameWorkers.push_back(std::string("tcp://" + token + ":5555"));
             i = tokenEnd;
@@ -68,6 +69,7 @@ struct ComputedSettings {
         
         numServers = hostIps.size();
         numPureWorker = nameWorkers.size();
+        std::cout << "DEBUG: " << __FUNCTION__ << " serverIndex=" << serverIndex << std::endl;
     }
 };
 
@@ -136,17 +138,26 @@ public:
 
     int addPartitionData(const LouvainMod::PartitionData &partitionData) {
         // Determine the prefix string for each partition (.par) file
-        //For compatibility, when num_server is 1, no 'srv<n>' surfix used
+        //For compatibility, when num_server is 1, no 'srv<n>' surfix used       
         char pathName_proj_svr[1024];
         int serverNum = (partitionData.nodeId >= 0) ? partitionData.nodeId : globalOpts_.nodeId;
-        if (settings_.numServers > 1)
-            std::sprintf(pathName_proj_svr, "%s_svr%d", globalOpts_.nameProj.c_str(), serverNum);//louvain_partitions_svr0_000.par
-        else
+        // Assign partitions to the current node.
+        // Node 0 (aka driver) gets the last partitions.
+        // All other nodes gets numPartitions/numNode partitions.
+        // Below is an example of partition assignment for 10 partitions on a 3-node cluster
+        // node 1 (aka worker 1): par_svr0_000.par par_svr0_001.par par_svr0_002.par
+        // node 2 (aka worker 2): par_svr1_000.par par_svr1_001.par par_svr1_002.par
+        // node 0 (aka driver)  : par_svr2_000.par par_svr2_001.par par_svr2_002.par par_svr2_003.par
+        if (settings_.numServers > 1) {
+            int serverIndexAssigned = (serverNum == 0) ? (settings_.numServers-1) : (settings_.serverIndex-1);
+            std::sprintf(pathName_proj_svr, "%s_svr%d", globalOpts_.nameProj.c_str(), serverIndexAssigned); 
+        } else
             std::strcpy(pathName_proj_svr, globalOpts_.nameProj);                    //louvain_partitions_000.par
 
         // If the client has supplied a desired partition size, use that
 
         long NV_par_recommand = partitionData.NV_par_recommand;
+        std::cout << "DEBUG: " << __FUNCTION__ << " NV_par_recommand=" << NV_par_recommand << std::endl;
 
         // No supplied desired partition size: calculate it
 
@@ -185,9 +196,9 @@ public:
             const_cast<long *>(partitionData.drglist_tg),
             partitionData.start_vertex,
             partitionData.end_vertex,
-            pathName_proj_svr, // num_server==1? <dir>/louvain_partitions_ : louvain_partitions_svr<num_server>
-            partOpts_.par_prune,         // always be '1'
-            NV_par_recommand,  // Allow to partition small graphs not bigger than FPGA limitation
+            pathName_proj_svr,    // num_server==1? <dir>/louvain_partitions_ : louvain_partitions_svr<num_server>
+            partOpts_.par_prune,  // always be '1'
+            NV_par_recommand,     // Allow to partition small graphs not bigger than FPGA limitation
             NV_par_max
         );
         if (numPartitionsCreated < 0) {
@@ -208,12 +219,18 @@ public:
         // Format: -create_alveo_partitions <inFile> -par_num <par_num> -par_prune <par_prun> -name <ProjectFile>
         char* meta = (char*)malloc(4096);
         char pathName_tmp[1024];
+        int numPartitions = 0;
+        for (int i=0; i<settings_.numServers; i++)
+            numPartitions += numAlveoPartitions[i];
+
         std::sprintf(pathName_tmp, "%s%s.par.proj", projPath_.c_str(), projName_.c_str());
         std::sprintf(meta, "-create_alveo_partitions %s -par_num %d -par_prune %d -name %s -time_par %f -time_save %f ",
-                inputFileName_.c_str(), partOpts_.num_par, partOpts_.par_prune,
+                inputFileName_.c_str(), numPartitions, partOpts_.par_prune,
                 globalOpts_.nameProj.c_str(), parlv_.timesPar.timePar_all, parlv_.timesPar.timePar_save);
+        parlv_.num_par = numPartitions;
         ///////////////////////////////////////////////////////////////////////
-        //adding : -server_par <num_server> <num_par on server0> �..<num_par on server?>
+        //adding: -server_par <num_server> <num_par on server0> ... <num_par on server N>
+        //example: -server_par 3 1 1 1
         char tmp_str[128];
         std::sprintf(tmp_str, "-server_par %d ", settings_.numServers);
         std::strcat(meta, tmp_str);
@@ -358,7 +375,7 @@ void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions 
                 offsets_tg, edgelist_tg, drglist_tg);
 #ifdef PRINTINFO
                 printf("DBG:: SERVER(%d): start_vertex=%d, end_vertex=%d, NV_tg=%d, start_par=%d, parInServer=%d, pathName:%s\n",
-        i_svr, start_vertex[i_svr], end_vertex[i_svr], vInServer[i_svr], start_par[i_svr], parInServer[i_svr], pathName_proj);
+        i_svr, start_vertex[i_svr], end_vertex[i_svr], vInServer[i_svr], start_par[i_svr], parInServer[i_svr], fileName);
 #endif
 
         long NV_par_recommand = 0;
@@ -410,9 +427,10 @@ float LouvainMod::loadAlveoAndComputeLouvain(const ComputeOptions &computeOpts)
     char* nameWorkers[128];
 
 #ifndef NDEBUG  
-    std::cout << "DEBUG: " << __FUNCTION__ 
+    std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__ 
               << "\n    xclbinPath=" << pImpl_->options_.xclbinPath
               << "\n    alveoProject=" << pImpl_->options_.alveoProject 
+              << "\n    deviceNames=" << pImpl_->options_.deviceNames
               << "\n    nodeId=" << pImpl_->options_.nodeId
               << "\n    modeZmq=" << pImpl_->settings_.modeZmq
               << "\n    numPureWorker=" << pImpl_->settings_.numPureWorker;
@@ -429,6 +447,7 @@ float LouvainMod::loadAlveoAndComputeLouvain(const ComputeOptions &computeOpts)
                 (char *)(pImpl_->options_.xclbinPath.c_str()), 
                 pImpl_->options_.flow_fast, 
                 pImpl_->options_.devNeed_cmd, 
+                pImpl_->options_.deviceNames,
                 (char*)(pImpl_->options_.alveoProject.c_str()),
                 pImpl_->settings_.modeZmq, 
                 pImpl_->settings_.numPureWorker, 

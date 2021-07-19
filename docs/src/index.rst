@@ -33,55 +33,32 @@ The library is released on `GitHub <https://github.com/Xilinx/graphanalytics>`_ 
 
 
 .. toctree::
-   :caption: Overview
+   :caption: Stand-Alone Alveo Products
    :maxdepth: 1
 
-   overview.rst
+   Cosine Similarity <cosinesim/index.rst>
 
 
 .. toctree::
-   :caption: Installation
+   :caption: Software Stack Integration Products
    :maxdepth: 1
 
-   install.rst
+    Recommendation Engine for TigerGraph 3.x <recom-tg3/index.rst>
 
 
 .. toctree::
-   :caption: Recommendation Engine Examples
-   :maxdepth: 2
+    :caption: Additional Info
+    :maxdepth: 1
 
-   recomengine-example-jupyter.rst
-   recomengine-example-script.rst
-
-
-.. toctree::
-   :caption: Cosine Similarity Examples
-   :maxdepth: 2
-
-   cosinesim-example-jupyter.rst
-   cosinesim-example-python.rst
-   cosinesim-example-makefile.rst
+    tg3-plugins.rst
 
 
 .. toctree::
-   :caption: Integrate with TigerGraph
-   :maxdepth: 1
-
-   integrate-tg.rst
-
-
-.. toctree::
-   :caption: Vitis Development Flow
+   :caption: Collaborate with Us
    :maxdepth: 1
 
    vitis-dev-flow.rst
 
-
-.. toctree::
-   :caption: Product User Guides
-   :maxdepth: 4
-
-   rst-cpp-docs/index.rst
 
 .. toctree::
    :maxdepth: 1

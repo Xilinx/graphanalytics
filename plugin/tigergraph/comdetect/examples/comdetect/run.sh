@@ -38,16 +38,6 @@ script_dir=`dirname $SCRIPT`
 
 . $script_dir/bin/common.sh
 
-tg_partition="FALSE"
-use_saved_partition="FALSE"
-if [ "$partition_mode" -eq 0 ]; then
-   tg_partition="TRUE"
-elif [ "$partition_mode" -eq 1 ]; then
-   tg_partition="FALSE"
-else 
-   use_saved_partition="TRUE"
-fi
-
 if [ "$compile_mode" -eq 0 ]; then
     echo "-------------------------------------------------------------------------"
     echo "Running schema.gsql"
@@ -128,8 +118,8 @@ if [ "$run_mode" -eq 1 ] || [ "$run_mode" -eq 2 ]; then
     
     START=$(date +%s%3N)
     echo "Running tg_partition_phase_3"
-    echo gsql -u $username -p $password -g $xgraph \'run query tg_partition_phase_3\([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\", 1\)\'
-    time gsql -u $username -p $password -g $xgraph "run query tg_partition_phase_3([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\",1)"
+    echo gsql -u $username -p $password -g $xgraph \'run query tg_partition_phase_3\([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\", $num_partitions_node\)\'
+    time gsql -u $username -p $password -g $xgraph "run query tg_partition_phase_3([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\", $num_partitions_node)"
     TOTAL_TIME=$(($(date +%s%3N) - START))
     echo "tg_partition_phase_3 " $TOTAL_TIME
     

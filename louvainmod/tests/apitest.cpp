@@ -24,6 +24,7 @@ using namespace xilinx_apps::louvainmod;
     -driverAlone: ToolOptionssets mode_zmq to ZMQ_DRIVER
 */
 int main(int argc, char **argv) {
+    int status = 0;
     float finalQ;
     ToolOptions toolOptions(argc, argv);
     Options options;
@@ -47,16 +48,16 @@ int main(int argc, char **argv) {
         clusterIps << "127.0.0.1";
         for (int i = 0; i < toolOptions.numPureWorker; i++) {
             clusterIps << ' ' << toolOptions.nameWorkers[i];
-            std::cout << "------------" << i << " " << toolOptions.nameWorkers[i] << std::endl;
         }
     }
 
-
+    // set internal options fields based to commandline options
     options.xclbinPath = toolOptions.xclbinPath;
     options.flow_fast = toolOptions.flow_fast;
     options.nameProj = toolOptions.nameProj;
     options.alveoProject = toolOptions.alveoProject;
     options.devNeed_cmd = toolOptions.numDevices;
+    options.deviceNames = toolOptions.deviceNames;   
     if (toolOptions.mode_zmq == ZMQ_DRIVER)
         options.nodeId = 0;
     else if (toolOptions.mode_zmq == ZMQ_WORKER)
@@ -65,6 +66,9 @@ int main(int argc, char **argv) {
     options.hostName = "localhost";
     options.hostIpAddress = serverIp.str();
     options.clusterIpAddresses = clusterIps.str();
+
+    // create louvainMod object with internal "options". These options are common 
+    // between partition and load/compute operations
     LouvainMod louvainMod(options);
 
     switch (toolOptions.mode_alveo) {
@@ -84,8 +88,12 @@ int main(int argc, char **argv) {
         computeOpts.final_Q = true;
         computeOpts.all_Q = false; 
 
-        finalQ = louvainMod.loadAlveoAndComputeLouvain(computeOpts);   
-        std::cout << "INFO: " << __FUNCTION__ << " finalQ=" << finalQ << std::endl;
+        finalQ = louvainMod.loadAlveoAndComputeLouvain(computeOpts);
+        if (finalQ < 0) {
+            std::cout << "ERROR: loadAlveoAndComputeLouvain completed with error. ErrorCode=" << finalQ << std::endl;
+            status = -1;
+        } else
+            std::cout << "INFO: loadAlveoAndComputeLouvain completed. finalQ=" << finalQ << std::endl;
         break;
     case ALVEOAPI_RUN:  // 3
         std::cout << "ALVEOAPI_RUN" << std::endl;
@@ -94,5 +102,5 @@ int main(int argc, char **argv) {
         std::cout << "ERROR: Unknown tool mode " << toolOptions.mode_alveo << std::endl;
         break;
     }
-    return 0;
+    return status;
 }

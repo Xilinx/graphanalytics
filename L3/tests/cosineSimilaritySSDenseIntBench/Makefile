@@ -43,13 +43,13 @@ help::
 TARGET ?= sw_emu
 
 # ################### Setting up default value of DEVICE ##############################
-DEVICE ?= xilinx_u50_gen3x16_xdma_201920_3
+DEVICE ?= xilinx_u55c_gen3x16_xdma_1_202110_1
 
 # ###################### Setting up default value of HOST_ARCH ####################### 
 HOST_ARCH ?= x86
 
 # #################### Checking if DEVICE in whitelist ############################
-ifneq ($(findstring u50, $(DEVICE)), u50)
+ifneq ($(findstring u55, $(DEVICE)), u55)
 $(warning [WARNING]: This project has not been tested for $(DEVICE). It may or may not work.)
 endif
 
@@ -78,7 +78,6 @@ CXXFLAGS += -I$(XFLIB_DIR)/L3/include
 CXXFLAGS += -I$(XFLIB_DIR)/ext/xcl2/
 LDFLAGS += -L$(XFLIB_DIR)/L3/lib
 LDFLAGS += -lgraphL3
-LDFLAGS += -lzmq
 LDFLAGS += -L$(XILINX_XRM)/lib -lxrm 
 
 ifeq ($(TARGET),sw_emu)
@@ -110,8 +109,8 @@ LIBRARY_PATH =$(CUR_DIR)/../../lib:$(XILINX_XRT)/lib:$(XILINX_XRM)/lib:$(LD_LIBR
 VPP_FLAGS += -t $(TARGET) --platform $(XPLATFORM) --save-temps --optimize 2
 VPP_FLAGS += --hls.jobs 8
 VPP_LDFLAGS += --vivado.synth.jobs 8 --vivado.impl.jobs 8
-ifneq (,$(shell echo $(XPLATFORM) | awk '/u50/'))
-VPP_FLAGS += --config $(CUR_DIR)/conn_u50_u280.cfg
+ifneq (,$(shell echo $(XPLATFORM) | awk '/u55/'))
+VPP_FLAGS += --config $(CUR_DIR)/conn_u50_u55c_u280.cfg
 endif
 
 VPP_FLAGS += -I$(XFLIB_DIR)/L1/include/hw
@@ -120,7 +119,7 @@ VPP_FLAGS += -I$(XFLIB_DIR)/L2/dense_similarity_multi_kernel/kernel
 
 denseSimilarityKernel_VPP_FLAGS +=  -D KERNEL_NAME=denseSimilarityKernel
 denseSimilarityKernel_VPP_FLAGS += --hls.clock 300000000:denseSimilarityKernel
-VPP_LDFLAGS_denseSimilarityKernel += --kernel_frequency 300
+VPP_LDFLAGS_denseSimilarityKernel += --kernel_frequency 250
 
 
 # Kernel args

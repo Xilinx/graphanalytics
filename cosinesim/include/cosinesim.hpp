@@ -26,18 +26,16 @@ namespace cosinesim
 /**
  * @mainpage
  * 
- * Overview
- * ========
+ * ## Overview ##
  * 
  * The Cosine Similarity Alveo&tm; Product allows you to use a Xilinx Alveo accelerator card to find the best matches
  * of a given _target vector_ of integers within a set of _population vectors_ of integers.
  * The target vector is paired with each population vector in turn to compute the
- * [**cosine similarity**](https://en.wikipedia.org/wiki/Cosine_similarity)
+ * [cosine similarity](https://en.wikipedia.org/wiki/Cosine_similarity)
  * score of the pair.  The scores are sorted, and the highest scores are returned, along with
  * an identifier (called its _row index_) for the corresponding population vectors.
  * 
- * Using the API
- * =============
+ * ## Using the API ##
  * 
  * Follow the steps below to use the API.
  * 
@@ -45,8 +43,7 @@ namespace cosinesim
  * 2. Load the population vectors into the Alveo accelerator card
  * 3. Run one or more matches by supplying for each run a target vector and the number of matches to return
  * 
- * Instantiate a CosineSim object
- * ------------------------------
+ * ### Instantiate a CosineSim object ###
  * 
  * To instantiate a CosineSim object, first select the options for the object by instantiating an Options object
  * and setting its members, as shown in the example below.  Note that all API identifiers are contained within
@@ -76,8 +73,7 @@ namespace cosinesim
  * xilinx_apps::cosinesim::CosineSim<std::int32_t> cosineSim(options);
  * ~~~
  * 
- * Load the population vectors
- * ---------------------------
+ * ### Load the population vectors ###
  * 
  * Loading the population vectors into the Alveo accelerator card is accomplished with the procedure shown in the
  * code example below.
@@ -131,8 +127,7 @@ namespace cosinesim
  * The get and finish calls do not need to be in the same critical section.  That is, you can unlock the mutex
  * between the two function calls.
  * 
- * Run a match
- * -----------
+ * ### Run a match ###
  * 
  * After the population vectors have been loaded into the Alveo accelerator card, you can call
  * CosineSim::matchTargetVector() with a target vector to find the population vectors that have the highest cosine
@@ -156,8 +151,7 @@ namespace cosinesim
  * need to be present in the set of population vectors, as each call to CosineSim::matchTargetVector() transfers the
  * target vector to the Alveo accelerator card before running the cosine similarity search.
  * 
- * Alveo accelerator card storage capacity
- * =======================================
+ * ## Alveo accelerator card storage capacity ##
  * 
  * The number of population vectors that an Alveo accelerator card can hold depends on both the vector length of
  * a population vector as well as the memory capacity of the Alveo accelerator card.  The Alveo U50 accelerator card,
@@ -167,8 +161,7 @@ namespace cosinesim
  * 
  * population vectors, where `len` is the vector length rounded up to a multiple of 4.
  * 
- * Error handling
- * ==============
+ * ## Error handling ##
  * 
  * Every CosineSim member function can potentially throw an exception of type Exception if a run-time error, such as
  * a hardware communication error, is encountered.  You can wrap your load and match operations in a `try`/`catch` block
@@ -182,8 +175,7 @@ namespace cosinesim
  * aborting.  API usage errors include passing out-of-range or unsupported values as
  * arguments to CosineSim member functions.
  * 
- * Linking your application
- * ========================
+ * ## Linking your application ##
  * 
  * You have a few choices for how to link the API code into your application:
  * 
@@ -191,8 +183,7 @@ namespace cosinesim
  * - Linking with the Cosine Similarity dynamic loader archive (.a)
  * - Including the Cosine Similarity dynamic loader source file (.cpp)
  * 
- * Linking directly (.so)
- * ----------------------
+ * ### Linking directly (.so) ###
  * 
  * The simplest method of linking the API into your application is to link directly with the shared library (.so),
  * placing a run-time dependency of your application on the shared library.  Simply add the following arguments to
@@ -202,8 +193,7 @@ namespace cosinesim
  * -L/opt/xilinx/apps/graphanalytics/cosinesim/@version/lib -lXilinxCosineSim
  * ~~~
  * 
- * Linking with the dynamic loader archive (.a)
- * --------------------------------------------
+ * ### Linking with the dynamic loader archive (.a) ###
  * 
  * To avoid having a run-time dependency on the shared library, but instead load the shared library on demand
  * (internally using `dlopen()`), you can link with the loader archive by adding the following arguments to
@@ -213,8 +203,7 @@ namespace cosinesim
  * -L/opt/xilinx/apps/graphanalytics/cosinesim/@version/lib -lXilinxCosineSim_loader -ldl
  * ~~~
  * 
- * Including the dynamic loader source file (.cpp)
- * -----------------------------------------------
+ * ### Including the dynamic loader source file (.cpp) ###
  * 
  * Another way to avoid a run-time dependency on the shared library is by including the loader source file in
  * a header or source file of your program:
@@ -231,14 +220,13 @@ namespace cosinesim
  * Note that you will still have to include `-ldl` on your link line to pull in the standard dynamic loading library.
  * 
  * The loader source file is located in `/opt/xilinx/apps/graphanalytics/cosinesim/@version/src`.  Note the macro
- * definition that comes before the inclusion of `cosinesim.hpp`.
+ * definition that comes before the inclusion of `%cosinesim.hpp`.
  * 
  * **TIP:** When using either dynamic loading technique, if the order of symbol loading causes unexplained behavior in
  * your application, you can try adding `libXilinxCosineSim.so` to the list of pre-loaded shared libraries,
- * as explained in [**this article**](https://stackoverflow.com/questions/426230/what-is-the-ld-preload-trick).
+ * as explained in [this Stack Overflow article](https://stackoverflow.com/questions/426230/what-is-the-ld-preload-trick).
  * 
- * Type-erased CosineSim base class
- * ================================
+ * ## Type-erased CosineSim base class ##
  * 
  * The CosineSim class is a template class that ensures type safety for vector elements.  However, if you need
  * a type-free non-template class, you can use CosineSim's base class, CosineSimBase, directly.  Its member functions
@@ -275,6 +263,7 @@ class ImplBase;
 #define XILINX_COSINESIM_IMPL_DECL extern
 #endif
 
+/// @cond INTERNAL
 extern "C" {
 XILINX_COSINESIM_IMPL_DECL
 xilinx_apps::cosinesim::ImplBase *xilinx_cosinesim_createImpl(const xilinx_apps::cosinesim::Options& options, unsigned valueSize);
@@ -282,6 +271,7 @@ xilinx_apps::cosinesim::ImplBase *xilinx_cosinesim_createImpl(const xilinx_apps:
 XILINX_COSINESIM_IMPL_DECL
 void xilinx_cosinesim_destroyImpl(xilinx_apps::cosinesim::ImplBase *pImpl);
 }
+/// @endcond
 
 namespace xilinx_apps {
 namespace cosinesim {
@@ -412,6 +402,7 @@ private:
 template <typename Value>
 class CosineSim;
 
+/// @cond INTERNAL
 class ImplBase {
 public:
     virtual ~ImplBase(){};
@@ -422,6 +413,7 @@ public:
     virtual std::vector<Result> matchTargetVector(unsigned numResults, void *elements) = 0;
     virtual void cleanGraph() =0;
 };
+/// @endcond
 
 /**
  * @brief Non-template version of CosineSim class.

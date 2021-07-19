@@ -19,6 +19,7 @@
 #ifndef _XF_GRAPH_L3_HANDLE_HPP_
 #define _XF_GRAPH_L3_HANDLE_HPP_
 
+#define XF_GRAPH_L3_MAX_DEVICES_PER_NODE 16   // maximu supported devices per node
 #define XF_GRAPH_L3_SUCCESS 0
 #define XF_GRAPH_L3_ERROR_CONFIG_FILE_NOT_EXIST -2
 #define XF_GRAPH_L3_ERROR_XCLBIN_FILE_NOT_EXIST -3
@@ -64,12 +65,13 @@ class Handle {
         std::string xclbinPath;              // xclbin full path
         unsigned int numDevices = 0;         // requested FPGA device number
         unsigned int cuPerBoard = 1;         // requested FPGA device number
-        std::vector<unsigned int> deviceIDs; // deviceID
+
         void setKernelName(char* input) {
             std::string tmp = "";
             kernelName = input;
             kernelAlias = (char*)tmp.c_str();
         }
+
         void setKernelAlias(char* input) {
             std::string tmp = "";
             kernelName = (char*)tmp.c_str();
@@ -110,7 +112,8 @@ class Handle {
 
     void showHandleInfo();
 
-    int setUp();
+    int setUp();  // Set up the handle with the default device names
+    int setUp(std::string deviceNames);  // Set up the handle with specified device names
 
     void getEnv();
 
@@ -120,13 +123,11 @@ class Handle {
 
    private:
     uint32_t maxCU_;
-
-    uint32_t numDevices_;
-
-    uint32_t totalDevices;
-
+    uint32_t numDevices_;                          // Number of devices requested by current operation
+    uint32_t totalSupportedDevices_;               // Total number of supported devices
+    std::vector<string> supportedDeviceNames_;     // Supported device names
+    uint32_t supportedDeviceIds_[XF_GRAPH_L3_MAX_DEVICES_PER_NODE];
     uint64_t maxChannelSize;
-
     std::vector<singleOP> ops;
 
     void loadXclbin(unsigned int deviceId, char* xclbinName);

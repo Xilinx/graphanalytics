@@ -20,10 +20,9 @@ ifdef sshKey
 endif	
 compileMode=0
 runMode=0
-partitionMode=1
 numDevices=1
 numNodes=1
-numPartitions=9
+numPartitionsNode=9
 dataSource=$(CURDIR)/as-skitter/as-Skitter-wt-r100.mtx
 alveoProject=$(CURDIR)/as-skitter/as-skitter-par9
 
@@ -32,7 +31,8 @@ all: run
 PLUGIN_DEPS = ../../udf/xilinxComDetect.hpp \
               ../../udf/xilinxComDetectImpl.hpp \
 			  ../../../../../louvainmod/include/xilinxlouvain.h \
-			  ../../../../../louvainmod/src/ParLV.cpp
+			  ../../../../../louvainmod/src/ParLV.cpp \
+			  ../../../../../louvainmod/src/xilinxlouvain.cpp
 
 .install-plugin-done: $(PLUGIN_DEPS)
 	cd ../../../../../louvainmod && make DEBUG=$(DEBUG)
@@ -71,9 +71,9 @@ run: .install-udf-done
 	@echo "Running run.sh from staging "
 	@echo "-------------------------------------------------------"
 	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/examples/comdetect/run.sh -v \
-	    -g $(graphName) -c $(compileMode) -r $(runMode) -x $(partitionMode) \
+	    -g $(graphName) -c $(compileMode) -r $(runMode) \
 		-m $(numNodes) -d $(numDevices) \
-	    -s $(dataSource) -a $(alveoProject) -n $(numPartitions)
+	    -s $(dataSource) -a $(alveoProject) -n $(numPartitionsNode)
 
 .PHONY: run-cluster
 run-cluster: .install-udf-done
@@ -81,12 +81,20 @@ run-cluster: .install-udf-done
 	@echo "Running run.sh from staging "
 	@echo "-------------------------------------------------------"
 	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/examples/comdetect/run.sh -v \
-	    -g $(graphName) -c $(compileMode) -r $(runMode) -x $(partitionMode) \
+	    -g $(graphName) -c $(compileMode) -r $(runMode) \
 		-m 3 -d 3 -n 9 -s $(dataSource) -a $(alveoProject) 
+
+.PHONY: partition
+partition: .install-udf-done
+	@echo "-------------------------------------------------------"
+	@echo "Running partition.sh from staging "
+	@echo "-------------------------------------------------------"
+	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/examples/comdetect/partition.sh -v
 
 help:
 	@echo "Valid make targets:"
 	@echo "run-cluster: Run the example on the cluster of 3 nodes, 3 devices/node, 9 partitions"
+	@echo "partition: Run partition.sh to partition the graph in TigerGraph memory"
 	@echo ""
 	@echo "Optional make parameters"
 	@echo "alveoProject     : Alveo partition project basename"
@@ -95,10 +103,9 @@ help:
 	@echo "graphName        : graph name (default=social_<username>"
 	@echo "sshKey           : SSH key for user tigergraph"
 	@echo "numNodes         : Number of nodes in Tigergraph cluster"
-	@echo "numPartitions    : Number of Alveo partitions"
+	@echo "numPartitionsNode: Number of Alveo partitions"
 	@echo "runMode          : 0: Run only on CPU (default); 1: Run only on Alveo; 2: Run on both CPU and Alveo"
 	@echo "dataSource       : A .mtx file containing input graph. default=./as-Skitter/as-Skitter-wt-e110k.mtx"
-	@echo "partitionMode    : 0: from TigerGraph memory; 1: from dataSource (.mtx) (default); 2: load saved (alveo project)"
 	@echo " "
 	@echo "Examples:"
 	@echo "make alveoProject=/proj/gdba/tg-common/alveo-projects/as-skitter-partition"
