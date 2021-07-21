@@ -125,7 +125,7 @@ class Handle {
     uint32_t maxCU_;
     uint32_t numDevices_;                          // Number of devices requested by current operation
     uint32_t totalSupportedDevices_;               // Total number of supported devices
-    std::vector<string> supportedDeviceNames_;     // Supported device names
+    std::vector<std::string> supportedDeviceNames_;     // Supported device names
     uint32_t supportedDeviceIds_[XF_GRAPH_L3_MAX_DEVICES_PER_NODE];
     uint64_t maxChannelSize;
     std::vector<singleOP> ops;

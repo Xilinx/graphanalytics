@@ -82,6 +82,8 @@ void Handle::addOp(singleOP op) {
 
 int Handle::setUp(std::string deviceNames)
 {
+    std::cout << "setup deviceNames=" << deviceNames << std::endl;
+
     const std::string delimiters(" ");
     for (int i = deviceNames.find_first_not_of(delimiters, 0); i != std::string::npos;
             i = deviceNames.find_first_not_of(delimiters, i)) {
@@ -94,6 +96,7 @@ int Handle::setUp(std::string deviceNames)
         std::cout << "------------------ " << i << "    " << token << std::endl;
     }
 
+    std::cout << "after setup" << std::endl;
     getEnv();
 
     unsigned int opNm = ops.size();
@@ -115,7 +118,7 @@ int Handle::setUp(std::string deviceNames)
                 std::cout << "DEBUG: " << __FUNCTION__ << ": xrm->unloadXclbinNonBlock " 
                           << deviceCounter + j << std::endl;
 #endif
-                thUn[j] = xrm->unloadXclbinNonBlock(deviceCounter + j);
+                thUn[j] = xrm->unloadXclbinNonBlock(supportedDeviceIds_[j]);
             }
             for (unsigned int j = 0; j < boardNm; ++j) {
                 thUn[j].join();
@@ -124,10 +127,10 @@ int Handle::setUp(std::string deviceNames)
             for (unsigned int j = 0; j < boardNm; ++j) {
 #ifndef NDEBUG__
                 std::cout << "DEBUG: " << __FUNCTION__ << ": xrm->loadXclbinAsync " 
-                          << deviceCounter + j 
-                          << " ops[i].xclbinPath=" << ops[i].xclbinPath << std::endl;
+                          << "\n    devId=" << supportedDeviceIds_[j]
+                          << "\n    ops[i].xclbinPath=" << ops[i].xclbinPath << std::endl;
 #endif
-                th[j] = loadXclbinAsync(deviceCounter + j, ops[i].xclbinPath);
+                th[j] = loadXclbinAsync(supportedDeviceIds_[j], ops[i].xclbinPath);
             }
             for (unsigned int j = 0; j < boardNm; ++j) {
                 auto loadedDevId = th[j].get();
@@ -245,7 +248,7 @@ void Handle::getEnv() {
     }
     cl_device_id* devices;
     std::vector<cl::Device> devices0 = xcl::get_xil_devices();
-    int totalXilinxDevices = devices0.size();
+    uint32_t totalXilinxDevices = devices0.size();
     totalSupportedDevices_ = 0;
     devices = (cl_device_id*)malloc(sizeof(cl_device_id) * totalXilinxDevices);
     err2 = clGetDeviceIDs(platforms[platformID], CL_DEVICE_TYPE_ALL, totalXilinxDevices, devices, NULL);
