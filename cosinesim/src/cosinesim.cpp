@@ -36,7 +36,7 @@ public:
     unsigned indexDeviceCuNm, indexSplitNm, indexNumVertices;
     const unsigned splitNm = 3;    // kernel has 4 PUs, the input data should be splitted into 4 parts
     const unsigned channelsPU = 4; // each PU has 4 HBM channels
-    const unsigned cuNm = 1;       // TODO
+    const unsigned cuNm = 2;       // TODO
     const unsigned channelW = 16;
 
     int valueSize_;
