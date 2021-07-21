@@ -24,10 +24,6 @@ ifndef XILINX_XRM
     export XILINX_XRM
 endif
 
-ifndef XILINX_PLATFORMS
-    XILINX_PLATFORMS = /opt/xilinx/platforms
-    export XILINX_PLATFORMS
-endif
 
 .DELETE_ON_ERROR:
 .PHONY: all
@@ -392,11 +388,15 @@ XCLBIN_INSTALLED = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32
 
 .PHONY: xclbin
 
+
 xclbin:
-	cd $(L2_TOP_DIR); \
-	source $(XILINX_XRT)/setup.sh; \
-	export PLATFORM_REPO_PATHS=$(XILINX_PLATFORMS); \
-	make build TARGET=hw
+	if [ "$(PLATFORM_REPO_PATHS)" -eq "" ]; then \
+		echo "PLATFORM_REPO_PATHS environment varaible must be set to the path to Xilinx platform files" ; \
+	else \
+		cd $(L2_TOP_DIR); \
+		source $(XILINX_XRT)/setup.sh; \
+		make build TARGET=hw DEVICE=$(DEVICE); \
+	fi
 	
 $(XCLBIN_FILE):
 	@if [ -r $(XCLBIN_INSTALLED) ]; then \
@@ -546,8 +546,20 @@ clean:
 clean-xclbin:
 	rm -f $(XCLBIN_FILE)
 
+.PHONY: help
 help:
-	@echo "Valid make targets:"
-	@echo "dist     : Generate cosinesim product package (RPM or DEB) for the current OS and architecture"
-	@echo "doxy-cpp : Generate CPP documentation using doxygen. The default html output directory is ./build/cppdocs"
-	@echo "run-test : Run standalone test with statically linked executable"
+	@echo "Makefile Usage:"
+	@echo "  make dist"
+	@echo "      Generate cosinesim product package (RPM or DEB) for the current OS and architecture"
+	@echo ""
+	@echo "  make doxy-cpp "
+	@echo "      Generate CPP documentation using doxygen. The default html output directory is ./build/cppdocs"
+	@echo ""
+	@echo "  make run-test"
+	@echo "      Run standalone test with statically linked executable"
+	@echo ""
+	@echo "  make xclbin DEVICE=<FPGA platform>"
+	@echo "      Build xclbin file targetting specified device. Supported devices: "
+	@echo "      xilinx_u50_gen3x16_xdma_201920_3 (Vitis 2020.2)"
+	@echo "      xilinx_u55c_gen3x16_xdma_1_202110_1 (Vitis 2021.1)"
+	@echo ""
