@@ -60,7 +60,10 @@ done
 if [ "$USER" == "tigergraph" ]; then
     ${SCRIPTPATH}/bin/install-plugin-cluster.sh $flags
 else
+    echo "------------------------------------------------------------------------------------------------------------"
     echo "INFO: Running installation as user \"tigergraph\" with $flags. Enter password for \"tigergraph\" if prompted."
+    echo "INFO: command=ssh $ssh_key_flag tigergraph@$hostname ${SCRIPTPATH}/bin/install-plugin-cluster.sh $flags"    
+    echo "------------------------------------------------------------------------------------------------------------"
     ssh $ssh_key_flag tigergraph@$hostname ${SCRIPTPATH}/bin/install-plugin-cluster.sh $flags
 fi
 
@@ -68,3 +71,8 @@ fi
 mkdir -p $HOME/gsql_client
 cp /tmp/gsql_client.jar.tmp $HOME/gsql_client/gsql_client.jar
 echo "INFO: Remote GSQL client has been installed in $HOME/gsql_client"
+
+if [ -r $SCRIPTPATH/bin/install-plugin-cluster-custom.sh ]; then
+    echo "INFO: Installing product specific features: $SCRIPTPATH/bin/install-plugin-cluster-custom.sh"
+    $SCRIPTPATH/bin/install-plugin-cluster-custom.sh
+fi

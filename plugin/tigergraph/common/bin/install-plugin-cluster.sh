@@ -16,10 +16,13 @@
 #
 
 set -e
-echo $@
 
 SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`
+
+echo "--------------------------------------------------------------------------------"
+echo "INFO: running $SCRIPT $@"
+echo "--------------------------------------------------------------------------------"
 
 RED='\033[0;31m'
 NC='\033[0m' # No Color
@@ -77,7 +80,12 @@ echo "    UDF source directory is $tg_udf_dir"
 echo "INFO: Home is $HOME"
 
 # run installation script on each node
-echo "Running installation script on each node with option $node_flags"
+echo ""
+echo "--------------------------------------------------------------------------------"
+echo "INFO: Running installation script on each node with option $node_flags"
+echo "INFO grun all ${SCRIPTPATH}/install-plugin-node.sh $node_flags"
+echo "--------------------------------------------------------------------------------"
+
 grun all "${SCRIPTPATH}/install-plugin-node.sh $node_flags"
 
 if [ $dev_mode -eq 1 ]; then
@@ -119,8 +127,4 @@ else
         gadmin config get GPE.BasicConfig.Env
         gadmin config get RESTPP.Factory.DefaultQueryTimeoutSec
     fi
-fi
-
-if [ -r $SCRIPTPATH/install-plugin-cluster-custom.sh ]; then
-    . $SCRIPTPATH/install-plugin-cluster-custom.sh
 fi
