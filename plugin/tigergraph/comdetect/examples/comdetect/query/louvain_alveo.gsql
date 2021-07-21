@@ -98,17 +98,21 @@ CREATE DISTRIBUTED QUERY tg_partition_phase_3(
 
     udf_reset_timer(true);
     Start = {v_types};
-    nodes = {dummy_nodes.*};
+    nodes = {dummy_nodes.*}; 
+ 
+    udf_reset_timer(true);
+    tmpList = SELECT n FROM nodes:n
+       ACCUM udf_save_EdgePtr();
+    
     vertexList = SELECT s FROM Start:s-(e_types:e)->:t
-        ACCUM udf_set_louvain_edge_list(s.louvainId, t.louvainId, e.getAttr(weight_attr,"FLOAT"), t.outdegree());
+        ACCUM udf_set_louvain_edge_list(s.louvainId, t.louvainId, e.getAttr(weight_attr,"FLOAT"), t.outdegree());    
     PRINT udf_elapsed_time(true) AS SetLouvainEdgeListTime;
     
     udf_reset_timer(true);
     nodeList = SELECT n FROM nodes:n 
         ACCUM udf_start_partition(gName, Start.size());
     PRINT udf_elapsed_time(true) AS StartPartitionTime;
-            
- 
+       
     udf_reset_timer(true);
     parList = SELECT n FROM nodes:n
         ACCUM @@nodeAccum += (n.NODE_ID -> udf_save_alveo_partition(numPar));
@@ -148,19 +152,13 @@ CREATE DISTRIBUTED QUERY louvain_alveo(
     nodeList = SELECT n FROM nodes:n
         ACCUM @@nodeAccum += udf_xilinx_comdetect_set_node_id(n.NODE_ID);
 
-    //nodeList = SELECT n FROM nodes:n
-    //    ACCUM @@nodeAccum += udf_xilinx_comdetect_set_num_nodes(1);
 
-    //udf_reset_timer(true);
     udf_execute_reset(0);
 
     // each node will get this UDF call for each vertex, but the actual execution
     // is only run once guarded by a flag. Each node checks if it's master or slave
     // and run the task accordingly.
-//     //nodelist = SELECT n FROM nodes:n
-    //       ACCUM @@executeAlveoStatus += udf_louvain_alveo(
-    //       max_iter, max_level, tolerence, intermediateResult,
-    //       verbose, result_file, print_final_Q, print_all_Q);
+
     nodelist = SELECT n FROM nodes:n
            ACCUM @@modularityAccum += udf_louvain_alveo(gName,
            max_iter, max_level, tolerence, intermediateResult,

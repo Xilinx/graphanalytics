@@ -156,7 +156,7 @@ void opLouvainModularity::loadGraph(
     unsigned long NE_orig;// = G->numEdges;
     
     NV_orig = MAXNV_M;//Now using fixed size for L3
-    NE_orig = (MAXNV);//Now using fixed size for L3
+    NE_orig = (MAXNV_M);//Now using fixed size for L3
     if(NV_orig >=  MAXNV-1)
     {
         printf("WARNING: G->numVertices(%lx) is more than MAXNV(%lx), partition should be used\n", NV_orig, MAXNV);
@@ -729,6 +729,8 @@ void opLouvainModularity::PhaseLoop_UsingFPGA_1_KernelSetup_prune(
             ob_in.push_back(hds[0].buffer[17]);
             ob_in.push_back(hds[0].buffer[18]);
             ob_in.push_back(hds[0].buffer[19]);
+            if (isLargeEdge) 
+                ob_in.push_back(hds[0].buffer[20]);
 
             kernel_louvain.setArg(0, hds[0].buffer[0]);   // config0
             kernel_louvain.setArg(1, hds[0].buffer[1]);   // config1

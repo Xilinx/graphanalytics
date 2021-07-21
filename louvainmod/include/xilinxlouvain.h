@@ -170,7 +170,7 @@ struct Edge {
     long head;
     long tail;
     double weight;
-    Edge(long head_, long tail_, double weight_) {
+    Edge(long head_= 0, long tail_ = 0, double weight_ = 1.0) {
                 head = head_ ;
                 tail = tail_;
                 weight = weight_;
