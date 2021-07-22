@@ -21,8 +21,8 @@ import pyTigerGraph as tg
 
 # Login Setup
 hostName = "localhost"                             # TG server hostname
-userName = "dummy"                                 # TG user name
-passWord = "password"                              # TG password
+userName = "tigergraph"                                 # TG user name
+passWord = "tigergraph"                              # TG password
 
 loadGraph = True
 loadCache = True
@@ -33,10 +33,10 @@ topK = 10                                           # Number of highest scoring 
 numDevices = 1                                      # Number of FPGA devices to distribute the queries to
 
 # Path Setup
-localRepoLocation = Path("C:/Users/dummy")
-serverRepoLocation = PurePosixPath("/home/dummy")
+localRepoLocation = Path("/proj/xsjhdstaff3/sachink/ghe")
+serverRepoLocation = PurePosixPath("/proj/xsjhdstaff3/sachink/ghe")
 
-exampleLocation = Path("graphanalytics/plugin/tigergraph/examples/synthea") # when running from github repo
+exampleLocation = Path("graphanalytics/plugin/tigergraph/recomengine/staging/examples/synthea") # when running from github repo
 queryFileLocation = localRepoLocation / exampleLocation / "query"
 serverDataLocation = serverRepoLocation / PurePosixPath(exampleLocation) / "1000_patients/csv"
 
@@ -76,7 +76,7 @@ if __name__ == '__main__':
 		with open(schemaFile) as fh:
 			qStrRaw = fh.read()
 			qStr = qStrRaw.replace('@graph', graphName)
-			print(conn.gsql(qStr, options=[]))
+			print(conn.gsql(qStr))
 			
 		
 		# Load graph data
@@ -88,8 +88,8 @@ if __name__ == '__main__':
 			qStrRaw = qStrRaw.replace('@graph', graphName)
 			qStr    = qStrRaw.replace('$sys.data_root', str(serverDataLocation))
 			print(conn.gsql(qStr, options=[]))
-			print(conn.gsql(f"RUN LOADING JOB load_xgraph", options=['-g', graphName]))
-			print(conn.gsql(f"DROP JOB load_xgraph", options=['-g', graphName]))
+			print(conn.gsql(f"USE GRAPH {graphName}\n RUN LOADING JOB load_xgraph"))
+			print(conn.gsql(f"USE GRAPH {graphName}\n DROP JOB load_xgraph"))
 			
 		
 		# Install Queries
@@ -101,17 +101,17 @@ if __name__ == '__main__':
 			print("installing base queries ...")
 			qStrRaw = bfh.read()
 			qStr = qStrRaw.replace('@graph', graphName)
-			print(conn.gsql(qStr, options=[]))
+			print(conn.gsql(qStr))
 			
 			print("\ninstalling client queries ...")
 			qStrRaw = cfh.read()
 			qStr = qStrRaw.replace('@graph', graphName)
-			print(conn.gsql(qStr, options=[]))
+			print(conn.gsql(qStr))
 		
 	else:
 		# connect to TG server with existing graph
 		print(f'Using graph {graphName}')
-		conn = tg.TigerGraphConnection(host='http://' + hostName, graphname=graphName, username=userName, password=passWord, gsqlVersion='3.1.0')
+		conn = tg.TigerGraphConnection(host='http://' + hostName, graphname=graphName, username=userName, password=passWord, gsqlVersion='3.1.1')
 		print(f'Found graph {graphName}')
 	
 	
@@ -143,7 +143,7 @@ if __name__ == '__main__':
 	print('Running Query...')
 	# pick a random patient out of 100
 	targetPatients = conn.getVertices('patients', limit=100)
-	targetPatient = targetPatients[rand.randint(1,100)]
+	targetPatient = targetPatients[rand.randint(0,99)]
 
 	# run similarity on the choosen patient
 	resultHW = conn.runInstalledQuery('client_cosinesim_match_alveo',
