@@ -15,6 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# This script runs multiple iterations of cosine similarity kernel on FPGA 
+# to test consistentcy of the result and reliabiity of Alveo cards
+
 script_dir=$(dirname "$0")
 
 . $script_dir/bin/common.sh
