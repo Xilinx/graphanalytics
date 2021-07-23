@@ -19,7 +19,7 @@ ifdef sshKey
     SSH_KEY_OPT=-i $(sshKey)
 endif	
 compileMode=0
-runMode=0
+runMode=2
 numDevices=1
 numNodes=1
 numPartitionsNode=9
@@ -70,7 +70,7 @@ run: .install-udf-done
 	@echo "-------------------------------------------------------"
 	@echo "Running run.sh from staging "
 	@echo "-------------------------------------------------------"
-	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/examples/comdetect/run.sh -v \
+	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/examples/comdetect/bin/run.sh -v \
 	    -g $(graphName) -c $(compileMode) -r $(runMode) \
 		-m $(numNodes) -d $(numDevices) \
 	    -s $(dataSource) -a $(alveoProject) -n $(numPartitionsNode)
@@ -80,7 +80,7 @@ run-cluster: .install-udf-done
 	@echo "-------------------------------------------------------"
 	@echo "Running run.sh from staging "
 	@echo "-------------------------------------------------------"
-	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/examples/comdetect/run.sh -v \
+	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/examples/comdetect/bin/run.sh -v \
 	    -g $(graphName) -c $(compileMode) -r $(runMode) \
 		-m 3 -d 3 -n 9 -s $(dataSource) -a $(alveoProject) 
 
@@ -108,7 +108,7 @@ help:
 	@echo "dataSource       : A .mtx file containing input graph. default=./as-Skitter/as-Skitter-wt-e110k.mtx"
 	@echo " "
 	@echo "Examples:"
-	@echo "make alveoProject=/proj/gdba/tg-common/alveo-projects/as-skitter-partition"
+	@echo "make dataSource=/proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx"
 
 clean:
 	rm -f .install-plugin-done .install-udf-done .install-query-done

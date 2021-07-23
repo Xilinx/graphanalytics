@@ -47,7 +47,7 @@ function usage() {
     echo "  -l 0|1               : 0: Do not load FPGA; 1: Load FPGA(default)>"
     echo "  -m numNodes          : Number of nodes in Tigergraph cluster"
     echo "  -n numPartitionsNode : Number of Alveo partitions "
-    echo "  -r runMode           : 0: Run only on CPU (default); 1: Run only on Alveo; 2: Run on both CPU and Alveo"
+    echo "  -r runMode           : 0: Run only on CPU; 1: Run only on Alveo; 2: Run on both CPU and Alveo (Default)"
     echo "  -s dataSource        : A .mtx file containing input graph. default=./as-Skitter/as-Skitter-wt-e110k.mtx"
     echo "  -v                   : Print verbose messages"
     echo "  -x partitionMode     : 0: from TigerGraph memory; 1: from dataSource (.mtx) (default); 2: load saved (alveo project)"
@@ -56,20 +56,17 @@ function usage() {
 
 tg_home=$(readlink -f ~tigergraph)
 # default values for optional options
-hostname=$(hostname)
 username=$USER
 password=Xilinx123
-data_source="$script_dir/as-skitter/as-skitter-wt-e110k.mtx"
+data_source="$script_dir/as-skitter/as-Skitter-wt-r100.mtx"
 data_source_set=0
-load_fpga=1
 num_devices=1
 num_partitions_node=1
 num_nodes=1
-alveo_prj="$tg_home/as-skitter-partitions"
 verbose=0
 xgraph="social_$username"
 force_clean=0
-run_mode=0
+run_mode=2
 compile_mode=0
 force_clean_flag=
 verbose_flag=
@@ -82,13 +79,11 @@ fi
 while getopts "a:c:d:fg:i:l:m:n:p:r:s:u:vh" opt
 do
 case $opt in
-    a) alveo_prj=$OPTARG;;
     c) compile_mode=$OPTARG;;
     d) num_devices=$OPTARG;;
     f) force_clean=1; force_clean_flag=-f;;
     g) xgraph=$OPTARG;;
     i) ssh_key=$OPTARG; ssh_key_flag="-i $ssh_key";;
-    l) load_fpga=$OPTARG;;
     m) num_nodes=$OPTARG;;
     n) num_partitions_node=$OPTARG;;
     p) password=$OPTARG;;
@@ -136,17 +131,14 @@ fi
 if [ $verbose -eq 1 ]; then
     echo "INFO: username=$username"
     echo "      password=$password"
-    echo "      data_source=$data_source"
-    echo "      alveo_prj=$alveo_prj"
-    echo "      num_partitions_node=$num_partitions_node"
+    echo "      dataSource=$data_source"
+    echo "      numPartitionsNode=$num_partitions_node"
     echo "      xgraph=$xgraph"
-    echo "      load_fpga=$load_fpga"
-    echo "      num_nodes=$num_nodes"
-    echo "      num_devices=$num_devices"
-    echo "      run_mode=$run_mode"
-    echo "      compile_mode=$compile_mode"
-    echo "      ssh_key=$ssh_key"
-    echo "      hostname=$hostname"
+    echo "      numNodes=$num_nodes"
+    echo "      numDevices=$num_devices"
+    echo "      runMode=$run_mode"
+    echo "      compileMode=$compile_mode"
+    echo "      sshKey=$ssh_key"
 fi
 
 
