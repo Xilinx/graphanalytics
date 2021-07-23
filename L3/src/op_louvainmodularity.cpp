@@ -585,9 +585,6 @@ void opLouvainModularity::UsingFPGA_MapHostClBuff_prune(
     hds[0].buffer[2] = cl::Buffer(hds[0].context, flag_RD, sizeof(int) * (NV + 1), &mext_in[2]);
     hds[0].buffer[3] = cl::Buffer(hds[0].context, flag_RD, sizeof(int) * NE_mem_1, &mext_in[3]);
     hds[0].buffer[4] = cl::Buffer(hds[0].context, flag_RD, sizeof(int) * NE_mem_1, &mext_in[4]);
-#ifdef PRINTINFO
-    std::cout<< "INFO: init buffer done! 1 " <<std::endl;
-#endif
     hds[0].buffer[5] = cl::Buffer(hds[0].context, flag_RD, sizeof(int) * (NV), &mext_in[5]);
     hds[0].buffer[6] = cl::Buffer(hds[0].context, flag_RW, sizeof(int) * (NV), &mext_in[6]);
     hds[0].buffer[7] = cl::Buffer(hds[0].context, flag_RW, sizeof(int) * (NV), &mext_in[7]);
@@ -599,26 +596,11 @@ void opLouvainModularity::UsingFPGA_MapHostClBuff_prune(
     hds[0].buffer[13] = cl::Buffer(hds[0].context, flag_RW, sizeof(int) * (NV), &mext_in[13]);
     hds[0].buffer[14] = cl::Buffer(hds[0].context, flag_RW, sizeof(float) * (NV), &mext_in[14]);
     hds[0].buffer[15] = cl::Buffer(hds[0].context, flag_RW, sizeof(float) * (NV), &mext_in[15]);
-#ifdef PRINTINFO
-    std::cout<< "INFO: init buffer done! 2 " <<std::endl;
-#endif
     hds[0].buffer[16] = cl::Buffer(hds[0].context, flag_RD, sizeof(int) * (NV + 1), &mext_in[16]);//offset
-#ifdef PRINTINFO
-    std::cout<< "INFO: init buffer done! 3 " <<std::endl;
-#endif
     hds[0].buffer[17] = cl::Buffer(hds[0].context, flag_RD, sizeof(int) * (NE_mem_1), &mext_in[17]);
-#ifdef PRINTINFO
-    std::cout<< "INFO: init buffer done! 4 " <<std::endl;
-#endif
     hds[0].buffer[18] = cl::Buffer(hds[0].context, flag_RW, sizeof(ap_uint<8>) * (NV), &mext_in[18]);
-#ifdef PRINTINFO
-    std::cout<< "INFO: init buffer done! 5 " <<std::endl;
-#endif
     hds[0].buffer[19] = cl::Buffer(hds[0].context, flag_RW, sizeof(ap_uint<8>) * (NV), &mext_in[19]);
 
-#ifdef PRINTINFO
-    std::cout<< "INFO: init buffer done! 6 " <<std::endl;
-#endif
     if (NE_mem_2 > 0) {
 #ifdef PRINTINFO
     std::cout<< "INFO: NE_mem_2 =  " <<NE_mem_2<<std::endl;
