@@ -44,13 +44,13 @@ function usage() {
     echo "  -f                   : Force (re)install"
     echo "  -g graphName         : graph name (default=social_<username>"
     echo "  -i sshKey            : SSH key for user tigergraph"    
-    echo "  -l 0|1               : 0: Do not load FPGA; 1: Load FPGA(default)>"
+    echo "  -l partitionMode     : "
     echo "  -m numNodes          : Number of nodes in Tigergraph cluster"
     echo "  -n numPartitionsNode : Number of Alveo partitions "
     echo "  -r runMode           : 0: Run only on CPU; 1: Run only on Alveo; 2: Run on both CPU and Alveo (Default)"
     echo "  -s dataSource        : A .mtx file containing input graph. default=./as-Skitter/as-Skitter-wt-e110k.mtx"
     echo "  -v                   : Print verbose messages"
-    echo "  -x partitionMode     : 0: from TigerGraph memory; 1: from dataSource (.mtx) (default); 2: load saved (alveo project)"
+    echo "  -x partitionMode     : 0: Use existing partitions from disks; 1: Generate partitions from TigerGraph memory"
     echo "  -h                   : Print this help message"
 }
 
@@ -59,7 +59,6 @@ tg_home=$(readlink -f ~tigergraph)
 username=$USER
 password=Xilinx123
 data_source="$script_dir/as-skitter/as-Skitter-wt-r100.mtx"
-data_source_set=0
 num_devices=1
 num_partitions_node=1
 num_nodes=1
@@ -68,6 +67,7 @@ xgraph="social_$username"
 force_clean=0
 run_mode=2
 compile_mode=0
+partition_mode=1
 force_clean_flag=
 verbose_flag=
 
@@ -76,7 +76,7 @@ if [ -f ~/.ssh/tigergraph_rsa ]; then
     ssh_key_flag="-i ~/.ssh/tigergraph_rsa"
 fi
 
-while getopts "a:c:d:fg:i:l:m:n:p:r:s:u:vh" opt
+while getopts "c:d:fg:i:m:n:p:r:s:u:vx:h" opt
 do
 case $opt in
     c) compile_mode=$OPTARG;;
@@ -88,9 +88,10 @@ case $opt in
     n) num_partitions_node=$OPTARG;;
     p) password=$OPTARG;;
     r) run_mode=$OPTARG;;
-    s) data_source=$OPTARG; data_source_set=1;;
+    s) data_source=$OPTARG;;
     u) username=$OPTARG;;
     v) verbose=1; verbose_flag=-v;;
+    x) partition_mode=$OPTARG;;
     h) usage; exit 0;;
     ?) echo "ERROR: Unknown option: -$OPTARG"; usage; exit 1;;
 esac
@@ -101,14 +102,6 @@ if [ -z "$username" ] || [ -z "$password" ]; then
     usage
     exit 2
 fi
-
-# create partitions if needed
-#if [ $data_source_set -eq 0 ]; then
-#    if [ ! -f "$script_dir/as-skitter/as-skitter-partitions/louvain_partitions.par.proj" ]; then
-#        echo "INFO: Creating graph partitions"
-#        ../../../../../L3/tests/Louvain/create_partitions.sh $script_dir/as-skitter/as-skitter-wt-e110k.mtx as-skitter-partitions 9
-#    fi
-#fi
 
 # need to download gsql client first before using it to check for other error conditions
 #if [ ! -f "$HOME/gsql-client/gsql_client.jar" ]; then
@@ -136,11 +129,8 @@ if [ $verbose -eq 1 ]; then
     echo "      xgraph=$xgraph"
     echo "      numNodes=$num_nodes"
     echo "      numDevices=$num_devices"
-    echo "      runMode=$run_mode"
     echo "      compileMode=$compile_mode"
+    echo "      partitionMode=$partition_mode"
+    echo "      runMode=$run_mode"    
     echo "      sshKey=$ssh_key"
 fi
-
-
-
-
