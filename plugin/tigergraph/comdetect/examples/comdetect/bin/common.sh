@@ -47,7 +47,7 @@ function usage() {
     echo "  -l partitionMode     : "
     echo "  -m numNodes          : Number of nodes in Tigergraph cluster"
     echo "  -n numPartitionsNode : Number of Alveo partitions "
-    echo "  -r runMode           : 0: Run only on CPU; 1: Run only on Alveo; 2: Run on both CPU and Alveo (Default)"
+    echo "  -r runMode           : 0: Run only on CPU; 1: Run only on Alveo (default); 2: Run on both CPU and Alveo"
     echo "  -s dataSource        : A .mtx file containing input graph. default=./as-Skitter/as-Skitter-wt-e110k.mtx"
     echo "  -v                   : Print verbose messages"
     echo "  -x partitionMode     : 0: Use existing partitions from disks; 1: Generate partitions from TigerGraph memory"
@@ -65,7 +65,7 @@ num_nodes=1
 verbose=0
 xgraph="social_$username"
 force_clean=0
-run_mode=2
+run_mode=1
 compile_mode=0
 partition_mode=1
 force_clean_flag=

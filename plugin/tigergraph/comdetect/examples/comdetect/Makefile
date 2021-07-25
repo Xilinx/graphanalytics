@@ -22,7 +22,7 @@ numPartitionsNode=9
 
 compileMode=0
 partitionMode=1
-runMode=2
+runMode=1
 
 ifdef sshKey
     SSH_KEY_OPT=-i $(sshKey)
@@ -109,7 +109,7 @@ help:
 	@echo "                   1: only compile query gsql"
 	@echo "                   2: skip database creation and gsql compilation"
 	@echo "partitionMode    : 0: Use existing partitions from disks; 1: Generate partitions from TigerGraph memory"
-	@echo "runMode          : 0: Run only on CPU; 1: Run only on Alveo; 2: Run on both CPU and Alveo (default)"
+	@echo "runMode          : 0: Run only on CPU; 1: Run only on Alveo (default); 2: Run on both CPU and Alveo"
 	@echo ""
 	@echo "sshKey           : SSH key for user tigergraph"	
 	@echo ""
@@ -118,7 +118,3 @@ help:
 
 clean:
 	rm -f .install-plugin-done .install-udf-done .install-query-done
-
-
-
-
