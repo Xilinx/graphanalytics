@@ -967,6 +967,7 @@ int host_ParserParameters(int argc,
     int has_flow_fast = general_findPara(argc, argv, "-fast");
     int has_flow_fast2 = general_findPara(argc, argv, "-fast2");
     int hasNumDevices = general_findPara(argc, argv, "-num_devices");
+    int hasNumCu = general_findPara(argc, argv, "-num_cu");
     int has_driver = general_findPara(argc, argv, "-driver");
     int has_worker = general_findPara(argc, argv, "-worker");
     int has_driverAlone = general_findPara(argc, argv, "-driverAlone");
@@ -1139,6 +1140,17 @@ int host_ParserParameters(int argc,
         numDevices = atoi(argv[hasNumDevices + 1]);
     } else
         numDevices = 1;
+    
+    int numCu = 1;
+    if (hasNumCu != -1 && hasNumCu < (argc - 1)) {
+        rec[hasNumCu] = true;
+        rec[hasNumCu + 1] = true;
+        numCu = atoi(argv[hasNumCu + 1]);
+#ifdef PRINTINFO
+    printf("PARAMETER  numCu = %i\n", numCu);
+#endif
+    } else
+        numCu = 1;
 
     if (has_gh_par != -1 && has_gh_par < (argc - 1)) {
         rec[has_gh_par] = true;
@@ -1157,8 +1169,11 @@ int host_ParserParameters(int argc,
         flow_prune = 2;
     } else if (has_flow_fast2 != -1) {
         rec[has_flow_fast2] = true;
-        flow_prune = 3;
-    } else
+        if(numCu == 1)
+            flow_prune = 3;
+        else
+            flow_prune = 4;
+    } else 
         flow_prune = 1;
 #ifdef PRINTINFO
     printf("PARAMETER  flow_prune = %d\n", flow_prune);
@@ -3802,7 +3817,7 @@ extern "C" float load_alveo_partitions(unsigned int num_partitions, unsigned int
  -3:
 */
 int compute_louvain_alveo_seperated_load(
-    char* xclbinPath, bool flow_fast, unsigned int numDevices, std::string deviceNames, 
+    char* xclbinPath, int flowMode, unsigned int numDevices, std::string deviceNames,
     unsigned int numPartitions, char* alveoProject,
     int mode_zmq, int numPureWorker, char* nameWorkers[128], unsigned int nodeID,
     float tolerance, bool verbose, 
@@ -3811,7 +3826,7 @@ int compute_louvain_alveo_seperated_load(
 #ifndef NDEBUG
     std::cout << "DEBUG: " << __FUNCTION__   
               << "\n     xclbinPath=" << xclbinPath
-              << "\n     flow_fast=" << flow_fast 
+              << "\n     flowMode=" << flowMode
               << "\n     numDevices=" << numDevices
               << "\n     deviceNames=" << deviceNames
               << "\n     numPartitions=" << numPartitions 
@@ -3841,14 +3856,14 @@ int compute_louvain_alveo_seperated_load(
     int par_prune = 1;
     int numThreads = 16;
     bool opts_coloring = false;
-    int flowMode = 1;
+    //int flowMode = 1;
 
     int numNode = numPureWorker + 1;
-    if (flow_fast) {
-        flowMode = 2; // fast kernel  MD_FAST
-    } else {
-        flowMode = 1; // normal kernel MD_NORMAL
-    }
+//    if (flow_fast) {
+//        flowMode = 2; // fast kernel  MD_FAST
+//    } else {
+//        flowMode = 1; // normal kernel MD_NORMAL
+//    }
 
     xf::graph::L3::Handle::singleOP* op0 = new(xf::graph::L3::Handle::singleOP);
     //----------------- Set parameters of op0 again some of those will be covered by command-line
@@ -4025,7 +4040,7 @@ extern "C" float compute_louvain_alveo_seperated_compute(
     -2: Error in compute_louvain_alveo_seperated_load
 */
 extern "C" float loadAlveoAndComputeLouvain (
-    char* xclbinPath, bool flow_fast, unsigned int numDevices, std::string deviceNames,
+    char* xclbinPath, int flowMode, unsigned int numDevices, std::string deviceNames,
     char* alveoProject,
     unsigned mode_zmq, unsigned numPureWorker, char* nameWorkers[128], unsigned int nodeID,
     char* opts_outputFile, unsigned int max_iter, unsigned int max_level, 
@@ -4051,7 +4066,7 @@ extern "C" float loadAlveoAndComputeLouvain (
     }
     
     ret = compute_louvain_alveo_seperated_load(
-            xclbinPath, flow_fast, numDevices, deviceNames,
+            xclbinPath, flowMode, numDevices, deviceNames,
             numPartitions, alveoProject,
             mode_zmq, numPureWorker, nameWorkers, nodeID,
             tolerance, 

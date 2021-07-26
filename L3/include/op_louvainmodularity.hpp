@@ -129,6 +129,19 @@ class opLouvainModularity : public opBase {
                                                   std::vector<cl::Memory>& ob_in,
                                                   std::vector<cl::Memory>& ob_out,
                                                   clHandle* hds);
+
+    static void UsingFPGA_MapHostClBuff_prune_2cu(
+    		clHandle* 				hds,
+    		long             		NV,
+    		long             		NE_mem_1,
+    		long             		NE_mem_2,
+    		KMemorys_host_prune     *buff_hosts_prune);
+
+    static void PhaseLoop_UsingFPGA_1_KernelSetup_prune_2cu(bool isLargeEdge,
+                                                  cl::Kernel& kernel_louvain,
+                                                  std::vector<cl::Memory>& ob_in,
+                                                  std::vector<cl::Memory>& ob_out,
+                                                  clHandle* hds);
 };
 } // L3
 } // graph

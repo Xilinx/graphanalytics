@@ -1666,6 +1666,87 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_renumber(
 #endif
 }
 
+double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_renumber_2cu(
+		int 				numColors,
+        long                NVl,
+		graphNew*        	G,
+		long*         		M,
+		double        		opts_C_thresh,
+		double*        		currMod,
+		//Updated variables
+	    int*          		colors,
+		KMemorys_host_prune *buff_host)
+{
+
+	long edgeNum;
+	double time1 = omp_get_wtime();
+	assert(numColors < COLORS);
+	long vertexNum = G->numVertices;
+	long* vtxPtr   = G->edgeListPtrs;
+	edge* vtxInd   = G->edgeList;
+	long NE = G->numEdges;
+	long NEx2 = NE<<1;
+	long NE1 = NEx2< (MAXNV)? NEx2 : (MAXNV);//256MB/sizeof(int/float)=64M
+
+	long cnt_e=0;
+    for (int i = 0; i < vertexNum + 1; i++) {
+    	buff_host[0].offsets[i] = (int)vtxPtr[i];
+        if (i!=vertexNum){
+        	if (M[i]<0)
+        		buff_host[0].offsets[i]  = (int) (0x80000000 |(unsigned int)vtxPtr[i]);
+        } else
+            buff_host[0].offsets[i]  = (int) ( vtxPtr[i]);
+    }
+    edgeNum = buff_host[0].offsets[vertexNum];
+    for (int i = 0; i < vertexNum + 1; i++) {
+    	buff_host[0].offsets[i] = (int)vtxPtr[i];
+    	//buff_host[0].offsetsdup[i] = buff_host[0].offsets[i];// zyl
+        if(i!=vertexNum){
+        	if(M[i]<0)
+        		buff_host[0].offsets[i]  = (int) (0x80000000 |(unsigned int)vtxPtr[i]);
+        }else
+            buff_host[0].offsets[i]  = (int) ( vtxPtr[i]);
+    }
+    edgeNum = buff_host[0].offsets[vertexNum];
+
+    for (int i = 0; i < vertexNum; i++) {
+        int adj1 = vtxPtr[i];
+        int adj2 = vtxPtr[i + 1];
+        buff_host[0].flag[i] = 0;// zyl
+        buff_host[0].flagUpdate[i] = 0;// zyl
+        for (int j = adj1; j < adj2; j++) {
+        	if(cnt_e<NE1){
+        		buff_host[0].indices[j] = (int)vtxInd[j].tail;
+        		//buff_host[0].indicesdup[j] = (int)vtxInd[j].tail;
+				buff_host[0].weights[j] = vtxInd[j].weight;
+        	}else{
+        		buff_host[0].indices2[j-NE1] = (int)vtxInd[j].tail;
+        		//buff_host[0].indicesdup2[j-NE1] = (int)vtxInd[j].tail;
+				buff_host[0].weights2[j-NE1] = vtxInd[j].weight;
+        	}
+            cnt_e++;
+        }
+    }
+    for (int i = 0; i < vertexNum; i++) {
+        buff_host[0].colorAxi[i] = colors[i];
+    }
+
+    buff_host[0].config0[0] = vertexNum;
+    buff_host[0].config0[1] = numColors;
+    buff_host[0].config0[2] = 0;
+    buff_host[0].config0[3] = edgeNum;
+    buff_host[0].config0[4] = 0;//zyx renumber
+    buff_host[0].config0[5] = NVl;
+
+    buff_host[0].config1[0] = opts_C_thresh;
+    buff_host[0].config1[1] = currMod[0];
+    time1  = omp_get_wtime() - time1;
+    return time1;
+#ifdef PRINTINFO_LVPHASE
+    std::cout << "INFO: eachItrs" <<buff_host[0].config0[2] <<", "<<"eachItr[0] = "<<buff_host[0].config0[2]<<", "<<"currMod[0] = "<<buff_host[0].config1[1]<< std::endl;
+#endif
+}
+
 
 double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_local(
 		int 				numColors,
