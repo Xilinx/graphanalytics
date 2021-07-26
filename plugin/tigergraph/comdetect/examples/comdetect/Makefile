@@ -13,26 +13,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+dataSource=$(CURDIR)/as-skitter/as-Skitter-wt-r100.mtx
 graphName=social_$(USER)
-ifdef sshKey
-    SSH_KEY_OPT=-i $(sshKey)
-endif	
-compileMode=0
-runMode=0
+
 numDevices=1
 numNodes=1
 numPartitionsNode=9
-dataSource=$(CURDIR)/as-skitter/as-Skitter-wt-r100.mtx
-alveoProject=$(CURDIR)/as-skitter/as-skitter-par9
 
-all: run
+compileMode=0
+partitionMode=1
+runMode=1
+
+ifdef sshKey
+    SSH_KEY_OPT=-i $(sshKey)
+endif	
 
 PLUGIN_DEPS = ../../udf/xilinxComDetect.hpp \
               ../../udf/xilinxComDetectImpl.hpp \
 			  ../../../../../louvainmod/include/xilinxlouvain.h \
 			  ../../../../../louvainmod/src/ParLV.cpp \
 			  ../../../../../louvainmod/src/xilinxlouvain.cpp
+
+all: run
 
 .install-plugin-done: $(PLUGIN_DEPS)
 	cd ../../../../../louvainmod && make DEBUG=$(DEBUG)
@@ -70,19 +72,19 @@ run: .install-udf-done
 	@echo "-------------------------------------------------------"
 	@echo "Running run.sh from staging "
 	@echo "-------------------------------------------------------"
-	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/examples/comdetect/run.sh -v \
-	    -g $(graphName) -c $(compileMode) -r $(runMode) \
-		-m $(numNodes) -d $(numDevices) \
-	    -s $(dataSource) -a $(alveoProject) -n $(numPartitionsNode)
+	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/examples/comdetect/bin/run.sh -v \
+	    -g $(graphName) -s $(dataSource) \
+		-m $(numNodes) -d $(numDevices)  -n $(numPartitionsNode) \
+		-c $(compileMode) -x $(partitionMode) -r $(runMode) 
 
 .PHONY: run-cluster
 run-cluster: .install-udf-done
 	@echo "-------------------------------------------------------"
 	@echo "Running run.sh from staging "
 	@echo "-------------------------------------------------------"
-	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/examples/comdetect/run.sh -v \
+	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/examples/comdetect/bin/run.sh -v \
 	    -g $(graphName) -c $(compileMode) -r $(runMode) \
-		-m 3 -d 3 -n 9 -s $(dataSource) -a $(alveoProject) 
+		-m 3 -d 3 -n 9 -s $(dataSource) 
 
 .PHONY: partition
 partition: .install-udf-done
@@ -97,22 +99,22 @@ help:
 	@echo "partition: Run partition.sh to partition the graph in TigerGraph memory"
 	@echo ""
 	@echo "Optional make parameters"
-	@echo "alveoProject     : Alveo partition project basename"
-	@echo "compileMode      : 0: recreate database and compile all (default); 1: only compile query gsql; 2: skip database creation and gsql compilation"
+	@echo "dataSource       : A .mtx file containing input graph. default=./as-Skitter/as-Skitter-wt-e110k.mtx"
 	@echo "numDevices       : number of FPGAs needed (default=1)"
 	@echo "graphName        : graph name (default=social_<username>"
-	@echo "sshKey           : SSH key for user tigergraph"
 	@echo "numNodes         : Number of nodes in Tigergraph cluster"
 	@echo "numPartitionsNode: Number of Alveo partitions"
-	@echo "runMode          : 0: Run only on CPU (default); 1: Run only on Alveo; 2: Run on both CPU and Alveo"
-	@echo "dataSource       : A .mtx file containing input graph. default=./as-Skitter/as-Skitter-wt-e110k.mtx"
-	@echo " "
+	@echo ""
+	@echo "compileMode      : 0: recreate database and compile all (default)"
+	@echo "                   1: only compile query gsql"
+	@echo "                   2: skip database creation and gsql compilation"
+	@echo "partitionMode    : 0: Use existing partitions from disks; 1: Generate partitions from TigerGraph memory"
+	@echo "runMode          : 0: Run only on CPU; 1: Run only on Alveo (default); 2: Run on both CPU and Alveo"
+	@echo ""
+	@echo "sshKey           : SSH key for user tigergraph"	
+	@echo ""
 	@echo "Examples:"
-	@echo "make alveoProject=/proj/gdba/tg-common/alveo-projects/as-skitter-partition"
+	@echo "make dataSource=/proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx"
 
 clean:
 	rm -f .install-plugin-done .install-udf-done .install-query-done
-
-
-
-

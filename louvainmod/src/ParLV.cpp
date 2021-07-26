@@ -24,6 +24,10 @@
 #include "zmq/driver-worker/worker.hpp"
 #include "zmq/driver-worker/driver.hpp"
 
+int glb_MAXNV;
+int glb_MAXNE;
+int glb_MAXNV_M;
+
 using namespace std;
 
 // time functions
@@ -967,6 +971,7 @@ int host_ParserParameters(int argc,
     int has_flow_fast = general_findPara(argc, argv, "-fast");
     int has_flow_fast2 = general_findPara(argc, argv, "-fast2");
     int hasNumDevices = general_findPara(argc, argv, "-num_devices");
+    int hasNumCu = general_findPara(argc, argv, "-num_cu");
     int has_driver = general_findPara(argc, argv, "-driver");
     int has_worker = general_findPara(argc, argv, "-worker");
     int has_driverAlone = general_findPara(argc, argv, "-driverAlone");
@@ -1112,7 +1117,26 @@ int host_ParserParameters(int argc,
 #ifndef NDEBUG
         std::cout << "INFO: deviceNames=" << deviceNames << std::endl;
 #endif        
-    } 
+    } else {
+    	deviceNames = "xilinx_u50_gen3x16_xdma_201920_3";
+#ifdef PRINTINFO
+    	printf("Using defalut device xilinx_u50_gen3x16_xdma_201920_3, because of the missing deviceNames.\n");
+#endif
+
+    }
+
+    //xilinx_u50_gen3x16_xdma_201920_3 xilinx_u55c_gen3x16_xdma_base_1
+    if (deviceNames == "xilinx_u50_gen3x16_xdma_201920_3"){
+    	glb_MAXNV = (1ul << 26);
+    	glb_MAXNE = (1ul << 27);
+    	glb_MAXNV_M = (64000000);
+    } else if (deviceNames == "xilinx_u55c_gen3x16_xdma_base_1"){
+    	glb_MAXNV = (1ul << 27);
+    	glb_MAXNE = (1ul << 28);
+    	glb_MAXNV_M = (128000000);
+    } else {
+    	std::cout << "Error: deviceNames=" << deviceNames << " maybe not support. Please check them!"<< std::endl;
+    }
 
     if (has_numThread != -1 && has_numThread < (argc - 1)) {
         rec[has_numThread] = true;
@@ -1139,6 +1163,17 @@ int host_ParserParameters(int argc,
         numDevices = atoi(argv[hasNumDevices + 1]);
     } else
         numDevices = 1;
+    
+    int numCu = 1;
+    if (hasNumCu != -1 && hasNumCu < (argc - 1)) {
+        rec[hasNumCu] = true;
+        rec[hasNumCu + 1] = true;
+        numCu = atoi(argv[hasNumCu + 1]);
+#ifdef PRINTINFO
+    printf("PARAMETER  numCu = %i\n", numCu);
+#endif
+    } else
+        numCu = 1;
 
     if (has_gh_par != -1 && has_gh_par < (argc - 1)) {
         rec[has_gh_par] = true;
@@ -1157,8 +1192,11 @@ int host_ParserParameters(int argc,
         flow_prune = 2;
     } else if (has_flow_fast2 != -1) {
         rec[has_flow_fast2] = true;
-        flow_prune = 3;
-    } else
+        if(numCu == 1)
+            flow_prune = 3;
+        else
+            flow_prune = 4;
+    } else 
         flow_prune = 1;
 #ifdef PRINTINFO
     printf("PARAMETER  flow_prune = %d\n", flow_prune);
@@ -1386,7 +1424,7 @@ void PrintRptPartition_Summary(
 	printf("Number of vertices           : %ld\n"  , parlv.plv_src->NV);
 	printf("Number of edges              : %ld\n"  , parlv.plv_src->NE);
 	printf("Number of partitions         : %d\n"   , parlv.num_par);
-	printf("Partition size               : < %d\n" , MAXNV_M);
+	printf("Partition size               : < %d\n" , glb_MAXNV_M);
 	printf("Number of nodes (machines)   : %d\n"   , numNode);
 	printf("Number of Xilinx Alveo cards : %d"     , SummArrayByNum<int>(numNode, card_Node));
 	PrintArrayByNum<int>(numNode, card_Node);//[3, 3,3]
@@ -2899,7 +2937,7 @@ GLV* UpdateCwithFinal(xf::graph::L3::Handle* handle0,
                       int par_prune,
                       int& id_glv,
 					  LouvainPara* para_lv) {
-    const long MaxSize = MAXNV_M;
+    const long MaxSize = glb_MAXNV_M;
     const long safeSize = MaxSize * 0.9;
     long NV = glv_orig->NV;
     long NE = glv_orig->NE;
@@ -3273,7 +3311,7 @@ int create_alveo_partitions(char* inFile, int num_partition, int par_prune, char
 			strcpy(pathName_proj_svr, pathName_proj);                    //louvain_partitions_000.par
 
 		long NV_par_recommand;//(long)(64000000.0 * 0.80);
-		long NV_par_max = MAXNV_M;//64*1000*1000;
+		long NV_par_max = glb_MAXNV_M;//64*1000*1000;
 		if(parlv.num_par>1)
 			NV_par_recommand = (NV + parlv.num_par-1) / parlv.num_par;//allow to partition small graph with -par_num
 		else
@@ -3802,7 +3840,7 @@ extern "C" float load_alveo_partitions(unsigned int num_partitions, unsigned int
  -3:
 */
 int compute_louvain_alveo_seperated_load(
-    char* xclbinPath, bool flow_fast, unsigned int numDevices, std::string deviceNames, 
+    char* xclbinPath, int flowMode, unsigned int numDevices, std::string deviceNames,
     unsigned int numPartitions, char* alveoProject,
     int mode_zmq, int numPureWorker, char* nameWorkers[128], unsigned int nodeID,
     float tolerance, bool verbose, 
@@ -3811,7 +3849,7 @@ int compute_louvain_alveo_seperated_load(
 #ifndef NDEBUG
     std::cout << "DEBUG: " << __FUNCTION__   
               << "\n     xclbinPath=" << xclbinPath
-              << "\n     flow_fast=" << flow_fast 
+              << "\n     flowMode=" << flowMode
               << "\n     numDevices=" << numDevices
               << "\n     deviceNames=" << deviceNames
               << "\n     numPartitions=" << numPartitions 
@@ -3841,14 +3879,14 @@ int compute_louvain_alveo_seperated_load(
     int par_prune = 1;
     int numThreads = 16;
     bool opts_coloring = false;
-    int flowMode = 1;
+    //int flowMode = 1;
 
     int numNode = numPureWorker + 1;
-    if (flow_fast) {
-        flowMode = 2; // fast kernel  MD_FAST
-    } else {
-        flowMode = 1; // normal kernel MD_NORMAL
-    }
+//    if (flow_fast) {
+//        flowMode = 2; // fast kernel  MD_FAST
+//    } else {
+//        flowMode = 1; // normal kernel MD_NORMAL
+//    }
 
     xf::graph::L3::Handle::singleOP* op0 = new(xf::graph::L3::Handle::singleOP);
     //----------------- Set parameters of op0 again some of those will be covered by command-line
@@ -4025,7 +4063,7 @@ extern "C" float compute_louvain_alveo_seperated_compute(
     -2: Error in compute_louvain_alveo_seperated_load
 */
 extern "C" float loadAlveoAndComputeLouvain (
-    char* xclbinPath, bool flow_fast, unsigned int numDevices, std::string deviceNames,
+    char* xclbinPath, int flowMode, unsigned int numDevices, std::string deviceNames,
     char* alveoProject,
     unsigned mode_zmq, unsigned numPureWorker, char* nameWorkers[128], unsigned int nodeID,
     char* opts_outputFile, unsigned int max_iter, unsigned int max_level, 
@@ -4051,7 +4089,7 @@ extern "C" float loadAlveoAndComputeLouvain (
     }
     
     ret = compute_louvain_alveo_seperated_load(
-            xclbinPath, flow_fast, numDevices, deviceNames,
+            xclbinPath, flowMode, numDevices, deviceNames,
             numPartitions, alveoProject,
             mode_zmq, numPureWorker, nameWorkers, nodeID,
             tolerance, 

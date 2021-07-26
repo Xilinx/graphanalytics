@@ -29,7 +29,7 @@ endif
 .PHONY: all
 
 #all: javaApi cppBuild javaTest stage
-all: stage
+all: pythonApi stage
 
 #
 # Global Definitions
@@ -390,7 +390,7 @@ XCLBIN_INSTALLED = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32
 
 
 xclbin:
-	if [ "$(PLATFORM_REPO_PATHS)" -eq "" ]; then \
+	@if [ "$(PLATFORM_REPO_PATHS)" == "" ]; then \
 		echo "PLATFORM_REPO_PATHS environment varaible must be set to the path to Xilinx platform files" ; \
 	else \
 		cd $(L2_TOP_DIR); \
@@ -452,7 +452,7 @@ STAGE_EXAMPLE_ZIP = examples.zip
 STAGE_EXAMPLE_FILE_NAMES = \
 	cpp/cppdemo.cpp cpp/Makefile cpp/README.md \
     python/pythondemo.py python/run.sh \
-    python/README.md python/jupyter/jupyter_demo.ipynb
+    python/README.md python/jupyter/jupyter_demo.ipynb python/jupyter/wikipedia_demo.ipynb
 
 STAGE_EXAMPLE_FILES = $(addprefix examples/,$(STAGE_EXAMPLE_FILE_NAMES))
 STAGE_STAGED_EXAMPLE_FILES = $(addprefix $(STAGE_DIR)/,$(STAGE_EXAMPLE_FILES))
@@ -490,8 +490,11 @@ STAGE_ALL_FILES = \
     $(STAGE_XCLBIN_FILE) \
     $(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP) \
 
-stage: cppTest $(STAGE_SUBDIRS) $(STAGE_ALL_FILES)
+.PHONY: stage stage2
+stage: 
+	make stage2
 
+stage2: cppTest $(STAGE_SUBDIRS) $(STAGE_ALL_FILES)
 $(STAGE_SUBDIRS):
 	mkdir -p $@
 
@@ -549,6 +552,9 @@ clean-xclbin:
 .PHONY: help
 help:
 	@echo "Makefile Usage:"
+	@echo "  make"
+	@echo "      Build staging files including the library for PythonAPI"
+	@echo ""
 	@echo "  make dist"
 	@echo "      Generate cosinesim product package (RPM or DEB) for the current OS and architecture"
 	@echo ""
@@ -559,7 +565,8 @@ help:
 	@echo "      Run standalone test with statically linked executable"
 	@echo ""
 	@echo "  make xclbin DEVICE=<FPGA platform>"
-	@echo "      Build xclbin file targetting specified device. Supported devices: "
+	@echo "      Build xclbin file targetting specified device. Vitis tool and PLATFORM_REPO_PATHS must be set to make xclbin."
+	@echo "      Supported devices:"
 	@echo "      xilinx_u50_gen3x16_xdma_201920_3 (Vitis 2020.2)"
 	@echo "      xilinx_u55c_gen3x16_xdma_1_202110_1 (Vitis 2021.1)"
 	@echo ""

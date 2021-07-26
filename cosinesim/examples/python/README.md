@@ -1,6 +1,6 @@
 # Xilinx cosinesim application Python example
 
-This README file explains how to setup and run cosinesim example in python.
+This README file explains how to set up and run cosinesim example in python.
 
 # 1. Run the python script example
 ```
@@ -8,8 +8,15 @@ This README file explains how to setup and run cosinesim example in python.
 ```
 
 # 2. Run the Jupyter example (Jupyter notebook assumed to be installed)
+* Start Junpyter notebook server
 ```
-./run.sh jupyter notebook jupyter/jupyter_demo.ipynb
+./run.sh jupyter notebook
+```
+
+* Open Jupyter notebook in a broswer and select one of examples to run.
+```
+jupyter_demo.ipynb
+wikipedia_demo.ipynb
 ```
 
 #
