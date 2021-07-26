@@ -1,0 +1,114 @@
+#
+# Copyright 2020-2021 Xilinx, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+use graph @graph
+drop query cosinesim_ss_tg, load_graph_cosinesim_ss_fpga, cosinesim_ss_fpga
+
+
+create query cosinesim_ss_tg(string log_file) for graph @graph {
+    uint topK;
+    double score;
+    DOUBLE run_time;
+    vertex<Atom> newAtom;
+    ListAccum<vertex<Atom>> @@potentialAtoms;
+    ListAccum<XilCosinesimMatch> @@result;
+    FILE file1 (log_file);
+
+    topK = 100;
+# Atom Population
+    population = {Atom.*};
+# Pick one random Atom
+    randomAtom = select p from population:p
+        LIMIT 1000;
+# Assign to a Atom vertex
+    randomAtom = select p from randomAtom:p
+        ACCUM newAtom = p;
+
+# Cosine Similarity using TigerGraph
+    udf_reset_timer(true);
+    @@result = cosinesim_match_sw(newAtom, topK);
+    run_time = udf_elapsed_time(true);
+    print "Software UDF" AS ComputationTechnique;
+    print newAtom.atom_id + ": " + newAtom.string_text AS Atom;
+    print run_time AS ExecTimeInMs;
+    file1.println("SCORE", "ATOM ID", "ATOM String");
+    foreach topKP in @@result do
+        atomSet = select v from population:v
+        WHERE getvid(topKP.Id) == getvid(v)
+        ACCUM score = topKP.score
+        POST-ACCUM file1.println(score, v.atom_id, v.string_text
+                );
+    end;
+}
+
+
+create query load_graph_cosinesim_ss_fpga() for graph @graph {
+    STRING status;
+    INT ret;
+    EXCEPTION cosinesimLoadFailed(40001);
+
+    ret = load_graph_cosinesim_ss_fpga_core();
+    print ret;
+    IF ret == 0 THEN
+        status = "Graph data loaded successfully";
+    ELSE
+        RAISE cosinesimLoadFailed("ERROR: Cosine Similarity load operation failed.  Please see the GPE log for details.");
+    END;
+    PRINT status;
+}
+
+create query cosinesim_ss_fpga(string log_file1) for graph @graph {
+    uint topK;
+    vertex<Atom> newAtom;
+    ListAccum<vertex<Atom>> @@potentialAtoms;
+    ListAccum<XilCosinesimMatch> @@result;
+    double score;
+    DOUBLE run_time;
+    FILE file1 (log_file1);
+    EXCEPTION cosinesimMatchFailed(40002);
+
+    topK = 100;
+# Atom Population
+    population = {Atom.*};
+# Pick one random Atom
+    randomAtom = select p from population:p
+        LIMIT 1000;
+# Assign to a Atom vertex
+    randomAtom = select p from randomAtom:p
+        ACCUM newAtom = p;
+
+# Cosine Similarity using TigerGraph
+    udf_reset_timer(true);
+    @@result = cosinesim_ss_fpga_core(newAtom, topK);
+    run_time = udf_elapsed_time(true);
+
+    IF @@result.size() < 1 THEN
+        RAISE cosinesimMatchFailed("ERROR: Cosine Similarity match operation failed.  Please see the GPE log for details.");
+    END;
+
+    print "Xilinx Alveo U50" AS ComputationTechnique;
+    print newAtom.atom_id + ": " + newAtom.string_text AS Atom;
+    print run_time AS ExecTimeInMs;
+    file1.println("SCORE", "ATOM ID", "ATOM String");
+    foreach topKP in @@result do
+        atomSet = select v from population:v
+        WHERE getvid(topKP.Id) == getvid(v)
+        ACCUM score = topKP.score
+        POST-ACCUM file1.println(score, v.atom_id, v.string_text
+                );
+    end;
+}
+
+install query cosinesim_ss_tg, load_graph_cosinesim_ss_fpga,  cosinesim_ss_fpga

@@ -1,0 +1,63 @@
+#
+# Copyright 2020-2021 Xilinx, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Moved to plugin installation script
+#DROP TUPLE XilCosinesimMatch
+#TYPEDEF TUPLE<Id VERTEX, score double> XilCosinesimMatch
+
+# Create Graph
+USE GRAPH @graph
+DROP JOB *
+DROP QUERY *
+DROP GRAPH @graph
+CREATE GRAPH @graph()
+
+BEGIN
+CREATE SCHEMA_CHANGE JOB job_schema_change_local FOR GRAPH @graph {
+    ADD VERTEX Atom (
+        PRIMARY_ID atom_id STRING,
+        language_code STRING,
+        term_status STRING,
+        term_id STRING,
+        string_type_code STRING,
+        string_id STRING,
+        atom_id_preferred_indicator STRING,
+        atom_id STRING,
+        source_asserted_atom_id STRING,
+        source_asserted_concept_id STRING,
+        source_asserted_descriptor_id STRING,
+        source_abbreviation_text STRING,
+        term_type_code STRING,
+        code STRING,
+        string_text STRING,
+        source_restruction_level STRING,
+        supress_indicator STRING,
+        current_view_indicator STRING,
+        COSINE_SIM_VECTOR LIST<INT>,
+        COSINE_SIM_NORMAL DOUBLE);
+
+    ADD DIRECTED EDGE AQ ( FROM Atom, TO Atom, rela STRING ) WITH REVERSE_EDGE="QB"; #Allowed Qualifier, Qualified By
+    ADD DIRECTED EDGE CHD ( FROM Atom, TO Atom, rela STRING ) WITH REVERSE_EDGE="PAR"; #Child, Parent
+    ADD DIRECTED EDGE RB ( FROM Atom, TO Atom, rela STRING ) WITH REVERSE_EDGE="RN"; #Child, Parent
+    ADD UNDIRECTED EDGE RL ( FROM Atom, TO Atom, rela STRING ); #Related
+    ADD UNDIRECTED EDGE RO ( FROM Atom, TO Atom, rela STRING ); #Other relationship
+    ADD UNDIRECTED EDGE RQ ( FROM Atom, TO Atom, rela STRING ); #Related _possibly_ synonymous
+    ADD UNDIRECTED EDGE RU ( FROM Atom, TO Atom, rela STRING ); #Related, unspecified
+    ADD UNDIRECTED EDGE SIB ( FROM Atom, TO Atom, rela STRING ); #Sibling
+}
+END
+
+RUN SCHEMA_CHANGE JOB job_schema_change_local
+DROP JOB job_schema_change_local

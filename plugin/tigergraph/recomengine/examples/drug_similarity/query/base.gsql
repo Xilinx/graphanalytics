@@ -1,0 +1,213 @@
+#
+# Copyright 2020-2021 Xilinx, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+set query_timeout = 600000
+use graph @graph
+drop query all
+
+CREATE DISTRIBUTED QUERY random_walk(int step = 8, int path_size = 4, string filepath = "/home/tigergraph/path.csv", set<string> edge_types, int sample_num) FOR GRAPH @graph {
+
+ FILE f(filepath);
+ ListAccum<ListAccum<vertex>> @recv_seque;
+ ListAccum<ListAccum<vertex>> @send_seque;
+
+ start (ANY) = {ANY};
+ start = select s from start:s
+        POST-ACCUM s.@send_seque += [s];
+
+ while true limit step do
+   tmp = select t from start:s-(edge_types:e)->:t
+         SAMPLE sample_num EDGE  when s.outdegree() >= 1
+         accum t.@recv_seque += s.@send_seque
+         POST-ACCUM
+           t.@send_seque.clear(),
+           foreach path in t.@recv_seque do
+             case when path.size() == path_size - 1 THEN
+               f.println(path + [t])
+             else
+               t.@send_seque += path + [t]
+             end
+           end,
+           t.@send_seque += [t],
+           t.@recv_seque.clear();
+ end;
+
+}
+
+
+CREATE QUERY node2vec_query(string filepath = "/home/tigergraph/path.csv", int dimension) FOR GRAPH @graph {
+   udf_node2vec(dimension, filepath);
+}
+
+CREATE QUERY load_node2vec(string filepath = "/home/tigergraph/path.csv", int dimension) FOR GRAPH @graph {
+   udf_load_node2vec(dimension, filepath);
+}
+
+
+CREATE QUERY create_embeddings() for graph @graph {
+    SetAccum<string> @@edge_types;
+    @@edge_types += "CHD";
+    @@edge_types += "PAR";
+    @@edge_types += "RB";
+    @@edge_types += "RN";
+    @@edge_types += "RL";
+    @@edge_types += "RO";
+    @@edge_types += "RQ";
+    @@edge_types += "RU";
+    @@edge_types += "SIB";
+
+    # Set size of the embeddings
+    udf_set_embedding_length(50);
+
+    # Perform random walk
+    #random_walk(32, 4, "/tmp/path.csv", @@edge_types, 100);
+
+    # Run Node2Vec
+    #node2vec_query("/tmp/path.csv", udf_get_embedding_length());
+    
+    # Load Pre-built embeddings
+    load_node2vec("/tmp/embeddings.csv", udf_get_embedding_length());
+}
+
+
+CREATE QUERY remove_dangling_vertices() for graph @graph returns (SumAccum<int>) {
+    SumAccum<int> @@i;
+    population = {Atom.*};
+
+    atomList = SELECT p FROM population:p
+        WHERE udf_check_atom_embedding(p.atom_id) == FALSE
+        ACCUM @@i += 1
+        POST-ACCUM DELETE (p);
+
+    return @@i;
+}
+
+
+CREATE QUERY atom_embedding(vertex<Atom> targetAtom) for graph @graph returns (ListAccum<int>) {
+    // Global accumulators
+    ListAccum<int> @@atomVector;
+
+    @@atomVector += udf_get_nodeVec(targetAtom.atom_id);
+
+    return @@atomVector;
+}
+
+
+CREATE QUERY cosinesim_clear_embeddings() FOR GRAPH @graph {
+    ListAccum<INT> @@emptyVec;
+
+    population = {Atom.*};
+    UPDATE p FROM population:p
+        SET p.COSINE_SIM_VECTOR = @@emptyVec;
+    UPDATE p FROM population:p
+        SET p.COSINE_SIM_NORMAL = 0;
+}
+
+
+CREATE QUERY cosinesim_embed_vectors() FOR GRAPH @graph {
+    create_embeddings();
+    remove_dangling_vertices();
+
+    population = {Atom.*};
+    UPDATE p FROM population:p
+        SET p.COSINE_SIM_VECTOR = atom_embedding(p);
+}
+
+
+CREATE QUERY cosinesim_embed_normals() FOR GRAPH @graph {
+    # Cache normals, just for software cosine similarity
+    population = {Atom.*};
+    UPDATE p FROM population:p
+        SET p.COSINE_SIM_NORMAL = udf_calculate_normal(p.COSINE_SIM_VECTOR);
+}
+
+
+CREATE QUERY cosinesim_match_sw(vertex<Atom> source, uint topKID)
+FOR GRAPH @graph RETURNS (ListAccum<XilCosinesimMatch>) {
+
+# Heap with max size of topKID sorted decending by score then ascending last name
+    HeapAccum<XilCosinesimMatch>(topKID, score DESC, Id ASC) @@topK_Heap;
+    ListAccum<XilCosinesimMatch> @@topK;
+    ListAccum<INT> @@targetAtomVector;
+    DOUBLE targetAtomNormal;
+
+# Atom Population
+    population = {Atom.*};
+    @@targetAtomVector = atom_embedding(source);
+    targetAtomNormal = udf_calculate_normal(@@targetAtomVector);
+
+    atomList = SELECT p FROM population:p
+        ACCUM @@topK_Heap += XilCosinesimMatch(p,
+            udf_cos_theta(p.COSINE_SIM_VECTOR, p.COSINE_SIM_NORMAL, @@targetAtomVector, targetAtomNormal));
+
+    FOREACH item IN @@topK_Heap DO
+        @@topK += item;
+    END;
+
+    RETURN @@topK;
+}
+
+
+CREATE DISTRIBUTED QUERY cosinesim_set_num_devices(UINT num_devices) FOR GRAPH @graph {
+    udf_xilinx_recom_set_num_devices(num_devices);
+}
+
+
+CREATE DISTRIBUTED QUERY cosinesim_get_num_devices() FOR GRAPH @graph RETURNS (UINT) {
+    UINT ret;
+    ret = udf_xilinx_recom_get_num_devices();
+    return ret;
+}
+
+
+CREATE DISTRIBUTED QUERY cosinesim_is_fpga_initialized() FOR GRAPH @graph RETURNS (BOOL) {
+    BOOL ret;
+    ret = udf_xilinx_recom_is_initialized();
+    RETURN ret;
+}
+
+
+create query load_graph_cosinesim_ss_fpga_core() for graph @graph returns (int) {
+    ListAccum<ListAccum<int> > @@atomVectors;
+    ListAccum<UINT> @@atomIds;
+    int ret;
+
+    population = {Atom.*};
+    atomList = select p from population:p
+        ACCUM @@atomVectors += p.COSINE_SIM_VECTOR, @@atomIds += getvid(p);
+
+    ret = udf_xilinx_recom_load_population_vectors(@@atomVectors, @@atomIds);
+    return ret;
+}
+
+
+create query cosinesim_ss_fpga_core (vertex<Atom> source, uint topK) for
+    graph @graph returns (ListAccum<XilCosinesimMatch>)
+{
+    ListAccum<XilCosinesimMatch> @@results;
+    ListAccum<int> @@targetAtomVector;
+
+    #@@targetAtomVector = atom_embedding(source);
+    @@targetAtomVector = source.COSINE_SIM_VECTOR;
+
+    @@results = udf_xilinx_recom_match_target_vector(topK, @@targetAtomVector);
+    return @@results;
+}
+
+
+install query random_walk, node2vec_query, load_node2vec, create_embeddings, remove_dangling_vertices, atom_embedding, cosinesim_clear_embeddings, cosinesim_embed_vectors, cosinesim_embed_normals,
+    cosinesim_match_sw, cosinesim_set_num_devices,
+    cosinesim_get_num_devices, cosinesim_is_fpga_initialized,
+    load_graph_cosinesim_ss_fpga_core, cosinesim_ss_fpga_core
