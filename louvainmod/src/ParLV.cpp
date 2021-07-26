@@ -24,6 +24,10 @@
 #include "zmq/driver-worker/worker.hpp"
 #include "zmq/driver-worker/driver.hpp"
 
+int glb_MAXNV;
+int glb_MAXNE;
+int glb_MAXNV_M;
+
 using namespace std;
 
 // time functions
@@ -1113,7 +1117,26 @@ int host_ParserParameters(int argc,
 #ifndef NDEBUG
         std::cout << "INFO: deviceNames=" << deviceNames << std::endl;
 #endif        
-    } 
+    } else {
+    	deviceNames = "xilinx_u50_gen3x16_xdma_201920_3";
+#ifdef PRINTINFO
+    	printf("Using defalut device xilinx_u50_gen3x16_xdma_201920_3, because of the missing deviceNames.\n");
+#endif
+
+    }
+
+    //xilinx_u50_gen3x16_xdma_201920_3 xilinx_u55c_gen3x16_xdma_base_1
+    if (deviceNames == "xilinx_u50_gen3x16_xdma_201920_3"){
+    	glb_MAXNV = (1ul << 26);
+    	glb_MAXNE = (1ul << 27);
+    	glb_MAXNV_M = (64000000);
+    } else if (deviceNames == "xilinx_u55c_gen3x16_xdma_base_1"){
+    	glb_MAXNV = (1ul << 27);
+    	glb_MAXNE = (1ul << 28);
+    	glb_MAXNV_M = (128000000);
+    } else {
+    	std::cout << "Error: deviceNames=" << deviceNames << " maybe not support. Please check them!"<< std::endl;
+    }
 
     if (has_numThread != -1 && has_numThread < (argc - 1)) {
         rec[has_numThread] = true;
@@ -1401,7 +1424,7 @@ void PrintRptPartition_Summary(
 	printf("Number of vertices           : %ld\n"  , parlv.plv_src->NV);
 	printf("Number of edges              : %ld\n"  , parlv.plv_src->NE);
 	printf("Number of partitions         : %d\n"   , parlv.num_par);
-	printf("Partition size               : < %d\n" , MAXNV_M);
+	printf("Partition size               : < %d\n" , glb_MAXNV_M);
 	printf("Number of nodes (machines)   : %d\n"   , numNode);
 	printf("Number of Xilinx Alveo cards : %d"     , SummArrayByNum<int>(numNode, card_Node));
 	PrintArrayByNum<int>(numNode, card_Node);//[3, 3,3]
@@ -2914,7 +2937,7 @@ GLV* UpdateCwithFinal(xf::graph::L3::Handle* handle0,
                       int par_prune,
                       int& id_glv,
 					  LouvainPara* para_lv) {
-    const long MaxSize = MAXNV_M;
+    const long MaxSize = glb_MAXNV_M;
     const long safeSize = MaxSize * 0.9;
     long NV = glv_orig->NV;
     long NE = glv_orig->NE;
@@ -3288,7 +3311,7 @@ int create_alveo_partitions(char* inFile, int num_partition, int par_prune, char
 			strcpy(pathName_proj_svr, pathName_proj);                    //louvain_partitions_000.par
 
 		long NV_par_recommand;//(long)(64000000.0 * 0.80);
-		long NV_par_max = MAXNV_M;//64*1000*1000;
+		long NV_par_max = glb_MAXNV_M;//64*1000*1000;
 		if(parlv.num_par>1)
 			NV_par_recommand = (NV + parlv.num_par-1) / parlv.num_par;//allow to partition small graph with -par_num
 		else

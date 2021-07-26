@@ -155,16 +155,16 @@ void opLouvainModularity::loadGraph(
     unsigned long NV_orig;// = G->numVertices;
     unsigned long NE_orig;// = G->numEdges;
     
-    NV_orig = MAXNV_M;//Now using fixed size for L3
-    NE_orig = (MAXNV_M);//Now using fixed size for L3
-    if(NV_orig >=  MAXNV-1)
+    NV_orig = glb_MAXNV_M;//Now using fixed size for L3
+    NE_orig = (glb_MAXNV_M);//Now using fixed size for L3
+    if(NV_orig >=  glb_MAXNV-1)
     {
-        printf("WARNING: G->numVertices(%lx) is more than MAXNV(%lx), partition should be used\n", NV_orig, MAXNV);
-        NV_orig = MAXNV-2;
+        printf("WARNING: G->numVertices(%lx) is more than glb_MAXNV(%lx), partition should be used\n", NV_orig, glb_MAXNV);
+        NV_orig = glb_MAXNV-2;
     }
 
     long NE_mem = NE_orig * 2; // number for real edge to be stored in memory
-    long NE_mem_1 = NE_mem < (MAXNV) ? NE_mem : (MAXNV);
+    long NE_mem_1 = NE_mem < (glb_MAXNV) ? NE_mem : (glb_MAXNV);
     long NE_mem_2 = NE_mem - NE_mem_1;
 #ifdef PRINTINFO
     printf("INFO: in loadGraph flowMode = %d\n\n", flowMode);
@@ -244,7 +244,7 @@ int opLouvainModularity::compute(unsigned int deviceID,
 #endif
 
 
-    bool isLargeEdge = pglv_iter->G->numEdges > (MAXNV / 2);
+    bool isLargeEdge = pglv_iter->G->numEdges > (glb_MAXNV / 2);
 
     if(flowMode == 1){
 #ifdef PRINTINFO
@@ -796,11 +796,11 @@ void opLouvainModularity::demo_par_core(int id_dev, int flowMode,
     long NE_orig = pglv_orig->G->numEdges;
     long numClusters;
 
-    assert(NV_orig < MAXNV);
-    assert(NE_orig < MAXNE);
+    assert(NV_orig < glb_MAXNV);
+    assert(NE_orig < glb_MAXNE);
 
     long NE_mem = NE_orig * 2; // number for real edge to be stored in memory
-    long NE_mem_1 = NE_mem < (MAXNV) ? NE_mem : (MAXNV);
+    long NE_mem_1 = NE_mem < (glb_MAXNV) ? NE_mem : (glb_MAXNV);
     long NE_mem_2 = NE_mem - NE_mem_1;
 
     double prevMod = -1;             // Last-phase modularity

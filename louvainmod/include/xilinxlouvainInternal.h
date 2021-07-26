@@ -40,17 +40,24 @@ using namespace std;
 #define CSRWIDTHS (256)
 #define COLORWIDTHS (32)
 #define NUM (DWIDTHS / 32)
-#ifndef USE_U55C
-#define MAXNV (1ul << 26)  //  67,108,864
-#define MAXNE (1 << 27)  // 134,217.728
-#define MAXNV_M (64000000)
-#else
-#define MAXNV (1ul << 27)  
-#define MAXNE (1 << 28)  
-#define MAXNV_M (128000000)
-#endif
-#define VERTEXS (MAXNV / NUM)
-#define EDGES (MAXNE / NUM)
+// design for kernel, but only host used now
+//#ifndef USE_U55C
+//#define MAXNV (1ul << 26)  //  67,108,864
+//#define MAXNE (1 << 27)  // 134,217.728
+//#define MAXNV_M (64000000)
+//#else
+//#define MAXNV (1ul << 27)
+//#define MAXNE (1 << 28)
+//#define MAXNV_M (128000000)
+//#endif
+//#define VERTEXS (MAXNV / NUM)
+//#define EDGES (MAXNE / NUM)
+
+// glb will be init in ParLV.cpp:host_ParserParameters
+extern int glb_MAXNV ;
+extern int glb_MAXNE ;
+extern int glb_MAXNV_M ;
+
 #define DEGREES (1 << 17)
 #define COLORS (4096)
 typedef double DWEIGHT;
