@@ -1667,15 +1667,15 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_renumber(
 }
 
 double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_renumber_2cu(
-		int 				numColors,
+        int                 numColors,
         long                NVl,
-		graphNew*        	G,
-		long*         		M,
-		double        		opts_C_thresh,
-		double*        		currMod,
-		//Updated variables
-	    int*          		colors,
-		KMemorys_host_prune *buff_host)
+        graphNew*           G,
+        long*               M,
+        double              opts_C_thresh,
+        double*             currMod,
+        //Updated variables
+        int*                colors,
+        KMemorys_host_prune *buff_host)
 {
 
 	long edgeNum;

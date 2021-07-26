@@ -119,18 +119,18 @@ void opLouvainModularity::init(class openXRM* xrm, std::string kernelName,
     handles[cnt].buffer = new cl::Buffer[bufferNm];
     unsigned int prev = deviceIDs[0];
     deviceOffset.push_back(0);
-//    for (int i = 1; i < maxCU_; ++i) {
-//        handles[i].deviceID = deviceIDs[i];
-//        handles[i].cuID = cuIDs[i];
-//        handles[i].dupID = i % dupNmLouvainModularity;
-//        createHandleLouvainModularity(xrm, handles[i], kernelName, kernelAlias,
-//                                      xclbinFile, deviceIDs[i], requestLoad);
-//        handles[i].buffer = new cl::Buffer[bufferNm];
-//        if (deviceIDs[i] != prev) {
-//            prev = deviceIDs[i];
-//            deviceOffset.push_back(i);
-//        }
-//    }
+    for (int i = 1; i < maxCU_; ++i) {
+        handles[i].deviceID = deviceIDs[i];
+        handles[i].cuID = cuIDs[i];
+        handles[i].dupID = i % dupNmLouvainModularity;
+        createHandleLouvainModularity(xrm, handles[i], kernelName, kernelAlias,
+                                      xclbinFile, deviceIDs[i], requestLoad);
+        handles[i].buffer = new cl::Buffer[bufferNm];
+        if (deviceIDs[i] != prev) {
+            prev = deviceIDs[i];
+            deviceOffset.push_back(i);
+        }
+    }
     // for (int j = 0; j < maxCU; ++j) {
     //     th[j].join();
     // }
