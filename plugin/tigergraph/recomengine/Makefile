@@ -14,7 +14,10 @@
 # limitations under the License.
 #
 
+# Example directories
 SYNTHEA_DIR = examples/synthea
+LOGSIM_DIR = examples/log_similarity
+#DRUGSIM_DIR = examples/drug_similarity
 
 # Files to be direct-copied from plugin source tree to staging area
 
@@ -43,9 +46,47 @@ STAGE_COPY_FILES = \
     $(SYNTHEA_DIR)/init_graph.sh \
     $(SYNTHEA_DIR)/install_query.sh \
     $(SYNTHEA_DIR)/match.sh \
-    $(SYNTHEA_DIR)/run.sh
+    $(SYNTHEA_DIR)/run.sh \
+    \
+    $(wildcard $(LOGSIM_DIR)/data/csv/*.csv) \
+    $(wildcard $(LOGSIM_DIR)/data/json/*.log) \
+    $(LOGSIM_DIR)/bin/common.sh \
+    $(LOGSIM_DIR)/bin/set-plugin-vars.sh \
+    $(LOGSIM_DIR)/bin/get_glove.sh \
+    $(LOGSIM_DIR)/jupyter-demo/log_similarity_TG_demo.ipynb \
+    $(LOGSIM_DIR)/query/base.gsql \
+    $(LOGSIM_DIR)/query/client.gsql \
+    $(LOGSIM_DIR)/query/load_xgraph.gsql \
+    $(LOGSIM_DIR)/query/query.gsql \
+    $(LOGSIM_DIR)/query/schema_xgraph.gsql \
+    $(LOGSIM_DIR)/udf/codevector.hpp \
+    $(LOGSIM_DIR)/udf/logSimilarityDemo.hpp \
+    $(LOGSIM_DIR)/README.md \
+    $(LOGSIM_DIR)/init_graph.sh \
+    $(LOGSIM_DIR)/install_query.sh \
+    $(LOGSIM_DIR)/match.sh \
+    $(LOGSIM_DIR)/run.sh 
+#    \
+    $(wildcard $(DRUGSIM_DIR)/data/*.RRF) \
+    $(DRUGSIM_DIR)/bin/common.sh \
+    $(DRUGSIM_DIR)/bin/set-plugin-vars.sh \
+    $(DRUGSIM_DIR)/jupyter-demo/drug_similarity_TG_demo.ipynb \
+    $(DRUGSIM_DIR)/query/base.gsql \
+    $(DRUGSIM_DIR)/query/tg_graph_algo.gsql \
+    $(DRUGSIM_DIR)/query/client.gsql \
+    $(DRUGSIM_DIR)/query/load_xgraph.gsql \
+    $(DRUGSIM_DIR)/query/query.gsql \
+    $(DRUGSIM_DIR)/query/schema_xgraph.gsql \
+    $(DRUGSIM_DIR)/udf/codevector.hpp \
+    $(DRUGSIM_DIR)/udf/word2vec.h \
+    $(DRUGSIM_DIR)/udf/drugSimilarityDemo.hpp \
+    $(DRUGSIM_DIR)/README.md \
+    $(DRUGSIM_DIR)/init_graph.sh \
+    $(DRUGSIM_DIR)/install_query.sh \
+    $(DRUGSIM_DIR)/match.sh \
+    $(DRUGSIM_DIR)/run.sh
 
 # Example directories into which to copy example common files
-STAGE_EXAMPLES_DIRS = $(SYNTHEA_DIR)
+STAGE_EXAMPLES_DIRS = $(SYNTHEA_DIR) $(LOGSIM_DIR) $(DRUGSIM_DIR)
 
 include ../common/Makefile-common.mk

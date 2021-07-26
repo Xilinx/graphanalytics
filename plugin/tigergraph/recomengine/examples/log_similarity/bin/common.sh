@@ -32,67 +32,60 @@
 
 gsql_command="java -jar $HOME/gsql_client/gsql_client.jar"
 function gsql () {
-     $gsql_command "$@"
+     $gsql_command -u $username -p $password "$@"
 }
 
 function usage() {
     echo "Usage: $0 -u TG-username -p TG-password [optional options]"
     echo "Optional options:"
-    echo "  -a alveoProject      : Alveo partition project basename "
-    echo "  -c compileMode       : 0: recreate database and compile all (default); 1: only compile query gsql; 2: skip database creation and gsql compilation"
-    echo "  -d numDevices        : number of FPGAs needed (default=1)"
-    echo "  -f                   : Force (re)install"
-    echo "  -g graphName         : graph name (default=social_<username>"
-    echo "  -i sshKey            : SSH key for user tigergraph"    
-    echo "  -l partitionMode     : "
-    echo "  -m numNodes          : Number of nodes in Tigergraph cluster"
-    echo "  -n numPartitionsNode : Number of Alveo partitions "
-    echo "  -r runMode           : 0: Run only on CPU; 1: Run only on Alveo (default); 2: Run on both CPU and Alveo"
-    echo "  -s dataSource        : A .mtx file containing input graph. default=./as-Skitter/as-Skitter-wt-e110k.mtx"
-    echo "  -v                   : Print verbose messages"
-    echo "  -x partitionMode     : 0: Use existing partitions from disks; 1: Generate partitions from TigerGraph memory"
-    echo "  -h                   : Print this help message"
+    echo "  -c 0|1              : 0=Do not load cache; 1=Load cache(default)"
+    echo "  -d numDevices       : number of FPGAs needed (default=1)"
+    echo "  -f                  : Force (re)install"
+    echo "  -n iterations       : number of iterations to run (default=1)"
+    echo "  -g graphName        : graph name (default=xgraph_<username>"
+    echo "  -i sshKey           : SSH key for user tigergraph"    
+    echo "  -l 0|1              : 0: Do not load FPGA; 1: Load FPGA(default)>"
+    echo "  -m numNodes         : Number of nodes in Tigergraph cluster"
+    echo "  -s dataSourcePath   : path containing input data. default=./data"
+    echo "  -v                  : Print verbose messages"
+    echo "  -h                  : Print this help message"
 }
 
-tg_home=$(readlink -f ~tigergraph)
 # default values for optional options
+hostname=$(hostname)
 username=$USER
 password=Xilinx123
-data_source="$script_dir/as-skitter/as-Skitter-wt-r100.mtx"
+data_root="$script_dir/data"
+load_cache=1
+load_fpga=1
 num_devices=1
-num_partitions_node=1
 num_nodes=1
+iterations=1
 verbose=0
-xgraph="social_$username"
-force_clean=0
-run_mode=1
-compile_mode=0
-partition_mode=1
-force_clean_flag=
-verbose_flag=
+xgraph="xgraph_$username"
+
 
 # set default ssh_key for tigergraph
 if [ -f ~/.ssh/tigergraph_rsa ]; then
     ssh_key_flag="-i ~/.ssh/tigergraph_rsa"
 fi
 
-while getopts "c:d:fg:i:m:n:p:r:s:u:vx:h" opt
+while getopts ":c:d:fg:i:l:m:n:p:s:u:vh" opt
 do
 case $opt in
-    c) compile_mode=$OPTARG;;
+    c) load_cache=$OPTARG;;
     d) num_devices=$OPTARG;;
     f) force_clean=1; force_clean_flag=-f;;
     g) xgraph=$OPTARG;;
     i) ssh_key=$OPTARG; ssh_key_flag="-i $ssh_key";;
+    l) load_fpga=$OPTARG;;
     m) num_nodes=$OPTARG;;
-    n) num_partitions_node=$OPTARG;;
+    n) iterations=$OPTARG;;
     p) password=$OPTARG;;
-    r) run_mode=$OPTARG;;
-    s) data_source=$OPTARG;;
+    s) data_root=$OPTARG;;
     u) username=$OPTARG;;
     v) verbose=1; verbose_flag=-v;;
-    x) partition_mode=$OPTARG;;
-    h) usage; exit 0;;
+    h) usage; exit 1;;
     ?) echo "ERROR: Unknown option: -$OPTARG"; usage; exit 1;;
 esac
 done
@@ -104,14 +97,14 @@ if [ -z "$username" ] || [ -z "$password" ]; then
 fi
 
 # need to download gsql client first before using it to check for other error conditions
-#if [ ! -f "$HOME/gsql-client/gsql_client.jar" ]; then
-#    mkdir -p $HOME/gsql-client
+#if [ ! -f "$HOME/gsql_client/gsql_client.jar" ]; then
+#    mkdir -p $HOME/gsql_client
 #    wget -o wget.log -O $HOME/gsql-client/gsql_client.jar \
 #        'https://dl.bintray.com/tigergraphecosys/tgjars/com/tigergraph/client/gsql_client/3.1.0/gsql_client-3.1.0.jar'
 #    echo "INFO: Downloaded the latest gsql client"
 #fi
 
-if [ $(gsql -u $username -p $password "show user" | grep -c $username) -lt 1 ]; then
+if [ $($gsql_command "show user" | grep -c $username) -lt 1 ]; then
     echo "ERROR: TigerGraph user $username does not exist."
     echo "Please create the user by logging in as user tigergraph and doing:"
     echo "    gsql \"create user\""
@@ -124,13 +117,18 @@ fi
 if [ $verbose -eq 1 ]; then
     echo "INFO: username=$username"
     echo "      password=$password"
-    echo "      dataSource=$data_source"
-    echo "      numPartitionsNode=$num_partitions_node"
+    echo "      data_root=$data_root"
     echo "      xgraph=$xgraph"
-    echo "      numNodes=$num_nodes"
-    echo "      numDevices=$num_devices"
-    echo "      compileMode=$compile_mode"
-    echo "      partitionMode=$partition_mode"
-    echo "      runMode=$run_mode"    
-    echo "      sshKey=$ssh_key"
+    echo "      load_cache=$load_cache"
+    echo "      load_fpga=$load_fpga"
+    echo "      load_fpga=$num_nodes"
+    echo "      num_devices=$num_devices"
+    echo "      iterations=$iterations"
+    echo "      ssh_key=$ssh_key"
+    echo "      hostname=$hostname"
+    echo "      force_clean=$force_clean"
 fi
+
+
+
+

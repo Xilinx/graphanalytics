@@ -116,9 +116,7 @@ HOST_ARGS :=  -xclbin $(BUILD_DIR)/denseSimilarityKernel.xclbin -weight $(XFLIB_
 VPP_FLAGS += -t $(TARGET) --platform $(XPLATFORM) --save-temps --optimize 2
 VPP_FLAGS += --hls.jobs 8
 VPP_LDFLAGS += --vivado.synth.jobs 8 --vivado.impl.jobs 8
-ifneq (,$(shell echo $(XPLATFORM) | awk '/u55/'))
 VPP_FLAGS += --config $(CUR_DIR)/conn_u50_u55c_u280.cfg
-endif
 
 VPP_FLAGS += -I$(XFLIB_DIR)/L1/include/hw
 VPP_FLAGS += -I$(XFLIB_DIR)/L2/include/hw
