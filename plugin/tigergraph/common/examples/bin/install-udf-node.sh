@@ -136,6 +136,25 @@ if [ "$PLUGIN_DEPENDENCIES" != "" ]; then
 fi
 
 #
+# Now remove other plugin UDFs from ExprFunctions.hpp if they exist
+#
+
+demo_name_regex="mergeHeaders.*? ([^ ]*)Demo"
+while :
+do
+	expr_content="$(<$tg_udf_dir/ExprFunctions.hpp)"
+	if [[ "$expr_content" =~ $demo_name_regex ]]; then
+		remove_plugin_name=${BASH_REMATCH[1]}Demo
+		echo "INFO: Found $remove_plugin_name UDFs installed, removing that first"
+		mv $tg_udf_dir/ExprFunctions.hpp $tg_udf_dir/ExprFunctions.hpp.prev
+		python3 $tg_udf_dir/mergeHeaders.py -u $tg_udf_dir/ExprFunctions.hpp.prev "$remove_plugin_name" \
+		 > $tg_udf_dir/ExprFunctions.hpp
+	else
+		break
+	fi
+done
+
+#
 # Install plugin UDFs to ExprFunctions.hpp
 #
 
