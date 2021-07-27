@@ -58,7 +58,7 @@ int create_and_load_alveo_partitions(int argc, char *argv[]);
 
 XILINX_LOUVAINMOD_IMPL_DECL
 float loadAlveoAndComputeLouvain(    
-    char* xclbinPath, bool flow_fast, unsigned int numDevices,
+    char* xclbinPath, int flow_fast, unsigned int numDevices, std::string deviceNames,
     char* alveoProject, unsigned mode_zmq, unsigned numPureWorker, 
     char* nameWorkers[128], unsigned int nodeID,  char* opts_outputFile, 
     unsigned int max_iter, unsigned int max_level, float tolerance, 
@@ -170,7 +170,7 @@ struct Edge {
     long head;
     long tail;
     double weight;
-    Edge(long head_, long tail_, double weight_) {
+    Edge(long head_= 0, long tail_ = 0, double weight_ = 1.0) {
                 head = head_ ;
                 tail = tail_;
                 weight = weight_;
@@ -185,6 +185,7 @@ struct Options {
     XString alveoProject; // Alveo project file .par.proj TODO: to be combined with nameProj
     int flow_fast = 2;  // C
     int devNeed_cmd = 1;  // C
+    XString deviceNames;  // space-separated list of target device names
     unsigned nodeId = 0;  // node ID 0 will be the driver, all others will be workers
     unsigned serverIndex = 0;  // node ID 0 will be the driver, all others will be workers
     XString hostName;  // optional host name of this server for debugging purposes

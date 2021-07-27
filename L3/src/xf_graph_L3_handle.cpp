@@ -80,8 +80,25 @@ void Handle::addOp(singleOP op) {
     ops.push_back(op);
 }
 
-int Handle::setUp() {
+int Handle::setUp(std::string deviceNames)
+{
+    std::cout << "setup deviceNames=" << deviceNames << std::endl;
+
+    const std::string delimiters(" ");
+    for (int i = deviceNames.find_first_not_of(delimiters, 0); i != std::string::npos;
+            i = deviceNames.find_first_not_of(delimiters, i)) {
+        auto tokenEnd = deviceNames.find_first_of(delimiters, i);
+        if (tokenEnd == std::string::npos)
+            tokenEnd = deviceNames.size();
+        const std::string token = deviceNames.substr(i, tokenEnd - i);
+        supportedDeviceNames_.push_back(token);
+        i = tokenEnd;
+        std::cout << "------------------ " << i << "    " << token << std::endl;
+    }
+
+    std::cout << "after setup" << std::endl;
     getEnv();
+
     unsigned int opNm = ops.size();
     unsigned int deviceCounter = 0;
     int32_t status = 0;
@@ -89,10 +106,10 @@ int Handle::setUp() {
     for (unsigned int i = 0; i < opNm; ++i) {
         if (ops[i].operationName == "similarityDense") {
             unsigned int boardNm = ops[i].numDevices;
-            if (deviceCounter + boardNm > totalDevices) {
+            if (deviceCounter + boardNm > totalSupportedDevices_) {
                 std::cout << "ERROR: Current node does not have requested device count." 
                     << "Requested: " << deviceCounter + boardNm 
-                    << "Available: " << totalDevices << std::endl;
+                    << "Available: " << totalSupportedDevices_ << std::endl;
                 return XF_GRAPH_L3_ERROR_NOT_ENOUGH_DEVICES;
             }
             std::thread thUn[boardNm];
@@ -101,7 +118,7 @@ int Handle::setUp() {
                 std::cout << "DEBUG: " << __FUNCTION__ << ": xrm->unloadXclbinNonBlock " 
                           << deviceCounter + j << std::endl;
 #endif
-                thUn[j] = xrm->unloadXclbinNonBlock(deviceCounter + j);
+                thUn[j] = xrm->unloadXclbinNonBlock(supportedDeviceIds_[j]);
             }
             for (unsigned int j = 0; j < boardNm; ++j) {
                 thUn[j].join();
@@ -110,10 +127,10 @@ int Handle::setUp() {
             for (unsigned int j = 0; j < boardNm; ++j) {
 #ifndef NDEBUG__
                 std::cout << "DEBUG: " << __FUNCTION__ << ": xrm->loadXclbinAsync " 
-                          << deviceCounter + j 
-                          << " ops[i].xclbinPath=" << ops[i].xclbinPath << std::endl;
+                          << "\n    devId=" << supportedDeviceIds_[j]
+                          << "\n    ops[i].xclbinPath=" << ops[i].xclbinPath << std::endl;
 #endif
-                th[j] = loadXclbinAsync(deviceCounter + j, ops[i].xclbinPath);
+                th[j] = loadXclbinAsync(supportedDeviceIds_[j], ops[i].xclbinPath);
             }
             for (unsigned int j = 0; j < boardNm; ++j) {
                 auto loadedDevId = th[j].get();
@@ -137,26 +154,49 @@ int Handle::setUp() {
 #ifdef LOUVAINMOD
         if (ops[i].operationName == "louvainModularity") {
             unsigned int boardNm = ops[i].numDevices;
-            if (deviceCounter + boardNm > totalDevices) {
+            if (deviceCounter + boardNm > totalSupportedDevices_) {
                 std::cout << "ERROR: Current node does not have requested device count." 
                     << " Requested: " << deviceCounter + boardNm 
-                    << " Available: " << totalDevices << std::endl;
+                    << " Available: " << totalSupportedDevices_ << std::endl;
                 return XF_GRAPH_L3_ERROR_NOT_ENOUGH_DEVICES;
             }
+
+            // Unload existing xclbin first if present
             std::thread thUn[boardNm];
             for (int j = 0; j < boardNm; ++j) {
-                thUn[j] = xrm->unloadXclbinNonBlock(deviceCounter + j);
+#ifndef NDEBUG__
+                std::cout << "DEBUG: " << "xrm->unloadXclbinNonBlock devId=" << supportedDeviceIds_[j] << std::endl;                
+#endif
+                thUn[j] = xrm->unloadXclbinNonBlock(supportedDeviceIds_[j]);\
             }
             for (int j = 0; j < boardNm; ++j) {
                 thUn[j].join();
             }
-            std::thread th[boardNm];
+
+            // load xclbin asynchronously (i.e. non-blocking) using thread
+            std::future<int> th[boardNm];
+
             for (int j = 0; j < boardNm; ++j) {
-                th[j] = loadXclbinNonBlock(deviceCounter + j, ops[i].xclbinPath);
+#ifndef NDEBUG__
+                std::cout << "DEBUG: " << __FUNCTION__ << ": xrm->loadXclbinAsync " 
+                          << "\n    devId=" << supportedDeviceIds_[j]
+                          << "\n    ops[i].xclbinPath=" << ops[i].xclbinPath << std::endl;
+#endif
+                th[j] = loadXclbinAsync(supportedDeviceIds_[j], ops[i].xclbinPath);
             }
+
+            // wait for thread to finish
             for (int j = 0; j < boardNm; ++j) {
-                th[j].join();
+                auto loadedDevId = th[j].get();
+                if (loadedDevId < 0) {
+                        std::cout << "ERROR: failed to load " << ops[i].xclbinPath << 
+                        "(Status=" << loadedDevId << "). Please check if it is " <<
+                        "created for the Xilinx Acceleration card installed on " <<
+                        "the server." << std::endl;
+                    return loadedDevId;
+                }
             }
+
             deviceCounter += boardNm;
             status = initOpLouvainModularity(ops[i].kernelName, ops[i].xclbinPath, 
                                              ops[i].kernelAlias, ops[i].requestLoad,
@@ -171,6 +211,14 @@ int Handle::setUp() {
         }
     }
     return 0;
+
+}
+
+
+int Handle::setUp() 
+{
+    std::string deviceNames = "xilinx_u50_gen3x16_xdma_201920_3";
+    return setUp(deviceNames);
 }
 
 void Handle::getEnv() {
@@ -200,22 +248,26 @@ void Handle::getEnv() {
     }
     cl_device_id* devices;
     std::vector<cl::Device> devices0 = xcl::get_xil_devices();
-    totalDevices = devices0.size();
-    devices = (cl_device_id*)malloc(sizeof(cl_device_id) * totalDevices);
-    err2 = clGetDeviceIDs(platforms[platformID], CL_DEVICE_TYPE_ALL, totalDevices, devices, NULL);
+    uint32_t totalXilinxDevices = devices0.size();
+    totalSupportedDevices_ = 0;
+    devices = (cl_device_id*)malloc(sizeof(cl_device_id) * totalXilinxDevices);
+    err2 = clGetDeviceIDs(platforms[platformID], CL_DEVICE_TYPE_ALL, totalXilinxDevices, devices, NULL);
     size_t valueSize;
     char* value;
-#ifndef NDEBUG    
-    for (uint32_t i = 0; i < totalDevices; ++i) {
+
+    for (uint32_t i = 0; i < totalXilinxDevices; ++i) {
         // print device name
         clGetDeviceInfo(devices[i], CL_DEVICE_NAME, 0, NULL, &valueSize);
         value = new char[valueSize];
         clGetDeviceInfo(devices[i], CL_DEVICE_NAME, valueSize, value, NULL);
-        std::cout << "INFO: " << __FUNCTION__ << ": Device " << i 
-                  << ":" << value << std::endl;
+        std::cout << "INFO: " << __FUNCTION__ << ": Scanned device " << i << ":" << value << std::endl;
+        if (std::find(supportedDeviceNames_.begin(), supportedDeviceNames_.end(), value) != supportedDeviceNames_.end()) {
+            std::cout << "    Supported device found:" << value << std::endl;            
+            supportedDeviceIds_[totalSupportedDevices_++] = i;  // save curret supported supported devices
+        }      
         delete[] value;
     }
-#endif    
+    std::cout << "INFO: " << __FUNCTION__ << ": Total supported devices: " << totalSupportedDevices_ << std::endl; 
 }
 
 void Handle::showHandleInfo() {
@@ -272,14 +324,16 @@ void Handle::loadXclbin(unsigned int deviceId, char* xclbinName) {
     xrm->loadXclbin(deviceId, xclbinName);
 };
 
-std::thread Handle::loadXclbinNonBlock(unsigned int deviceId, std::string& xclbinName) {
-    return xrm->loadXclbinNonBlock(deviceId, xclbinName);
-};
-
-std::future<int> Handle::loadXclbinAsync(unsigned int deviceId, std::string& xclbinPath) {
+/*
+std::thread Handle::loadXclbinNonBlock(unsigned int deviceId, std::string& xclbinPath) {
 #ifndef NDEBUG    
     std::cout << "DEBUG: " << __FUNCTION__ << " xclbinPath=" << xclbinPath << std::endl;
 #endif
+    return xrm->loadXclbinNonBlock(deviceId, xclbinPath);
+};
+*/
+
+std::future<int> Handle::loadXclbinAsync(unsigned int deviceId, std::string& xclbinPath) {
     return xrm->loadXclbinAsync(deviceId, xclbinPath);
 };
 

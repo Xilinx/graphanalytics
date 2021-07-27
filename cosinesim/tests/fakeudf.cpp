@@ -181,14 +181,12 @@ extern "C" int load_graph_cosinesim_ss_dense_fpga_wrapper(uint32_t numDevices,
 extern "C" void cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
                                         int32_t sourceLen,
                                         int32_t* sourceWeight,
+                                        int32_t* sourceCoeffs,
                                         int32_t topK,
                                         xf::graph::Graph<int32_t, int32_t>** g,
                                         int32_t* resultID,
-                                        float* similarity) {
-    //---------------- Run Load Graph -----------------------------------
-//    std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
-//              << " XRT_INI_PATH=" << std::getenv("XRT_INI_PATH") << std::endl;
-
+                                        float* similarity) 
+{
     std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time =
             std::chrono::high_resolution_clock::now();
     std::cout << "DEBUG: " << __FUNCTION__ << " start=" << l_start_time.time_since_epoch().count() 
@@ -219,7 +217,7 @@ extern "C" void cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
     //---------------- Run L3 API -----------------------------------
     for (int m = 0; m < requestNm; ++m) {
         eventQueue[m] = xf::graph::L3::cosineSimilaritySSDenseMultiCard(
-            *handle0, hwNm, sourceLen, sourceWeight, topK, g,
+            *handle0, hwNm, sourceLen, sourceWeight, sourceCoeffs, topK, g,
             resultID0[m], similarity0[m]);
     }
 
@@ -458,6 +456,8 @@ inline ListAccum<XilCosinesimMatch> udf_cosinesim_ss_fpga(int64_t topK,
     unsigned int sourceLen = edgeAlign8; // sourceIndice array length
     int32_t* sourceWeight =
         xf::graph::internal::aligned_alloc<int32_t>(sourceLen); // weights of source vertex's out members
+    int32_t* sourceCoeffs = xf::graph::internal::aligned_alloc<int32_t>(sourceLen); 
+    
     int32_t newVecLen = newVector.size() - 3;
     for (int i = 0; i < (int)sourceLen; i++) {
         if (i < newVecLen) {
@@ -490,7 +490,7 @@ inline ListAccum<XilCosinesimMatch> udf_cosinesim_ss_fpga(int64_t topK,
     //-------------------------------------------------------------------------
 
     cosinesim_ss_dense_fpga(
-                  devicesNeeded * cuNm, sourceLen, sourceWeight, topK, g, 
+                  devicesNeeded * cuNm, sourceLen, sourceWeight, sourceCoeffs, topK, g, 
                   resultID, similarity);
     //---------------------------------------------------------------------------
     std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time1 =

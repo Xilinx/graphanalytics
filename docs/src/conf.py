@@ -123,7 +123,7 @@ language = None
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'README.md',
                     'rst/namespace_xf*.rst', 'rst/struct_xf*.rst', 'rst/enum_xf*.rst',
                     'rst/namespace_std.rst',
-                    'rst/index.rst', 'rst/global.rst', 'rst/gqe_join.rst']
+                    'rst/index.rst', 'rst/global.rst', 'rst/gqe_join.rst', 'cosinesim/page_index.rst']
 
 
 # The name of the Pygments (syntax highlighting) style to use.

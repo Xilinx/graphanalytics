@@ -1,0 +1,147 @@
+#
+# Copyright 2020-2021 Xilinx, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+set query_timeout = 600000
+use graph @graph
+drop query all
+
+CREATE QUERY load_glove_model() for graph @graph {
+    udf_load_glove("/tmp/glove.6B.50d.txt");
+}
+
+
+CREATE QUERY log_embedding(vertex<LogRecord> targetLogRecord) for graph @graph returns (ListAccum<int>) {
+    // Global accumulators
+    ListAccum<int> @@logRecordVector;
+    ListAccum<string> @@tempVec;
+
+    @@logRecordVector += udf_get_log_record_msg_vec(targetLogRecord.SEVERITY + " " + targetLogRecord.MESSAGE);
+
+    logRecordList = {targetLogRecord};
+
+    # System
+    @@tempVec.clear();
+    property_list (ANY) = select cpu FROM logRecordList-(loggedOnSystem:e)-System:cpu
+        ACCUM @@tempVec += cpu.Name;
+
+    return @@logRecordVector;
+}
+
+
+CREATE QUERY cosinesim_clear_embeddings() FOR GRAPH @graph {
+    ListAccum<INT> @@emptyVec;
+
+    population = {LogRecord.*};
+    UPDATE p FROM population:p
+        SET p.COSINE_SIM_VECTOR = @@emptyVec;
+    UPDATE p FROM population:p
+        SET p.COSINE_SIM_NORMAL = 0;
+}
+
+
+CREATE QUERY cosinesim_embed_vectors() FOR GRAPH @graph {
+    load_glove_model();
+
+    population = {LogRecord.*};
+    UPDATE p FROM population:p
+        SET p.COSINE_SIM_VECTOR = log_embedding(p);
+}
+
+
+CREATE QUERY cosinesim_embed_normals() FOR GRAPH @graph {
+    # Cache normals, just for software cosine similarity
+    population = {LogRecord.*};
+    UPDATE p FROM population:p
+        SET p.COSINE_SIM_NORMAL = udf_calculate_normal(p.COSINE_SIM_VECTOR);
+}
+
+
+CREATE QUERY cosinesim_match_sw(vertex<LogRecord> source, uint topKID)
+FOR GRAPH @graph RETURNS (ListAccum<XilCosinesimMatch>) {
+
+# Heap with max size of topKID sorted decending by score then ascending last name
+    HeapAccum<XilCosinesimMatch>(topKID, score DESC, Id ASC) @@topK_Heap;
+    ListAccum<XilCosinesimMatch> @@topK;
+    ListAccum<INT> @@targetLogRecordVector;
+    DOUBLE targetLogRecordNormal;
+
+# Log Record Population
+    population = {LogRecord.*};
+    @@targetLogRecordVector = log_embedding(source);
+    targetLogRecordNormal = udf_calculate_normal(@@targetLogRecordVector);
+
+    logRecordList = SELECT p FROM population:p
+        ACCUM @@topK_Heap += XilCosinesimMatch(p,
+            udf_cos_theta(p.COSINE_SIM_VECTOR, p.COSINE_SIM_NORMAL, @@targetLogRecordVector, targetLogRecordNormal));
+
+    FOREACH item IN @@topK_Heap DO
+        @@topK += item;
+    END;
+
+    RETURN @@topK;
+}
+
+
+CREATE DISTRIBUTED QUERY cosinesim_set_num_devices(UINT num_devices) FOR GRAPH @graph {
+    udf_xilinx_recom_set_num_devices(num_devices);
+}
+
+
+CREATE DISTRIBUTED QUERY cosinesim_get_num_devices() FOR GRAPH @graph RETURNS (UINT) {
+    UINT ret;
+    ret = udf_xilinx_recom_get_num_devices();
+    return ret;
+}
+
+
+CREATE DISTRIBUTED QUERY cosinesim_is_fpga_initialized() FOR GRAPH @graph RETURNS (BOOL) {
+    BOOL ret;
+    ret = udf_xilinx_recom_is_initialized();
+    RETURN ret;
+}
+
+
+create query load_graph_cosinesim_ss_fpga_core() for graph @graph returns (int) {
+    ListAccum<ListAccum<int> > @@logRecordVectors;
+    ListAccum<UINT> @@logRecordIds;
+    int ret;
+
+    population = {LogRecord.*};
+    logRecordList = select p from population:p
+        ACCUM @@logRecordVectors += p.COSINE_SIM_VECTOR, @@logRecordIds += getvid(p);
+
+    ret = udf_xilinx_recom_load_population_vectors(@@logRecordVectors, @@logRecordIds);
+    return ret;
+}
+
+
+create query cosinesim_ss_fpga_core (vertex<LogRecord> source, uint topK) for
+    graph @graph returns (ListAccum<XilCosinesimMatch>)
+{
+    ListAccum<XilCosinesimMatch> @@results;
+    ListAccum<int> @@targetLogRecordVector;
+
+    #@@targetLogRecordVector = log_embedding(source);
+    @@targetLogRecordVector = source.COSINE_SIM_VECTOR;
+
+    @@results = udf_xilinx_recom_match_target_vector(topK, @@targetLogRecordVector);
+    return @@results;
+}
+
+
+install query load_glove_model, log_embedding, cosinesim_clear_embeddings, cosinesim_embed_vectors, cosinesim_embed_normals,
+    cosinesim_match_sw, cosinesim_set_num_devices,
+    cosinesim_get_num_devices, cosinesim_is_fpga_initialized,
+    load_graph_cosinesim_ss_fpga_core, cosinesim_ss_fpga_core

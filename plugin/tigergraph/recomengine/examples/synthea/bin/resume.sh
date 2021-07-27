@@ -30,6 +30,9 @@
 # limitations under the License.
 #
 
+# This script resumes embedding computation if previous one was interrupted. 
+# It uses GSQL queries defined in resume.gsql.
+
 script_dir=$(dirname "$0")
 # common.sh sets up gsql client, gets username, passowrd, xgraph name
 . $script_dir/common.sh

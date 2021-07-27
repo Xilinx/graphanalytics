@@ -29,15 +29,12 @@ endif
 
 # doxygen settings
 DOXYGEN_CPP_CONFIG_FILE = DoxyFile-cpp
-COSINESIM_VERSION = ../../cosinesim/VERSION
 DOXYGEN_XML_TARGET_DIR = xml-cpp-docs
+
 
 # doxyrest settings
 DOXYREST_FRAME = $(dir $(shell which doxyrest))/../share/doxyrest/frame
 DOXYREST_RST_TARGET_DIR = rst-cpp-docs
-RST_FILES = index.rst overview.rst recomengine-example-jupyter.rst \
-            recomengine-example-script.rst cosinesim-example-makefile.rst \
-			cosinesim-example-jupyter.rst cosinesim-example-python.rst
 
 .PHONY: all install xml rst html clean cleanhtml cleanall 
 
@@ -47,35 +44,118 @@ install: .stamp/sphinx
 	rsync -av --delete --exclude .git --exclude .buildinfo \
 		 _build/html/ $(HTML_DEST_DIR) 1>/dev/null
 
-.stamp/doxygen: $(DOXYGEN_CPP_CONFIG_FILE)
+
+#######################################################################################################################
+
+#
+# Cosine Similarity Alveo Product
+#
+
+COSINESIM_RST_NAMES = \
+    api.rst cpp-api.rst cpp-classes.rst demos.rst index.rst installation.rst \
+    cosinesim-example-makefile.rst cosinesim-example-jupyter.rst cosinesim-example-python.rst
+
+COSINESIM_RST_FILES = $(addprefix cosinesim/,$(COSINESIM_RST_NAMES))
+COSINESIM_VERSION = ../../cosinesim/VERSION
+COSINESIM_TRIGGER_FILES = ../../cosinesim/include/cosinesim.hpp
+
+.stamp/cosinesim-doxygen: .stamp cosinesim/$(DOXYGEN_CPP_CONFIG_FILE) $(COSINESIM_TRIGGER_FILES)
+	cd cosinesim && \
 	rm -rf $(DOXYGEN_XML_TARGET_DIR) && \
-	mkdir $(DOXYGEN_XML_TARGET_DIR) && \
-	sed 's,COSINESIM_VERSION,$(strip $(shell cat $(COSINESIM_VERSION))),g' < $(DOXYGEN_CPP_CONFIG_FILE) > $(DOXYGEN_XML_TARGET_DIR)/doxyfile.tmp && \
+	mkdir -p $(DOXYGEN_XML_TARGET_DIR) && \
+	sed 's,COSINESIM_VERSION,$(strip $(shell cat $(COSINESIM_VERSION))),g' < $(DOXYGEN_CPP_CONFIG_FILE) \
+	    > $(DOXYGEN_XML_TARGET_DIR)/doxyfile.tmp && \
 	doxygen $(DOXYGEN_XML_TARGET_DIR)/doxyfile.tmp && \
 	rm -f $(DOXYGEN_XML_TARGET_DIR)/doxyfile.tmp && \
-	mkdir -p .stamp && touch .stamp/doxygen
+	cd .. && \
+	touch .stamp/cosinesim-doxygen
 
-.stamp/doxyrest: .stamp/doxygen doxyrest-config.lua
+.stamp/cosinesim-doxyrest: .stamp/cosinesim-doxygen cosinesim/doxyrest-config.lua
+	cd cosinesim && \
 	rm -rf $(DOXYREST_RST_TARGET_DIR) && \
-	mkdir $(DOXYREST_RST_TARGET_DIR) && \
+	mkdir -p $(DOXYREST_RST_TARGET_DIR) && \
 	doxyrest $(DOXYGEN_XML_TARGET_DIR)/index.xml -o $(DOXYREST_RST_TARGET_DIR)/index.rst && \
-	touch .stamp/doxyrest
+	rm -f $(DOXYREST_RST_TARGET_DIR)/index.rst && \
+	cd .. && \
+	touch .stamp/cosinesim-doxyrest
 
-.stamp/sphinx: .stamp/doxyrest Makefile-sphinx.mk $(RST_FILES) conf.py
-	mkdir -p .stamp && \
+# Above recipe removes index.rst, as it is replaced by a hand-generated one, and this one causes a warning
+
+.PHONY: cosinesim-clean
+
+cosinesim-clean:
+	cd cosinesim; \
+	rm -rf $(DOXYGEN_XML_TARGET_DIR) $(DOXYREST_RST_TARGET_DIR)
+
+#######################################################################################################################
+
+#
+# Recommendation Engine for TigerGraph 3.x
+#
+
+RECOM_TG3_RST_NAMES = \
+    api.rst index.rst install.rst overview.rst \
+    recomengine-example-script.rst recomengine-example-jupyter.rst \
+    synthea-install.rst synthea-overview.rst synthea-query.rst synthea.rst \
+    users-guide.rst
+
+RECOM_TG3_RST_FILES = $(addprefix recom-tg3/,$(RECOM_TG3_RST_NAMES))
+RECOM_TG3_SRC_DIR = ../../plugin/tigergraph
+RECOM_TG3_VERSION = $(RECOM_TG3_SRC_DIR)/VERSION
+RECOM_TG3_TRIGGER_FILES = $(RECOM_TG3_SRC_DIR)/udf/xilinxRecomEngine.hpp
+
+.stamp/recom-tg3-doxygen: .stamp recom-tg3/$(DOXYGEN_CPP_CONFIG_FILE) $(RECOM_TG3_TRIGGER_FILES)
+	cd recom-tg3 && \
+	rm -rf $(DOXYGEN_XML_TARGET_DIR) && \
+	mkdir -p $(DOXYGEN_XML_TARGET_DIR) && \
+	sed 's,RECOM_TG3_VERSION,$(strip $(shell cat $(RECOM_TG3_VERSION))),g' < $(DOXYGEN_CPP_CONFIG_FILE) \
+	    > $(DOXYGEN_XML_TARGET_DIR)/doxyfile.tmp && \
+	doxygen $(DOXYGEN_XML_TARGET_DIR)/doxyfile.tmp && \
+	rm -f $(DOXYGEN_XML_TARGET_DIR)/doxyfile.tmp && \
+	cd .. && \
+	touch .stamp/recom-tg3-doxygen
+
+.stamp/recom-tg3-doxyrest: .stamp/recom-tg3-doxygen recom-tg3/doxyrest-config.lua
+	cd recom-tg3 && \
+	rm -rf $(DOXYREST_RST_TARGET_DIR) && \
+	mkdir -p $(DOXYREST_RST_TARGET_DIR) && \
+	doxyrest $(DOXYGEN_XML_TARGET_DIR)/index.xml -o $(DOXYREST_RST_TARGET_DIR)/index.rst && \
+	rm -f $(DOXYREST_RST_TARGET_DIR)/index.rst && \
+	cd .. && \
+	touch .stamp/recom-tg3-doxyrest
+
+# Above recipe removes index.rst, as it is replaced by a hand-generated one, and this one causes a warning
+
+.PHONY: recom-tg3-clean
+
+recom-tg3-clean:
+	cd recom-tg3; \
+	rm -rf $(DOXYGEN_XML_TARGET_DIR) $(DOXYREST_RST_TARGET_DIR)
+
+
+#######################################################################################################################
+
+RST_FILES = index.rst notice.rst tg3-plugins.rst vitis-dev-flow.rst \
+    $(COSINESIM_RST_FILES) \
+    $(RECOM_TG3_RST_FILES)
+
+.PHONY: doxyrest
+
+doxyrest: .stamp .stamp/cosinesim-doxyrest .stamp/recom-tg3-doxyrest
+
+.stamp/sphinx: doxyrest Makefile-sphinx.mk $(RST_FILES) conf.py
 	make -f Makefile-sphinx.mk html && \
 	touch .stamp/sphinx
 
-html:
-	mkdir -p .stamp
-	rm -rf .stamp/sphinx _build/doctrees _build/html
-	make .stamp/sphinx
+html: cleanhtml .stamp/sphinx
 
-clean:
+.stamp:
+	mkdir -p .stamp
+
+
+clean: cosinesim-clean recom-tg3-clean cleanhtml
 	rm -rf .stamp
 
 cleanhtml:
 	rm -rf .stamp/sphinx _build/html _build/doctrees
 
-cleanall:
-	rm -rf .stamp _build/html _build/doctrees

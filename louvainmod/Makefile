@@ -59,7 +59,7 @@ CXXFLAGS = -std=c++11 -DPRAGMA -Ofast -fopenmp -fmessage-length=0  -fPIC -Wall -
     -Wno-narrowing -D USE_HBM -fmessage-length=0 -D LOUVAINMOD
 
 # Define the target directories.
-
+#DEBUG = 1
 ifdef DEBUG
 CPP_BUILD_DIR = Debug
 CXXFLAGS += -O0 -g
@@ -68,6 +68,10 @@ CPP_BUILD_DIR = Release
 CXXFLAGS += -O3 -DNDEBUG
 endif
 
+USE_U55C = 0
+ifeq ($(USE_U55C),1)
+    CXXFLAGS += -D USE_U55C
+endif
 
 ## Target: libLouvain.so
 INCLUDES_libLouvain = \
@@ -77,7 +81,7 @@ INCLUDES_libLouvain = \
 	-I$(XILINX_XRM)/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L2/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L3/include \
-	-isystem $(GRAPH_ANALYTICS_DIR)/L3/include/include_hls \
+	-isystem $(GRAPH_ANALYTICS_DIR)/ext/HLS_arbitrary_Precision_Types/include \
 	-I$(GRAPH_ANALYTICS_DIR)/ext/xcl2 \
 	-I$(GRAPH_ANALYTICS_DIR)/plugin/tigergraph/comdetect/udf/QueryUdf \
 #	-I${JAVA_HOME}/include \
@@ -215,13 +219,12 @@ INCLUDES_test = \
 	-I$(GRAPH_ANALYTICS_DIR)/L2/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L3/include \
 	-I$(GRAPH_ANALYTICS_DIR)/ext/xcl2 \
-	-I$(GRAPH_ANALYTICS_DIR)/L3/include/include_hls \
+	-isystem $(GRAPH_ANALYTICS_DIR)/ext/HLS_arbitrary_Precision_Types/include 
 
 LDLIBS_test = \
 	
 
 SRC_FILE_NAMES_test = \
-    louvainmod_test.cpp \
     apitest.cpp \
     pardump.cpp
 
@@ -231,7 +234,6 @@ DEPS_test = $(OBJS_test:.o=.d)
 
 # List of all test executables to build
 EXEC_FILE_NAMES_test = \
-    louvainmod_test \
     apitest \
     pardump
 
@@ -248,15 +250,6 @@ cppTest2: $(EXECS_test)
 # Test executables
 
 LDFLAGS_test = -fPIC -w -L $(CPP_BUILD_DIR) -l$(LIB_SHORT_NAME) -lzmq -fopenmp -m64
-
-$(CPP_BUILD_DIR)/louvainmod_test: $(CPP_BUILD_DIR)/louvainmod_test.o $(CPP_BUILD_DIR)/$(LIB_NAME)
-	$(LINK.cc) -o $@ $< $(LDFLAGS_test) $(LIB_DEPS)
-
-#$(CPP_BUILD_DIR)/cosinesim_dyn_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUILD_DIR)/$(LOADER_NAME) $(CPP_BUILD_DIR)/$(LIB_NAME)
-#	$(LINK.cc) -o $@ $< -fPIC -w -L $(CPP_BUILD_DIR) -l$(LOADER_SHORT_NAME) -ldl $(LIB_DEPS)
-
-run-test: cppTest
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) $(CPP_BUILD_DIR)/louvainModularity_test $(NUMDEVICES)
 
 #run-dyn-test: cppTest
 #	LD_PRELOAD=$(PWD)/$(CPP_BUILD_DIR)/$(LIB_NAME) LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) \
@@ -275,50 +268,56 @@ alveoProject = $(APITEST_OUT_DIR)/as-skitter-par9
 numPars=1
 serverPar=1 9
 numDevices=3
+#deviceNames="xilinx_u50_gen3x16_xdma_201920_3 xilinx_u55c_gen3x16_xdma_base_1"
+#deviceNames="xilinx_u50_gen3x16_xdma_201920_3"
+deviceNames="xilinx_u55c_gen3x16_xdma_base_1"
 CMDLINE_CREATE_PARTITIONS = $(graph) \
     -fast -par_num $(numPars) -create_alveo_partitions -name $(APITEST_OUT_DIR)/as-skitter-par9 \
 	-server_par $(serverPar)
 
-WORKERS=192.168.1.21 192.168.1.31
+WORKERS="192.168.1.21 192.168.1.31"
 CMDLINE_LOAD_COMPUTE = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
-    -fast -dev 1 -num_level 100 -num_iter 100 -load_alveo_partitions \
+    -fast -num_devices $(numDevices) -devices $(deviceNames) -num_level 100 -num_iter 100 -load_alveo_partitions \
 	$(alveoProject).par.proj -setwkr 0 -driverAlone
 
 CMDLINE_LOAD_COMPUTE_DRIVER = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
-    -fast -dev $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
+    -fast -num_devices $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
 	$(alveoProject).par.proj -setwkr 2 $(WORKERS) -driverAlone
 
 CMDLINE_LOAD_COMPUTE_WORKER1 = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
-    -fast -dev $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
+    -fast -num_devices $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
 	$(alveoProject).par.proj -workerAlone 1
 
 CMDLINE_LOAD_COMPUTE_WORKER2 = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
-    -fast -dev $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
+    -fast -num_devices $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
 	$(alveoProject).par.proj -workerAlone 2
 
-run-apitest-create-partitions: stage cppTest
+.PHONY: run-create-partition run-load-compute run-load-compute-driver run-load-compute-worker1 run-load-compute-worker2
+
+run-create-partitions: stage cppTest
 	rm -rf $(APITEST_OUT_DIR)
 	mkdir -p $(APITEST_OUT_DIR)
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_CREATE_PARTITIONS)
 
-run-apitest-load-compute: stage cppTest
+$(alveoProject).par.proj: run-create-partitions
+
+run-load-compute: stage cppTest $(alveoProject).par.proj
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE)
 
 
-run-apitest-load-compute-driver: stage cppTest
+run-load-compute-driver: stage cppTest
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE_DRIVER)
 
-run-apitest-load-compute-worker1: stage cppTest
+run-load-compute-worker1: stage cppTest
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE_WORKER1)
 
-run-apitest-load-compute-worker2: stage cppTest
+run-load-compute-worker2: stage cppTest
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE_WORKER2)	
 
 debug-apitest: cppTest
 	rm -rf $(APITEST_OUT_DIR)
 	mkdir -p $(APITEST_OUT_DIR)
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); totalview $(CPP_BUILD_DIR)/apitest -a $(CMDLINE_CREATE_PARTITIONS)
-
 
 #LDFLAGS_fakeudf = -fPIC -w -L /scratch/tigergraph/tigergraph/app/3.1.0/dev/gdk/gsql/src/QueryUdf -lgraphL3wrapper -ldl
 #LDFLAGS_fakeudf = -fPIC -w -L $(CPP_BUILD_DIR) -l$(LIB_SHORT_NAME)
@@ -362,7 +361,15 @@ endif
 # XCLBIN
 #
 
-
+ifeq ($(USE_U55C),1)
+L2_TOP_DIR = $(GRAPH_ANALYTICS_DIR)/L2/louvainmod_opt_kernel
+L2_XDEVICE = xilinx_u55c_gen3x16_xdma_1
+L2_BUILD_DIR = $(L2_TOP_DIR)/build_dir.hw.$(L2_XDEVICE)
+XCLBIN_NAME = kernel_louvain_opt.xclbin
+XCLBIN_FILE = $(L2_BUILD_DIR)/$(XCLBIN_NAME)
+XCLBIN_INSTALLED_NAME = louvainmod_opt_$(L2_XDEVICE).xclbin
+XCLBIN_INSTALLED =/opt/xilinx/apps/graphanalytics/louvainmod/1.0/xclbin/$(XCLBIN_INSTALLED_NAME)
+else
 L2_TOP_DIR = $(GRAPH_ANALYTICS_DIR)/L2/louvainmod_pruning_kernel
 L2_XDEVICE = xilinx_u50_gen3x16_xdma_201920_3
 L2_BUILD_DIR = $(L2_TOP_DIR)/build_dir.hw.$(L2_XDEVICE)
@@ -370,7 +377,7 @@ XCLBIN_NAME = kernel_louvain_pruning.xclbin
 XCLBIN_FILE = $(L2_BUILD_DIR)/$(XCLBIN_NAME)
 XCLBIN_INSTALLED_NAME = louvainmod_pruning_$(L2_XDEVICE).xclbin
 XCLBIN_INSTALLED =/opt/xilinx/apps/graphanalytics/louvainmod/1.0/xclbin/$(XCLBIN_INSTALLED_NAME)
-
+endif
 .PHONY: xclbin
 
 xclbin:
@@ -532,18 +539,32 @@ help:
 	@echo "Valid make targets:"
 	@echo "dist     : Generate product installation package (RPM or DEB) for the current OS and architecture"
 	@echo "doxy-cpp : Generate CPP documentation using doxygen. The default html output directory is ./build/cppdocs"
-	@echo "run-apitest-create-partitions : Run API test of create partitions on a single node"
-	@echo "run-apitest-load-compute : Run API test of load and compute on a single node"
+	@echo "run-create-partitions : Run API test of create partitions on a single node"
+	@echo "run-load-compute : Run API test of load and compute on a single node"
+	@echo ""
 	@echo "-------- Run API test in a cluster with 3 nodes --------"
 	@echo "run-apitest-load-compute-driver: Run API test of load and compute on driver"
 	@echo "run-apitest-load-compute-worker1: Run API test of load and compute on worker 1"
 	@echo "run-apitest-load-compute-worker2: Run API test of load and compute on worker 2"
 	@echo ""
 	@echo "-------- Options --------"
+	@echo "DEBUG: 1: build application in debug mode. 0: build application in release mode."
 	@echo "graph: graph input .mtx file"
 	@echo "alveoProject: Alveo project name without .par.proj extension"
 	@echo "numPars: Number of partitions (default=1)"
 	@echo "serverPar: Multi-server partition setting (default=\"1 9\")"
 	@echo "numDevices: Number of devices (default=3)"
-
-	
+	@echo ""
+	@echo "-------- Examples --------"
+	@echo "Create partion on a single node"
+	@echo "    make run-create-partitions"
+	@echo "Load partition and compute Louvain modularity on a single node"
+	@echo "    make run-load-compute"
+	@echo ""
+	@echo "Load partition and compute Louvain modularity on driver in a cluster"
+	@echo "    make run-load-compute-driver"
+	@echo "Load partition and compute Louvain modularity on worker-1 in a cluster"
+	@echo "    make run-load-compute-worker1"
+	@echo "Load partition and compute Louvain modularity on worker-2 in a cluster"
+	@echo "    make run-load-compute-worker2"
+	@echo ""

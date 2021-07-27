@@ -42,6 +42,5 @@ SCRIPTPATH=`dirname $SCRIPT`
 echo " "
 gsql "$(cat $SCRIPTPATH/query/base.gsql | sed "s/@graph/$xgraph/")"
 gsql -g $xgraph "RUN QUERY insert_dummy_nodes($num_nodes)"
-gsql "$(cat $SCRIPTPATH/query/client.gsql | sed "s/@graph/$xgraph/")"
 gsql "$(cat $SCRIPTPATH/query/query.gsql | sed "s/@graph/$xgraph/")"
 

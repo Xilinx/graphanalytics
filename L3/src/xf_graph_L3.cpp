@@ -44,8 +44,18 @@ std::vector<event<int> > cosineSimilaritySSDenseMultiCard(xf::graph::L3::Handle&
     std::vector<event<int> > eventQueue;
     for (int i = 0; i < deviceNm; ++i) {
         eventQueue.push_back(
-            (handle.opsimdense)->addworkInt(1, 0, sourceNUM, sourceWeights, sourceCoeffs, topK, g[i][0], resultID[i], similarity[i]));
+            (handle.opsimdense)->addworkInt(
+                1,   // similarityType
+                0,   // dataType
+                sourceNUM, 
+                sourceWeights, 
+                sourceCoeffs, 
+                topK, 
+                g[i][0], 
+                resultID[i], 
+                similarity[i]));
     }
+
     return eventQueue;
 };
 

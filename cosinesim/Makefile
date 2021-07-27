@@ -24,16 +24,12 @@ ifndef XILINX_XRM
     export XILINX_XRM
 endif
 
-ifndef XILINX_PLATFORMS
-    XILINX_PLATFORMS = /opt/xilinx/platforms
-    export XILINX_PLATFORMS
-endif
 
 .DELETE_ON_ERROR:
 .PHONY: all
 
 #all: javaApi cppBuild javaTest stage
-all: stage
+all: pythonApi stage
 
 #
 # Global Definitions
@@ -220,7 +216,7 @@ $(CPP_DOXY_TRIGGER_FILE): include/cosinesim.hpp $(CPP_DOXY_CONFIG_FILE)
 # python API wrapper
 #
 
-PYTHON = python3.6
+PYTHON = python3
 PYTHON_DIR = /usr/include/$(PYTHON)
 PYTHONENV_NAME = pyvenv
 PYTHONENV = ./$(PYTHONENV_NAME)/bin/$(PYTHON)
@@ -392,11 +388,15 @@ XCLBIN_INSTALLED = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32
 
 .PHONY: xclbin
 
+
 xclbin:
-	cd $(L2_TOP_DIR); \
-	source $(XILINX_XRT)/setup.sh; \
-	export PLATFORM_REPO_PATHS=$(XILINX_PLATFORMS); \
-	make build TARGET=hw
+	@if [ "$(PLATFORM_REPO_PATHS)" == "" ]; then \
+		echo "PLATFORM_REPO_PATHS environment varaible must be set to the path to Xilinx platform files" ; \
+	else \
+		cd $(L2_TOP_DIR); \
+		source $(XILINX_XRT)/setup.sh; \
+		make build TARGET=hw DEVICE=$(DEVICE); \
+	fi
 	
 $(XCLBIN_FILE):
 	@if [ -r $(XCLBIN_INSTALLED) ]; then \
@@ -448,23 +448,27 @@ $(foreach f,$(STAGE_LIB_FILES),$(eval $(call STAGE_LIB_RULE,$(f))))
 
 # Example files - need to be zipped up
 
-STAGE_EXAMPLE_ZIP = examples.zip
+#STAGE_EXAMPLE_ZIP = examples.zip
 STAGE_EXAMPLE_FILE_NAMES = \
 	cpp/cppdemo.cpp cpp/Makefile cpp/README.md \
     python/pythondemo.py python/run.sh \
-    python/README.md python/jupyter/jupyter_demo.ipynb
+    python/README.md python/jupyter/jupyter_demo.ipynb python/jupyter/wikipedia_demo.ipynb
 
 STAGE_EXAMPLE_FILES = $(addprefix examples/,$(STAGE_EXAMPLE_FILE_NAMES))
 STAGE_STAGED_EXAMPLE_FILES = $(addprefix $(STAGE_DIR)/,$(STAGE_EXAMPLE_FILES))
 
-.PHONY: stage fill-example-stage
+.PHONY: stage fill-example-stage stage-examples
 
-$(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP): $(STAGE_EXAMPLE_FILES)
+#$(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP): $(STAGE_EXAMPLE_FILES)
+#	mkdir -p $(sort $(dir $(STAGE_STAGED_EXAMPLE_FILES)))
+#	@make fill-example-stage
+#	@cd $(STAGE_DIR) ; \
+#	zip -r $(STAGE_EXAMPLE_ZIP) examples
+#	rm -rf $(STAGE_DIR)/examples
+
+stage-examples: $(STAGE_EXAMPLE_FILES)
 	mkdir -p $(sort $(dir $(STAGE_STAGED_EXAMPLE_FILES)))
 	@make fill-example-stage
-	@cd $(STAGE_DIR) ; \
-	zip -r $(STAGE_EXAMPLE_ZIP) examples
-	rm -rf $(STAGE_DIR)/examples
 
 fill-example-stage: $(STAGE_STAGED_EXAMPLE_FILES)
 	
@@ -487,11 +491,14 @@ STAGE_SUBDIRS = $(addprefix $(STAGE_DIR)/,$(STAGE_SUBDIR_NAMES))
 STAGE_ALL_FILES = \
     $(addprefix $(STAGE_DIR)/,$(STAGE_COPY_FILES)) \
     $(addprefix $(STAGE_DIR)/lib/,$(STAGE_LIB_FILES)) \
-    $(STAGE_XCLBIN_FILE) \
-    $(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP) \
+    $(STAGE_XCLBIN_FILE) 
+#    $(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP) \
 
-stage: cppTest $(STAGE_SUBDIRS) $(STAGE_ALL_FILES)
+.PHONY: stage stage2
+stage: 
+	make stage2
 
+stage2: cppTest $(STAGE_SUBDIRS) stage-examples $(STAGE_ALL_FILES)
 $(STAGE_SUBDIRS):
 	mkdir -p $@
 
@@ -546,8 +553,24 @@ clean:
 clean-xclbin:
 	rm -f $(XCLBIN_FILE)
 
+.PHONY: help
 help:
-	@echo "Valid make targets:"
-	@echo "dist     : Generate cosinesim product package (RPM or DEB) for the current OS and architecture"
-	@echo "doxy-cpp : Generate CPP documentation using doxygen. The default html output directory is ./build/cppdocs"
-	@echo "run-test : Run standalone test with statically linked executable"
+	@echo "Makefile Usage:"
+	@echo "  make"
+	@echo "      Build staging files including the library for PythonAPI"
+	@echo ""
+	@echo "  make dist"
+	@echo "      Generate cosinesim product package (RPM or DEB) for the current OS and architecture"
+	@echo ""
+	@echo "  make doxy-cpp "
+	@echo "      Generate CPP documentation using doxygen. The default html output directory is ./build/cppdocs"
+	@echo ""
+	@echo "  make run-test"
+	@echo "      Run standalone test with statically linked executable"
+	@echo ""
+	@echo "  make xclbin DEVICE=<FPGA platform>"
+	@echo "      Build xclbin file targetting specified device. Vitis tool and PLATFORM_REPO_PATHS must be set to make xclbin."
+	@echo "      Supported devices:"
+	@echo "      xilinx_u50_gen3x16_xdma_201920_3 (Vitis 2020.2)"
+	@echo "      xilinx_u55c_gen3x16_xdma_1_202110_1 (Vitis 2021.1)"
+	@echo ""

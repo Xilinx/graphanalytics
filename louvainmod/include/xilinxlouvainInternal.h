@@ -40,10 +40,24 @@ using namespace std;
 #define CSRWIDTHS (256)
 #define COLORWIDTHS (32)
 #define NUM (DWIDTHS / 32)
-#define MAXNV (1ul << 26)  //  67,108,864
-#define MAXNE (1 << 27)  // 134,217.728
-#define VERTEXS (MAXNV / NUM)
-#define EDGES (MAXNE / NUM)
+// design for kernel, but only host used now
+//#ifndef USE_U55C
+//#define MAXNV (1ul << 26)  //  67,108,864
+//#define MAXNE (1 << 27)  // 134,217.728
+//#define MAXNV_M (64000000)
+//#else
+//#define MAXNV (1ul << 27)
+//#define MAXNE (1 << 28)
+//#define MAXNV_M (128000000)
+//#endif
+//#define VERTEXS (MAXNV / NUM)
+//#define EDGES (MAXNE / NUM)
+
+// glb will be init in ParLV.cpp:host_ParserParameters
+extern int glb_MAXNV ;
+extern int glb_MAXNE ;
+extern int glb_MAXNV_M ;
+
 #define DEGREES (1 << 17)
 #define COLORS (4096)
 typedef double DWEIGHT;
@@ -526,6 +540,16 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_renumber(
 		//Updated variables
 	    int*          	 colors,
 		KMemorys_host_prune* buff_host_prune);
+double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_renumber_2cu(
+        int                 numColors,
+        long                NVl,
+        graphNew*           G,
+        long*               M,
+        double              opts_C_thresh,
+        double*             currMod,
+        //Updated variables
+        int*                colors,
+        KMemorys_host_prune *buff_host);
 double PhaseLoop_UsingFPGA_Prep_Read_buff_host_prune(
 		long           	vertexNum,
 		KMemorys_host_prune*  buff_host_prune,

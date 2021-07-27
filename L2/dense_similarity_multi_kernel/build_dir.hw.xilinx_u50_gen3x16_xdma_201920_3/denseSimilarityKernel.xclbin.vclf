@@ -1,9 +1,6 @@
 {
-    "tags": [
-        "xilinx_u50_gen3x16_xdma_201920_3",
-        "vitis-2021.1"
-    ],
-    "sha256sum": "667e6e2e5e99b67d9b099997af3f46eb1d50afa5b0843e71cea63046221b8349",
+    "note": "stub file for large file",
+    "tags": [],
     "filename": "denseSimilarityKernel.xclbin",
-    "note": "stub file for large file"
+    "sha256sum": "00dcb6699bb4feb44402aac554b16ef3456feee5dad9f49c3874c0998d1a3161"
 }

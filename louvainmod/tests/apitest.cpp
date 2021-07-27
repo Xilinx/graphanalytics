@@ -48,16 +48,16 @@ int main(int argc, char **argv) {
         clusterIps << "127.0.0.1";
         for (int i = 0; i < toolOptions.numPureWorker; i++) {
             clusterIps << ' ' << toolOptions.nameWorkers[i];
-            std::cout << "------------" << i << " " << toolOptions.nameWorkers[i] << std::endl;
         }
     }
 
-
+    // set internal options fields based to commandline options
     options.xclbinPath = toolOptions.xclbinPath;
     options.flow_fast = toolOptions.flow_fast;
     options.nameProj = toolOptions.nameProj;
     options.alveoProject = toolOptions.alveoProject;
     options.devNeed_cmd = toolOptions.numDevices;
+    options.deviceNames = toolOptions.deviceNames;   
     if (toolOptions.mode_zmq == ZMQ_DRIVER)
         options.nodeId = 0;
     else if (toolOptions.mode_zmq == ZMQ_WORKER)
@@ -66,6 +66,9 @@ int main(int argc, char **argv) {
     options.hostName = "localhost";
     options.hostIpAddress = serverIp.str();
     options.clusterIpAddresses = clusterIps.str();
+
+    // create louvainMod object with internal "options". These options are common 
+    // between partition and load/compute operations
     LouvainMod louvainMod(options);
 
     switch (toolOptions.mode_alveo) {

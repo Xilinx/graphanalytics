@@ -24,6 +24,10 @@
 #include "zmq/driver-worker/worker.hpp"
 #include "zmq/driver-worker/driver.hpp"
 
+int glb_MAXNV;
+int glb_MAXNE;
+int glb_MAXNV_M;
+
 using namespace std;
 
 // time functions
@@ -914,23 +918,25 @@ void ParameterError(const char* msg) {
     exit(1);
 }
 
+
 int host_ParserParameters(int argc,
                           char** argv,
-                          double& opts_C_thresh,   //; //Threshold with coloring on
-                          long& opts_minGraphSize, //; //Min |V| to enable coloring
-                          double& opts_threshold,  //; //Value of threshold
-                          int& opts_ftype,         //; //File type
-                          char opts_inFile[4096],  //;
+                          double& opts_C_thresh,   // Threshold with coloring on
+                          long& opts_minGraphSize, // Min |V| to enable coloring
+                          double& opts_threshold,  // Value of threshold
+                          int& opts_ftype,         // File type
+                          char opts_inFile[4096],  //
                           bool& opts_coloring,     //
-                          bool& opts_output,       //;
+                          bool& opts_output,       //
                           std::string& opts_outputFile,
                           bool& opts_VF, //;
-                          std::string& xclbinPath,
+                          std::string& xclbinPath,     // Full path including filename to the xclbin files to be loaded
+                          std::string& deviceNames,    // Target device names
                           int& numThread,
                           int& num_par,
                           int& gh_par,
                           int& flow_prune,
-                          int& devNeed,
+                          int& numDevices,
                           int& mode_zmq,
                           char* path_zmq,
                           bool& useCmd,
@@ -942,7 +948,9 @@ int host_ParserParameters(int argc,
                           int& nodeID,
 						  int& server_par,
 						  int& max_num_level,
-						  int& max_num_iter) {
+						  int& max_num_iter
+                          ) 
+{
     const int max_parameter = 100;
     bool rec[max_parameter];
     for (int i = 1; i < argc; i++) rec[i] = false;
@@ -954,14 +962,16 @@ int host_ParserParameters(int argc,
     int has_opts_coloring = general_findPara(argc, argv, "-c");
     int has_opts_output = general_findPara(argc, argv, "-o");
     int has_opts_VF = general_findPara(argc, argv, "-v");
-    int has_opts_xclbinPath = general_findPara(argc, argv, "-x");
+    int hasXclbinPath = general_findPara(argc, argv, "-x");
+    int hasDeviceNames = general_findPara(argc, argv, "-devices");
     int has_numThread = general_findPara(argc, argv, "-thread");
     int has_num_par = general_findPara(argc, argv, "-par_num");
     int has_gh_par = general_findPara(argc, argv, "-par_prune");
     int has_flow_prune = general_findPara(argc, argv, "-prun");
     int has_flow_fast = general_findPara(argc, argv, "-fast");
     int has_flow_fast2 = general_findPara(argc, argv, "-fast2");
-    int has_devNeed = general_findPara(argc, argv, "-dev");
+    int hasNumDevices = general_findPara(argc, argv, "-num_devices");
+    int hasNumCu = general_findPara(argc, argv, "-num_cu");
     int has_driver = general_findPara(argc, argv, "-driver");
     int has_worker = general_findPara(argc, argv, "-worker");
     int has_driverAlone = general_findPara(argc, argv, "-driverAlone");
@@ -1012,8 +1022,7 @@ int host_ParserParameters(int argc,
                 }
             }
         }
-    } //
-    else if (general_findPara(argc, argv, "-louvain_modularity_alveo") != -1)
+    } else if (general_findPara(argc, argv, "-louvain_modularity_alveo") != -1)
         mode_alveo = ALVEOAPI_RUN;
     else
         mode_alveo = ALVEOAPI_NONE;
@@ -1094,14 +1103,40 @@ int host_ParserParameters(int argc,
 #ifdef PRINTINFO
     printf("PARAMETER  opts_VF = %d\n", opts_VF);
 #endif
-    if (has_opts_xclbinPath != -1 && has_opts_xclbinPath < (argc - 1)) {
-        rec[has_opts_xclbinPath] = true;
-        rec[has_opts_xclbinPath + 1] = true;
-        xclbinPath = argv[has_opts_xclbinPath + 1];
-//#ifdef PRINTINFO
-        printf("PARAMETER  opts_xclbinPath = %s\n", xclbinPath.c_str());
-//#endif
+
+    if (hasXclbinPath != -1 && hasXclbinPath < (argc - 1)) {
+        rec[hasXclbinPath] = true;
+        rec[hasXclbinPath + 1] = true;
+        xclbinPath = argv[hasXclbinPath + 1];
     } 
+
+    if (hasDeviceNames != -1 && hasDeviceNames < (argc - 1)) {
+        rec[hasDeviceNames] = true;
+        rec[hasDeviceNames + 1] = true;
+        deviceNames = argv[hasDeviceNames + 1];
+#ifndef NDEBUG
+        std::cout << "INFO: deviceNames=" << deviceNames << std::endl;
+#endif        
+    } else {
+    	deviceNames = "xilinx_u50_gen3x16_xdma_201920_3";
+#ifdef PRINTINFO
+    	printf("Using defalut device xilinx_u50_gen3x16_xdma_201920_3, because of the missing deviceNames.\n");
+#endif
+
+    }
+
+    //xilinx_u50_gen3x16_xdma_201920_3 xilinx_u55c_gen3x16_xdma_base_1
+    if (deviceNames == "xilinx_u50_gen3x16_xdma_201920_3"){
+    	glb_MAXNV = (1ul << 26);
+    	glb_MAXNE = (1ul << 27);
+    	glb_MAXNV_M = (64000000);
+    } else if (deviceNames == "xilinx_u55c_gen3x16_xdma_base_1"){
+    	glb_MAXNV = (1ul << 27);
+    	glb_MAXNE = (1ul << 28);
+    	glb_MAXNV_M = (128000000);
+    } else {
+    	std::cout << "Error: deviceNames=" << deviceNames << " maybe not support. Please check them!"<< std::endl;
+    }
 
     if (has_numThread != -1 && has_numThread < (argc - 1)) {
         rec[has_numThread] = true;
@@ -1121,15 +1156,25 @@ int host_ParserParameters(int argc,
 #ifdef PRINTINFO
     printf("PARAMETER  num_par = %i\n", num_par);
 #endif
-    if (has_devNeed != -1 && has_devNeed < (argc - 1)) {
-        rec[has_devNeed] = true;
-        rec[has_devNeed + 1] = true;
-        devNeed = atoi(argv[has_devNeed + 1]);
+
+    if (hasNumDevices != -1 && hasNumDevices < (argc - 1)) {
+        rec[hasNumDevices] = true;
+        rec[hasNumDevices + 1] = true;
+        numDevices = atoi(argv[hasNumDevices + 1]);
     } else
-        devNeed = 1;
+        numDevices = 1;
+    
+    int numCu = 1;
+    if (hasNumCu != -1 && hasNumCu < (argc - 1)) {
+        rec[hasNumCu] = true;
+        rec[hasNumCu + 1] = true;
+        numCu = atoi(argv[hasNumCu + 1]);
 #ifdef PRINTINFO
-    printf("PARAMETER  devNeed = %i\n", devNeed);
+    printf("PARAMETER  numCu = %i\n", numCu);
 #endif
+    } else
+        numCu = 1;
+
     if (has_gh_par != -1 && has_gh_par < (argc - 1)) {
         rec[has_gh_par] = true;
         rec[has_gh_par + 1] = true;
@@ -1147,8 +1192,11 @@ int host_ParserParameters(int argc,
         flow_prune = 2;
     } else if (has_flow_fast2 != -1) {
         rec[has_flow_fast2] = true;
-        flow_prune = 3;
-    } else
+        if(numCu == 1)
+            flow_prune = 3;
+        else
+            flow_prune = 4;
+    } else 
         flow_prune = 1;
 #ifdef PRINTINFO
     printf("PARAMETER  flow_prune = %d\n", flow_prune);
@@ -1203,8 +1251,9 @@ int host_ParserParameters(int argc,
 #endif
 
 
-    if(mode_alveo == ALVEOAPI_LOAD)
+    if (mode_alveo == ALVEOAPI_LOAD)
     	return 0; //No need to set input matrix file if
+
     for (int i = 1; i < argc; i++) {
         // printf("i= %d rec[i]=%d\n", i , rec[i]);
         if (rec[i] == false) {
@@ -1234,10 +1283,12 @@ int host_ParserParameters(int argc,
 ToolOptions::ToolOptions(int argcIn, char** argvIn) {
     argc = argcIn;
     argv = argvIn;
-    host_ParserParameters(argc, argv, opts_C_thresh, opts_minGraphSize, threshold, opts_ftype, opts_inFile,
-        opts_coloring, opts_output, outputFile, opts_VF, xclbinPath, numThreads, num_par,
-        gh_par, flow_fast, numDevices, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
-        alveoProject, numPureWorker, nameWorkers, nodeID, server_par, max_level, max_iter);
+    host_ParserParameters(argc, argv, 
+        opts_C_thresh, opts_minGraphSize, threshold, opts_ftype, opts_inFile,
+        opts_coloring, opts_output, outputFile, opts_VF, xclbinPath, deviceNames, 
+        numThreads, num_par, gh_par, flow_fast, numDevices, mode_zmq, path_zmq, 
+        useCmd, mode_alveo, nameProj, alveoProject, numPureWorker, nameWorkers, 
+        nodeID, server_par, max_level, max_iter);
 }
 
 void PrintTimeRpt(GLV* glv, int num_dev, bool isHead) {
@@ -1373,7 +1424,7 @@ void PrintRptPartition_Summary(
 	printf("Number of vertices           : %ld\n"  , parlv.plv_src->NV);
 	printf("Number of edges              : %ld\n"  , parlv.plv_src->NE);
 	printf("Number of partitions         : %d\n"   , parlv.num_par);
-	printf("Partition size               : < %d\n" , 64000000);
+	printf("Partition size               : < %d\n" , glb_MAXNV_M);
 	printf("Number of nodes (machines)   : %d\n"   , numNode);
 	printf("Number of Xilinx Alveo cards : %d"     , SummArrayByNum<int>(numNode, card_Node));
 	PrintArrayByNum<int>(numNode, card_Node);//[3, 3,3]
@@ -1518,22 +1569,16 @@ void PrintRptParameters(double opts_C_thresh,   // Threshold with coloring on
                         char* path_zmq,
                         bool useCmd,
                         int mode_alveo,
-                        xf::graph::L3::Handle::singleOP& op0) {
+                        xf::graph::L3::Handle::singleOP& op0) 
+{
     printf("************************************************************************************************\n");
     printf(
         "********************************  \033[1;35;40mParameters Report \033[0m   "
         "*********************|********************\n");
     printf("************************************************************************************************\n");
     // numDevices
-    if (devNeed_cmd == 0)
-        printf(
-            "FPGA Parameter \033[1;37;40mnumDevices    \033[0m: %-8d  \t\t\t Default=        1,       by config.json "
-            "or\" \033[1;37;40m-dev\033[0m     <v> \"  \n",
-            op0.numDevices);
-    else
-        printf(
-            "FPGA Parameter \033[1;37;40mnumDevices    \033[0m: %-8d  \t\t\t Default=        1,       by "
-            "command-line: \" \033[1;37;40m-dev\033[0m     <v> \"",
+    printf("FPGA Parameter \033[1;37;40mnumDevices    \033[0m: %-8d  \t\t\t Default=        1,       by "
+            "command-line: \" \033[1;37;40m-num_devices\033[0m     <v> \"",
             op0.numDevices);
     printf(" or by config.json\n");
     printf(
@@ -1604,8 +1649,8 @@ void PrintRptParameters(double opts_C_thresh,   // Threshold with coloring on
 }
 
 // functions for printing info or read command lines end
-
-void ParLV::Init(int mode) {
+void ParLV::Init(int mode) 
+{
     st_Partitioned = false;
     st_ParLved = false;
     st_PreMerged = false;
@@ -1653,76 +1698,16 @@ void ParLV::Init(int mode, GLV* src, int num_p, int num_d, bool isPrun, int th_p
 ParLV::ParLV() {
     Init(MD_FAST);
 }
+
 ParLV::~ParLV() {
     num_par = 0;
     if (elist) free(elist);
     if (M_v) free(M_v);
 }
-void ParLV::PrintSelf() { /*
-          printf("PAR: %s is partitioned into %d share:\n", plv_src->name, num_par);//basic information
-          for(int p=0; p<num_par; p++){
-                  printf("Share-%d    %s \t: NV=%-8d NVl=%-8d NE=%-8d NElg=%-8d \n", p, par_src[p]->name
-                  , par_src[p]->NV
-                  , par_src[p]->NVl
-                  , par_src[p]->NE
-                  , par_src[p]->NElg
-                  );//sub graph information
-                  if(st_ParLved==false)
-                          continue;
-                  printf("Share-%d Lv(%s)\t: NV=%-8d NVl=%-8d NE=%-8d NElg=%-8d \n\n", p, par_src[p]->name
-                  , par_lved[p]->NV
-                  , par_lved[p]->NVl
-                  , par_lved[p]->NE
-                  , par_lved[p]->NElg
-                  );//sub graph information
-          }*/
-    /*
-    printf("=========================================================[ \033[1;35;40mPartitioned sub-graphs\033[0m
-]======================================================================================\n");
-    for(int p=0; p<num_par; p++)
-            if(st_Partitioned==false)
-                    break;
-            else this->par_src[p]->printSimple();
-printf("=========================================================[ \033[1;35;40mLouvained sub-graphs\033[0m
-]======================================================================================\n");
-    for(int p=0; p<num_par; p++)
-            if(st_ParLved==false)
-                    break;
-            else this->par_lved[p]->printSimple();
 
-    //if(st_FinalLved)
-    {
-            printf("=========================================================[ \033[1;35;40mMerged sub-graphs
-together\033[0m ]======================================================================================\n");
-
-            this->plv_merged->printSimple();
-            printf("=========================================================[ \033[1;35;40mFinal Louvained merged
-sub-graphs\033[0m ]======================================================================================\n");
-            this->plv_final->printSimple();
-            printf("=========================================================[ \033[1;35;40mOriginal graph with Updated
-Communities\033[0m ]======================================================================================\n");
-            this->plv_src->printSimple();
-    //  printf("NE(%d) = NEl(%d) + NE_ll(%d) + NE_lg(%d) + NE_gg(%d)\n", NE, NEll, NElg, NEgg);
-    //  printf("NEself = %d\n", NEself);
-    }*/
-    /*else if(st_Merged){
-            this->plv_merged->printSimple();
-            printf("=========================================================[ \033[1;35;40mOriginal graph with Updated
-    Communities\033[0m ]======================================================================================\n");
-            this->plv_src->printSimple();
-    //  printf("NE(%d) = NEl(%d) + NE_ll(%d) + NE_lg(%d) + NE_gg(%d)\n", NE, NEll, NElg, NEgg);
-    //  printf("NEself = %d\n", NEself);
-    }else if(st_PreMerged){
-            this->plv_merged->printSimple();
-    //  printf("NV(%d) = NVl(%d) + NV_gh(%d)\n", NV, NVl, NV_gh);
-    }*/
-    //=========================================================[ LIST   END
-    //]======================================================================================
-    //| GLV ID: 1 | NC/NV:    42797/ 311627(41384/13%) NE:  11037306(134167   / 1%)| Colors:337       Q: 0.867658  |
-    // name: ID:1_ParID:0_0_270243_th0
-    //= Uniq ID ==| Numbers for C / V      (V_ghost  ) Edge Number  (ghost edges
-    //)================================================================================
-    printf(
+void ParLV::PrintSelf() 
+{
+     printf(
         "=========================================================[\033[1;35;40m LIST Begin "
         "\033[0m]======================================================================================\n");
     printf(
@@ -1757,19 +1742,14 @@ Communities\033[0m ]============================================================
             "=========================================================[\033[1;35;40m Original graph with Updated "
             "Communities \033[0m]===============================================================\n");
         this->plv_final->printSimple();
-        // printf("NE(%d) = NEl(%d) + NE_ll(%d) + NE_lg(%d) + NE_gg(%d)\n", NE, NEll, NElg, NEgg);
-        // printf("NEself = %d\n", NEself);
     } else if (st_Merged) {
         this->plv_merged->printSimple();
         printf(
             "=========================================================[\033[1;35;40m Original graph with Updated "
             "Communities \033[0m]===============================================================\n");
         this->plv_src->printSimple();
-        // printf("NE(%d) = NEl(%d) + NE_ll(%d) + NE_lg(%d) + NE_gg(%d)\n", NE, NEll, NElg, NEgg);
-        // printf("NEself = %d\n", NEself);
     } else if (st_PreMerged) {
         this->plv_merged->printSimple();
-        // printf("NV(%d) = NVl(%d) + NV_gh(%d)\n", NV, NVl, NV_gh);
     }
     printf(
         "==========================================================[\033[1;35;40m LIST   END "
@@ -1998,7 +1978,8 @@ long FindOldOrAddNew(map<long, long>& map_v, long& NV, long v) {
     return ret;
 }
 
-long ParLV::CheckGhost() {
+long ParLV::CheckGhost() 
+{
     long NV_gh_new = 0;
     for (int p = 0; p < num_par; p++) {
         GLV* G_src = par_src[p];
@@ -2026,7 +2007,8 @@ long ParLV::CheckGhost() {
     return NV_gh_new;
 }
 
-long ParLV::MergingPar2_ll() {
+long ParLV::MergingPar2_ll() 
+{
     // 1.create new edge list;
     long num_e_dir = 0;
     NEll = 0;
@@ -2076,7 +2058,8 @@ long ParLV::MergingPar2_ll() {
     return num_e_dir;
 }
 
-long ParLV::MergingPar2_gh() {
+long ParLV::MergingPar2_gh() 
+{
     long num_e_dir = 0;
 
     for (int p = 0; p < num_par; p++) {
@@ -2152,7 +2135,9 @@ long ParLV::MergingPar2_gh() {
     st_Merged_gh = true;
     return num_e_dir;
 }
-GLV* ParLV::MergingPar2(int& id_glv) {
+
+GLV* ParLV::MergingPar2(int& id_glv) 
+{
     long num_e_dir = 0;
     // CheckGhost();
     num_e_dir += MergingPar2_ll();
@@ -2185,7 +2170,8 @@ GLV* ParLV::FinalLouvain(char* opts_xclbinPath,
                          double threshold,
                          double C_threshold,
                          bool isParallel,
-                         int numPhase) {
+                         int numPhase) 
+{
     if (st_Merged == false) return NULL;
     bool hasGhost = false;
     plv_final = LouvainGLV_general(hasGhost, this->flowMode, 0, plv_merged, opts_xclbinPath, numThreads, id_glv,
@@ -2267,6 +2253,7 @@ void ParLV::PrintTime2() {
     printf("\033[1;37;40mINFO\033[0m: Total time for partition Final Louvain : %lf\n", timesPar.timeFinal);
     printf("\033[1;37;40mINFO\033[0m: Total time for partition All flow      : %lf\n", timesPar.timeAll);
 }
+
 void ParLV::CleanTmpGlv() {
     for (int p = 0; p < num_par; p++) {
         delete (par_src[p]);
@@ -2290,7 +2277,8 @@ void ParLV_general_batch_thread(int flowMode,
                                 double threshold,
                                 double C_threshold,
                                 bool isParallel,
-                                int numPhase) {
+                                int numPhase) 
+{
     long vsize = plv_orig->NV / num_par;
     GLV* glv_t;
     int id_glv = id_dev * 64;
@@ -2850,6 +2838,8 @@ int LouvainProcess_part1(int& nodeID, ParLV& parlv, char* tmp_msg_d2w, ParLV& pa
               << "\n    parlv_wkr num_par=" << parlv_wkr.num_par << std::endl;
 #endif
 
+    int status = 0;
+
     // this will be initialized by message again
     parlv_wkr.Init(parlv.flowMode, NULL, parlv.num_par, parlv.num_dev, parlv.isPrun, parlv.th_prun);
     char path_driver[1024];
@@ -2880,6 +2870,8 @@ int LouvainProcess_part1(int& nodeID, ParLV& parlv, char* tmp_msg_d2w, ParLV& pa
     }
 
     getDiffTime(l_load_start, l_load_end, parlv_wkr.timesPar.timeWrkLoad[0]);
+
+    return status;
 } 
 
 void LouvainProcess_part2(int nodeID,
@@ -2945,7 +2937,7 @@ GLV* UpdateCwithFinal(xf::graph::L3::Handle* handle0,
                       int par_prune,
                       int& id_glv,
 					  LouvainPara* para_lv) {
-    const long MaxSize = 64000000;
+    const long MaxSize = glb_MAXNV_M;
     const long safeSize = MaxSize * 0.9;
     long NV = glv_orig->NV;
     long NE = glv_orig->NE;
@@ -3319,7 +3311,7 @@ int create_alveo_partitions(char* inFile, int num_partition, int par_prune, char
 			strcpy(pathName_proj_svr, pathName_proj);                    //louvain_partitions_000.par
 
 		long NV_par_recommand;//(long)(64000000.0 * 0.80);
-		long NV_par_max = 64*1000*1000;
+		long NV_par_max = glb_MAXNV_M;//64*1000*1000;
 		if(parlv.num_par>1)
 			NV_par_recommand = (NV + parlv.num_par-1) / parlv.num_par;//allow to partition small graph with -par_num
 		else
@@ -3609,6 +3601,7 @@ int load_alveo_partitions_WorkerSelf( // for both driver; no zmq communications 
     return 0;
 }
 */
+
 GLV* louvain_modularity_alveo(xf::graph::L3::Handle* handle0,
                               ParLV& parlv,     // To collect time and necessary data
                               ParLV& parlv_wkr, // Driver's self data for sub-louvain
@@ -3723,98 +3716,6 @@ GLV* louvain_modularity_alveo(xf::graph::L3::Handle* handle0,
     // delete( glv_final);
 }
 
-extern "C" int create_and_load_alveo_partitions(int argc, char* argv[]) {
-//    for (int i = 0; i < argc; ++i)
-//        std::cout << "internal create partitions arg " << i << " = " << argv[i] << std::endl;
-    //--------------- Parse Input parameters
-#ifndef NDEBUG
-    std::cout << "DEBUG: " << __FUNCTION__ << std::endl;
-#endif
-    double opts_C_thresh;   // Threshold with coloring on
-    long opts_minGraphSize; // Min |V| to enable coloring
-    double opts_threshold;  // Value of threshold
-    int opts_ftype;         // File type
-    char opts_inFile[4096];
-    bool opts_coloring;
-    bool opts_output;
-    std::string opts_outputFile;
-    bool opts_VF;
-    std::string xclbinPath;
-
-    int flow_fast = 2;
-    int flowMode = 1;
-    int num_par;
-    bool isPrun = true;
-    int par_prune = 1;
-    int numThreads = NUMTHREAD; // using fixed number of thread instead of
-    int devNeed_cmd = 3;
-    int mode_zmq = ZMQ_NONE;
-    char path_zmq[1024]; // default will be set as "./"
-    bool useCmd = false;
-    int mode_alveo = ALVEOAPI_NONE;
-    char nameProj[1024];
-    int numPureWorker;
-    std::string nameMetaFile;
-    char* nameWorkers[128];
-    int nodeID;
-    int server_par = 1;
-    int status = 0;
-    int max_num_level;
-    int max_num_iter;
-    host_ParserParameters(argc, argv, opts_C_thresh, opts_minGraphSize, opts_threshold, opts_ftype, opts_inFile,
-                          opts_coloring, opts_output, opts_outputFile, opts_VF, xclbinPath, numThreads, num_par,
-                          par_prune, flow_fast, devNeed_cmd, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
-                          nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par, max_num_level, max_num_iter);
-
-    if (flow_fast == 1) {
-        flowMode = 1; // normal kernel MD_NORMAL
-    } else if (flow_fast == 2) {
-        flowMode = 2; // fast kernel  MD_FAST
-    } else {
-        flowMode = 3; // fast renumber
-    }
-#ifdef PRINTINFO_2
-    printf("\033[1;37;40mINFO: The graph matrix is   : %s \033[0m\n",  opts_inFile);
-#endif
-    if (mode_alveo == ALVEOAPI_PARTITION) {
-        ParLV parlv;
-        parlv.Init(flowMode, NULL, num_par, devNeed_cmd, isPrun, par_prune);
-        parlv.num_server = server_par;
-        status = create_alveo_partitions(opts_inFile, num_par, par_prune, nameProj, parlv);
-        std::cout << "DEBUG: status=" << status << std::endl;
-        if (status < 0)
-            return status;
-
-        printf("************************************************************************************************\n");
-        printf("*****************************  Louvain Partition Summary   *************************************\n");
-        printf("************************************************************************************************\n");
-
-        std::cout << "Input graph                        : " << opts_inFile << std::endl;
-        std::cout << "Number of servers                  : " << server_par << std::endl;
-        std::cout << "Output Alveo partition project     : " << nameProj << std::endl;
-        std::cout << "Number of partitions               : " << num_par << std::endl;
-        printf("Time for partitioning the graph    : %lf = ",
-               (parlv.timesPar.timePar_all + parlv.timesPar.timePar_save));
-        printf(" partitioning +  saving \n");
-        printf("    Time for partition             : %lf (s)\n",
-               parlv.timesPar.timePar_all);
-        printf("    Time for saving                : %lf (s)\n",
-               parlv.timesPar.timePar_save);
-        printf("************************************************************************************************\n");
-#ifdef PRINTINFO
-        printf("Deleting... \n");
-#endif
-        parlv.CleanTmpGlv();
-        parlv.plv_src->printSimple();
-
-        return 0;
-    } else {
-        printf("\033[1;31;40mERROR\033[0m: mode_alveo!=ALVEOAPI_PARTITION\n");
-        return 1;
-    }
-    return 0;
-}
-
 /*
  Arguments:
     LoadCommand: example:
@@ -3921,14 +3822,6 @@ int host_writeOut(const char* opts_inFile, long NV_begin, long* C_orig) {
     return 0;
 }
 
-/*
-    --load_alveo_partitions nameMetaFile
-    -dev numDevices
-    -fast -> flow_fast -> flowMode;
-    -setwkr numPureWorker nameWorkers
-    -workerAlone worker_number -> nodeID
-*/
-
 // This function is for loading partitions from tigergraph memory. Additional arguments
 // should be added as needed
 extern "C" float load_alveo_partitions(unsigned int num_partitions, unsigned int num_devices)
@@ -3946,8 +3839,8 @@ extern "C" float load_alveo_partitions(unsigned int num_partitions, unsigned int
  -2:
  -3:
 */
-extern "C" int compute_louvain_alveo_seperated_load(
-    char* xclbinPath, bool flow_fast, unsigned int numDevices,
+int compute_louvain_alveo_seperated_load(
+    char* xclbinPath, int flowMode, unsigned int numDevices, std::string deviceNames,
     unsigned int numPartitions, char* alveoProject,
     int mode_zmq, int numPureWorker, char* nameWorkers[128], unsigned int nodeID,
     float tolerance, bool verbose, 
@@ -3956,8 +3849,9 @@ extern "C" int compute_louvain_alveo_seperated_load(
 #ifndef NDEBUG
     std::cout << "DEBUG: " << __FUNCTION__   
               << "\n     xclbinPath=" << xclbinPath
-              << "\n     flow_fast=" << flow_fast 
+              << "\n     flowMode=" << flowMode
               << "\n     numDevices=" << numDevices
+              << "\n     deviceNames=" << deviceNames
               << "\n     numPartitions=" << numPartitions 
               << "\n     alveoProject=" << alveoProject
               << "\n     mode_zmq=" << mode_zmq 
@@ -3985,14 +3879,14 @@ extern "C" int compute_louvain_alveo_seperated_load(
     int par_prune = 1;
     int numThreads = 16;
     bool opts_coloring = false;
-    int flowMode = 1;
+    //int flowMode = 1;
 
     int numNode = numPureWorker + 1;
-    if (flow_fast) {
-        flowMode = 2; // fast kernel  MD_FAST
-    } else {
-        flowMode = 1; // normal kernel MD_NORMAL
-    }
+//    if (flow_fast) {
+//        flowMode = 2; // fast kernel  MD_FAST
+//    } else {
+//        flowMode = 1; // normal kernel MD_NORMAL
+//    }
 
     xf::graph::L3::Handle::singleOP* op0 = new(xf::graph::L3::Handle::singleOP);
     //----------------- Set parameters of op0 again some of those will be covered by command-line
@@ -4001,12 +3895,13 @@ extern "C" int compute_louvain_alveo_seperated_load(
     op0->requestLoad = requestLoad;
     op0->xclbinPath = xclbinPath;
     op0->numDevices = numDevices;
+
     std::cout << "INFO: numNode: " << numNode << std::endl;
     std::cout << "INFO: numDevices requested: " << op0->numDevices << std::endl;
 
     //----------------- enable handle0--------
     handle0->addOp(*op0);
-    status = handle0->setUp();
+    status = handle0->setUp(deviceNames);
 
     if (status < 0)
        return status;
@@ -4149,7 +4044,7 @@ extern "C" float compute_louvain_alveo_seperated_compute(
             printf("Deleting orignal graph... \n");
 #endif
 #ifdef PRINTINFO
-            parlv_dvr.plv_src->printSimple();
+            p_parlv_dvr->plv_src->printSimple();
 #endif
             glv_final->printSimple();
             double ret = glv_final->Q;
@@ -4168,7 +4063,7 @@ extern "C" float compute_louvain_alveo_seperated_compute(
     -2: Error in compute_louvain_alveo_seperated_load
 */
 extern "C" float loadAlveoAndComputeLouvain (
-    char* xclbinPath, bool flow_fast, unsigned int numDevices,
+    char* xclbinPath, int flowMode, unsigned int numDevices, std::string deviceNames,
     char* alveoProject,
     unsigned mode_zmq, unsigned numPureWorker, char* nameWorkers[128], unsigned int nodeID,
     char* opts_outputFile, unsigned int max_iter, unsigned int max_level, 
@@ -4194,7 +4089,7 @@ extern "C" float loadAlveoAndComputeLouvain (
     }
     
     ret = compute_louvain_alveo_seperated_load(
-            xclbinPath, flow_fast, numDevices,
+            xclbinPath, flowMode, numDevices, deviceNames,
             numPartitions, alveoProject,
             mode_zmq, numPureWorker, nameWorkers, nodeID,
             tolerance, 
@@ -4212,63 +4107,6 @@ extern "C" float loadAlveoAndComputeLouvain (
 
 	return ret;
 
-}
-
-float louvain_modularity_alveo_wrapper(int argc, char* argv[], xf::graph::L3::Handle* p_handle0, ParLV* p_parlv_dvr, ParLV* p_parlv_wkr ) {
-    std::string opName = "louvainModularity";
-    std::string kernelName = "kernel_louvain";
-    int requestLoad = 100;
-    std::string xclbinPath = "/opt/xilinx/apps/graphanalytics/louvainmod/1.0/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin";
-    const int cuNm = 1;
-//    int numDevices = 1;  unused
-
-    //--------------- Parse Input parameters
-    double opts_C_thresh;   // Threshold with coloring on
-    long opts_minGraphSize; // Min |V| to enable coloring
-    double opts_threshold;  // Value of threshold
-    int opts_ftype;         // File type
-    char opts_inFile[4096];
-    bool opts_coloring;
-    bool opts_output;
-    std::string opts_outputFile;
-    bool opts_VF;
-    int flow_fast = 2;
-    int flowMode = 1;
-    int num_par;
-    bool isPrun = true;
-    int par_prune = 1;
-    int numThreads = NUMTHREAD; // using fixed number of thread instead of
-    //int numThreads = 1; // using fixed number of thread instead of
-    int devNeed_cmd = 1;
-    int mode_zmq = ZMQ_NONE;
-    char path_zmq[1024]; // default will be set as "./"
-    bool useCmd = false;
-    int mode_alveo = ALVEOAPI_NONE;
-    char nameProj[1024];
-    int numPureWorker;
-    std::string nameMetaFile;
-    char* nameWorkers[128];
-    int nodeID;
-    int status;
-    int server_par=1;
-    float retVal = 0.0;
-    int max_num_level;
-    int max_num_iter;
-
-    host_ParserParameters(argc, argv, opts_C_thresh, opts_minGraphSize, opts_threshold, opts_ftype, opts_inFile,
-                          opts_coloring, opts_output, opts_outputFile, opts_VF, xclbinPath, numThreads, num_par,
-                          par_prune, flow_fast, devNeed_cmd, mode_zmq, path_zmq, useCmd, mode_alveo, nameProj,
-                          nameMetaFile, numPureWorker, nameWorkers, nodeID, server_par, max_num_level, max_num_iter);
-
-//    if (devNeed_cmd > 0)
-//        numDevices = devNeed_cmd;  unused
-
-    retVal = compute_louvain_alveo_seperated_compute(
-            mode_zmq, numPureWorker, nameWorkers, nodeID,
-            (char *)opts_outputFile.c_str(),max_num_iter, max_num_level,
-            opts_threshold, false, false, true, false, p_handle0, p_parlv_dvr, p_parlv_wkr);
-
-    return retVal;
 }
 
 /*
@@ -4318,40 +4156,6 @@ int getNumPartitions(std::string alveoProjectFile)
 
 }
 
-float loadAlveoAndComputeLouvainWrapper(int argc, char* argv[]) {
-#ifndef NDEBUG
-    std::cout << "DEBUG: " << __FUNCTION__ << std::endl;
-#endif
-#ifdef PRINTINFO
-    printf("\033[1;31;40mMUST DO LOADING BEFORE RUNNING\033[0m\n");
-#endif
-
-    ToolOptions toolOptions(argc, argv);
-
-    xf::graph::L3::Handle handle0;//Global structure in TG memory
-    ParLV parlv_drv, parlv_wkr;   //Global structure in TG memory
-    int numDevices = 1;
-    float retVal = 0;
-
-    retVal = loadAlveoAndComputeLouvain (
-        (char *)toolOptions.xclbinPath.c_str(), toolOptions.flow_fast, 
-        toolOptions.numDevices, (char*)toolOptions.alveoProject.c_str(),
-        toolOptions.mode_zmq, toolOptions.numPureWorker, toolOptions.nameWorkers, 
-        toolOptions.nodeID, (char *)toolOptions.outputFile.c_str(), 
-        toolOptions.max_iter, toolOptions.max_level, 
-        toolOptions.threshold, false, false, true, false);
-
-    return retVal;
-}
-
-float louvain_modularity_alveo(int argc, char* argv[]) {
-#ifdef PRINTINFO
-    printf("\033[1;31;40mMUST DO LOADING BEFORE RUNNING\033[0m\n");
-#endif
-    xf::graph::L3::Handle handle0;
-    ParLV parlv_dvr, parlv_wkr; //Global structure in TG memory
-    return louvain_modularity_alveo_wrapper(argc, argv, &handle0, &parlv_dvr, &parlv_wkr );
-}
 /* 
 Compute modularity based on user provided cluster information file
 */

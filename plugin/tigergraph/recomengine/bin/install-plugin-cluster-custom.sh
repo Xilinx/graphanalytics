@@ -16,17 +16,20 @@
 #
 
 # Install or uninstall Recommendation Engine tuples
-if [ $uninstall -eq 1 ]; then
+gsql="java -jar $HOME/gsql_client/gsql_client.jar"
+
+read -p "Enter user tigergraph's password for gsql client:" password 
+if [[ "$uninstall" -eq 1 ]]; then
     echo "INFO: Removing Recommendation Engine tuples"
-    if [ $(gsql "LS" | grep -c XilCosinesimMatch) -gt 0 ]; then
-        gsql "DROP TUPLE XilCosinesimMatch"
+    if [ $($gsql "LS" | grep -c XilCosinesimMatch) -gt 0 ]; then
+        $gsql "DROP TUPLE XilCosinesimMatch"
     fi
     echo ""
     echo "INFO: Xilinx FPGA acceleration plugin for Tigergraph has been uninstalled."
 else
     echo "INFO: Adding Recommendation Engine tuples"
-    if [ $(gsql "LS" | grep -c XilCosinesimMatch) -lt 1 ]; then
-        gsql "TYPEDEF TUPLE<Id VERTEX, score double> XilCosinesimMatch"
+    if [ $($gsql "LS" -p $password | grep -c XilCosinesimMatch) -lt 1 ]; then
+        $gsql -p $password "TYPEDEF TUPLE<Id VERTEX, score double> XilCosinesimMatch"
     fi
     echo ""
     echo "INFO: Xilinx FPGA acceleration plugin for Tigergraph has been installed."

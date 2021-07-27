@@ -22,7 +22,7 @@
 #include "xilinxlouvain.h"
 
 // Enable this to turn on debug output
-#define XILINX_COM_DETECT_DEBUG_ON
+//#define XILINX_COM_DETECT_DEBUG_ON
 
 // Enable this to dump graph vertices and edges, as seen by the partitioning logic
 //#define XILINX_COM_DETECT_DUMP_GRAPH
@@ -35,7 +35,7 @@ namespace xilComDetect {
 
 using Mutex = std::mutex;
 
-//#define XILINX_COM_DETECT_DEBUG_MUTEX
+#define XILINX_COM_DETECT_DEBUG_MUTEX
 
 #ifdef XILINX_COM_DETECT_DEBUG_MUTEX
 struct Lock {
@@ -78,11 +78,13 @@ private:
     std::string alveoProject_;
     unsigned numPartitions_;
     unsigned numDevices_ = 1;
+    std::string deviceNames_ = "xilinx_u50_gen3x16_xdma_201920_3";
     unsigned nodeId_ = 0;
     unsigned numNodes_ = 1;
     State state_ = UninitializedState;
     LouvainMod *pLouvainMod_ = nullptr;
-    std::vector<long> degree_list;//long* offsets_tg; //travel and add i-1 to i to build the offset_tg
+
+    //long* offsets_tg; //travel and add i-1 to i to build the offset_tg
     std::vector<int> numAlveoPartitions;
 
     uint64_t nextId_ = 0 ; // can be used as partition size after traverse the graph done
@@ -93,17 +95,15 @@ private:
     long* drglist_tg;
     long  start_vertex;     // If a vertex is smaller than star_vertex, it is a ghost
     long  end_vertex;
-
-
-    // use the below to store the information and build final partition data
-    //key-> value : louvainId->set of graphEdge
-    std::map<uint64_t, std::vector<xilinx_apps::louvainmod::Edge>> edgeListMap;
-    std::map<uint64_t, long> dgrListMap;
-    std::vector<xilinx_apps::louvainmod::Edge> edgeListVec;
-    std::vector<long> dgrListVec;
-
-
+ 
 public:
+
+    std::vector<long> mEdgePtrVec;
+    std::vector<long> degree_list;
+    std::vector<xilinx_apps::louvainmod::Edge> mEdgeVec;
+    std::vector<long> mDgrVec;
+    std::vector<long> addedOffset; //store each vertex edgelist offset
+
     static Context *getInstance() {
         static Context *s_pContext = nullptr;
         if (s_pContext == nullptr)
@@ -167,6 +167,7 @@ public:
             options.xclbinPath = PLUGIN_XCLBIN_PATH;
             options.nameProj = alveoProject_;
             options.devNeed_cmd = numDevices_;
+            options.deviceNames = deviceNames_;
             options.nodeId = nodeId_;
             options.hostName = curNodeHostname_;
             options.clusterIpAddresses = nodeIps_;
@@ -177,6 +178,7 @@ public:
                     << "\n    xclbinPath=" << options.xclbinPath
                     << "\n    nameProj=" << options.nameProj
                     << "\n    devNeed_cmd=" << options.devNeed_cmd
+                    << "\n    deviceNames=" << options.deviceNames
                     << "\n    nodeId=" << options.nodeId
                     << "\n    hostName=" << options.hostName
                     << "\n    clusterIpAddresses=" << options.clusterIpAddresses
@@ -192,7 +194,7 @@ public:
 
     void setAlveoProject(std::string alveoProject) {
         std::cout << "DEBUG: " << __FUNCTION__ << " AlveoProject=" << alveoProject << std::endl;
-        alveoProject_ = alveoProject;
+        alveoProject_ = this->getXGraphStorePath() + "/" + alveoProject;
     }
     std::string getAlveoProject() { return alveoProject_; }
 
@@ -253,35 +255,14 @@ public:
     void clearPartitionData(){
         nextId_ = 0 ;
         degree_list.clear();
-        edgeListMap.clear();
-        dgrListMap.clear();
-        edgeListVec.clear();
-        dgrListVec.clear();  
+        mEdgeVec.clear();
+        mEdgePtrVec.clear();
+        mDgrVec.clear();
+        addedOffset.clear();
     }
     
     void clear() {
         state_ = UninitializedState;
-    }
-
-    std::map<uint64_t, long>& getDgrListMap() {
-        return dgrListMap;
-    }
-
-    void setDgrListMap(std::map<uint64_t, long> dgrListMap) {
-        this->dgrListMap = dgrListMap;
-    }
-
-
-    const std::vector<long>& getDgrListVec() {
-        return dgrListVec;
-    }
-
-    void setDgrListVec(const std::vector<long>& dgrListVec) {
-        this->dgrListVec = dgrListVec;
-    }
-
-    void addDgrListVec(const long dgr) {
-        this->dgrListVec.push_back(dgr);
     }
 
     long *getDrglistTg() {
@@ -298,29 +279,6 @@ public:
 
     void setEdgelistTg(const xilinx_apps::louvainmod::Edge* edgelistTg) {
         edgelist_tg = edgelistTg;
-    }
-
-    std::map<uint64_t, std::vector<xilinx_apps::louvainmod::Edge> >& getEdgeListMap() {
-        return edgeListMap;
-    }
-
-    void setEdgeListMap(
-            std::map<uint64_t, std::vector<xilinx_apps::louvainmod::Edge> >& edgeListMap) {
-        this->edgeListMap = edgeListMap;
-    }
-
-    void addEdgeListMap(
-            uint64_t s, xilinx_apps::louvainmod::Edge e) {
-        this->edgeListMap[s].push_back(e);
-    }
-
-    std::vector<xilinx_apps::louvainmod::Edge>& getEdgeListVec() {
-        return edgeListVec;
-    }
-
-    void setEdgeListVec(
-            const std::vector<xilinx_apps::louvainmod::Edge>& edgeListVec) {
-        this->edgeListVec = edgeListVec;
     }
 
     long getEndVertex() {

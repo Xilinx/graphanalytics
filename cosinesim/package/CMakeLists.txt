@@ -27,7 +27,8 @@ install(FILES "${CS_FILE_PATH}/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_20
 install(FILES "${CS_FILE_PATH}/include/cosinesim.hpp" DESTINATION ${CMAKE_INSTALL_PATH}/include)
 
 install(FILES "${CS_FILE_PATH}/src/cosinesim_loader.cpp" DESTINATION ${CMAKE_INSTALL_PATH}/src)
-install(FILES "${CS_FILE_PATH}/examples.zip" DESTINATION ${CMAKE_INSTALL_PATH}/)
+#install(FILES "${CS_FILE_PATH}/examples.zip" DESTINATION ${CMAKE_INSTALL_PATH}/)
+install(DIRECTORY "${CS_FILE_PATH}/examples/" DESTINATION ${CMAKE_INSTALL_PATH}/examples)
 install(FILES "${CS_FILE_PATH}/VERSION" DESTINATION ${CMAKE_INSTALL_PATH}/ )
 
 #version 

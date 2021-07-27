@@ -375,7 +375,7 @@ void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions 
                 offsets_tg, edgelist_tg, drglist_tg);
 #ifdef PRINTINFO
                 printf("DBG:: SERVER(%d): start_vertex=%d, end_vertex=%d, NV_tg=%d, start_par=%d, parInServer=%d, pathName:%s\n",
-        i_svr, start_vertex[i_svr], end_vertex[i_svr], vInServer[i_svr], start_par[i_svr], parInServer[i_svr], pathName_proj);
+        i_svr, start_vertex[i_svr], end_vertex[i_svr], vInServer[i_svr], start_par[i_svr], parInServer[i_svr], fileName);
 #endif
 
         long NV_par_recommand = 0;
@@ -430,6 +430,7 @@ float LouvainMod::loadAlveoAndComputeLouvain(const ComputeOptions &computeOpts)
     std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__ 
               << "\n    xclbinPath=" << pImpl_->options_.xclbinPath
               << "\n    alveoProject=" << pImpl_->options_.alveoProject 
+              << "\n    deviceNames=" << pImpl_->options_.deviceNames
               << "\n    nodeId=" << pImpl_->options_.nodeId
               << "\n    modeZmq=" << pImpl_->settings_.modeZmq
               << "\n    numPureWorker=" << pImpl_->settings_.numPureWorker;
@@ -446,6 +447,7 @@ float LouvainMod::loadAlveoAndComputeLouvain(const ComputeOptions &computeOpts)
                 (char *)(pImpl_->options_.xclbinPath.c_str()), 
                 pImpl_->options_.flow_fast, 
                 pImpl_->options_.devNeed_cmd, 
+                pImpl_->options_.deviceNames,
                 (char*)(pImpl_->options_.alveoProject.c_str()),
                 pImpl_->settings_.modeZmq, 
                 pImpl_->settings_.numPureWorker, 

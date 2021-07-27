@@ -1,0 +1,138 @@
+#
+# Copyright 2020-2021 Xilinx, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+use graph @graph
+drop query cosinesim_ss_tg, load_graph_cosinesim_ss_fpga, cosinesim_ss_fpga, get_system_str
+
+
+create query get_system_str(vertex<LogRecord> p) for graph @graph returns (string) {
+    string res;
+    string os_name;
+    UINT cores;
+
+    logRecordList = {p};
+    property_list (ANY) = select cpu FROM logRecordList-(loggedOnSystem:e)-System:cpu
+        ACCUM
+        res = cpu.Vendor + " " + cpu.Name + " " + cpu.Model + " #Cores -",
+        cores = cpu.Num_Cores;
+
+    concat_uint64_to_str(res, cores);
+    
+    logRecordList = {p};
+    property_list (ANY) = select os FROM logRecordList-(loggedOnOS:e)-OS:os
+        ACCUM
+        os_name = os.Name;
+
+    res = res + ", " + os_name;
+    return res;
+}
+
+
+create query cosinesim_ss_tg(string log_file) for graph @graph {
+    uint topK;
+    double score;
+    DOUBLE run_time;
+    vertex<LogRecord> newLogRecord;
+    ListAccum<XilCosinesimMatch> @@result;
+    FILE file1 (log_file);
+    topK = 100;
+# Log Record Population
+    population = {LogRecord.*};
+# Pick one random Log Record
+    randomLogRecord = select p from population:p
+        Limit 10;
+# Assign to a Log Record vertex
+    randomLogRecord = select p from randomLogRecord:p
+        ACCUM newLogRecord = p;
+# Cosine Similarity using TigerGraph
+    udf_reset_timer(true);
+    @@result = cosinesim_match_sw(newLogRecord, topK);
+    run_time = udf_elapsed_time(true);
+    print "Software UDF" AS ComputationTechnique;
+    print newLogRecord.SEVERITY + " " + newLogRecord.MESSAGE AS LogRecord;
+    print run_time AS ExecTimeInMs;
+    file1.println("SCORE", "SEVERITY", "MESSAGE", "CATEGORY", "PROCESS/THREAD", "SYSTEM INFO");
+    foreach topKP in @@result do
+        logRecordSet = select v from population:v
+        WHERE getvid(topKP.Id) == getvid(v)
+        ACCUM score = topKP.score
+        POST-ACCUM file1.println(score, v.SEVERITY, v.MESSAGE, v.CATEGORY, v.CONTEXT,
+                get_system_str(v)
+                #v.outdegree("patient_HAD_immunization"),
+                #code_str(v, "patient_HAD_immunization", 3)
+                );
+    end;
+}
+
+
+create query load_graph_cosinesim_ss_fpga() for graph @graph {
+    STRING status;
+    INT ret;
+    EXCEPTION cosinesimLoadFailed(40001);
+
+    ret = load_graph_cosinesim_ss_fpga_core();
+    print ret;
+    IF ret == 0 THEN
+        status = "Graph data loaded successfully";
+    ELSE
+        RAISE cosinesimLoadFailed("ERROR: Cosine Similarity load operation failed.  Please see the GPE log for details.");
+    END;
+    PRINT status;
+}
+
+create query cosinesim_ss_fpga(string log_file1) for graph @graph {
+    uint topK;
+    vertex<LogRecord> newLogRecord;
+    ListAccum<XilCosinesimMatch> @@result;
+    double score;
+    DOUBLE run_time;
+    FILE file1 (log_file1);
+    EXCEPTION cosinesimMatchFailed(40002);
+
+    topK = 100;
+# Log Record Population
+    population = {LogRecord.*};
+# Pick one random Log Record
+    randomLogRecord = select p from population:p
+        Limit 10;
+# Assign to a Log Record vertex
+    randomLogRecord = select p from randomLogRecord:p
+        ACCUM newLogRecord = p;
+# Cosine Similarity using TigerGraph
+    udf_reset_timer(true);
+    @@result = cosinesim_ss_fpga_core(newLogRecord, topK);
+    run_time = udf_elapsed_time(true);
+
+    IF @@result.size() < 1 THEN
+        RAISE cosinesimMatchFailed("ERROR: Cosine Similarity match operation failed.  Please see the GPE log for details.");
+    END;
+
+    print "Xilinx Alveo U50" AS ComputationTechnique;
+    print newLogRecord.SEVERITY + " " + newLogRecord.MESSAGE AS LogRecord;
+    print run_time AS ExecTimeInMs;
+    file1.println("SCORE", "SEVERITY", "MESSAGE", "CATEGORY", "PROCESS/THREAD", "SYSTEM INFO");
+    foreach topKP in @@result do
+        logRecordSet = select v from population:v
+        WHERE getvid(topKP.Id) == getvid(v)
+        ACCUM score = topKP.score
+        POST-ACCUM file1.println(score, v.SEVERITY, v.MESSAGE, v.CATEGORY, v.CONTEXT,
+                get_system_str(v)
+                #v.outdegree("patient_HAD_immunization"),
+                #code_str(v, "patient_HAD_immunization", 3)
+                );
+    end;
+}
+
+install query cosinesim_ss_tg, load_graph_cosinesim_ss_fpga,  cosinesim_ss_fpga, get_system_str

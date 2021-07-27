@@ -30,7 +30,8 @@
 # limitations under the License.
 #
 
-
+# This script is for testing recommendation engine in a cluster with multiple
+# node and multiple cards
 set -e
 
 SCRIPT=$(readlink -f $0)

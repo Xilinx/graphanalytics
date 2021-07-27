@@ -36,7 +36,7 @@ public:
     unsigned indexDeviceCuNm, indexSplitNm, indexNumVertices;
     const unsigned splitNm = 3;    // kernel has 4 PUs, the input data should be splitted into 4 parts
     const unsigned channelsPU = 4; // each PU has 4 HBM channels
-    const unsigned cuNm = 2;
+    const unsigned cuNm = 2;       // TODO
     const unsigned channelW = 16;
 
     int valueSize_;
@@ -68,6 +68,7 @@ public:
     void cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
                                  int32_t sourceLen,
                                  int32_t* sourceWeight,
+                                 int32_t* sourceCoeffs,
                                  int32_t topK,
                                  xf::graph::Graph<int32_t, int32_t>** g,
                                  int32_t* resultID,
@@ -101,7 +102,7 @@ public:
         if(options.numDevices > 0)
             numDevices = options.numDevices;
 
-        xclbinPath = "/opt/xilinx/apps/graphanalytics/cosinesim/1.0/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin";
+        xclbinPath = "/opt/xilinx/apps/graphanalytics/cosinesim/1.1/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin";
         std::cout << "INFO: Options::xcbinPath = " << (options.xclbinPath == nullptr ? "null"
             : options.xclbinPath) << std::endl;
         if (options.xclbinPath != nullptr)
@@ -281,7 +282,7 @@ public:
 
     }
 
-
+/*
     int cosineSimilaritySSDenseMultiCard(std::shared_ptr<xf::graph::L3::Handle>& handle,
                                          int32_t numDevices,
                                          int32_t sourceNUM,
@@ -333,15 +334,18 @@ public:
         delete[] resultID0;
         return ret;
     };
-
-    std::vector<xf::graph::L3::event<int> > cosineSimilaritySSDenseMultiCard(std::shared_ptr<xf::graph::L3::Handle>& handle,
-                                                              int32_t numDevices,
-                                                              int32_t sourceNUM,
-                                                              int32_t* sourceWeights,
-                                                              int32_t topK,
-                                                              xf::graph::Graph<int32_t, int32_t>** g,
-                                                              int32_t** resultID,
-                                                              float** similarity) {
+*/
+    std::vector<xf::graph::L3::event<int> > cosineSimilaritySSDenseMultiCard(
+        std::shared_ptr<xf::graph::L3::Handle>& handle,
+        int32_t numDevices,
+        int32_t sourceNUM,
+        int32_t* sourceWeights,
+        int32_t* sourceCoeffs,
+        int32_t topK,
+        xf::graph::Graph<int32_t, int32_t>** g,
+        int32_t** resultID,
+        float** similarity) 
+    {
         std::vector<xf::graph::L3::event<int> > eventQueue;
         std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time;
 
@@ -352,8 +356,16 @@ public:
                       << std::endl;
 
             eventQueue.push_back(
-                (handle->opsimdense)
-                    ->addworkInt(1, 0, sourceNUM, sourceWeights, topK, g[i][0], resultID[i], similarity[i]));
+                (handle->opsimdense)->addworkInt(
+                    1, // similarityType
+                    0, // dataType
+                    sourceNUM, 
+                    sourceWeights, 
+                    sourceCoeffs,
+                    topK, 
+                    g[i][0], 
+                    resultID[i], 
+                    similarity[i]));
         }
         return eventQueue;
     };
@@ -362,14 +374,14 @@ public:
         std::vector<Result> result;
         //---------------- Generate Source Indice and Weight Array -------
         int sourceLen = edgeAlign8; // sourceIndice array length
-        int32_t* sourceWeight = xf::graph::internal::aligned_alloc<int32_t>(sourceLen); // weights of source vertex's out members
-
+        int32_t* sourceFeatures = xf::graph::internal::aligned_alloc<int32_t>(sourceLen); // values of features in source
+        int32_t* sourceCoeffs = xf::graph::internal::aligned_alloc<int32_t>(sourceLen);   // weights of features in source 
         std::cout << "DEBUG: " << __FUNCTION__ << " sourceLen=" << sourceLen << std::endl;
 
         for (int i = 0; i < sourceLen; i++) {
             if (i < vecLength) {
                 if(valueSize_ == 4)
-                    sourceWeight[i] = (reinterpret_cast<int32_t*>(elements))[i];
+                    sourceFeatures[i] = (reinterpret_cast<int32_t*>(elements))[i];
                 else {
                     // must exit at this point, or else crash on next line.  Throw exception here.
                     std::cout << "DEBUG: valueType is not supported" << std::endl;
@@ -381,7 +393,9 @@ public:
 
                 }
             } else
-                sourceWeight[i] = 0;
+                sourceFeatures[i] = 0;
+
+            sourceCoeffs[i] = 1; // set weights to 1 for now. TODO: need to pass ths from graph
         }
             
         float* similarity = xf::graph::internal::aligned_alloc<float>(numResults);
@@ -390,12 +404,14 @@ public:
         std::memset(similarity, 0, numResults * sizeof(float));
 
         //---------------- Run L3 API -----------------------------------
-        cosinesim_ss_dense_fpga(numDevices * cuNm, sourceLen, sourceWeight, numResults, g.data(),resultID, similarity);
+        cosinesim_ss_dense_fpga(numDevices * cuNm, sourceLen, sourceFeatures, sourceCoeffs,
+                                numResults, g.data(),resultID, similarity);
 
         for (unsigned int k = 0; k < numResults; k++) 
             result.push_back(Result(resultID[k], similarity[k]));
 
-        free(sourceWeight);
+        free(sourceFeatures);
+        free(sourceCoeffs);
         free(similarity);
         free(resultID);
 
@@ -492,7 +508,7 @@ void PrivateImpl::load_cu_cosinesim_ss_dense_fpga()
     std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
 
     handle0->addOp(op0);
-    int status = handle0->setUp();
+    int status = handle0->setUp("xilinx_u50_gen3x16_xdma_201920_3");
     if (status != 0) {
        // std::cout<< "ERROR: FPGA is not setup properly. free the handle! status:"<<status<<std::endl;
         freeSharedHandle();
@@ -543,10 +559,12 @@ void PrivateImpl::load_graph_cosinesim_ss_dense_fpga(
 void PrivateImpl::cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
                                            int32_t sourceLen,
                                            int32_t* sourceWeight,
+                                           int32_t* sourceCoeffs,
                                            int32_t topK,
                                            xf::graph::Graph<int32_t, int32_t>** g,
                                            int32_t* resultID,
-                                           float* similarity) {
+                                           float* similarity) 
+{
     //---------------- Run Load Graph -----------------------------------
 #ifdef __PROFILING__
     std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time =
@@ -592,7 +610,7 @@ void PrivateImpl::cosinesim_ss_dense_fpga(uint32_t devicesNeeded,
     //---------------- Run L3 API -----------------------------------
     for (int m = 0; m < requestNm; ++m) {
         eventQueue[m] = cosineSimilaritySSDenseMultiCard(
-            handle0, hwNm, sourceLen, sourceWeight, topK, g,
+            handle0, hwNm, sourceLen, sourceWeight, sourceCoeffs, topK, g,
             resultID0[m], similarity0[m]);
     }
 

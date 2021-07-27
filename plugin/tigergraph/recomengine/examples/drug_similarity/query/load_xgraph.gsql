@@ -1,0 +1,70 @@
+#
+# Copyright 2020-2021 Xilinx, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+USE GRAPH @graph
+
+# Don't forget to do 'SET sys.data_root="..."' from the command line!
+
+BEGIN
+    CREATE LOADING JOB load_xgraph FOR GRAPH @graph
+    {
+        DEFINE FILENAME mrconso_infile = "$sys.data_root/RRF/MRCONSO.RRF";
+        DEFINE FILENAME mrrel_infile = "$sys.data_root/RRF/MRREL.RRF";
+
+        DEFINE HEADER mrcons_h = "concept_id", "language_code", "term_status", "term_id", "string_type_code",
+                          "string_id", "atom_id_preferred_indicator", "atom_id", "source_asserted_atom_id",
+                          "source_asserted_concept_id", "source_asserted_descriptor_id", "source_abbreviation_text",
+                          "term_type_code", "code", "string_text", "source_restruction_level", "supress_indicator",
+                          "current_view_indicator";
+
+        DEFINE HEADER mrrel_h = "concept_1_id", "atom_first_id", "relationship_type_1_column_name",
+                          "relationship_label", "concept_2_id", "atom_second_id", "relationship_type_2_column_name",
+                          "relationship_additional_label", "relationship_id", "source_attribute_relationships_id",
+                          "source_abbreviation_text", "relationship_label_source_code", "relationship_group",
+                          "source_direction_indicator", "supress_indicator", "current_view_indicator";
+
+        LOAD mrconso_infile
+            TO VERTEX Atom VALUES(
+                $"atom_id", $"language_code", $"term_status",
+                $"term_id", $"string_type_code", $"string_id",
+                $"atom_id_preferred_indicator", $"atom_id",
+                $"source_asserted_atom_id", $"source_asserted_concept_id",
+                $"source_asserted_descriptor_id", $"source_abbreviation_text",
+                $"term_type_code", $"code", $"string_text",
+                $"source_restruction_level", $"supress_indicator",
+                $"current_view_indicator", _, _
+            )
+            WHERE $"language_code" == "ENG" USING USER_DEFINED_HEADER="mrcons_h", separator="|";
+
+        LOAD mrrel_infile
+            TO EDGE RL VALUES ($"atom_first_id", $"atom_second_id", $"relationship_additional_label")
+            WHERE $"relationship_label" == "RL" AND NOT $"atom_first_id" IS EMPTY AND NOT $"atom_second_id" IS EMPTY,
+            TO EDGE RN VALUES ($"atom_first_id", $"atom_second_id", $"relationship_additional_label")
+            WHERE $"relationship_label" == "RN" AND NOT $"atom_first_id" IS EMPTY AND NOT $"atom_second_id" IS EMPTY,
+            TO EDGE AQ VALUES ($"atom_first_id", $"atom_second_id", $"relationship_additional_label")
+            WHERE $"relationship_label" == "AQ" AND NOT $"atom_first_id" IS EMPTY AND NOT $"atom_second_id" IS EMPTY,
+            TO EDGE RO VALUES ($"atom_first_id", $"atom_second_id", $"relationship_additional_label")
+            WHERE $"relationship_label" == "RO" AND NOT $"atom_first_id" IS EMPTY AND NOT $"atom_second_id" IS EMPTY,
+            TO EDGE RQ VALUES ($"atom_first_id", $"atom_second_id", $"relationship_additional_label")
+            WHERE $"relationship_label" == "RQ" AND NOT $"atom_first_id" IS EMPTY AND NOT $"atom_second_id" IS EMPTY,
+            TO EDGE RU VALUES ($"atom_first_id", $"atom_second_id", $"relationship_additional_label")
+            WHERE $"relationship_label" == "RU" AND NOT $"atom_first_id" IS EMPTY AND NOT $"atom_second_id" IS EMPTY,
+            TO EDGE PAR VALUES ($"atom_first_id", $"atom_second_id", $"relationship_additional_label")
+            WHERE $"relationship_label" == "PAR" AND NOT $"atom_first_id" IS EMPTY AND NOT $"atom_second_id" IS EMPTY,
+            TO EDGE SIB VALUES ($"atom_first_id", $"atom_second_id", $"relationship_additional_label")
+            WHERE  $"relationship_label" == "SIB" AND NOT $"atom_first_id" IS EMPTY AND NOT $"atom_second_id" IS EMPTY
+            USING USER_DEFINED_HEADER="mrrel_h", separator="|";
+    }
+END

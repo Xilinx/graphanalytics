@@ -19,7 +19,7 @@
 #define XILINX_COM_DETECT_HPP
 
 // mergeHeaders 1 name xilinxComDetect
-
+#define XILINX_COM_DETECT_DEBUG_ON
 // mergeHeaders 1 section include start xilinxComDetect DO NOT REMOVE!
 #include "xilinxComDetectImpl.hpp"
 #include <cstdint>
@@ -39,7 +39,8 @@ inline void udf_reset_nextId() {
 inline uint64_t udf_get_nextId(uint64_t out_degree){
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
-    pContext->addDegreeList((long)out_degree);
+    //pContext->addDegreeList((long)out_degree);
+    pContext->degree_list.push_back(out_degree);
 #ifdef  XILINX_COM_DETECT_DUMP_GRAPH
     std::cout << " louvainId = " << pContext->getNextId() <<" out_degree = " << out_degree <<std::endl;
 #endif
@@ -83,23 +84,12 @@ inline void udf_set_louvain_offset(uint64_t louvain_offset){
 }
 
 
-inline void udf_set_louvain_edge_list(uint64_t louvainIdSource, uint64_t louvainIdTarget, float wtAttr, uint64_t outDgr) {
-    std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
-#ifdef XILINX_COM_DETECT_DUMP_GRAPH
-    std::cout <<" louvainIdSource: " << louvainIdSource << ";louvainIdTarget: " << louvainIdTarget << "; weight: " << wtAttr << "; outDgr: " << outDgr << std::endl;
-#endif
-    xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
-    pContext->addEdgeListMap(louvainIdSource,xilinx_apps::louvainmod::Edge((long)louvainIdSource,(long)louvainIdTarget, (double)wtAttr));
-    pContext->getDgrListMap()[louvainIdTarget]=outDgr;
-}
 
-inline void udf_start_partition(string alveo_project, int numVertices){
+inline void udf_start_partition(std::string alveo_project, int numVertices){
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     std::cout << "DEBUG: before alveo_parj_path" << std::endl;
-    std::string alveo_parj_path = pContext->getXGraphStorePath() + "/" + alveo_project;
-    std::cout << "DEBUG: alveo_parj_path = " << alveo_parj_path << std::endl;
-    pContext->setAlveoProject(alveo_parj_path);
+    pContext->setAlveoProject(alveo_project);
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
     xilinx_apps::louvainmod::LouvainMod::PartitionOptions options; //use default value
     options.totalNumVertices = numVertices;
@@ -112,6 +102,45 @@ inline void udf_start_partition(string alveo_project, int numVertices){
 
 
 //Data has been populated and send to FPGA
+inline void udf_save_EdgePtr( ){
+    std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
+     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+     //build offsets_tg
+
+     pContext->mEdgePtrVec.push_back(0);
+     for(int i = 1;i <= pContext->degree_list.size();i++){
+         pContext->mEdgePtrVec.push_back(pContext->degree_list[i-1] + pContext->mEdgePtrVec[i-1]); //offsets_tg[i] += pContext->offsets_tg[i-1];
+       }
+
+     pContext->setOffsetsTg(pContext->mEdgePtrVec.data());
+     int size= pContext->mEdgePtrVec.size();
+     pContext->mEdgeVec.resize(pContext->mEdgePtrVec[size-1]); //NE
+     pContext->mDgrVec.resize(pContext->mEdgePtrVec[size-1]); //NE
+     pContext->addedOffset.resize(pContext->mEdgePtrVec.size()); //NV+1
+     std::fill(pContext->addedOffset.begin(), pContext->addedOffset.end(),0);
+     //std::cout<< "DEBUG:: mDgrVec SIZE:" << pContext->mDgrVec.size() <<" ;"<< pContext->mEdgePtrVec[size-1] << std::endl;
+
+}
+
+inline void udf_set_louvain_edge_list( uint64_t louvainIdSource, uint64_t louvainIdTarget, float wtAttr, uint64_t outDgr){
+    std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
+    xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+    int idx = louvainIdSource - pContext->getLouvainOffset();
+    int startingOffset = pContext->mEdgePtrVec[idx];
+    // set atomic int and increase
+    pContext->mEdgeVec[startingOffset +  pContext->addedOffset[idx]] = xilinx_apps::louvainmod::Edge((long)louvainIdSource,(long)louvainIdTarget, (double)wtAttr);
+   /*
+    if(louvainIdSource < 10) {
+        std::cout << "DEBUG:: louvainIdSource : " << louvainIdSource<< "; pContext->getLouvainOffset():" <<  pContext->getLouvainOffset() << std::endl;
+        std::cout << "DEBUG:: idx: " << pContext->idx << std::endl;
+        std::cout << "DEBUG:: starting offset: "  << pContext->mEdgePtrVec[pContext->idx]<< std::endl;
+
+
+        //std::cout << "DEBUG:: startingOffset: " << pContext->startingOffset << "; idx : " << pContext->idx << std::endl;
+    }*/
+    pContext->mDgrVec[startingOffset+ pContext->addedOffset[idx]] = outDgr;
+    pContext->addedOffset[idx]++;
+}
 
 inline int udf_save_alveo_partition(uint numPar) {
     std::cout << "INFO: " << __FUNCTION__ << " numPar=" << numPar << std::endl;
@@ -119,33 +148,18 @@ inline int udf_save_alveo_partition(uint numPar) {
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     //build offsets_tg
-    std::vector<long> offsetVec = pContext->getDegreeList();
-    offsetVec.insert(offsetVec.begin(), 0);
-    pContext->setOffsetsTg(offsetVec.data());
-    int offsets_tg_size = offsetVec.size();
-    for(int i = 2;i < offsets_tg_size;i++){
-        pContext->setOffsetsTg(i,pContext->getOffsetTg(i) + pContext->getOffsetTg(i-1)); //offsets_tg[i] += pContext->offsets_tg[i-1];
-    }
     
-#ifdef XILINX_COM_DETECT_DEBUG_ON
-    std::cout<<"Last offsets_tg "<<pContext->getOffsetTg(offsets_tg_size-1)<<std::endl;
-#endif
     //build dgr list and edgelist
+
     //traverse the partition size for each louvainId, populate edgelist from edgeListMap
     pContext->setStartVertex(long(pContext->getLouvainOffset()));
     pContext->setEndVertex(long(pContext->getLouvainOffset() + pContext->getNextId())) ; // the end vertex on local partition
-    for(long i= pContext->getStartVertex();i <= pContext->getEndVertex() ; i++) {
-        pContext->getEdgeListVec().insert(pContext->getEdgeListVec().end(),pContext->getEdgeListMap()[i].begin(),pContext->getEdgeListMap()[i].end());
-        for(auto& it:pContext->getEdgeListMap()[i]) {
-            pContext->addDgrListVec(pContext->getDgrListMap()[it.tail]);
-        }
-    }
-    pContext->setDrglistTg((long int*)pContext->getDgrListVec().data());
-    pContext->setEdgelistTg(pContext->getEdgeListVec().data());
+    pContext->setDrglistTg(pContext->mDgrVec.data());
+    pContext->setEdgelistTg(pContext->mEdgeVec.data());
 
 #ifdef XILINX_COM_DETECT_DEBUG_ON
-    std::cout << "edgelist size:" << pContext->getDgrListVec().size() << std::endl;
-    std::cout << "dgrlist size:" << pContext->getEdgeListVec().size() << std::endl;
+    std::cout << "edgelist size:" << pContext->mEdgeVec.size() << std::endl;
+    std::cout << "dgrlist size:" << pContext->mDgrVec.size() << std::endl;
     for(int i=0; i < 10; i++) {
         std::cout << i << " head from edgelist  " << pContext->getEdgelistTg()[i].head <<"; ";
         std::cout << " tail from edgelist: " << pContext->getEdgelistTg()[i].tail <<"; ";
@@ -154,7 +168,7 @@ inline int udf_save_alveo_partition(uint numPar) {
     std::cout << "start_vertex: " << pContext->getStartVertex()<<std::endl;
     std::cout << "end_vertex: " << pContext->getEndVertex() <<std::endl;
 #endif
-    
+
     long NV_par_recommand;
     long NV_par_max = 64*1000*1000;
     if (numPar>1)
@@ -228,85 +242,26 @@ inline int udf_execute_reset(int mode) {
 
 
 inline float udf_louvain_alveo(
-    int64_t max_iter, int64_t max_level, float tolerance, bool intermediateResult,
+    std::string graph_name, int64_t max_iter, int64_t max_level, float tolerance, bool intermediateResult,
     bool verbose, string result_file, bool final_Q, bool all_Q)
 {        
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+
+    //std::string alveo_parj_path = pContext->getXGraphStorePath() + "/" + graph_name;
+    //std::cout << "DEBUG: in udf_louvain_alveo alveo_parj_path = " << alveo_parj_path << std::endl;
+    //pContext->setAlveoProject(alveo_parj_path);
+    pContext->setAlveoProject(graph_name);
+
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
 
-    unsigned nodeId = pContext->getNodeId();
+    // when restore pContext, nodeId  is missing
+ //   unsigned nodeId = pContext->getNodeId();
     std::string alveoProject = pContext->getAlveoProject() + ".par.proj";
-    unsigned numWorkers = pContext->getNumNodes() - 1;
-    unsigned numDevices = pContext->getNumDevices();
-    unsigned numPartitions = pContext->getNumPartitions(); 
-    std::string curNodeIp = pContext->getCurNodeIp();
-    std::string nodeIps = pContext->getNodeIps();
     xilComDetect::LouvainMod::ComputeOptions computeOpts;
-    //if (pContext->getState() >= xilComDetect::Context::CalledExecuteLouvainState)
-    //    return 0;
-    
-    //std::cout << "DEBUG: " << __FUNCTION__ 
-    //          << " Context::getState()=" << pContext->getState() << std::endl;
 
-    //pContext->setState(xilComDetect::Context::CalledExecuteLouvainState);
-    unsigned modeZmq;
-
-    std::istringstream issNodeIps(nodeIps);
-    //std::string nodeName;
-    std::string nodeIp;
-    //char hostname[64 + 1];
-    char* nameWorkers[128];
-    //int  res_hostname = gethostname(hostname, 64 + 1);
-    //if (res_hostname != 0) {
-    //    std::cout << "ERROR: gethostname failed" << std::endl;
-    //    return res_hostname;
-    //}
-    std::string tcpConn;
-    //std::cout << "DEBUG: nodeId " << nodeId << " hostname=" << hostString << std::endl;
-    unsigned iTcpConn = 0;
     float finalQ;
 
-    while (issNodeIps >> nodeIp) {
-        if (nodeIp != curNodeIp) {
-            tcpConn = "tcp://" + nodeIp + ":5555";
-            std::cout << "DEBUG: zmq=" << tcpConn << std::endl;
-            nameWorkers[iTcpConn] = strcpy(new char[tcpConn.length() + 1], 
-                                           tcpConn.c_str());
-            iTcpConn++;
-        } else
-            std::cout << "DEBUG: skip nodeIp " << nodeIp << std::endl;
-    };
-
-
-    for (int i=0; i < iTcpConn; i++)
-        std::cout << "DEBUG: nameWorker " << i << "=" << nameWorkers[i] << std::endl;
-
-    // nodeId 0 is always the driver. All other nodes are workers.
-    if (nodeId == 0) {
-        modeZmq = 1; // driver
-    } else {
-        modeZmq = 2; // worker
-    }
-    
-    std::cout
-        << "DEBUG: " << __FUNCTION__ 
-        << "\n    numDevices=" << numDevices 
-        << "\n    numPartitions=" << numPartitions
-        << "\n    alveoProject=" << alveoProject 
-        << "\n    numWorkers=" << numWorkers
-        << "\n    nodeId=" << nodeId << std::endl;
-    
-    /*
-    float retVal = 0;
-    retVal = loadAlveoAndComputeLouvain(    
-                    PLUGIN_XCLBIN_PATH, true, numDevices, 
-                    alveoProject.c_str(), 
-                    modeZmq, numWorkers, nameWorkers, nodeId,
-                    result_file.c_str(),
-		            max_iter, max_level, tolerence, 
-                    intermediateResult, verbose, final_Q, all_Q); 
-    */
     pLouvainMod->setAlveoProject((char *)alveoProject.c_str());
 
     computeOpts.outputFile = (char *)result_file.c_str();

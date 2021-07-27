@@ -18,19 +18,6 @@
 USE GRAPH @graph
 DROP QUERY louvain_alveo, close_alveo, tg_partition_phase_1, tg_partition_phase_2, tg_partition_phase_3
 
-//CREATE DISTRIBUTED QUERY open_alveo() FOR GRAPH @graph {
-//   DOUBLE udf_time;
-//   String s;
-//   INT ret;
-//   udf_execute_reset(2);
-//   udf_reset_timer(true);
-//   // Initialize on all machines
-//   Start = {Person.*};
-//   A = SELECT v
-//       FROM Start:v
-//       ACCUM udf_open_alveo(1);
-//   udf_time = udf_elapsed_time(true);
-//}
 
 
 CREATE DISTRIBUTED QUERY tg_partition_phase_1(
@@ -108,70 +95,38 @@ CREATE DISTRIBUTED QUERY tg_partition_phase_3(
     MapAccum<UINT,INT> @@nodeAccum;
     
     print gName;
-    Start = {v_types};
-    nodes = {dummy_nodes.*};
-    vertexList = SELECT s FROM Start:s-(e_types:e)->:t
-        ACCUM udf_set_louvain_edge_list(s.louvainId, t.louvainId, e.getAttr(weight_attr,"FLOAT"), t.outdegree());
 
+    udf_reset_timer(true);
+    Start = {v_types};
+    nodes = {dummy_nodes.*}; 
+ 
+    udf_reset_timer(true);
+    tmpList = SELECT n FROM nodes:n
+       ACCUM udf_save_EdgePtr();
+    
+    vertexList = SELECT s FROM Start:s-(e_types:e)->:t
+        ACCUM udf_set_louvain_edge_list(s.louvainId, t.louvainId, e.getAttr(weight_attr,"FLOAT"), t.outdegree());    
+    PRINT udf_elapsed_time(true) AS SetLouvainEdgeListTime;
+    
+    udf_reset_timer(true);
     nodeList = SELECT n FROM nodes:n 
         ACCUM udf_start_partition(gName, Start.size());
-            
- 
+    PRINT udf_elapsed_time(true) AS StartPartitionTime;
+       
+    udf_reset_timer(true);
     parList = SELECT n FROM nodes:n
         ACCUM @@nodeAccum += (n.NODE_ID -> udf_save_alveo_partition(numPar));
     PRINT @@nodeAccum;
+    PRINT udf_elapsed_time(true) AS SaveAlveoPartitionTime;
 
+    udf_reset_timer(true);
     nodeList = SELECT n FROM nodes:n
         ACCUM udf_finish_partition(@@nodeAccum);
+    PRINT udf_elapsed_time(true) AS FinishPartitionTime;
   
 }
 
-/*
-CREATE DISTRIBUTED QUERY load_alveo(
-    SET<STRING> v_types,            // List of vertex types that would participate in Louvain Modularity
-    SET<STRING> e_types,            // List of edge types that would participate in Louvain Modularity
-    STRING weight_attr,             // Name of the edge attribute that has weight of the edge
-    BOOL tg_partition = TRUE,   // Use the partitions created by TigerGraph if true, else create custom partitions
-    BOOL use_saved_partition = TRUE,// If partitions are saved on disk, use them instead of getting from RAM
-    STRING graph_file = "",         // Source graph file in .mtx format, needed only if tg_partition = FALSE
-    STRING louvain_project = "",    // Provide a project name for saving partitions, used for loading from disk too
-    UINT num_partitions = 9,        // Number of partitions as string (e.g. "9"). Default: "auto" for best performance
-    UINT num_devices = 1            // Number of devices (alveo cards) to use per server (e.g. "3"). Default; "auto"
-) FOR GRAPH @graph
-{
-    DOUBLE udf_time;
-    ListAccum<int> @@nodeAccum;
-    INT status;
 
-    //TODO
-    //udf_reset_states(1);
-    udf_execute_reset(1);
-    //udf_reset_timer(true);
-
-    // Traverse TigerGraph memory and load partitions on each node
-    Start = {v_types};
-    nodes = {dummy_nodes.*};
-    nodeList = SELECT n FROM nodes:n
-        ACCUM @@nodeAccum += udf_xilinx_comdetect_set_node_id(n.NODE_ID);
-
-    IF tg_partition THEN
-        Start = SELECT v FROM Start:v-(e_types:e)->:t
-           ACCUM
-           // TODO build the edge list and offsets here from TigerGraph memory
-           status = udf_load_alveo(num_partitions, num_devices);
-    ELSE
-        // On each server call the code
-        nodelist = SELECT n FROM nodes:n
-           ACCUM
-           status = udf_create_and_load_alveo_partitions(use_saved_partition, 
-               graph_file, louvain_project, nodes.size(), num_partitions, num_devices);
-    END;
-
-    //udf_time = udf_elapsed_time(true);
-    //print tg_partition, use_saved_partition, status;
-
-}
-*/
 
 CREATE DISTRIBUTED QUERY louvain_alveo(
     SET<STRING> v_type,             // Set of names of vertex types to be considered. Example: ["Person", "Animal"]
@@ -192,26 +147,20 @@ CREATE DISTRIBUTED QUERY louvain_alveo(
     DOUBLE udf_time;
     DOUBLE vm_peak, vm_hwm;
     INT ret;
-
+    STRING gName = "@graph" ;
     nodes = {dummy_nodes.*};
     nodeList = SELECT n FROM nodes:n
         ACCUM @@nodeAccum += udf_xilinx_comdetect_set_node_id(n.NODE_ID);
 
-    //nodeList = SELECT n FROM nodes:n
-    //    ACCUM @@nodeAccum += udf_xilinx_comdetect_set_num_nodes(1);
 
-    //udf_reset_timer(true);
     udf_execute_reset(0);
 
     // each node will get this UDF call for each vertex, but the actual execution
     // is only run once guarded by a flag. Each node checks if it's master or slave
     // and run the task accordingly.
-//     //nodelist = SELECT n FROM nodes:n
-    //       ACCUM @@executeAlveoStatus += udf_louvain_alveo(
-    //       max_iter, max_level, tolerence, intermediateResult,
-    //       verbose, result_file, print_final_Q, print_all_Q);
+
     nodelist = SELECT n FROM nodes:n
-           ACCUM @@modularityAccum += udf_louvain_alveo(
+           ACCUM @@modularityAccum += udf_louvain_alveo(gName,
            max_iter, max_level, tolerence, intermediateResult,
            verbose, result_file, print_final_Q, print_all_Q);
 
