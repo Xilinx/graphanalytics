@@ -58,7 +58,7 @@ int create_and_load_alveo_partitions(int argc, char *argv[]);
 
 XILINX_LOUVAINMOD_IMPL_DECL
 float loadAlveoAndComputeLouvain(    
-    char* xclbinPath, bool flow_fast, unsigned int numDevices, std::string deviceNames,
+    char* xclbinPath, int flow_fast, unsigned int numDevices, std::string deviceNames,
     char* alveoProject, unsigned mode_zmq, unsigned numPureWorker, 
     char* nameWorkers[128], unsigned int nodeID,  char* opts_outputFile, 
     unsigned int max_iter, unsigned int max_level, float tolerance, 
