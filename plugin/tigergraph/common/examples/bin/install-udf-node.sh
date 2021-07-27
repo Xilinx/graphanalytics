@@ -176,3 +176,11 @@ mkdir -p $tg_temp_include_dir
 for i in $PLUGIN_HEADERS; do
     cp -f $tg_udf_dir/$i $tg_temp_include_dir
 done
+
+#
+# Run any plugin specific scripts
+#
+
+for i in $PLUGIN_SCRIPTS; do
+    . $plugin_src_dir/bin/$i
+done
