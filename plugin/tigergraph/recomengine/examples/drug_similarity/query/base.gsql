@@ -78,7 +78,7 @@ CREATE QUERY create_embeddings() for graph @graph {
     #node2vec_query("/tmp/path.csv", udf_get_embedding_length());
     
     # Load Pre-built embeddings
-    load_node2vec("/tmp/embeddings.csv", udf_get_embedding_length());
+    load_node2vec("@data_root/data/csv/embeddings.csv", udf_get_embedding_length());
 }
 
 

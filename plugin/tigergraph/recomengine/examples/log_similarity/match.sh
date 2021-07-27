@@ -53,7 +53,6 @@ fi
 if [ "$load_cache" -eq 1 ]
 then
     echo "Clearing embeddings..."
-    time . $script_dir/bin/get_glove.sh
     time gsql -g $xgraph "set query_timeout=240000000 run query cosinesim_clear_embeddings()"
     echo "Caching cosine similarity vectors to Log Record vertices..."
     time gsql -g $xgraph "set query_timeout=240000000 run query cosinesim_embed_vectors()"
@@ -73,14 +72,6 @@ do
     time gsql -g $xgraph "run query cosinesim_ss_tg(\"/tmp/tg.txt\")"
     echo "Run query cosinesim_ss_fpga"
     time gsql -g $xgraph "run query cosinesim_ss_fpga(\"/tmp/fpga.txt\")"
-    
-    echo "INFO: Running a simple diff as a sanity check between CPU and FPGA results"
-    echo "INFO: diff /tmp/tg.txt /tmp/fpga.txt"
-    # basic checking of the result
-    # diff /tmp/fpga.txt /tmp/tg.txt || :
-
-    echo ""
-    echo "INFO: The only difference should be the precision of similarity scores for some records."
 done
 
 

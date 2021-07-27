@@ -216,7 +216,7 @@ $(CPP_DOXY_TRIGGER_FILE): include/cosinesim.hpp $(CPP_DOXY_CONFIG_FILE)
 # python API wrapper
 #
 
-PYTHON = python3.6
+PYTHON = python3
 PYTHON_DIR = /usr/include/$(PYTHON)
 PYTHONENV_NAME = pyvenv
 PYTHONENV = ./$(PYTHONENV_NAME)/bin/$(PYTHON)

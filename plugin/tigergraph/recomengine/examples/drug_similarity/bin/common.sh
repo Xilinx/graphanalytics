@@ -70,11 +70,6 @@ if [ -f ~/.ssh/tigergraph_rsa ]; then
     ssh_key_flag="-i ~/.ssh/tigergraph_rsa"
 fi
 
-# copy embeddings file to tmp
-if [ ! -f /tmp/embeddings.csv ]; then
-    cp $data_root/csv/embeddings.csv /tmp/
-fi
-
 while getopts ":c:d:fg:i:l:m:n:p:s:u:vh" opt
 do
 case $opt in

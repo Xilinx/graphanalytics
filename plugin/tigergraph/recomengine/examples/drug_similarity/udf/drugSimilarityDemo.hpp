@@ -142,11 +142,8 @@ inline ListAccum<int64_t> udf_get_nodeVec(std::string word) {
 
     drugSimilarityDemo::Map embeddings_map = drugSimilarityDemo::get_embeddings_map();
 
-    std::ofstream out1("/tmp/found.txt", std::ofstream::out | std::ofstream::app);
-    std::ofstream out2("/tmp/notfound.txt", std::ofstream::out | std::ofstream::app);
     auto lookup = embeddings_map.find(word);
     if(lookup != embeddings_map.end()) { // If embedding was created for the Vertex
-        out1 << word << std::endl;
         drugSimilarityDemo::Vector embedding = lookup->second;
         float max_mag = 0;
         for (auto i: embedding) {
@@ -158,7 +155,6 @@ inline ListAccum<int64_t> udf_get_nodeVec(std::string word) {
             result += value*scale;
         }
     }
-    else out2 << word << std::endl;
 
     return result;
 }

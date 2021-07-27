@@ -40,7 +40,6 @@ SCRIPTPATH=`dirname $SCRIPT`
 # if -i option is set in common.sh, ssh_key_flag is set to -i $ssh_key, 
 # otherwise it's an empty string
 echo " "
-gsql "$(cat $SCRIPTPATH/query/base.gsql | sed "s/@graph/$xgraph/")"
-gsql "$(cat $SCRIPTPATH/query/client.gsql | sed "s/@graph/$xgraph/")"
+gsql "$(cat $SCRIPTPATH/query/base.gsql | sed "s/@graph/$xgraph/" | sed "s|@data_root|$SCRIPTPATH|")"
 gsql "$(cat $SCRIPTPATH/query/query.gsql | sed "s/@graph/$xgraph/")"
 
