@@ -159,7 +159,7 @@ help-common:
 	@echo "  make"
 	@echo "  Build staging files"
 	@echo ""
-	@echo "  make install
+	@echo "  make install"
 	@echo "  Build staging files and install the plugin"
 	@echo ""
 	@echo "  make dist"
