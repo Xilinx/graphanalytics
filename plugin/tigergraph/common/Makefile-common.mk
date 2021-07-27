@@ -95,6 +95,10 @@ STAGE_ALL_FILES = \
 
 STAGE_SUBDIRS = $(sort $(dir $(STAGE_ALL_FILES)))
 
+# Default target
+all: stage
+
+.PHONY: stage
 stage: $(STAGE_DIR) $(STAGE_SUBDIRS) $(STAGE_ALL_FILES)
 
 
@@ -149,13 +153,22 @@ install: stage
 clean:
 	rm -rf $(STAGE_DIR)
 
-help:
-	@echo "Valid make targets:"
-	@echo "stage   : Generate staging directory"
-	@echo "dist    : Generate installation package (RPM or DEB) for the current OS and architecture"
-	@echo "install : Make stage and run insta.sh"
+.PHONY: help-common
+help-common:
+	@echo "Makefile usage"
+	@echo "  make"
+	@echo "  Build staging files"
 	@echo ""
-	@echo "Examples:"
-	@echo "Install plugin files with SSH key file"
-	@echo "make sshKey=~/.ssh/tigergraph_rsa"
+	@echo "  make install
+	@echo "  Build staging files and install the plugin"
+	@echo ""
+	@echo "  make dist"
+	@echo "  Build installation package (RPM or DEB) for the current OS and architecture"
+	@echo ""
+	@echo "Options"
+	@echo "sshKey: run make with an ssh key for the user tigergraph"
+
+
+
+
 

@@ -90,3 +90,8 @@ STAGE_COPY_FILES = \
 STAGE_EXAMPLES_DIRS = $(SYNTHEA_DIR) $(LOGSIM_DIR) $(DRUGSIM_DIR)
 
 include ../common/Makefile-common.mk
+
+help: help-common
+	@echo ""
+	@echo "Install plugin files with SSH key file"
+	@echo "make sshKey=~/.ssh/tigergraph_rsa"
