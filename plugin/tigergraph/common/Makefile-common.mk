@@ -152,6 +152,7 @@ install: stage
 
 clean:
 	rm -rf $(STAGE_DIR)
+	@cd package; make clean
 
 .PHONY: help-common
 help-common:

@@ -34,3 +34,6 @@ package:$(PKGDIR)
 
 $(PKGDIR):
 	mkdir $(PKGDIR); 
+
+clean:
+	rm -rf _CPack_Packages

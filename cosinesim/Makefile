@@ -549,6 +549,7 @@ clean:
 	rm -rf Debug Release $(JAVA_LIB_DIR) $(BUILD_DIR) $(STAGE_DIR)
 	@echo "Note: because the XCLBIN file takes so long to generate, it is not removed with this 'clean' target."
 	@echo "To clean the XCLBIN, use 'make clean-xclbin'"
+	cd package; make clean
 	
 clean-xclbin:
 	rm -f $(XCLBIN_FILE)
