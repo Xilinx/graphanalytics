@@ -29,7 +29,7 @@ endif
 .PHONY: all
 
 #all: javaApi cppBuild javaTest stage
-all: pythonApi stage
+all: stage
 
 #
 # Global Definitions
@@ -495,7 +495,7 @@ STAGE_ALL_FILES = \
 #    $(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP) \
 
 .PHONY: stage stage2
-stage: 
+stage: pythonApi
 	make stage2
 
 stage2: cppTest $(STAGE_SUBDIRS) stage-examples $(STAGE_ALL_FILES)

@@ -17,7 +17,7 @@
 
 
 # Product version
-test -d "$PRODUCT_VER" || export PRODUCT_VER=1.0
+test -d "$PRODUCT_VER" || export PRODUCT_VER=1.2
 
 # Location of cosine similarity Alveo product
 export XF_PROJ_ROOT=$PWD/../../staging
