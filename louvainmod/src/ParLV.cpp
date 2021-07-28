@@ -3870,7 +3870,7 @@ int compute_louvain_alveo_seperated_load(
     std::string kernelName = "kernel_louvain";
     int requestLoad = 100;
     bool isPrun = true;
-    const int cuNm = 1;
+    int cuNm = 1;
 
     //double opts_C_thresh = 0.0002;    // Threshold with coloring on
     double opts_C_thresh = tolerance;   // Threshold with coloring on
@@ -3895,6 +3895,8 @@ int compute_louvain_alveo_seperated_load(
     op0->requestLoad = requestLoad;
     op0->xclbinPath = xclbinPath;
     op0->numDevices = numDevices;
+    if(flowMode==4) cuNm = 2;
+    op0->cuPerBoard = cuNm;
 
     std::cout << "INFO: numNode: " << numNode << std::endl;
     std::cout << "INFO: numDevices requested: " << op0->numDevices << std::endl;
