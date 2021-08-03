@@ -149,7 +149,7 @@ HOST_ARGS :=  -x $(BUILD_DIR)/kernel_louvain.xclbin -f 3 -c -o -m 10000 -prun $(
 # ##################### Kernel compiler global settings ##########################
 VPP_FLAGS += -t $(TARGET) --platform $(XPLATFORM) --save-temps --optimize 2
 VPP_FLAGS += --jobs 8
-VPP_FLAGS += --config $(CUR_DIR)/conn_u55c.ini
+VPP_FLAGS += --config $(CUR_DIR)/conn_u55c.cfg
 
 VPP_FLAGS += -I$(XFLIB_DIR)/L2/include
 VPP_FLAGS += -I$(XFLIB_DIR)/../database/L1/include/hw

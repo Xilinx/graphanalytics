@@ -15,7 +15,7 @@
  */
 
 #include <omp.h>
-#include "xilinxlouvain.hpp"
+#include "partition/xilinxlouvain.h"
 #include "ParLV.h"  //tmp include
 #include "ctrlLV.h" //tmp include
 #include "partitionLouvain.hpp"
@@ -25,7 +25,7 @@
 #include "string.h"
 #include "ap_int.h"
 #include "utils.hpp"
-#include "xf_utils_sw/logger.hpp"
+//#include "xf_utils_sw/logger.hpp"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 void PrintReport_MultiPhase(bool opts_coloring,
                             long opts_minGraphSize,
@@ -1778,7 +1778,7 @@ void runLouvainWithFPGA_demo_par_core_prune(bool hasGhost,
     assert(NE_orig < MAXNE);
 
     timePrePre_dev = omp_get_wtime();
-    xf::common::utils_sw::Logger logger(std::cout, std::cerr);
+//    xf::common::utils_sw::Logger logger(std::cout, std::cerr);
     cl_int err;
     std::vector<cl::Device> devices = xcl::get_xil_devices();
 
@@ -1790,7 +1790,7 @@ void runLouvainWithFPGA_demo_par_core_prune(bool hasGhost,
     }
     cl::Device device = devices[id_dev];
     cl::Context context(device, NULL, NULL, NULL, &err);
-    logger.logCreateContext(err);
+//    logger.logCreateContext(err);
     std::string devName = device.getInfo<CL_DEVICE_NAME>();
     printf("INFO: Found Device=%s\n", devName.c_str());
     timePrePre_dev = omp_get_wtime() - timePrePre_dev;
@@ -1803,12 +1803,12 @@ void runLouvainWithFPGA_demo_par_core_prune(bool hasGhost,
     devices2.resize(1);
 
     cl::Program program(context, devices2, xclBins, NULL, &err);
-    logger.logCreateProgram(err);
+//    logger.logCreateProgram(err);
     cl::Kernel kernel_louvain(program, "kernel_louvain", &err);
-    logger.logCreateKernel(err);
+//    logger.logCreateKernel(err);
     printf("INFO: kernel has been created\n");
     cl::CommandQueue q(context, device, CL_QUEUE_PROFILING_ENABLE | CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, &err);
-    logger.logCreateCommandQueue(err);
+//    logger.logCreateCommandQueue(err);
     timePrePre_xclbin = omp_get_wtime() - timePrePre_xclbin;
     /* Memories mapping */
     KMemorys_host_prune buff_host;
