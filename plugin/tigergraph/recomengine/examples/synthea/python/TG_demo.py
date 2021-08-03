@@ -18,6 +18,7 @@ import time
 import random as rand
 from pathlib import Path, PurePosixPath
 import pyTigerGraph as tg
+import os
 
 # Login Setup
 hostName = "localhost"                             # TG server hostname
@@ -33,12 +34,11 @@ topK = 10                                           # Number of highest scoring 
 numDevices = 1                                      # Number of FPGA devices to distribute the queries to
 
 # Path Setup
-localRepoLocation = Path("/proj/xsjhdstaff3/sachink/ghe")
-serverRepoLocation = PurePosixPath("/proj/xsjhdstaff3/sachink/ghe")
+notebookLocation = Path(os.getcwd() + "/..")
+queryFileLocation = notebookLocation / "query"
 
-exampleLocation = Path("graphanalytics/plugin/tigergraph/recomengine/staging/examples/synthea") # when running from github repo
-queryFileLocation = localRepoLocation / exampleLocation / "query"
-serverDataLocation = serverRepoLocation / PurePosixPath(exampleLocation) / "1000_patients/csv"
+serverInstallLocation = PurePosixPath("/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.1/examples/synthea")
+serverDataLocation = serverInstallLocation / "1000_patients/csv"
 
 # Utility Methods
 def getPatient(id):

@@ -33,7 +33,7 @@
 if [ ! -f "/tmp/glove.6B.50d.txt" ]; then
     if [ ! -f "/tmp/glove.6B.50d.txt.tar" ]; then
         echo "Downloading GloVe Embedding File ..."
-        wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1ogyMmAu0fcZBdSwTQJuX6jHLzlTJnql0' -O /tmp/glove.6B.50d.txt.tar
+        wget --no-verbose --no-check-certificate 'https://docs.google.com/uc?export=download&id=1ogyMmAu0fcZBdSwTQJuX6jHLzlTJnql0' -O /tmp/glove.6B.50d.txt.tar
         echo "Download Completed!"
     fi
     echo "Extracting GloVe Embedding File ..."

@@ -29,7 +29,7 @@ endif
 .PHONY: all
 
 #all: javaApi cppBuild javaTest stage
-all: pythonApi stage
+all: stage
 
 #
 # Global Definitions
@@ -216,7 +216,7 @@ $(CPP_DOXY_TRIGGER_FILE): include/cosinesim.hpp $(CPP_DOXY_CONFIG_FILE)
 # python API wrapper
 #
 
-PYTHON = python3.6
+PYTHON = python3
 PYTHON_DIR = /usr/include/$(PYTHON)
 PYTHONENV_NAME = pyvenv
 PYTHONENV = ./$(PYTHONENV_NAME)/bin/$(PYTHON)
@@ -448,7 +448,7 @@ $(foreach f,$(STAGE_LIB_FILES),$(eval $(call STAGE_LIB_RULE,$(f))))
 
 # Example files - need to be zipped up
 
-STAGE_EXAMPLE_ZIP = examples.zip
+#STAGE_EXAMPLE_ZIP = examples.zip
 STAGE_EXAMPLE_FILE_NAMES = \
 	cpp/cppdemo.cpp cpp/Makefile cpp/README.md \
     python/pythondemo.py python/run.sh \
@@ -457,14 +457,18 @@ STAGE_EXAMPLE_FILE_NAMES = \
 STAGE_EXAMPLE_FILES = $(addprefix examples/,$(STAGE_EXAMPLE_FILE_NAMES))
 STAGE_STAGED_EXAMPLE_FILES = $(addprefix $(STAGE_DIR)/,$(STAGE_EXAMPLE_FILES))
 
-.PHONY: stage fill-example-stage
+.PHONY: stage fill-example-stage stage-examples
 
-$(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP): $(STAGE_EXAMPLE_FILES)
+#$(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP): $(STAGE_EXAMPLE_FILES)
+#	mkdir -p $(sort $(dir $(STAGE_STAGED_EXAMPLE_FILES)))
+#	@make fill-example-stage
+#	@cd $(STAGE_DIR) ; \
+#	zip -r $(STAGE_EXAMPLE_ZIP) examples
+#	rm -rf $(STAGE_DIR)/examples
+
+stage-examples: $(STAGE_EXAMPLE_FILES)
 	mkdir -p $(sort $(dir $(STAGE_STAGED_EXAMPLE_FILES)))
 	@make fill-example-stage
-	@cd $(STAGE_DIR) ; \
-	zip -r $(STAGE_EXAMPLE_ZIP) examples
-	rm -rf $(STAGE_DIR)/examples
 
 fill-example-stage: $(STAGE_STAGED_EXAMPLE_FILES)
 	
@@ -487,14 +491,14 @@ STAGE_SUBDIRS = $(addprefix $(STAGE_DIR)/,$(STAGE_SUBDIR_NAMES))
 STAGE_ALL_FILES = \
     $(addprefix $(STAGE_DIR)/,$(STAGE_COPY_FILES)) \
     $(addprefix $(STAGE_DIR)/lib/,$(STAGE_LIB_FILES)) \
-    $(STAGE_XCLBIN_FILE) \
-    $(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP) \
+    $(STAGE_XCLBIN_FILE) 
+#    $(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP) \
 
 .PHONY: stage stage2
-stage: 
+stage: pythonApi
 	make stage2
 
-stage2: cppTest $(STAGE_SUBDIRS) $(STAGE_ALL_FILES)
+stage2: cppTest $(STAGE_SUBDIRS) stage-examples $(STAGE_ALL_FILES)
 $(STAGE_SUBDIRS):
 	mkdir -p $@
 
@@ -545,6 +549,7 @@ clean:
 	rm -rf Debug Release $(JAVA_LIB_DIR) $(BUILD_DIR) $(STAGE_DIR)
 	@echo "Note: because the XCLBIN file takes so long to generate, it is not removed with this 'clean' target."
 	@echo "To clean the XCLBIN, use 'make clean-xclbin'"
+	cd package; make clean
 	
 clean-xclbin:
 	rm -f $(XCLBIN_FILE)

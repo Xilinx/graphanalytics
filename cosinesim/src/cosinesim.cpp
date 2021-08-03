@@ -102,7 +102,7 @@ public:
         if(options.numDevices > 0)
             numDevices = options.numDevices;
 
-        xclbinPath = "/opt/xilinx/apps/graphanalytics/cosinesim/1.1/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin";
+        xclbinPath = "/opt/xilinx/apps/graphanalytics/cosinesim/1.2/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin";
         std::cout << "INFO: Options::xcbinPath = " << (options.xclbinPath == nullptr ? "null"
             : options.xclbinPath) << std::endl;
         if (options.xclbinPath != nullptr)

@@ -41,6 +41,5 @@ SCRIPTPATH=`dirname $SCRIPT`
 # otherwise it's an empty string
 echo " "
 gsql "$(cat $SCRIPTPATH/query/base.gsql | sed "s/@graph/$xgraph/")"
-gsql "$(cat $SCRIPTPATH/query/client.gsql | sed "s/@graph/$xgraph/")"
 gsql "$(cat $SCRIPTPATH/query/query.gsql | sed "s/@graph/$xgraph/")"
 

@@ -29,6 +29,9 @@ PLUGIN_MAIN_UDF=logSimilarityDemo.hpp
 # Header files used by the plugin
 PLUGIN_HEADERS=codevector.hpp
 
+# List of scripts that needs to be run for this plugin, if any
+PLUGIN_SCRIPTS=get_glove.sh
+
 # List of plugins that this plugin depends on.  Install script errors out if one or more dependencies is found
 # not to have been installed.
 PLUGIN_DEPENDENCIES=xilinxRecomEngine

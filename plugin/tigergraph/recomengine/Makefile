@@ -17,7 +17,7 @@
 # Example directories
 SYNTHEA_DIR = examples/synthea
 LOGSIM_DIR = examples/log_similarity
-#DRUGSIM_DIR = examples/drug_similarity
+DRUGSIM_DIR = examples/drug_similarity
 
 # Files to be direct-copied from plugin source tree to staging area
 
@@ -65,14 +65,14 @@ STAGE_COPY_FILES = \
     $(LOGSIM_DIR)/init_graph.sh \
     $(LOGSIM_DIR)/install_query.sh \
     $(LOGSIM_DIR)/match.sh \
-    $(LOGSIM_DIR)/run.sh 
-#    \
-    $(wildcard $(DRUGSIM_DIR)/data/*.RRF) \
+    $(LOGSIM_DIR)/run.sh \
+    \
+    $(wildcard $(DRUGSIM_DIR)/data/RRF/*.RRF) \
+    $(wildcard $(DRUGSIM_DIR)/data/csv/*.csv) \
     $(DRUGSIM_DIR)/bin/common.sh \
     $(DRUGSIM_DIR)/bin/set-plugin-vars.sh \
     $(DRUGSIM_DIR)/jupyter-demo/drug_similarity_TG_demo.ipynb \
     $(DRUGSIM_DIR)/query/base.gsql \
-    $(DRUGSIM_DIR)/query/tg_graph_algo.gsql \
     $(DRUGSIM_DIR)/query/client.gsql \
     $(DRUGSIM_DIR)/query/load_xgraph.gsql \
     $(DRUGSIM_DIR)/query/query.gsql \
@@ -90,3 +90,8 @@ STAGE_COPY_FILES = \
 STAGE_EXAMPLES_DIRS = $(SYNTHEA_DIR) $(LOGSIM_DIR) $(DRUGSIM_DIR)
 
 include ../common/Makefile-common.mk
+
+help: help-common
+	@echo ""
+	@echo "Install plugin files with SSH key file"
+	@echo "make sshKey=~/.ssh/tigergraph_rsa"
