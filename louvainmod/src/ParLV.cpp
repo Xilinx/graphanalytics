@@ -2703,7 +2703,7 @@ void Louvain_thread_core(xf::graph::L3::Handle* handle0,
 {
 #ifndef NDEBUG
     std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__ 
-              << " flowMode=" << flowMode << std::endl;
+              << " flowMode=" << flowMode << " NVl=" << glv->NVl << std::endl;
 #endif
     xf::graph::L3::louvainModularity(handle0[0], flowMode, glv_src, glv, para_lv);
 }
@@ -3895,7 +3895,7 @@ int compute_louvain_alveo_seperated_load(
     op0->requestLoad = requestLoad;
     op0->xclbinPath = xclbinPath;
     op0->numDevices = numDevices;
-    if(flowMode==4) cuNm = 2;
+    if(flowMode==4 ) cuNm = 2;
     op0->cuPerBoard = cuNm;
 
     std::cout << "INFO: numNode: " << numNode << std::endl;

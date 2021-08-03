@@ -174,8 +174,8 @@ void opLouvainModularity::loadGraph(
 #ifdef PRINTINFO
     printf("INFO: in loadGraph flowMode = %d\n\n", flowMode);
 #endif
-    for(int i=0; i < numDevices_; i++) {
-    //for(int i=0; i < maxCU_; i++) {
+    //for(int i=0; i < numDevices_; i++) {
+    for(int i=0; i < maxCU_; i++) {
     	//loadGraphCoreLouvainModularity(&handles[i], NV_orig, NE_mem_1, NE_mem_2, &buff_hosts[i]);
     	if(flowMode == 1){
     		bufferInit(&handles[i], NV_orig, NE_mem_1, NE_mem_2, &buff_hosts[i]);
@@ -331,26 +331,26 @@ int opLouvainModularity::compute(unsigned int deviceID,
     } else if (flowMode ==3){
 
 #ifdef PRINTINFO
-    	std::cout << "INFO: inside flow 3 " << std::endl;
+    	std::cout << "INFO: inside flow 3 " << std::string(hds[0].resR->instanceName) << std::endl;
 #endif
     	KMemorys_host_prune* buf_host_prune = &buff_host_prune[which];
 #ifdef PRINTINFO
     	std::cout << "INFO: buf_host_prune has been created" << std::endl;
 #endif
 
-        eachTimeInitBuff[0] = PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_renumber_2cu(pglv_iter->numColors, pglv_iter->NVl, pglv_iter->G, pglv_iter->M,
+        eachTimeInitBuff[0] = PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_renumber(pglv_iter->numColors, pglv_iter->NVl, pglv_iter->G, pglv_iter->M,
                                                                       opts_C_thresh, currMod, pglv_iter->colors, buf_host_prune);
 #ifdef PRINTINFO
         std::cout << "INFO: PhaseLoop_UsingFPGA_Prep_Init_buff_host #prune# done" << std::endl;
 #endif
-        PhaseLoop_UsingFPGA_1_KernelSetup_prune_2cu(isLargeEdge, kernel_run, ob_in, ob_out, hds);
+        PhaseLoop_UsingFPGA_1_KernelSetup_prune(isLargeEdge, kernel_run, ob_in, ob_out, hds);
 #ifdef PRINTINFO
         std::cout << "\tPhaseLoop_UsingFPGA_1_KernelSetup Device Available: "
                   << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 #endif
         // PhaseLoop_UsingFPGA_2_DataWriteTo (q, kernel_evt0, ob_in);
         migrateMemObj(hds, 0, 1, ob_in, nullptr, &events_write[0]);
-
+getchar();
         // PhaseLoop_UsingFPGA_3_KernelRun   (q, kernel_evt0, kernel_evt1, kernel_louvain);
         int ret = cuExecute(hds, kernel_run, 1, &events_write, &events_kernel[0]);
 
@@ -361,6 +361,7 @@ int opLouvainModularity::compute(unsigned int deviceID,
 				  << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 #endif
         //PhaseLoop_UsingFPGA_5_KernelFinish(q);
+getchar();
         q.finish();
 #ifdef PRINTINFO
         std::cout << "\tPhaseLoop_UsingFPGA_5_KernelFinish Device Available: "
@@ -373,7 +374,7 @@ int opLouvainModularity::compute(unsigned int deviceID,
     }else{
 
 #ifdef PRINTINFO
-    	std::cout << "INFO: inside flow 4 for renum+2cu opt version " << std::endl;
+    	std::cout << "INFO: inside flow 4 for renum+2cu opt version " << std::string(hds[0].resR->instanceName) << std::endl;
 #endif
     	KMemorys_host_prune* buf_host_prune = &buff_host_prune[which];//zyl
 #ifdef PRINTINFO
@@ -517,137 +518,6 @@ void opLouvainModularity::UsingFPGA_MapHostClBuff_prune(
 		long             		NE_mem_2,
 		KMemorys_host_prune     *buff_host_prune)
 {
-#if 1
-#ifdef PRINTINFO
-	std::cout<< "INFO: start MapHostClBuff kernel_louvain_1" <<std::endl;
-#endif
-	std::vector<cl_mem_ext_ptr_t> mext_in(NUM_PORT_KERNEL+7);
-	buff_host_prune[0].config0       = aligned_alloc<int64_t>(6);
-	buff_host_prune[0].config1       = aligned_alloc<DWEIGHT>(4);
-	buff_host_prune[0].offsets       = aligned_alloc<int  >(NV + 1);
-	buff_host_prune[0].indices       = aligned_alloc<int  >(NE_mem_1);
-	//buff_host_prune[0].offsetsdup    = aligned_alloc<int  >(NV + 1);//
-	//buff_host_prune[0].indicesdup    = aligned_alloc<int  >(NE_mem_1);//
-	buff_host_prune[0].weights       = aligned_alloc<float>(NE_mem_1);
-	buff_host_prune[0].flag          = aligned_alloc<ap_uint<8> >(NV/16+15);
-	buff_host_prune[0].flagUpdate    = aligned_alloc<ap_uint<8> >(NV/16+15);
-	if(NE_mem_2>0){
-		buff_host_prune[0].indices2  = aligned_alloc<int  >(NE_mem_2);
-		//buff_host_prune[0].indicesdup2  = aligned_alloc<int  >(NE_mem_2);
-	}
-	if(NE_mem_2>0){
-		buff_host_prune[0].weights2  = aligned_alloc<float>(NE_mem_2);
-	}
-	buff_host_prune[0].cidPrev       = aligned_alloc<int  >(NV);
-	buff_host_prune[0].cidCurr       = aligned_alloc<int  >(NV);
-	buff_host_prune[0].cidSizePrev   = aligned_alloc<int  >(NV);
-	buff_host_prune[0].totPrev       = aligned_alloc<float>(NV);
-	buff_host_prune[0].cidSizeCurr   = aligned_alloc<int  >(NV);
-	buff_host_prune[0].totCurr       = aligned_alloc<float>(NV);
-	buff_host_prune[0].cidSizeUpdate = aligned_alloc<int  >(NV);
-	buff_host_prune[0].totUpdate     = aligned_alloc<float>(NV);
-	buff_host_prune[0].cWeight       = aligned_alloc<float>(NV);
-	buff_host_prune[0].colorAxi      = aligned_alloc<int  >(NV);
-	buff_host_prune[0].colorInx      = aligned_alloc<int  >(NV);
-
-	ap_uint<CSRWIDTHS>* axi_offsets = reinterpret_cast<ap_uint<CSRWIDTHS>*>(buff_host_prune[0].offsets);
-	ap_uint<CSRWIDTHS>* axi_indices = reinterpret_cast<ap_uint<CSRWIDTHS>*>(buff_host_prune[0].indices);
-	//ap_uint<CSRWIDTHS>* axi_offsetsdup = reinterpret_cast<ap_uint<CSRWIDTHS>*>(buff_host_prune[0].offsetsdup);
-	//ap_uint<CSRWIDTHS>* axi_indicesdup = reinterpret_cast<ap_uint<CSRWIDTHS>*>(buff_host_prune[0].indicesdup);
-	ap_uint<CSRWIDTHS>* axi_weights = reinterpret_cast<ap_uint<CSRWIDTHS>*>(buff_host_prune[0].weights);
-	ap_uint<CSRWIDTHS>* axi_indices2;
-	//ap_uint<CSRWIDTHS>* axi_indicesdup2 = 0;
-	ap_uint<CSRWIDTHS>* axi_weights2;
-	if(NE_mem_2>0){
-		axi_indices2 = reinterpret_cast<ap_uint<CSRWIDTHS>*>(buff_host_prune[0].indices2);
-		//axi_indicesdup2 = reinterpret_cast<ap_uint<CSRWIDTHS>*>(buff_host_prune[0].indicesdup2);
-		axi_weights2 = reinterpret_cast<ap_uint<CSRWIDTHS>*>(buff_host_prune[0].weights2);
-	}
-	ap_uint<DWIDTHS>*     axi_cidPrev       = reinterpret_cast<ap_uint<DWIDTHS>*>(buff_host_prune[0].cidPrev);
-	ap_uint<DWIDTHS>*     axi_cidCurr       = reinterpret_cast<ap_uint<DWIDTHS>*>(buff_host_prune[0].cidCurr);
-	ap_uint<DWIDTHS>*     axi_cidSizePrev   = reinterpret_cast<ap_uint<DWIDTHS>*>(buff_host_prune[0].cidSizePrev);
-	ap_uint<DWIDTHS>*     axi_totPrev       = reinterpret_cast<ap_uint<DWIDTHS>*>(buff_host_prune[0].totPrev);
-	ap_uint<DWIDTHS>*     axi_cidSizeCurr   = reinterpret_cast<ap_uint<DWIDTHS>*>(buff_host_prune[0].cidSizeCurr);
-	ap_uint<DWIDTHS>*     axi_totCurr       = reinterpret_cast<ap_uint<DWIDTHS>*>(buff_host_prune[0].totCurr);
-	ap_uint<DWIDTHS>*     axi_cidSizeUpdate = reinterpret_cast<ap_uint<DWIDTHS>*>(buff_host_prune[0].cidSizeUpdate);
-	ap_uint<DWIDTHS>*     axi_totUpdate     = reinterpret_cast<ap_uint<DWIDTHS>*>(buff_host_prune[0].totUpdate);
-	ap_uint<DWIDTHS>*     axi_cWeight       = reinterpret_cast<ap_uint<DWIDTHS>*>(buff_host_prune[0].cWeight);
-	ap_uint<COLORWIDTHS>* axi_colorAxi      = reinterpret_cast<ap_uint<COLORWIDTHS>*>(buff_host_prune[0].colorAxi);
-	ap_uint<COLORWIDTHS>* axi_colorInx      = reinterpret_cast<ap_uint<COLORWIDTHS>*>(buff_host_prune[0].colorInx);
-	ap_uint<8>* axi_flag 					= reinterpret_cast<ap_uint<8>*>(buff_host_prune[0].flag);
-	ap_uint<8>* axi_flagUpdate 				= reinterpret_cast<ap_uint<8>*>(buff_host_prune[0].flagUpdate);
-#ifdef PRINTINFO
-	std::cout<< "INFO: start mext_in " <<std::endl;
-#endif
-	// DDR Settings
-	mext_in[0]      = {(unsigned int)(20)  | XCL_MEM_TOPOLOGY, buff_host_prune[0].config0,      0};
-	mext_in[1]      = {(unsigned int)(20)  | XCL_MEM_TOPOLOGY, buff_host_prune[0].config1,      0};
-	mext_in[2]      = {(unsigned int)(20)  | XCL_MEM_TOPOLOGY, axi_offsets,  0};
-	mext_in[3]      = {(unsigned int)(16)  | XCL_MEM_TOPOLOGY, axi_indices,  0};
-	mext_in[4]      = {(unsigned int)(18)  | XCL_MEM_TOPOLOGY, axi_weights,  0};
-	if(NE_mem_2>0){
-	  mext_in[3+18] = {(unsigned int)(17)  | XCL_MEM_TOPOLOGY, axi_indices2, 0};
-	  mext_in[4+18] = {(unsigned int)(19)  | XCL_MEM_TOPOLOGY, axi_weights2, 0};
-	}
-	mext_in[5]      = {(unsigned int)(21)  | XCL_MEM_TOPOLOGY, axi_colorAxi, 0};
-	mext_in[6]      = {(unsigned int)(22)  | XCL_MEM_TOPOLOGY, axi_colorInx, 0};
-	mext_in[7]      = {(unsigned int)(23) | XCL_MEM_TOPOLOGY, axi_cidPrev,  0};
-	mext_in[8]      = {(unsigned int)(24) | XCL_MEM_TOPOLOGY, axi_cidSizePrev,   0};
-	mext_in[9]      = {(unsigned int)(25) | XCL_MEM_TOPOLOGY, axi_totPrev,  0};
-	mext_in[10]     = {(unsigned int)(26) | XCL_MEM_TOPOLOGY, axi_cidCurr,  0};
-	mext_in[11]     = {(unsigned int)(27) | XCL_MEM_TOPOLOGY, axi_cidSizeCurr,   0};
-	mext_in[12]     = {(unsigned int)(28) | XCL_MEM_TOPOLOGY, axi_totCurr,  0};
-	mext_in[13]     = {(unsigned int)(29) | XCL_MEM_TOPOLOGY, axi_cidSizeUpdate, 0};
-	mext_in[14]     = {(unsigned int)(30) | XCL_MEM_TOPOLOGY, axi_totUpdate,0};
-	mext_in[15]     = {(unsigned int)(31) | XCL_MEM_TOPOLOGY, axi_cWeight,  0};
-
-	//mext_in[16] = {(unsigned int)(27) | XCL_MEM_TOPOLOGY, axi_offsetsdup, 0};
-	//mext_in[17] = {(unsigned int)(28)  | XCL_MEM_TOPOLOGY, axi_indicesdup, 0};//| (unsigned int)(29)
-	//mext_in[20] = {(unsigned int)(29)  | XCL_MEM_TOPOLOGY, axi_indicesdup2, 0};
-
-	mext_in[18] = {(unsigned int)(21) | XCL_MEM_TOPOLOGY, axi_flag, 0};
-	mext_in[19] = {(unsigned int)(21) | XCL_MEM_TOPOLOGY, axi_flagUpdate, 0};
-#ifdef PRINTINFO
-	std::cout<< "INFO: init buffer  " <<std::endl;
-#endif
-	int flag_RW = CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE;
-	int flag_RD = CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY;
-
-	hds[0].buffer[0] = cl::Buffer(hds[0].context, flag_RW, sizeof(int64_t) * (6), &mext_in[0]);
-	hds[0].buffer[1] = cl::Buffer(hds[0].context, flag_RW, sizeof(DWEIGHT) * (4), &mext_in[1]);
-	hds[0].buffer[2] = cl::Buffer(hds[0].context, flag_RD, sizeof(int) * (NV + 1), &mext_in[2]);
-	hds[0].buffer[3] = cl::Buffer(hds[0].context, flag_RD, sizeof(int) * NE_mem_1, &mext_in[3]);
-	hds[0].buffer[4] = cl::Buffer(hds[0].context, flag_RD, sizeof(int) * NE_mem_1, &mext_in[4]);
-	hds[0].buffer[5] = cl::Buffer(hds[0].context, flag_RD, sizeof(int) * (NV), &mext_in[5]);
-	hds[0].buffer[6] = cl::Buffer(hds[0].context, flag_RW, sizeof(int) * (NV), &mext_in[6]);
-	hds[0].buffer[7] = cl::Buffer(hds[0].context, flag_RW, sizeof(int) * (NV), &mext_in[7]);
-	hds[0].buffer[8] = cl::Buffer(hds[0].context, flag_RW, sizeof(int) * (NV), &mext_in[8]);
-	hds[0].buffer[9] = cl::Buffer(hds[0].context, flag_RW, sizeof(float) * (NV), &mext_in[9]);
-	hds[0].buffer[10] = cl::Buffer(hds[0].context, flag_RW, sizeof(int) * (NV), &mext_in[10]);
-	hds[0].buffer[11] = cl::Buffer(hds[0].context, flag_RW, sizeof(int) * (NV), &mext_in[11]);
-	hds[0].buffer[12] = cl::Buffer(hds[0].context, flag_RW, sizeof(float) * (NV), &mext_in[12]);
-	hds[0].buffer[13] = cl::Buffer(hds[0].context, flag_RW, sizeof(int) * (NV), &mext_in[13]);
-	hds[0].buffer[14] = cl::Buffer(hds[0].context, flag_RW, sizeof(float) * (NV), &mext_in[14]);
-	hds[0].buffer[15] = cl::Buffer(hds[0].context, flag_RW, sizeof(float) * (NV), &mext_in[15]);
-	//hds[0].buffer[16] = cl::Buffer(hds[0].context, flag_RD, sizeof(int) * (NV + 1), &mext_in[16]);//offset
-	//hds[0].buffer[17] = cl::Buffer(hds[0].context, flag_RD, sizeof(int) * (NE_mem_1), &mext_in[17]);
-	hds[0].buffer[18] = cl::Buffer(hds[0].context, flag_RW, sizeof(ap_uint<8>) * (NV/16+15), &mext_in[18]);
-	std::cout<< "INFO: init buffer  " <<std::endl;
-	hds[0].buffer[19] = cl::Buffer(hds[0].context, flag_RW, sizeof(ap_uint<8>) * (NV/16+15), &mext_in[19]);
-	std::cout<< "INFO: init buffer 1  " <<std::endl;
-	if (NE_mem_2 > 0) {
-#ifdef PRINTINFO
-	std::cout<< "INFO: NE_mem_2 =  " <<NE_mem_2<<std::endl;
-	#endif
-			//hds[0].buffer[20] = cl::Buffer(hds[0].context, flag_RD, sizeof(int) * NE_mem_2, &mext_in[20]);
-			hds[0].buffer[21] = cl::Buffer(hds[0].context, flag_RD, sizeof(int) * NE_mem_2, &mext_in[21]);
-			hds[0].buffer[22] = cl::Buffer(hds[0].context, flag_RD, sizeof(int) * NE_mem_2, &mext_in[22]);
-		}
-	#ifdef PRINTINFO
-		std::cout<< "INFO: init buffer done!  " <<std::endl;
-	#endif
-
-#else
 
 #ifdef PRINTINFO
 	std::cout<< "INFO: start MapHostClBuff " <<std::endl;
@@ -777,8 +647,6 @@ void opLouvainModularity::UsingFPGA_MapHostClBuff_prune(
     std::cout<< "INFO: init buffer done!  " <<std::endl;
 #endif
 
-    #endif
-
 }
 
 
@@ -878,7 +746,7 @@ void opLouvainModularity::PhaseLoop_UsingFPGA_1_KernelSetup_prune(
             ob_in.push_back(hds[0].buffer[17]);
             ob_in.push_back(hds[0].buffer[18]);
             ob_in.push_back(hds[0].buffer[19]);
-            if (isLargeEdge) 
+            if (isLargeEdge)
                 ob_in.push_back(hds[0].buffer[20]);
 
             kernel_louvain.setArg(0, hds[0].buffer[0]);   // config0
@@ -1205,8 +1073,8 @@ void opLouvainModularity::UsingFPGA_MapHostClBuff_prune_2cu(
 		//buff_host_prune[0].offsetsdup    = aligned_alloc<int  >(NV + 1);//
 		//buff_host_prune[0].indicesdup    = aligned_alloc<int  >(NE_mem_1);//
 		buff_host_prune[0].weights       = aligned_alloc<float>(NE_mem_1);
-		buff_host_prune[0].flag          = aligned_alloc<ap_uint<8> >(NV/16+7);
-		buff_host_prune[0].flagUpdate    = aligned_alloc<ap_uint<8> >(NV/16+7);
+		buff_host_prune[0].flag          = aligned_alloc<ap_uint<8> >(NV/16+15);
+		buff_host_prune[0].flagUpdate    = aligned_alloc<ap_uint<8> >(NV/16+15);
 		if(NE_mem_2>0){
 			buff_host_prune[0].indices2  = aligned_alloc<int  >(NE_mem_2);
 			//buff_host_prune[0].indicesdup2  = aligned_alloc<int  >(NE_mem_2);
