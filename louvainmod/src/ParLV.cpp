@@ -2703,7 +2703,7 @@ void Louvain_thread_core(xf::graph::L3::Handle* handle0,
 {
 #ifndef NDEBUG
     std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__ 
-              << " flowMode=" << flowMode << std::endl;
+              << " flowMode=" << flowMode << " NVl=" << glv->NVl << std::endl;
 #endif
     xf::graph::L3::louvainModularity(handle0[0], flowMode, glv_src, glv, para_lv);
 }
@@ -2738,8 +2738,8 @@ void Server_SubLouvain(xf::graph::L3::Handle* handle0,
 					   LouvainPara* para_lv)
 {
 #ifndef NDEBUG
-    std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__ 
-              << "\n    handle0=" << handle0 << " parlv.num_par=" << parlv.num_par 
+    std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
+              << "\n    handle0=" << handle0 << " parlv.num_par=" << parlv.num_par
               << "\n    parlv.num_dev=" << parlv.num_dev
               << "\n    id_glv=" << id_glv
               << std::endl;
@@ -2750,31 +2750,32 @@ void Server_SubLouvain(xf::graph::L3::Handle* handle0,
     for (int p = 0; p < parlv.num_par; p++) {
         glv[p] = parlv.par_src[p]->CloneSelf(id_glv);
     }
+    int cuPerBoard = handle0->oplouvainmod->cuPerBoardLouvainModularity;
     int parCnt = 0;
     while (parCnt < parlv.num_par) {
         // Can only launch as many threads as numDevices
-        for (int dev=0; dev < parlv.num_dev; dev++) {
+        for (int cu=0; cu < parlv.num_dev * cuPerBoard; cu++) {
             // also need to handle when num_par is not divisible by num_dev
-            if (parCnt+dev >= parlv.num_par) 
+            if (parCnt+cu >= parlv.num_par)
                 break;
-            printf("INFO:     start Louvain_thread_core thread %d\n", parCnt+dev); 
-            parlv.timesPar.timeLv[parCnt+dev] = getTime();
-            assert(glv[parCnt+dev]);
-            td[parCnt+dev] = std::thread(Louvain_thread_core, handle0, parlv.flowMode, 
-                                         parlv.par_src[parCnt+dev], glv[parCnt+dev], para_lv);
-            parlv.par_lved[parCnt+dev] = glv[parCnt+dev];
+            printf("INFO:     start Louvain_thread_core thread %d\n", parCnt+cu);
+            parlv.timesPar.timeLv[parCnt+cu] = getTime();
+            assert(glv[parCnt+cu]);
+            td[parCnt+cu] = std::thread(Louvain_thread_core, handle0, parlv.flowMode,
+                                         parlv.par_src[parCnt+cu], glv[parCnt+cu], para_lv);
+            parlv.par_lved[parCnt+cu] = glv[parCnt+cu];
             char tmp_name[1024];
-            strcpy(tmp_name, parlv.par_src[parCnt+dev]->name);
-            parlv.par_lved[parCnt+dev]->SetName(strcat(tmp_name, "_wrk_lv"));
+            strcpy(tmp_name, parlv.par_src[parCnt+cu]->name);
+            parlv.par_lved[parCnt+cu]->SetName(strcat(tmp_name, "_wrk_lv"));
         }
-        
-        for (int dev=0; dev < parlv.num_dev; dev++) {
-            if (parCnt+dev >= parlv.num_par) 
+
+        for (int cu=0; cu < parlv.num_dev * cuPerBoard; cu++) {
+            if (parCnt+cu >= parlv.num_par)
                 break;
-            td[parCnt+dev].join();
-            parlv.timesPar.timeLv[parCnt+dev] = getTime() - parlv.timesPar.timeLv[parCnt+dev];
+            td[parCnt+cu].join();
+            parlv.timesPar.timeLv[parCnt+cu] = getTime() - parlv.timesPar.timeLv[parCnt+cu];
         }
-        parCnt += parlv.num_dev;
+        parCnt += parlv.num_dev * cuPerBoard;
     }
 
     parlv.st_ParLved = true;
@@ -2890,7 +2891,9 @@ void LouvainProcess_part2(int nodeID,
     // Louvain
     TimePointType l_compute_start = chrono::high_resolution_clock::now();
     TimePointType l_compute_end;
+
     Server_SubLouvain(handle0, parlv_wkr, id_glv, para_lv);
+
     getDiffTime(l_compute_start, l_compute_end, parlv_wkr.timesPar.timeWrkCompute[0]);
 
     // worker: send(save) file////////////////
@@ -3870,7 +3873,7 @@ int compute_louvain_alveo_seperated_load(
     std::string kernelName = "kernel_louvain";
     int requestLoad = 100;
     bool isPrun = true;
-    const int cuNm = 1;
+    int cuNm = 1;
 
     //double opts_C_thresh = 0.0002;    // Threshold with coloring on
     double opts_C_thresh = tolerance;   // Threshold with coloring on
@@ -3895,6 +3898,8 @@ int compute_louvain_alveo_seperated_load(
     op0->requestLoad = requestLoad;
     op0->xclbinPath = xclbinPath;
     op0->numDevices = numDevices;
+    if(flowMode==4 ) cuNm = 2;
+    op0->cuPerBoard = cuNm;
 
     std::cout << "INFO: numNode: " << numNode << std::endl;
     std::cout << "INFO: numDevices requested: " << op0->numDevices << std::endl;
