@@ -900,7 +900,7 @@ void inline PhaseLoop_MapHostBuff_prune(
 		cl::Context      		&context,
 		KMemorys_host_prune     &buff_host)
 {
-	buff_host.config0       = aligned_alloc<int64_t>(5);//zyl
+	buff_host.config0       = aligned_alloc<int64_t>(5);
 	buff_host.config1       = aligned_alloc<DWEIGHT>(4);
 	buff_host.offsets       = aligned_alloc<int  >(NV + 1);
 	buff_host.indices       = aligned_alloc<int  >(NE_mem_1);
@@ -998,7 +998,7 @@ void inline PhaseLoop_MapClBuff_prune(
 	int flag_RW = CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE;
 	int flag_RD = CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY;
 
-	buff_cl.db_config0       = cl::Buffer(context, flag_RW, sizeof(int64_t) * (5)   , &mext_in[0]);//zyl
+	buff_cl.db_config0       = cl::Buffer(context, flag_RW, sizeof(int64_t) * (5)   , &mext_in[0]);
 	buff_cl.db_config1       = cl::Buffer(context, flag_RW, sizeof(DWEIGHT) * (4)   , &mext_in[1]);
 
 	buff_cl.db_offsets       = cl::Buffer(context, flag_RD, sizeof(int)   * (NV + 1), &mext_in[2]);
@@ -1537,7 +1537,7 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune(
             edgeNum = buff_host[0].offsets[vertexNum];
             for (int i = 0; i < vertexNum + 1; i++) {
             	buff_host[0].offsets[i] = (int)vtxPtr[i];
-            	buff_host[0].offsetsdup[i] = buff_host[0].offsets[i];// zyl
+            	buff_host[0].offsetsdup[i] = buff_host[0].offsets[i];//
                 if(i!=vertexNum){
                 	if(M[i]<0)
                 		buff_host[0].offsets[i]  = (int) (0x80000000 |(unsigned int)vtxPtr[i]);
@@ -1549,8 +1549,8 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune(
             for (int i = 0; i < vertexNum; i++) {
                 int adj1 = vtxPtr[i];
                 int adj2 = vtxPtr[i + 1];
-                buff_host[0].flag[i] = 0;// zyl
-                buff_host[0].flagUpdate[i] = 0;// zyl
+                buff_host[0].flag[i] = 0;//
+                buff_host[0].flagUpdate[i] = 0;//
                 for (int j = adj1; j < adj2; j++) {
                 	if(cnt_e<NE1){
                 		buff_host[0].indices[j] = (int)vtxInd[j].tail;
@@ -1572,7 +1572,7 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune(
             buff_host[0].config0[1] = numColors;
             buff_host[0].config0[2] = 0;
             buff_host[0].config0[3] = edgeNum;
-            buff_host[0].config0[4] = 0;//zyl totItr? 0?
+            buff_host[0].config0[4] = 0;//totItr= 0
 
             buff_host[0].config1[0] = opts_C_thresh;
             buff_host[0].config1[1] = currMod[0];
@@ -1618,7 +1618,7 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_renumber(
     edgeNum = buff_host[0].offsets[vertexNum];
     for (int i = 0; i < vertexNum + 1; i++) {
     	buff_host[0].offsets[i] = (int)vtxPtr[i];
-    	buff_host[0].offsetsdup[i] = buff_host[0].offsets[i];// zyl
+    	buff_host[0].offsetsdup[i] = buff_host[0].offsets[i];//
         if(i!=vertexNum){
         	if(M[i]<0)
         		buff_host[0].offsets[i]  = (int) (0x80000000 |(unsigned int)vtxPtr[i]);
@@ -1630,8 +1630,8 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_renumber(
     for (int i = 0; i < vertexNum; i++) {
         int adj1 = vtxPtr[i];
         int adj2 = vtxPtr[i + 1];
-        buff_host[0].flag[i] = 0;// zyl
-        buff_host[0].flagUpdate[i] = 0;// zyl
+        buff_host[0].flag[i] = 0;//
+        buff_host[0].flagUpdate[i] = 0;//
         for (int j = adj1; j < adj2; j++) {
         	if(cnt_e<NE1){
         		buff_host[0].indices[j] = (int)vtxInd[j].tail;
@@ -1653,7 +1653,7 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_renumber(
     buff_host[0].config0[1] = numColors;
     buff_host[0].config0[2] = 0;
     buff_host[0].config0[3] = edgeNum;
-    //buff_host[0].config0[4] = 0;//zyl totItr? 0?
+    //buff_host[0].config0[4] = 0;// totItr=0
     buff_host[0].config0[4] = 0;//zyx renumber
     buff_host[0].config0[5] = NVl;
 
@@ -1703,7 +1703,7 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_renumber_2cu(
     edgeNum = buff_host[0].offsets[vertexNum];
     for (int i = 0; i < vertexNum + 1; i++) {
     	buff_host[0].offsets[i] = (int)vtxPtr[i];
-    	//buff_host[0].offsetsdup[i] = buff_host[0].offsets[i];// zyl
+    	//buff_host[0].offsetsdup[i] = buff_host[0].offsets[i];//
         if(i!=vertexNum){
         	if(M[i]<0)
         		buff_host[0].offsets[i]  = (int) (0x80000000 |(unsigned int)vtxPtr[i]);
@@ -1715,8 +1715,8 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_renumber_2cu(
     for (int i = 0; i < vertexNum; i++) {
         int adj1 = vtxPtr[i];
         int adj2 = vtxPtr[i + 1];
-        buff_host[0].flag[i] = 0;// zyl
-        buff_host[0].flagUpdate[i] = 0;// zyl
+        buff_host[0].flag[i] = 0;//
+        buff_host[0].flagUpdate[i] = 0;//
         for (int j = adj1; j < adj2; j++) {
         	if(cnt_e<NE1){
         		buff_host[0].indices[j] = (int)vtxInd[j].tail;
@@ -1789,7 +1789,7 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_local(
     edgeNum = buff_host.offsets[vertexNum];
     for (int i = 0; i < vertexNum + 1; i++) {
     	buff_host.offsets[i] = (int)vtxPtr[i];
-    	buff_host.offsetsdup[i] = buff_host.offsets[i];// zyl
+    	buff_host.offsetsdup[i] = buff_host.offsets[i];//
         if(i!=vertexNum){
         	if(M[i]<0)
         		buff_host.offsets[i]  = (int) (0x80000000 |(unsigned int)vtxPtr[i]);
@@ -1800,8 +1800,8 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_local(
     for (int i = 0; i < vertexNum; i++) {
         int adj1 = vtxPtr[i];
         int adj2 = vtxPtr[i + 1];
-        buff_host.flag[i] = 0;// zyl
-        buff_host.flagUpdate[i] = 0;// zyl
+        buff_host.flag[i] = 0;//
+        buff_host.flagUpdate[i] = 0;//
         for (int j = adj1; j < adj2; j++) {
         	if(cnt_e<NE1){
         		buff_host.indices[j] = (int)vtxInd[j].tail;
@@ -1822,7 +1822,7 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_local(
     buff_host.config0[1] = numColors;
     buff_host.config0[2] = 0;
     buff_host.config0[3] = edgeNum;
-    buff_host.config0[4] = 0;//zyl totItr? 0?
+    buff_host.config0[4] = 0;// totItr=0
 
     buff_host.config1[0] = opts_C_thresh;
     buff_host.config1[1] = currMod;

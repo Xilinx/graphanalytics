@@ -233,7 +233,7 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune(//DAIS
             edgeNum = buff_host[0].offsets[vertexNum];
             for (int i = 0; i < vertexNum + 1; i++) {
             	buff_host[0].offsets[i] = (int)vtxPtr[i];
-            	buff_host[0].offsetsdup[i] = buff_host[0].offsets[i];// zyl
+            	buff_host[0].offsetsdup[i] = buff_host[0].offsets[i];//
                 if(i!=vertexNum){
                 	if(M[i]<0)
                 		buff_host[0].offsets[i]  = (int) (0x80000000 |(unsigned int)vtxPtr[i]);
@@ -245,8 +245,8 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune(//DAIS
             for (int i = 0; i < vertexNum; i++) {
                 int adj1 = vtxPtr[i];
                 int adj2 = vtxPtr[i + 1];
-                buff_host[0].flag[i] = 0;// zyl
-                buff_host[0].flagUpdate[i] = 0;// zyl
+                buff_host[0].flag[i] = 0;//
+                buff_host[0].flagUpdate[i] = 0;//
                 for (int j = adj1; j < adj2; j++) {
                 	if(cnt_e<NE1){
                 		buff_host[0].indices[j] = (int)vtxInd[j].tail;
@@ -268,7 +268,7 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune(//DAIS
             buff_host[0].config0[1] = numColors;
             buff_host[0].config0[2] = 0;
             buff_host[0].config0[3] = edgeNum;
-            buff_host[0].config0[4] = 0;//zyl totItr? 0?
+            buff_host[0].config0[4] = 0;// totItr? 0?
 
             buff_host[0].config1[0] = opts_C_thresh;
             buff_host[0].config1[1] = currMod[0];
