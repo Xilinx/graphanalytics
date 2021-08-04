@@ -269,11 +269,10 @@ numPars=1
 serverPar=1 9
 numDevices=3
 #deviceNames="xilinx_u50_gen3x16_xdma_201920_3 xilinx_u55c_gen3x16_xdma_base_1"
-#deviceNames="xilinx_u50_gen3x16_xdma_201920_3"
-deviceNames="xilinx_u55c_gen3x16_xdma_base_1"
-CMDLINE_CREATE_PARTITIONS = $(graph) \
-    -fast -par_num $(numPars) -create_alveo_partitions -name $(APITEST_OUT_DIR)/as-skitter-par9 \
-	-server_par $(serverPar)
+deviceNames="xilinx_u50_gen3x16_xdma_201920_3"
+#deviceNames="xilinx_u55c_gen3x16_xdma_base_1"
+CMDLINE_CREATE_PARTITIONS = $(graph) -fast -par_num $(numPars) -create_alveo_partitions \
+                            -name $(alveoProject) -server_par $(serverPar)
 
 WORKERS="192.168.1.21 192.168.1.31"
 CMDLINE_LOAD_COMPUTE = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
@@ -292,7 +291,7 @@ CMDLINE_LOAD_COMPUTE_WORKER2 = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xi
     -fast -num_devices $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
 	$(alveoProject).par.proj -workerAlone 2
 
-.PHONY: run-create-partition run-load-compute run-load-compute-driver run-load-compute-worker1 run-load-compute-worker2
+.PHONY: run-create-partitions run-load-compute run-load-compute-driver run-load-compute-worker1 run-load-compute-worker2
 
 run-create-partitions: stage cppTest
 	rm -rf $(APITEST_OUT_DIR)
@@ -536,16 +535,28 @@ clean-xclbin:
 	rm -f $(XCLBIN_FILE)
 
 help:
-	@echo "Valid make targets:"
-	@echo "dist     : Generate product installation package (RPM or DEB) for the current OS and architecture"
-	@echo "doxy-cpp : Generate CPP documentation using doxygen. The default html output directory is ./build/cppdocs"
-	@echo "run-create-partitions : Run API test of create partitions on a single node"
-	@echo "run-load-compute : Run API test of load and compute on a single node"
+	@echo "Makefile usages:"
+	@echo "  make dist"
+	@echo "  Generate product installation package (RPM or DEB) for the current OS and architecture"
 	@echo ""
-	@echo "-------- Run API test in a cluster with 3 nodes --------"
-	@echo "run-apitest-load-compute-driver: Run API test of load and compute on driver"
-	@echo "run-apitest-load-compute-worker1: Run API test of load and compute on worker 1"
-	@echo "run-apitest-load-compute-worker2: Run API test of load and compute on worker 2"
+	@echo "  make doxy-cpp"
+	@echo "  Generate CPP documentation using doxygen. The default html output directory is ./build/cppdocs"
+	@echo ""
+	@echo "  make run-create-partitions"
+	@echo "  Create partion on a single node"
+	@echo ""
+	@echo "  make run-load-compute"
+	@echo "  Load partition and compute Louvain modularity on a single node"
+	@echo ""
+	@echo "  Run test in a 3 node cluster"
+	@echo "  ssh to driver"
+	@echo "  make run-load-compute-driver"
+	@echo ""
+	@echo "  ssh to worker1"
+	@echo "  make run-load-compute-worker1"
+	@echo ""
+	@echo "  ssh to worker2"
+	@echo "  make run-load-compute-worker2"
 	@echo ""
 	@echo "-------- Options --------"
 	@echo "DEBUG: 1: build application in debug mode. 0: build application in release mode."
@@ -554,17 +565,3 @@ help:
 	@echo "numPars: Number of partitions (default=1)"
 	@echo "serverPar: Multi-server partition setting (default=\"1 9\")"
 	@echo "numDevices: Number of devices (default=3)"
-	@echo ""
-	@echo "-------- Examples --------"
-	@echo "Create partion on a single node"
-	@echo "    make run-create-partitions"
-	@echo "Load partition and compute Louvain modularity on a single node"
-	@echo "    make run-load-compute"
-	@echo ""
-	@echo "Load partition and compute Louvain modularity on driver in a cluster"
-	@echo "    make run-load-compute-driver"
-	@echo "Load partition and compute Louvain modularity on worker-1 in a cluster"
-	@echo "    make run-load-compute-worker1"
-	@echo "Load partition and compute Louvain modularity on worker-2 in a cluster"
-	@echo "    make run-load-compute-worker2"
-	@echo ""

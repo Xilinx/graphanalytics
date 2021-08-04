@@ -35,7 +35,7 @@ endif
 
 #the default PROD_VERSION as the latest version
 ifndef PROD_VERSION 
-    PROD_VERSION = 1.0
+    PROD_VERSION = 1.2
 endif
 
 # Location of Alveo product if installed from sources
@@ -77,12 +77,15 @@ cppdemo: cppdemo.cpp
 
 .PHONY: run clean
 
+ITERATIONS=1
+NUMVECTORS=5000
+
 run:
 	@set -e; \
 	. $(XILINX_XRT)/setup.sh; \
 	. $(XILINX_XRM)/setup.sh; \
 	export LD_LIBRARY_PATH=$(LIB_PATH):$$LD_LIBRARY_PATH; \
-	./cppdemo
+	./cppdemo $(ITERATIONS) $(NUMVECTORS)
 
 clean:
 	rm -f cppdemo *txt *log

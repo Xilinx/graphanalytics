@@ -31,14 +31,33 @@
 #include <string>
 
 
-
-const unsigned VectorLength = 200;
-const unsigned NumVectors = 5000;
-const int MaxValue = 16383;
-
 using CosineSim = xilinx_apps::cosinesim::CosineSim<std::int32_t>;
 
+// argv
+// 1: NumDevices
+// 2: Iterations
+// 3: NumVectors
 int main(int argc, char **argv) {
+    const unsigned VectorLength = 200;
+    
+    const int MaxValue = 16383;
+    unsigned NumDevices = 1;
+    unsigned Iterations = 1;
+    unsigned NumVectors = 5000;
+
+    if (argc > 1)
+        NumDevices = std::stoi(argv[1]);
+
+    if (argc > 2) {
+        Iterations = std::stoi(argv[2]);
+    }
+
+    if (argc > 3) {
+        NumVectors = std::stoi(argv[3]);
+    } 
+
+    std::cout << "INFO: Running " << Iterations << " iterations with NumVectors=" << NumVectors << std::endl;
+
     std::srand(0x12345);
     std::vector<CosineSim::ValueType> testVector;  // "new vector" to match
     
@@ -46,10 +65,7 @@ int main(int argc, char **argv) {
 
     xilinx_apps::cosinesim::Options options;
     options.vecLength = VectorLength;
-    if (argc > 1)
-        options.numDevices = std::stoi(argv[1]);
-    else
-        options.numDevices = 1;
+    options.numDevices = NumDevices;
 
     std::cout << "-------- START COSINESIME TEST numDevices=" << options.numDevices << "----------" << std::endl;
 
@@ -88,8 +104,11 @@ int main(int argc, char **argv) {
 
         std::cout << "INFO: Running match for test vector #" << testVectorIndex << "..." << std::endl;
         results = cosineSim.matchTargetVector(10, testVector.data());
-        results.clear();
-        results = cosineSim.matchTargetVector(10, testVector.data());
+        for (unsigned runCount = 0; runCount < Iterations; ++runCount) {
+   	        std::cout << "-------- Run " << runCount << std::endl;
+            results.clear();
+            results = cosineSim.matchTargetVector(10, testVector.data());
+        }
     } 
     catch (const xilinx_apps::cosinesim::Exception &ex) {
         std::cout << "Error during Cosinesim Running:" << ex.what() << std::endl;

@@ -124,7 +124,7 @@ VPP_FLAGS += -I$(XFLIB_DIR)/L2/dense_similarity_multi_kernel/kernel
 
 denseSimilarityKernel_VPP_FLAGS +=  -D KERNEL_NAME=denseSimilarityKernel
 denseSimilarityKernel_VPP_FLAGS += --hls.clock 300000000:denseSimilarityKernel
-VPP_LDFLAGS_denseSimilarityKernel += --kernel_frequency 250
+VPP_LDFLAGS_denseSimilarityKernel += --kernel_frequency "0:250|2:240"
 
 
 # Kernel args

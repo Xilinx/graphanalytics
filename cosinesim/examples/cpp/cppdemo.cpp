@@ -24,8 +24,17 @@
 
 int main(int argc, char **argv) {
     const unsigned VectorLength = 200;
-    const unsigned NumVectors = 5000;
+    unsigned Iterations = 1;
+    unsigned NumVectors = 5000;
     const int MaxValue = 16383;
+
+    if (argc > 1) {
+        Iterations = std::stoi(argv[1]);
+    }
+
+    if (argc > 2) {
+        NumVectors = std::stoi(argv[2]);
+    } 
 
     using CosineSim = xilinx_apps::cosinesim::CosineSim<std::int32_t>;
 
@@ -47,7 +56,7 @@ int main(int argc, char **argv) {
 
         // Generate random vectors, writing each into the Alveo card
 
-        std::cout << "Loading population vectors into Alveo card..." << std::endl;
+        std::cout << "Loading " << NumVectors << " population vectors into Alveo card..." << std::endl;
         // Before loading population vector, call startLoadPopulation() to do the initialization;
         cosineSim.startLoadPopulation(NumVectors);
         // For each vector loading, call getPopulationVectorBuffer() to get the internal population vector buffer pointer and user write the vector into it;
@@ -67,15 +76,18 @@ int main(int argc, char **argv) {
             cosineSim.finishCurrentPopulationVector(pBuf);
         }
 
-        // After the whole population vectors loading finish, call finishLoadPopulation();
+        // After the whole population vectors loading finish, call finishLoadPopulationVectors();
         cosineSim.finishLoadPopulation();
 
         // Run the match in the FPGA
 
         std::cout << "Running match for test vector #" << testVectorIndex << "..." << std::endl;
         results = cosineSim.matchTargetVector(10, testVector.data());
-        results.clear();
-        results = cosineSim.matchTargetVector(10, testVector.data());
+	    for (unsigned runCount = 0; runCount < Iterations ; ++runCount) {
+	        std::cout << "--------Run " << runCount << std::endl;
+	        results.clear();
+            results = cosineSim.matchTargetVector(10, testVector.data());
+	    }
     }
     catch (const xilinx_apps::cosinesim::Exception &ex) {
         std::cout << "Error during Cosinesim Running:" << ex.what() << std::endl;
