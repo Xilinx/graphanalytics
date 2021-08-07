@@ -384,6 +384,7 @@ endif
 L2_TOP_DIR = $(GRAPH_ANALYTICS_DIR)/L2/dense_similarity_multi_kernel
 L2_XDEVICE = xilinx_u50_gen3x16_xdma_201920_3
 L2_BUILD_DIR = $(L2_TOP_DIR)/build_dir.hw.$(L2_XDEVICE)
+DEVICE ?= $(L2_XDEVICE)
 XCLBIN_NAME = denseSimilarityKernel.xclbin
 XCLBIN_FILE = $(L2_BUILD_DIR)/$(XCLBIN_NAME)
 XCLBIN_INSTALLED = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin

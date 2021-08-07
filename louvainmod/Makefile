@@ -304,10 +304,10 @@ run-load-compute: stage cppTest $(alveoProject).par.proj
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE)
 
 
-run-load-compute-driver: stage cppTest
+run-load-compute-driver: stage cppTest $(alveoProject).par.proj
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE_DRIVER)
 
-run-load-compute-worker1: stage cppTest
+run-load-compute-worker1: stage cppTest 
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE_WORKER1)
 
 run-load-compute-worker2: stage cppTest
