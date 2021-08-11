@@ -569,12 +569,7 @@ double PhaseLoop_UsingFPGA_Prep_Read_buff_host_prune_renumber(
 		double*         currMod,
         long*           numClusters
 		);
-//New from host/////////////////////////////////////////////////////////////////////
-enum {
-	ZMQ_NONE=0,
-	ZMQ_DRIVER=1,
-	ZMQ_WORKER=2
-};
+
 struct LouvainPara{
     bool   opts_coloring; //whether use coloring; It always be true for FPGA flow
     long   opts_minGraphSize; //Minimal number of community for stopping Louvain phase

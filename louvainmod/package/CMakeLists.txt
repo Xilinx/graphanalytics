@@ -25,6 +25,7 @@ install(DIRECTORY "${CS_FILE_PATH}/lib/" DESTINATION ${CMAKE_INSTALL_PATH}/lib)
 
 install(FILES "${CS_FILE_PATH}/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin" DESTINATION ${CMAKE_INSTALL_PATH}/xclbin)
 install(FILES "${CS_FILE_PATH}/include/xilinxlouvain.h" DESTINATION ${CMAKE_INSTALL_PATH}/include)
+install(FILES "${CS_FILE_PATH}/include/app_common.h" DESTINATION ${CMAKE_INSTALL_PATH}/include)
 
 install(FILES "${CS_FILE_PATH}/src/louvainmod_loader.cpp" DESTINATION ${CMAKE_INSTALL_PATH}/src)
 #install(FILES "${CS_FILE_PATH}/examples.zip" DESTINATION ${CMAKE_INSTALL_PATH}/)

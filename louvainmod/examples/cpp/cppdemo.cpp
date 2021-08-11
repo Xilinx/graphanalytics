@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-#include "xilinxlouvain.h"
-#include "ParLV.h"
 #include <sstream>
+#include <iostream>
+
+#include "xilinxlouvain.h"
+#include "app_common.h"
 
 using namespace xilinx_apps::louvainmod;
 

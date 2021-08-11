@@ -21,6 +21,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "xilinxlouvain.h"
+#include "app_common.h"
 #include "xilinxlouvainInternal.h"
 #include "partitionLouvain.hpp"
 #include "xf_graph_L3.hpp"
@@ -198,42 +199,6 @@ public:
     double TimeDoneMerge();
     double TimeDoneFinal();
     double TimeAll_Done();
-};
-
-struct ToolOptions {
-    int argc;
-    char** argv;  // strings not owned!
-    
-    double opts_C_thresh;   //; //Threshold with coloring on
-    long opts_minGraphSize; //; //Min |V| to enable coloring
-    double threshold;  //; //Value of threshold
-    int opts_ftype;         //; //File type
-    char opts_inFile[4096];  //;
-    bool opts_coloring;     //
-    bool opts_output;       //;
-    std::string outputFile;
-    bool opts_VF; //;
-    std::string xclbinPath;
-    std::string deviceNames;
-    int numThreads;
-    int num_par;
-    int gh_par;  // same as par_prune
-    int flow_fast;
-    int numDevices;
-    int mode_zmq;
-    char path_zmq[4096];
-    bool useCmd;
-    int mode_alveo;
-    char nameProj[4096];  // used for create partitions
-    std::string alveoProject; // used for load/compute TODO: consolidate with nameProj
-    int numPureWorker;
-    char *nameWorkers[128];
-    int nodeID;
-    int server_par;
-    int max_level;
-    int max_iter;
-    
-    ToolOptions(int argc, char **argv);
 };
 
 GLV* par_general(GLV* src, SttGPar* pstt, int&id_glv, long start, long end, bool isPrun, int th_prun);
