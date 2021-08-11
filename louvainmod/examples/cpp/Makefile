@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 
+SHELL := /bin/bash
+
 # Run make using "make DEBUG=1" to build debuggable executables
 
 # Location of cosine similarity Alveo product 
@@ -70,12 +72,100 @@ cppdemo: cppdemo.cpp
 
 .PHONY: run clean
 
-run:
+graph = ../data/as-Skitter-wt-r100.mtx
+alveoProject = $(basename $(notdir $(graph)))
+numPars=1
+serverPar=1 1
+numDevices=1
+deviceNames="xilinx_u50_gen3x16_xdma_201920_3"
+xclbin=$(XILINX_LOUVAIN)/${PROD_VERSION}/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+workers=192.168.1.21 192.168.1.31
+
+run-create-partitions: cppdemo
+	@echo "------------------------------------------------------------------------"
+	@echo "-                       Create Partitions                              -"
+	@echo "------------------------------------------------------------------------"
 	@set -e; \
 	. $(XILINX_XRT)/setup.sh; \
 	. $(XILINX_XRM)/setup.sh; \
-	export LD_LIBRARY_PATH=$(LIB_PATH):$$LD_LIBRARY_PATH; \
-	./cppdemo $(ITERATIONS) $(NUMVECTORS)
+	LD_LIBRARY_PATH=$(LIB_PATH):$(LD_LIBRARAY_PATH); \
+	./cppdemo $(graph) -fast -par_num $(numPars) -create_alveo_partitions \
+	    -name $(alveoProject) -server_par $(serverPar)
+
+run-load-compute: cppdemo
+	@echo "------------------------------------------------------------------------"
+	@echo "-                    Load Partitions and Compute                       -"
+	@echo "------------------------------------------------------------------------"
+	@set -e; \
+	. $(XILINX_XRT)/setup.sh; \
+	. $(XILINX_XRM)/setup.sh; \
+	LD_LIBRARY_PATH=$(LIB_PATH):$(LD_LIBRARAY_PATH); \
+	./cppdemo -x $(xclbin) -fast -num_devices $(numDevices) -devices $(deviceNames) \
+	    -num_level 100 -num_iter 100 -load_alveo_partitions \
+	    $(alveoProject).par.proj -setwkr 0 -driverAlone
+
+run-load-compute-driver: cppdemo
+	@echo "------------------------------------------------------------------------"
+	@echo "-              Load Partitions and Compute on Driver                   -"
+	@echo "------------------------------------------------------------------------"
+	@set -e; \
+	. $(XILINX_XRT)/setup.sh; \
+	. $(XILINX_XRM)/setup.sh; \
+	LD_LIBRARY_PATH=$(LIB_PATH):$(LD_LIBRARAY_PATH); \
+	./cppdemo -x $(xclbin) -fast -num_devices $(numDevices) -devices $(deviceNames) \
+	    -num_level 100 -num_iter 100 -load_alveo_partitions \
+	    $(alveoProject).par.proj -setwkr 2 $(workers) -driverAlone
+
+run-load-compute-worker1: cppdemo
+	@echo "------------------------------------------------------------------------"
+	@echo "-              Load Partitions and Compute on Worker1                  -"
+	@echo "------------------------------------------------------------------------"
+	@set -e; \
+	. $(XILINX_XRT)/setup.sh; \
+	. $(XILINX_XRM)/setup.sh; \
+	LD_LIBRARY_PATH=$(LIB_PATH):$(LD_LIBRARAY_PATH); \
+	./cppdemo -x $(xclbin) -fast -num_devices $(numDevices) -devices $(deviceNames) \
+	    -num_level 100 -num_iter 100 -load_alveo_partitions \
+	    $(alveoProject).par.proj -workerAlone 1
+
+run-load-compute-worker2: cppdemo
+	@echo "------------------------------------------------------------------------"
+	@echo "-              Load Partitions and Compute on Worker 2                 -"
+	@echo "------------------------------------------------------------------------"
+	@set -e; \
+	. $(XILINX_XRT)/setup.sh; \
+	. $(XILINX_XRM)/setup.sh; \
+	LD_LIBRARY_PATH=$(LIB_PATH):$(LD_LIBRARAY_PATH); \
+	./cppdemo -x $(xclbin) -fast -num_devices $(numDevices) -devices $(deviceNames) \
+	    -num_level 100 -num_iter 100 -load_alveo_partitions \
+	    $(alveoProject).par.proj -workerAlone 2
 
 clean:
-	rm -f cppdemo *txt *log
+	rm -f cppdemo
+
+help:
+	@echo "Makefile usages:"
+	@echo "  make run-create-partitions [graph=/path/to/graph.mtx]"
+	@echo "  Create partion on a single node"
+	@echo ""
+	@echo "  make run-load-compute [graph=/path/to/graph.mtx]"
+	@echo "  Load partition and compute Louvain modularity on a single node"
+	@echo ""
+	@echo "  Run test in a 3 node cluster"
+	@echo "  ssh to driver"
+	@echo "  make run-load-compute-driver"
+	@echo ""
+	@echo "  ssh to worker1"
+	@echo "  make run-load-compute-worker1"
+	@echo ""
+	@echo "  ssh to worker2"
+	@echo "  make run-load-compute-worker2"
+	@echo ""
+	@echo "-------- Options --------"
+	@echo "graph: graph input .mtx file"
+	@echo "alveoProject: Alveo project name without .par.proj extension"
+	@echo "numPars: Number of partitions (default=1)"
+	@echo "serverPar: Multi-server partition setting (default=\"1 9\")"
+	@echo "numDevices: Number of devices (default=1)"	
+	@echo "workers: set IP adresses for workers"
+

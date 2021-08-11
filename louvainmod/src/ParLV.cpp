@@ -1211,14 +1211,6 @@ int host_ParserParameters(int argc,
 #ifdef PRINTINFO
         printf("PARAMETER  opts_outFile = %s\n", opts_outputFile);
 #endif
-        /*
-        FILE* file = fopen(opts_outputFile, "w");
-        if (file == NULL) {
-            printf("\033[1;31;40mPARAMETER ERROR\033[0m: Cannot open the opts_outFile file: %s\n", opts_outputFile);
-            exit(1);
-        } else {
-            fclose(file);
-        }*/
     }
 
     if (has_server_par != -1 && has_server_par < (argc - 1)) {

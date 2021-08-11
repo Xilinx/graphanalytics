@@ -254,9 +254,6 @@ LDFLAGS_test = -fPIC -w -L $(CPP_BUILD_DIR) -l$(LIB_SHORT_NAME) -lzmq -fopenmp -
 $(CPP_BUILD_DIR)/cppdemo: $(CPP_BUILD_DIR)/cppdemo.o $(CPP_BUILD_DIR)/$(LIB_NAME)
 	$(LINK.cc) -o $@ $< $(LDFLAGS_test) $(LIB_DEPS)
 
-#$(CPP_BUILD_DIR)/cosinesim_dyn_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUILD_DIR)/$(LOADER_NAME) $(CPP_BUILD_DIR)/$(LIB_NAME)
-#	$(LINK.cc) -o $@ $< -fPIC -w -L $(CPP_BUILD_DIR) -l$(LOADER_SHORT_NAME) -ldl $(LIB_DEPS)
-
 CPPDEMO_OUT_DIR = $(CPP_BUILD_DIR)/cppdemo-out
 graph = ../plugin/tigergraph/comdetect/examples/comdetect/as-skitter/as-Skitter-wt-r100.mtx
 graphFilename = $(notdir $(graph))
@@ -436,16 +433,14 @@ $(foreach f,$(STAGE_LIB_FILES),$(eval $(call STAGE_LIB_RULE,$(f))))
 # Example files - need to be zipped up
 
 #STAGE_EXAMPLE_ZIP = examples.zip
-#STAGE_EXAMPLE_FILE_NAMES = \
+STAGE_EXAMPLE_FILE_NAMES = \
 	cpp/cppdemo.cpp cpp/Makefile cpp/README.md \
-    python/pythondemo.py python/run.sh \
-    python/README.md python/jupyter/jupyter_demo.ipynb
+	data/as-Skitter-wt-r100.mtx
 
-#STAGE_EXAMPLE_FILES = $(addprefix examples/,$(STAGE_EXAMPLE_FILE_NAMES))
-#STAGE_STAGED_EXAMPLE_FILES = $(addprefix $(STAGE_DIR)/,$(STAGE_EXAMPLE_FILES))
+STAGE_EXAMPLE_FILES = $(addprefix examples/,$(STAGE_EXAMPLE_FILE_NAMES))
+STAGE_STAGED_EXAMPLE_FILES = $(addprefix $(STAGE_DIR)/,$(STAGE_EXAMPLE_FILES))
 
-#.PHONY: stage fill-example-stage
-.PHONY: stage
+.PHONY: stage stage2 fill-example-stage stage-examples
 
 #$(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP): $(STAGE_EXAMPLE_FILES)
 #	mkdir -p $(sort $(dir $(STAGE_STAGED_EXAMPLE_FILES)))
@@ -454,10 +449,14 @@ $(foreach f,$(STAGE_LIB_FILES),$(eval $(call STAGE_LIB_RULE,$(f))))
 #	zip -r $(STAGE_EXAMPLE_ZIP) examples
 #	rm -rf $(STAGE_DIR)/examples
 
-#fill-example-stage: $(STAGE_STAGED_EXAMPLE_FILES)
+stage-examples: $(STAGE_EXAMPLE_FILES)
+	mkdir -p $(sort $(dir $(STAGE_STAGED_EXAMPLE_FILES)))
+	@make fill-example-stage
+
+fill-example-stage: $(STAGE_STAGED_EXAMPLE_FILES)
 	
-#$(STAGE_STAGED_EXAMPLE_FILES):
-#	cp -f $(patsubst $(STAGE_DIR)/%,%,$@) $@
+$(STAGE_STAGED_EXAMPLE_FILES):
+	cp -f $(patsubst $(STAGE_DIR)/%,%,$@) $@
 	
 
 # XCLBIN file
@@ -478,7 +477,12 @@ STAGE_ALL_FILES = \
     $(STAGE_XCLBIN_FILE) \
     $(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP) \
 
-stage: cppTest $(STAGE_SUBDIRS) $(STAGE_ALL_FILES)
+# make staging areaing in two steps so intermediate outputs can be included in the 
+# staging output as well.
+stage: 
+	make stage2
+
+stage2: cppTest $(STAGE_SUBDIRS) stage-examples $(STAGE_ALL_FILES)
 
 $(STAGE_SUBDIRS):
 	mkdir -p $@

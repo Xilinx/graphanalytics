@@ -502,6 +502,7 @@ stage: pythonApi
 	make stage2
 
 stage2: cppTest $(STAGE_SUBDIRS) stage-examples $(STAGE_ALL_FILES)
+
 $(STAGE_SUBDIRS):
 	mkdir -p $@
 
