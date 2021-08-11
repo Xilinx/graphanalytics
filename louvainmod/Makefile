@@ -264,10 +264,12 @@ $(CPP_BUILD_DIR)/apitest: $(CPP_BUILD_DIR)/apitest.o $(CPP_BUILD_DIR)/$(LIB_NAME
 
 APITEST_OUT_DIR = $(CPP_BUILD_DIR)/apitest-out
 graph = ../plugin/tigergraph/comdetect/examples/comdetect/as-skitter/as-Skitter-wt-r100.mtx
-alveoProject = $(APITEST_OUT_DIR)/as-skitter-par9
-numPars=1
+graphFilename = $(notdir $(graph))
+graphBasename = $(basename $(graphFilename))
+alveoProject = $(APITEST_OUT_DIR)/$(graphBasename)
+numPars=9
 serverPar=1 9
-numDevices=3
+numDevices=1
 #deviceNames="xilinx_u50_gen3x16_xdma_201920_3 xilinx_u55c_gen3x16_xdma_base_1"
 deviceNames="xilinx_u50_gen3x16_xdma_201920_3"
 #deviceNames="xilinx_u55c_gen3x16_xdma_base_1"
@@ -293,18 +295,26 @@ CMDLINE_LOAD_COMPUTE_WORKER2 = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xi
 
 .PHONY: run-create-partitions run-load-compute run-load-compute-driver run-load-compute-worker1 run-load-compute-worker2
 
-run-create-partitions: stage cppTest
+$(alveoProject).par.proj: $(graph)
 	rm -rf $(APITEST_OUT_DIR)
 	mkdir -p $(APITEST_OUT_DIR)
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_CREATE_PARTITIONS)
 
-$(alveoProject).par.proj: run-create-partitions
+run-create-partitions: stage cppTest
+	@echo "------------------------------------------------------------------------"
+	@echo "-                       Create Partitions                              -"
+	@echo "------------------------------------------------------------------------"
+	rm -rf $(APITEST_OUT_DIR)
+	mkdir -p $(APITEST_OUT_DIR)
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_CREATE_PARTITIONS)
 
 run-load-compute: stage cppTest $(alveoProject).par.proj
+	@echo "------------------------------------------------------------------------"
+	@echo "-                    Load Partitions and Compute                       -"
+	@echo "------------------------------------------------------------------------"
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE)
 
-
-run-load-compute-driver: stage cppTest $(alveoProject).par.proj
+run-load-compute-driver: stage cppTest
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE_DRIVER)
 
 run-load-compute-worker1: stage cppTest 
@@ -317,12 +327,6 @@ debug-apitest: cppTest
 	rm -rf $(APITEST_OUT_DIR)
 	mkdir -p $(APITEST_OUT_DIR)
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); totalview $(CPP_BUILD_DIR)/apitest -a $(CMDLINE_CREATE_PARTITIONS)
-
-#LDFLAGS_fakeudf = -fPIC -w -L /scratch/tigergraph/tigergraph/app/3.1.0/dev/gdk/gsql/src/QueryUdf -lgraphL3wrapper -ldl
-#LDFLAGS_fakeudf = -fPIC -w -L $(CPP_BUILD_DIR) -l$(LIB_SHORT_NAME)
-
-#$(CPP_BUILD_DIR)/fakeudf: $(CPP_BUILD_DIR)/fakeudf.o
-#	$(LINK.cc) -o $@ $^ $(LDFLAGS_fakeudf) $(LIB_DEPS)
 
 $(CPP_BUILD_DIR)/pardump: $(CPP_BUILD_DIR)/pardump.o $(CPP_BUILD_DIR)/$(LIB_NAME)
 	$(LINK.cc) -o $@ $< $(LDFLAGS_test) $(LIB_DEPS)
@@ -542,10 +546,10 @@ help:
 	@echo "  make doxy-cpp"
 	@echo "  Generate CPP documentation using doxygen. The default html output directory is ./build/cppdocs"
 	@echo ""
-	@echo "  make run-create-partitions"
+	@echo "  make run-create-partitions [graph=/path/to/graph.mtx]"
 	@echo "  Create partion on a single node"
 	@echo ""
-	@echo "  make run-load-compute"
+	@echo "  make run-load-compute [graph=/path/to/graph.mtx]"
 	@echo "  Load partition and compute Louvain modularity on a single node"
 	@echo ""
 	@echo "  Run test in a 3 node cluster"

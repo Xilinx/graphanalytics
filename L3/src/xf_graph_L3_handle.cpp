@@ -82,8 +82,6 @@ void Handle::addOp(singleOP op) {
 
 int Handle::setUp(std::string deviceNames)
 {
-    std::cout << "setup deviceNames=" << deviceNames << std::endl;
-
     const std::string delimiters(" ");
     for (int i = deviceNames.find_first_not_of(delimiters, 0); i != std::string::npos;
             i = deviceNames.find_first_not_of(delimiters, i)) {
@@ -93,10 +91,7 @@ int Handle::setUp(std::string deviceNames)
         const std::string token = deviceNames.substr(i, tokenEnd - i);
         supportedDeviceNames_.push_back(token);
         i = tokenEnd;
-        std::cout << "------------------ " << i << "    " << token << std::endl;
     }
-
-    std::cout << "after setup" << std::endl;
     getEnv();
 
     unsigned int opNm = ops.size();
@@ -164,7 +159,7 @@ int Handle::setUp(std::string deviceNames)
             // Unload existing xclbin first if present
             std::thread thUn[boardNm];
             for (int j = 0; j < boardNm; ++j) {
-#ifndef NDEBUG__
+#ifndef NDEBUG
                 std::cout << "DEBUG: " << "xrm->unloadXclbinNonBlock devId=" << supportedDeviceIds_[j] << std::endl;                
 #endif
                 thUn[j] = xrm->unloadXclbinNonBlock(supportedDeviceIds_[j]);\
@@ -177,7 +172,7 @@ int Handle::setUp(std::string deviceNames)
             std::future<int> th[boardNm];
 
             for (int j = 0; j < boardNm; ++j) {
-#ifndef NDEBUG__
+#ifndef NDEBUG
                 std::cout << "DEBUG: " << __FUNCTION__ << ": xrm->loadXclbinAsync " 
                           << "\n    devId=" << supportedDeviceIds_[j]
                           << "\n    ops[i].xclbinPath=" << ops[i].xclbinPath << std::endl;

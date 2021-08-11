@@ -307,8 +307,10 @@ int MessageParser_D2W(char* msg) {
 }
 
 int MessageGen_D2W(char* msg, ParLV& parlv, char* path, int start, int end, int nodeID) 
-{ 
+{
+#ifndef NDEBUG
     printf("DEBUG: MessageGen_D2W start=%d, end=%d\n", start, end);
+#endif    
     // Format:  parlv_req -num <> -path <> [name]*
     assert(msg);
     assert(path);
@@ -747,7 +749,6 @@ int LoadGLVBin_OnlyC_malloc(char* path, char* file, GLV* glv) {
 GLV* LoadGLVBin(char* name, int& id_glv) {
     assert(name);
 
-    //printf("------------------DEBUG: LoadGLVBin filename=%s, id_glv=%d\n", name, id_glv);
     graphNew* g = (graphNew*)malloc(sizeof(graphNew));
     long nv = 0;
     long ne = 0;
@@ -2145,7 +2146,7 @@ GLV* ParLV::MergingPar2(int& id_glv)
     NE = num_e_dir;
 
     graphNew* Gnew = (graphNew*)malloc(sizeof(graphNew));
-    std::cout << "------------" << __FUNCTION__ << " id_glv=" << id_glv << std::endl;
+    //std::cout << "------------" << __FUNCTION__ << " id_glv=" << id_glv << std::endl;
     GLV* glv = new GLV(id_glv);
     glv->SetName_ParLvMrg(num_par, plv_src->ID);
 #ifdef PRINTINFO
@@ -3235,9 +3236,12 @@ int xai_save_partition(
 */
 int create_alveo_partitions(char* inFile, int num_partition, int par_prune, char* pathName_proj, ParLV& parlv) 
 {
-    std::cout << "DEBUG: " << __FUNCTION__ << " inFile" << inFile 
-              << " num_partition=" << num_partition << std::endl;
-
+#ifndef NDEBUG
+    std::cout << "DEBUG: " << __FUNCTION__ 
+              << "\n    inFile" << inFile 
+              << "\n    num_partition=" << num_partition 
+              << std::endl;
+#endif
     int status;
 
     assert(inFile);
@@ -3448,18 +3452,16 @@ int Parser_ParProjFile(std::string projFile, ParLV& parlv, char* path, char* nam
     int id_glv = 0;
     char namePath_tmp[1024];
     sprintf(namePath_tmp, "%s/%s.par.parlv", path, name);
+#ifndef NDEBUG
     printf("DEBUG: start LoadParLV\n");
+#endif
     if (LoadParLV(namePath_tmp, &parlv) < 0)
         return -2;
 
-    
-    printf("DEBUG: start LoadParLV\n");
     sprintf(namePath_tmp, "%s/%s.par.src", path, name);
     //std::cout << "------------" << __FUNCTION__ << " id_glv=" << id_glv << std::endl;
     parlv.plv_src = new GLV(id_glv);
-    printf("DEBUG: start LoadHead\n");
     LoadHead<GLVHead>(namePath_tmp, (GLVHead*)parlv.plv_src);
-    printf("DEBUG: end LoadHead\n");
 #ifndef NDEBUG
     printf("DEBUG: LoadHead results\n    NV=%ld\n    NVl=%ld\n    NE=%ld\n    NElg=%ld\n    NC=%ld\n    Q=%f\n    numColors=%d\n    numThreads=%d\n    name=%s\n    ID=%d\n",
         parlv.plv_src->NV, parlv.plv_src->NVl, parlv.plv_src->NE, parlv.plv_src->NElg, 
@@ -3488,7 +3490,9 @@ int Parser_ParProjFile(std::string projFile, ParLV& parlv, char* path, char* nam
         else {
         	sprintf(nm, "%s_svr%d_%1d%1d%1d.par", name,i_svr, p_svr / 100, (p_svr / 10) % 10, p_svr % 10);
         }
+#ifndef NDEBUG
         printf("DEBUG:     par_src->name[%d]=%s\n", p, nm);
+#endif        
         parlv.par_src[p]->SetName(nm);
         // Do not check .par files from the driver as they are saved locally on each node
         //char pathName[1024];
@@ -3562,7 +3566,9 @@ int load_alveo_partitions_DriverSelf(Driver* drivers,
         //////////////////////////// CreateSendMessage for worker to be sent ////////////////////////////
         for(int nodeID = 1; nodeID<=numPureWorker; nodeID++){
         	MessageGen_D2W(msg_d2w[nodeID-1], parlv_drv, path_proj, stride * (nodeID - 1), stride * nodeID, nodeID);
+#ifndef NDEBUG
         	printf("DEBUG: after MessageGen_D2W msg_d2w=%s\n", msg_d2w[nodeID-1]);
+#endif
         	drivers[nodeID-1].send(msg_d2w[nodeID-1], MAX_LEN_MESSAGE, 0);
         }
 
@@ -3576,34 +3582,6 @@ int load_alveo_partitions_DriverSelf(Driver* drivers,
 
     return status;
 }
-/*
-int load_alveo_partitions_WorkerSelf( // for both driver; no zmq communications occur
-    std::string projFile, int numNode, int numPureWorker,  
-    // output
-    ParLV& parlv, char* name_inFile, int nodeID, char* msg_worker) 
-{
-    char path_proj[1024];
-    char name_proj[1024];
-    if (Parser_ParProjFile(projFile, parlv, path_proj, name_proj, name_inFile) != 0) {
-        printf("\033[1;31;40mERROR\033[0m: load_alveo_partitions Failed\n");
-        return -1;
-    }
-    int id_glv = 0;
-    char msg_d2w[numPureWorker][MAX_LEN_MESSAGE];
-    { //////////////////////////// CreateSendMessage for worker itself ////////////////////////////
-        TimePointType l_send_start = chrono::high_resolution_clock::now();
-        TimePointType l_send_end;
-        int stride = parlv.num_par / numNode;
-#ifndef NDEBUG
-        printf(" load_alveo_partitions_WorkerSelf %d,  %d, %d,  %d,   %d\n", parlv.num_par, numNode, stride * (nodeID - 1), stride * nodeID, nodeID);
-#endif
-        MessageGen_D2W(msg_worker, parlv, path_proj, stride * (nodeID - 1), stride * nodeID, nodeID);
-        printf("DBG_WR: %s\n", msg_worker);
-        getDiffTime(l_send_start, l_send_end, parlv.timesPar.timeDriverSend);
-    }
-    return 0;
-}
-*/
 
 GLV* louvain_modularity_alveo(xf::graph::L3::Handle* handle0,
                               ParLV& parlv,     // To collect time and necessary data

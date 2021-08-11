@@ -1577,8 +1577,8 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune(
             buff_host[0].config1[0] = opts_C_thresh;
             buff_host[0].config1[1] = currMod[0];
             time1  = omp_get_wtime() - time1;
-            printf("maxv:%ld, NEx2:%ld, vertexNum: %ld, numColors:%d, edgeNum:%ld, opts_C_thresh:%f, currMod:%f\n", 
-                    glb_MAXNV, NEx2, vertexNum, numColors, edgeNum, opts_C_thresh, currMod[0]);
+            //printf("maxv:%ld, NEx2:%ld, vertexNum: %ld, numColors:%d, edgeNum:%ld, opts_C_thresh:%f, currMod:%f\n", 
+            //        glb_MAXNV, NEx2, vertexNum, numColors, edgeNum, opts_C_thresh, currMod[0]);
             return time1;
 #ifdef PRINTINFO_LVPHASE
             std::cout << "INFO: eachItrs" <<buff_host[0].config0[2] <<", "<<"eachItr[0] = "<<buff_host[0].config0[2]<<", "<<"currMod[0] = "<<buff_host[0].config1[1]<< std::endl;

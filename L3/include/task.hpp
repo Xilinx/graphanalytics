@@ -113,9 +113,11 @@ class openXRM {
     }
 
     std::future<int> loadXclbinAsync(unsigned int deviceId, std::string& xclbinPath) {
+#ifndef NDEBUG
         std::cout << "DEBUG: " << __FUNCTION__ 
                   << "\n    deviceId=" << deviceId 
                   << "\n    xclbinPath=" << xclbinPath << std::endl;
+#endif
         std::future<int> ret = std::async(&xrmLoadOneDevice, ctx, deviceId, (char*)xclbinPath.c_str());
         
         return ret;

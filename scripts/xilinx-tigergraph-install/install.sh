@@ -32,6 +32,23 @@
 SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`
 
+function usage() {
+    echo "Usage: $0 [options]"
+    echo "Options:"
+    echo "  -p product-name  : Products: cosinesin, louvainmod. Only base libraries are installed if product-name is not set."
+    echo "  -h               : Print this help message"
+}
+
+product="none"
+while getopts ":ph" opt
+do
+case $opt in
+    p) product=$OPTARG;;
+    h) usage; exit 1;;
+    ?) echo "ERROR: Unknown option: -$OPTARG"; usage; exit 1;;
+esac
+done
+
 OSDIST=`lsb_release -i |awk -F: '{print tolower($2)}' | tr -d ' \t'`
 OSREL=`lsb_release -r |awk -F: '{print tolower($2)}' |tr -d ' \t' | awk -F. '{print $1*100+$2}'`
 YELLOW='\033[1;33m'
@@ -42,6 +59,8 @@ if [[ $OSDIST == "ubuntu" ]]; then
         pkg_dir="./ubuntu-16.04"
     elif (( $OSREL == 1804 )); then
         pkg_dir="./ubuntu-18.04"
+    elif (( $OSREL == 2004 )); then
+        pkg_dir="./ubuntu-20.04"        
     else
         echo "ERROR: Ubuntu release version must be 16.04 or 18.04."
         return 1
@@ -57,11 +76,11 @@ fi
 echo "INFO: Installing packages on $OSDIST $OSREL"
 
 if [[ $OSDIST == "ubuntu" ]]; then
-    read -p "XRT will be removed if present. Continue? (Y/N): " confirm && \
+    read -p "XRT/XRM will be removed if present. Continue? (Y/N): " confirm && \
            [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]] || exit 1
 
-    printf "\nRemove XRT if present. Enter sudo password below:\n"
-    sudo apt remove xrt -y
+    printf "\nRemove XRT/XRM if present. Enter sudo password below:\n"
+    sudo apt remove xrm xrt -y
 
     # install XRT/XRM/Deployment shell
     printf "\nINFO: Install XRT\n"
@@ -73,14 +92,15 @@ if [[ $OSDIST == "ubuntu" ]]; then
     printf "\nINFO: Install deployment shell\n"
     sudo apt install $pkg_dir/deployment-shell/xilinx*.deb
 
-    # install required package
-    sudo apt install jq opencl-headers -y
+    if [[ $product == "cosinesim" ]]; then
+        # install required package
+        sudo apt install jq opencl-headers -y
+        printf "\nINFO: Install Xilinx CosineSim product package\n"
+        sudo apt install --reinstall $pkg_dir/cosinesim/xilinx-cosinesim*.deb
 
-    printf "\nINFO: Install Xilinx CosineSim product package\n"
-    sudo apt install --reinstall $pkg_dir/cosinesim/xilinx-cosinesim*.deb
-
-    printf "\nINFO: Install Xilinx Recommend Engine package\n"
-    sudo apt install --reinstall $pkg_dir/recomengine/xilinx-recomengine*.deb
+        printf "\nINFO: Install Xilinx Recommend Engine package\n"
+        sudo apt install --reinstall $pkg_dir/recomengine/xilinx-recomengine*.deb
+    fi
 fi
 
 if [[ $OSDIST == "centos" ]]; then
@@ -100,14 +120,16 @@ if [[ $OSDIST == "centos" ]]; then
     printf "\nINFO: Install deployment shell\n"
     sudo yum install $pkg_dir/deployment-shell/xilinx*.rpm
 
-    # install required package
-    sudo yum install jq opencl-headers -y
+    if [[ $product == "cosinesim" ]]; then
+        # install required package
+        sudo yum install jq opencl-headers -y
 
-    printf "\nINFO: Install Xilinx CosineSim package\n"
-    sudo yum install $pkg_dir/cosinesim/xilinx-cosinesim*.rpm
+        printf "\nINFO: Install Xilinx CosineSim package\n"
+        sudo yum install $pkg_dir/cosinesim/xilinx-cosinesim*.rpm
 
-    printf "\nINFO: Install Xilinx Recommend Engine package\n"
-    sudo yum install $pkg_dir/recomengine/xilinx-recomengine*.rpm
+        printf "\nINFO: Install Xilinx Recommend Engine package\n"
+        sudo yum install $pkg_dir/recomengine/xilinx-recomengine*.rpm
+    fi
 
     # only need to run this on CentOS
     #copy the standard libstdc++ to $HOME/libstd
