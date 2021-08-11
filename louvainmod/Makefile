@@ -225,7 +225,7 @@ LDLIBS_test = \
 	
 
 SRC_FILE_NAMES_test = \
-    apitest.cpp \
+    cppdemo.cpp \
     pardump.cpp
 
 SRCS_test = $(addprefix $(TEST_DIR)/,$(SRC_FILE_NAMES_test))
@@ -234,7 +234,7 @@ DEPS_test = $(OBJS_test:.o=.d)
 
 # List of all test executables to build
 EXEC_FILE_NAMES_test = \
-    apitest \
+    cppdemo \
     pardump
 
 EXECS_test = $(addprefix $(CPP_BUILD_DIR)/,$(EXEC_FILE_NAMES_test))
@@ -251,22 +251,17 @@ cppTest2: $(EXECS_test)
 
 LDFLAGS_test = -fPIC -w -L $(CPP_BUILD_DIR) -l$(LIB_SHORT_NAME) -lzmq -fopenmp -m64
 
-#run-dyn-test: cppTest
-#	LD_PRELOAD=$(PWD)/$(CPP_BUILD_DIR)/$(LIB_NAME) LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) \
-#	    $(CPP_BUILD_DIR)/cosinesim_dyn_test $(NUMDEVICES)
-
-
-$(CPP_BUILD_DIR)/apitest: $(CPP_BUILD_DIR)/apitest.o $(CPP_BUILD_DIR)/$(LIB_NAME)
+$(CPP_BUILD_DIR)/cppdemo: $(CPP_BUILD_DIR)/cppdemo.o $(CPP_BUILD_DIR)/$(LIB_NAME)
 	$(LINK.cc) -o $@ $< $(LDFLAGS_test) $(LIB_DEPS)
 
 #$(CPP_BUILD_DIR)/cosinesim_dyn_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUILD_DIR)/$(LOADER_NAME) $(CPP_BUILD_DIR)/$(LIB_NAME)
 #	$(LINK.cc) -o $@ $< -fPIC -w -L $(CPP_BUILD_DIR) -l$(LOADER_SHORT_NAME) -ldl $(LIB_DEPS)
 
-APITEST_OUT_DIR = $(CPP_BUILD_DIR)/apitest-out
+CPPDEMO_OUT_DIR = $(CPP_BUILD_DIR)/cppdemo-out
 graph = ../plugin/tigergraph/comdetect/examples/comdetect/as-skitter/as-Skitter-wt-r100.mtx
 graphFilename = $(notdir $(graph))
 graphBasename = $(basename $(graphFilename))
-alveoProject = $(APITEST_OUT_DIR)/$(graphBasename)
+alveoProject = $(CPPDEMO_OUT_DIR)/$(graphBasename)
 numPars=9
 serverPar=1 9
 numDevices=1
@@ -296,37 +291,37 @@ CMDLINE_LOAD_COMPUTE_WORKER2 = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xi
 .PHONY: run-create-partitions run-load-compute run-load-compute-driver run-load-compute-worker1 run-load-compute-worker2
 
 $(alveoProject).par.proj: $(graph)
-	rm -rf $(APITEST_OUT_DIR)
-	mkdir -p $(APITEST_OUT_DIR)
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_CREATE_PARTITIONS)
+	rm -rf $(CPPDEMO_OUT_DIR)
+	mkdir -p $(CPPDEMO_OUT_DIR)
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_CREATE_PARTITIONS)
 
 run-create-partitions: stage cppTest
 	@echo "------------------------------------------------------------------------"
 	@echo "-                       Create Partitions                              -"
 	@echo "------------------------------------------------------------------------"
-	rm -rf $(APITEST_OUT_DIR)
-	mkdir -p $(APITEST_OUT_DIR)
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_CREATE_PARTITIONS)
+	rm -rf $(CPPDEMO_OUT_DIR)
+	mkdir -p $(CPPDEMO_OUT_DIR)
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_CREATE_PARTITIONS)
 
 run-load-compute: stage cppTest $(alveoProject).par.proj
 	@echo "------------------------------------------------------------------------"
 	@echo "-                    Load Partitions and Compute                       -"
 	@echo "------------------------------------------------------------------------"
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE)
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE)
 
 run-load-compute-driver: stage cppTest
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE_DRIVER)
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE_DRIVER)
 
 run-load-compute-worker1: stage cppTest 
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE_WORKER1)
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE_WORKER1)
 
 run-load-compute-worker2: stage cppTest
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/apitest $(CMDLINE_LOAD_COMPUTE_WORKER2)	
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE_WORKER2)	
 
-debug-apitest: cppTest
-	rm -rf $(APITEST_OUT_DIR)
-	mkdir -p $(APITEST_OUT_DIR)
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); totalview $(CPP_BUILD_DIR)/apitest -a $(CMDLINE_CREATE_PARTITIONS)
+debug-cppdemo: cppTest
+	rm -rf $(CPPDEMO_OUT_DIR)
+	mkdir -p $(CPPDEMO_OUT_DIR)
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); totalview $(CPP_BUILD_DIR)/cppdemo -a $(CMDLINE_CREATE_PARTITIONS)
 
 $(CPP_BUILD_DIR)/pardump: $(CPP_BUILD_DIR)/pardump.o $(CPP_BUILD_DIR)/$(LIB_NAME)
 	$(LINK.cc) -o $@ $< $(LDFLAGS_test) $(LIB_DEPS)

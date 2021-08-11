@@ -32,6 +32,11 @@
 SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`
 
+##########################################################################################
+# Update package version for each release
+##########################################################################################
+louvain_pkg=xilinx-louvainmod-0.1
+
 function usage() {
     echo "Usage: $0 [options]"
     echo "Options:"
@@ -40,7 +45,7 @@ function usage() {
 }
 
 product="none"
-while getopts ":ph" opt
+while getopts ":p:h" opt
 do
 case $opt in
     p) product=$OPTARG;;
@@ -48,6 +53,7 @@ case $opt in
     ?) echo "ERROR: Unknown option: -$OPTARG"; usage; exit 1;;
 esac
 done
+
 
 OSDIST=`lsb_release -i |awk -F: '{print tolower($2)}' | tr -d ' \t'`
 OSREL=`lsb_release -r |awk -F: '{print tolower($2)}' |tr -d ' \t' | awk -F. '{print $1*100+$2}'`
@@ -75,46 +81,67 @@ fi
 
 echo "INFO: Installing packages on $OSDIST $OSREL"
 
-if [[ $OSDIST == "ubuntu" ]]; then
-    read -p "XRT/XRM will be removed if present. Continue? (Y/N): " confirm && \
-           [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]] || exit 1
+read -p "It is recommended to remove current XRT/XRM if present. Remove? (y/n): " confirm 
 
-    printf "\nRemove XRT/XRM if present. Enter sudo password below:\n"
-    sudo apt remove xrm xrt -y
+if [[ $OSDIST == "ubuntu" ]]; then
+    if [[ $confirm == [yY] ]]; then
+        printf "\nEnter sudo password below to remove XRT/XRM:\n"
+        sudo apt remove xrm xrt -y
+    fi
 
     # install XRT/XRM/Deployment shell
-    printf "\nINFO: Install XRT\n"
+    printf "\n-------------------------------------------------------------\n"
+    printf "INFO: Install XRT. Enter sudo password if asked."
+    printf "\n-------------------------------------------------------------\n"
     sudo apt install $pkg_dir/xrt/xrt*.deb
 
-    printf "\nINFO: Install XRM\n"
+    printf "\n-------------------------------------------------------------\n"
+    printf "INFO: Install XRM. Enter sudo password if asked."
+    printf "\n-------------------------------------------------------------\n"
     sudo apt install $pkg_dir/xrm/xrm*.deb
 
-    printf "\nINFO: Install deployment shell\n"
+    printf "\n-------------------------------------------------------------\n"
+    printf "INFO: Install deployment shell. Enter sudo password if asked."
+    printf "\n-------------------------------------------------------------\n"
     sudo apt install $pkg_dir/deployment-shell/xilinx*.deb
+
+    # install required package
+    sudo apt install jq opencl-headers -y
 
     if [[ $product == "cosinesim" ]]; then
         # install required package
         sudo apt install jq opencl-headers -y
-        printf "\nINFO: Install Xilinx CosineSim product package\n"
-        sudo apt install --reinstall $pkg_dir/cosinesim/xilinx-cosinesim*.deb
+        printf "\n-------------------------------------------------------------\n"
+        printf "INFO: Install Xilinx CosineSim. Enter sudo password if asked."
+        printf "\n-------------------------------------------------------------\n"
+        sudo apt install $pkg_dir/cosinesim/xilinx-cosinesim*.deb
 
-        printf "\nINFO: Install Xilinx Recommend Engine package\n"
-        sudo apt install --reinstall $pkg_dir/recomengine/xilinx-recomengine*.deb
+        printf "\n-------------------------------------------------------------\n"
+        printf "INFO: Install Xilinx Recommend Engine. Enter sudo password if asked."
+        printf "\n-------------------------------------------------------------\n"
+        sudo apt install $pkg_dir/recomengine/xilinx-recomengine*.deb
+    fi
+
+    if [[ $product == "louvainmod" ]]; then
+        printf "\n-------------------------------------------------------------\n"
+        printf "INFO: Install Xilinx LouvainMod. Enter sudo password if asked."
+        printf "\n-------------------------------------------------------------\n"
+        sudo apt remove -y $louvain_pkg
+        sudo apt install $pkg_dir/louvainmod/$louvain_pkg*.deb
     fi
 fi
 
 if [[ $OSDIST == "centos" ]]; then
-    read -p "XRT will be removed if present. Continue? (Y/N): " confirm && \
-           [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]] || exit 1
-
-    printf "\nRemove XRT if present. Enter sudo password below:\n"
-    sudo yum remove xrt -y
+    if [[ $confirm == [yY] ]]; then
+        printf "\nEnter sudo password below to remove XRT/XRM:\n"
+        sudo yum remove xrt -y
+    fi
 
     # install XRT/XRM/Deployment shell
-    printf "\nINFO: Install XRT\n"
+    printf "\nINFO: Install XRT. \n"
     sudo yum install $pkg_dir/xrt/xrt*.rpm
 
-    printf "\nINFO: Install XRM\n"
+    printf "\nINFO: Install XRM. Enter sudo password if asked.\n"
     sudo yum install $pkg_dir/xrm/xrm*.rpm
 
     printf "\nINFO: Install deployment shell\n"
