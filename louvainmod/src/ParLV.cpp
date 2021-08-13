@@ -3119,27 +3119,29 @@ int create_alveo_partitions_org(char* inFile, int par_num, int par_prune, char* 
 
     return 0;
 }
+
 void sim_getServerPar(
-  //input
-  graphNew* G,   //Looks like a Global Graph but here only access dataset within
+  //inputs
+  graphNew* G,       //Looks like a Global Graph but here only access dataset within
   long start_vertex, // a range from start_vertex to end_vertex, which is stored locally
   long end_vertex,   // Here we assume that the vertices of a TigerGraph partition
-                 // stored on a node are continuous
-  //Output
-  long* offsets_tg, // we can also use �degree� instead of �offsets�
-  edge* edges_tg,   //
-  long* dgr_tail_tg // degrees for the tail of each edge;
-){
+                     // stored on a node are continuous
+  //Outputs
+  long* offsets_tg,  // we can also use �degree� instead of �offsets�
+  edge* edges_tg,    //
+  long* dgr_tail_tg  // degrees for the tail of each edge;
+)
+{
 	//printf("DBG_TGPAR: NV=%d NE=%d \n", G->numVertices, G->numEdges);
     long* off_glb   = G->edgeListPtrs; //in GSQL, maybe �degree� can be much easier.
     edge* edges_glb = G->edgeList;
     long  cnt_e     = 0;
     long  cnt_v     = 0;
     offsets_tg[0]   = off_glb[0 + start_vertex] - off_glb[start_vertex];//0;
-    for(long v_glb = start_vertex; v_glb < end_vertex; v_glb++){//Scanning nodes within a range
+    for (long v_glb = start_vertex; v_glb < end_vertex; v_glb++){//Scanning nodes within a range
         offsets_tg[cnt_v + 1] = off_glb[v_glb + 1 ] - off_glb[start_vertex];
         long degree = off_glb[ v_glb + 1] - off_glb[v_glb];
-        for( long e = 0; e < degree; e++ ){
+        for ( long e = 0; e < degree; e++ ) {
             edges_tg[cnt_e].head   = edges_glb[off_glb[v_glb] + e].head;
             edges_tg[cnt_e].tail   = edges_glb[off_glb[v_glb] + e].tail;
             edges_tg[cnt_e].weight = edges_glb[off_glb[v_glb] + e].weight;
@@ -3147,13 +3149,15 @@ void sim_getServerPar(
             cnt_e++;
         }
         cnt_v++;
-    }//end for
+    }
 }
-GLV* par_general_4TG(long start_vertexInGlb, long* offsets_tg, edge* edgelist_tg, long* drglist_tg, long start_parInGlb, long stride_par, int& id_glv, int th_maxGhost){
+
+GLV* par_general_4TG(long start_vertexInGlb, long* offsets_tg, edge* edgelist_tg, long* drglist_tg, 
+                     long start_parInGlb, long stride_par, int& id_glv, int th_maxGhost)
+{
 	SttGPar stt;
-	//printf("\033[1;37;40mINFO\033[0m: Partition of \033[1;31;40mPruning\033[0m is used and th_maxGhost=%d \n", th_maxGhost);
-	//printf("DBG_4TG start_vertexInGlb=%d, start_parInGlb=%d, stride_par=%d\n", start_vertexInGlb, start_parInGlb, stride_par);
-	GLV* ret=  stt.ParNewGlv_Prun(start_vertexInGlb,  offsets_tg, edgelist_tg, drglist_tg, start_parInGlb, stride_par, id_glv, th_maxGhost);
+	GLV* ret=  stt.ParNewGlv_Prun(start_vertexInGlb,  offsets_tg, edgelist_tg, drglist_tg, 
+                                  start_parInGlb, stride_par, id_glv, th_maxGhost);
 	return ret;
 }
 
@@ -3165,28 +3169,30 @@ int xai_save_partition(
 	char* path_prefix,      // For saving the partition files like <path_prefix>_xxx.par
 						    // Different server can have different path_prefix
 	int par_prune,          // Can always be set with value '1'
-	long NV_par_recommand,  // Allow to partition small graphs not bigger than FPGA limitation
+	long NV_par_requested,  // NV requested per partition
 	long NV_par_max		    //  64*1000*1000;
 	) 
 {
-#ifndef NDEBUG    
+#ifndef NDEBUG
     std::cout << "DEBUG: " << __FUNCTION__ 
               << "\n    start_vertex=" << start_vertex
               << "\n    end_vertex=" << end_vertex
               << "\n    path_prefix=" << path_prefix
-              << "\n    par_prune=" << par_prune
+              << "\n    NV_par_requested=" << NV_par_requested
+              << "\n    NV_par_max=" << NV_par_max
               << std::endl;
 #endif
     int status = 0;
 
 	long NV_server = end_vertex - start_vertex;
 	GLV*  parlv_par_src[MAX_PARTITION];
-	int id_glv = 0;//fun2c_call();
-	long average_stride = NV_par_recommand;
+	int id_glv = 0;
+	long average_stride = NV_par_requested;
     long start_vertext_par = start_vertex;
     int p=0;
-    while(start_vertext_par != end_vertex) {
+    while (start_vertext_par != end_vertex) {
 		long NV_par = (end_vertex - start_vertext_par ) > average_stride ? average_stride: end_vertex - start_vertext_par;
+        
 		do {
 		    parlv_par_src[p] = par_general_4TG(
 				//Input data from TG
@@ -3201,13 +3207,18 @@ int xai_save_partition(
 				par_prune             // Ghost prunning parameter, always be '1'. It can be set by command-line
 			);
 			long diff_NV = NV_par_max - parlv_par_src[p]->NV;
-			if(diff_NV <0){
+            //std::cout << "DEBUG: after par_general_4TG " 
+            //          << "\n    NV_par=" << NV_par 
+            //          << "\n    diff_NV=" << diff_NV 
+            //          << "\n    parlv_par_src[p]->NV=" << parlv_par_src[p]->NV 
+            //          << std::endl;            
+			if (diff_NV < 0){
 				NV_par -= diff_NV;
 				delete(parlv_par_src[p]);
 				parlv_par_src[p] = NULL;
 			}
-		} while(parlv_par_src[p] == NULL);//If the partition is too big to load on FPGA, reduce the NV_par until partition is small enough
-		char nm[1024];
+		} while(parlv_par_src[p] == NULL); //If the partition is too big to load on FPGA, reduce the NV_par until partition is small enough
+        char nm[1024];
 		sprintf(nm, "_%1d%1d%1d.par", p / 100, (p / 10) % 10, p % 10);
 		parlv_par_src[p]->SetName(nm);
 		char pathName[1024];
@@ -3219,6 +3230,7 @@ int xai_save_partition(
 		start_vertext_par += NV_par;
 		p++;
 	}
+    std::cout << "INFO: total number of partitions created: " << p << std::endl;
 	return p;
 }
 

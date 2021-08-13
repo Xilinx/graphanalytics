@@ -45,8 +45,8 @@ MK_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 CUR_DIR := $(patsubst %/,%,$(dir $(MK_PATH)))
 XF_PROJ_ROOT ?= $(shell bash -c 'export MK_PATH=$(MK_PATH); echo $${MK_PATH%/examples/cpp/Makefile}')
 
-#LIB_PATH = $(XF_PROJ_ROOT)/staging/lib
-#INCLUDE_PATH = $(XF_PROJ_ROOT)/include
+LIB_PATH = $(XF_PROJ_ROOT)/staging/lib
+INCLUDE_PATH = $(XF_PROJ_ROOT)/include
 
 ifeq ($(wildcard $(LIB_PATH)/*.so),)
     LIB_PATH = $(XILINX_LOUVAIN)/${PROD_VERSION}/lib
@@ -145,10 +145,10 @@ clean:
 
 help:
 	@echo "Makefile usages:"
-	@echo "  make run-create-partitions [graph=/path/to/graph.mtx]"
-	@echo "  Create partion on a single node"
+	@echo "  make run-create-partitions [graph=/path/to/graph.mtx] [numPars=1]"
+	@echo "  Create partitions on a single node"
 	@echo ""
-	@echo "  make run-load-compute [graph=/path/to/graph.mtx]"
+	@echo "  make run-load-compute [graph=/path/to/graph.mtx] [numDevices=1]"
 	@echo "  Load partition and compute Louvain modularity on a single node"
 	@echo ""
 	@echo "  Run test in a 3 node cluster"

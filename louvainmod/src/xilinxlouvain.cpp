@@ -32,7 +32,8 @@ using namespace xilinx_apps::louvainmod;
 
 // Max number of vertices that fit on one Alveo card
 long NV_par_max = 64*1000*1000;
-
+// Only use 80% NV_max to save 20% space for ghosts
+long NV_par_max_margin = NV_par_max * 8/10;
 
 // Values determined from the global options
 //
@@ -154,14 +155,10 @@ public:
         } else
             std::strcpy(pathName_proj_svr, globalOpts_.nameProj);                    //louvain_partitions_000.par
 
-        // If the client has supplied a desired partition size, use that
-
-        long NV_par_recommand = partitionData.NV_par_recommand;
-        std::cout << "DEBUG: " << __FUNCTION__ << " NV_par_recommand=" << NV_par_recommand << std::endl;
-
+        // User requested NV per partition
+        long NV_par_requested = partitionData.NV_par_requested;
         // No supplied desired partition size: calculate it
-
-        if (NV_par_recommand == 0) {
+        if (NV_par_requested == 0) {
             // Assume that we want one partition per Alveo card unless overridden by num_par option
             int numPartitionsThisServer = globalOpts_.devNeed_cmd;
 
@@ -183,11 +180,19 @@ public:
             // Determine the number of vertices for each partition on this server, which is the lesser of
             // (a) 80% Alveo card capacity and (b) the number of vertices for this server divided by the number of
             // partitions on this server.
-            NV_par_recommand = (long)((float)NV_par_max * 0.80);//20% space for ghosts.
+            NV_par_requested = NV_par_max_margin;
             const long numVerticesThisServer = partitionData.end_vertex - partitionData.start_vertex;
             const long numPartitionVertices = (numVerticesThisServer + numPartitionsThisServer - 1) / numPartitionsThisServer;
-            if (numPartitionVertices < NV_par_recommand)
-                NV_par_recommand = numPartitionVertices;
+            if (numPartitionVertices < NV_par_requested)
+                NV_par_requested = numPartitionVertices;
+       
+            std::cout << "INFO: automatically computed NV_par_requested=" << NV_par_requested << std::endl;                
+        } else if (NV_par_requested > NV_par_max_margin) {
+            // making sure NV_par_requested is within NV_par_max_margin
+            NV_par_requested = NV_par_max_margin;
+            std::cout << "INFO: NV_par_requested is adjusted to NV_par_max_margin " << NV_par_requested << std::endl;
+        } else {
+             std::cout << "INFO: NV_par_requested is set to " << NV_par_requested << std::endl;           
         }
 
         int numPartitionsCreated = xai_save_partition(
@@ -198,9 +203,10 @@ public:
             partitionData.end_vertex,
             pathName_proj_svr,    // num_server==1? <dir>/louvain_partitions_ : louvain_partitions_svr<num_server>
             partOpts_.par_prune,  // always be '1'
-            NV_par_recommand,     // Allow to partition small graphs not bigger than FPGA limitation
+            NV_par_requested,     // Allow to partition small graphs not bigger than FPGA limitation
             NV_par_max
         );
+
         if (numPartitionsCreated < 0) {
             std::ostringstream oss;
             oss << "ERROR: Failed to create Alveo partition #" << parInServer_.size() << " for server partition "
@@ -310,14 +316,10 @@ public:
 };
 
 //#####################################################################################################################
-
 //
 // LouvainMod Members
 //
-
 void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions &partOptions) {
-//        create_alveo_partitions(options.opts_inFile, options.num_par, options.par_prune, options.nameProj, parlv);
-
     assert(fileName);
     int id_glv = 0;
     GLV* glv_src = CreateByFile_general(const_cast<char *>(fileName), id_glv);  // Louvain code not const correct
@@ -331,10 +333,8 @@ void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions 
     parlv.plv_src = glv_src;
 
     //////////////////////////// partition ////////////////////////////
-
     const int num_server = pImpl_->settings_.numServers;
 
-    //For simulation: create server-level partition
     std::vector<long> start_vertex(num_server);
     std::vector<long> end_vertex(num_server);
     std::vector<long> vInServer(num_server);
@@ -347,7 +347,6 @@ void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions 
         vInServer[i_svr] = end_vertex[i_svr] - start_vertex[i_svr];
     }
 
-    //For simulation: create server-level partition
     int num_partition = partOptions.num_par;
     int start_par[MAX_PARTITION];// eg. {0, 3, 6} when par_num == 9
     int end_par[MAX_PARTITION];  // eg. {3, 6, 9}  when par_num == 9
@@ -365,7 +364,6 @@ void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions 
     num_partition = 0;
 
     for (int i_svr = 0; i_svr < num_server; i_svr++) {
-        //For simulation: To get partition on server(i_svr)
         long* offsets_tg   = (long*) malloc( sizeof(long) * (vInServer[i_svr] + 1) );
         edge* edgelist_tg  = (edge*) malloc( sizeof(edge) * (offsets_glb[end_vertex[i_svr]] - offsets_glb[start_vertex[i_svr]]) );
         long* drglist_tg   = (long*) malloc( sizeof(long) * (offsets_glb[end_vertex[i_svr]] - offsets_glb[start_vertex[i_svr]]) );
@@ -373,14 +371,14 @@ void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions 
         sim_getServerPar(// This function should be repleased by GSQL
                 glv_src->G, start_vertex[i_svr], end_vertex[i_svr],
                 offsets_tg, edgelist_tg, drglist_tg);
-#ifdef PRINTINFO
-                printf("DBG:: SERVER(%d): start_vertex=%d, end_vertex=%d, NV_tg=%d, start_par=%d, parInServer=%d, pathName:%s\n",
-        i_svr, start_vertex[i_svr], end_vertex[i_svr], vInServer[i_svr], start_par[i_svr], parInServer[i_svr], fileName);
+#ifndef NDEBUG
+        printf("DEBUG:: SERVER(%d): start_vertex=%d, end_vertex=%d, NV_tg=%d, start_par=%d, parInServer=%d, pathName:%s\n",
+                i_svr, start_vertex[i_svr], end_vertex[i_svr], vInServer[i_svr], start_par[i_svr], parInServer[i_svr], fileName);
 #endif
 
-        long NV_par_recommand = 0;
-        if (partOptions.num_par>1)
-            NV_par_recommand = (NV + partOptions.num_par-1) / partOptions.num_par;//allow to partition small graph with -par_num
+        long NV_par_requested = 0;
+        if (partOptions.num_par > 1)
+            NV_par_requested = (NV + partOptions.num_par-1) / partOptions.num_par;  //allow to partition small graph with -par_num
 
         LouvainMod::PartitionData partitionData;
         partitionData.offsets_tg = offsets_tg;
@@ -388,11 +386,11 @@ void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions 
         partitionData.drglist_tg = drglist_tg;
         partitionData.start_vertex = start_vertex[i_svr];
         partitionData.end_vertex = end_vertex[i_svr];
-        partitionData.NV_par_recommand = NV_par_recommand;
+        partitionData.NV_par_requested = NV_par_requested;
         partitionData.nodeId = i_svr;
         parInServer[i_svr] = addPartitionData(partitionData);
 
-        num_partition +=parInServer[i_svr] ;
+        num_partition += parInServer[i_svr] ;
         free(offsets_tg);
         free(edgelist_tg);
         free(drglist_tg);

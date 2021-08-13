@@ -610,13 +610,11 @@ void GLV::CleanCurrentG()
 void GLV::InitByFile(char* name_file){
 	double totTimeColoring;
 	CleanCurrentG();
-	printf("GLV: host_PrepareGraph(3, %s, 0)\n", name_file);
 	G  = host_PrepareGraph( 3, name_file, 0);
 	SyncWithG();
 	InitM();
-	printf("GLV: displayGraphCharacteristics\n");
 	displayGraphCharacteristics(G);
-	printf("GLV: NV = %ld\t NE = %ld\t numColor = %d \n", NV, NE, numColors);
+	printf("INFO: GLV: NV = %ld\t NE = %ld\t numColor = %d \n", NV, NE, numColors);
 }
 void GLV::InitByOhterG(graphNew* G_orig){
 	assert(G_orig);
@@ -624,7 +622,7 @@ void GLV::InitByOhterG(graphNew* G_orig){
 	G = CloneG(G_orig);
 	SyncWithG();
 	InitM();
-	printf("GLV: NV = %ld\t NE = %ld\t numColor = %d \n", NV, NE, numColors);
+	printf("INFO: GLV: NV = %ld\t NE = %ld\t numColor = %d \n", NV, NE, numColors);
 }
 void GLV::SetByOhterG(graphNew* G_src){
 	assert(G_src);
@@ -1362,14 +1360,19 @@ GLV* SttGPar::ParNewGlv_Prun(graphNew* G, long st, long ed, int& id_glv, int th_
 	free(M_v);
 	return glv;
 }
+
 GLV* SttGPar::ParNewGlv_Prun(long start_tg, long* offsets_tg, edge* edgelist_tg, long* dgrlist_tg, long start_par,
     long size_par, int& id_glv, int th_maxGhost)
 {
+    /*std::cout << "\nDEBUG: ParNewGlv_Prun "  
+              << "\n    size_par=" << size_par
+              << "\n    id_glv=" << id_glv
+              << std::endl;*/
     start = start_par;  // global ID of first local vertex (vertex in the partition)
     long ed_par = start_par+size_par;  // 1 + global ID of last local vertex
     end = ed_par;
     long NV_par_local = end - start;  // number of local vertices
-    long NE_par = offsets_tg[end-start_tg]- offsets_tg[start-start_tg];  // number of edges connected to local vertices
+    long NE_par = offsets_tg[end-start_tg] - offsets_tg[start-start_tg];  // number of edges connected to local vertices
     edge* elist = (edge*)malloc(sizeof(edge) * (NE_par));  // output partition edge list with local vertex IDs
 
     // Array of local IDs for all local vertices followed by encoded global IDs of ghost nodes for the current
@@ -1381,8 +1384,8 @@ GLV* SttGPar::ParNewGlv_Prun(long start_tg, long* offsets_tg, edge* edgelist_tg,
     //long off = end - start;
 
     // Initialize M_v with all local vertices and set all possible ghost vertices to a dummy value
-
-    for(int i=0; i < M_v_size; i++){
+    //std::cout << "DEBUG: M_v_size = " << M_v_size << std::endl;
+    for (int i=0; i < M_v_size; i++) {
         M_v[i] = i<NV_par_local? i + start : -2;
     }
     long cnt_e_input = offsets_tg[start_par-start_tg];  // index of current edge (used for dgrlist_tg)
@@ -1455,10 +1458,10 @@ void SttGPar::CountV(graphNew* G)
 	long NV = G->numVertices;
 	return CountV(G, 0, NV);
 }
-void GetGFromEdge(graphNew * G, edge *edgeListTmp, long num_v, long num_e_dir) {
-  
+
+void GetGFromEdge(graphNew *G, edge *edgeListTmp, long num_v, long num_e_dir) 
+{
     //Parse the first line:
-  
     long NV = num_v, ED=num_e_dir*2, NE=num_e_dir;
   
     printf("|V|= %ld, |E|= %ld \n", NV, NE);
@@ -1481,7 +1484,7 @@ void GetGFromEdge(graphNew * G, edge *edgeListTmp, long num_v, long num_e_dir) {
       edgeListPtr[i+1] += edgeListPtr[i]; //Prefix Sum:
     }
     //The last element of Cumulative will hold the total number of characters
-    printf("Sanity Check: 2|E| = %ld, edgeListPtr[NV]= %ld\n", NE*2, edgeListPtr[NV]);
+    printf("DEBUG: Sanity Check: 2|E| = %ld, edgeListPtr[NV]= %ld\n", NE*2, edgeListPtr[NV]);
   
     edge *edgeList = (edge *) malloc ((2*NE) * sizeof(edge)); //Every edge stored twice
     assert(edgeList != 0);
