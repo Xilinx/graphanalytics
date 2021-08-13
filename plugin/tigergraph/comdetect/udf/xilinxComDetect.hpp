@@ -169,12 +169,12 @@ inline int udf_save_alveo_partition(uint numPar) {
     std::cout << "end_vertex: " << pContext->getEndVertex() <<std::endl;
 #endif
 
-    long NV_par_recommand;
+    long NV_par_requested;
     long NV_par_max = 64*1000*1000;
     if (numPar>1)
-        NV_par_recommand = ( pContext->getNextId()+ numPar-1) / numPar;//allow to partition small graph with -par_num
+        NV_par_requested = ( pContext->getNextId()+ numPar-1) / numPar;//allow to partition small graph with -par_num
     else
-        NV_par_recommand = (long)((float)NV_par_max * 0.80);//20% space for ghosts.
+        NV_par_requested = (long)((float)NV_par_max * 0.80);//20% space for ghosts.
 
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
     xilinx_apps::louvainmod::LouvainMod::PartitionData partitionData;
@@ -183,7 +183,7 @@ inline int udf_save_alveo_partition(uint numPar) {
     partitionData.drglist_tg = pContext->getDrglistTg(); //drglist_tg;
     partitionData.start_vertex = pContext->getStartVertex(); //start_vertex;
     partitionData.end_vertex = pContext->getEndVertex(); //end_vertex;
-    partitionData.NV_par_recommand = NV_par_recommand;
+    partitionData.NV_par_requested = NV_par_requested;
     int64_t number_of_partitions = (int64_t)pLouvainMod->addPartitionData(partitionData);
     return number_of_partitions;
 
