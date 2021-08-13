@@ -24,9 +24,9 @@
 #include "zmq/driver-worker/worker.hpp"
 #include "zmq/driver-worker/driver.hpp"
 
-int glb_MAXNV;
-int glb_MAXNE;
-int glb_MAXNV_M;
+long glb_MAXNV;
+long glb_MAXNE;
+long glb_MAXNV_M;
 
 using namespace std;
 
@@ -1417,7 +1417,7 @@ void PrintRptPartition_Summary(
 	printf("Number of vertices           : %ld\n"  , parlv.plv_src->NV);
 	printf("Number of edges              : %ld\n"  , parlv.plv_src->NE);
 	printf("Number of partitions         : %d\n"   , parlv.num_par);
-	printf("Partition size               : < %d\n" , glb_MAXNV_M);
+	printf("Partition size               : < %ld\n" , glb_MAXNV_M);
 	printf("Number of nodes (machines)   : %d\n"   , numNode);
 	printf("Number of Xilinx Alveo cards : %d"     , SummArrayByNum<int>(numNode, card_Node));
 	PrintArrayByNum<int>(numNode, card_Node);//[3, 3,3]

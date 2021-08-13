@@ -138,7 +138,8 @@ class Node {
 #ifdef VERBOSE
             cout << "Receive message: " << str << endl;
 #endif
-            return move(str);
+            //return move(str);
+            return str;
         } else {
             return "";
         }

@@ -1660,13 +1660,12 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_renumber(
     buff_host[0].config1[0] = opts_C_thresh;
     buff_host[0].config1[1] = currMod[0];
     time1  = omp_get_wtime() - time1;
-    printf("maxv:%d, NEx2:%ld, vertexNum: %d, numColors:%d, edgeNum:%d, opts_C_thresh:%lf, currMod:%lf\n", (glb_MAXNV), NEx2, vertexNum,numColors,edgeNum,buff_host->config1[0],buff_host[0].config1[1]);
+#ifdef PRINTINFO_LVPHASE
+    printf("maxv:%ld, NEx2:%ld, vertexNum: %d, numColors:%d, edgeNum:%d, opts_C_thresh:%lf, currMod:%lf\n", (glb_MAXNV), NEx2, vertexNum,numColors,edgeNum,buff_host->config1[0],buff_host[0].config1[1]);
     printf("buff_host->config0[2] %ld, buff_host->config0[4] %ld\n", buff_host->config0[2], buff_host->config0[2]);
     printf("renumber numClusters: %ld, NVl:%ld\n", buff_host->config0[4], buff_host->config0[5]);
-    return time1;
-#ifdef PRINTINFO_LVPHASE
-    std::cout << "INFO: eachItrs" <<buff_host[0].config0[2] <<", "<<"eachItr[0] = "<<buff_host[0].config0[2]<<", "<<"currMod[0] = "<<buff_host[0].config1[1]<< std::endl;
 #endif
+    return time1;
 }
 
 double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_renumber_2cu(

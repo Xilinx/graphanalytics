@@ -830,7 +830,10 @@ int CtrlLouvain::man_LV_PG(){
 }
 
 void printG(graphNew* G, long* C, long* M, long star, long end, bool isCid, bool isDir, ParLV* p_par, int idx);
-int CtrlLouvain::exe_LV_PG(){//1)cmd 2)cmd [-id <id>] [<start> <end>] 3)cmd [<start> <end>] [-id <id>] [-c]
+
+// 1)cmd 2)cmd [-id <id>] [<start> <end>] 3)cmd [<start> <end>] [-id <id>] [-c]
+int CtrlLouvain::exe_LV_PG()
+{
 	CHECKCURR;
 	if(mycmd.cmd_findPara("--help")!=-1)
 		return man_LV_PG();
@@ -853,8 +856,8 @@ int CtrlLouvain::exe_LV_PG(){//1)cmd 2)cmd [-id <id>] [<start> <end>] 3)cmd [<st
 			 return -1;
 		}
 		if(i_id==3){
-			p1=atoi(mycmd.argv[1]);
-			p2=atoi(mycmd.argv[2]);
+			p1 = atoi(mycmd.argv[1]);
+			p2 = atoi(mycmd.argv[2]);
 		}
 	}else if(mycmd.argc>=3){
 		p1=atoi(mycmd.argv[1]);
@@ -871,7 +874,7 @@ int CtrlLouvain::exe_LV_PG(){//1)cmd 2)cmd [-id <id>] [<start> <end>] 3)cmd [<st
 		return 0;
 	}
 	char filename[256];
-	sprintf(filename, "%s_%ld_to%ld", (mycmd.argc>idx_f)?mycmd.argv[idx_f+1]:pglv->name, p1, p2);
+	sprintf(filename, "%s_%ld_to%ld", ((mycmd.argc>idx_f) ? mycmd.argv[idx_f+1] : pglv->name), p1, p2);
 	printG(filename, pglv->G, pglv->C, pglv->M, p1, p2);
 	return 0;
 }

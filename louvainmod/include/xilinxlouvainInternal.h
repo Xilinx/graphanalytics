@@ -54,9 +54,9 @@ using namespace std;
 //#define EDGES (MAXNE / NUM)
 
 // glb will be init in ParLV.cpp:host_ParserParameters
-extern int glb_MAXNV ;
-extern int glb_MAXNE ;
-extern int glb_MAXNV_M ;
+extern long glb_MAXNV ;
+extern long glb_MAXNE ;
+extern long glb_MAXNV_M ;
 
 #define DEGREES (1 << 17)
 #define COLORS (4096)
