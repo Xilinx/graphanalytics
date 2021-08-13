@@ -70,7 +70,7 @@ struct ComputedSettings {
         
         numServers = hostIps.size();
         numPureWorker = nameWorkers.size();
-        std::cout << "DEBUG: " << __FUNCTION__ << " serverIndex=" << serverIndex << std::endl;
+        //std::cout << "DEBUG: " << __FUNCTION__ << " serverIndex=" << serverIndex << std::endl;
     }
 };
 
@@ -253,10 +253,8 @@ public:
         FILE* fp = fopen(pathName_tmp, "w");
         fwrite(meta, sizeof(char), strlen(meta), fp);
         fclose(fp);
-    #ifdef PRINTINFO
-        printf("\033[1;37;40mINFO\033[0m:Partition Project Meta Data saved in file \033[1;37;40m%s\033[0m\n", pathName_tmp);
-        printf(" \t\t Meta Data in file is: %s\n", meta);
-    #endif
+        printf("INFO: Partition project metadata saved in file %s\n", pathName_tmp);
+        printf("INFO: Metadata in file is: %s\n", meta);
         std::sprintf(pathName_tmp, "%s%s.par.parlv", projPath_.c_str(), projName_.c_str());
         SaveParLV(pathName_tmp, &parlv_);
         std::sprintf(pathName_tmp, "%s%s.par.src", projPath_.c_str(), projName_.c_str());
@@ -269,31 +267,18 @@ public:
         SaveHead<GLVHead>(pathName_tmp, &dummyGlvHead);
 
         if (isVerbose_) {
-            printf("************************************************************************************************\n");
-            printf("*****************************  Louvain Partition Summary   *************************************\n");
-            printf("************************************************************************************************\n");
-
+            std::cout << "************************************************************************************************" << std::endl;
+            std::cout << "***********************  Louvain Partition Summary   *******************************************" << std::endl;
+            std::cout << "************************************************************************************************" << std::endl;
             std::cout << "Number of servers                  : " << settings_.numServers << std::endl;
             std::cout << "Output Alveo partition project     : " << globalOpts_.nameProj << std::endl;
-            std::cout << "Number of partitions               : " << partOpts_.num_par << std::endl;
-            printf("Time for partitioning the graph    : %lf = ",
-                   (parlv_.timesPar.timePar_all + parlv_.timesPar.timePar_save));
-            printf(" partitioning +  saving \n");
-            printf("    Time for partition             : %lf (s)\n",
-                   parlv_.timesPar.timePar_all);
-            printf("    Time for saving                : %lf (s)\n",
-                   parlv_.timesPar.timePar_save);
-            printf("************************************************************************************************\n");
+            std::cout << "Number of partitions created       : " << parlv_.num_par << std::endl;
+            std::cout << "Time for partitioning the graph    : " << (parlv_.timesPar.timePar_all + parlv_.timesPar.timePar_save) << std::endl;
+            std::cout << " partitioning +  saving \n" << std::endl;
+            std::cout << "    Time for partition             : " << parlv_.timesPar.timePar_all << std::endl;
+            std::cout << "    Time for saving                : " << parlv_.timesPar.timePar_save << std::endl;
+            std::cout << "************************************************************************************************" << std::endl;
         }
-    #ifdef PRINTINFO
-        printf("Deleting... \n");
-    #endif
-        // CleanTmpGlv appears not to be necessary, as partitioning doesn't set any of the fields cleaned by this function,
-        // and those fields are never uninitialized, leaving them filled with garbage.
-    //    parlv_.CleanTmpGlv();
-/*TODO: commented out for now to avoid segment fault
-        if (isVerbose_)
-            parlv_.plv_src->printSimple(); */
     }
 };
 
@@ -350,14 +335,14 @@ void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions 
     int num_partition = partOptions.num_par;
     int start_par[MAX_PARTITION];// eg. {0, 3, 6} when par_num == 9
     int end_par[MAX_PARTITION];  // eg. {3, 6, 9}  when par_num == 9
-    int parInServer[MAX_PARTITION];//eg. {3, 3, 3} when par_num == 9 and num_server==3
+    int numParsInServer[MAX_PARTITION];//eg. {3, 3, 3} when par_num == 9 and num_server==3
     for(int i_svr=0; i_svr<num_server; i_svr++){
         start_par[i_svr] = i_svr * (num_partition / num_server);
         if(i_svr!=num_server-1)
             end_par[i_svr] = start_par[i_svr] + (num_partition / num_server);
         else
             end_par[i_svr] = num_partition;
-        parInServer[i_svr] = end_par[i_svr] - start_par[i_svr];
+        numParsInServer[i_svr] = end_par[i_svr] - start_par[i_svr];
     }
 
     long* offsets_glb  = glv_src->G->edgeListPtrs;
@@ -373,7 +358,7 @@ void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions 
                 offsets_tg, edgelist_tg, drglist_tg);
 #ifndef NDEBUG
         printf("DEBUG:: SERVER(%d): start_vertex=%d, end_vertex=%d, NV_tg=%d, start_par=%d, parInServer=%d, pathName:%s\n",
-                i_svr, start_vertex[i_svr], end_vertex[i_svr], vInServer[i_svr], start_par[i_svr], parInServer[i_svr], fileName);
+                i_svr, start_vertex[i_svr], end_vertex[i_svr], vInServer[i_svr], start_par[i_svr], numParsInServer[i_svr], fileName);
 #endif
 
         long NV_par_requested = 0;
@@ -388,15 +373,15 @@ void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions 
         partitionData.end_vertex = end_vertex[i_svr];
         partitionData.NV_par_requested = NV_par_requested;
         partitionData.nodeId = i_svr;
-        parInServer[i_svr] = addPartitionData(partitionData);
+        numParsInServer[i_svr] = addPartitionData(partitionData);
 
-        num_partition += parInServer[i_svr] ;
+        num_partition += numParsInServer[i_svr] ;
         free(offsets_tg);
         free(edgelist_tg);
         free(drglist_tg);
     }
 
-    finishPartitioning(parInServer);
+    finishPartitioning(numParsInServer);
 }
 
 
