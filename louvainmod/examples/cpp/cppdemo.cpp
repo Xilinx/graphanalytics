@@ -91,10 +91,10 @@ int main(int argc, char **argv) {
         computeOpts.all_Q = false; 
 
         finalQ = louvainMod.loadAlveoAndComputeLouvain(computeOpts);
-        if (finalQ < 0) {
+        if (finalQ < -1) {
             std::cout << "ERROR: loadAlveoAndComputeLouvain completed with error. ErrorCode=" << finalQ << std::endl;
             status = -1;
-        } else
+        } else if (toolOptions.mode_zmq == ZMQ_DRIVER)  // only the driver reports the final modularity value
             std::cout << "INFO: loadAlveoAndComputeLouvain completed. finalQ=" << finalQ << std::endl;
         break;
     case ALVEOAPI_RUN:  // 3

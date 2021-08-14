@@ -3616,7 +3616,7 @@ int compute_louvain_alveo_seperated_load(
     float tolerance, bool verbose, 
     xf::graph::L3::Handle* handle0, ParLV* p_parlv_dvr, ParLV* p_parlv_wkr)
 {
-#ifndef NDEBUG
+#ifndef NDEBUG__
     std::cout << "DEBUG: " << __FUNCTION__   
               << "\n     xclbinPath=" << xclbinPath
               << "\n     flowMode=" << flowMode
@@ -3677,11 +3677,6 @@ int compute_louvain_alveo_seperated_load(
 
     if (status < 0)
        return status;
-
-#ifdef PRINTINFO_2
-    printf("\033[1;37;40mINFO: xclbin file is        : %s with flow mode %d\033[0m\n",  op0->xclbinPath.c_str(), flowMode);
-    printf("\033[1;37;40mINFO: The project file is   : %s\033[0m\n", nameMetaFile);
-#endif
 
     (handle0->oplouvainmod)->loadGraph(NULL, flowMode, opts_coloring,
         opts_minGraphSize, opts_C_thresh, numThreads);
@@ -3831,8 +3826,9 @@ extern "C" float compute_louvain_alveo_seperated_compute(
 
 /*
     Return values:
-    -1: Error in getNumPartitions
-    -2: Error in compute_louvain_alveo_seperated_load
+    -1 to 1: Modularity value
+    -2: Error in getNumPartitions
+    -3: Error in compute_louvain_alveo_seperated_load
 */
 extern "C" float loadAlveoAndComputeLouvain (
     char* xclbinPath, int flowMode, unsigned int numDevices, std::string deviceNames,
@@ -3848,7 +3844,7 @@ extern "C" float loadAlveoAndComputeLouvain (
     int numPartitions = getNumPartitions(alveoProject);
 
     if (numPartitions < 0)
-        return -1;
+        return -2;
 
     // Allocating memory for load
     if (mode_zmq == ZMQ_DRIVER) {
@@ -3869,7 +3865,7 @@ extern "C" float loadAlveoAndComputeLouvain (
     
     // return right away if load returns an error code
     if (ret < 0)
-        return -2;
+        return -3;
 
     ret = compute_louvain_alveo_seperated_compute(
         mode_zmq, numPureWorker, nameWorkers, nodeID,

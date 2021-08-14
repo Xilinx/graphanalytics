@@ -66,8 +66,7 @@ int32_t Handle::initOpLouvainModularity(std::string kernelName,
         return status;
 
     oplouvainmod->setHWInfo(numDevices_, maxCU_);
-    oplouvainmod->init(xrm, kernelName, kernelAlias, xclbinFile, deviceID, cuID, 
-                       requestLoad);
+    oplouvainmod->init(xrm, kernelName, kernelAlias, xclbinFile, deviceID, cuID, requestLoad);
     oplouvainmod->initThread(xrm, kernelName, kernelAlias, requestLoad, numDevices, cuPerBoard);
     delete[] cuID;
     delete[] deviceID;
