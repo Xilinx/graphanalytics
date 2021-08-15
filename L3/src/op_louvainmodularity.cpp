@@ -37,7 +37,25 @@ void createHandleLouvainModularity(class openXRM* xrm, clHandle& handle,
     handle.q = cl::CommandQueue(handle.context, handle.device,
                                 CL_QUEUE_PROFILING_ENABLE | CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE);
     std::string devName = handle.device.getInfo<CL_DEVICE_NAME>();
-    printf("INFO: Found Device=%s\n", devName.c_str());
+    // set up global values based on device selected
+    // TODO: this needs to be revisited to support mixed cards.
+    if (devName == "xilinx_u50_gen3x16_xdma_201920_3"){
+    	glb_MAXNV = (1ul << 26);
+    	glb_MAXNE = (1ul << 27);
+    	glb_MAXNV_M = (64000000);
+    } else if (devName == "xilinx_u55c_gen3x16_xdma_base_1"){
+    	glb_MAXNV = (1ul << 27);
+    	glb_MAXNE = (1ul << 28);
+    	glb_MAXNV_M = (128000000);
+    }     
+#ifndef NDEBUG
+        std::cout << "DEBUG: " << __FUNCTION__ 
+                  << "\n    device:"  << devName
+                  << "\n    glb_MAXNV:"  << glb_MAXNV
+                  << "\n    glb_MAXNE:"  << glb_MAXNE
+                  << "\n    glb_MAXNV_M:"  << glb_MAXNV_M
+                  << std::endl;
+#endif    
     handle.xclBins = xcl::import_binary_file(xclbinFile);
     std::vector<cl::Device> devices2;
     devices2.push_back(handle.device);

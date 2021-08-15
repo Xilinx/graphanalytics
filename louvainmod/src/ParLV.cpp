@@ -24,9 +24,11 @@
 #include "zmq/driver-worker/worker.hpp"
 #include "zmq/driver-worker/driver.hpp"
 
-long glb_MAXNV;
-long glb_MAXNE;
-long glb_MAXNV_M;
+
+// set default global max values for U50
+long glb_MAXNV = (1ul << 26);
+long glb_MAXNE = (1 << 27);
+long glb_MAXNV_M = (1 << 27);
 
 using namespace std;
 
@@ -1124,19 +1126,6 @@ int host_ParserParameters(int argc,
     	printf("Using defalut device xilinx_u50_gen3x16_xdma_201920_3, because of the missing deviceNames.\n");
 #endif
 
-    }
-
-    //xilinx_u50_gen3x16_xdma_201920_3 xilinx_u55c_gen3x16_xdma_base_1
-    if (deviceNames == "xilinx_u50_gen3x16_xdma_201920_3"){
-    	glb_MAXNV = (1ul << 26);
-    	glb_MAXNE = (1ul << 27);
-    	glb_MAXNV_M = (64000000);
-    } else if (deviceNames == "xilinx_u55c_gen3x16_xdma_base_1"){
-    	glb_MAXNV = (1ul << 27);
-    	glb_MAXNE = (1ul << 28);
-    	glb_MAXNV_M = (128000000);
-    } else {
-    	std::cout << "Error: deviceNames=" << deviceNames << " maybe not support. Please check them!"<< std::endl;
     }
 
     if (has_numThread != -1 && has_numThread < (argc - 1)) {
