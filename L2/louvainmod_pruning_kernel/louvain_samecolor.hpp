@@ -78,6 +78,9 @@ GET_V:
                 adj1 = 0x7fffffff & adj1;
                 int adj2 = 0x7fffffff & AxiRead<8, 5>(offset, v + 1);
                 DF_D_T dgr = adj2 - adj1;
+
+                if (dgr == 0) continue;
+
                 out_v.vcd.set(v, adj1, dgr);
                 out_v.vcd.get(dinout);
                 str_GetVout.write(dinout);
@@ -101,6 +104,9 @@ GET_V:
             adj1 = 0x7fffffff & adj1;
             int adj2 = 0x7fffffff & AxiRead<8, 5>(offset, v + 1);
             DF_D_T dgr = adj2 - adj1;
+
+            if (dgr == 0) continue;
+
             out_v.vcd.set(v, adj1, dgr);
             out_v.vcd.get(dinout);
             str_GetVout.write(dinout);

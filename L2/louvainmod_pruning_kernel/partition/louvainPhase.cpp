@@ -1033,7 +1033,7 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune(int numColors,
 
     buff_host.config1[0] = opts_C_thresh;
     buff_host.config1[1] = currMod;
-    printf("maxv:%d, NEx2:%ld, vertexNum: %d, numColors:%d, edgeNum:%d, opts_C_thresh:%f, currMod:%f", (1<<27), NEx2, vertexNum,numColors,edgeNum,opts_C_thresh,currMod);
+    printf("maxv:%d, NEx2:%ld, vertexNum: %d, numColors:%d, edgeNum:%d, opts_C_thresh:%f, currMod:%f\n", (1<<27), NEx2, vertexNum,numColors,edgeNum,opts_C_thresh,currMod);
     
     time1 = omp_get_wtime() - time1;
     return time1;
@@ -1720,21 +1720,6 @@ void ConsumingOnePhase_prune(GLV* pglv_iter,
     std::vector<std::vector<cl::Event> > kernel_evt1(1);
     kernel_evt0[0].resize(1);
     kernel_evt1[0].resize(1);
-    cl_uint cntq = 0;
-cl_uint  sizeq = 0;
-cl_int error_number;
-cntq = q.getInfo<CL_QUEUE_REFERENCE_COUNT>(&error_number  );
- if (error_number != CL_SUCCESS)
- {
-         std::cerr << "Failed call to clGetqueueInfo(..., cnt,...)\n";
- }
- error_number = q.getInfo(CL_QUEUE_SIZE, &sizeq);
- if (error_number != CL_SUCCESS)
- {
-         std::cerr << "Failed call to clGetqueueInfo(..., size,...)\n";
- }
- printf("q_count:%lu\n", (unsigned long)cntq);
- printf("q_size:%lu\n", (unsigned long)sizeq);
 
     bool isLargeEdge = pglv_iter->G->numEdges > ((1<<27) / 2);
     eachTimeInitBuff = PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune(
