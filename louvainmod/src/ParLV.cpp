@@ -3086,7 +3086,7 @@ GLV* par_general_4TG(long start_vertexInGlb, long* offsets_tg, edge* edgelist_tg
 int xai_save_partition(
     long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
 	long  start_vertex,     // If a vertex is smaller than star_vertex, it is a ghost
-	long  end_vertex,	    // If a vertex is larger than star_vertex-1, it is a ghost
+	long  end_vertex,	    // If a vertex is larger than end_vertex-1, it is a ghost
 	char* path_prefix,      // For saving the partition files like <path_prefix>_xxx.par
 						    // Different server can have different path_prefix
 	int par_prune,          // Can always be set with value '1'
@@ -3140,7 +3140,7 @@ int xai_save_partition(
 			}
 		} while(parlv_par_src[p] == NULL); //If the partition is too big to load on FPGA, reduce the NV_par until partition is small enough
         char nm[1024];
-		sprintf(nm, "_%1d%1d%1d.par", p / 100, (p / 10) % 10, p % 10);
+		sprintf(nm, "_%03d.par", p);
 		parlv_par_src[p]->SetName(nm);
 		char pathName[1024];
 		strcpy(pathName, path_prefix);

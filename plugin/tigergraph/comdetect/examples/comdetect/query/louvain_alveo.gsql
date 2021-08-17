@@ -152,7 +152,7 @@ CREATE DISTRIBUTED QUERY louvain_alveo(
     nodeList = SELECT n FROM nodes:n
         ACCUM @@nodeAccum += udf_xilinx_comdetect_set_node_id(n.NODE_ID);
 
-
+    udf_reset_timer(true);
     udf_execute_reset(0);
 
     // each node will get this UDF call for each vertex, but the actual execution
@@ -164,13 +164,13 @@ CREATE DISTRIBUTED QUERY louvain_alveo(
            max_iter, max_level, tolerence, intermediateResult,
            verbose, result_file, print_final_Q, print_all_Q);
 
-    //udf_time = udf_elapsed_time(true);
-    //ret = udf_peak_memory_usage(vm_peak, vm_hwm);
+    udf_time = udf_elapsed_time(true);
+    ret = udf_peak_memory_usage(vm_peak, vm_hwm);
     print nodes.size() as NumOfNodes;
     print @@modularityAccum as ModularityQValues;
     print "Xilinx Alveo U50" AS ComputationTechnique;
-    print vm_peak as PeakVirtualMemoryInKB;
-    print vm_hwm as PeakResidentMemoryInKB;
+    print vm_peak/1000000.0 as PeakVirtualMemoryInGB;
+    print vm_hwm/1000000.0 as PeakResidentMemoryInGB;
     print udf_time as ExecTimeInMs;
 }
 

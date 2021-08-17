@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 
+SHELL := /bin/bash
+
 ifndef XILINX_XRT
     XILINX_XRT = /opt/xilinx/xrt
     export XILINX_XRT
@@ -268,7 +270,7 @@ deviceNames="xilinx_u50_gen3x16_xdma_201920_3"
 CMDLINE_CREATE_PARTITIONS = $(graph) -fast -par_num $(numPars) -create_alveo_partitions \
                             -name $(alveoProject) -server_par $(serverPar)
 
-WORKERS="192.168.1.21 192.168.1.31"
+WORKERS=192.168.1.21 192.168.1.31
 CMDLINE_LOAD_COMPUTE = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
     -fast -num_devices $(numDevices) -devices $(deviceNames) -num_level 100 -num_iter 100 -load_alveo_partitions \
 	$(alveoProject).par.proj -setwkr 0 -driverAlone
@@ -288,6 +290,9 @@ CMDLINE_LOAD_COMPUTE_WORKER2 = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xi
 .PHONY: run-create-partitions run-load-compute run-load-compute-driver run-load-compute-worker1 run-load-compute-worker2
 
 $(alveoProject).par.proj: $(graph)
+	@echo "------------------------------------------------------------------------"
+	@echo "-                       Create Partitions                              -"
+	@echo "------------------------------------------------------------------------"
 	rm -rf $(CPPDEMO_OUT_DIR)
 	mkdir -p $(CPPDEMO_OUT_DIR)
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_CREATE_PARTITIONS)
@@ -306,10 +311,15 @@ run-load-compute: stage cppTest $(alveoProject).par.proj
 	@echo "------------------------------------------------------------------------"
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE)
 
-run-load-compute-driver: stage cppTest
+run-load-compute-driver: stage cppTest $(alveoProject).par.proj
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE_DRIVER)
 
+n ?= 10
 run-load-compute-worker1: stage cppTest 
+	#while [[ $${n} -gt 0 ]] ; do \
+    #    echo $$n ; \
+    #    ((n = n - 1)) ; \
+    #done
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE_WORKER1)
 
 run-load-compute-worker2: stage cppTest
@@ -537,6 +547,9 @@ clean:
 	
 clean-xclbin:
 	rm -f $(XCLBIN_FILE)
+
+clean-par:
+	rm -f $(CPPDEMO_OUT_DIR)/$(graphBasename)*
 
 help:
 	@echo "Makefile usages:"

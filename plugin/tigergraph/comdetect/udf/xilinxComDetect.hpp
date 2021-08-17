@@ -122,7 +122,8 @@ inline void udf_save_EdgePtr( ){
 
 }
 
-inline void udf_set_louvain_edge_list( uint64_t louvainIdSource, uint64_t louvainIdTarget, float wtAttr, uint64_t outDgr){
+inline void udf_set_louvain_edge_list( uint64_t louvainIdSource, uint64_t louvainIdTarget, float wtAttr, uint64_t outDgr) 
+{
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     int idx = louvainIdSource - pContext->getLouvainOffset();

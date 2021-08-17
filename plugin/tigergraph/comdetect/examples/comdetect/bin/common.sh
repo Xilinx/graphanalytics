@@ -59,7 +59,6 @@ tg_home=$(readlink -f ~tigergraph)
 username=$USER
 password=Xilinx123
 data_source="$script_dir/as-skitter/as-Skitter-wt-r100.mtx"
-num_devices=1
 num_partitions_node=1
 num_nodes=1
 verbose=0
@@ -76,11 +75,10 @@ if [ -f ~/.ssh/tigergraph_rsa ]; then
     ssh_key_flag="-i ~/.ssh/tigergraph_rsa"
 fi
 
-while getopts "c:d:fg:i:m:n:p:r:s:u:vx:h" opt
+while getopts "c:fg:i:m:n:p:r:s:u:vx:h" opt
 do
 case $opt in
     c) compile_mode=$OPTARG;;
-    d) num_devices=$OPTARG;;
     f) force_clean=1; force_clean_flag=-f;;
     g) xgraph=$OPTARG;;
     i) ssh_key=$OPTARG; ssh_key_flag="-i $ssh_key";;
@@ -128,7 +126,6 @@ if [ $verbose -eq 1 ]; then
     echo "      numPartitionsNode=$num_partitions_node"
     echo "      xgraph=$xgraph"
     echo "      numNodes=$num_nodes"
-    echo "      numDevices=$num_devices"
     echo "      compileMode=$compile_mode"
     echo "      partitionMode=$partition_mode"
     echo "      runMode=$run_mode"    
