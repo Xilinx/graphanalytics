@@ -14,6 +14,9 @@
 # limitations under the License.
 #
 
+#
+# Define __PROFILING__ to turn on profiling message from compute units
+#
 ifndef XILINX_XRT
     XILINX_XRT = /opt/xilinx/xrt
     export XILINX_XRT
@@ -35,11 +38,14 @@ all: stage
 # Global Definitions
 #
 
-## Location of graphanalytics project
+# Location of graphanalytics project
 GRAPH_ANALYTICS_DIR = ..
 
 # General output directory for intermediate build artifacts
 BUILD_DIR = build
+
+# Product version
+PRODUCT_VER=$(strip $(shell cat VERSION))
 
 #######################################################################################################################
 #
@@ -254,7 +260,7 @@ $(PYTHONENV_NAME):
 	$(PYTHONENV) -m pip install pybind11
 #	$(PYTHONENV) -m pip install python-config
 
-pythonApi2: $(CPP_BUILD_DIR) $(CPP_BUILD_DIR)/$(PYTHON_LIB_NAME)
+pythonApi2: $(CPP_BUILD_DIR) $(CPP_BUILD_DIR)/$(PYTHON_LIB_NAME) examples/python/run.sh
 
 $(CPP_BUILD_DIR)/$(PYTHON_LIB_NAME): $(OBJS_python)
 	$(LINK.cc) $^ -o $@ $(SHAREDLIB_FLAGS_python) $(LDFLAGS_python)
@@ -521,7 +527,7 @@ endif
 
 .PHONY: dist
 
-dist: stage
+dist: update-ver stage
 	@cd package; \
 	if [ "$(DIST_TARGET)" == "" ]; then \
 	    echo "Packaging is supported for only Ubuntu and CentOS."; \
@@ -530,6 +536,12 @@ dist: stage
 	    make ; \
 	fi
 
+examples/python/run.sh: VERSION
+	# update PRODUCT_VER in python run.sh
+	sed -i 's/PRODUCT_VER=.*/PRODUCT_VER=$(PRODUCT_VER)/g' examples/python/run.sh
+	sed -i 's,/cosinesim/1.2/xclbin,/cosinesim/$(PRODUCT_VER)/xclbin,g' src/cosinesim.cpp
+
+update-ver : examples/python/run.sh
 
 #######################################################################################################################
 #

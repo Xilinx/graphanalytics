@@ -3211,13 +3211,14 @@ int Parser_ParProjFile(std::string projFile, ParLV& parlv, char* path, char* nam
         parlv.timesPar.timePar_save = 0;
     }
     //////////////////////////////////////////////////////////////////////////
-    //for multi-server partition [-server_par <num_server> <num_par on server0> �..<num_par on server?>]
+    //for multi-server partition [-server_par num_server num_par_on_server0 ... num_par on serverN-1]
     int idx_server = ps.cmd_findPara("-server_par");
     if (idx_server > -1){
     	parlv.num_par = 0;
+        printf("--------%s\n", ps.argv[idx_server+1]);
     	parlv.num_server = atoi(ps.argv[idx_server+1]);
     	for(int i_svr = 0; i_svr < parlv.num_server; i_svr++){
-    		parlv.parInServer[i_svr] = atoi(ps.argv[idx_server+ 2 + i_svr]);
+    		parlv.parInServer[i_svr] = atoi(ps.argv[idx_server + 2 + i_svr]);
     		parlv.num_par += parlv.parInServer[i_svr];
     	}
     }
@@ -3264,23 +3265,14 @@ int Parser_ParProjFile(std::string projFile, ParLV& parlv, char* path, char* nam
     while (p < parlv.num_par){
         char nm[1024];
         if (parlv.num_server == 1)
-        	sprintf(nm, "%s_%1d%1d%1d.par", name, p / 100, (p / 10) % 10, p % 10);
+        	sprintf(nm, "%s_%03d.par", name, p);
         else {
-        	sprintf(nm, "%s_svr%d_%1d%1d%1d.par", name,i_svr, p_svr / 100, (p_svr / 10) % 10, p_svr % 10);
+        	sprintf(nm, "%s_svr%d_%3d.par", name, i_svr, p_svr);
         }
 #ifndef NDEBUG
         printf("DEBUG:     par_src->name[%d]=%s\n", p, nm);
 #endif        
         parlv.par_src[p]->SetName(nm);
-        // Do not check .par files from the driver as they are saved locally on each node
-        //char pathName[1024];
-        //strcpy(pathName, path);
-        //FILE* fp = fopen(strcat(pathName, parlv.par_src[p]->name), "r");
-        //if (fp != NULL) {
-        //    fclose(fp);
-        //    cnt_file++;
-        //} else
-        //    printf("\033[1;31;40mERROR\033[0m: Partition Share %s not Found\n", pathName);
         cnt_file++;
         if (p_svr == parlv.parInServer[i_svr]-1) {
             i_svr++;

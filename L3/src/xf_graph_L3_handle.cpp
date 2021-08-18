@@ -108,7 +108,7 @@ int Handle::setUp(std::string deviceNames)
             }
             std::thread thUn[boardNm];
             for (unsigned int j = 0; j < boardNm; ++j) {
-#ifndef NDEBUG__
+#ifndef NDEBUG
                 std::cout << "DEBUG: " << __FUNCTION__ << ": xrm->unloadXclbinNonBlock " 
                           << deviceCounter + j << std::endl;
 #endif
@@ -119,7 +119,7 @@ int Handle::setUp(std::string deviceNames)
             }
             std::future<int> th[boardNm];
             for (unsigned int j = 0; j < boardNm; ++j) {
-#ifndef NDEBUG__
+#ifndef NDEBUG
                 std::cout << "DEBUG: " << __FUNCTION__ << ": xrm->loadXclbinAsync " 
                           << "\n    devId=" << supportedDeviceIds_[j]
                           << "\n    ops[i].xclbinPath=" << ops[i].xclbinPath << std::endl;

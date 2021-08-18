@@ -521,12 +521,10 @@ dist: stage
 	    make ; \
 	fi
 
-
 #######################################################################################################################
 #
 # Java Tests
 #
-
 .PHONY: javaTest
 
 javaTest:
@@ -583,5 +581,10 @@ help:
 	@echo "graph: graph input .mtx file"
 	@echo "alveoProject: Alveo project name without .par.proj extension"
 	@echo "numPars: Number of partitions (default=1)"
-	@echo "serverPar: Multi-server partition setting (default=\"1 9\")"
-	@echo "numDevices: Number of devices (default=3)"
+	@echo "         This setting is ignored if numServers > 1 in serverPar setting"
+	@echo "serverPar: Multi-server partition setting:"
+	@echo "           Format \"numServers numParsServer0 numParsServer1 ... numParsServerN-1\" "
+	@echo "           e.g. serverPar="3 7 7 7" specifies that partitions are created for 3"
+	@echo "           servers, 7 partitions for server0, 7 partitions for server1 and 7 "
+	@echo "           partitions for server2"
+	@echo "numDevices: Number of devices (default=1)"

@@ -143,6 +143,9 @@ run-load-compute-worker2: cppdemo
 clean:
 	rm -f cppdemo
 
+clean-par:
+	rm -f $(alveoProject)*
+
 help:
 	@echo "Makefile usages:"
 	@echo "  make run-create-partitions [graph=/path/to/graph.mtx] [numPars=1]"
@@ -165,7 +168,13 @@ help:
 	@echo "graph: graph input .mtx file"
 	@echo "alveoProject: Alveo project name without .par.proj extension"
 	@echo "numPars: Number of partitions (default=1)"
-	@echo "serverPar: Multi-server partition setting (default=\"1 9\")"
+	@echo "         This setting is ignored if numServers > 1 in serverPar setting"
+	@echo "serverPar: Multi-server partition setting. (default=\"1 9\") "
+	@echo "           Format \"numServers numParsServer0 numParsServer1 ... numParsServerN-1\" "
+	@echo "           This setting is ignored if numServers = 1."
+	@echo "           e.g. serverPar=\"3 7 7 7\" specifies that partitions are created for 3"
+	@echo "           servers, 7 partitions for server0, 7 partitions for server1 and 7 "
+	@echo "           partitions for server2"
 	@echo "numDevices: Number of devices (default=1)"	
 	@echo "workers: set IP adresses for workers"
 

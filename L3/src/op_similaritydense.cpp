@@ -595,11 +595,16 @@ int opSimilarityDense::computeInt(unsigned int deviceID, unsigned int cuID,
                                   int32_t *resultID, float *similarity) {
   
   std::thread::id this_id = std::this_thread::get_id();
+
+#ifdef __PROFILING__  
   std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time =
       std::chrono::high_resolution_clock::now();
   std::cout << "LOG2TIMELINE: " << this_id << "::" << __FUNCTION__
             << " start=" << l_start_time.time_since_epoch().count()
             << std::endl;
+#endif
+
+#ifndef NDEBUG
   std::cout << "DEBUG: " << __FUNCTION__ << " deviceID" << deviceID
             << " cuID=" << cuID << " channelID=" << channelID
             << " dupNmSimDense=" << dupNmSimDense
@@ -607,6 +612,7 @@ int opSimilarityDense::computeInt(unsigned int deviceID, unsigned int cuID,
             << channelID + cuID * dupNmSimDense +
                    deviceID * dupNmSimDense * cuPerBoardSimDense
             << " instanceName=" << instanceName << std::endl;
+#endif
 
   clHandle *hds = &handles[channelID + cuID * dupNmSimDense +
                            deviceID * dupNmSimDense * cuPerBoardSimDense];
@@ -641,6 +647,7 @@ int opSimilarityDense::computeInt(unsigned int deviceID, unsigned int cuID,
 
   free(config);
 
+#ifdef __PROFILING__
   std::chrono::time_point<std::chrono::high_resolution_clock> l_end_time =
       std::chrono::high_resolution_clock::now();
   std::cout << "LOG2TIMELINE: " << this_id << "::" << __FUNCTION__
@@ -650,6 +657,7 @@ int opSimilarityDense::computeInt(unsigned int deviceID, unsigned int cuID,
   double l_timeMs = l_durationSec.count() * 1e3;
   std::cout << "LOG2TIMELINE: " << __FUNCTION__ << " runtime=" << std::fixed
             << std::setprecision(6) << l_timeMs << std::endl;
+#endif
 
   return ret;
 };
