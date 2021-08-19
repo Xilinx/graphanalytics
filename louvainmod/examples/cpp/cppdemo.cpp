@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
     std::ostringstream serverIp;
 
     if (toolOptions.mode_alveo == ALVEOAPI_PARTITION) {
-        for (int i = 0; i < toolOptions.server_par; ++i) {
+        for (int i = 0; i < toolOptions.numNodes; ++i) {
             if (i == 0)
                 serverIp << "192.168.0." << (i + 1) * 10 + 1;
             else
@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
 
     switch (toolOptions.mode_alveo) {
     case ALVEOAPI_PARTITION:  // 1
-        partOpts.num_par = toolOptions.num_par;
+        partOpts.numPars = toolOptions.numPars;
         partOpts.par_prune = toolOptions.gh_par;
         louvainMod.partitionDataFile(toolOptions.opts_inFile, partOpts);
         break;

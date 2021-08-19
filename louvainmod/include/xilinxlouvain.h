@@ -200,7 +200,7 @@ public:
     using VertexIndex = std::uint64_t;
     
     struct PartitionOptions {
-        int num_par = 1;  // total desired number of partitions across all servers
+        int numPars = 1;    // total desired number of partitions across all servers
         int par_prune = 1;  // ghost pruning technique (1 means single ghost node of smallest degree per local node)
                 // >1 means keep that many ghost nodes per local node (TODO: verify description for >1)
 //        int numServers = 1;  // number of servers, probably should be made obsolete

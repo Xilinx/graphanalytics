@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-dataSource=$(CURDIR)/as-skitter/as-Skitter-wt-r100.mtx
+dataSource=$(CURDIR)/data/as-Skitter-wt-r100.mtx
 graphName=social_$(USER)
 
 numNodes=1

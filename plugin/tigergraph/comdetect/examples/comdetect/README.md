@@ -1,4 +1,24 @@
-This area is for developers. All operations from this direcotry are performed using ```make``` command.
+# Instructions
+## Install UDFs
+The UDFs only need to be installed once.
+```
+./bin/install-udf.sh
+```
 
-Run ```make help``` to show all supported targets and optional parameters.
+## Run Louvain Modularity on CPU and FPGA
+### Print help messages
+```
+./bin/run.sh -h
+```
+
+### Example command lines
+```
+Run Louvain Modularity on CPU only: set run_mode to 0
+./bin/run.sh -r 0
+
+Run Louvain Modularity on CPU only with your own graph .mtx file
+./bin/run.sh -r 0 -s /path/to/dataset.mtx
+
+```
+
 

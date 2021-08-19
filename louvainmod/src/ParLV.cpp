@@ -936,7 +936,7 @@ int host_ParserParameters(int argc,
                           std::string& xclbinPath,     // Full path including filename to the xclbin files to be loaded
                           std::string& deviceNames,    // Target device names
                           int& numThread,
-                          int& num_par,
+                          int& numPars,
                           int& gh_par,
                           int& flow_prune,
                           int& numDevices,
@@ -949,7 +949,7 @@ int host_ParserParameters(int argc,
                           int& numPureWorker,
                           char* nameWorkers[128],
                           int& nodeID,
-						  int& server_par,
+						  int& numNodes,
 						  int& max_num_level,
 						  int& max_num_iter
                           ) 
@@ -968,7 +968,7 @@ int host_ParserParameters(int argc,
     int hasXclbinPath = general_findPara(argc, argv, "-x");
     int hasDeviceNames = general_findPara(argc, argv, "-devices");
     int has_numThread = general_findPara(argc, argv, "-thread");
-    int has_num_par = general_findPara(argc, argv, "-par_num");
+    int hasNumPars = general_findPara(argc, argv, "-num_pars");
     int has_gh_par = general_findPara(argc, argv, "-par_prune");
     int has_flow_prune = general_findPara(argc, argv, "-prun");
     int has_flow_fast = general_findPara(argc, argv, "-fast");
@@ -980,7 +980,7 @@ int host_ParserParameters(int argc,
     int has_driverAlone = general_findPara(argc, argv, "-driverAlone");
     int has_workerAlone = general_findPara(argc, argv, "-workerAlone");
     int has_cmd = general_findPara(argc, argv, "-cmd");
-    int has_server_par = general_findPara(argc, argv, "-server_par");
+    int hasNumNodes = general_findPara(argc, argv, "-num_nodes");
     int has_max_num_level = general_findPara(argc, argv, "-num_level");
     int has_max_num_iter = general_findPara(argc, argv, "-num_iter");
 
@@ -1134,18 +1134,13 @@ int host_ParserParameters(int argc,
         numThread = atoi(argv[has_numThread + 1]);
     } else
         numThread = 16;
-#ifdef PRINTINFO
-    printf("PARAMETER numThread = %i\n", numThread);
-#endif
-    if (has_num_par != -1 && has_num_par < (argc - 1)) {
-        rec[has_num_par] = true;
-        rec[has_num_par + 1] = true;
-        num_par = atoi(argv[has_num_par + 1]);
+
+    if (hasNumPars != -1 && hasNumPars < (argc - 1)) {
+        rec[hasNumPars] = true;
+        rec[hasNumPars + 1] = true;
+        numPars = atoi(argv[hasNumPars + 1]);
     } else
-        num_par = 2;
-#ifdef PRINTINFO
-    printf("PARAMETER  num_par = %i\n", num_par);
-#endif
+        numPars = 2;
 
     if (hasNumDevices != -1 && hasNumDevices < (argc - 1)) {
         rec[hasNumDevices] = true;
@@ -1197,20 +1192,15 @@ int host_ParserParameters(int argc,
         rec[has_opts_output + 1] = true; 
         
         opts_outputFile = argv[has_opts_output + 1];
-#ifdef PRINTINFO
-        printf("PARAMETER  opts_outFile = %s\n", opts_outputFile);
-#endif
     }
 
-    if (has_server_par != -1 && has_server_par < (argc - 1)) {
-        rec[has_server_par] = true;
-        rec[has_server_par + 1] = true;
-        server_par = atoi(argv[has_server_par + 1]);
+    if (hasNumNodes != -1 && hasNumNodes < (argc - 1)) {
+        rec[hasNumNodes] = true;
+        rec[hasNumNodes + 1] = true;
+        numNodes = atoi(argv[hasNumNodes + 1]);
     } else
-    	server_par = 1;
-#ifdef PRINTINFO
-    printf("PARAMETER server_par = %i\n", server_par);
-#endif
+    	numNodes = 1;
+
 
     if (has_max_num_level != -1 && has_max_num_level < (argc - 1)) {
         rec[has_max_num_level] = true;
@@ -1231,7 +1221,6 @@ int host_ParserParameters(int argc,
 #ifdef PRINTINFO
     printf("PARAMETER max_num_iter = %i\n", max_num_iter);
 #endif
-
 
     if (mode_alveo == ALVEOAPI_LOAD)
     	return 0; //No need to set input matrix file if
@@ -1258,7 +1247,12 @@ int host_ParserParameters(int argc,
             }
         }
     }
-
+#ifndef NDEBUG
+    std::cout << "DEBUG: host_ParserParameters "
+              << "\n    numPars=" << numPars
+              << "\n    numNodes=" << numNodes
+              << std::endl;
+#endif
     return 0;
 }
 
@@ -1268,9 +1262,9 @@ ToolOptions::ToolOptions(int argcIn, char** argvIn) {
     host_ParserParameters(argc, argv, 
         opts_C_thresh, opts_minGraphSize, threshold, opts_ftype, opts_inFile,
         opts_coloring, opts_output, outputFile, opts_VF, xclbinPath, deviceNames, 
-        numThreads, num_par, gh_par, flow_fast, numDevices, mode_zmq, path_zmq, 
+        numThreads, numPars, gh_par, flow_fast, numDevices, mode_zmq, path_zmq, 
         useCmd, mode_alveo, nameProj, alveoProject, numPureWorker, nameWorkers, 
-        nodeID, server_par, max_level, max_iter);
+        nodeID, numNodes, max_level, max_iter);
 }
 
 void PrintTimeRpt(GLV* glv, int num_dev, bool isHead) {
@@ -1620,7 +1614,7 @@ void PrintRptParameters(double opts_C_thresh,   // Threshold with coloring on
         opts_minGraphSize);
     printf(
         "Part Parameter \033[1;37;40mNumber of shares\033[0m: %-8d  \t\t\t Default=        2,       by command-line: "
-        "\" \033[1;37;40m-par_num  <v>\033[0m \" \n",
+        "\" \033[1;37;40m-num_pars  <v>\033[0m \" \n",
         num_par);
     printf(
         "Part Parameter \033[1;37;40mpruning thrhd   \033[0m: %-8d  \t\t\t Default=        1,       by command-line: "
@@ -3165,7 +3159,7 @@ int Parser_ParProjFile(std::string projFile, ParLV& parlv, char* path, char* nam
     printf("DEBUG:\n    projFile=%s\n    path=%s\n    name=%s\n    name_inFile=%s\n", 
             projFile.c_str(), path, name, name_inFile);
 #endif    
-    // Format: -create_alveo_partitions <inFile> -par_num <par_num> -par_prune <par_prune> -name <ProjectFile>
+    // Format: -create_alveo_partitions <inFile> -num_pars <num_pars> -par_prune <par_prune> -name <ProjectFile>
     assert(path);
     assert(name);
     assert(name_inFile);
@@ -3188,7 +3182,6 @@ int Parser_ParProjFile(std::string projFile, ParLV& parlv, char* path, char* nam
         free(fdata);
         return -1;
     }
-
 
     if (strcmp("-create_alveo_partitions", ps.argv[0]) != 0) {
         printf("\033[1;31;40mERROR\033[0m: MessageParser_D2W: Unknow head%s. -create_alveo_partitions is required\n",
@@ -3213,9 +3206,8 @@ int Parser_ParProjFile(std::string projFile, ParLV& parlv, char* path, char* nam
     //////////////////////////////////////////////////////////////////////////
     //for multi-server partition [-server_par num_server num_par_on_server0 ... num_par on serverN-1]
     int idx_server = ps.cmd_findPara("-server_par");
-    if (idx_server > -1){
+    if (idx_server > -1) {
     	parlv.num_par = 0;
-        printf("--------%s\n", ps.argv[idx_server+1]);
     	parlv.num_server = atoi(ps.argv[idx_server+1]);
     	for(int i_svr = 0; i_svr < parlv.num_server; i_svr++){
     		parlv.parInServer[i_svr] = atoi(ps.argv[idx_server + 2 + i_svr]);
@@ -3267,10 +3259,10 @@ int Parser_ParProjFile(std::string projFile, ParLV& parlv, char* path, char* nam
         if (parlv.num_server == 1)
         	sprintf(nm, "%s_%03d.par", name, p);
         else {
-        	sprintf(nm, "%s_svr%d_%3d.par", name, i_svr, p_svr);
+        	sprintf(nm, "%s_svr%d_%03d.par", name, i_svr, p_svr);
         }
 #ifndef NDEBUG
-        printf("DEBUG:     par_src->name[%d]=%s\n", p, nm);
+        printf("DEBUG:     par_src->name[%3d]=%s\n", p, nm);
 #endif        
         parlv.par_src[p]->SetName(nm);
         cnt_file++;

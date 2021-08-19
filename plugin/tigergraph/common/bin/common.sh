@@ -89,8 +89,8 @@ fi
 # Make sure the XCLBIN exists (unless we're uninstalling)
 
 if [ $uninstall -eq 0 ] && [ ! -f $pluginAlveoProductXclbinPath ]; then
-    printf "${RED}ERROR: Xilinx Cosine Similarity Alveo product not found.${NC}\n"
-    printf "INFO: Please download Xilinx Cosine Similarity Alveo product installation package "
+    printf "${RED}ERROR: $standaloneAlveoProductName Alveo product not found.${NC}\n"
+    printf "INFO: Please download $standaloneAlveoProductName Alveo product installation package "
     printf "from Xilinx Database PoC site: https://www.xilinx.com/member/dba_poc.html\n"
     exit 1
 fi

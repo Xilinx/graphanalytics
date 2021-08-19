@@ -40,17 +40,17 @@ function usage() {
     echo "Optional options:"
     echo "  -a alveoProject      : Alveo partition project basename "
     echo "  -c compileMode       : 0: recreate database and compile all (default); 1: only compile query gsql; 2: skip database creation and gsql compilation"
+    echo "  -x partitionMode     : 0: Use existing partitions from disks; 1: Generate partitions from TigerGraph memory"
+    echo "  -r runMode           : 0: Run only on CPU; 1: Run only on Alveo (default); 2: Run on both CPU and Alveo"
+    echo ""
     echo "  -d numDevices        : number of FPGAs needed (default=1)"
     echo "  -f                   : Force (re)install"
     echo "  -g graphName         : graph name (default=social_<username>"
     echo "  -i sshKey            : SSH key for user tigergraph"    
-    echo "  -l partitionMode     : "
     echo "  -m numNodes          : Number of nodes in Tigergraph cluster"
-    echo "  -n numPartitionsNode : Number of Alveo partitions "
-    echo "  -r runMode           : 0: Run only on CPU; 1: Run only on Alveo (default); 2: Run on both CPU and Alveo"
-    echo "  -s dataSource        : A .mtx file containing input graph. default=./as-Skitter/as-Skitter-wt-e110k.mtx"
+    echo "  -n numPartitionsNode : Number of Alveo partitions "    
+    echo "  -s dataSource        : A .mtx file containing input graph. default=../data/as-Skitter-r100.mtx"
     echo "  -v                   : Print verbose messages"
-    echo "  -x partitionMode     : 0: Use existing partitions from disks; 1: Generate partitions from TigerGraph memory"
     echo "  -h                   : Print this help message"
 }
 
@@ -58,7 +58,7 @@ tg_home=$(readlink -f ~tigergraph)
 # default values for optional options
 username=$USER
 password=Xilinx123
-data_source="$script_dir/as-skitter/as-Skitter-wt-r100.mtx"
+data_source="$script_dir/../data/as-Skitter-wt-r100.mtx"
 num_partitions_node=1
 num_nodes=1
 verbose=0

@@ -527,7 +527,7 @@ endif
 
 .PHONY: dist
 
-dist: update-ver stage
+dist: update-version stage
 	@cd package; \
 	if [ "$(DIST_TARGET)" == "" ]; then \
 	    echo "Packaging is supported for only Ubuntu and CentOS."; \
@@ -541,7 +541,7 @@ examples/python/run.sh: VERSION
 	sed -i 's/PRODUCT_VER=.*/PRODUCT_VER=$(PRODUCT_VER)/g' examples/python/run.sh
 	sed -i 's,/cosinesim/1.2/xclbin,/cosinesim/$(PRODUCT_VER)/xclbin,g' src/cosinesim.cpp
 
-update-ver : examples/python/run.sh
+update-version : examples/python/run.sh
 
 #######################################################################################################################
 #

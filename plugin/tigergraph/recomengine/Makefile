@@ -14,6 +14,12 @@
 # limitations under the License.
 #
 
+.DELETE_ON_ERROR:
+.PHONY: all
+
+#all: javaApi cppBuild javaTest stage
+all: stage
+
 # Example directories
 SYNTHEA_DIR = examples/synthea
 LOGSIM_DIR = examples/log_similarity
@@ -90,6 +96,12 @@ STAGE_COPY_FILES = \
 STAGE_EXAMPLES_DIRS = $(SYNTHEA_DIR) $(LOGSIM_DIR) $(DRUGSIM_DIR)
 
 include ../common/Makefile-common.mk
+
+update-version:
+	
+stage: update-version stage-common
+
+clean: clean-common
 
 help: help-common
 	@echo ""

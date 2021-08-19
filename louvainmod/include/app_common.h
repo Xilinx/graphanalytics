@@ -32,8 +32,10 @@ struct ToolOptions {
     bool opts_VF; //;
     std::string xclbinPath;
     std::string deviceNames;
+    int numNodes;
+    int nodeID;
     int numThreads;
-    int num_par;
+    int numPars;
     int gh_par;  // same as par_prune
     int flow_fast;
     int numDevices;
@@ -45,8 +47,6 @@ struct ToolOptions {
     std::string alveoProject; // used for load/compute TODO: consolidate with nameProj
     int numPureWorker;
     char *nameWorkers[128];
-    int nodeID;
-    int server_par;
     int max_level;
     int max_iter;
     

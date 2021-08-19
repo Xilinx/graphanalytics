@@ -262,13 +262,12 @@ graphFilename = $(notdir $(graph))
 graphBasename = $(basename $(graphFilename))
 alveoProject = $(CPPDEMO_OUT_DIR)/$(graphBasename)
 numPars=9
-serverPar=1 9
 numDevices=1
 #deviceNames="xilinx_u50_gen3x16_xdma_201920_3 xilinx_u55c_gen3x16_xdma_base_1"
 deviceNames="xilinx_u50_gen3x16_xdma_201920_3"
 #deviceNames="xilinx_u55c_gen3x16_xdma_base_1"
-CMDLINE_CREATE_PARTITIONS = $(graph) -fast -par_num $(numPars) -create_alveo_partitions \
-                            -name $(alveoProject) -server_par $(serverPar)
+CMDLINE_CREATE_PARTITIONS = $(graph) -fast -num_pars $(numPars) -create_alveo_partitions \
+                            -name $(alveoProject)
 
 WORKERS=192.168.1.21 192.168.1.31
 CMDLINE_LOAD_COMPUTE = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
@@ -314,12 +313,7 @@ run-load-compute: stage cppTest $(alveoProject).par.proj
 run-load-compute-driver: stage cppTest $(alveoProject).par.proj
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE_DRIVER)
 
-n ?= 10
 run-load-compute-worker1: stage cppTest 
-	#while [[ $${n} -gt 0 ]] ; do \
-    #    echo $$n ; \
-    #    ((n = n - 1)) ; \
-    #done
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE_WORKER1)
 
 run-load-compute-worker2: stage cppTest
@@ -557,21 +551,21 @@ help:
 	@echo "  make doxy-cpp"
 	@echo "  Generate CPP documentation using doxygen. The default html output directory is ./build/cppdocs"
 	@echo ""
-	@echo "  make run-create-partitions [graph=/path/to/graph.mtx]"
+	@echo "  make run-create-partitions [graph=/path/to/graph.mtx] [numPars=1]"
 	@echo "  Create partitions on a single node"
 	@echo ""
-	@echo "  make run-load-compute [graph=/path/to/graph.mtx]"
+	@echo "  make run-load-compute [graph=/path/to/graph.mtx] [numPars=1] [numDevices=1]"
 	@echo "  Load partition and compute Louvain modularity on a single node"
 	@echo ""
 	@echo "  Run test in a 3 node cluster"
 	@echo "  ssh to driver"
-	@echo "  make run-load-compute-driver"
+	@echo "  make run-load-compute-driver [graph=/path/to/graph.mtx] [numDevices=1]"
 	@echo ""
 	@echo "  ssh to worker1"
-	@echo "  make run-load-compute-worker1"
+	@echo "  make run-load-compute-worker1 [graph=/path/to/graph.mtx] [numDevices=1]"
 	@echo ""
 	@echo "  ssh to worker2"
-	@echo "  make run-load-compute-worker2"
+	@echo "  make run-load-compute-worker2 [graph=/path/to/graph.mtx] [numDevices=1]"
 	@echo ""
 	@echo "  debug-cppdemo"
 	@echo "  Debug cppdemo"
@@ -581,10 +575,4 @@ help:
 	@echo "graph: graph input .mtx file"
 	@echo "alveoProject: Alveo project name without .par.proj extension"
 	@echo "numPars: Number of partitions (default=1)"
-	@echo "         This setting is ignored if numServers > 1 in serverPar setting"
-	@echo "serverPar: Multi-server partition setting:"
-	@echo "           Format \"numServers numParsServer0 numParsServer1 ... numParsServerN-1\" "
-	@echo "           e.g. serverPar="3 7 7 7" specifies that partitions are created for 3"
-	@echo "           servers, 7 partitions for server0, 7 partitions for server1 and 7 "
-	@echo "           partitions for server2"
 	@echo "numDevices: Number of devices (default=1)"

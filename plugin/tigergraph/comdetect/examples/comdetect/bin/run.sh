@@ -99,7 +99,11 @@ if [ "$run_mode" -eq 0 ] || [ "$run_mode" -eq 2 ]; then
    echo "louvain_distributed_cpu runtime: " $TOTAL_TIME
 fi
 
-# Partition the graph and save partitions on disk
+if [ "$run_mode" -eq 0 ]; then
+    exit 0
+fi
+
+# Partition the graph and save partitions on disk. 
 if [ "$partition_mode" -eq 1 ]; then
     START=$(date +%s%3N)
     echo "Running tg_partition_phase_1"

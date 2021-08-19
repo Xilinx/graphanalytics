@@ -22,11 +22,12 @@
 # The plugin depends on its corresponding Alveo Product.  The following variables
 # determine the names and locations of the components of that Alveo Product.
 #
-# Alveo product name
+# Alveo product names
 pluginAlveoProductName="Xilinx Community Detection Engine"
+standaloneAlveoProductName="Xilinx Louvain Modularity"
 
 # The usual place where the Alveo Product is installed
-pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/louvainmod/1.0
+pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/louvainmod/0.1
 
 # Where to find the git repo for the Alveo Product if it exists
 pluginLocalAlveoProductPath=$SCRIPTPATH/../../../../../louvainmod/staging

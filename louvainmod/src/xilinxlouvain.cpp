@@ -112,8 +112,8 @@ public:
             break;
         }
         
-        parlv_.Init(flowMode, nullptr, partOpts.num_par, globalOpts.devNeed_cmd, true, partOpts.par_prune);
-        parlv_.num_par = partOpts.num_par;
+        parlv_.Init(flowMode, nullptr, partOpts.numPars, globalOpts.devNeed_cmd, true, partOpts.par_prune);
+        parlv_.num_par = partOpts.numPars;
         parlv_.th_prun = partOpts.par_prune;
         parlv_.num_server = settings_.numServers;
 
@@ -167,12 +167,12 @@ public:
             // but can also be used to pre-calculate the partitions for graphs that are so large that each
             // Alveo card needs to process more than its maximum number of vertices.
             int totalNumDevices = settings_.numServers * globalOpts_.devNeed_cmd;
-            if (partOpts_.num_par > totalNumDevices) {
+            if (partOpts_.numPars > totalNumDevices) {
                 // Distribute partitions evenly among servers
-                numPartitionsThisServer = partOpts_.num_par / settings_.numServers;
+                numPartitionsThisServer = partOpts_.numPars / settings_.numServers;
                 // Distribute the L leftover partitions (where L = servers % partitions) among the first
                 // L servers
-                int extraPartitions = partOpts_.num_par % settings_.numServers;
+                int extraPartitions = partOpts_.numPars % settings_.numServers;
                 if (extraPartitions > serverNum)
                     ++numPartitionsThisServer;
             }
@@ -222,7 +222,7 @@ public:
         parlv_.timesPar.timePar_all = getTime() - parlv_.timesPar.timePar_all;
 
         //////////////////////////// save <metadata>.par file for loading //////////////////
-        // Format: -create_alveo_partitions <inFile> -par_num <par_num> -par_prune <par_prun> -name <ProjectFile>
+        // Format: -create_alveo_partitions <inFile> -num_pars <par_num> -par_prune <par_prun> -name <ProjectFile>
         char* meta = (char*)malloc(4096);
         char pathName_tmp[1024];
         int numPartitions = 0;
@@ -230,24 +230,19 @@ public:
             numPartitions += numAlveoPartitions[i];
 
         std::sprintf(pathName_tmp, "%s%s.par.proj", projPath_.c_str(), projName_.c_str());
-        std::sprintf(meta, "-create_alveo_partitions %s -par_num %d -par_prune %d -name %s -time_par %f -time_save %f ",
+        std::sprintf(meta, "-create_alveo_partitions %s -num_pars %d -par_prune %d -name %s -time_par %f -time_save %f ",
                 inputFileName_.c_str(), numPartitions, partOpts_.par_prune,
                 globalOpts_.nameProj.c_str(), parlv_.timesPar.timePar_all, parlv_.timesPar.timePar_save);
         parlv_.num_par = numPartitions;
-        ///////////////////////////////////////////////////////////////////////
         //adding: -server_par <num_server> <num_par on server0> ... <num_par on server N>
         //example: -server_par 3 1 1 1
         char tmp_str[128];
         std::sprintf(tmp_str, "-server_par %d ", settings_.numServers);
         std::strcat(meta, tmp_str);
-//        for(int i_svr = 0, end = parInServer_.size(); i_svr < end; i_svr++){
-//             std::sprintf(tmp_str, "%d ",  parInServer_[i_svr]);
-//             std::strcat(meta, tmp_str);
-//        }///////////////////////////////////////////////////////////////////////
         for(int i_svr = 0, end = settings_.numServers; i_svr < end; i_svr++){
              std::sprintf(tmp_str, "%d ",  numAlveoPartitions[i_svr]);
              std::strcat(meta, tmp_str);
-        }///////////////////////////////////////////////////////////////////////
+        }
         std::strcat(meta, "\n");
 
         FILE* fp = fopen(pathName_tmp, "w");
@@ -305,6 +300,10 @@ public:
 // LouvainMod Members
 //
 void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions &partOptions) {
+#ifndef NDEBUG
+    std::cout << "DEBUG: " << __FUNCTION__ 
+              << "\n    fileName=" << fileName << std::endl;
+#endif    
     assert(fileName);
     int id_glv = 0;
     GLV* glv_src = CreateByFile_general(const_cast<char *>(fileName), id_glv);  // Louvain code not const correct
@@ -318,8 +317,8 @@ void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions 
     parlv.plv_src = glv_src;
 
     //////////////////////////// partition ////////////////////////////
+    // numServers is computed based on clusterIpAddresses fields from toolOptions
     const int num_server = pImpl_->settings_.numServers;
-
     std::vector<long> start_vertex(num_server);
     std::vector<long> end_vertex(num_server);
     std::vector<long> vInServer(num_server);
@@ -332,16 +331,16 @@ void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions 
         vInServer[i_svr] = end_vertex[i_svr] - start_vertex[i_svr];
     }
 
-    int num_partition = partOptions.num_par;
-    int start_par[MAX_PARTITION];// eg. {0, 3, 6} when par_num == 9
-    int end_par[MAX_PARTITION];  // eg. {3, 6, 9}  when par_num == 9
-    int numParsInServer[MAX_PARTITION];//eg. {3, 3, 3} when par_num == 9 and num_server==3
-    for(int i_svr=0; i_svr<num_server; i_svr++){
+    int num_partition = partOptions.numPars;
+    int start_par[MAX_PARTITION];       // eg. {0, 3, 6} when par_num == 9
+    int end_par[MAX_PARTITION];         // eg. {3, 6, 9} when par_num == 9
+    int numParsInServer[MAX_PARTITION]; // eg. {3, 3, 3} when par_num == 9 and num_server==3
+    for (int i_svr = 0; i_svr < num_server; i_svr++){
         start_par[i_svr] = i_svr * (num_partition / num_server);
-        if(i_svr!=num_server-1)
+        if (i_svr != num_server - 1)
             end_par[i_svr] = start_par[i_svr] + (num_partition / num_server);
         else
-            end_par[i_svr] = num_partition;
+            end_par[i_svr] = num_partition - 1;
         numParsInServer[i_svr] = end_par[i_svr] - start_par[i_svr];
     }
 
@@ -357,13 +356,18 @@ void LouvainMod::partitionDataFile(const char *fileName, const PartitionOptions 
                 glv_src->G, start_vertex[i_svr], end_vertex[i_svr],
                 offsets_tg, edgelist_tg, drglist_tg);
 #ifndef NDEBUG
-        printf("DEBUG:: SERVER(%d): start_vertex=%d, end_vertex=%d, NV_tg=%d, start_par=%d, parInServer=%d, pathName:%s\n",
-                i_svr, start_vertex[i_svr], end_vertex[i_svr], vInServer[i_svr], start_par[i_svr], numParsInServer[i_svr], fileName);
+        std::cout << "DEBUG: server id=" << i_svr 
+                  << "\n       start_vertex=" << start_vertex[i_svr] 
+                  << "\n       end_vertex=" << end_vertex[i_svr]
+                  << "\n       NV_tg=" << vInServer[i_svr] 
+                  << "\n       start_par=" << start_par[i_svr] 
+                  << "\n       parInServer=" << numParsInServer[i_svr]
+                  << "\n       pathName=" << fileName << std::endl;
 #endif
 
         long NV_par_requested = 0;
-        if (partOptions.num_par > 1)
-            NV_par_requested = (NV + partOptions.num_par-1) / partOptions.num_par;  //allow to partition small graph with -par_num
+        if (partOptions.numPars > 1)
+            NV_par_requested = (NV + partOptions.numPars-1) / partOptions.numPars;  //allow to partition small graph with -par_num
 
         LouvainMod::PartitionData partitionData;
         partitionData.offsets_tg = offsets_tg;

@@ -14,12 +14,7 @@
 # limitations under the License.
 #
 
-.DELETE_ON_ERROR:
-.PHONY: all
-
-#all: javaApi cppBuild javaTest stage
-all: stage
-
+SHELL=/bin/bash
 #
 # Global Definitions
 #
@@ -98,8 +93,8 @@ STAGE_SUBDIRS = $(sort $(dir $(STAGE_ALL_FILES)))
 # Default target
 all: stage
 
-.PHONY: stage
-stage: $(STAGE_DIR) $(STAGE_SUBDIRS) $(STAGE_ALL_FILES)
+.PHONY: stage-common
+stage-common: $(STAGE_DIR) $(STAGE_SUBDIRS) $(STAGE_ALL_FILES)
 
 
 $(STAGE_DIR):
@@ -127,7 +122,7 @@ all : install
 
 dist: stage
 	@cd package; \
-	if [ "$(DIST_TARGET)" == "" ]; then \
+	if [[ "$(DIST_TARGET)" == "" ]]; then \
 	    echo "Packaging is supported for only Ubuntu and CentOS."; \
 	else \
 	    echo "Packaging $(DIST_TARGET) for $(OSDIST)"; \
@@ -150,9 +145,9 @@ install: stage
 #### Clean target deletes all generated files ####
 .PHONY: clean
 
-clean:
-	rm -rf $(STAGE_DIR)
+clean-common:
 	@cd package; make clean
+	rm -rf $(STAGE_DIR)
 
 .PHONY: help-common
 help-common:
