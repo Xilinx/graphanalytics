@@ -46,10 +46,11 @@ tg_data_root=$(cat $HOME/.tg.cfg | jq .System.DataRoot | tr -d \")
 # set up PATH for tigergraph commands
 export PATH=$tg_root_dir/../cmd:$PATH
 
-# Install dir for TigerGraph plugins
+# TigerGraph UDF directory
 tg_app_udf_dir=$tg_root_dir/dev/gdk/gsql/src/QueryUdf
-# TODO: check the directory name below for 3.1.1
+# Plugin UDF installation directory
 tg_udf_dir=$tg_data_root/gsql/udf
+mkdir -p $tg_udf_dir
 tg_udf_xclbin_dir=$tg_udf_dir/xclbin
 
 plugin_ld_preload=

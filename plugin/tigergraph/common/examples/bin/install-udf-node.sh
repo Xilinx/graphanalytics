@@ -43,21 +43,6 @@ if ! [ -x "$(command -v python3)" ]; then
     exit 1
 fi
 
-TGHOME=~tigergraph
-
-if [ ! -f "$TGHOME/.tg.cfg" ]; then
-    echo "ERROR: This script only supports TigerGraph version 3.x"
-    exit 1
-fi
-
-if [ ! -r "$TGHOME/.tg.cfg" ]; then
-    echo "ERROR: TigerGraph configuration file $HOME/.tg.cfg is not readable"
-    exit 1
-fi
-
-tg_root_dir=$(cat $HOME/.tg.cfg | jq .System.AppRoot | tr -d \")
-tg_temp_root=$(cat $HOME/.tg.cfg | jq .System.TempRoot | tr -d \")
-tg_data_root=$(cat $HOME/.tg.cfg | jq .System.DataRoot | tr -d \")
 # Install dir for TigerGraph plugins
 #tg_udf_dir=$tg_root_dir/dev/gdk/gsql/src/QueryUdf
 tg_udf_dir=$tg_data_root/gsql/udf

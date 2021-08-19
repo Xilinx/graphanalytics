@@ -79,11 +79,19 @@ echo "    DATA root is $tg_data_root"
 echo "    UDF source directory is $tg_udf_dir"
 echo "INFO: Home is $HOME"
 
+# Making sure TigerGraph services are running
+echo ""
+echo "--------------------------------------------------------------------------------"
+echo "INFO: Starting all Tigergraph services"
+echo "INFO: gadmin start all"
+echo "--------------------------------------------------------------------------------"
+gadmin start all
+
 # run installation script on each node
 echo ""
 echo "--------------------------------------------------------------------------------"
 echo "INFO: Running installation script on each node with option $node_flags"
-echo "INFO grun all ${SCRIPTPATH}/install-plugin-node.sh $node_flags"
+echo "INFO: grun all ${SCRIPTPATH}/install-plugin-node.sh $node_flags"
 echo "--------------------------------------------------------------------------------"
 
 grun all "${SCRIPTPATH}/install-plugin-node.sh $node_flags"
