@@ -76,4 +76,4 @@ pluginXclbinPathFiles="xilinxComDetect.hpp xilinxComDetectImpl.hpp"
 
 # List of files (name only, no path) that need to have the identifier PLUGIN_CONFIG_PATH
 # replaced with the config path.
-pluginConfigPathFiles=xilinxComDetectImpl.hpp
+pluginConfigPathFiles="xilinxComDetectImpl.hpp xilinxComDetect.hpp"

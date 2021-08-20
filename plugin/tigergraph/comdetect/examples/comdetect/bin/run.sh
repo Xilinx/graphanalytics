@@ -103,7 +103,9 @@ if [ "$run_mode" -eq 0 ]; then
     exit 0
 fi
 
-# Partition the graph and save partitions on disk. 
+# Partition the graph and save partitions on disk.
+use_saved_partition="FALSE"
+#num_partitions= $num_partitions_node * $num_nodes
 if [ "$partition_mode" -eq 1 ]; then
     START=$(date +%s%3N)
     echo "Running tg_partition_phase_1"
@@ -125,6 +127,15 @@ if [ "$partition_mode" -eq 1 ]; then
     time gsql -u $username -p $password -g $xgraph "run query tg_partition_phase_3([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\", $num_partitions_node)"
     TOTAL_TIME=$(($(date +%s%3N) - START))
     echo "tg_partition_phase_3 " $TOTAL_TIME
+elif [ "$partition_mode" -eq 2 ]; then
+    echo "Running load_alveo"
+    START=$(date +%s%3N)
+    echo gsql -u $username -p $password -g $xgraph \'run query load_alveo\([\"Person\"], [\"Coworker\"], \"weight\", $use_saved_partition, \"$data_source\", \"$alveo_prj\", 9, 1\)\'
+    time gsql -u $username -p $password -g $xgraph "run query load_alveo([\"Person\"], [\"Coworker\"], \
+         \"weight\", $use_saved_partition, \"$data_source\", \"$alveo_prj\", 9, 1)"
+    TOTAL_TIME=$(($(date +%s%3N) - START))
+    echo "load_alveo: " $TOTAL_TIME
+
 else
     echo "Skip partitioning and use existing partitions from xgstore"
 fi
@@ -133,9 +144,9 @@ fi
 if [ "$run_mode" -eq 1 ] || [ "$run_mode" -eq 2 ]; then
     START=$(date +%s%3N)
     echo "Running louvain_alveo"
-    echo gsql -u $username -p $password -g $xgraph \'run query louvain_alveo\([\"Person\"], [\"Coworker\"], \"weight\",20,20,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_alveo.txt\",TRUE,FALSE\)\'
+    echo gsql -u $username -p $password -g $xgraph \'run query louvain_alveo\([\"Person\"], [\"Coworker\"], \"weight\",20,20,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_alveo.txt\",TRUE,FALSE, \"$alveo_prj\"\)\'
     time gsql -u $username -p $password -g $xgraph "run query louvain_alveo([\"Person\"], [\"Coworker\"], \
-         \"weight\",20,20,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_alveo.txt\",TRUE,FALSE)"
+         \"weight\",20,20,0.0001,FALSE,FALSE,\"\",\"/home2/tigergraph/output_alveo.txt\",TRUE,FALSE, \"$alveo_prj\")"
     TOTAL_TIME=$(($(date +%s%3N) - START))
     echo "louvain_alveo: " $TOTAL_TIME
 fi
