@@ -37,6 +37,7 @@ The library is released on `GitHub <https://github.com/Xilinx/graphanalytics>`_ 
    :maxdepth: 1
 
    Cosine Similarity <cosinesim/index.rst>
+   Louvain Modularity <louvainmod/index.rst>
 
 
 .. toctree::
@@ -44,6 +45,7 @@ The library is released on `GitHub <https://github.com/Xilinx/graphanalytics>`_ 
    :maxdepth: 1
 
     Recommendation Engine for TigerGraph 3.x <recom-tg3/index.rst>
+    Community Detection Engine for TigerGraph 3.x <comdet-tg3/index.rst>
 
 
 .. toctree::

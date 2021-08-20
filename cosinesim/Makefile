@@ -305,8 +305,7 @@ LDLIBS_test = \
 	
 
 SRC_FILE_NAMES_test = \
-    cosinesim_test.cpp \
-    fakeudf.cpp
+    cosinesim_test.cpp 
 
 SRCS_test = $(addprefix $(TEST_DIR)/,$(SRC_FILE_NAMES_test))
 OBJS_test = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_test:.cpp=.o)))
@@ -346,12 +345,6 @@ run-test: cppTest
 run-dyn-test: cppTest
 	LD_PRELOAD=$(PWD)/$(CPP_BUILD_DIR)/$(LIB_NAME) LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) \
 	    $(CPP_BUILD_DIR)/cosinesim_dyn_test $(NUMDEVICES)
-
-#LDFLAGS_fakeudf = -fPIC -w -L /scratch/tigergraph/tigergraph/app/3.1.0/dev/gdk/gsql/src/QueryUdf -lgraphL3wrapper -ldl
-LDFLAGS_fakeudf = -fPIC -w -L $(CPP_BUILD_DIR) -l$(LIB_SHORT_NAME)
-
-$(CPP_BUILD_DIR)/fakeudf: $(CPP_BUILD_DIR)/fakeudf.o
-	$(LINK.cc) -o $@ $^ $(LDFLAGS_fakeudf) $(LIB_DEPS)
 
 # Macro to create a .o rule and a .d rule for each .cpp
 

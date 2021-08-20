@@ -104,7 +104,8 @@ RECOM_TG3_SRC_DIR = ../../plugin/tigergraph
 RECOM_TG3_VERSION = $(RECOM_TG3_SRC_DIR)/VERSION
 RECOM_TG3_TRIGGER_FILES = $(RECOM_TG3_SRC_DIR)/udf/xilinxRecomEngine.hpp
 
-.stamp/recom-tg3-doxygen: .stamp recom-tg3/$(DOXYGEN_CPP_CONFIG_FILE) $(RECOM_TG3_TRIGGER_FILES)
+#.stamp/recom-tg3-doxygen: .stamp recom-tg3/$(DOXYGEN_CPP_CONFIG_FILE) $(RECOM_TG3_TRIGGER_FILES)
+.stamp/recom-tg3-doxygen: .stamp recom-tg3/$(DOXYGEN_CPP_CONFIG_FILE)
 	cd recom-tg3 && \
 	rm -rf $(DOXYGEN_XML_TARGET_DIR) && \
 	mkdir -p $(DOXYGEN_XML_TARGET_DIR) && \

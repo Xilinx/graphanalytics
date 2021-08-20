@@ -1,7 +1,7 @@
-Xilinx Cosine Similarity Alveo Product Installation
+Xilinx Louvain Modularity Alveo Product Installation
 ===================================================
 
-Follow the steps below to install the Cosine Similarity Alveo Product.
+Follow the steps below to install the Louvain Modularity Alveo Product.
 
 Installing the Alveo U50 Accelerator Card
 -----------------------------------------
@@ -10,24 +10,23 @@ Installing the Alveo U50 Accelerator Card
 * Plug the Xilinx U50 Alveo acclerator card into a PCIe Gen3 x16 slot.
 * Power on the server.
 
-Installing Cosine Similarity Library from a Pre-built Package
+Installing Louvain Modularity Library from a Pre-built Package
 -------------------------------------------------------------
 * Get the installation package `xilinx-tigergraph-install-1.0.2.tar.gz from 
   Xilinx website <https://www.xilinx.com/member/forms/download/design-license-xef.html?filename=xilinx-tigergraph-install-1.0.2.tar.gz>`_ 
 
-* Install Xilinx CosineSim and Recommendation Engine Alveo Products and 
-  dependencies (XRT, XRM, and U50 platform packages)
+* Install Xilinx Louvain Modularity Alveo product and dependencies (XRT, XRM, and Alveo platform packages)
 
 .. code-block:: bash
 
    tar xzf xilinx-tigergraph-install-1.0.2.tar.gz
-   cd xilinx-tigergraph-install && ./install.sh -p cosinesim
+   cd xilinx-tigergraph-install && ./install.sh -p louvainmod
 
 
 Setting up the Alveo Accelerator Card
 -------------------------------------
 
-The Cosine Similarity Alveo Product requires the xilinx_u50_gen3x16_xdma_201920_3 shell to be installed on each
+The Louvain Modularity Alveo Product requires the xilinx_u50_gen3x16_xdma_201920_3 shell to be installed on each
 Alveo card to use.  Check and install the shell by following the steps below.
 
 * Run ``xbutil scan`` command to check the status of all Alveo cards on the server.
@@ -57,9 +56,9 @@ Alveo card to use.  Check and install the shell by following the steps below.
 * Cold reboot the server after flashing is done.
 
 
-Collaborating on the Cosine Similarity Product
+Collaborating on the Louvain Modularity Product
 ----------------------------------------------
-The Cosine Similarity product is an open-source project hosted on github, you can 
+The Louvain Modularity product is an open-source project hosted on github, you can 
 collaborate with Xilinx and contribute to the development of the product.
 
 * Clone the ``graphanalytics`` repository using ``git``.
@@ -73,7 +72,7 @@ collaborate with Xilinx and contribute to the development of the product.
 
 .. code-block:: bash
 
-   cd cosinesim
+   cd louvainmod
    make dist
-   sudo apt install --reinstall ./package/xilinx-cosinesim-1.0_18.04-x86_64.deb
+   sudo apt install --reinstall ./package/xilinx-louvainmod-1.0_18.04-x86_64.deb
 
