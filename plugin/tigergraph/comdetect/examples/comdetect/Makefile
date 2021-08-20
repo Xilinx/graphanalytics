@@ -22,6 +22,7 @@ numPartitionsNode=9
 compileMode=0
 partitionMode=1
 runMode=1
+partitionDumpPath=""
 
 ifdef sshKey
     SSH_KEY_OPT=-i $(sshKey)
@@ -74,7 +75,7 @@ run: .install-udf-done
 	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/examples/comdetect/bin/run.sh -v \
 	    -g $(graphName) -s $(dataSource) \
 		-m $(numNodes) -n $(numPartitionsNode) \
-		-c $(compileMode) -x $(partitionMode) -r $(runMode) 
+		-c $(compileMode) -x $(partitionMode) -r $(runMode) -a $(partitionDumpPath)
 
 .PHONY: run-cluster
 run-cluster: .install-udf-done
@@ -83,7 +84,7 @@ run-cluster: .install-udf-done
 	@echo "-------------------------------------------------------"
 	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/examples/comdetect/bin/run.sh -v \
 	    -g $(graphName) -c $(compileMode) -r $(runMode) \
-		-m 3 -d 3 -n 9 -s $(dataSource) 
+		-m 3 -d 3 -n 9 -s $(dataSource) -a $(partitionDumpPath)
 
 .PHONY: partition
 partition: .install-udf-done
@@ -102,6 +103,7 @@ help:
 	@echo "graphName        : graph name (default=social_<username>"
 	@echo "numNodes         : Number of nodes in Tigergraph cluster"
 	@echo "numPartitionsNode: Number of Alveo partitions per node"
+	@echo "partitionDumpPath: partition files path / partition file name prefix"
 	@echo ""
 	@echo "compileMode      : 0: recreate database and compile all (default)"
 	@echo "                   1: only compile query gsql"

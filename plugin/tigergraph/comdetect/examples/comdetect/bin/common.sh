@@ -40,7 +40,7 @@ function usage() {
     echo "Optional options:"
     echo "  -a alveoProject      : Alveo partition project basename "
     echo "  -c compileMode       : 0: recreate database and compile all (default); 1: only compile query gsql; 2: skip database creation and gsql compilation"
-    echo "  -x partitionMode     : 0: Use existing partitions from disks; 1: Generate partitions from TigerGraph memory"
+    echo "  -x partitionMode     : 0: Use existing partitions from disks; 1: Generate partitions from TigerGraph memory; 2: Generate partitions from mtx"
     echo "  -r runMode           : 0: Run only on CPU; 1: Run only on Alveo (default); 2: Run on both CPU and Alveo"
     echo ""
     echo "  -d numDevices        : number of FPGAs needed (default=1)"
@@ -69,13 +69,14 @@ compile_mode=0
 partition_mode=1
 force_clean_flag=
 verbose_flag=
+alveo_prj=""
 
 # set default ssh_key for tigergraph
 if [ -f ~/.ssh/tigergraph_rsa ]; then
     ssh_key_flag="-i ~/.ssh/tigergraph_rsa"
 fi
 
-while getopts "c:fg:i:m:n:p:r:s:u:vx:h" opt
+while getopts "c:fg:i:m:n:p:r:s:u:vx:ha:" opt
 do
 case $opt in
     c) compile_mode=$OPTARG;;
@@ -90,6 +91,7 @@ case $opt in
     u) username=$OPTARG;;
     v) verbose=1; verbose_flag=-v;;
     x) partition_mode=$OPTARG;;
+    a) alveo_prj=$OPTARG;;
     h) usage; exit 0;;
     ?) echo "ERROR: Unknown option: -$OPTARG"; usage; exit 1;;
 esac
@@ -123,6 +125,7 @@ if [ $verbose -eq 1 ]; then
     echo "INFO: username=$username"
     echo "      password=$password"
     echo "      dataSource=$data_source"
+    echo "      alveo_prj=$alveo_prj"
     echo "      numPartitionsNode=$num_partitions_node"
     echo "      xgraph=$xgraph"
     echo "      numNodes=$num_nodes"
