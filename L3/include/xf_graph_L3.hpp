@@ -73,11 +73,8 @@ std::vector<event<int> > cosineSimilaritySSDenseMultiCard(xf::graph::L3::Handle&
 
 
 #ifdef LOUVAINMOD
-void louvainModularity(xf::graph::L3::Handle& handle,
-							int flowMode,
-		                     			GLV* glv,
-							GLV* pglv,
-                             				LouvainPara* para_lv);
+void louvainModularity(std::shared_ptr<xf::graph::L3::Handle> handle,
+					   int flowMode, GLV* glv, GLV* pglv, LouvainPara* para_lv);
 #endif                             
 } // L3
 } // graph

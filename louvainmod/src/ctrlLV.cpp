@@ -1216,15 +1216,17 @@ int CtrlLouvain::exe_LV_PAR(){
 	}
 	return 0;
 }
+
 #ifndef ONLY_FOR_L2
 GLV* L3_LouvainGLV_general(
 		int&id_glv,
-		xf::graph::L3::Handle *p_handle0,
+		std::shared_ptr<xf::graph::L3::Handle>& handle0,
 		 int flowMode,
         GLV *glv_src,
 		LouvainPara* para_lv);
 #endif//#ifnodef ONLY_FOR_L2
-int CtrlLouvain::exe_LV_LV(){
+
+int CtrlLouvain::exe_LV_LV() {
 	CHECKCURR;
 	assert(glv_curr->G);
 
@@ -1235,7 +1237,7 @@ int CtrlLouvain::exe_LV_LV(){
 			return -1;
 		}
 		LouvainPara* para_lv=new(LouvainPara);
-		glv_temp = L3_LouvainGLV_general(id_glv, p_handle0, flowMode, glv_curr, para_lv);
+		//TODO: HACK glv_temp = L3_LouvainGLV_general(id_glv, handle0, flowMode, glv_curr, para_lv);
 		return 0;
 #endif//#ifnodef ONLY_FOR_L2
 

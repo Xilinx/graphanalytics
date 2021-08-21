@@ -257,7 +257,7 @@ $(CPP_BUILD_DIR)/cppdemo: $(CPP_BUILD_DIR)/cppdemo.o $(CPP_BUILD_DIR)/$(LIB_NAME
 	$(LINK.cc) -o $@ $< $(LDFLAGS_test) $(LIB_DEPS)
 
 CPPDEMO_OUT_DIR = $(CPP_BUILD_DIR)/cppdemo-out
-graph = ../plugin/tigergraph/comdetect/examples/comdetect/as-skitter/as-Skitter-wt-r100.mtx
+graph = ./examples/data/as-Skitter-wt-r100.mtx
 graphFilename = $(notdir $(graph))
 graphBasename = $(basename $(graphFilename))
 alveoProject = $(CPPDEMO_OUT_DIR)/$(graphBasename)

@@ -282,59 +282,7 @@ public:
 
     }
 
-/*
-    int cosineSimilaritySSDenseMultiCard(std::shared_ptr<xf::graph::L3::Handle>& handle,
-                                         int32_t numDevices,
-                                         int32_t sourceNUM,
-                                         int32_t* sourceWeights,
-                                         int32_t topK,
-                                         xf::graph::Graph<int32_t, int32_t>** g,
-                                         int32_t* resultID,
-                                         float* similarity) {
-        std::vector<xf::graph::L3::event<int> > eventQueue;
-        float** similarity0 = new float*[numDevices];
-        int32_t** resultID0 = new int32_t*[numDevices];
-        int counter[numDevices];
-        for (int i = 0; i < numDevices; ++i) {
-            counter[i] = 0;
-            similarity0[i] = xf::graph::internal::aligned_alloc<float>(topK);
-            resultID0[i] = xf::graph::internal::aligned_alloc<int32_t>(topK);
-            memset(resultID0[i], 0, topK * sizeof(int32_t));
-            memset(similarity0[i], 0, topK * sizeof(float));
-        }
 
-        for (int i = 0; i < numDevices; ++i) {
-            eventQueue.push_back((handle->opsimdense)->addworkInt(
-                1, 0, sourceNUM, sourceWeights, topK, g[i][0], resultID0[i], similarity0[i]));
-        }
-        int ret = 0;
-        for (unsigned int i = 0; i < eventQueue.size(); ++i) {
-            ret += eventQueue[i].wait();
-        }
-        for (int i = 0; i < topK; ++i) {
-            similarity[i] = similarity0[0][counter[0]];
-            int32_t prev = 0;
-            resultID[i] = resultID0[0][counter[0]];
-            counter[0]++;
-            for (int j = 1; j < numDevices; ++j) {
-                if (similarity[i] < similarity0[j][counter[j]]) {
-                    similarity[i] = similarity0[j][counter[j]];
-                    resultID[i] = resultID0[j][counter[j]];
-                    counter[prev]--;
-                    prev = j;
-                    counter[j]++;
-                }
-            }
-        }
-        for (int i = 0; i < numDevices; ++i) {
-            free(similarity0[i]);
-            free(resultID0[i]);
-        }
-        delete[] similarity0;
-        delete[] resultID0;
-        return ret;
-    };
-*/
     std::vector<xf::graph::L3::event<int> > cosineSimilaritySSDenseMultiCard(
         std::shared_ptr<xf::graph::L3::Handle>& handle,
         int32_t numDevices,

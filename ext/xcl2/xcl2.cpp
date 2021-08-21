@@ -41,8 +41,10 @@ std::vector<cl::Device> get_devices(const std::string& vendor_name) {
         platform = platforms[i];
         std::string platformName = platform.getInfo<CL_PLATFORM_NAME>();
         if (platformName == vendor_name) {
+#ifndef NDEBUG            
             std::cout << "INFO: " << __FUNCTION__ 
-                      << ": Platform name: " << platformName.c_str() << std::endl;
+                      << ": Found platform: " << platformName.c_str() << std::endl;
+#endif                      
             break;
         }
     }
@@ -61,14 +63,11 @@ std::vector<cl::Device> get_xil_devices() {
     return get_devices("Xilinx");
 }
 cl::Program::Binaries import_binary_file(std::string xclbin_file_name) {
-    std::cout << "INFO: Importing " << xclbin_file_name << std::endl;
-
     if (access(xclbin_file_name.c_str(), R_OK) != 0) {
         printf("ERROR: %s xclbin not available please build\n", xclbin_file_name.c_str());
         exit(EXIT_FAILURE);
     }
     // Loading XCL Bin into char buffer
-    std::cout << "INFO: Loading: " << xclbin_file_name.c_str() << std::endl;
     std::ifstream bin_file(xclbin_file_name.c_str(), std::ifstream::binary);
     bin_file.seekg(0, bin_file.end);
     unsigned nb = bin_file.tellg();

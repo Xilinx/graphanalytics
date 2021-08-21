@@ -16,7 +16,8 @@
  */
 
 USE GRAPH @graph
-DROP QUERY louvain_alveo, close_alveo, tg_partition_phase_1, tg_partition_phase_2, tg_partition_phase_3i,load_alveo
+DROP QUERY louvain_alveo, close_alveo, tg_partition_phase_1, 
+           tg_partition_phase_2, tg_partition_phase_3, load_alveo
 
 
 
@@ -183,6 +184,7 @@ CREATE DISTRIBUTED QUERY louvain_alveo(
 {
     ListAccum<int> @@nodeAccum;
     ListAccum<float> @@modularityAccum;
+    DOUBLE modularity;
     DOUBLE udf_time;
     DOUBLE vm_peak, vm_hwm;
     INT ret;
@@ -206,7 +208,12 @@ CREATE DISTRIBUTED QUERY louvain_alveo(
     udf_time = udf_elapsed_time(true);
     ret = udf_peak_memory_usage(vm_peak, vm_hwm);
     print nodes.size() as NumOfNodes;
-    print @@modularityAccum as ModularityQValues;
+    print @@modularityAccum as NodeReturnValues;
+    modularity = 0;
+    FOREACH i IN RANGE[0, @@modularityAccum.size()-1] DO   
+        modularity = modularity + @@modularityAccum.get(i);
+    END;
+    print modularity AS Modularity;
     print "Xilinx Alveo U50" AS ComputationTechnique;
     print vm_peak/1000000.0 as PeakVirtualMemoryInGB;
     print vm_hwm/1000000.0 as PeakResidentMemoryInGB;

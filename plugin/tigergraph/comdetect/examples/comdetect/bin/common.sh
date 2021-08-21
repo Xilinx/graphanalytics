@@ -38,10 +38,16 @@ function gsql () {
 function usage() {
     echo "Usage: $0 -u TG-username -p TG-password [optional options]"
     echo "Optional options:"
-    echo "  -a alveoProject      : Alveo partition project basename "
-    echo "  -c compileMode       : 0: recreate database and compile all (default); 1: only compile query gsql; 2: skip database creation and gsql compilation"
-    echo "  -x partitionMode     : 0: Use existing partitions from disks; 1: Generate partitions from TigerGraph memory; 2: Generate partitions from mtx"
-    echo "  -r runMode           : 0: Run only on CPU; 1: Run only on Alveo (default); 2: Run on both CPU and Alveo"
+    echo "  -a alveoProject      : Alveo partition project basename. It can include a path (.e.g /path/to/alveo_proj"
+    echo "  -c compileMode       : 0: recreate database and compile all (default)"
+    echo "                         1: only compile query gsql" 
+    echo "                         2: skip database creation and gsql compilation"
+    echo "  -x partitionMode     : 0: Use existing partitions from disks"
+    echo "                         1: Generate partitions from TigerGraph memory"
+    echo "                         2: Generate partitions from mtx (default)"
+    echo "  -r runMode           : 0: Run only on CPU"
+    echo "                         1: Run only on Alveo (default)"
+    echo "                         2: Run on both CPU and Alveo"
     echo ""
     echo "  -d numDevices        : number of FPGAs needed (default=1)"
     echo "  -f                   : Force (re)install"
@@ -66,7 +72,7 @@ xgraph="social_$username"
 force_clean=0
 run_mode=1
 compile_mode=0
-partition_mode=1
+partition_mode=2
 force_clean_flag=
 verbose_flag=
 alveo_prj=""

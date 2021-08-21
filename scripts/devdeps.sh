@@ -47,6 +47,7 @@ rh_package_list()
      gcc \
      gcc-c++ \
      git \
+     zeromq-devel \
     )
 
     if [ $FLAVOR == "amzn" ]; then
@@ -69,7 +70,8 @@ ub_package_list()
      g++ \
      git \
      python3-dev \
-    )
+     libzmq3-dev \
+     )
 }
 
 update_package_list()
