@@ -1,3 +1,5 @@
+.. _louvain-install-label:
+
 Xilinx Louvain Modularity Alveo Product Installation
 ===================================================
 

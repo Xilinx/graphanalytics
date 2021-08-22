@@ -12,8 +12,8 @@ data using a Xilinx Alveo accelerator card.
 
     Overview <overview.rst>
     Installation <install.rst>
-    Synthea Demo <synthea.rst>
-    Application Development with Recommendation Engine <users-guide.rst>
+    Community Detection Demo <comdetect.rst>
+    Application Development with Community Detection <users-guide.rst>
     Reference Manual <api.rst>
 
 

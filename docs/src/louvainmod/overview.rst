@@ -40,12 +40,10 @@ compuation time of the modularity value (Q) and memory footprint.
 
 Use cases
 ----------
-Louvain Modularity algorithm can be used in the following cases:
+Louvain Modularity have been utilized in the following cases:
 
 * Fraud ring detection
-
 * Understand social structure in social networks
-
 * Product or article recommendation
 
 

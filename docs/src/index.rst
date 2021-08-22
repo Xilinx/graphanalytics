@@ -61,15 +61,6 @@ The library is released on `GitHub <https://github.com/Xilinx/graphanalytics>`_ 
 
    vitis-dev-flow.rst
 
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Versions
-   :hidden:
-
-   1.0 <https://xilinx.github.io/graphanalytics/>
-   
-
 .. toctree::
    :caption: Notice
    :maxdepth: 1
