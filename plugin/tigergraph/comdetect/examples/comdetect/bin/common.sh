@@ -53,7 +53,6 @@ function usage() {
     echo "  -f                   : Force (re)install"
     echo "  -g graphName         : graph name (default=social_<username>"
     echo "  -i sshKey            : SSH key for user tigergraph"    
-    echo "  -m numNodes          : Number of nodes in Tigergraph cluster"
     echo "  -n numPartitionsNode : Number of Alveo partitions "    
     echo "  -s dataSource        : A .mtx file containing input graph. default=../data/as-Skitter-r100.mtx"
     echo "  -v                   : Print verbose messages"
@@ -61,12 +60,14 @@ function usage() {
 }
 
 tg_home=$(readlink -f ~tigergraph)
+tg_data_root=$(cat $tg_home/.tg.cfg | jq .System.DataRoot | tr -d \")
+
 # default values for optional options
 username=$USER
 password=Xilinx123
 data_source="$script_dir/../data/as-Skitter-wt-r100.mtx"
+num_nodes=$(cat $tg_data_root/gsql/udf/xilinx-plugin-config.json | jq .numNodes | tr -d \")
 num_partitions_node=1
-num_nodes=1
 verbose=0
 xgraph="social_$username"
 force_clean=0

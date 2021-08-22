@@ -17,7 +17,6 @@ dataSource=$(CURDIR)/data/as-Skitter-wt-r100.mtx
 graphName=social_$(USER)
 alveoProject=""
 
-numNodes=1
 numPartitionsNode=9
 
 compileMode=0
@@ -75,8 +74,7 @@ run: .install-udf-done
 	@echo "-------------------------------------------------------"
 	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/examples/comdetect/bin/run.sh -v \
 	    -g $(graphName) -s $(dataSource) -a $(alveoProject) \
-		-m $(numNodes) -n $(numPartitionsNode) \
-		-c $(compileMode) -x $(partitionMode) -r $(runMode) 
+		-n $(numPartitionsNode) -c $(compileMode) -x $(partitionMode) -r $(runMode) 
 
 .PHONY: partition
 partition: .install-udf-done
@@ -94,7 +92,6 @@ help:
 	@echo "dataSource        : A .mtx file containing input graph. default=./data/as-Skitter-wt-r100.mtx"
 	@echo "graphName         : graph name (default=social_<username>"
 	@echo "alveoProject      : partition files path / partition file name prefix"
-	@echo "numNodes          : Number of nodes in Tigergraph cluster"
 	@echo "numPartitionsNode : Number of Alveo partitions per node"
 	@echo ""
 	@echo "compileMode       : 0: recreate database and compile all (default)"

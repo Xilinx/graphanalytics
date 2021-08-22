@@ -35,7 +35,6 @@ set -e
 
 SCRIPT=$(readlink -f $0)
 script_dir=`dirname $SCRIPT`
-TG_HOME=$(readlink -f ~tigergraph)
 
 . $script_dir/common.sh
 
@@ -91,13 +90,13 @@ echo "Run mode: $run_mode"
 
 if [ "$run_mode" -eq 0 ] || [ "$run_mode" -eq 2 ]; then
    echo "Running louvain_distributed_q_cpu"
-   echo gsql -u $username -p $password -g $xgraph \'run query louvain_distributed_q_cpu\([\"Person\"], [\"Coworker\"],\"weight\",20,1,0.0001,FALSE,FALSE,\"\",\"$TG_HOME/output_cpu.txt\",TRUE,FALSE\)\'
+   echo gsql -u $username -p $password -g $xgraph \'run query louvain_distributed_q_cpu\([\"Person\"], [\"Coworker\"],\"weight\",20,1,0.0001,FALSE,FALSE,\"\",\"$tg_home/output_cpu.txt\",TRUE,FALSE\)\'
    echo "-------------------------------------------------------------------------"
    START=$(date +%s%3N)
    time gsql -u $username -p $password -g $xgraph "run query louvain_distributed_q_cpu([\"Person\"], [\"Coworker\"], \
-        \"weight\",20,1,0.0001,FALSE,FALSE,\"\",\"$TG_HOME/tigergraph/output_cpu.txt\",TRUE,FALSE)"
+        \"weight\",20,1,0.0001,FALSE,FALSE,\"\",\"$tg_home/tigergraph/output_cpu.txt\",TRUE,FALSE)"
    TOTAL_TIME=$(($(date +%s%3N) - START))
-   echo "louvain_distributed_cpu runtime: " $TOTAL_TIME
+   echo "louvain_distributed_cpu runtime: " $tg_home
 fi
 
 if [ "$run_mode" -eq 0 ]; then
@@ -145,9 +144,9 @@ fi
 if [ "$run_mode" -eq 1 ] || [ "$run_mode" -eq 2 ]; then
     START=$(date +%s%3N)
     echo "Running louvain_alveo"
-    echo gsql -u $username -p $password -g $xgraph \'run query louvain_alveo\([\"Person\"], [\"Coworker\"], \"weight\",20,20,0.0001,FALSE,FALSE,\"\",\"$TG_HOME/output_alveo.txt\",TRUE,FALSE, \"$alveo_prj\"\)\'
+    echo gsql -u $username -p $password -g $xgraph \'run query louvain_alveo\([\"Person\"], [\"Coworker\"], \"weight\",20,20,0.0001,FALSE,FALSE,\"\",\"$tg_home/output_alveo.txt\",TRUE,FALSE, \"$alveo_prj\"\)\'
     time gsql -u $username -p $password -g $xgraph "run query louvain_alveo([\"Person\"], [\"Coworker\"], \
-         \"weight\",20,20,0.0001,FALSE,FALSE,\"\",\"$TG_HOME/output_alveo.txt\",TRUE,FALSE, \"$alveo_prj\")"
+         \"weight\",20,20,0.0001,FALSE,FALSE,\"\",\"$tg_home/output_alveo.txt\",TRUE,FALSE, \"$alveo_prj\")"
     TOTAL_TIME=$(($(date +%s%3N) - START))
     echo "louvain_alveo: " $TOTAL_TIME
 fi
