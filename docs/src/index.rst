@@ -47,6 +47,12 @@ under Apache License, Version 2.0
     Recommendation Engine for TigerGraph 3.x <recom-tg3/index.rst>
     Community Detection Engine for TigerGraph 3.x <comdet-tg3/index.rst>
 
+.. toctree::
+   :caption: Use Cases
+   :maxdepth: 1
+
+    Cosine Similarity Use Cases <cosinesim/usecases.rst>
+    Louvain Modularity Use Cases <louvainmod/usecases.rst>
 
 .. toctree::
     :caption: Additional Info

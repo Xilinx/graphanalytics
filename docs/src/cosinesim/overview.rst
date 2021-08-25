@@ -10,15 +10,9 @@ inner product space:
    :alt: Cosine Similarity Formula
    :align: center
 
-Use cases
------------------------------------------
-
-Cosine similarity have been used in the following use cases:
-
-* Patient Similarity
-* Log Similarity
-* Wiki Page Similarity
-* Drug Similarity
+Xilinx Cosine Similarity Alveo product offloads the computation onto accelerators
+running parallely on Alveo cards to produce the result much more quickly. Please check 
+:ref:`cosinesim-usecases-label` page for more details.
 
 
 Related Links
