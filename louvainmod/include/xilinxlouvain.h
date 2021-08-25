@@ -40,7 +40,6 @@ enum {
     ALVEOAPI_RUN
 };
 
-
 /**
  * Define this macro to make functions in louvainmod_loader.cpp inline instead of extern.  You would use this macro
  * when including louvainmod_loader.cpp in a header file, as opposed to linking with libXilinxCosineSim_loader.a.
@@ -58,7 +57,7 @@ int create_and_load_alveo_partitions(int argc, char *argv[]);
 
 XILINX_LOUVAINMOD_IMPL_DECL
 float loadAlveoAndComputeLouvain(    
-    char* xclbinPath, int flow_fast, unsigned int numDevices, std::string deviceNames,
+    char* xclbinPath, int flow_fast, unsigned numDevices, std::string deviceNames,
     char* alveoProject, unsigned mode_zmq, unsigned numPureWorker, 
     char* nameWorkers[128], unsigned int nodeID,  char* opts_outputFile, 
     unsigned int max_iter, unsigned int max_level, float tolerance, 
@@ -72,6 +71,8 @@ void xilinx_louvainmod_destroyImpl(xilinx_apps::louvainmod::LouvainModImpl *pImp
 
 }
 
+void loadComputeUnitsToFPGAs(char* xclbinPath, int flowMode, 
+    unsigned numDevices, std::string deviceNames);
 float loadAlveoAndComputeLouvainWrapper(int argc, char *argv[]);
 float louvain_modularity_alveo(int argc, char *argv[]);
 int compute_modularity(char* inFile, char* clusterInfoFile, int offset);
@@ -183,8 +184,9 @@ struct Options {
     XString xclbinPath;
     XString nameProj;  // -name option: location of "partition project" created by partitioning, read by load/compute
     XString alveoProject; // Alveo project file .par.proj TODO: to be combined with nameProj
+    int modeAlveo;
     int flow_fast = 2;  // C
-    int devNeed_cmd = 1;  // C
+    unsigned numDevices = 1;  // number of devices
     XString deviceNames;  // space-separated list of target device names
     unsigned nodeId = 0;  // node ID 0 will be the driver, all others will be workers
     unsigned serverIndex = 0;  // node ID 0 will be the driver, all others will be workers
@@ -233,6 +235,8 @@ public:
     };
     
     LouvainMod(const Options &options) : pImpl_(xilinx_louvainmod_createImpl(options)) {}
+
+    
     ~LouvainMod() { xilinx_louvainmod_destroyImpl(pImpl_); }
     
     /**

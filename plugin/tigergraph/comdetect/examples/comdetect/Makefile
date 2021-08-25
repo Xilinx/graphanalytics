@@ -41,7 +41,7 @@ all: run
 	@echo "-------------------------------------------------------"
 	@echo "Installing plugin files into TigerGraph software"
 	@echo "-------------------------------------------------------"
-	cd ../../ && make DEBUG=$(DEBUG) && ./staging/install.sh -v -f $(SSH_KEY_OPT) && \
+	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/install.sh -v -f $(SSH_KEY_OPT) && \
 	cd - && touch .install-plugin-done
 
 .install-udf-done: .install-plugin-done udf/louvainDemo.hpp

@@ -112,7 +112,7 @@ public:
             break;
         }
         
-        parlv_.Init(flowMode, nullptr, partOpts.numPars, globalOpts.devNeed_cmd, true, partOpts.par_prune);
+        parlv_.Init(flowMode, nullptr, partOpts.numPars, globalOpts.numDevices, true, partOpts.par_prune);
         parlv_.num_par = partOpts.numPars;
         parlv_.th_prun = partOpts.par_prune;
         parlv_.num_server = settings_.numServers;
@@ -160,13 +160,13 @@ public:
         // No supplied desired partition size: calculate it
         if (NV_par_requested == 0) {
             // Assume that we want one partition per Alveo card unless overridden by num_par option
-            int numPartitionsThisServer = globalOpts_.devNeed_cmd;
+            int numPartitionsThisServer = globalOpts_.numDevices;
 
             // If num_par specifies more partitions than we have total number of devices in the cluster,
             // create num_par devices instead.  This feature is for testing partitioning of smaller graphs,
             // but can also be used to pre-calculate the partitions for graphs that are so large that each
             // Alveo card needs to process more than its maximum number of vertices.
-            int totalNumDevices = settings_.numServers * globalOpts_.devNeed_cmd;
+            int totalNumDevices = settings_.numServers * globalOpts_.numDevices;
             if (partOpts_.numPars > totalNumDevices) {
                 // Distribute partitions evenly among servers
                 numPartitionsThisServer = partOpts_.numPars / settings_.numServers;
@@ -290,8 +290,12 @@ public:
     Options options_;  // copy of options passed to LouvainMod constructor
     ComputedSettings settings_;
     std::unique_ptr<PartitionRun> partitionRun_;  // the active or most recent partition run
-    
-    LouvainModImpl(const Options &options) : options_(options), settings_(options) {}
+    void loadComputeUnitsToFPGAs();
+    bool computeUnitsLoaded;
+    LouvainModImpl(const Options &options) : options_(options), settings_(options) 
+    {
+
+    }
 
 };
 
@@ -433,7 +437,7 @@ float LouvainMod::loadAlveoAndComputeLouvain(const ComputeOptions &computeOpts)
     finalQ = ::loadAlveoAndComputeLouvain(
                 (char *)(pImpl_->options_.xclbinPath.c_str()), 
                 pImpl_->options_.flow_fast, 
-                pImpl_->options_.devNeed_cmd, 
+                pImpl_->options_.numDevices, 
                 pImpl_->options_.deviceNames,
                 (char*)(pImpl_->options_.alveoProject.c_str()),
                 pImpl_->settings_.modeZmq, 
@@ -450,6 +454,22 @@ float LouvainMod::loadAlveoAndComputeLouvain(const ComputeOptions &computeOpts)
 #endif    
     return finalQ;
     
+}
+
+//#####################################################################################################################
+//
+// LouvainModImpl Members
+//
+void LouvainModImpl::loadComputeUnitsToFPGAs() 
+{
+#ifndef NDEBUG
+    std::cout << "DEBUG: Running LouvainModImpl::loadComputeUnitsToFPGAs" << std::endl;
+#endif
+    // call the one in global namespace
+    ::loadComputeUnitsToFPGAs((char *)(options_.xclbinPath.c_str()), 
+                              options_.flow_fast,
+                              options_.numDevices,
+                              options_.deviceNames);
 }
 
 }  // namespace louvainmod

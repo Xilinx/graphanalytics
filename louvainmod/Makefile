@@ -261,8 +261,13 @@ graph = ./examples/data/as-Skitter-wt-r100.mtx
 graphFilename = $(notdir $(graph))
 graphBasename = $(basename $(graphFilename))
 alveoProject = $(CPPDEMO_OUT_DIR)/$(graphBasename)
-numPars=9
-numDevices=1
+numPars = 9
+numDevices = 1
+communityOutputOpt =
+ifneq ($(communityOutput),)
+    communityOutputOpt = -o $(communityOutput)
+endif
+
 #deviceNames="xilinx_u50_gen3x16_xdma_201920_3 xilinx_u55c_gen3x16_xdma_base_1"
 deviceNames="xilinx_u50_gen3x16_xdma_201920_3"
 #deviceNames="xilinx_u55c_gen3x16_xdma_base_1"
@@ -272,11 +277,11 @@ CMDLINE_CREATE_PARTITIONS = $(graph) -fast -num_pars $(numPars) -create_alveo_pa
 WORKERS=192.168.1.21 192.168.1.31
 CMDLINE_LOAD_COMPUTE = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
     -fast -num_devices $(numDevices) -devices $(deviceNames) -num_level 100 -num_iter 100 -load_alveo_partitions \
-	$(alveoProject).par.proj -setwkr 0 -driverAlone
+	$(alveoProject).par.proj -setwkr 0 -driverAlone $(communityOutputOpt)
 
 CMDLINE_LOAD_COMPUTE_DRIVER = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
     -fast -num_devices $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
-	$(alveoProject).par.proj -setwkr 2 $(WORKERS) -driverAlone
+	$(alveoProject).par.proj -setwkr 2 $(WORKERS) -driverAlone $(communityOutputOpt)
 
 CMDLINE_LOAD_COMPUTE_WORKER1 = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
     -fast -num_devices $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
@@ -576,3 +581,4 @@ help:
 	@echo "alveoProject: Alveo project name without .par.proj extension"
 	@echo "numPars: Number of partitions (default=1)"
 	@echo "numDevices: Number of devices (default=1)"
+	@echo "communityOutput: Output file for detected communities"

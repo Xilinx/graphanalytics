@@ -54,11 +54,12 @@ int main(int argc, char **argv) {
     }
 
     // set internal options fields based to commandline options
+    options.modeAlveo = toolOptions.mode_alveo;
     options.xclbinPath = toolOptions.xclbinPath;
     options.flow_fast = toolOptions.flow_fast;
     options.nameProj = toolOptions.nameProj;
     options.alveoProject = toolOptions.alveoProject;
-    options.devNeed_cmd = toolOptions.numDevices;
+    options.numDevices = toolOptions.numDevices;
     options.deviceNames = toolOptions.deviceNames;   
     if (toolOptions.mode_zmq == ZMQ_DRIVER)
         options.nodeId = 0;

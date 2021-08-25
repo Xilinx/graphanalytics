@@ -27,9 +27,16 @@
 #include <time.h>
 #include "common.hpp"
 
+
 namespace xf {
 namespace graph {
 namespace L3 {
+
+
+enum {
+    LOUVAINMOD_PRUNING_KERNEL = 2,
+    LOUVAINMOD_2CU_U55C_KERNEL = 4
+};
 
 class opLouvainModularity : public opBase {
    public:
@@ -57,7 +64,8 @@ class opLouvainModularity : public opBase {
               std::string xclbinFile, uint32_t* deviceIDs, uint32_t* cuIDs, 
               unsigned int requestLoad);
 
-    void loadGraph(graphNew* G, int flowMode, bool opts_coloring, long opts_minGraphSize, double opts_C_thresh, int numThreads);
+    void mapHostToClBuffers(graphNew* G, int flowMode, bool opts_coloring, 
+                                         long opts_minGraphSize, double opts_C_thresh, int numThreads);
 
     static int compute(unsigned int deviceID,
                        unsigned int cuID,
@@ -67,6 +75,7 @@ class opLouvainModularity : public opBase {
                        std::string instanceName,
                        clHandle* handles,
 					   int flowMode,
+                       uint32_t numBuffers,
                        GLV* pglv_iter,
                        double opts_C_thresh,
 					   KMemorys_host* buff_host,
@@ -95,6 +104,7 @@ class opLouvainModularity : public opBase {
     std::vector<int> deviceOffset;
     uint32_t numDevices_;
     uint32_t maxCU_;
+    uint32_t numBuffers_ = 23;
 
     static void bufferInit(clHandle* hds, long NV, long NE_mem_1, long NE_mem_2, KMemorys_host* buff_host);
 
@@ -114,6 +124,8 @@ class opLouvainModularity : public opBase {
                               std::vector<cl::Memory>& ob,
                               std::vector<cl::Event>* evIn,
                               cl::Event* evOut);
+
+    static void releaseMemObjects(clHandle* hds, uint32_t numBuffer);
 
     static void cuRelease(xrmContext* ctx, xrmCuResource* resR);
 

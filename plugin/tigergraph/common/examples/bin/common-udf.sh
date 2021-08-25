@@ -79,9 +79,9 @@ if [ ! -r "$TGHOME/.tg.cfg" ]; then
     exit 1
 fi
 
-tg_root_dir=$(cat $HOME/.tg.cfg | jq .System.AppRoot | tr -d \")
-tg_temp_root=$(cat $HOME/.tg.cfg | jq .System.TempRoot | tr -d \")
-tg_data_root=$(cat $HOME/.tg.cfg | jq .System.DataRoot | tr -d \")
+tg_root_dir=$(cat $TGHOME/.tg.cfg | jq .System.AppRoot | tr -d \")
+tg_temp_root=$(cat $TGHOME/.tg.cfg | jq .System.TempRoot | tr -d \")
+tg_data_root=$(cat $TGHOME/.tg.cfg | jq .System.DataRoot | tr -d \")
 
 # set up PATH for tigergraph commands
 export PATH=$tg_root_dir/../cmd:$PATH

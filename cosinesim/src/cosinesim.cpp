@@ -74,7 +74,6 @@ public:
                                  int32_t* resultID,
                                  float* similarity);
 
-    //PrivateImpl(CosineSimBase* ptr, unsigned valueSize){
     PrivateImpl(const Options &options, unsigned valueSize){
         //errorCode_ = NoError;
         valueSize_ = valueSize;

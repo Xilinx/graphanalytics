@@ -3588,7 +3588,7 @@ extern "C" float load_alveo_partitions(unsigned int num_partitions, unsigned int
  -3:
 */
 int compute_louvain_alveo_seperated_load(
-    char* xclbinPath, int flowMode, unsigned int numDevices, std::string deviceNames,
+    int flowMode, unsigned int numDevices,
     unsigned int numPartitions, char* alveoProject,
     int mode_zmq, int numPureWorker, char* nameWorkers[128], unsigned int nodeID,
     float tolerance, bool verbose, std::shared_ptr<xf::graph::L3::Handle>& handle0,
@@ -3596,10 +3596,8 @@ int compute_louvain_alveo_seperated_load(
 {
 #ifndef NDEBUG
     std::cout << "DEBUG: " << __FUNCTION__   
-              << "\n     xclbinPath=" << xclbinPath
               << "\n     flowMode=" << flowMode
               << "\n     numDevices=" << numDevices
-              << "\n     deviceNames=" << deviceNames
               << "\n     numPartitions=" << numPartitions 
               << "\n     alveoProject=" << alveoProject
               << "\n     mode_zmq=" << mode_zmq 
@@ -3614,50 +3612,14 @@ int compute_louvain_alveo_seperated_load(
 
 #endif
     int status = 0;
-    std::string opName = "louvainModularity";
-    std::string kernelName = "kernel_louvain";
-    int requestLoad = 100;
     bool isPrun = true;
-    int cuNm = 1;
 
-    //double opts_C_thresh = 0.0002;    // Threshold with coloring on
-    double opts_C_thresh = tolerance;   // Threshold with coloring on
-    long opts_minGraphSize = 10;        // Min |V| to enable coloring
     double opts_threshold = 0.000001;   // Value of threshold, no impect on for FPGA related flows.
     int par_prune = 1;
-    int numThreads = 16;
-    bool opts_coloring = false;
-    //int flowMode = 1;
-
     int numNode = numPureWorker + 1;
-//    if (flow_fast) {
-//        flowMode = 2; // fast kernel  MD_FAST
-//    } else {
-//        flowMode = 1; // normal kernel MD_NORMAL
-//    }
-
-    xf::graph::L3::Handle::singleOP* op0 = new(xf::graph::L3::Handle::singleOP);
-    //----------------- Set parameters of op0 again some of those will be covered by command-line
-    op0->operationName = opName;
-    op0->setKernelName((char*)kernelName.c_str());
-    op0->requestLoad = requestLoad;
-    op0->xclbinPath = xclbinPath;
-    op0->numDevices = numDevices;
-    if(flowMode==4 ) cuNm = 2;
-    op0->cuPerBoard = cuNm;
-
-    std::cout << "INFO: numNode: " << numNode << std::endl;
-    std::cout << "INFO: numDevices requested: " << op0->numDevices << std::endl;
-
-    //----------------- enable handle0--------
-    handle0->addOp(*op0);
-    status = handle0->setUp(deviceNames);
 
     if (status < 0)
        return status;
-
-    (handle0->oplouvainmod)->loadGraph(NULL, flowMode, opts_coloring,
-        opts_minGraphSize, opts_C_thresh, numThreads);
 
     if (mode_zmq == ZMQ_DRIVER) {
         //-----------------------------------------------------------------
@@ -3826,13 +3788,15 @@ void freeSharedHandle()
 // create a new shared handle if
 // 1. The shared handle does not exist or
 // 2. The numDevices option changes
-void createSharedHandle(uint32_t numDevices)
+void createSharedHandle(
+    char* xclbinPath, int flowMode, unsigned int numDevices, std::string deviceNames,
+    bool opts_coloring, long opts_minGraphSize, double opts_C_thresh, int numThreads)
 {
     // return right away if the handle has already been created
     if (!sharedHandlesLouvainMod::instance().handlesMap.empty()) {
         std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesLouvainMod::instance().handlesMap[0];
 
-        std::cout << "DEBUG: " << __FUNCTION__ << "numDevices=" << handle0->getNumDevices() << std::endl;
+        std::cout << "DEBUG: " << __FUNCTION__ << " numDevices=" << handle0->getNumDevices() << std::endl;
         handle0->showHandleInfo();
         if (numDevices != handle0->getNumDevices()) {
             std::cout << "INFO: " << __FUNCTION__ << "numDevices changed. Creating a new handle." 
@@ -3848,26 +3812,71 @@ void createSharedHandle(uint32_t numDevices)
     std::cout << "INFO: " << __FUNCTION__ << std::endl;
     std::shared_ptr<xf::graph::L3::Handle> handleInstance(new xf::graph::L3::Handle);
     sharedHandlesLouvainMod::instance().handlesMap[0] = handleInstance;
+    loadComputeUnitsToFPGAs(xclbinPath, flowMode, numDevices, deviceNames);
+    std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesLouvainMod::instance().handlesMap[0];
+    (handle0->oplouvainmod)->mapHostToClBuffers(NULL, flowMode, opts_coloring,
+        opts_minGraphSize, opts_C_thresh, numThreads);
+}
+
+void loadComputeUnitsToFPGAs(
+    char* xclbinPath, 
+    int flowMode,
+    unsigned int numDevices,
+    std::string deviceNames)
+{
+#ifndef NDEBUG
+    std::cout << "DEBUG: loadComputeUnitsToFPGAs"
+              << "\n     xclbinPath=" << xclbinPath
+              << "\n     flowMode=" << flowMode
+              << "\n     numDevices=" << numDevices
+              << "\n     deviceNames=" << deviceNames
+              << std::endl;
+#endif
+    int status = 0;
+
+    std::string opName = "louvainModularity";
+    std::string kernelName = "kernel_louvain";
+    int requestLoad = 100;
+    int numCUs = 1;
+
+    std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesLouvainMod::instance().handlesMap[0];
+
+    xf::graph::L3::Handle::singleOP* op0 = new(xf::graph::L3::Handle::singleOP);
+    //----------------- Set parameters of op0 again some of those will be covered by command-line
+    op0->operationName = opName;
+    op0->setKernelName((char*)kernelName.c_str());
+    op0->requestLoad = requestLoad;
+    op0->xclbinPath = xclbinPath;
+    op0->numDevices = numDevices;
+    if (flowMode == 4) numCUs = 2;
+    op0->cuPerBoard = numCUs;
+
+    //----------------- enable handle0--------
+    handle0->addOp(*op0);
+    status = handle0->setUp(deviceNames);
 }
 
 /*
-    Return values:
+loadAlveoAndComputeLouvain
+Return values:
     -1 to 1: Modularity value
     -2: Error in getNumPartitions
     -3: Error in compute_louvain_alveo_seperated_load
 */
-extern "C" float loadAlveoAndComputeLouvain (
+extern "C" float loadAlveoAndComputeLouvain(
     char* xclbinPath, int flowMode, unsigned int numDevices, std::string deviceNames,
-    char* alveoProject,
-    unsigned mode_zmq, unsigned numPureWorker, char* nameWorkers[128], unsigned int nodeID,
-    char* opts_outputFile, unsigned int max_iter, unsigned int max_level, 
+    char* alveoProject, unsigned mode_zmq, unsigned numPureWorker, char* nameWorkers[128], 
+    unsigned int nodeID, char* opts_outputFile, unsigned int max_iter, unsigned int max_level, 
     float tolerance, bool intermediateResult, bool verbose, bool final_Q, bool all_Q) {
-
-    createSharedHandle(numDevices);
-    std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesLouvainMod::instance().handlesMap[0];
 
     ParLV parlv_drv, parlv_wkr;
     float ret = 0;
+
+    bool opts_coloring = false;
+    long opts_minGraphSize = 10;        // Min |V| to enable coloring
+    double opts_C_thresh = tolerance;   // Threshold with coloring on
+    int numThreads = 16;
+
 
     int numPartitions = getNumPartitions(alveoProject);
 
@@ -3879,13 +3888,16 @@ extern "C" float loadAlveoAndComputeLouvain (
         int id_glv = 0;
         for (int i=0; i<numPartitions; i++) {
             //std::cout << "------------" << __FUNCTION__ << " id_glv=" << id_glv << std::endl;
-
             parlv_drv.par_src[i] = new GLV(id_glv);
         }     
     }
     
+    createSharedHandle(xclbinPath, flowMode, numDevices, deviceNames, opts_coloring,
+                       opts_minGraphSize, opts_C_thresh, numThreads);
+
+    std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesLouvainMod::instance().handlesMap[0];
     ret = compute_louvain_alveo_seperated_load(
-            xclbinPath, flowMode, numDevices, deviceNames, numPartitions, alveoProject,
+            flowMode, numDevices, numPartitions, alveoProject,
             mode_zmq, numPureWorker, nameWorkers, nodeID, tolerance, verbose, handle0, 
             &parlv_drv, &parlv_wkr);
     

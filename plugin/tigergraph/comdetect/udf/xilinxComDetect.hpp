@@ -241,7 +241,7 @@ inline int udf_create_and_load_alveo_partitions(bool use_saved_partition,
     xilinx_apps::louvainmod::Options options;
           options.xclbinPath = PLUGIN_XCLBIN_PATH;
           options.nameProj = alveo_project;
-          options.devNeed_cmd = pContext->getNumDevices();
+          options.numDevices = pContext->getNumDevices();
           options.deviceNames = pContext->deviceNames_;
           options.nodeId = pContext->getNodeId();
           options.hostName = pContext->curNodeHostname_;
@@ -249,10 +249,10 @@ inline int udf_create_and_load_alveo_partitions(bool use_saved_partition,
           options.hostIpAddress = pContext->getCurNodeIp();
 
 #ifdef XILINX_COM_DETECT_DEBUG_ON
-          std::cout << "DEBUG: louvainmod options:"
+          std::cout << "DEBUG: udf_create_and_load_alveo_partitions. louvainmod options:"
                   << "\n    xclbinPath=" << options.xclbinPath
                   << "\n    nameProj=" << options.nameProj
-                  << "\n    devNeed_cmd=" << options.devNeed_cmd
+                  << "\n    numDevices=" << options.numDevices
                   << "\n    deviceNames=" << options.deviceNames
                   << "\n    nodeId=" << options.nodeId
                   << "\n    hostName=" << options.hostName

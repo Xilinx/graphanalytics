@@ -167,7 +167,7 @@ public:
             xilinx_apps::louvainmod::Options options;
             options.xclbinPath = PLUGIN_XCLBIN_PATH;
             options.nameProj = alveoProject_;
-            options.devNeed_cmd = numDevices_;
+            options.numDevices = numDevices_;
             options.deviceNames = deviceNames_;
             options.nodeId = nodeId_;
             options.hostName = curNodeHostname_;
@@ -178,7 +178,7 @@ public:
             std::cout << "DEBUG: louvainmod options:"
                     << "\n    xclbinPath=" << options.xclbinPath
                     << "\n    nameProj=" << options.nameProj
-                    << "\n    devNeed_cmd=" << options.devNeed_cmd
+                    << "\n    numDevices=" << options.numDevices
                     << "\n    deviceNames=" << options.deviceNames
                     << "\n    nodeId=" << options.nodeId
                     << "\n    hostName=" << options.hostName
