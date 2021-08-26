@@ -197,7 +197,7 @@ void opLouvainModularity::mapHostToClBuffers (
 #endif
     //for(int i=0; i < numDevices_; i++) {
     for(int i=0; i < maxCU_; i++) {
-    	if (flowMode == 1) {
+    	if (flowMode == LOUVAINMOD_OPT_KERNEL) {
     		bufferInit(&handles[i], NV_orig, NE_mem_1, NE_mem_2, &buff_hosts[i]);
     	} else if (flowMode == LOUVAINMOD_2CU_U55C_KERNEL){
 #ifndef NDEBUG
@@ -278,7 +278,7 @@ int opLouvainModularity::compute(unsigned int deviceID,
 
     bool isLargeEdge = pglv_iter->G->numEdges > (glb_MAXNV / 2);
 
-    if (flowMode == 1) {
+    if (flowMode == LOUVAINMOD_OPT_KERNEL) {
 #ifdef PRINTINFO
     	std::cout << "INFO: inside flow 1 " << std::endl;
 #endif
@@ -359,10 +359,10 @@ int opLouvainModularity::compute(unsigned int deviceID,
 
         cuRelease(ctx, resR);
 
-    } else if (flowMode == 3){
+    } else if (flowMode == LOUVAINMOD_RENUM_KERNEL){
 
 #ifdef PRINTINFO
-    	std::cout << "INFO: inside flow 3 " << std::string(hds[0].resR->instanceName) << std::endl;
+    	std::cout << "INFO: inside flow LOUVAINMOD_RENUM_KERNEL " << std::string(hds[0].resR->instanceName) << std::endl;
 #endif
     	KMemorys_host_prune* buf_host_prune = &buff_host_prune[which];
 #ifdef PRINTINFO
@@ -1237,7 +1237,7 @@ void opLouvainModularity::demo_par_core(int id_dev, int flowMode,
             pglv_orig->times.totTimeE2E      += pglv_orig->times.eachTimeE2E     [pglv_orig->times.phase - 1];
             pglv_orig->times.totItr          += pglv_orig->times.eachItrs        [pglv_orig->times.phase - 1];
         }
-        if(flowMode < 3) {
+        if (flowMode == LOUVAINMOD_PRUNING_KERNEL || flowMode == LOUVAINMOD_OPT_KERNEL) {
             pglv_orig->times.eachTimeReGraph[pglv_orig->times.phase - 1] = PhaseLoop_CommPostProcessing_par(
                 pglv_orig, pglv_iter, numThreads, opts_threshold, opts_coloring, nonColor,
 		    	pglv_orig->times.phase,
