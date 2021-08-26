@@ -144,7 +144,7 @@ endif
 
 EXE_NAME := host.exe
 EXE_FILE := $(BUILD_DIR)/$(EXE_NAME)
-HOST_ARGS :=  -x $(BUILD_DIR)/kernel_louvain.xclbin -f 3 -c -o -m 10000 -prun $(XFLIB_DIR)/L2/louvainmod_2cu_u55c_kernel/data/example-wt.txt
+HOST_ARGS :=  -x $(BUILD_DIR)/kernel_louvain.xclbin -f 3 -c -o -m 10 -fast2 $(XFLIB_DIR)/L2/louvainmod_2cu_u55c_kernel/data/example-wt.txt
 
 # ##################### Kernel compiler global settings ##########################
 VPP_FLAGS += -t $(TARGET) --platform $(XPLATFORM) --save-temps --optimize 2
@@ -163,8 +163,8 @@ VPP_FLAGS += -I$(XFLIB_DIR)/L2/louvainmod_2cu_u55c_kernel
 VPP_FLAGS += --advanced.param compiler.userPostSysLinkOverlayTcl=$(CUR_DIR)/postSysLink.tcl
 
 kernel_louvain_VPP_FLAGS +=  -D KERNEL_NAME=kernel_louvain
-kernel_louvain_VPP_FLAGS += --hls.clock 250000000:kernel_louvain
-VPP_LDFLAGS_kernel_louvain += --kernel_frequency 250
+kernel_louvain_VPP_FLAGS += --hls.clock 200000000:kernel_louvain
+VPP_LDFLAGS_kernel_louvain += --kernel_frequency 200
 
 
 # ############################ Declaring Binary Containers ##########################
