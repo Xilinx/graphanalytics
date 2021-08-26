@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Xilinx, Inc.
+ * Copyright 2021 Xilinx, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,13 +47,13 @@ namespace xf {
 namespace graph {
 
 template <int CSRWIDTH, int COLORWIDTH>
-void _new_bus(bool use_push_flag,
-              ap_uint<FLAGW>* flag,
-              int coloradj1,
-              int coloradj2,
-              ap_uint<COLORWIDTH>* colorInx,
-              ap_uint<CSRWIDTH>* offset,
-              hls::stream<ap_uint<96> >& str_GetVout) {
+void SameColor_GetV(bool use_push_flag,
+                    ap_uint<FLAGW>* flag,
+                    int coloradj1,
+                    int coloradj2,
+                    ap_uint<COLORWIDTH>* colorInx,
+                    ap_uint<CSRWIDTH>* offset,
+                    hls::stream<ap_uint<96> >& str_GetVout) {
     StrmBus_M out_v;
     ap_uint<96> dinout;
 
@@ -235,6 +235,11 @@ GET_E:
         if ((d + 0) == e_dgr) {
             str_GetVout.read(dinout);
             u_vod.vod.get(dinout, v, off, e_dgr);
+            if(e_dgr <= 0 && (off>0)){
+                e_dgr = 0;//when off!=0 & dgr<=0 reset
+                d = 0;
+                continue;
+            }
             u_vd_ew.vd.set(dinout, v, e_dgr);
             str_GetEout.write(dinout);
             d = 0;
@@ -473,6 +478,8 @@ void SameColor_GetBest_Update_Gain_step1(short scl,
     ap_uint<128> dinout;
     ap_uint<160> dout;
 
+    bool readnew = false;
+
     GetKins_e = false;
     d = 0;
     numComm = 0;
@@ -574,6 +581,7 @@ GET_BEST:
     vf.vf.set(-1, -1);
     str_GainUpdate.write(vf);
 }
+
 
 template <int DWIDTH>
 void SameColor_GetBest_Update_TOT_Csize_hash3(short scl,
@@ -995,7 +1003,7 @@ void SameColor_dataflow(int numVertex,
     hls::stream<ap_uint<96> > str_GetVout("str_GetVout");
 #pragma HLS RESOURCE variable = str_GetVout core = FIFO_SRL
 #pragma HLS STREAM variable = str_GetVout depth = 256
-    _new_bus<CSRWIDTH, COLORWIDTH>(use_push_flag, flag, coloradj1, coloradj2, colorInx, offset, str_GetVout);
+    SameColor_GetV<CSRWIDTH, COLORWIDTH>(use_push_flag, flag, coloradj1, coloradj2, colorInx, offset, str_GetVout);
 
     hls::stream<ap_uint<96> > str_GetEout("str_GetEout");
 #pragma HLS RESOURCE variable = str_GetEout core = FIFO_LUTRAM
