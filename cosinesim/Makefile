@@ -14,6 +14,9 @@
 # limitations under the License.
 #
 
+#
+# Define __PROFILING__ to turn on profiling message from compute units
+#
 ifndef XILINX_XRT
     XILINX_XRT = /opt/xilinx/xrt
     export XILINX_XRT
@@ -35,11 +38,14 @@ all: stage
 # Global Definitions
 #
 
-## Location of graphanalytics project
+# Location of graphanalytics project
 GRAPH_ANALYTICS_DIR = ..
 
 # General output directory for intermediate build artifacts
 BUILD_DIR = build
+
+# Product version
+PRODUCT_VER=$(strip $(shell cat VERSION))
 
 #######################################################################################################################
 #
@@ -254,7 +260,7 @@ $(PYTHONENV_NAME):
 	$(PYTHONENV) -m pip install pybind11
 #	$(PYTHONENV) -m pip install python-config
 
-pythonApi2: $(CPP_BUILD_DIR) $(CPP_BUILD_DIR)/$(PYTHON_LIB_NAME)
+pythonApi2: $(CPP_BUILD_DIR) $(CPP_BUILD_DIR)/$(PYTHON_LIB_NAME) examples/python/run.sh
 
 $(CPP_BUILD_DIR)/$(PYTHON_LIB_NAME): $(OBJS_python)
 	$(LINK.cc) $^ -o $@ $(SHAREDLIB_FLAGS_python) $(LDFLAGS_python)
@@ -299,8 +305,7 @@ LDLIBS_test = \
 	
 
 SRC_FILE_NAMES_test = \
-    cosinesim_test.cpp \
-    fakeudf.cpp
+    cosinesim_test.cpp 
 
 SRCS_test = $(addprefix $(TEST_DIR)/,$(SRC_FILE_NAMES_test))
 OBJS_test = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_test:.cpp=.o)))
@@ -340,12 +345,6 @@ run-test: cppTest
 run-dyn-test: cppTest
 	LD_PRELOAD=$(PWD)/$(CPP_BUILD_DIR)/$(LIB_NAME) LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) \
 	    $(CPP_BUILD_DIR)/cosinesim_dyn_test $(NUMDEVICES)
-
-#LDFLAGS_fakeudf = -fPIC -w -L /scratch/tigergraph/tigergraph/app/3.1.0/dev/gdk/gsql/src/QueryUdf -lgraphL3wrapper -ldl
-LDFLAGS_fakeudf = -fPIC -w -L $(CPP_BUILD_DIR) -l$(LIB_SHORT_NAME)
-
-$(CPP_BUILD_DIR)/fakeudf: $(CPP_BUILD_DIR)/fakeudf.o
-	$(LINK.cc) -o $@ $^ $(LDFLAGS_fakeudf) $(LIB_DEPS)
 
 # Macro to create a .o rule and a .d rule for each .cpp
 
@@ -521,7 +520,7 @@ endif
 
 .PHONY: dist
 
-dist: stage
+dist: update-version stage
 	@cd package; \
 	if [ "$(DIST_TARGET)" == "" ]; then \
 	    echo "Packaging is supported for only Ubuntu and CentOS."; \
@@ -530,6 +529,12 @@ dist: stage
 	    make ; \
 	fi
 
+examples/python/run.sh: VERSION
+	# update PRODUCT_VER in python run.sh
+	sed -i 's/PRODUCT_VER=.*/PRODUCT_VER=$(PRODUCT_VER)/g' examples/python/run.sh
+	sed -i 's,/cosinesim/1.2/xclbin,/cosinesim/$(PRODUCT_VER)/xclbin,g' src/cosinesim.cpp
+
+update-version : examples/python/run.sh
 
 #######################################################################################################################
 #

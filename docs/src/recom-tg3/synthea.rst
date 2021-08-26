@@ -1,3 +1,5 @@
+.. _recomengine-synthea-label:
+
 Recommendation Engine Synthea Demo
 ==================================
 
@@ -29,3 +31,7 @@ every aspect of healthcare.
     recomengine-example-jupyter.rst
     recomengine-example-script.rst
     Demo Query Reference <synthea-query.rst>
+
+
+The demo can be downloaded from `Synthea Junpyter notebook on GitHub 
+<https://github.com/Xilinx/graphanalytics/blob/master/plugin/tigergraph/recomengine/examples/synthea/jupyter-demo/TG_demo.ipynb>`_.

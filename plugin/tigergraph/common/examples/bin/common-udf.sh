@@ -67,4 +67,23 @@ case $opt in
 esac
 done
 
+TGHOME=~tigergraph
+
+if [ ! -f "$TGHOME/.tg.cfg" ]; then
+    echo "ERROR: This script only supports TigerGraph version 3.x"
+    exit 1
+fi
+
+if [ ! -r "$TGHOME/.tg.cfg" ]; then
+    echo "ERROR: TigerGraph configuration file $HOME/.tg.cfg is not readable"
+    exit 1
+fi
+
+tg_root_dir=$(cat $TGHOME/.tg.cfg | jq .System.AppRoot | tr -d \")
+tg_temp_root=$(cat $TGHOME/.tg.cfg | jq .System.TempRoot | tr -d \")
+tg_data_root=$(cat $TGHOME/.tg.cfg | jq .System.DataRoot | tr -d \")
+
+# set up PATH for tigergraph commands
+export PATH=$tg_root_dir/../cmd:$PATH
+
 . $SCRIPTPATH/set-plugin-vars.sh

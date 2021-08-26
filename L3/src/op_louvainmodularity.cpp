@@ -123,7 +123,6 @@ void opLouvainModularity::init(class openXRM* xrm, std::string kernelName,
 {
     dupNmLouvainModularity = 100 / requestLoad;
     cuPerBoardLouvainModularity /= dupNmLouvainModularity;
-    uint32_t bufferNm = 23;
     unsigned int cnt = 0;
     unsigned int cntCU = 0;
     unsigned int* handleID = new unsigned int[maxCU_];
@@ -132,10 +131,10 @@ void opLouvainModularity::init(class openXRM* xrm, std::string kernelName,
     handles[0].cuID = cuIDs[0];
     handles[0].dupID = 0;
     std::thread th[maxCU_];
-    // th[0] = std::thread(&createHandleSim, std::ref(handles[cnt]), kernelName, xclbinFile, deviceIDs[cnt]);
+
     createHandleLouvainModularity(xrm, handles[cnt], kernelName, kernelAlias,
                                   xclbinFile, deviceIDs[cnt], requestLoad);
-    handles[cnt].buffer = new cl::Buffer[bufferNm];
+    handles[cnt].buffer = new cl::Buffer[numBuffers_];
     unsigned int prev = deviceIDs[0];
     deviceOffset.push_back(0);
     for (int i = 1; i < maxCU_; ++i) {
@@ -144,15 +143,12 @@ void opLouvainModularity::init(class openXRM* xrm, std::string kernelName,
         handles[i].dupID = i % dupNmLouvainModularity;
         createHandleLouvainModularity(xrm, handles[i], kernelName, kernelAlias,
                                       xclbinFile, deviceIDs[i], requestLoad);
-        handles[i].buffer = new cl::Buffer[bufferNm];
+        handles[i].buffer = new cl::Buffer[numBuffers_];
         if (deviceIDs[i] != prev) {
             prev = deviceIDs[i];
             deviceOffset.push_back(i);
         }
     }
-    // for (int j = 0; j < maxCU; ++j) {
-    //     th[j].join();
-    // }
     delete[] handleID;
 }
 
@@ -167,17 +163,28 @@ void opLouvainModularity::migrateMemObj(clHandle* hds,
     }
 };
 
+void opLouvainModularity::releaseMemObjects(clHandle* hds, uint32_t numBuffers) {
+#ifndef NDEBUG
+    std::cout << "DEBUG: releaseMemObjects numBuffers=" << numBuffers << std::endl;
+    delete[] hds[0].buffer;
+#endif    
 
-void opLouvainModularity::loadGraph(
-    graphNew* G, int flowMode, bool opts_coloring, long opts_minGraphSize, double opts_C_thresh, int numThreads) {
+};
 
-    unsigned long NV_orig;// = G->numVertices;
-    unsigned long NE_orig;// = G->numEdges;
+
+// mapHostToClBuffers runs only once for each handle since all buffers are mapped
+// to FPGA with fixed sizes.
+void opLouvainModularity::mapHostToClBuffers (
+    graphNew* Graph, int flowMode, bool opts_coloring, long opts_minGraphSize, 
+    double opts_C_thresh, int numThreads) 
+{
+
+    unsigned long NV_orig;    // = G->numVertices;
+    unsigned long NE_orig;    // = G->numEdges;
     
-    NV_orig = glb_MAXNV_M;//Now using fixed size for L3
-    NE_orig = (glb_MAXNV_M);//Now using fixed size for L3
-    if(NV_orig >=  glb_MAXNV-1)
-    {
+    NV_orig = glb_MAXNV_M;    // Now using fixed size for L3
+    NE_orig = (glb_MAXNV_M);  // Now using fixed size for L3
+    if (NV_orig >=  glb_MAXNV-1) {
         printf("WARNING: G->numVertices(%lx) is more than glb_MAXNV(%lx), partition should be used\n", NV_orig, glb_MAXNV);
         NV_orig = glb_MAXNV-2;
     }
@@ -185,23 +192,22 @@ void opLouvainModularity::loadGraph(
     long NE_mem = NE_orig * 2; // number for real edge to be stored in memory
     long NE_mem_1 = NE_mem < (glb_MAXNV) ? NE_mem : (glb_MAXNV);
     long NE_mem_2 = NE_mem - NE_mem_1;
-#ifdef PRINTINFO
-    printf("INFO: in loadGraph flowMode = %d\n\n", flowMode);
+#ifndef NDEBUG
+    printf("INFO: in mapHostToClBuffers flowMode = %d\n\n", flowMode);
 #endif
     //for(int i=0; i < numDevices_; i++) {
     for(int i=0; i < maxCU_; i++) {
-    	//loadGraphCoreLouvainModularity(&handles[i], NV_orig, NE_mem_1, NE_mem_2, &buff_hosts[i]);
-    	if(flowMode == 1){
+    	if (flowMode == 1) {
     		bufferInit(&handles[i], NV_orig, NE_mem_1, NE_mem_2, &buff_hosts[i]);
-    	} else if (flowMode == 4){
-#ifdef PRINTINFO
+    	} else if (flowMode == LOUVAINMOD_2CU_U55C_KERNEL){
+#ifndef NDEBUG
     		std::cout<< "INFO: start Create host buffer["<< i <<"] for 2-cu " <<std::endl;
 #endif
     		unsigned long NV_MAX = 85000000;//limited max vertexes for 2cu verion
     		UsingFPGA_MapHostClBuff_prune_2cu(&handles[i], NV_MAX, NE_mem_1, NE_mem_2, &buff_hosts_prune[i]);
     	} else {
-#ifdef PRINTINFO
-    		std::cout<< "INFO: start Create host buffer["<< i <<"]" <<std::endl;
+#ifndef NDEBUG
+    		std::cout<< "DEBUG: Start UsingFPGA_MapHostClBuff_prune for host buffer["<< i <<"]" <<std::endl;
 #endif
     		UsingFPGA_MapHostClBuff_prune(&handles[i], NV_orig, NE_mem_1, NE_mem_2, &buff_hosts_prune[i]);
     	}
@@ -216,6 +222,7 @@ int opLouvainModularity::compute(unsigned int deviceID,
                                  std::string instanceName0,
                                  clHandle* handles,
 								 int flowMode,
+                                 uint32_t numBuffers,
                                  GLV* pglv_iter,
                                  double opts_C_thresh,
 								 KMemorys_host* buff_host,
@@ -271,7 +278,7 @@ int opLouvainModularity::compute(unsigned int deviceID,
 
     bool isLargeEdge = pglv_iter->G->numEdges > (glb_MAXNV / 2);
 
-    if(flowMode == 1){
+    if (flowMode == 1) {
 #ifdef PRINTINFO
     	std::cout << "INFO: inside flow 1 " << std::endl;
 #endif
@@ -306,9 +313,11 @@ int opLouvainModularity::compute(unsigned int deviceID,
 #endif
 		eachTimeReadBuff[0] =
 			PhaseLoop_UsingFPGA_Prep_Read_buff_host(pglv_iter->NV, buf_host, eachItrs, pglv_iter->C, eachItrs, currMod);
+
+        
 		cuRelease(ctx, resR);
 
-    }else if (flowMode == 2){
+    } else if (flowMode == LOUVAINMOD_PRUNING_KERNEL) {
 #ifdef PRINTINFO
     	std::cout << "INFO: inside flow 2 " << std::endl;
 #endif
@@ -347,9 +356,10 @@ int opLouvainModularity::compute(unsigned int deviceID,
 #endif
         eachTimeReadBuff[0] =
             PhaseLoop_UsingFPGA_Prep_Read_buff_host_prune(pglv_iter->NV, buf_host_prune, eachItrs, pglv_iter->C, eachItrs, currMod);
+
         cuRelease(ctx, resR);
 
-    } else if (flowMode ==3){
+    } else if (flowMode == 3){
 
 #ifdef PRINTINFO
     	std::cout << "INFO: inside flow 3 " << std::string(hds[0].resR->instanceName) << std::endl;
@@ -392,7 +402,7 @@ int opLouvainModularity::compute(unsigned int deviceID,
             PhaseLoop_UsingFPGA_Prep_Read_buff_host_prune_renumber(pglv_iter->NV, buf_host_prune, eachItrs, pglv_iter->C, eachItrs, currMod, numClusters);
         cuRelease(ctx, resR);
 
-    }else{
+    } else{
 
 #ifdef PRINTINFO
     	std::cout << "INFO: inside flow 4 for renum+2cu opt version " << std::string(hds[0].resR->instanceName) << std::endl;
@@ -540,8 +550,11 @@ void opLouvainModularity::UsingFPGA_MapHostClBuff_prune(
 		KMemorys_host_prune     *buff_host_prune)
 {
 
-#ifdef PRINTINFO
-	std::cout<< "INFO: start MapHostClBuff " <<std::endl;
+#ifndef NDEBUG
+	std::cout << "DEBUG: " << __FUNCTION__
+              << "\n    NV=" << NV
+              << "\n    NE_mem_1=" << NE_mem_1
+              << "\n    NE_mem_2=" << NE_mem_2 << std::endl;
 #endif
 	std::vector<cl_mem_ext_ptr_t> mext_in(NUM_PORT_KERNEL+7);
 	buff_host_prune[0].config0       = aligned_alloc<int64_t>(6);//
@@ -553,11 +566,11 @@ void opLouvainModularity::UsingFPGA_MapHostClBuff_prune(
 	buff_host_prune[0].weights       = aligned_alloc<float>(NE_mem_1);
 	buff_host_prune[0].flag          = aligned_alloc<ap_uint<8> >(NV);
 	buff_host_prune[0].flagUpdate    = aligned_alloc<ap_uint<8> >(NV);
-    if(NE_mem_2>0){
+    if(NE_mem_2>0) {
     	buff_host_prune[0].indices2  = aligned_alloc<int  >(NE_mem_2);
     	buff_host_prune[0].indicesdup2  = aligned_alloc<int  >(NE_mem_2);
     }
-    if(NE_mem_2>0){
+    if(NE_mem_2>0) {
     	buff_host_prune[0].weights2  = aligned_alloc<float>(NE_mem_2);
     }
     buff_host_prune[0].cidPrev       = aligned_alloc<int  >(NV);
@@ -580,7 +593,7 @@ void opLouvainModularity::UsingFPGA_MapHostClBuff_prune(
     ap_uint<CSRWIDTHS>* axi_indices2;
     ap_uint<CSRWIDTHS>* axi_indicesdup2 = 0;
     ap_uint<CSRWIDTHS>* axi_weights2;
-    if(NE_mem_2>0){
+    if (NE_mem_2>0){
     	axi_indices2 = reinterpret_cast<ap_uint<CSRWIDTHS>*>(buff_host_prune[0].indices2);
     	axi_indicesdup2 = reinterpret_cast<ap_uint<CSRWIDTHS>*>(buff_host_prune[0].indicesdup2);
     	axi_weights2 = reinterpret_cast<ap_uint<CSRWIDTHS>*>(buff_host_prune[0].weights2);
@@ -598,7 +611,7 @@ void opLouvainModularity::UsingFPGA_MapHostClBuff_prune(
     ap_uint<COLORWIDTHS>* axi_colorInx      = reinterpret_cast<ap_uint<COLORWIDTHS>*>(buff_host_prune[0].colorInx);
     ap_uint<8>* axi_flag 					= reinterpret_cast<ap_uint<8>*>(buff_host_prune[0].flag);
     ap_uint<8>* axi_flagUpdate 				= reinterpret_cast<ap_uint<8>*>(buff_host_prune[0].flagUpdate);
-#ifdef PRINTINFO
+#ifndef NDEBUG
     std::cout<< "INFO: start mext_in " <<std::endl;
 #endif
     // DDR Settings
@@ -607,9 +620,9 @@ void opLouvainModularity::UsingFPGA_MapHostClBuff_prune(
     mext_in[2]      = {(unsigned int)(4)  | XCL_MEM_TOPOLOGY, axi_offsets,  0};
     mext_in[3]      = {(unsigned int)(0)  | XCL_MEM_TOPOLOGY, axi_indices,  0};
     mext_in[4]      = {(unsigned int)(2)  | XCL_MEM_TOPOLOGY, axi_weights,  0};
-    if(NE_mem_2>0){
-      mext_in[3+18] = {(unsigned int)(1)  | XCL_MEM_TOPOLOGY, axi_indices2, 0};
-      mext_in[4+18] = {(unsigned int)(3)  | XCL_MEM_TOPOLOGY, axi_weights2, 0};
+    if (NE_mem_2>0){
+        mext_in[3+18] = {(unsigned int)(1)  | XCL_MEM_TOPOLOGY, axi_indices2, 0};
+        mext_in[4+18] = {(unsigned int)(3)  | XCL_MEM_TOPOLOGY, axi_weights2, 0};
     }
     mext_in[5]      = {(unsigned int)(6)  | XCL_MEM_TOPOLOGY, axi_colorAxi, 0};
     mext_in[6]      = {(unsigned int)(8)  | XCL_MEM_TOPOLOGY, axi_colorInx, 0};
@@ -629,7 +642,7 @@ void opLouvainModularity::UsingFPGA_MapHostClBuff_prune(
 
     mext_in[18] = {(unsigned int)(7) | XCL_MEM_TOPOLOGY, axi_flag, 0};
     mext_in[19] = {(unsigned int)(9) | XCL_MEM_TOPOLOGY, axi_flagUpdate, 0};
-#ifdef PRINTINFO
+#ifndef NDEBUG
     std::cout<< "INFO: init buffer  " <<std::endl;
 #endif
     int flag_RW = CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE;
@@ -657,14 +670,14 @@ void opLouvainModularity::UsingFPGA_MapHostClBuff_prune(
     hds[0].buffer[19] = cl::Buffer(hds[0].context, flag_RW, sizeof(ap_uint<8>) * (NV), &mext_in[19]);
 
     if (NE_mem_2 > 0) {
-#ifdef PRINTINFO
+#ifndef NDEBUG
     std::cout<< "INFO: NE_mem_2 =  " <<NE_mem_2<<std::endl;
 #endif
     	hds[0].buffer[20] = cl::Buffer(hds[0].context, flag_RD, sizeof(int) * NE_mem_2, &mext_in[20]);
         hds[0].buffer[21] = cl::Buffer(hds[0].context, flag_RD, sizeof(int) * NE_mem_2, &mext_in[21]);
         hds[0].buffer[22] = cl::Buffer(hds[0].context, flag_RD, sizeof(int) * NE_mem_2, &mext_in[22]);
     }
-#ifdef PRINTINFO
+#ifndef NDEBUG
     std::cout<< "INFO: init buffer done!  " <<std::endl;
 #endif
 
@@ -1074,9 +1087,7 @@ void opLouvainModularity::PhaseLoop_UsingFPGA_1_KernelSetup_prune_2cu(
 		cl::Kernel              &kernel_run,
         std::vector<cl::Memory> &ob_in,
         std::vector<cl::Memory> &ob_out,
-		//KMemorys_clBuff_prune   &buff_cl
-		clHandle* hds
-)
+		clHandle* hds)
 {
 #ifdef PRINTINFO
     std::cout<< "INFO: start 2cu kernel setup " <<std::endl;
@@ -1405,10 +1416,10 @@ event<int> opLouvainModularity::addwork(GLV* glv, int flowMode,
                                         double* currMod,
                                         long*   numClusters,
                                         double* eachTimeInitBuff,
-                                        double* eachTimeReadBuff) {
-    // return createL3(task_queue[0], &(compute), handles, G, C_orig, opts_coloring, opts_minGraphSize, opts_threshold,
-    //                opts_C_thresh, numThreads)
-    return createL3(task_queue[0], &(compute), handles, flowMode, glv, opts_C_thresh, buff_hosts, buff_hosts_prune, eachItrs, currMod,
+                                        double* eachTimeReadBuff) 
+{
+    return createL3(task_queue[0], &(compute), handles, flowMode, numBuffers_, glv, 
+                    opts_C_thresh, buff_hosts, buff_hosts_prune, eachItrs, currMod,
                     numClusters, eachTimeInitBuff, eachTimeReadBuff);
 };
 

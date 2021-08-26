@@ -1689,15 +1689,17 @@ void FeatureLV::init(){
 FeatureLV::FeatureLV(){
 	init();
 }//FeatureLV()
+
 //////////////////////////////////////////////////////////////////////////////////////////
 int glb_cnt_glv=0;
-GLV* CreateByFile_general(char* inFile, int& id_glv){
+GLV* CreateByFile_general(char* inFile, int& id_glv)
+{
 	assert(inFile);
-	FILE* fp=fopen(inFile, "r");
-	if(fp==NULL){
+	FILE* fp = fopen(inFile, "r");
+	if (fp == NULL) {
 		printf("\033[1;31;40mERROR\033[0m: L3 can't open input file %s\n", inFile);
 		return NULL;
-	}else
+	} else
 		fclose(fp);
 	 GLV *glv_src = new GLV(id_glv);
 	 glv_src->InitByFile(inFile);

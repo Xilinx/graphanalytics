@@ -35,9 +35,9 @@ ifndef XILINX_XRM
     export XILINX_XRM
 endif
 
-#the default PROD_VERSION as the latest version
-ifndef PROD_VERSION 
-    PROD_VERSION = 0.1
+#the default PRODUCT_VER as the latest version
+ifndef PRODUCT_VER 
+    PRODUCT_VER = 0.1
 endif
 
 # Location of Alveo product if installed from sources
@@ -49,8 +49,8 @@ LIB_PATH = $(XF_PROJ_ROOT)/staging/lib
 INCLUDE_PATH = $(XF_PROJ_ROOT)/include
 
 ifeq ($(wildcard $(LIB_PATH)/*.so),)
-    LIB_PATH = $(XILINX_LOUVAIN)/${PROD_VERSION}/lib
-    INCLUDE_PATH = $(XILINX_LOUVAIN)/${PROD_VERSION}/include
+    LIB_PATH = $(XILINX_LOUVAIN)/${PRODUCT_VER}/lib
+    INCLUDE_PATH = $(XILINX_LOUVAIN)/${PRODUCT_VER}/include
 endif
 
 CXXFLAGS = -std=c++11 -fPIC -pthread -I$(INCLUDE_PATH) -Wall -Wextra -Wno-unknown-pragmas -Wno-unused-label \
@@ -75,10 +75,9 @@ cppdemo: cppdemo.cpp
 graph = ../data/as-Skitter-wt-r100.mtx
 alveoProject = $(basename $(notdir $(graph)))
 numPars=1
-serverPar=1 1
 numDevices=1
 deviceNames="xilinx_u50_gen3x16_xdma_201920_3"
-xclbin=$(XILINX_LOUVAIN)/${PROD_VERSION}/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+xclbin=$(XILINX_LOUVAIN)/${PRODUCT_VER}/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin
 workers=192.168.1.21 192.168.1.31
 
 run-create-partitions: cppdemo
@@ -89,8 +88,8 @@ run-create-partitions: cppdemo
 	. $(XILINX_XRT)/setup.sh; \
 	. $(XILINX_XRM)/setup.sh; \
 	LD_LIBRARY_PATH=$(LIB_PATH):$(LD_LIBRARAY_PATH); \
-	./cppdemo $(graph) -fast -par_num $(numPars) -create_alveo_partitions \
-	    -name $(alveoProject) -server_par $(serverPar)
+	./cppdemo $(graph) -fast -num_pars $(numPars) -create_alveo_partitions \
+	    -name $(alveoProject)
 
 run-load-compute: cppdemo
 	@echo "------------------------------------------------------------------------"
@@ -143,12 +142,15 @@ run-load-compute-worker2: cppdemo
 clean:
 	rm -f cppdemo
 
+clean-par:
+	rm -f $(alveoProject)*
+
 help:
 	@echo "Makefile usages:"
 	@echo "  make run-create-partitions [graph=/path/to/graph.mtx] [numPars=1]"
 	@echo "  Create partitions on a single node"
 	@echo ""
-	@echo "  make run-load-compute [graph=/path/to/graph.mtx] [numDevices=1]"
+	@echo "  make run-load-compute [graph=/path/to/graph.mtx] [numPars=1] [numDevices=1]"
 	@echo "  Load partition and compute Louvain modularity on a single node"
 	@echo ""
 	@echo "  Run test in a 3 node cluster"
@@ -165,7 +167,6 @@ help:
 	@echo "graph: graph input .mtx file"
 	@echo "alveoProject: Alveo project name without .par.proj extension"
 	@echo "numPars: Number of partitions (default=1)"
-	@echo "serverPar: Multi-server partition setting (default=\"1 9\")"
 	@echo "numDevices: Number of devices (default=1)"	
 	@echo "workers: set IP adresses for workers"
 

@@ -108,7 +108,7 @@ int Handle::setUp(std::string deviceNames)
             }
             std::thread thUn[boardNm];
             for (unsigned int j = 0; j < boardNm; ++j) {
-#ifndef NDEBUG__
+#ifndef NDEBUG
                 std::cout << "DEBUG: " << __FUNCTION__ << ": xrm->unloadXclbinNonBlock " 
                           << deviceCounter + j << std::endl;
 #endif
@@ -119,7 +119,7 @@ int Handle::setUp(std::string deviceNames)
             }
             std::future<int> th[boardNm];
             for (unsigned int j = 0; j < boardNm; ++j) {
-#ifndef NDEBUG__
+#ifndef NDEBUG
                 std::cout << "DEBUG: " << __FUNCTION__ << ": xrm->loadXclbinAsync " 
                           << "\n    devId=" << supportedDeviceIds_[j]
                           << "\n    ops[i].xclbinPath=" << ops[i].xclbinPath << std::endl;
@@ -254,14 +254,15 @@ void Handle::getEnv() {
         clGetDeviceInfo(devices[i], CL_DEVICE_NAME, 0, NULL, &valueSize);
         value = new char[valueSize];
         clGetDeviceInfo(devices[i], CL_DEVICE_NAME, valueSize, value, NULL);
-        std::cout << "INFO: " << __FUNCTION__ << ": Scanned device " << i << ":" << value << std::endl;
         if (std::find(supportedDeviceNames_.begin(), supportedDeviceNames_.end(), value) != supportedDeviceNames_.end()) {
-            std::cout << "    Supported device found:" << value << std::endl;            
+            std::cout << "INFO: Found requested device: " << value << " ID=" << i << std::endl;            
             supportedDeviceIds_[totalSupportedDevices_++] = i;  // save curret supported supported devices
-        }      
+        } else {
+            std::cout << "INFO: Skipped non-requested device: " << value << " ID=" << i << std::endl;
+        }
         delete[] value;
     }
-    std::cout << "INFO: " << __FUNCTION__ << ": Total supported devices: " << totalSupportedDevices_ << std::endl; 
+    std::cout << "INFO: Total matching devices: " << totalSupportedDevices_ << std::endl; 
 }
 
 void Handle::showHandleInfo() {

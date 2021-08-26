@@ -113,19 +113,16 @@ int cosineSimilaritySSDenseMultiCardBlocking(xf::graph::L3::Handle& handle,
 };
 
 #ifdef LOUVAINMOD
-void louvainModularity(xf::graph::L3::Handle& handle,
+void louvainModularity(std::shared_ptr<xf::graph::L3::Handle> handle,
 					   int flowMode,
                        GLV* glv,
                        GLV* pglv,
 					   LouvainPara* para_lv)
 {
 #ifndef NDEBUG
-    std::cout << "DEBUG: " << __FUNCTION__ << " handle=" << &handle << std::endl;
+    std::cout << "DEBUG: " << __FUNCTION__ << " handle=" << handle << std::endl;
 #endif
-    // auto ev = (handle.oplouvainmod)
-    //              ->addwork(glv, opts_C_thresh, buff_cl, buff_host, kernel_louvain, q, eachItrs, currMod,
-    //              eachTimeInitBuff, eachTimeReadBuff);
-    (handle.oplouvainmod)
+    (handle->oplouvainmod)
         ->demo_par_core(0, flowMode, glv, pglv, para_lv);
 };
 #endif

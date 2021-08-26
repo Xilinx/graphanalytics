@@ -231,7 +231,7 @@ void ParLV_general_batch_thread(
 		char* xclbinPath, int numThreads,
 		long minGraphSize, double threshold, double C_threshold, bool isParallel, int numPhase);
 
-GLV* LouvainGLV_general_top(xf::graph::L3::Handle* handle0,
+GLV* LouvainGLV_general_top(std::shared_ptr<xf::graph::L3::Handle>& handle0,
                             ParLV& parlv,
                             int& id_glv,
 							LouvainPara* para_lv);

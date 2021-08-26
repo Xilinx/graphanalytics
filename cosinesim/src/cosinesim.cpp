@@ -74,7 +74,6 @@ public:
                                  int32_t* resultID,
                                  float* similarity);
 
-    //PrivateImpl(CosineSimBase* ptr, unsigned valueSize){
     PrivateImpl(const Options &options, unsigned valueSize){
         //errorCode_ = NoError;
         valueSize_ = valueSize;
@@ -102,7 +101,7 @@ public:
         if(options.numDevices > 0)
             numDevices = options.numDevices;
 
-        xclbinPath = "/opt/xilinx/apps/graphanalytics/cosinesim/1.2/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin";
+        xclbinPath = "/opt/xilinx/apps/graphanalytics/cosinesim/1.3/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin";
         std::cout << "INFO: Options::xcbinPath = " << (options.xclbinPath == nullptr ? "null"
             : options.xclbinPath) << std::endl;
         if (options.xclbinPath != nullptr)
@@ -282,59 +281,7 @@ public:
 
     }
 
-/*
-    int cosineSimilaritySSDenseMultiCard(std::shared_ptr<xf::graph::L3::Handle>& handle,
-                                         int32_t numDevices,
-                                         int32_t sourceNUM,
-                                         int32_t* sourceWeights,
-                                         int32_t topK,
-                                         xf::graph::Graph<int32_t, int32_t>** g,
-                                         int32_t* resultID,
-                                         float* similarity) {
-        std::vector<xf::graph::L3::event<int> > eventQueue;
-        float** similarity0 = new float*[numDevices];
-        int32_t** resultID0 = new int32_t*[numDevices];
-        int counter[numDevices];
-        for (int i = 0; i < numDevices; ++i) {
-            counter[i] = 0;
-            similarity0[i] = xf::graph::internal::aligned_alloc<float>(topK);
-            resultID0[i] = xf::graph::internal::aligned_alloc<int32_t>(topK);
-            memset(resultID0[i], 0, topK * sizeof(int32_t));
-            memset(similarity0[i], 0, topK * sizeof(float));
-        }
 
-        for (int i = 0; i < numDevices; ++i) {
-            eventQueue.push_back((handle->opsimdense)->addworkInt(
-                1, 0, sourceNUM, sourceWeights, topK, g[i][0], resultID0[i], similarity0[i]));
-        }
-        int ret = 0;
-        for (unsigned int i = 0; i < eventQueue.size(); ++i) {
-            ret += eventQueue[i].wait();
-        }
-        for (int i = 0; i < topK; ++i) {
-            similarity[i] = similarity0[0][counter[0]];
-            int32_t prev = 0;
-            resultID[i] = resultID0[0][counter[0]];
-            counter[0]++;
-            for (int j = 1; j < numDevices; ++j) {
-                if (similarity[i] < similarity0[j][counter[j]]) {
-                    similarity[i] = similarity0[j][counter[j]];
-                    resultID[i] = resultID0[j][counter[j]];
-                    counter[prev]--;
-                    prev = j;
-                    counter[j]++;
-                }
-            }
-        }
-        for (int i = 0; i < numDevices; ++i) {
-            free(similarity0[i]);
-            free(resultID0[i]);
-        }
-        delete[] similarity0;
-        delete[] resultID0;
-        return ret;
-    };
-*/
     std::vector<xf::graph::L3::event<int> > cosineSimilaritySSDenseMultiCard(
         std::shared_ptr<xf::graph::L3::Handle>& handle,
         int32_t numDevices,
@@ -350,11 +297,12 @@ public:
         std::chrono::time_point<std::chrono::high_resolution_clock> l_start_time;
 
         for (int i = 0; i < numDevices; ++i) {
-            l_start_time = std::chrono::high_resolution_clock::now();
+#ifdef __PROFILING__            
+            l_start_time = std::chrono::high_resolution_clock::now();           
             std::cout << "LOG2TIMELINE: " << __FUNCTION__
                       << "::addworkInt" << i << " start=" << l_start_time.time_since_epoch().count()
                       << std::endl;
-
+#endif
             eventQueue.push_back(
                 (handle->opsimdense)->addworkInt(
                     1, // similarityType
@@ -376,8 +324,9 @@ public:
         int sourceLen = edgeAlign8; // sourceIndice array length
         int32_t* sourceFeatures = xf::graph::internal::aligned_alloc<int32_t>(sourceLen); // values of features in source
         int32_t* sourceCoeffs = xf::graph::internal::aligned_alloc<int32_t>(sourceLen);   // weights of features in source 
+#ifndef NDEBUG
         std::cout << "DEBUG: " << __FUNCTION__ << " sourceLen=" << sourceLen << std::endl;
-
+#endif
         for (int i = 0; i < sourceLen; i++) {
             if (i < vecLength) {
                 if(valueSize_ == 4)

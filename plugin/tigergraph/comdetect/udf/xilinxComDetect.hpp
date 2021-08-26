@@ -122,7 +122,8 @@ inline void udf_save_EdgePtr( ){
 
 }
 
-inline void udf_set_louvain_edge_list( uint64_t louvainIdSource, uint64_t louvainIdTarget, float wtAttr, uint64_t outDgr){
+inline void udf_set_louvain_edge_list( uint64_t louvainIdSource, uint64_t louvainIdTarget, float wtAttr, uint64_t outDgr) 
+{
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     int idx = louvainIdSource - pContext->getLouvainOffset();
@@ -228,6 +229,52 @@ inline int udf_load_alveo(uint num_partitions, uint num_devices)
     return retVal;
 }
 
+
+//add for loading mtx
+inline int udf_create_and_load_alveo_partitions(bool use_saved_partition,
+    std::string graph_file, std::string alveo_project, uint num_nodes, uint num_partitions,
+    uint gh_par)
+{
+    std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
+    xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+
+    xilinx_apps::louvainmod::Options options;
+          options.xclbinPath = PLUGIN_XCLBIN_PATH;
+          options.nameProj = alveo_project;
+          options.numDevices = pContext->getNumDevices();
+          options.deviceNames = pContext->deviceNames_;
+          options.nodeId = pContext->getNodeId();
+          options.hostName = pContext->curNodeHostname_;
+          options.clusterIpAddresses = pContext->getCurNodeIp();
+          options.hostIpAddress = pContext->getCurNodeIp();
+
+#ifdef XILINX_COM_DETECT_DEBUG_ON
+          std::cout << "DEBUG: udf_create_and_load_alveo_partitions. louvainmod options:"
+                  << "\n    xclbinPath=" << options.xclbinPath
+                  << "\n    nameProj=" << options.nameProj
+                  << "\n    numDevices=" << options.numDevices
+                  << "\n    deviceNames=" << options.deviceNames
+                  << "\n    nodeId=" << options.nodeId
+                  << "\n    hostName=" << options.hostName
+                  << "\n    clusterIpAddresses=" << options.clusterIpAddresses
+                  << "\n    hostIpAddress=" << options.hostIpAddress <<std::endl;
+#endif
+          xilinx_apps::louvainmod::LouvainMod* pLouvainMod = new xilinx_apps::louvainmod::LouvainMod(options);
+          int ret=0;
+
+          xilinx_apps::louvainmod::LouvainMod::PartitionOptions partOpts;
+
+          if (!use_saved_partition && pContext->getNodeId() == 0) {
+              std::cout << "DEBUG: Calling create_alveo_partitions" << std::endl;
+              //ret = create_and_load_alveo_partitions(argc, (char**)(argv));
+              partOpts.numPars = num_partitions;
+              partOpts.par_prune = gh_par;
+
+              pLouvainMod->partitionDataFile(&graph_file[0], partOpts);
+
+          }
+}
+
 inline bool udf_close_alveo(int mode)
 {
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
@@ -240,10 +287,9 @@ inline int udf_execute_reset(int mode) {
     pContext->clear();
 }
 
-
 inline float udf_louvain_alveo(
-    std::string graph_name, int64_t max_iter, int64_t max_level, float tolerance, bool intermediateResult,
-    bool verbose, string result_file, bool final_Q, bool all_Q)
+    const std::string& prj_pathname, const std::string& graph_name, int64_t max_iter, int64_t max_level, float tolerance, bool intermediateResult,
+    bool verbose, const std::string& result_file, bool final_Q, bool all_Q)
 {        
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
@@ -251,8 +297,11 @@ inline float udf_louvain_alveo(
     //std::string alveo_parj_path = pContext->getXGraphStorePath() + "/" + graph_name;
     //std::cout << "DEBUG: in udf_louvain_alveo alveo_parj_path = " << alveo_parj_path << std::endl;
     //pContext->setAlveoProject(alveo_parj_path);
-    pContext->setAlveoProject(graph_name);
-
+    if(prj_pathname.empty()) {
+        pContext->setAlveoProject(graph_name);
+    } else {
+        pContext->setAlveoProjectRaw(prj_pathname);
+    }
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
 
     // when restore pContext, nodeId  is missing

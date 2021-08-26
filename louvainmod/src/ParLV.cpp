@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
+#include <thread>
+#include <chrono>
+#include <unordered_map>
+
 #include "defs.h"
 #include "ParLV.h"
 #include "partitionLouvain.hpp"
 #include "louvainPhase.h"
 #include "ctrlLV.h"
-#include <thread>
-#include <chrono>
 #include "zmq/driver-worker/node.hpp"
 #include "zmq/driver-worker/worker.hpp"
 #include "zmq/driver-worker/driver.hpp"
@@ -936,7 +938,7 @@ int host_ParserParameters(int argc,
                           std::string& xclbinPath,     // Full path including filename to the xclbin files to be loaded
                           std::string& deviceNames,    // Target device names
                           int& numThread,
-                          int& num_par,
+                          int& numPars,
                           int& gh_par,
                           int& flow_prune,
                           int& numDevices,
@@ -949,7 +951,7 @@ int host_ParserParameters(int argc,
                           int& numPureWorker,
                           char* nameWorkers[128],
                           int& nodeID,
-						  int& server_par,
+						  int& numNodes,
 						  int& max_num_level,
 						  int& max_num_iter
                           ) 
@@ -968,7 +970,7 @@ int host_ParserParameters(int argc,
     int hasXclbinPath = general_findPara(argc, argv, "-x");
     int hasDeviceNames = general_findPara(argc, argv, "-devices");
     int has_numThread = general_findPara(argc, argv, "-thread");
-    int has_num_par = general_findPara(argc, argv, "-par_num");
+    int hasNumPars = general_findPara(argc, argv, "-num_pars");
     int has_gh_par = general_findPara(argc, argv, "-par_prune");
     int has_flow_prune = general_findPara(argc, argv, "-prun");
     int has_flow_fast = general_findPara(argc, argv, "-fast");
@@ -980,7 +982,7 @@ int host_ParserParameters(int argc,
     int has_driverAlone = general_findPara(argc, argv, "-driverAlone");
     int has_workerAlone = general_findPara(argc, argv, "-workerAlone");
     int has_cmd = general_findPara(argc, argv, "-cmd");
-    int has_server_par = general_findPara(argc, argv, "-server_par");
+    int hasNumNodes = general_findPara(argc, argv, "-num_nodes");
     int has_max_num_level = general_findPara(argc, argv, "-num_level");
     int has_max_num_iter = general_findPara(argc, argv, "-num_iter");
 
@@ -1134,18 +1136,13 @@ int host_ParserParameters(int argc,
         numThread = atoi(argv[has_numThread + 1]);
     } else
         numThread = 16;
-#ifdef PRINTINFO
-    printf("PARAMETER numThread = %i\n", numThread);
-#endif
-    if (has_num_par != -1 && has_num_par < (argc - 1)) {
-        rec[has_num_par] = true;
-        rec[has_num_par + 1] = true;
-        num_par = atoi(argv[has_num_par + 1]);
+
+    if (hasNumPars != -1 && hasNumPars < (argc - 1)) {
+        rec[hasNumPars] = true;
+        rec[hasNumPars + 1] = true;
+        numPars = atoi(argv[hasNumPars + 1]);
     } else
-        num_par = 2;
-#ifdef PRINTINFO
-    printf("PARAMETER  num_par = %i\n", num_par);
-#endif
+        numPars = 2;
 
     if (hasNumDevices != -1 && hasNumDevices < (argc - 1)) {
         rec[hasNumDevices] = true;
@@ -1197,20 +1194,15 @@ int host_ParserParameters(int argc,
         rec[has_opts_output + 1] = true; 
         
         opts_outputFile = argv[has_opts_output + 1];
-#ifdef PRINTINFO
-        printf("PARAMETER  opts_outFile = %s\n", opts_outputFile);
-#endif
     }
 
-    if (has_server_par != -1 && has_server_par < (argc - 1)) {
-        rec[has_server_par] = true;
-        rec[has_server_par + 1] = true;
-        server_par = atoi(argv[has_server_par + 1]);
+    if (hasNumNodes != -1 && hasNumNodes < (argc - 1)) {
+        rec[hasNumNodes] = true;
+        rec[hasNumNodes + 1] = true;
+        numNodes = atoi(argv[hasNumNodes + 1]);
     } else
-    	server_par = 1;
-#ifdef PRINTINFO
-    printf("PARAMETER server_par = %i\n", server_par);
-#endif
+    	numNodes = 1;
+
 
     if (has_max_num_level != -1 && has_max_num_level < (argc - 1)) {
         rec[has_max_num_level] = true;
@@ -1231,7 +1223,6 @@ int host_ParserParameters(int argc,
 #ifdef PRINTINFO
     printf("PARAMETER max_num_iter = %i\n", max_num_iter);
 #endif
-
 
     if (mode_alveo == ALVEOAPI_LOAD)
     	return 0; //No need to set input matrix file if
@@ -1258,7 +1249,12 @@ int host_ParserParameters(int argc,
             }
         }
     }
-
+#ifndef NDEBUG
+    std::cout << "DEBUG: host_ParserParameters "
+              << "\n    numPars=" << numPars
+              << "\n    numNodes=" << numNodes
+              << std::endl;
+#endif
     return 0;
 }
 
@@ -1268,9 +1264,9 @@ ToolOptions::ToolOptions(int argcIn, char** argvIn) {
     host_ParserParameters(argc, argv, 
         opts_C_thresh, opts_minGraphSize, threshold, opts_ftype, opts_inFile,
         opts_coloring, opts_output, outputFile, opts_VF, xclbinPath, deviceNames, 
-        numThreads, num_par, gh_par, flow_fast, numDevices, mode_zmq, path_zmq, 
+        numThreads, numPars, gh_par, flow_fast, numDevices, mode_zmq, path_zmq, 
         useCmd, mode_alveo, nameProj, alveoProject, numPureWorker, nameWorkers, 
-        nodeID, server_par, max_level, max_iter);
+        nodeID, numNodes, max_level, max_iter);
 }
 
 void PrintTimeRpt(GLV* glv, int num_dev, bool isHead) {
@@ -1620,7 +1616,7 @@ void PrintRptParameters(double opts_C_thresh,   // Threshold with coloring on
         opts_minGraphSize);
     printf(
         "Part Parameter \033[1;37;40mNumber of shares\033[0m: %-8d  \t\t\t Default=        2,       by command-line: "
-        "\" \033[1;37;40m-par_num  <v>\033[0m \" \n",
+        "\" \033[1;37;40m-num_pars  <v>\033[0m \" \n",
         num_par);
     printf(
         "Part Parameter \033[1;37;40mpruning thrhd   \033[0m: %-8d  \t\t\t Default=        1,       by command-line: "
@@ -2677,7 +2673,7 @@ int LoadParLV(char* name, ParLV* p_parlv) {
     return 0;
 }
 
-void Louvain_thread_core(xf::graph::L3::Handle* handle0,
+void Louvain_thread_core(std::shared_ptr<xf::graph::L3::Handle> handle0,
                          int flowMode,
                          GLV* glv_src,
                          GLV* glv,
@@ -2687,11 +2683,11 @@ void Louvain_thread_core(xf::graph::L3::Handle* handle0,
     std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__ 
               << " flowMode=" << flowMode << " NVl=" << glv->NVl << std::endl;
 #endif
-    xf::graph::L3::louvainModularity(handle0[0], flowMode, glv_src, glv, para_lv);
+    xf::graph::L3::louvainModularity(handle0, flowMode, glv_src, glv, para_lv);
 }
 
 GLV* L3_LouvainGLV_general(int& id_glv,
-                           xf::graph::L3::Handle* handle0,
+                           std::shared_ptr<xf::graph::L3::Handle>& handle0,
                            int flowMode,
                            GLV* glv_src,
 						   LouvainPara* para_lv)
@@ -2714,7 +2710,7 @@ GLV* L3_LouvainGLV_general(int& id_glv,
 /*
 
 */
-void Server_SubLouvain(xf::graph::L3::Handle* handle0,
+void Server_SubLouvain(std::shared_ptr<xf::graph::L3::Handle>& handle0,
                        ParLV& parlv,
                        int& id_glv,
 					   LouvainPara* para_lv)
@@ -2764,7 +2760,10 @@ void Server_SubLouvain(xf::graph::L3::Handle* handle0,
     parlv.timesPar.timeLv_all = getTime() - parlv.timesPar.timeLv_all;
 }
 
-GLV* Driver_Merge_Final(xf::graph::L3::Handle* handle0,
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+GLV* Driver_Merge_Final(std::shared_ptr<xf::graph::L3::Handle>& handle0,
                         ParLV& parlv,
                         int& id_glv,
 						LouvainPara* para_lv) {
@@ -2858,7 +2857,7 @@ int LouvainProcess_part1(int& nodeID, ParLV& parlv, char* tmp_msg_d2w, ParLV& pa
 } 
 
 void LouvainProcess_part2(int nodeID,
-                          xf::graph::L3::Handle* handle0,
+                          std::shared_ptr<xf::graph::L3::Handle>& handle0,
 						  LouvainPara* para_lv,
                           char* tmp_msg_w2d,
                           ParLV& parlv_wkr,
@@ -2914,7 +2913,8 @@ void Driver_Partition(ParLV& parlv, int& id_glv) {
     parlv.st_Partitioned = true;
 }
 
-GLV* UpdateCwithFinal(xf::graph::L3::Handle* handle0,
+/*
+GLV* UpdateCwithFinal(std::shared_ptr<xf::graph::L3::Handle>& handle0,
                       int flowMode,
                       GLV* glv_orig,
                       int num_dev,
@@ -2948,8 +2948,9 @@ GLV* UpdateCwithFinal(xf::graph::L3::Handle* handle0,
         return glv_final;
     }
 }
+*/
 
-GLV* Driver_Merge_Final_LoacalPar(xf::graph::L3::Handle* handle0,
+GLV* Driver_Merge_Final_LoacalPar(std::shared_ptr<xf::graph::L3::Handle>& handle0,
                                   ParLV& parlv,
                                   int& id_glv,
 								  LouvainPara* para_lv) {
@@ -2982,9 +2983,7 @@ GLV* Driver_Merge_Final_LoacalPar(xf::graph::L3::Handle* handle0,
 #ifdef PRINTINFO_2
     printf("\033[1;37;40mINFO: Now doing Final Louvain... \033[0m\n");
 #endif
-    /*GLV* glv_final = UpdateCwithFinal(handle0, parlv.flowMode,
-                                      parlv.plv_merged, // C will be updated
-                                      parlv.num_dev, parlv.isPrun, 1, id_glv, para_lv);*/
+
     GLV* glv_final = parlv.plv_merged;//->CloneSelf(id_glv);
 #ifdef PRINTINFO_2
     printf("\033[1;37;40mINFO: Now doing BackAnnotationg... \033[0m\n");
@@ -2999,7 +2998,7 @@ GLV* Driver_Merge_Final_LoacalPar(xf::graph::L3::Handle* handle0,
     return glv_final;
 }
 
-GLV* LouvainGLV_general_top(xf::graph::L3::Handle* handle0,
+GLV* LouvainGLV_general_top(std::shared_ptr<xf::graph::L3::Handle>& handle0,
                             ParLV& parlv,
                             int& id_glv,
 							LouvainPara* para_lv) {
@@ -3086,7 +3085,7 @@ GLV* par_general_4TG(long start_vertexInGlb, long* offsets_tg, edge* edgelist_tg
 int xai_save_partition(
     long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
 	long  start_vertex,     // If a vertex is smaller than star_vertex, it is a ghost
-	long  end_vertex,	    // If a vertex is larger than star_vertex-1, it is a ghost
+	long  end_vertex,	    // If a vertex is larger than end_vertex-1, it is a ghost
 	char* path_prefix,      // For saving the partition files like <path_prefix>_xxx.par
 						    // Different server can have different path_prefix
 	int par_prune,          // Can always be set with value '1'
@@ -3140,7 +3139,7 @@ int xai_save_partition(
 			}
 		} while(parlv_par_src[p] == NULL); //If the partition is too big to load on FPGA, reduce the NV_par until partition is small enough
         char nm[1024];
-		sprintf(nm, "_%1d%1d%1d.par", p / 100, (p / 10) % 10, p % 10);
+		sprintf(nm, "_%03d.par", p);
 		parlv_par_src[p]->SetName(nm);
 		char pathName[1024];
 		strcpy(pathName, path_prefix);
@@ -3165,7 +3164,7 @@ int Parser_ParProjFile(std::string projFile, ParLV& parlv, char* path, char* nam
     printf("DEBUG:\n    projFile=%s\n    path=%s\n    name=%s\n    name_inFile=%s\n", 
             projFile.c_str(), path, name, name_inFile);
 #endif    
-    // Format: -create_alveo_partitions <inFile> -par_num <par_num> -par_prune <par_prune> -name <ProjectFile>
+    // Format: -create_alveo_partitions <inFile> -num_pars <num_pars> -par_prune <par_prune> -name <ProjectFile>
     assert(path);
     assert(name);
     assert(name_inFile);
@@ -3189,7 +3188,6 @@ int Parser_ParProjFile(std::string projFile, ParLV& parlv, char* path, char* nam
         return -1;
     }
 
-
     if (strcmp("-create_alveo_partitions", ps.argv[0]) != 0) {
         printf("\033[1;31;40mERROR\033[0m: MessageParser_D2W: Unknow head%s. -create_alveo_partitions is required\n",
                ps.argv[0]);
@@ -3211,13 +3209,13 @@ int Parser_ParProjFile(std::string projFile, ParLV& parlv, char* path, char* nam
         parlv.timesPar.timePar_save = 0;
     }
     //////////////////////////////////////////////////////////////////////////
-    //for multi-server partition [-server_par <num_server> <num_par on server0> �..<num_par on server?>]
+    //for multi-server partition [-server_par num_server num_par_on_server0 ... num_par on serverN-1]
     int idx_server = ps.cmd_findPara("-server_par");
-    if (idx_server > -1){
+    if (idx_server > -1) {
     	parlv.num_par = 0;
     	parlv.num_server = atoi(ps.argv[idx_server+1]);
     	for(int i_svr = 0; i_svr < parlv.num_server; i_svr++){
-    		parlv.parInServer[i_svr] = atoi(ps.argv[idx_server+ 2 + i_svr]);
+    		parlv.parInServer[i_svr] = atoi(ps.argv[idx_server + 2 + i_svr]);
     		parlv.num_par += parlv.parInServer[i_svr];
     	}
     }
@@ -3264,23 +3262,14 @@ int Parser_ParProjFile(std::string projFile, ParLV& parlv, char* path, char* nam
     while (p < parlv.num_par){
         char nm[1024];
         if (parlv.num_server == 1)
-        	sprintf(nm, "%s_%1d%1d%1d.par", name, p / 100, (p / 10) % 10, p % 10);
+        	sprintf(nm, "%s_%03d.par", name, p);
         else {
-        	sprintf(nm, "%s_svr%d_%1d%1d%1d.par", name,i_svr, p_svr / 100, (p_svr / 10) % 10, p_svr % 10);
+        	sprintf(nm, "%s_svr%d_%03d.par", name, i_svr, p_svr);
         }
 #ifndef NDEBUG
-        printf("DEBUG:     par_src->name[%d]=%s\n", p, nm);
+        printf("DEBUG:     par_src->name[%3d]=%s\n", p, nm);
 #endif        
         parlv.par_src[p]->SetName(nm);
-        // Do not check .par files from the driver as they are saved locally on each node
-        //char pathName[1024];
-        //strcpy(pathName, path);
-        //FILE* fp = fopen(strcat(pathName, parlv.par_src[p]->name), "r");
-        //if (fp != NULL) {
-        //    fclose(fp);
-        //    cnt_file++;
-        //} else
-        //    printf("\033[1;31;40mERROR\033[0m: Partition Share %s not Found\n", pathName);
         cnt_file++;
         if (p_svr == parlv.parInServer[i_svr]-1) {
             i_svr++;
@@ -3361,7 +3350,7 @@ int load_alveo_partitions_DriverSelf(Driver* drivers,
     return status;
 }
 
-GLV* louvain_modularity_alveo(xf::graph::L3::Handle* handle0,
+GLV* louvain_modularity_alveo(std::shared_ptr<xf::graph::L3::Handle>& handle0,
                               ParLV& parlv,     // To collect time and necessary data
                               ParLV& parlv_wkr, // Driver's self data for sub-louvain
 							  LouvainPara* para_lv,
@@ -3530,7 +3519,7 @@ int LouvainGLV_general_top_zmq_worker_new_part1(
     return status;
 }
 
-void LouvainGLV_general_top_zmq_worker_new_part2(xf::graph::L3::Handle* handle0,
+void LouvainGLV_general_top_zmq_worker_new_part2(std::shared_ptr<xf::graph::L3::Handle>& handle0,
 												 LouvainPara* para_lv,
 												 int nodeID,
 												 ParLV& parlv_wkr)
@@ -3599,18 +3588,16 @@ extern "C" float load_alveo_partitions(unsigned int num_partitions, unsigned int
  -3:
 */
 int compute_louvain_alveo_seperated_load(
-    char* xclbinPath, int flowMode, unsigned int numDevices, std::string deviceNames,
+    int flowMode, unsigned int numDevices,
     unsigned int numPartitions, char* alveoProject,
     int mode_zmq, int numPureWorker, char* nameWorkers[128], unsigned int nodeID,
-    float tolerance, bool verbose, 
-    xf::graph::L3::Handle* handle0, ParLV* p_parlv_dvr, ParLV* p_parlv_wkr)
+    float tolerance, bool verbose, std::shared_ptr<xf::graph::L3::Handle>& handle0,
+    ParLV* p_parlv_dvr, ParLV* p_parlv_wkr)
 {
-#ifndef NDEBUG__
+#ifndef NDEBUG
     std::cout << "DEBUG: " << __FUNCTION__   
-              << "\n     xclbinPath=" << xclbinPath
               << "\n     flowMode=" << flowMode
               << "\n     numDevices=" << numDevices
-              << "\n     deviceNames=" << deviceNames
               << "\n     numPartitions=" << numPartitions 
               << "\n     alveoProject=" << alveoProject
               << "\n     mode_zmq=" << mode_zmq 
@@ -3625,50 +3612,14 @@ int compute_louvain_alveo_seperated_load(
 
 #endif
     int status = 0;
-    std::string opName = "louvainModularity";
-    std::string kernelName = "kernel_louvain";
-    int requestLoad = 100;
     bool isPrun = true;
-    int cuNm = 1;
 
-    //double opts_C_thresh = 0.0002;    // Threshold with coloring on
-    double opts_C_thresh = tolerance;   // Threshold with coloring on
-    long opts_minGraphSize = 10;        // Min |V| to enable coloring
     double opts_threshold = 0.000001;   // Value of threshold, no impect on for FPGA related flows.
     int par_prune = 1;
-    int numThreads = 16;
-    bool opts_coloring = false;
-    //int flowMode = 1;
-
     int numNode = numPureWorker + 1;
-//    if (flow_fast) {
-//        flowMode = 2; // fast kernel  MD_FAST
-//    } else {
-//        flowMode = 1; // normal kernel MD_NORMAL
-//    }
-
-    xf::graph::L3::Handle::singleOP* op0 = new(xf::graph::L3::Handle::singleOP);
-    //----------------- Set parameters of op0 again some of those will be covered by command-line
-    op0->operationName = opName;
-    op0->setKernelName((char*)kernelName.c_str());
-    op0->requestLoad = requestLoad;
-    op0->xclbinPath = xclbinPath;
-    op0->numDevices = numDevices;
-    if(flowMode==4 ) cuNm = 2;
-    op0->cuPerBoard = cuNm;
-
-    std::cout << "INFO: numNode: " << numNode << std::endl;
-    std::cout << "INFO: numDevices requested: " << op0->numDevices << std::endl;
-
-    //----------------- enable handle0--------
-    handle0->addOp(*op0);
-    status = handle0->setUp(deviceNames);
 
     if (status < 0)
        return status;
-
-    (handle0->oplouvainmod)->loadGraph(NULL, flowMode, opts_coloring,
-        opts_minGraphSize, opts_C_thresh, numThreads);
 
     if (mode_zmq == ZMQ_DRIVER) {
         //-----------------------------------------------------------------
@@ -3736,7 +3687,7 @@ extern "C" float compute_louvain_alveo_seperated_compute(
     int mode_zmq, int numPureWorker, char* nameWorkers[128], unsigned int nodeID,
     char* opts_outputFile, unsigned int max_iter, unsigned int max_level, 
     float tolerance, bool intermediateResult, bool verbose, bool final_Q, bool all_Q, 
-    xf::graph::L3::Handle* handle0,  ParLV* p_parlv_dvr, ParLV* p_parlv_wkr)
+    std::shared_ptr<xf::graph::L3::Handle>& handle0, ParLV* p_parlv_dvr, ParLV* p_parlv_wkr)
 {
 #ifndef NDEBUG
     printf("DEBUG:  compute_louvain_alveo_seperated_compute");
@@ -3813,22 +3764,119 @@ extern "C" float compute_louvain_alveo_seperated_compute(
     return 0;
 }
 
+// persistent storge for L3::Handle that is shared by L3 functions
+class sharedHandlesLouvainMod {
+   public:
+    std::unordered_map<unsigned int, std::shared_ptr<xf::graph::L3::Handle> > handlesMap;
+    static sharedHandlesLouvainMod& instance() {
+        static sharedHandlesLouvainMod theInstance;
+        return theInstance;
+    }
+};
+
+void freeSharedHandle()
+{
+    if (!sharedHandlesLouvainMod::instance().handlesMap.empty()) {
+        // free the object stored in handlsMap[0] and erase handlsMap[0]
+        std::cout << "INFO: " << __FUNCTION__ << std::endl;
+        std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesLouvainMod::instance().handlesMap[0];
+        handle0->free();
+        sharedHandlesLouvainMod::instance().handlesMap.erase(0);
+    }
+}
+
+// create a new shared handle if
+// 1. The shared handle does not exist or
+// 2. The numDevices option changes
+void createSharedHandle(
+    char* xclbinPath, int flowMode, unsigned int numDevices, std::string deviceNames,
+    bool opts_coloring, long opts_minGraphSize, double opts_C_thresh, int numThreads)
+{
+    // return right away if the handle has already been created
+    if (!sharedHandlesLouvainMod::instance().handlesMap.empty()) {
+        std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesLouvainMod::instance().handlesMap[0];
+
+        std::cout << "DEBUG: " << __FUNCTION__ << " numDevices=" << handle0->getNumDevices() << std::endl;
+        handle0->showHandleInfo();
+        if (numDevices != handle0->getNumDevices()) {
+            std::cout << "INFO: " << __FUNCTION__ << "numDevices changed. Creating a new handle." 
+                      << " numDevices loaded=" << handle0->getNumDevices()
+                      << " numDevices requested=" << numDevices << std::endl;
+            freeSharedHandle();
+        } else {
+            std::cout << "INFO: " << __FUNCTION__ << " Using exsiting handle with "
+                     << handle0->getNumDevices() << " devices loaded." << std::endl;
+            return;
+        }
+    }
+    std::cout << "INFO: " << __FUNCTION__ << std::endl;
+    std::shared_ptr<xf::graph::L3::Handle> handleInstance(new xf::graph::L3::Handle);
+    sharedHandlesLouvainMod::instance().handlesMap[0] = handleInstance;
+    loadComputeUnitsToFPGAs(xclbinPath, flowMode, numDevices, deviceNames);
+    std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesLouvainMod::instance().handlesMap[0];
+    (handle0->oplouvainmod)->mapHostToClBuffers(NULL, flowMode, opts_coloring,
+        opts_minGraphSize, opts_C_thresh, numThreads);
+}
+
+void loadComputeUnitsToFPGAs(
+    char* xclbinPath, 
+    int flowMode,
+    unsigned int numDevices,
+    std::string deviceNames)
+{
+#ifndef NDEBUG
+    std::cout << "DEBUG: loadComputeUnitsToFPGAs"
+              << "\n     xclbinPath=" << xclbinPath
+              << "\n     flowMode=" << flowMode
+              << "\n     numDevices=" << numDevices
+              << "\n     deviceNames=" << deviceNames
+              << std::endl;
+#endif
+    int status = 0;
+
+    std::string opName = "louvainModularity";
+    std::string kernelName = "kernel_louvain";
+    int requestLoad = 100;
+    int numCUs = 1;
+
+    std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesLouvainMod::instance().handlesMap[0];
+
+    xf::graph::L3::Handle::singleOP* op0 = new(xf::graph::L3::Handle::singleOP);
+    //----------------- Set parameters of op0 again some of those will be covered by command-line
+    op0->operationName = opName;
+    op0->setKernelName((char*)kernelName.c_str());
+    op0->requestLoad = requestLoad;
+    op0->xclbinPath = xclbinPath;
+    op0->numDevices = numDevices;
+    if (flowMode == 4) numCUs = 2;
+    op0->cuPerBoard = numCUs;
+
+    //----------------- enable handle0--------
+    handle0->addOp(*op0);
+    status = handle0->setUp(deviceNames);
+}
+
 /*
-    Return values:
+loadAlveoAndComputeLouvain
+Return values:
     -1 to 1: Modularity value
     -2: Error in getNumPartitions
     -3: Error in compute_louvain_alveo_seperated_load
 */
-extern "C" float loadAlveoAndComputeLouvain (
+extern "C" float loadAlveoAndComputeLouvain(
     char* xclbinPath, int flowMode, unsigned int numDevices, std::string deviceNames,
-    char* alveoProject,
-    unsigned mode_zmq, unsigned numPureWorker, char* nameWorkers[128], unsigned int nodeID,
-    char* opts_outputFile, unsigned int max_iter, unsigned int max_level, 
+    char* alveoProject, unsigned mode_zmq, unsigned numPureWorker, char* nameWorkers[128], 
+    unsigned int nodeID, char* opts_outputFile, unsigned int max_iter, unsigned int max_level, 
     float tolerance, bool intermediateResult, bool verbose, bool final_Q, bool all_Q) {
 
-    xf::graph::L3::Handle handle0;
     ParLV parlv_drv, parlv_wkr;
     float ret = 0;
+
+    bool opts_coloring = false;
+    long opts_minGraphSize = 10;        // Min |V| to enable coloring
+    double opts_C_thresh = tolerance;   // Threshold with coloring on
+    int numThreads = 16;
+
 
     int numPartitions = getNumPartitions(alveoProject);
 
@@ -3840,26 +3888,27 @@ extern "C" float loadAlveoAndComputeLouvain (
         int id_glv = 0;
         for (int i=0; i<numPartitions; i++) {
             //std::cout << "------------" << __FUNCTION__ << " id_glv=" << id_glv << std::endl;
-
             parlv_drv.par_src[i] = new GLV(id_glv);
         }     
     }
     
+    createSharedHandle(xclbinPath, flowMode, numDevices, deviceNames, opts_coloring,
+                       opts_minGraphSize, opts_C_thresh, numThreads);
+
+    std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesLouvainMod::instance().handlesMap[0];
     ret = compute_louvain_alveo_seperated_load(
-            xclbinPath, flowMode, numDevices, deviceNames,
-            numPartitions, alveoProject,
-            mode_zmq, numPureWorker, nameWorkers, nodeID,
-            tolerance, 
-            verbose, &handle0, &parlv_drv, &parlv_wkr);
+            flowMode, numDevices, numPartitions, alveoProject,
+            mode_zmq, numPureWorker, nameWorkers, nodeID, tolerance, verbose, handle0, 
+            &parlv_drv, &parlv_wkr);
     
     // return right away if load returns an error code
     if (ret < 0)
         return -3;
 
     ret = compute_louvain_alveo_seperated_compute(
-        mode_zmq, numPureWorker, nameWorkers, nodeID,
+        mode_zmq, numPureWorker, nameWorkers, nodeID, 
         opts_outputFile, max_iter, max_level, tolerance, intermediateResult,
-        verbose, final_Q, all_Q, &handle0, &parlv_drv, &parlv_wkr);
+        verbose, final_Q, all_Q, handle0, &parlv_drv, &parlv_wkr);
 
 
 	return ret;

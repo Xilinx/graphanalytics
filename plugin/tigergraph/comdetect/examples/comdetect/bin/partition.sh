@@ -36,26 +36,35 @@ set -e
 SCRIPT=$(readlink -f $0)
 script_dir=`dirname $SCRIPT`
 
-. $script_dir/bin/common.sh
+. $script_dir/common.sh
+use_saved_partition="FALSE"
 
     START=$(date +%s%3N)
-    echo "Running tg_partition_phase_1"
-    echo gsql -u $username -p $password -g $xgraph \'run query tg_partition_phase_1\([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\"\)\'
-    time gsql -u $username -p $password -g $xgraph "run query tg_partition_phase_1([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\")"
+    echo "Running load_alveo"
+    echo gsql -u $username -p $password -g $xgraph \'run query load_alveo\([\"Person\"], [\"Coworker\"], \"weight\", $use_saved_partition, \"$data_source\", \"$alveo_prj\", $num_partitions, $num_devices\)\'
+    time gsql -u $username -p $password -g $xgraph "run query load_alveo([\"Person\"], [\"Coworker\"], \
+         \"weight\", $use_saved_partition, \"$data_source\", \"$alveo_prj\", 9, 1)"
     TOTAL_TIME=$(($(date +%s%3N) - START))
-    echo "tg_partition_phase_1: " $TOTAL_TIME
+    echo "load_alveo: " $TOTAL_TIME
 
-    START=$(date +%s%3N)
-    echo "Running tg_partition_phase_2"
-    echo gsql -u $username -p $password -g $xgraph \'run query tg_partition_phase_2\([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\"\)\'
-    time gsql -u $username -p $password -g $xgraph "run query tg_partition_phase_2([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\")"
-    TOTAL_TIME=$(($(date +%s%3N) - START))
-    echo "tg_partition_phase_2: " $TOTAL_TIME
-    
-    START=$(date +%s%3N)
-    echo "Running tg_partition_phase_3"
-    echo gsql -u $username -p $password -g $xgraph \'run query tg_partition_phase_3\([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\", 1\)\'
-    time gsql -u $username -p $password -g $xgraph "run query tg_partition_phase_3([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\", 1)"
-    TOTAL_TIME=$(($(date +%s%3N) - START))
-    echo "tg_partition_phase_3 " $TOTAL_TIME
+   # START=$(date +%s%3N)
+   # echo "Running tg_partition_phase_1"
+   # echo gsql -u $username -p $password -g $xgraph \'run query tg_partition_phase_1\([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\"\)\'
+   # time gsql -u $username -p $password -g $xgraph "run query tg_partition_phase_1([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\")"
+   # TOTAL_TIME=$(($(date +%s%3N) - START))
+   # echo "tg_partition_phase_1: " $TOTAL_TIME
+
+   # START=$(date +%s%3N)
+   # echo "Running tg_partition_phase_2"
+   # echo gsql -u $username -p $password -g $xgraph \'run query tg_partition_phase_2\([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\"\)\'
+   # time gsql -u $username -p $password -g $xgraph "run query tg_partition_phase_2([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\")"
+   # TOTAL_TIME=$(($(date +%s%3N) - START))
+   # echo "tg_partition_phase_2: " $TOTAL_TIME
+   # 
+   # START=$(date +%s%3N)
+   # echo "Running tg_partition_phase_3"
+   # echo gsql -u $username -p $password -g $xgraph \'run query tg_partition_phase_3\([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\", 1\)\'
+   # time gsql -u $username -p $password -g $xgraph "run query tg_partition_phase_3([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\", 1)"
+   # TOTAL_TIME=$(($(date +%s%3N) - START))
+   # echo "tg_partition_phase_3 " $TOTAL_TIME
 

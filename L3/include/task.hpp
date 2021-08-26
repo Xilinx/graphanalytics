@@ -260,8 +260,8 @@ class openXRM {
                 return -2;
             }
         }
-        std::cout << "INFO: Available device number = " << availNumDevices << std::endl;
-        std::cout << "INFO: Available CU number = " << availMaxCU << std::endl;
+        std::cout << "INFO: Available number of devices: " << availNumDevices << std::endl;
+        std::cout << "INFO: Available number of CUs: " << availMaxCU << std::endl;
         if (availNumDevices >= numDevices) {
             // has sufficient devices. adjust maxCU based on requested numDevices
             maxCU = numDevices*availMaxCU/availNumDevices;

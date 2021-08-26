@@ -10,15 +10,19 @@ Installing the Alveo U50 Accelerator Card
 * Plug the Xilinx U50 Alveo acclerator card into a PCIe Gen3 x16 slot.
 * Power on the server.
 
-Installing the Xilinx XRT and XRM Libraries
--------------------------------------------
+Installing Cosine Similarity Library from a Pre-built Package
+-------------------------------------------------------------
+* Get the installation package `xilinx-tigergraph-install-1.0.2.tar.gz from 
+  Xilinx website <https://www.xilinx.com/member/forms/download/design-license-xef.html?filename=xilinx-tigergraph-install-1.0.2.tar.gz>`_ 
 
-* Download the 2020.2 version of XRM for the Alveo U50 accelerator card from
-  `xilinx.com <https://www.xilinx.com/products/boards-and-kits/alveo/u50.html#gettingStarted>`_ and install it.
+* Install Xilinx CosineSim and Recommendation Engine Alveo Products and 
+  dependencies (XRT, XRM, and U50 platform packages)
 
-* Follow the instructions from this
-  `Xilinx developer page <https://developer.xilinx.com/en/articles/orchestrating-alveo-compute-workloads-with-xrm.html>`_
-  to build and install XRM.
+.. code-block:: bash
+
+   tar xzf xilinx-tigergraph-install-1.0.2.tar.gz
+   cd xilinx-tigergraph-install && ./install.sh -p cosinesim
+
 
 Setting up the Alveo Accelerator Card
 -------------------------------------
@@ -44,10 +48,6 @@ Alveo card to use.  Check and install the shell by following the steps below.
 
 * If all cards to use contain the right shell, skip the remainder of this section.
 
-* Download the 2020.2 version of the shell for the Alveo U50 accelerator card from
-  `xilinx.com <https://www.xilinx.com/products/boards-and-kits/alveo/u50.html#gettingStarted>`_ and install it.
-  The package to download is called the "Deployment Target Platform."
-
 * Issue the following command to flash the cards.
 
 .. code-block:: bash
@@ -56,20 +56,11 @@ Alveo card to use.  Check and install the shell by following the steps below.
 
 * Cold reboot the server after flashing is done.
 
-Installing the Cosine Similarity Library
-----------------------------------------
-
-You can install the product from a pre-built DEB or RPM package.  Alternatively, as the product is an open-source
-project hosted on github, you can collaborate with Xilinx and contribute to the development of the product.
-
-Installing a Pre-built Package
-******************************
-
-* Download the Cosine Similarity installation package for your operating system from the
-  `Database Analytics POC Secure Site <https://www.xilinx.com/member/dba_poc.html>`_ and install it.
 
 Collaborating on the Cosine Similarity Product
-**********************************************
+----------------------------------------------
+The Cosine Similarity product is an open-source project hosted on github, you can 
+collaborate with Xilinx and contribute to the development of the product.
 
 * Clone the ``graphanalytics`` repository using ``git``.
 

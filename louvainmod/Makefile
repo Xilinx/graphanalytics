@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 
+SHELL := /bin/bash
+
 ifndef XILINX_XRT
     XILINX_XRT = /opt/xilinx/xrt
     export XILINX_XRT
@@ -255,27 +257,31 @@ $(CPP_BUILD_DIR)/cppdemo: $(CPP_BUILD_DIR)/cppdemo.o $(CPP_BUILD_DIR)/$(LIB_NAME
 	$(LINK.cc) -o $@ $< $(LDFLAGS_test) $(LIB_DEPS)
 
 CPPDEMO_OUT_DIR = $(CPP_BUILD_DIR)/cppdemo-out
-graph = ../plugin/tigergraph/comdetect/examples/comdetect/as-skitter/as-Skitter-wt-r100.mtx
+graph = ./examples/data/as-Skitter-wt-r100.mtx
 graphFilename = $(notdir $(graph))
 graphBasename = $(basename $(graphFilename))
 alveoProject = $(CPPDEMO_OUT_DIR)/$(graphBasename)
-numPars=9
-serverPar=1 9
-numDevices=1
+numPars = 9
+numDevices = 1
+communityOutputOpt =
+ifneq ($(communityOutput),)
+    communityOutputOpt = -o $(communityOutput)
+endif
+
 #deviceNames="xilinx_u50_gen3x16_xdma_201920_3 xilinx_u55c_gen3x16_xdma_base_1"
 deviceNames="xilinx_u50_gen3x16_xdma_201920_3"
 #deviceNames="xilinx_u55c_gen3x16_xdma_base_1"
-CMDLINE_CREATE_PARTITIONS = $(graph) -fast -par_num $(numPars) -create_alveo_partitions \
-                            -name $(alveoProject) -server_par $(serverPar)
+CMDLINE_CREATE_PARTITIONS = $(graph) -fast -num_pars $(numPars) -create_alveo_partitions \
+                            -name $(alveoProject)
 
-WORKERS="192.168.1.21 192.168.1.31"
+WORKERS=192.168.1.21 192.168.1.31
 CMDLINE_LOAD_COMPUTE = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
     -fast -num_devices $(numDevices) -devices $(deviceNames) -num_level 100 -num_iter 100 -load_alveo_partitions \
-	$(alveoProject).par.proj -setwkr 0 -driverAlone
+	$(alveoProject).par.proj -setwkr 0 -driverAlone $(communityOutputOpt)
 
 CMDLINE_LOAD_COMPUTE_DRIVER = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
     -fast -num_devices $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
-	$(alveoProject).par.proj -setwkr 2 $(WORKERS) -driverAlone
+	$(alveoProject).par.proj -setwkr 2 $(WORKERS) -driverAlone $(communityOutputOpt)
 
 CMDLINE_LOAD_COMPUTE_WORKER1 = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
     -fast -num_devices $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
@@ -288,6 +294,9 @@ CMDLINE_LOAD_COMPUTE_WORKER2 = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xi
 .PHONY: run-create-partitions run-load-compute run-load-compute-driver run-load-compute-worker1 run-load-compute-worker2
 
 $(alveoProject).par.proj: $(graph)
+	@echo "------------------------------------------------------------------------"
+	@echo "-                       Create Partitions                              -"
+	@echo "------------------------------------------------------------------------"
 	rm -rf $(CPPDEMO_OUT_DIR)
 	mkdir -p $(CPPDEMO_OUT_DIR)
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_CREATE_PARTITIONS)
@@ -306,7 +315,7 @@ run-load-compute: stage cppTest $(alveoProject).par.proj
 	@echo "------------------------------------------------------------------------"
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE)
 
-run-load-compute-driver: stage cppTest
+run-load-compute-driver: stage cppTest $(alveoProject).par.proj
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE_DRIVER)
 
 run-load-compute-worker1: stage cppTest 
@@ -511,12 +520,10 @@ dist: stage
 	    make ; \
 	fi
 
-
 #######################################################################################################################
 #
 # Java Tests
 #
-
 .PHONY: javaTest
 
 javaTest:
@@ -538,6 +545,9 @@ clean:
 clean-xclbin:
 	rm -f $(XCLBIN_FILE)
 
+clean-par:
+	rm -f $(CPPDEMO_OUT_DIR)/$(graphBasename)*
+
 help:
 	@echo "Makefile usages:"
 	@echo "  make dist"
@@ -546,21 +556,21 @@ help:
 	@echo "  make doxy-cpp"
 	@echo "  Generate CPP documentation using doxygen. The default html output directory is ./build/cppdocs"
 	@echo ""
-	@echo "  make run-create-partitions [graph=/path/to/graph.mtx]"
+	@echo "  make run-create-partitions [graph=/path/to/graph.mtx] [numPars=1]"
 	@echo "  Create partitions on a single node"
 	@echo ""
-	@echo "  make run-load-compute [graph=/path/to/graph.mtx]"
+	@echo "  make run-load-compute [graph=/path/to/graph.mtx] [numPars=1] [numDevices=1]"
 	@echo "  Load partition and compute Louvain modularity on a single node"
 	@echo ""
 	@echo "  Run test in a 3 node cluster"
 	@echo "  ssh to driver"
-	@echo "  make run-load-compute-driver"
+	@echo "  make run-load-compute-driver [graph=/path/to/graph.mtx] [numDevices=1]"
 	@echo ""
 	@echo "  ssh to worker1"
-	@echo "  make run-load-compute-worker1"
+	@echo "  make run-load-compute-worker1 [graph=/path/to/graph.mtx] [numDevices=1]"
 	@echo ""
 	@echo "  ssh to worker2"
-	@echo "  make run-load-compute-worker2"
+	@echo "  make run-load-compute-worker2 [graph=/path/to/graph.mtx] [numDevices=1]"
 	@echo ""
 	@echo "  debug-cppdemo"
 	@echo "  Debug cppdemo"
@@ -570,5 +580,5 @@ help:
 	@echo "graph: graph input .mtx file"
 	@echo "alveoProject: Alveo project name without .par.proj extension"
 	@echo "numPars: Number of partitions (default=1)"
-	@echo "serverPar: Multi-server partition setting (default=\"1 9\")"
-	@echo "numDevices: Number of devices (default=3)"
+	@echo "numDevices: Number of devices (default=1)"
+	@echo "communityOutput: Output file for detected communities"

@@ -13,6 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+.DELETE_ON_ERROR:
+.PHONY: all
+
+#all: javaApi cppBuild javaTest stage
+all: stage
+
+# Product version
+PRODUCT_VER=$(strip $(shell cat VERSION))
 
 EXAMPLE_DIR = examples/comdetect
 
@@ -26,7 +34,8 @@ STAGE_COPY_FILES = \
     udf/xilinxComDetect.hpp \
     udf/xilinxComDetectImpl.hpp \
     \
-    $(wildcard $(EXAMPLE_DIR)/as-skitter/*) \
+    $(wildcard $(EXAMPLE_DIR)/data/*) \
+	$(EXAMPLE_DIR)/README.md \
     $(EXAMPLE_DIR)/bin/common.sh \
     $(EXAMPLE_DIR)/bin/set-plugin-vars.sh \
     $(EXAMPLE_DIR)/udf/louvainDemo.hpp \
@@ -44,6 +53,15 @@ STAGE_COPY_FILES = \
 # Example directories into which to copy example common files
 STAGE_EXAMPLES_DIRS = $(EXAMPLE_DIR)
 
-
 include ../common/Makefile-common.mk
+
+update-version:
+	sed -i 's,/graphanalytics/louvainmod/.*,/graphanalytics/louvainmod/$(PRODUCT_VER),g' bin/set-plugin-vars.sh
+
+stage: update-version stage-common
+
+clean: clean-common
+
+help: help-common
+
 

@@ -11,7 +11,6 @@ Alveo U50 accelerator card.
 
     Overview <overview.rst>
     Installation <install.rst>
-    Synthea Demo <synthea.rst>
     Application Development with Recommendation Engine <users-guide.rst>
     Reference Manual <api.rst>
 

@@ -16,7 +16,8 @@
  */
 
 USE GRAPH @graph
-DROP QUERY louvain_alveo, close_alveo, tg_partition_phase_1, tg_partition_phase_2, tg_partition_phase_3
+DROP QUERY louvain_alveo, close_alveo, tg_partition_phase_1, 
+           tg_partition_phase_2, tg_partition_phase_3, load_alveo
 
 
 
@@ -126,6 +127,44 @@ CREATE DISTRIBUTED QUERY tg_partition_phase_3(
   
 }
 
+//add for loading mtx
+CREATE DISTRIBUTED QUERY load_alveo(
+    SET<STRING> v_types,            // List of vertex types that would participate in Louvain Modularity
+    SET<STRING> e_types,            // List of edge types that would participate in Louvain Modularity
+    STRING weight_attr,             // Name of the edge attribute that has weight of the edge
+    BOOL use_saved_partition = TRUE,// If partitions are saved on disk, use them instead of getting from RAM
+    STRING graph_file = "",         // Source graph file in .mtx format, needed only if tg_partition = FALSE
+    STRING louvain_project = "",    // Provide a project name for saving partitions, used for loading from disk too
+    UINT num_partitions = 9,        // Number of partitions as string (e.g. "9"). Default: "auto" for best performance
+    UINT prune_par = 1            // Number of devices (alveo cards) to use per server (e.g. "3"). Default; "auto"
+) FOR GRAPH @graph
+{
+    DOUBLE udf_time;
+    ListAccum<int> @@nodeAccum;
+    INT status;
+
+    //TODO
+    //udf_reset_states(1);
+    //udf_execute_reset(1);
+    udf_reset_timer(true);
+
+    // Traverse TigerGraph memory and load partitions on each node
+    Start = {v_types};
+    nodes = {dummy_nodes.*};
+    nodeList = SELECT n FROM nodes:n
+        ACCUM @@nodeAccum += udf_xilinx_comdetect_set_node_id(n.NODE_ID);
+
+
+     // On each server call the code
+     nodelist = SELECT n FROM nodes:n
+         ACCUM status = udf_create_and_load_alveo_partitions(use_saved_partition, 
+              graph_file, louvain_project, nodes.size(), num_partitions, prune_par);
+ 
+
+    udf_time = udf_elapsed_time(true);
+    print use_saved_partition, status;
+
+}
 
 
 CREATE DISTRIBUTED QUERY louvain_alveo(
@@ -140,10 +179,12 @@ CREATE DISTRIBUTED QUERY louvain_alveo(
     STRING result_attr = "",        // Name of the attribute of a vertex to store the final community Id in
     STRING result_file = "",        // Full path of result file. It must be accessible on each machine in cluster.
     BOOL print_final_Q = TRUE,      // Print final Q value
-    BOOL print_all_Q = FALSE)       // Print intermediate Q value
+    BOOL print_all_Q = FALSE,      // Print intermediate Q value
+    STRING xGraphPath = ""  )        // set partition file path
 {
     ListAccum<int> @@nodeAccum;
     ListAccum<float> @@modularityAccum;
+    DOUBLE modularity;
     DOUBLE udf_time;
     DOUBLE vm_peak, vm_hwm;
     INT ret;
@@ -152,7 +193,7 @@ CREATE DISTRIBUTED QUERY louvain_alveo(
     nodeList = SELECT n FROM nodes:n
         ACCUM @@nodeAccum += udf_xilinx_comdetect_set_node_id(n.NODE_ID);
 
-
+    udf_reset_timer(true);
     udf_execute_reset(0);
 
     // each node will get this UDF call for each vertex, but the actual execution
@@ -160,17 +201,22 @@ CREATE DISTRIBUTED QUERY louvain_alveo(
     // and run the task accordingly.
 
     nodelist = SELECT n FROM nodes:n
-           ACCUM @@modularityAccum += udf_louvain_alveo(gName,
+           ACCUM  @@modularityAccum += udf_louvain_alveo(xGraphPath, gName,
            max_iter, max_level, tolerence, intermediateResult,
            verbose, result_file, print_final_Q, print_all_Q);
 
-    //udf_time = udf_elapsed_time(true);
-    //ret = udf_peak_memory_usage(vm_peak, vm_hwm);
+    udf_time = udf_elapsed_time(true);
+    ret = udf_peak_memory_usage(vm_peak, vm_hwm);
     print nodes.size() as NumOfNodes;
-    print @@modularityAccum as ModularityQValues;
+    print @@modularityAccum as NodeReturnValues;
+    modularity = 0;
+    FOREACH i IN RANGE[0, @@modularityAccum.size()-1] DO   
+        modularity = modularity + @@modularityAccum.get(i);
+    END;
+    print modularity AS Modularity;
     print "Xilinx Alveo U50" AS ComputationTechnique;
-    print vm_peak as PeakVirtualMemoryInKB;
-    print vm_hwm as PeakResidentMemoryInKB;
+    print vm_peak/1000000.0 as PeakVirtualMemoryInGB;
+    print vm_hwm/1000000.0 as PeakResidentMemoryInGB;
     print udf_time as ExecTimeInMs;
 }
 
@@ -186,4 +232,4 @@ CREATE DISTRIBUTED QUERY close_alveo() for GRAPH @graph {
    //print udf_time, b;
 }
 
-install query close_alveo, louvain_alveo, tg_partition_phase_1, tg_partition_phase_2,tg_partition_phase_3
+install query close_alveo, louvain_alveo, tg_partition_phase_1, tg_partition_phase_2,tg_partition_phase_3,load_alveo

@@ -116,7 +116,7 @@ int create_and_load_alveo_partitions(int argc, char *argv[]) {
     CreatePartitionsFunc pCreateFunc = (CreatePartitionsFunc) getDynamicFunction("create_and_load_alveo_partitions");
     return pCreateFunc(argc, argv);
 }
-
+/*
 XILINX_LOUVAINMOD_IMPL_DEF
 float loadAlveoProjectAndComputeLouvain(    
     char* xclbinPath, bool flowFast, unsigned numDevices, 
@@ -137,7 +137,7 @@ float loadAlveoProjectAndComputeLouvain(
                      opts_outputFile, max_iter, max_level, tolerence, 
                      intermediateResult, verbose, final_Q, all_Q);
 }
-
+*/
 }  // extern "C"
 
 

@@ -71,14 +71,14 @@ public:
 
 
 private:
-    std::string curNodeHostname_;
+
     std::string curNodeIp_;
     std::string nodeIps_;
     std::string xGraphStorePath_;
     std::string alveoProject_;
     unsigned numPartitions_;
     unsigned numDevices_ = 1;
-    std::string deviceNames_ = "xilinx_u50_gen3x16_xdma_201920_3";
+
     unsigned nodeId_ = 0;
     unsigned numNodes_ = 1;
     State state_ = UninitializedState;
@@ -97,7 +97,8 @@ private:
     long  end_vertex;
  
 public:
-
+    std::string curNodeHostname_;
+    std::string deviceNames_ = "xilinx_u50_gen3x16_xdma_201920_3";
     std::vector<long> mEdgePtrVec;
     std::vector<long> degree_list;
     std::vector<xilinx_apps::louvainmod::Edge> mEdgeVec;
@@ -166,7 +167,7 @@ public:
             xilinx_apps::louvainmod::Options options;
             options.xclbinPath = PLUGIN_XCLBIN_PATH;
             options.nameProj = alveoProject_;
-            options.devNeed_cmd = numDevices_;
+            options.numDevices = numDevices_;
             options.deviceNames = deviceNames_;
             options.nodeId = nodeId_;
             options.hostName = curNodeHostname_;
@@ -177,7 +178,7 @@ public:
             std::cout << "DEBUG: louvainmod options:"
                     << "\n    xclbinPath=" << options.xclbinPath
                     << "\n    nameProj=" << options.nameProj
-                    << "\n    devNeed_cmd=" << options.devNeed_cmd
+                    << "\n    numDevices=" << options.numDevices
                     << "\n    deviceNames=" << options.deviceNames
                     << "\n    nodeId=" << options.nodeId
                     << "\n    hostName=" << options.hostName
@@ -195,6 +196,12 @@ public:
     void setAlveoProject(std::string alveoProject) {
         std::cout << "DEBUG: " << __FUNCTION__ << " AlveoProject=" << alveoProject << std::endl;
         alveoProject_ = this->getXGraphStorePath() + "/" + alveoProject;
+
+    }
+
+    void setAlveoProjectRaw(std::string alveoProject) {
+        std::cout << "DEBUG: " << __FUNCTION__ << " AlveoProject=" << alveoProject << std::endl;
+        alveoProject_ = alveoProject;
     }
     std::string getAlveoProject() { return alveoProject_; }
 
@@ -343,6 +350,10 @@ public:
         start_vertex = startVertex;
     }
     
+    void setXGraphStorePath(const std::string& path){
+        xGraphStorePath_= path;
+    }
+
     const std::string &getXGraphStorePath() const {
         return xGraphStorePath_;
     }

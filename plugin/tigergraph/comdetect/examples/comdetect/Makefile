@@ -13,16 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-dataSource=$(CURDIR)/as-skitter/as-Skitter-wt-r100.mtx
+dataSource=$(CURDIR)/data/as-Skitter-wt-r100.mtx
 graphName=social_$(USER)
+alveoProject=""
 
-numDevices=1
-numNodes=1
 numPartitionsNode=9
 
 compileMode=0
-partitionMode=1
+partitionMode=2
 runMode=1
+
 
 ifdef sshKey
     SSH_KEY_OPT=-i $(sshKey)
@@ -41,7 +41,7 @@ all: run
 	@echo "-------------------------------------------------------"
 	@echo "Installing plugin files into TigerGraph software"
 	@echo "-------------------------------------------------------"
-	cd ../../ && make DEBUG=$(DEBUG) && ./staging/install.sh -v -f $(SSH_KEY_OPT) && \
+	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/install.sh -v -f $(SSH_KEY_OPT) && \
 	cd - && touch .install-plugin-done
 
 .install-udf-done: .install-plugin-done udf/louvainDemo.hpp
@@ -73,18 +73,8 @@ run: .install-udf-done
 	@echo "Running run.sh from staging "
 	@echo "-------------------------------------------------------"
 	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/examples/comdetect/bin/run.sh -v \
-	    -g $(graphName) -s $(dataSource) \
-		-m $(numNodes) -d $(numDevices)  -n $(numPartitionsNode) \
-		-c $(compileMode) -x $(partitionMode) -r $(runMode) 
-
-.PHONY: run-cluster
-run-cluster: .install-udf-done
-	@echo "-------------------------------------------------------"
-	@echo "Running run.sh from staging "
-	@echo "-------------------------------------------------------"
-	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/examples/comdetect/bin/run.sh -v \
-	    -g $(graphName) -c $(compileMode) -r $(runMode) \
-		-m 3 -d 3 -n 9 -s $(dataSource) 
+	    -g $(graphName) -s $(dataSource) -a $(alveoProject) \
+		-n $(numPartitionsNode) -c $(compileMode) -x $(partitionMode) -r $(runMode) 
 
 .PHONY: partition
 partition: .install-udf-done
@@ -95,26 +85,31 @@ partition: .install-udf-done
 
 help:
 	@echo "Valid make targets:"
-	@echo "run-cluster: Run the example on the cluster of 3 nodes, 3 devices/node, 9 partitions"
+	@echo "run:       Run the example"
 	@echo "partition: Run partition.sh to partition the graph in TigerGraph memory"
 	@echo ""
 	@echo "Optional make parameters"
-	@echo "dataSource       : A .mtx file containing input graph. default=./as-Skitter/as-Skitter-wt-e110k.mtx"
-	@echo "numDevices       : number of FPGAs needed (default=1)"
-	@echo "graphName        : graph name (default=social_<username>"
-	@echo "numNodes         : Number of nodes in Tigergraph cluster"
-	@echo "numPartitionsNode: Number of Alveo partitions"
+	@echo "dataSource        : A .mtx file containing input graph. default=./data/as-Skitter-wt-r100.mtx"
+	@echo "graphName         : graph name (default=social_<username>"
+	@echo "alveoProject      : partition files path / partition file name prefix"
+	@echo "numPartitionsNode : Number of Alveo partitions per node"
 	@echo ""
-	@echo "compileMode      : 0: recreate database and compile all (default)"
-	@echo "                   1: only compile query gsql"
-	@echo "                   2: skip database creation and gsql compilation"
-	@echo "partitionMode    : 0: Use existing partitions from disks; 1: Generate partitions from TigerGraph memory"
-	@echo "runMode          : 0: Run only on CPU; 1: Run only on Alveo (default); 2: Run on both CPU and Alveo"
+	@echo "compileMode       : 0: recreate database and compile all (default)"
+	@echo "                    1: only compile query gsql"
+	@echo "                    2: skip database creation and gsql compilation"
+	@echo "partitionMode     : 0: Use existing partitions from disks; "
+	@echo "                    1: Generate partitions from TigerGraph memory"
+	@echo "                    2: Generate partitions from .mtx file (default)"
+	@echo "runMode           : 0: Run only on CPU"
+	@echo "                    1: Run only on Alveo (default)"
+	@echo "                    2: Run on both CPU and Alveo"
+	@echo "                    3: Skip both CPU and Alveo run (i.e. only run partition)"
 	@echo ""
-	@echo "sshKey           : SSH key for user tigergraph"	
+	@echo "sshKey            : SSH key for user tigergraph"	
 	@echo ""
 	@echo "Examples:"
 	@echo "make dataSource=/proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx"
 
 clean:
+	cd ../../../../../louvainmod && make clean
 	rm -f .install-plugin-done .install-udf-done .install-query-done
