@@ -124,10 +124,17 @@ CXXFLAGS += -D HW_EMU_TEST
 endif
 
 # ######################### Host compiler global settings ############################
-CXXFLAGS += -I$(XILINX_XRT)/include -I$(XILINX_VIVADO)/include -std=c++11 -O3 -Wall -Wno-unknown-pragmas
+CXXFLAGS += -I$(XILINX_XRT)/include -I$(XILINX_VIVADO)/include -std=c++11 -Wall -Wno-unknown-pragmas
 LDFLAGS += -L$(XILINX_XRT)/lib -lOpenCL -lpthread -lrt -Wno-unused-label -Wno-unused-variable -Wno-write-strings -Wno-narrowing -DVERBOSE -Wno-format
 CXXFLAGS += -fmessage-length=0 -O3 -DPRAGMA -Ofast -fopenmp -fPIC -DMULTITHREAD
 CXXFLAGS += -I$(CUR_DIR)/src/ 
+
+#DEBUG = 1
+ifndef DEBUG
+CXXFLAGS += -O3
+else
+CXXFLAGS += -g
+endif
 
 ifeq ($(HOST_ARCH), x86)
 LDFLAGS += -L$(XILINX_VIVADO)/lnx64/tools/fpo_v7_0 -Wl,--as-needed -lgmp -lmpfr -lIp_floating_point_v7_0_bitacc_cmodel
@@ -143,11 +150,11 @@ endif
 
 EXE_NAME := host.exe
 EXE_FILE := $(BUILD_DIR)/$(EXE_NAME)
-HOST_ARGS :=  -x $(BUILD_DIR)/kernel_louvain.xclbin -f 3 -c -o -m 10000 -prun $(XFLIB_DIR)/L2/louvainmod_pruning_kernel/data/example-wt.txt
+HOST_ARGS :=  -x $(BUILD_DIR)/kernel_louvain.xclbin -f 3 -c -o -m 10 -prun $(XFLIB_DIR)/L2/louvainmod_pruning_kernel/data/example-wt.txt
 
 # ##################### Kernel compiler global settings ##########################
 VPP_FLAGS += -t $(TARGET) --platform $(XPLATFORM) --save-temps --optimize 2
-VPP_FLAGS += --jobs 8
+VPP_FLAGS += --jobs 8 --debug
 VPP_FLAGS += --config $(CUR_DIR)/conn_u50_u55c_u280.ini
 
 VPP_FLAGS += -I$(XFLIB_DIR)/L2/include
