@@ -329,10 +329,12 @@ struct Result {
  * @brief Struct containing CosineSim configuration options
  */
 struct Options {
-    /// vector length of all population and target vectors.  Default is 200.
+    // vector length of all population and target vectors.  Default is 200.
     ColIndex vecLength;
-    /// number of Alveo accelerator cards to use.  Default is 1.
+    // number of Alveo accelerator cards to use.  Default is 1.
     std::int32_t numDevices;
+    // device names (e.g. xilinx_u50_gen3x16_xdma_201920_3) to be used
+    std::string deviceNames;
     
     /**
      * FPGA binary file (XCLBIN) path.  Default is the package installation path.

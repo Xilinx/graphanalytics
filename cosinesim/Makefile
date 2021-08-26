@@ -336,15 +336,17 @@ $(CPP_BUILD_DIR)/cosinesim_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUILD_D
 $(CPP_BUILD_DIR)/cosinesim_dyn_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUILD_DIR)/$(LOADER_NAME) $(CPP_BUILD_DIR)/$(LIB_NAME)
 	$(LINK.cc) -o $@ $< -fPIC -w -L $(CPP_BUILD_DIR) -l$(LOADER_SHORT_NAME) -ldl $(LIB_DEPS)
 
-NUMDEVICES=1
-ITERATIONS=1
-NUMVECTORS=5000
+numDevices=1
+iterations=1
+numVectors=5000
+deviceNames=xilinx_u50_gen3x16_xdma_201920_3
 run-test: cppTest
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) $(CPP_BUILD_DIR)/cosinesim_test $(NUMDEVICES) $(ITERATIONS) $(NUMVECTORS)
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) $(CPP_BUILD_DIR)/cosinesim_test \
+	                $(numDevices) $(iterations) $(numVectors) $(deviceNames)
 
 run-dyn-test: cppTest
 	LD_PRELOAD=$(PWD)/$(CPP_BUILD_DIR)/$(LIB_NAME) LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) \
-	    $(CPP_BUILD_DIR)/cosinesim_dyn_test $(NUMDEVICES)
+	    $(CPP_BUILD_DIR)/cosinesim_dyn_test $(numDevices)
 
 # Macro to create a .o rule and a .d rule for each .cpp
 
@@ -575,8 +577,8 @@ help:
 	@echo "  make doxy-cpp "
 	@echo "      Generate CPP documentation using doxygen. The default html output directory is ./build/cppdocs"
 	@echo ""
-	@echo "  make run-test NUMDEVICES=1 ITERATIONS=1 NUMVECTORS=5000 "
-	@echo "      Run standalone test with statically linked executable. NUMDEVICES, NUMVECTORS, and ITERATIONS are optional."
+	@echo "  make run-test [numDevices=1] [iterations=1] [numVectors=5000] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3]"
+	@echo "      Run standalone test with statically linked executable. numDevices, numVectors, and iterations are optional."
 	@echo ""
 	@echo "  make xclbin DEVICE=<FPGA platform>"
 	@echo "      Build xclbin file targetting specified device. Vitis tool and PLATFORM_REPO_PATHS must be set to make xclbin."
