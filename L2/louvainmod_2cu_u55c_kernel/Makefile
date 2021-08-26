@@ -144,7 +144,7 @@ endif
 
 EXE_NAME := host.exe
 EXE_FILE := $(BUILD_DIR)/$(EXE_NAME)
-HOST_ARGS :=  -x $(BUILD_DIR)/kernel_louvain.xclbin -f 3 -c -o -m 10 -fast2 $(XFLIB_DIR)/L2/louvainmod_2cu_u55c_kernel/data/example-wt.txt
+HOST_ARGS :=  -x $(BUILD_DIR)/kernel_louvain.xclbin -f 3 -c -o -m 10 -prun $(XFLIB_DIR)/L2/louvainmod_2cu_u55c_kernel/data/example-wt.txt
 
 # ##################### Kernel compiler global settings ##########################
 VPP_FLAGS += -t $(TARGET) --platform $(XPLATFORM) --save-temps --optimize 2

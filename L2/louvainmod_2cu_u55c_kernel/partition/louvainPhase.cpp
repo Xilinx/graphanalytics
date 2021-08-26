@@ -739,7 +739,7 @@ void inline PhaseLoop_MapHostBuff_prune(long NV,
                                         std::vector<cl_mem_ext_ptr_t>& mext_in,
                                         cl::Context& context,
                                         KMemorys_host_prune& buff_host) {
-    buff_host.config0 = aligned_alloc<int64_t>(6); // zyl
+    buff_host.config0 = aligned_alloc<int64_t>(6); //
     buff_host.config1 = aligned_alloc<DWEIGHT>(4);
     buff_host.offsets = aligned_alloc<int>(NV + 1);
     buff_host.indices = aligned_alloc<int>(NE_mem_1);
