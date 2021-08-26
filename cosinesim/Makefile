@@ -383,13 +383,17 @@ endif
 
 
 L2_TOP_DIR = $(GRAPH_ANALYTICS_DIR)/L2/dense_similarity_multi_kernel
-L2_XDEVICE = xilinx_u50_gen3x16_xdma_201920_3
-L2_BUILD_DIR = $(L2_TOP_DIR)/build_dir.hw.$(L2_XDEVICE)
+L2_XDEVICE_U50 = xilinx_u50_gen3x16_xdma_201920_3
+L2_XDEVICE_U55C = xilinx_u55c_gen3x16_xdma_1_202110_1
+L2_BUILD_DIR_U50 = $(L2_TOP_DIR)/build_dir.hw.$(L2_XDEVICE_U50)
+L2_BUILD_DIR_U55C = $(L2_TOP_DIR)/build_dir.hw.$(L2_XDEVICE_U55C)
+
 DEVICE ?= $(L2_XDEVICE)
 XCLBIN_NAME = denseSimilarityKernel.xclbin
-XCLBIN_FILE = $(L2_BUILD_DIR)/$(XCLBIN_NAME)
-XCLBIN_INSTALLED = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin
-
+XCLBIN_FILE_U50 = $(L2_BUILD_DIR_U50)/$(XCLBIN_NAME)
+XCLBIN_FILE_U55C = $(L2_BUILD_DIR_U55C)/$(XCLBIN_NAME)
+XCLBIN_INSTALLED_U50 = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+XCLBIN_INSTALLED_U55C = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32bit_xilinx_u55c_gen3x16_xdma_base_1.xclbin
 .PHONY: xclbin
 
 
@@ -402,17 +406,30 @@ xclbin:
 		make build TARGET=hw DEVICE=$(DEVICE); \
 	fi
 	
-$(XCLBIN_FILE):
-	@if [ -r $(XCLBIN_INSTALLED) ]; then \
-	    echo "INFO: The XCLBIN file $(XCLBIN_FILE) is missing.  Copying from installed area."; \
-	    cp -r $(XCLBIN_INSTALLED) $@; \
+$(XCLBIN_FILE_U50):
+	@if [ -r $(XCLBIN_INSTALLED_U50) ]; then \
+	    echo "INFO: The XCLBIN file $(XCLBIN_FILE_U50) is missing.  Copying from installed area."; \
+	    cp -r $(XCLBIN_INSTALLED_U50) $@; \
 	else \
-	    echo "ERROR: The XCLBIN file $(XCLBIN_FILE) is missing."; \
+	    echo "ERROR: The XCLBIN file $(XCLBIN_FILE_U50) is missing."; \
 	    echo "Because building an XCLBIN file can be an all-day proposition, you have two choices for completing this build:"; \
 	    echo "1. Copy a pre-built XCLBIN to the target location above.  (Recommended for developers)"; \
 	    echo "2. Do 'make xclbin' and go for a very long coffee break.  (Recommended for build automation)"; \
 	    false; \
 	fi
+
+$(XCLBIN_FILE_U55C):
+	    @if [ -r $(XCLBIN_INSTALLED_U55C) ]; then \
+            echo "INFO: The XCLBIN file $(XCLBIN_FILE_U55C) is missing.  Copying from installed area."; \
+            cp -r $(XCLBIN_INSTALLED_U55C) $@; \
+        else \
+            echo "ERROR: The XCLBIN file $(XCLBIN_FILE_U55C) is missing."; \
+            echo "Because building an XCLBIN file can be an all-day proposition, you have two choices for completing this build:"; \
+            echo "1. Copy a pre-built XCLBIN to the target location above.  (Recommended for developers)"; \
+            echo "2. Do 'make xclbin' and go for a very long coffee break.  (Recommended for build automation)"; \
+            false; \
+        fi
+
 
 #######################################################################################################################
 #
@@ -482,10 +499,17 @@ $(STAGE_STAGED_EXAMPLE_FILES):
 
 # XCLBIN file
 
-STAGE_XCLBIN_NAME = cosinesim_32bit_$(L2_XDEVICE).xclbin
-STAGE_XCLBIN_FILE = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME)
+STAGE_XCLBIN_NAME_U50 = cosinesim_32bit_$(L2_XDEVICE_U50).xclbin
+STAGE_XCLBIN_FILE_U50 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U50)
 
-$(STAGE_XCLBIN_FILE): $(XCLBIN_FILE)
+$(STAGE_XCLBIN_FILE_U50): $(XCLBIN_FILE_U50)
+	cp -f $^ $@
+
+
+STAGE_XCLBIN_NAME_U55C = cosinesim_32bit_xilinx_u55c_gen3x16_xdma_base_1.xclbin
+STAGE_XCLBIN_FILE_U55C = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U55C)
+
+$(STAGE_XCLBIN_FILE_U55C): $(XCLBIN_FILE_U55C)
 	cp -f $^ $@
 
 # Top-level packaging rule
@@ -495,7 +519,8 @@ STAGE_SUBDIRS = $(addprefix $(STAGE_DIR)/,$(STAGE_SUBDIR_NAMES))
 STAGE_ALL_FILES = \
     $(addprefix $(STAGE_DIR)/,$(STAGE_COPY_FILES)) \
     $(addprefix $(STAGE_DIR)/lib/,$(STAGE_LIB_FILES)) \
-    $(STAGE_XCLBIN_FILE) 
+    $(STAGE_XCLBIN_FILE_U50) \
+    $(STAGE_XCLBIN_FILE_U55C) 
 #    $(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP) \
 
 .PHONY: stage stage2
@@ -563,7 +588,7 @@ clean:
 	cd package; make clean
 	
 clean-xclbin:
-	rm -f $(XCLBIN_FILE)
+	rm -f $(XCLBIN_FILE_U50) $(XCLBIN_FILE_U55C)
 
 .PHONY: help
 help:
