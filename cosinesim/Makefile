@@ -579,6 +579,7 @@ help:
 	@echo ""
 	@echo "  make run-test [numDevices=1] [iterations=1] [numVectors=5000] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3]"
 	@echo "      Run standalone test with statically linked executable. numDevices, numVectors, and iterations are optional."
+	@echo "      Supported deviceNames: xilinx_u50_gen3x16_xdma_201920_3 xilinx_u55c_gen3x16_xdma_base_1 "
 	@echo ""
 	@echo "  make xclbin DEVICE=<FPGA platform>"
 	@echo "      Build xclbin file targetting specified device. Vitis tool and PLATFORM_REPO_PATHS must be set to make xclbin."
