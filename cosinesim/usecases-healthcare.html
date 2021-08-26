@@ -59,8 +59,8 @@
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Jupyter Notebook with PyTigerGraph" href="recomengine-example-jupyter.html" />
-    <link rel="prev" title="Synthea Demo Overview" href="synthea-overview.html" /> 
+    <link rel="next" title="Xilinx Louvain Modularity Use Cases" href="../louvainmod/usecases.html" />
+    <link rel="prev" title="Error Log Analysis" href="usecases-log.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -335,32 +335,21 @@
             
               <p class="caption"><span class="caption-text">Stand-Alone Alveo Products</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../cosinesim/index.html">Cosine Similarity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Cosine Similarity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/index.html">Louvain Modularity</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Software Stack Integration Products</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="index.html"> Recommendation Engine for TigerGraph 3.x</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../recom-tg3/index.html"> Recommendation Engine for TigerGraph 3.x</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../comdet-tg3/index.html"> Community Detection Engine for TigerGraph 3.x</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Use Cases</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="../cosinesim/usecases.html"> Cosine Similarity Use Cases</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="../cosinesim/usecases-wiki-search.html">Wikipedia Search Engine</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="synthea.html">Patient Similarity using Synthetic Patient Data (Synthea)</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="synthea-overview.html">Overview</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Installing and Uninstalling the Demo</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#installing-the-demo">Installing the Demo</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#uninstalling-the-demo">Uninstalling the Demo</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="recomengine-example-jupyter.html">Jupyter Notebook with PyTigerGraph</a></li>
-<li class="toctree-l3"><a class="reference internal" href="recomengine-example-script.html">Bash Script with GSQL</a></li>
-<li class="toctree-l3"><a class="reference internal" href="synthea-query.html">Demo Query Reference</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../cosinesim/usecases-log.html">Error Log Analysis</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../cosinesim/usecases-healthcare.html">Heathcare Concept Similarity with UMLS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="usecases.html"> Cosine Similarity Use Cases</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="usecases-wiki-search.html">Wikipedia Search Engine</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../recom-tg3/synthea.html">Patient Similarity using Synthetic Patient Data (Synthea)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usecases-log.html">Error Log Analysis</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Heathcare Concept Similarity with UMLS</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/usecases.html"> Louvain Modularity Use Cases</a></li>
@@ -429,11 +418,9 @@
     
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-          <li><a href="../cosinesim/usecases.html">Xilinx Cosine Similarity Use Cases</a> &raquo;</li>
+          <li><a href="usecases.html">Xilinx Cosine Similarity Use Cases</a> &raquo;</li>
         
-          <li><a href="synthea.html">Recommendation Engine Synthea Demo</a> &raquo;</li>
-        
-      <li>Installing and Uninstalling the Synthea Demo</li>
+      <li>Healthcare Conconcept Similarity with UMLS</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -450,45 +437,26 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="installing-and-uninstalling-the-synthea-demo">
-<h1>Installing and Uninstalling the Synthea Demo<a class="headerlink" href="#installing-and-uninstalling-the-synthea-demo" title="Permalink to this headline">¶</a></h1>
-<p>As with your own application based on TigerGraph and the Recommendation Engine, the Synthea demo
-requires separate installation and uninstallation steps.</p>
-<div class="section" id="installing-the-demo">
-<h2>Installing the Demo<a class="headerlink" href="#installing-the-demo" title="Permalink to this headline">¶</a></h2>
-<p>Because the client applications of the demo call the setup scripts themselves, the demo is self-installing.</p>
-<p>However, for the sake of understanding how the installation process works, you can examine the scripts
-<code class="docutils literal notranslate"><span class="pre">init_graph.sh</span></code>, which creates the patient graph, and <code class="docutils literal notranslate"><span class="pre">install_query.sh</span></code>, which installs UDFs and queries.
-Both scripts are located at the top level of the Synthea demo directory.</p>
-</div>
-<div class="section" id="uninstalling-the-demo">
-<h2>Uninstalling the Demo<a class="headerlink" href="#uninstalling-the-demo" title="Permalink to this headline">¶</a></h2>
-<p>Because the demo applications do not uninstall the demo, the process for uninstalling is manual.
-Follow the steps below to uninstall the demo.</p>
-<div class="section" id="delete-the-data">
-<h3>Delete the Data<a class="headerlink" href="#delete-the-data" title="Permalink to this headline">¶</a></h3>
-<p>At a minimum, all queries need to be deleted before uninstalling the demo’s UDFs.  If you are replacing the demo
-with your own application, it would be best to delete all graph data, as demonstrated below.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">$su</span> - tigergraph
-Password:
-<span class="nv">$gsql</span>
-Welcome to TigerGraph.
-GSQL &gt; drop all
-</pre></div>
-</div>
-</div>
-<div class="section" id="uninstall-the-udfs">
-<h3>Uninstall the UDFs<a class="headerlink" href="#uninstall-the-udfs" title="Permalink to this headline">¶</a></h3>
-<p>To uninstall the demo’s UDFs from TigerGraph, use the install script located in the <code class="docutils literal notranslate"><span class="pre">bin</span></code> subdirectory under
-the Synthea demo directory.  The commands below assume you are running from the demo directory.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">$su</span> - tigergraph
-Password:
-<span class="nv">$bin</span>/install_udf.sh -u
-</pre></div>
-</div>
-<p>Uninstalling the demo UDFs leaves the Recommendation Engine UDFs in place.</p>
-</div>
-</div>
+  <div class="section" id="healthcare-conconcept-similarity-with-umls">
+<h1>Healthcare Conconcept Similarity with UMLS<a class="headerlink" href="#healthcare-conconcept-similarity-with-umls" title="Permalink to this headline">¶</a></h1>
+<p>In this use case, we will try to find similar drugs/healthcare terms from the <a class="reference external" href="https://www.nlm.nih.gov/research/umls/index.html">Unified
+Medical Language System (UMLS)</a>
+dataset. UMLS is a collection of health and biomedical vocabularies from a wide
+variety of Healthcare data sources. One of the knowledge source in UMLS is a
+metathesaurus that is a collection of medical concepts called atoms and links them
+through useful relationships.</p>
+<p>For the purpose of this demo, we use a small subset of the atoms file MRCONSO.RRF
+and use relationships between atoms from the relationships file MRREL.RRF. The
+atoms and their relations are modeled as a graph database using TigerGraph database
+and Cosine Similarity is used as the match similarity measure.</p>
+<p>Each atom is converted into an embedding representation by probabilistically capturing
+their relations. We use the Node2Vec algorithm to compute embeddings for each atom
+vertex in the graph.</p>
+<p>This Example selects a random vertex in the graph from a query of UMLS database and
+returns top matching drugs, drug ingredients or related healthcare concepts.</p>
+<p>In General, finding Cosine Similarity on large datasets take a large amount of time
+on CPU. With the Xilinx Cosine Similarity Acceleration, speedups &gt; ~ 80x can be achieved.</p>
+<p>This   can be downloaded from <a class="reference external" href="https://github.com/Xilinx/graphanalytics/blob/master/plugin/tigergraph/recomengine/examples/drug_similarity/jupyter-demo/drug_similarity_TG_demo.ipynb">Healthcare Conconcept Similarity with UMLS notebook on GitHub</a>.</p>
 </div>
 
 
@@ -507,10 +475,10 @@ Password:
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="recomengine-example-jupyter.html" class="btn btn-neutral float-right" title="Jupyter Notebook with PyTigerGraph" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../louvainmod/usecases.html" class="btn btn-neutral float-right" title="Xilinx Louvain Modularity Use Cases" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="synthea-overview.html" class="btn btn-neutral float-left" title="Synthea Demo Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="usecases-log.html" class="btn btn-neutral float-left" title="Error Log Analysis" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
