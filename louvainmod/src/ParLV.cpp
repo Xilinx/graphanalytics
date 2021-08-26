@@ -3848,7 +3848,7 @@ void loadComputeUnitsToFPGAs(
     op0->requestLoad = requestLoad;
     op0->xclbinPath = xclbinPath;
     op0->numDevices = numDevices;
-    if (flowMode == 4) numCUs = 2;
+    if (flowMode == xf::graph::L3::LOUVAINMOD_2CU_U55C_KERNEL) numCUs = 2;
     op0->cuPerBoard = numCUs;
 
     //----------------- enable handle0--------
