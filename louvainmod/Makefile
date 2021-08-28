@@ -366,12 +366,12 @@ endif
 #
 
 ifeq ($(USE_U55C),1)
-L2_TOP_DIR = $(GRAPH_ANALYTICS_DIR)/L2/louvainmod_opt_kernel
-L2_XDEVICE = xilinx_u55c_gen3x16_xdma_1
+L2_TOP_DIR = $(GRAPH_ANALYTICS_DIR)/L2/louvainmod_renum_kernel
+L2_XDEVICE = xilinx_u55c_gen3x16_xdma_1_202110_1
 L2_BUILD_DIR = $(L2_TOP_DIR)/build_dir.hw.$(L2_XDEVICE)
-XCLBIN_NAME = kernel_louvain_opt.xclbin
+XCLBIN_NAME = kernel_louvain.xclbin
 XCLBIN_FILE = $(L2_BUILD_DIR)/$(XCLBIN_NAME)
-XCLBIN_INSTALLED_NAME = louvainmod_opt_$(L2_XDEVICE).xclbin
+XCLBIN_INSTALLED_NAME = louvainmod_renum_$(L2_XDEVICE).xclbin
 XCLBIN_INSTALLED =/opt/xilinx/apps/graphanalytics/louvainmod/1.0/xclbin/$(XCLBIN_INSTALLED_NAME)
 else
 L2_TOP_DIR = $(GRAPH_ANALYTICS_DIR)/L2/louvainmod_pruning_kernel
