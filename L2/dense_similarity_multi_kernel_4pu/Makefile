@@ -38,9 +38,8 @@ help::
 	$(ECHO) "  make host HOST_ARCH=<x86>"
 	$(ECHO) "      Command to build host application."
 	$(ECHO) ""
-	$(ECHO) "  Supported devices: "
-	$(ECHO) "      xilinx_u50_gen3x16_xdma_201920_3 (Vitis 2020.2)"
-	$(ECHO) "      xilinx_u55c_gen3x16_xdma_1_202110_1 (Vitis 2021.1)"
+	$(ECHO) "  Supported devices:"
+	$(ECHO) "  xilinx_u55c_gen3x16_xdma_1_202110_1"
 	$(ECHO) ""
 
 # ##################### Setting up default value of TARGET ##########################
@@ -58,7 +57,9 @@ $(error [ERROR]: This project is not supported for $(DEVICE).)
 endif
 
 # #################### Checking if DEVICE in whitelist ############################
-
+ifneq ($(findstring u55, $(DEVICE)), u55)
+$(warning [WARNING]: This project has not been tested for $(DEVICE). It may or may not work.)
+endif
 
 # ######################## Setting up Project Variables #################################
 MK_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
@@ -79,12 +80,12 @@ export XCL_BINDIR = $(XCLBIN_DIR)
 
 # ######################### Setting up Host Variables #########################
 #Include Required Host Source Files
-HOST_SRCS += $(XFLIB_DIR)/L2/dense_similarity_multi_kernel/host/test_similarity.cpp
+HOST_SRCS += $(XFLIB_DIR)/L2/dense_similarity_multi_kernel_4pu/host/test_similarity.cpp
 HOST_SRCS += $(XFLIB_DIR)/ext/xcl2/xcl2.cpp
 CXXFLAGS += -I$(XFLIB_DIR)/L1/include/hw
 CXXFLAGS += -I$(XFLIB_DIR)/L2/include/hw
-CXXFLAGS += -I$(XFLIB_DIR)/L2/dense_similarity_multi_kernel/host
-CXXFLAGS += -I$(XFLIB_DIR)/L2/dense_similarity_multi_kernel/kernel
+CXXFLAGS += -I$(XFLIB_DIR)/L2/dense_similarity_multi_kernel_4pu/host
+CXXFLAGS += -I$(XFLIB_DIR)/L2/dense_similarity_multi_kernel_4pu/kernel
 CXXFLAGS += -I$(XFLIB_DIR)/../utils/L1/include
 CXXFLAGS += -I$(XFLIB_DIR)/ext/xcl2
 
@@ -110,29 +111,36 @@ endif
 
 EXE_NAME := host.exe
 EXE_FILE := $(BUILD_DIR)/$(EXE_NAME)
-HOST_ARGS :=  -xclbin $(BUILD_DIR)/denseSimilarityKernel.xclbin -weight $(XFLIB_DIR)/L2/dense_similarity_multi_kernel/data/cosine_dense_weight.csr -coeffs $(XFLIB_DIR)/L2/dense_similarity_multi_kernel/data/coeffs.csr -golden $(XFLIB_DIR)/L2/dense_similarity_multi_kernel/data/cosine_dense.mtx -similarityType 1 -dataType 0 -graphType 1 -sourceID 3 -topK 32 -vertices 120 -edges 208
+HOST_ARGS :=  -xclbin $(BUILD_DIR)/denseSimilarityKernel4PU.xclbin \
+              -weight $(XFLIB_DIR)/L2/dense_similarity_multi_kernel_4pu/random.csr \
+			  -coeffs $(XFLIB_DIR)/L2/dense_similarity_multi_kernel_4pu/data/coeffs.csr \
+			  -golden $(XFLIB_DIR)/L2/dense_similarity_multi_kernel_4pu/data/cosine_dense.mtx \
+			  -similarityType 1 -dataType 0 -graphType 1 -sourceID 3 -topK 32 \
+			  -vertices 1200000 -edges 208
 
 # ##################### Kernel compiler global settings ##########################
 VPP_FLAGS += -t $(TARGET) --platform $(XPLATFORM) --save-temps --optimize 2
 VPP_FLAGS += --hls.jobs 8
 VPP_LDFLAGS += --vivado.synth.jobs 8 --vivado.impl.jobs 8
+ifneq (,$(shell echo $(XPLATFORM) | awk '/u55/'))
 VPP_FLAGS += --config $(CUR_DIR)/conn_u50_u55c_u280.cfg
+endif
 
 VPP_FLAGS += -I$(XFLIB_DIR)/L1/include/hw
 VPP_FLAGS += -I$(XFLIB_DIR)/L2/include/hw
-VPP_FLAGS += -I$(XFLIB_DIR)/L2/dense_similarity_multi_kernel/kernel
+VPP_FLAGS += -I$(XFLIB_DIR)/L2/dense_similarity_multi_kernel_4pu/kernel
 
-denseSimilarityKernel_VPP_FLAGS +=  -D KERNEL_NAME=denseSimilarityKernel
-denseSimilarityKernel_VPP_FLAGS += --hls.clock 300000000:denseSimilarityKernel
-VPP_LDFLAGS_denseSimilarityKernel += --kernel_frequency 250
+denseSimilarityKernel4PU_VPP_FLAGS +=  -D KERNEL_NAME=denseSimilarityKernel4PU
+denseSimilarityKernel4PU_VPP_FLAGS += --hls.clock 300000000:denseSimilarityKernel4PU
+VPP_LDFLAGS_denseSimilarityKernel4PU += --kernel_frequency 250
 
 
 # Kernel args
 
 # ############################ Declaring Binary Containers ##########################
 
-BINARY_CONTAINERS += $(BUILD_DIR)/denseSimilarityKernel.xclbin
-BINARY_CONTAINER_denseSimilarityKernel_OBJS += $(TEMP_DIR)/denseSimilarityKernel.xo
+BINARY_CONTAINERS += $(BUILD_DIR)/denseSimilarityKernel4PU.xclbin
+BINARY_CONTAINER_denseSimilarityKernel4PU_OBJS += $(TEMP_DIR)/denseSimilarityKernel4PU.xo
 
 # ######################### Setting Targets of Makefile ################################
 DATA_DIR += $(CUR_DIR)/data
@@ -162,15 +170,17 @@ endif
 build: xclbin
 
 # ################ Setting Rules for Binary Containers (Building Kernels) ################
-$(TEMP_DIR)/denseSimilarityKernel.xo: $(XFLIB_DIR)/L2/dense_similarity_multi_kernel/kernel/denseSimilarityKernel.cpp
-	$(ECHO) "Compiling Kernel: denseSimilarityKernel"
+$(TEMP_DIR)/denseSimilarityKernel4PU.xo: $(XFLIB_DIR)/L2/dense_similarity_multi_kernel_4pu/kernel/denseSimilarityKernel4PU.cpp
+	$(ECHO) "Compiling Kernel: denseSimilarityKernel4PU"
 	mkdir -p $(TEMP_DIR)
-	$(VPP) -c $(denseSimilarityKernel_VPP_FLAGS) $(VPP_FLAGS) -k denseSimilarityKernel -I'$(<D)' --temp_dir $(TEMP_DIR) --report_dir $(TEMP_REPORT_DIR) -o'$@' $^
+	$(VPP) -c $(denseSimilarityKernel4PU_VPP_FLAGS) $(VPP_FLAGS) -k denseSimilarityKernel4PU -I'$(<D)' --temp_dir $(TEMP_DIR) --report_dir $(TEMP_REPORT_DIR) -o'$@' $^
 
 
-$(BUILD_DIR)/denseSimilarityKernel.xclbin: $(BINARY_CONTAINER_denseSimilarityKernel_OBJS)
+$(BUILD_DIR)/denseSimilarityKernel4PU.xclbin: $(BINARY_CONTAINER_denseSimilarityKernel4PU_OBJS)
 	mkdir -p $(BUILD_DIR)
-	$(VPP) -l $(VPP_FLAGS) --temp_dir $(TEMP_DIR) --report_dir $(BUILD_REPORT_DIR)/denseSimilarityKernel $(VPP_LDFLAGS) $(VPP_LDFLAGS_denseSimilarityKernel) -o '$@' $(+)
+	$(VPP) -l $(VPP_FLAGS) --temp_dir $(TEMP_DIR) \
+	       --report_dir $(BUILD_REPORT_DIR)/denseSimilarityKernel4PU $(VPP_LDFLAGS) \
+		   $(VPP_LDFLAGS_denseSimilarityKernel4PU) -o '$@' $(+)
 
 
 # ################# Setting Rules for Host (Building Host Executable) ################

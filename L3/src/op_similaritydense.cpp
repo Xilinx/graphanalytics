@@ -35,8 +35,7 @@ void createHandleSimDense(class openXRM *xrm, clHandle &handle,
   handle.device = devices[IDDevice];
   handle.context = cl::Context(handle.device);
   handle.q = cl::CommandQueue(handle.context, handle.device,
-                              CL_QUEUE_PROFILING_ENABLE |
-                                  CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE);
+                              CL_QUEUE_PROFILING_ENABLE | CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE);
   std::string devName = handle.device.getInfo<CL_DEVICE_NAME>();
   handle.xclBins = xcl::import_binary_file(xclbinFile);
   std::vector<cl::Device> devices2;
@@ -45,8 +44,7 @@ void createHandleSimDense(class openXRM *xrm, clHandle &handle,
 
   handle.resR = (xrmCuResource *)malloc(sizeof(xrmCuResource));
   memset(handle.resR, 0, sizeof(xrmCuResource));
-  xrm->allocCU(handle.resR, kernelName.c_str(), kernelAlias.c_str(),
-               requestLoad);
+  xrm->allocCU(handle.resR, kernelName.c_str(), kernelAlias.c_str(), requestLoad);
   std::string instanceName0 = handle.resR->instanceName;
   instanceName0 = "denseSimilarityKernel:{" + instanceName0 + "}";
 
