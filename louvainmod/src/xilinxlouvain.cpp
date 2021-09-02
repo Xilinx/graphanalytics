@@ -149,10 +149,13 @@ public:
         // node 1 (aka worker 1): par_svr0_000.par par_svr0_001.par par_svr0_002.par
         // node 2 (aka worker 2): par_svr1_000.par par_svr1_001.par par_svr1_002.par
         // node 0 (aka driver)  : par_svr2_000.par par_svr2_001.par par_svr2_002.par par_svr2_003.par
-        if (settings_.numServers > 1) {
+        if (globalOpts_.partitionNameMode == PartitionNameMode::Server
+            || (globalOpts_.partitionNameMode == PartitionNameMode::Server && settings_.numServers > 1))
+        {
             int serverIndexAssigned = (serverNum == 0) ? (settings_.numServers-1) : (settings_.serverIndex-1);
             std::sprintf(pathName_proj_svr, "%s_svr%d", globalOpts_.nameProj.c_str(), serverIndexAssigned); 
-        } else
+        }
+        else
             std::strcpy(pathName_proj_svr, globalOpts_.nameProj);                    //louvain_partitions_000.par
 
         // User requested NV per partition
@@ -226,7 +229,8 @@ public:
         char* meta = (char*)malloc(4096);
         char pathName_tmp[1024];
         int numPartitions = 0;
-        for (int i=0; i<settings_.numServers; i++)
+        int numServers = (globalOpts_.partitionNameMode == PartitionNameMode::Flat) ? 1 : settings_.numServers;
+        for (int i=0; i<numServers; i++)
             numPartitions += numAlveoPartitions[i];
 
         std::sprintf(pathName_tmp, "%s%s.par.proj", projPath_.c_str(), projName_.c_str());
@@ -237,9 +241,9 @@ public:
         //adding: -server_par <num_server> <num_par on server0> ... <num_par on server N>
         //example: -server_par 3 1 1 1
         char tmp_str[128];
-        std::sprintf(tmp_str, "-server_par %d ", settings_.numServers);
+        std::sprintf(tmp_str, "-server_par %d ", numServers);
         std::strcat(meta, tmp_str);
-        for(int i_svr = 0, end = settings_.numServers; i_svr < end; i_svr++){
+        for(int i_svr = 0, end = numServers; i_svr < end; i_svr++){
              std::sprintf(tmp_str, "%d ",  numAlveoPartitions[i_svr]);
              std::strcat(meta, tmp_str);
         }
@@ -265,7 +269,7 @@ public:
             std::cout << "************************************************************************************************" << std::endl;
             std::cout << "***********************  Louvain Partition Summary   *******************************************" << std::endl;
             std::cout << "************************************************************************************************" << std::endl;
-            std::cout << "Number of servers                  : " << settings_.numServers << std::endl;
+            std::cout << "Number of servers                  : " << numServers << std::endl;
             std::cout << "Output Alveo partition project     : " << globalOpts_.nameProj << std::endl;
             std::cout << "Number of partitions created       : " << parlv_.num_par << std::endl;
             std::cout << "Time for partitioning the graph    : " << (parlv_.timesPar.timePar_all + parlv_.timesPar.timePar_save) << std::endl;

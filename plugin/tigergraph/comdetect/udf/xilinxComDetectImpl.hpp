@@ -60,6 +60,16 @@ inline Mutex &getMutex() {
 }
 
 using LouvainMod = xilinx_apps::louvainmod::LouvainMod;
+using PartitionNameMode = xilinx_apps::louvainmod::PartitionNameMode;
+
+struct LouvainVertex {
+    uint64_t id_ = 0;  // compressed ID
+    long outDegree_ = 0;
+    
+    LouvainVertex() = default;
+    LouvainVertex(long outDegree) : outDegree_(outDegree) {}
+};
+
 
 class Context {
 public:
@@ -104,6 +114,8 @@ public:
     std::vector<xilinx_apps::louvainmod::Edge> mEdgeVec;
     std::vector<long> mDgrVec;
     std::vector<long> addedOffset; //store each vertex edgelist offset
+    std::map<uint64_t, LouvainVertex> vertexMap;  // maps from original (.mtx) vertex ID to properties of the vertex
+    PartitionNameMode partitionNameMode_ = PartitionNameMode::Auto;
 
     static Context *getInstance() {
         static Context *s_pContext = nullptr;
@@ -173,6 +185,7 @@ public:
             options.hostName = curNodeHostname_;
             options.clusterIpAddresses = nodeIps_;
             options.hostIpAddress = curNodeIp_;
+            options.partitionNameMode = partitionNameMode_;
 
 #ifdef XILINX_COM_DETECT_DEBUG_ON
             std::cout << "DEBUG: louvainmod options:"
