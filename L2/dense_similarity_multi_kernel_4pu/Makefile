@@ -1,5 +1,5 @@
 #
-# Copyright 2019-2020 Xilinx, Inc.
+# Copyright 2019-2021 Xilinx, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# makefile-generator v1.0.3
+# makefile-generator v1.0.4
 #
 
 # ####################################### Help Section #####################################
@@ -20,9 +20,8 @@
 
 help::
 	$(ECHO) "Makefile Usage:"
-	$(ECHO) "  make all TARGET=<sw_emu/hw_emu/hw> DEVICE=<FPGA platform> HOST_ARCH=<aarch32/aarch64/x86>"
+	$(ECHO) "  make all TARGET=<sw_emu/hw_emu/hw> DEVICE=<FPGA platform> HOST_ARCH=<x86>"
 	$(ECHO) "      Command to generate the design for specified Target and Shell."
-	$(ECHO) "      By default, HOST_ARCH=x86. HOST_ARCH is required for SoC shells"
 	$(ECHO) ""
 	$(ECHO) "  make clean "
 	$(ECHO) "      Command to remove the generated non-hardware files."
@@ -30,29 +29,24 @@ help::
 	$(ECHO) "  make cleanall"
 	$(ECHO) "      Command to remove all the generated files."
 	$(ECHO) ""
-	$(ECHO) "  make TARGET=<sw_emu/hw_emu/hw> DEVICE=<FPGA platform> HOST_ARCH=<aarch32/aarch64/x86>"
-	$(ECHO) "      By default, HOST_ARCH=x86. HOST_ARCH is required for SoC shells"
+	$(ECHO) "  make run TARGET=<sw_emu/hw_emu/hw> DEVICE=<FPGA platform> HOST_ARCH=<x86>"
+	$(ECHO) "      Command to run application in emulation or on board."
 	$(ECHO) ""
-	$(ECHO) "  make run TARGET=<sw_emu/hw_emu/hw> DEVICE=<FPGA platform> HOST_ARCH=<aarch32/aarch64/x86>"
-	$(ECHO) "      Command to run application in emulation."
-	$(ECHO) "      By default, HOST_ARCH=x86. HOST_ARCH required for SoC shells"
-	$(ECHO) ""
-	$(ECHO) "  make build TARGET=<sw_emu/hw_emu/hw> DEVICE=<FPGA platform> HOST_ARCH=<aarch32/aarch64/x86>"
+	$(ECHO) "  make build TARGET=<sw_emu/hw_emu/hw> DEVICE=<FPGA platform> HOST_ARCH=<x86>"
 	$(ECHO) "      Command to build xclbin application."
-	$(ECHO) "      By default, HOST_ARCH=x86. HOST_ARCH is required for SoC shells"
 	$(ECHO) ""
-	$(ECHO) "  make host HOST_ARCH=<aarch32/aarch64/x86>"
+	$(ECHO) "  make host HOST_ARCH=<x86>"
 	$(ECHO) "      Command to build host application."
-	$(ECHO) "      By default, HOST_ARCH=x86. HOST_ARCH is required for SoC shells"
 	$(ECHO) ""
-	$(ECHO) "  NOTE: For SoC shells, ENV variable SYSROOT needs to be set."
+	$(ECHO) "  Supported devices:"
+	$(ECHO) "  xilinx_u55c_gen3x16_xdma_1_202110_1"
 	$(ECHO) ""
 
 # ##################### Setting up default value of TARGET ##########################
 TARGET ?= sw_emu
 
 # ################### Setting up default value of DEVICE ##############################
-DEVICE ?= xilinx_u50_gen3x16_xdma_201920_3
+DEVICE ?= xilinx_u55c_gen3x16_xdma_1_202110_1
 
 # ###################### Setting up default value of HOST_ARCH ####################### 
 HOST_ARCH ?= x86
@@ -63,7 +57,7 @@ $(error [ERROR]: This project is not supported for $(DEVICE).)
 endif
 
 # #################### Checking if DEVICE in whitelist ############################
-ifneq ($(findstring u55c, $(DEVICE)), u55c)
+ifneq ($(findstring u55, $(DEVICE)), u55)
 $(warning [WARNING]: This project has not been tested for $(DEVICE). It may or may not work.)
 endif
 
@@ -86,33 +80,13 @@ export XCL_BINDIR = $(XCLBIN_DIR)
 
 # ######################### Setting up Host Variables #########################
 #Include Required Host Source Files
-HOST_SRCS += $(XFLIB_DIR)/louvainmod/grappolo/src/driverForGraphClustering.cpp
-HOST_SRCS += $(XFLIB_DIR)/louvainmod/grappolo/src/RngStream.cpp
-HOST_SRCS += $(XFLIB_DIR)/louvainmod/grappolo/src/utilityFunctions.cpp
-HOST_SRCS += $(XFLIB_DIR)/louvainmod/grappolo/src/parseInputFiles.cpp
-HOST_SRCS += $(XFLIB_DIR)/louvainmod/grappolo/src/buildNextPhase.cpp
-HOST_SRCS += $(XFLIB_DIR)/louvainmod/grappolo/src/coloringDistanceOne.cpp
-HOST_SRCS += $(XFLIB_DIR)/louvainmod/grappolo/src/utilityClusteringFunctions.cpp
-HOST_SRCS += $(XFLIB_DIR)/louvainmod/grappolo/src/parallelLouvainMethod.cpp
-HOST_SRCS += $(XFLIB_DIR)/louvainmod/grappolo/src/parallelLouvainWithColoring.cpp
-HOST_SRCS += $(XFLIB_DIR)/louvainmod/grappolo/src/louvainMultiPhaseRun.cpp
-HOST_SRCS += $(XFLIB_DIR)/louvainmod/grappolo/src/parseInputParameters.cpp
-HOST_SRCS += $(XFLIB_DIR)/louvainmod/grappolo/src/vertexFollowing.cpp
-HOST_SRCS += $(XFLIB_DIR)/L2/louvainmod_2cu_u55c_kernel/partition/test.cpp
-HOST_SRCS += $(XFLIB_DIR)/L2/louvainmod_2cu_u55c_kernel/partition/ParLV.cpp
-HOST_SRCS += $(XFLIB_DIR)/L2/louvainmod_2cu_u55c_kernel/partition/ctrlLV.cpp
-HOST_SRCS += $(XFLIB_DIR)/L2/louvainmod_2cu_u55c_kernel/partition/louvainPhase.cpp
-HOST_SRCS += $(XFLIB_DIR)/L2/louvainmod_2cu_u55c_kernel/partition/partitionLouvain.cpp
+HOST_SRCS += $(XFLIB_DIR)/L2/dense_similarity_multi_kernel_4pu/host/test_similarity.cpp
 HOST_SRCS += $(XFLIB_DIR)/ext/xcl2/xcl2.cpp
+CXXFLAGS += -I$(XFLIB_DIR)/L1/include/hw
 CXXFLAGS += -I$(XFLIB_DIR)/L2/include/hw
-CXXFLAGS += -I$(XFLIB_DIR)/louvainmod/grappolo/include
-#CXXFLAGS += -I$(XFLIB_DIR)/louvainmod/include
-CXXFLAGS += -I$(XFLIB_DIR)/L2/louvainmod_2cu_u55c_kernel/partition
-CXXFLAGS += -I$(XFLIB_DIR)/L2/louvainmod_2cu_u55c_kernel
-#CXXFLAGS += -I$(XFLIB_DIR)/../utils/L1/include
-CXXFLAGS += -I$(XFLIB_DIR)/ext/xcl2
-CXXFLAGS += -I$(XFLIB_DIR)/L2/include
-#CXXFLAGS += -I$(XFLIB_DIR)/../utils/L1/include
+CXXFLAGS += -I$(XFLIB_DIR)/L2/dense_similarity_multi_kernel_4pu/host
+CXXFLAGS += -I$(XFLIB_DIR)/L2/dense_similarity_multi_kernel_4pu/kernel
+CXXFLAGS += -I$(XFLIB_DIR)/../utils/L1/include
 CXXFLAGS += -I$(XFLIB_DIR)/ext/xcl2
 
 ifeq ($(TARGET),sw_emu)
@@ -124,83 +98,98 @@ CXXFLAGS += -D HW_EMU_TEST
 endif
 
 # ######################### Host compiler global settings ############################
-CXXFLAGS += -I$(XILINX_XRT)/include -I$(XILINX_VIVADO)/include -std=c++11 -O3 -Wall -Wno-unknown-pragmas
-LDFLAGS += -L$(XILINX_XRT)/lib -lOpenCL -lpthread -lrt -Wno-unused-label -Wno-unused-variable -Wno-write-strings -Wno-narrowing -DVERBOSE -Wno-format
-CXXFLAGS += -fmessage-length=0 -O3 -DPRAGMA -Ofast -fopenmp -fPIC -DMULTITHREAD
+CXXFLAGS += -I$(XILINX_XRT)/include -I$(XILINX_HLS)/include -std=c++11 -O3 -Wall -Wno-unknown-pragmas -Wno-unused-label
+LDFLAGS += -L$(XILINX_XRT)/lib -lOpenCL -lpthread -lrt -Wno-unused-label -Wno-narrowing -DVERBOSE
+CXXFLAGS += -fmessage-length=0 -O3 
 CXXFLAGS += -I$(CUR_DIR)/src/ 
 
 ifeq ($(HOST_ARCH), x86)
-LDFLAGS += -L$(XILINX_VIVADO)/lnx64/tools/fpo_v7_0 -Wl,--as-needed -lgmp -lmpfr -lIp_floating_point_v7_0_bitacc_cmodel
+LDFLAGS += -L$(XILINX_HLS)/lnx64/tools/fpo_v7_0 -Wl,--as-needed -lgmp -lmpfr -lIp_floating_point_v7_0_bitacc_cmodel
 endif
-#ifneq (,$(shell echo $(XPLATFORM) | awk '/u50/'))
-#CXXFLAGS += -D USE_HBM
-#endif
 
-ifneq (,$(shell echo $(XPLATFORM) | awk '/u55c/'))
-VPP_CFLAGS += -D USE_U55C
-CXXFLAGS += -D USE_U55C
-endif
 # ################### Setting package and image directory #######################
 
 EXE_NAME := host.exe
 EXE_FILE := $(BUILD_DIR)/$(EXE_NAME)
-HOST_ARGS :=  -x $(BUILD_DIR)/kernel_louvain.xclbin -f 3 -c -o -m 10 -prun $(XFLIB_DIR)/L2/louvainmod_2cu_u55c_kernel/data/example-wt.txt
+HOST_ARGS :=  -xclbin $(BUILD_DIR)/denseSimilarityKernel4PU.xclbin \
+              -weight $(XFLIB_DIR)/L2/dense_similarity_multi_kernel_4pu/random.csr \
+			  -coeffs $(XFLIB_DIR)/L2/dense_similarity_multi_kernel_4pu/data/coeffs.csr \
+			  -golden $(XFLIB_DIR)/L2/dense_similarity_multi_kernel_4pu/data/cosine_dense.mtx \
+			  -similarityType 1 -dataType 0 -graphType 1 -sourceID 3 -topK 32 \
+			  -vertices 1200000 -edges 208
 
 # ##################### Kernel compiler global settings ##########################
 VPP_FLAGS += -t $(TARGET) --platform $(XPLATFORM) --save-temps --optimize 2
-VPP_FLAGS += --jobs 8
-VPP_FLAGS += --config $(CUR_DIR)/conn_u55c.cfg
+VPP_FLAGS += --hls.jobs 8
+VPP_LDFLAGS += --vivado.synth.jobs 8 --vivado.impl.jobs 8
+ifneq (,$(shell echo $(XPLATFORM) | awk '/u55/'))
+VPP_FLAGS += --config $(CUR_DIR)/conn_u50_u55c_u280.cfg
+endif
 
-VPP_FLAGS += -I$(XFLIB_DIR)/L2/include
-VPP_FLAGS += -I$(XFLIB_DIR)/../database/L1/include/hw
-VPP_FLAGS += -I$(XFLIB_DIR)/../quantitative_finance/L1/include
-VPP_FLAGS += -I$(XFLIB_DIR)/../utils/L1/include
-
-VPP_FLAGS += -I$(XFLIB_DIR)/L2/include
+VPP_FLAGS += -I$(XFLIB_DIR)/L1/include/hw
 VPP_FLAGS += -I$(XFLIB_DIR)/L2/include/hw
-VPP_FLAGS += -I$(XFLIB_DIR)/../utils/L1/include
-VPP_FLAGS += -I$(XFLIB_DIR)/L2/louvainmod_2cu_u55c_kernel
-VPP_FLAGS += --advanced.param compiler.userPostSysLinkOverlayTcl=$(CUR_DIR)/postSysLink.tcl
+VPP_FLAGS += -I$(XFLIB_DIR)/L2/dense_similarity_multi_kernel_4pu/kernel
 
-kernel_louvain_VPP_FLAGS +=  -D KERNEL_NAME=kernel_louvain
-kernel_louvain_VPP_FLAGS += --hls.clock 200000000:kernel_louvain
-VPP_LDFLAGS_kernel_louvain += --kernel_frequency 200
+denseSimilarityKernel4PU_VPP_FLAGS +=  -D KERNEL_NAME=denseSimilarityKernel4PU
+denseSimilarityKernel4PU_VPP_FLAGS += --hls.clock 300000000:denseSimilarityKernel4PU
+VPP_LDFLAGS_denseSimilarityKernel4PU += --kernel_frequency 250
 
+
+# Kernel args
 
 # ############################ Declaring Binary Containers ##########################
 
-BINARY_CONTAINERS += $(BUILD_DIR)/kernel_louvain.xclbin
-BINARY_CONTAINER_kernel_louvain_OBJS += $(TEMP_DIR)/kernel_louvain.xo
+BINARY_CONTAINERS += $(BUILD_DIR)/denseSimilarityKernel4PU.xclbin
+BINARY_CONTAINER_denseSimilarityKernel4PU_OBJS += $(TEMP_DIR)/denseSimilarityKernel4PU.xo
 
 # ######################### Setting Targets of Makefile ################################
 DATA_DIR += $(CUR_DIR)/data
 
 .PHONY: all clean cleanall docs emconfig
-all: check_vpp check_platform  $(EXE_FILE) $(BINARY_CONTAINERS) emconfig
+ifeq ($(HOST_ARCH), x86)
+all:  check_version check_vpp check_platform check_xrt $(EXE_FILE) $(BINARY_CONTAINERS) emconfig
+else
+all:  check_version check_vpp check_platform check_sysroot $(EXE_FILE) $(BINARY_CONTAINERS) emconfig  sd_card
+endif
 
 .PHONY: host
-host: check_xrt check_sysroot $(EXE_FILE)
+ifeq ($(HOST_ARCH), x86)
+host:   check_xrt $(EXE_FILE)
+else
+host:   check_sysroot $(EXE_FILE)
+endif
 
 .PHONY: xclbin
-xclbin: check_vpp check_sysroot $(BINARY_CONTAINERS)
+ifeq ($(HOST_ARCH), x86)
+xclbin: check_vpp  check_xrt  $(BINARY_CONTAINERS)
+else
+xclbin: check_vpp  check_sysroot  $(BINARY_CONTAINERS)
+endif
 
 .PHONY: build
 build: xclbin
 
 # ################ Setting Rules for Binary Containers (Building Kernels) ################
-$(TEMP_DIR)/kernel_louvain.xo: $(XFLIB_DIR)/L2/louvainmod_2cu_u55c_kernel/kernel_louvain.cpp
-	$(ECHO) "Compiling Kernel: kernel_louvain"
+$(TEMP_DIR)/denseSimilarityKernel4PU.xo: $(XFLIB_DIR)/L2/dense_similarity_multi_kernel_4pu/kernel/denseSimilarityKernel4PU.cpp
+	$(ECHO) "Compiling Kernel: denseSimilarityKernel4PU"
 	mkdir -p $(TEMP_DIR)
-	$(VPP) -c $(kernel_louvain_VPP_FLAGS) $(VPP_FLAGS) -k kernel_louvain -I'$(<D)' --temp_dir $(TEMP_DIR) --report_dir $(TEMP_REPORT_DIR) -o'$@' '$<'
+	$(VPP) -c $(denseSimilarityKernel4PU_VPP_FLAGS) $(VPP_FLAGS) -k denseSimilarityKernel4PU -I'$(<D)' --temp_dir $(TEMP_DIR) --report_dir $(TEMP_REPORT_DIR) -o'$@' $^
 
 
-$(BUILD_DIR)/kernel_louvain.xclbin: $(BINARY_CONTAINER_kernel_louvain_OBJS)
+$(BUILD_DIR)/denseSimilarityKernel4PU.xclbin: $(BINARY_CONTAINER_denseSimilarityKernel4PU_OBJS)
 	mkdir -p $(BUILD_DIR)
-	$(VPP) -l $(VPP_FLAGS) --temp_dir $(BUILD_DIR) --report_dir $(BUILD_REPORT_DIR)/kernel_louvain $(VPP_LDFLAGS) $(VPP_LDFLAGS_kernel_louvain) -o '$@' $(+)
+	$(VPP) -l $(VPP_FLAGS) --temp_dir $(TEMP_DIR) \
+	       --report_dir $(BUILD_REPORT_DIR)/denseSimilarityKernel4PU $(VPP_LDFLAGS) \
+		   $(VPP_LDFLAGS_denseSimilarityKernel4PU) -o '$@' $(+)
 
 
 # ################# Setting Rules for Host (Building Host Executable) ################
-$(EXE_FILE): $(HOST_SRCS) | check_xrt
+ifeq ($(HOST_ARCH), x86)
+$(EXE_FILE):  $(HOST_SRCS) | check_xrt 
+else
+$(EXE_FILE):  $(HOST_SRCS) | check_sysroot 
+endif
+
 	mkdir -p $(BUILD_DIR)
 	$(CXX) -o $@ $^ $(CXXFLAGS) $(LDFLAGS)
 
@@ -224,7 +213,7 @@ cleanh:
 	-$(RMDIR) src/*.ll _xocc_* .Xil dltmp* xmltmp* *.log *.jou *.wcfg *.wdb sample_link.ini sample_compile.ini obj* bin* *.csv *.jpg *.jpeg *.png
 
 cleank:
-	-$(RMDIR) $(BUILD_DIR)/*.xclbin _vimage *xclbin.run_summary qemu-memory-_* emulation/ _vimage/ pl* start_simulation.sh *.xclbin
+	-$(RMDIR) $(BUILD_DIR)/*.xclbin _vimage *xclbin.run_summary qemu-memory-_* emulation/ _vimage/ start_simulation.sh *.xclbin
 	-$(RMDIR) _x_temp.*/_x.* _x_temp.*/.Xil _x_temp.*/profile_summary.* xo_* _x*
 	-$(RMDIR) _x_temp.*/dltmp* _x_temp.*/kernel_info.dat _x_temp.*/*.log 
 	-$(RMDIR) _x_temp.* 

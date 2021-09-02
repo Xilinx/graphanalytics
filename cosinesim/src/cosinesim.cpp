@@ -41,6 +41,7 @@ public:
 
     int valueSize_;
     uint32_t numDevices;
+    std::string deviceNames;
     int populationVectorRowNm;
     int32_t** numVerticesPU ; // vertex numbers in each PU
 
@@ -98,10 +99,16 @@ public:
             vecLength = options.vecLength;
 
         numDevices = 1;
-        if(options.numDevices > 0)
+        if (options.numDevices > 0)
             numDevices = options.numDevices;
 
-        xclbinPath = "/opt/xilinx/apps/graphanalytics/cosinesim/1.3/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin";
+        deviceNames = options.deviceNames;
+
+        if (deviceNames == "xilinx_u50_gen3x16_xdma_201920_3")
+            xclbinPath = "/opt/xilinx/apps/graphanalytics/cosinesim/1.3/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin";
+        else if (deviceNames == "xilinx_u55c_gen3x16_xdma_base_1")
+            xclbinPath = "/opt/xilinx/apps/graphanalytics/cosinesim/1.3/xclbin/cosinesim_32bit_xilinx_u55c_gen3x16_xdma_base_1.xclbin";
+
         std::cout << "INFO: Options::xcbinPath = " << (options.xclbinPath == nullptr ? "null"
             : options.xclbinPath) << std::endl;
         if (options.xclbinPath != nullptr)
@@ -453,11 +460,17 @@ void PrivateImpl::load_cu_cosinesim_ss_dense_fpga()
         abort();
     }
 
+#ifndef NDEBUG
+    std::cout << "DEBUG:" << __FUNCTION__ 
+              << "\n    deviceNames=" << deviceNames
+              << std::endl;
+#endif
+
     createSharedHandle(numDevices);
     std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
 
     handle0->addOp(op0);
-    int status = handle0->setUp("xilinx_u50_gen3x16_xdma_201920_3");
+    int status = handle0->setUp(deviceNames);
     if (status != 0) {
        // std::cout<< "ERROR: FPGA is not setup properly. free the handle! status:"<<status<<std::endl;
         freeSharedHandle();

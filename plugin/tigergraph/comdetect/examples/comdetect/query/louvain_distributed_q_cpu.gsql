@@ -213,7 +213,7 @@ CREATE DISTRIBUTED QUERY louvain_distributed_q_cpu(
 	Start = SELECT s FROM Start:s
 		POST-ACCUM
 			IF result_attr != "" THEN s.setAttr(result_attr, getvid(s.@cc.get(0))) END,
-			IF result_file != "" THEN
+			IF result_file != "nooutput" THEN
 				IF intermediateResult THEN
 					f.println(s, getvid(s.@cc.get(0)), s.@ccIntermediate)
 				ELSE

@@ -26,7 +26,17 @@ int32_t Handle::initOpSimDense(std::string kernelName,
                                std::string kernelAlias,
                                unsigned int requestLoad,
                                unsigned int numDevices,
-                               unsigned int cuPerBoard) {
+                               unsigned int cuPerBoard) 
+{
+#ifndef NDEBUG
+    std::cout << "DEBUG: initOpSimDense " <<
+              << "\n    kernelName=" << kernelName
+              << "\n    xclbinFile=" << xclbinFile
+              << "\n    kernelAlias=" << kernelAlias
+              << "\n    requestLoad=" << requestLoad 
+              << "\n    numDevices=" << numDevices
+              << "\n    cuPerBoard=" << cuPerBoard << std::endl;
+#endif
     uint32_t* deviceID;
     uint32_t* cuID;
     int32_t status = 0;
@@ -38,6 +48,7 @@ int32_t Handle::initOpSimDense(std::string kernelName,
     if (status < 0)
         return status;
     opsimdense->setHWInfo(numDevices_, maxCU_);
+    // init allocates CUs based on kernelName and kernelAlias
     opsimdense->init(xrm, kernelName, kernelAlias, xclbinFile, deviceID, cuID, requestLoad);
     opsimdense->initThread(xrm, kernelName, kernelAlias, requestLoad, numDevices, cuPerBoard);
     delete[] cuID;
@@ -110,7 +121,7 @@ int Handle::setUp(std::string deviceNames)
             for (unsigned int j = 0; j < boardNm; ++j) {
 #ifndef NDEBUG
                 std::cout << "DEBUG: " << __FUNCTION__ << ": xrm->unloadXclbinNonBlock " 
-                          << deviceCounter + j << std::endl;
+                          << supportedDeviceIds_[j] << std::endl;
 #endif
                 thUn[j] = xrm->unloadXclbinNonBlock(supportedDeviceIds_[j]);
             }

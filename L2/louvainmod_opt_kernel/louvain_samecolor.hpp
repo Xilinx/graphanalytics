@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Xilinx, Inc.
+ * Copyright 2021 Xilinx, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,13 +47,13 @@ namespace xf {
 namespace graph {
 
 template <int CSRWIDTH, int COLORWIDTH>
-void _new_bus(bool use_push_flag,
-              ap_uint<FLAGW>* flag,
-              int coloradj1,
-              int coloradj2,
-              ap_uint<COLORWIDTH>* colorInx,
-              ap_uint<CSRWIDTH>* offset,
-              hls::stream<ap_uint<96> >& str_GetVout) {
+void SameColor_GetV(bool use_push_flag,
+                    ap_uint<FLAGW>* flag,
+                    int coloradj1,
+                    int coloradj2,
+                    ap_uint<COLORWIDTH>* colorInx,
+                    ap_uint<CSRWIDTH>* offset,
+                    hls::stream<ap_uint<96> >& str_GetVout) {
     StrmBus_M out_v;
     ap_uint<96> dinout;
 
@@ -235,6 +235,11 @@ GET_E:
         if ((d + 0) == e_dgr) {
             str_GetVout.read(dinout);
             u_vod.vod.get(dinout, v, off, e_dgr);
+            if(e_dgr <= 0 && (off>0)){
+                e_dgr = 0;//when off!=0 & dgr<=0 reset
+                d = 0;
+                continue;
+            }
             u_vd_ew.vd.set(dinout, v, e_dgr);
             str_GetEout.write(dinout);
             d = 0;
@@ -634,29 +639,6 @@ GET_BEST:
             if (GetKins_e == false) {
             	readnew = true;
             }
-//            else{
-//                vcnki.vcnk.get(dout);
-//                vcnki_tmp.vcnk.set(dout);
-//                str_Gainout.write(dout);
-//            }
-//            if (GetKins_e == false) {
-//                str_Aggout.read(dinout);
-//                kisf.kisf.set(dinout);
-//                selfloop = degree > 0 ? kisf.kisf.self : 0;
-//                ki = degree > 0 ? kisf.kisf.ki : 0;
-//                vcnki.vcnk.ki = degree > 0 ? kisf.kisf.ki : 0;
-//                d = 0;
-//                ki_i = ToInt(ki, scl_2);
-//#ifndef __SYNTHESIS__
-//#ifdef _DEBUG_GAIN
-//                printf("GAIN: v=%d\t, vCid=%d\t, degree=%d\t, numComm=%d\t, ki=%f\t, selfloop=%f\t \n", v, vCid, degree,
-//                       numComm, ki, selfloop);
-//#endif
-//#endif
-//            }
-//            vcnki.vcnk.get(dout);
-//            vcnki_tmp.vcnk.set(dout);
-//            str_Gainout.write(dout);
         }else if (readnew){
             if (GetKins_e == false) {
                 str_Aggout.read(dinout);
@@ -1167,7 +1149,7 @@ void SameColor_dataflow(int numVertex,
     hls::stream<ap_uint<96> > str_GetVout("str_GetVout");
 #pragma HLS RESOURCE variable = str_GetVout core = FIFO_SRL
 #pragma HLS STREAM variable = str_GetVout depth = 256
-    _new_bus<CSRWIDTH, COLORWIDTH>(use_push_flag, flag, coloradj1, coloradj2, colorInx, offset, str_GetVout);
+    SameColor_GetV<CSRWIDTH, COLORWIDTH>(use_push_flag, flag, coloradj1, coloradj2, colorInx, offset, str_GetVout);
 
     hls::stream<ap_uint<96> > str_GetEout("str_GetEout");
 #pragma HLS RESOURCE variable = str_GetEout core = FIFO_LUTRAM

@@ -44,6 +44,7 @@ int main(int argc, char **argv) {
     unsigned NumDevices = 1;
     unsigned Iterations = 1;
     unsigned NumVectors = 5000;
+    std::string deviceNames = "xilinx_u50_gen3x16_xdma_201920_3";
 
     if (argc > 1)
         NumDevices = std::stoi(argv[1]);
@@ -56,6 +57,12 @@ int main(int argc, char **argv) {
         NumVectors = std::stoi(argv[3]);
     } 
 
+    if (argc > 4) {
+        deviceNames = argv[4];
+    } 
+
+
+
     std::cout << "INFO: Running " << Iterations << " iterations with NumVectors=" << NumVectors << std::endl;
 
     std::srand(0x12345);
@@ -66,6 +73,7 @@ int main(int argc, char **argv) {
     xilinx_apps::cosinesim::Options options;
     options.vecLength = VectorLength;
     options.numDevices = NumDevices;
+    options.deviceNames = deviceNames;
 
     std::cout << "-------- START COSINESIME TEST numDevices=" << options.numDevices << "----------" << std::endl;
 

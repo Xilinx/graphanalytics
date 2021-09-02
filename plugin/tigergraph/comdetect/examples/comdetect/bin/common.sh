@@ -56,6 +56,9 @@ function usage() {
     echo "  -i sshKey            : SSH key for user tigergraph"    
     echo "  -n numPartitionsNode : Number of Alveo partitions "    
     echo "  -s dataSource        : A .mtx file containing input graph. default=../data/as-Skitter-r100.mtx"
+    echo "  -o                   : Generate output log files. Log file path and name:"
+    echo "                         CPU run: ~tigergraph/output-cpu.log"
+    echo "                         Alveo run: ~tigergraph/output_alveo.txt.clustInfo"
     echo "  -v                   : Print verbose messages"
     echo "  -h                   : Print this help message"
 }
@@ -77,6 +80,7 @@ compile_mode=0
 partition_mode=2
 force_clean_flag=
 verbose_flag=
+gen_outfile=0
 alveo_prj=""
 
 # set default ssh_key for tigergraph
@@ -84,7 +88,7 @@ if [ -f ~/.ssh/tigergraph_rsa ]; then
     ssh_key_flag="-i ~/.ssh/tigergraph_rsa"
 fi
 
-while getopts "c:fg:i:m:n:p:r:s:u:vx:ha:" opt
+while getopts "c:fg:i:lm:n:p:r:s:u:vx:ha:" opt
 do
 case $opt in
     c) compile_mode=$OPTARG;;
@@ -93,6 +97,7 @@ case $opt in
     i) ssh_key=$OPTARG; ssh_key_flag="-i $ssh_key";;
     m) num_nodes=$OPTARG;;
     n) num_partitions_node=$OPTARG;;
+    o) gen_outfile=1;;
     p) password=$OPTARG;;
     r) run_mode=$OPTARG;;
     s) data_source=$OPTARG;;

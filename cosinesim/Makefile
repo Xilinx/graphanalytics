@@ -336,15 +336,17 @@ $(CPP_BUILD_DIR)/cosinesim_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUILD_D
 $(CPP_BUILD_DIR)/cosinesim_dyn_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUILD_DIR)/$(LOADER_NAME) $(CPP_BUILD_DIR)/$(LIB_NAME)
 	$(LINK.cc) -o $@ $< -fPIC -w -L $(CPP_BUILD_DIR) -l$(LOADER_SHORT_NAME) -ldl $(LIB_DEPS)
 
-NUMDEVICES=1
-ITERATIONS=1
-NUMVECTORS=5000
+numDevices=1
+iterations=1
+numVectors=5000
+deviceNames=xilinx_u50_gen3x16_xdma_201920_3
 run-test: cppTest
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) $(CPP_BUILD_DIR)/cosinesim_test $(NUMDEVICES) $(ITERATIONS) $(NUMVECTORS)
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) $(CPP_BUILD_DIR)/cosinesim_test \
+	                $(numDevices) $(iterations) $(numVectors) $(deviceNames)
 
 run-dyn-test: cppTest
 	LD_PRELOAD=$(PWD)/$(CPP_BUILD_DIR)/$(LIB_NAME) LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) \
-	    $(CPP_BUILD_DIR)/cosinesim_dyn_test $(NUMDEVICES)
+	    $(CPP_BUILD_DIR)/cosinesim_dyn_test $(numDevices)
 
 # Macro to create a .o rule and a .d rule for each .cpp
 
@@ -381,13 +383,17 @@ endif
 
 
 L2_TOP_DIR = $(GRAPH_ANALYTICS_DIR)/L2/dense_similarity_multi_kernel
-L2_XDEVICE = xilinx_u50_gen3x16_xdma_201920_3
-L2_BUILD_DIR = $(L2_TOP_DIR)/build_dir.hw.$(L2_XDEVICE)
+L2_XDEVICE_U50 = xilinx_u50_gen3x16_xdma_201920_3
+L2_XDEVICE_U55C = xilinx_u55c_gen3x16_xdma_1_202110_1
+L2_BUILD_DIR_U50 = $(L2_TOP_DIR)/build_dir.hw.$(L2_XDEVICE_U50)
+L2_BUILD_DIR_U55C = $(L2_TOP_DIR)/build_dir.hw.$(L2_XDEVICE_U55C)
+
 DEVICE ?= $(L2_XDEVICE)
 XCLBIN_NAME = denseSimilarityKernel.xclbin
-XCLBIN_FILE = $(L2_BUILD_DIR)/$(XCLBIN_NAME)
-XCLBIN_INSTALLED = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin
-
+XCLBIN_FILE_U50 = $(L2_BUILD_DIR_U50)/$(XCLBIN_NAME)
+XCLBIN_FILE_U55C = $(L2_BUILD_DIR_U55C)/$(XCLBIN_NAME)
+XCLBIN_INSTALLED_U50 = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+XCLBIN_INSTALLED_U55C = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32bit_xilinx_u55c_gen3x16_xdma_base_1.xclbin
 .PHONY: xclbin
 
 
@@ -400,17 +406,30 @@ xclbin:
 		make build TARGET=hw DEVICE=$(DEVICE); \
 	fi
 	
-$(XCLBIN_FILE):
-	@if [ -r $(XCLBIN_INSTALLED) ]; then \
-	    echo "INFO: The XCLBIN file $(XCLBIN_FILE) is missing.  Copying from installed area."; \
-	    cp -r $(XCLBIN_INSTALLED) $@; \
+$(XCLBIN_FILE_U50):
+	@if [ -r $(XCLBIN_INSTALLED_U50) ]; then \
+	    echo "INFO: The XCLBIN file $(XCLBIN_FILE_U50) is missing.  Copying from installed area."; \
+	    cp -r $(XCLBIN_INSTALLED_U50) $@; \
 	else \
-	    echo "ERROR: The XCLBIN file $(XCLBIN_FILE) is missing."; \
+	    echo "ERROR: The XCLBIN file $(XCLBIN_FILE_U50) is missing."; \
 	    echo "Because building an XCLBIN file can be an all-day proposition, you have two choices for completing this build:"; \
 	    echo "1. Copy a pre-built XCLBIN to the target location above.  (Recommended for developers)"; \
 	    echo "2. Do 'make xclbin' and go for a very long coffee break.  (Recommended for build automation)"; \
 	    false; \
 	fi
+
+$(XCLBIN_FILE_U55C):
+	    @if [ -r $(XCLBIN_INSTALLED_U55C) ]; then \
+            echo "INFO: The XCLBIN file $(XCLBIN_FILE_U55C) is missing.  Copying from installed area."; \
+            cp -r $(XCLBIN_INSTALLED_U55C) $@; \
+        else \
+            echo "ERROR: The XCLBIN file $(XCLBIN_FILE_U55C) is missing."; \
+            echo "Because building an XCLBIN file can be an all-day proposition, you have two choices for completing this build:"; \
+            echo "1. Copy a pre-built XCLBIN to the target location above.  (Recommended for developers)"; \
+            echo "2. Do 'make xclbin' and go for a very long coffee break.  (Recommended for build automation)"; \
+            false; \
+        fi
+
 
 #######################################################################################################################
 #
@@ -480,10 +499,17 @@ $(STAGE_STAGED_EXAMPLE_FILES):
 
 # XCLBIN file
 
-STAGE_XCLBIN_NAME = cosinesim_32bit_$(L2_XDEVICE).xclbin
-STAGE_XCLBIN_FILE = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME)
+STAGE_XCLBIN_NAME_U50 = cosinesim_32bit_$(L2_XDEVICE_U50).xclbin
+STAGE_XCLBIN_FILE_U50 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U50)
 
-$(STAGE_XCLBIN_FILE): $(XCLBIN_FILE)
+$(STAGE_XCLBIN_FILE_U50): $(XCLBIN_FILE_U50)
+	cp -f $^ $@
+
+
+STAGE_XCLBIN_NAME_U55C = cosinesim_32bit_xilinx_u55c_gen3x16_xdma_base_1.xclbin
+STAGE_XCLBIN_FILE_U55C = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U55C)
+
+$(STAGE_XCLBIN_FILE_U55C): $(XCLBIN_FILE_U55C)
 	cp -f $^ $@
 
 # Top-level packaging rule
@@ -493,7 +519,8 @@ STAGE_SUBDIRS = $(addprefix $(STAGE_DIR)/,$(STAGE_SUBDIR_NAMES))
 STAGE_ALL_FILES = \
     $(addprefix $(STAGE_DIR)/,$(STAGE_COPY_FILES)) \
     $(addprefix $(STAGE_DIR)/lib/,$(STAGE_LIB_FILES)) \
-    $(STAGE_XCLBIN_FILE) 
+    $(STAGE_XCLBIN_FILE_U50) \
+    $(STAGE_XCLBIN_FILE_U55C) 
 #    $(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP) \
 
 .PHONY: stage stage2
@@ -561,7 +588,7 @@ clean:
 	cd package; make clean
 	
 clean-xclbin:
-	rm -f $(XCLBIN_FILE)
+	rm -f $(XCLBIN_FILE_U50) $(XCLBIN_FILE_U55C)
 
 .PHONY: help
 help:
@@ -575,8 +602,9 @@ help:
 	@echo "  make doxy-cpp "
 	@echo "      Generate CPP documentation using doxygen. The default html output directory is ./build/cppdocs"
 	@echo ""
-	@echo "  make run-test NUMDEVICES=1 ITERATIONS=1 NUMVECTORS=5000 "
-	@echo "      Run standalone test with statically linked executable. NUMDEVICES, NUMVECTORS, and ITERATIONS are optional."
+	@echo "  make run-test [numDevices=1] [iterations=1] [numVectors=5000] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3]"
+	@echo "      Run standalone test with statically linked executable. numDevices, numVectors, and iterations are optional."
+	@echo "      Supported deviceNames: xilinx_u50_gen3x16_xdma_201920_3 xilinx_u55c_gen3x16_xdma_base_1 "
 	@echo ""
 	@echo "  make xclbin DEVICE=<FPGA platform>"
 	@echo "      Build xclbin file targetting specified device. Vitis tool and PLATFORM_REPO_PATHS must be set to make xclbin."

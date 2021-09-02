@@ -40,6 +40,7 @@ help::
 	$(ECHO) "  make build TARGET=<sw_emu/hw_emu/hw> DEVICE=<FPGA platform> HOST_ARCH=<aarch32/aarch64/x86>"
 	$(ECHO) "      Command to build xclbin application."
 	$(ECHO) "      By default, HOST_ARCH=x86. HOST_ARCH is required for SoC shells"
+	$(ECHO) "      Supported DEVICE: xilinx_u50_gen3x16_xdma_201920_3 xilinx_u55c_gen3x16_xdma_1_202110_1"
 	$(ECHO) ""
 	$(ECHO) "  make host HOST_ARCH=<aarch32/aarch64/x86>"
 	$(ECHO) "      Command to build host application."
@@ -144,7 +145,7 @@ endif
 
 EXE_NAME := host.exe
 EXE_FILE := $(BUILD_DIR)/$(EXE_NAME)
-HOST_ARGS :=  -x $(BUILD_DIR)/kernel_louvain.xclbin -f 3 -c -o -m 10000 -prun $(XFLIB_DIR)/L2/louvainmod_renum_kernel/data/example-wt.txt
+HOST_ARGS :=  -x $(BUILD_DIR)/kernel_louvain.xclbin -f 3 -c -o -m 10 -prun $(XFLIB_DIR)/L2/louvainmod_renum_kernel/data/example-wt.txt
 
 # ##################### Kernel compiler global settings ##########################
 VPP_FLAGS += -t $(TARGET) --platform $(XPLATFORM) --save-temps --optimize 2
