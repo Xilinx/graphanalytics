@@ -84,12 +84,61 @@ inline void udf_set_louvain_offset(uint64_t louvain_offset){
 }
 
 
+inline void udf_start_whole_graph_collection() {
+    std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
+    xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+    pContext->clearPartitionData();
+    pContext->vertexMap.clear();
+}
 
-inline void udf_start_partition(std::string alveo_project, int numVertices){
+// Adds one vertex to a temporary map of vertices to be sorted in udf_process_whole_graph_vertices.
+//
+inline void udf_add_whole_graph_vertex(uint64_t vertexId, uint64_t outDegree) {
+    std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
+    xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+    pContext->vertexMap[vertexId] = xilComDetect::LouvainVertex(outDegree);
+}
+
+// From the temporary map of vertices collected by udf_add_whole_graph_vertex, produces an outbound edge degree list
+// sorted in ascending order of prenumbered (.mtx) IDs.  Also generates a map from prenumbered ID to "compressed ID."
+// Assuming that the prenumbered IDs are not contiguous, each prenumbered ID is mapped to such a contiguous ID
+// starting from 0.  For example, the prenumbered IDs 5, 8, 10 are mapped to compressed IDs 0, 1, 2.
+//
+inline void udf_process_whole_graph_vertices() {
+    std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
+    xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+    std::cout << "DEBUG: udf_process_whole_graph_vertices: vertexMap.size = " << pContext->vertexMap.size() << std::endl;
+    uint64_t id = 0;
+    pContext->degree_list.reserve(pContext->vertexMap.size());
+    for (auto &entry : pContext->vertexMap) {
+        pContext->degree_list.push_back(entry.second.outDegree_);
+        entry.second.id_ = id++;
+    }
+    pContext->setNextId(id);
+    std::cout << "DEBUG: number of IDs = " << id << std::endl;
+}
+
+// Given a prenumbered (.mtx) ID for a vertex, returns the compressed ID for that vertex.
+//
+inline uint64_t udf_get_compressed_id(uint64_t prenumberedId) {
+    // No mutex locking!  This function performs only R/O accesses to finished data structures
+    xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+    auto it = pContext->vertexMap.find(prenumberedId);
+    return (it == pContext->vertexMap.end()) ? 0 : it->second.id_;
+}
+
+
+inline void udf_start_partition(const std::string &prj_pathname, const std::string &graph_name, int numVertices){
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     std::cout << "DEBUG: before alveo_parj_path" << std::endl;
-    pContext->setAlveoProject(alveo_project);
+    if(prj_pathname.empty()) {
+        pContext->setAlveoProject(graph_name);
+        pContext->partitionNameMode_ = xilComDetect::PartitionNameMode::Auto;
+    } else {
+        pContext->setAlveoProjectRaw(prj_pathname);
+        pContext->partitionNameMode_ = xilComDetect::PartitionNameMode::Flat;
+    }
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
     xilinx_apps::louvainmod::LouvainMod::PartitionOptions options; //use default value
     options.totalNumVertices = numVertices;
@@ -101,7 +150,6 @@ inline void udf_start_partition(std::string alveo_project, int numVertices){
 
 
 
-//Data has been populated and send to FPGA
 inline void udf_save_EdgePtr( ){
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
      xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
@@ -299,8 +347,10 @@ inline float udf_louvain_alveo(
     //pContext->setAlveoProject(alveo_parj_path);
     if(prj_pathname.empty()) {
         pContext->setAlveoProject(graph_name);
+        pContext->partitionNameMode_ = xilComDetect::PartitionNameMode::Auto;
     } else {
         pContext->setAlveoProjectRaw(prj_pathname);
+        pContext->partitionNameMode_ = xilComDetect::PartitionNameMode::Flat;
     }
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
 

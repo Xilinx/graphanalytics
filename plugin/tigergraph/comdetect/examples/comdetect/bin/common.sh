@@ -45,6 +45,7 @@ function usage() {
     echo "  -x partitionMode     : 0: Use existing partitions from disks"
     echo "                         1: Generate partitions from TigerGraph memory"
     echo "                         2: Generate partitions from mtx (default)"
+    echo "                         3: Generate partitions from TigerGraph using whole-graph technique"
     echo "  -r runMode           : 0: Run only on CPU"
     echo "                         1: Run only on Alveo (default)"
     echo "                         2: Run on both CPU and Alveo"

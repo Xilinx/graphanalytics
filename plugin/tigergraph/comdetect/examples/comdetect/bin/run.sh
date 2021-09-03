@@ -143,6 +143,15 @@ elif [ "$partition_mode" -eq 2 ]; then
     TOTAL_TIME=$(($(date +%s%3N) - START))
     echo "load_alveo: " $TOTAL_TIME
 
+elif [ "$partition_mode" -eq 3 ]; then
+    echo "Running tg_prenumbered_partition"
+    START=$(date +%s%3N)
+    echo gsql -u $username -p $password -g $xgraph \'run query tg_prenumbered_partition\([\"Person\"], [\"Coworker\"], \"weight\", \"num\", 9\)\'
+    time gsql -u $username -p $password -g $xgraph "run query tg_prenumbered_partition([\"Person\"], [\"Coworker\"], \
+         \"weight\", \"num\", \"$alveo_prj\", 9)"
+    TOTAL_TIME=$(($(date +%s%3N) - START))
+    echo "tg_prenumbered_partition: " $TOTAL_TIME
+
 else
     echo "Skip partitioning and use existing partitions from xgstore"
 fi

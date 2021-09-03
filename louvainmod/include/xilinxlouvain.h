@@ -179,6 +179,13 @@ struct Edge {
 };
 
 
+enum class PartitionNameMode {
+    Auto = 0,  // Name style depends on number of servers listed in clusterIpAddresses
+    Flat,  // partitions are numbered consecutively with no regard for server cluster
+    Server  // partitions are numbered with both a server number and partition number within the server
+};
+    
+
 struct Options {
     bool verbose = true;
     XString xclbinPath;
@@ -193,6 +200,7 @@ struct Options {
     XString hostName;  // optional host name of this server for debugging purposes
     XString clusterIpAddresses;  // space-separated list of server IP addresses in the cluster, or empty for 1 server
     XString hostIpAddress;  // IP address of this server, or empty for 1 server
+    PartitionNameMode partitionNameMode = PartitionNameMode::Auto;  // format of partition names
 };
 
 
