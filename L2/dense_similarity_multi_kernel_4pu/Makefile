@@ -182,6 +182,13 @@ $(BUILD_DIR)/denseSimilarityKernel4PU.xclbin: $(BINARY_CONTAINER_denseSimilarity
 	       --report_dir $(BUILD_REPORT_DIR)/denseSimilarityKernel4PU $(VPP_LDFLAGS) \
 		   $(VPP_LDFLAGS_denseSimilarityKernel4PU) -o '$@' $(+)
 
+# Add kernel alias to xclbin post-build so the same kernel targeting different devices
+# can be differentiated
+	rm -f $(BUILD_DIR)/denseSimilarityKernel4PUWithAlias.xclbin
+	/opt/xilinx/xrt/bin/xclbinutil -i $(BUILD_DIR)/denseSimilarityKernel4PU.xclbin \
+								   --key-value=USER:denseSimilarityKernel:'{"alias": "denseSimilarityKernel4PU_U55C"}' \
+	                               -o $(BUILD_DIR)/denseSimilarityKernel4PUWithAlias.xclbin
+
 
 # ################# Setting Rules for Host (Building Host Executable) ################
 ifeq ($(HOST_ARCH), x86)
@@ -219,9 +226,13 @@ cleank:
 	-$(RMDIR) _x_temp.* 
 
 cleanall: cleanh cleank
-	-$(RMDIR) $(BUILD_DIR)  build_dir.* emconfig.json *.html $(TEMP_DIR) $(CUR_DIR)/reports *.csv *.run_summary $(CUR_DIR)/*.raw package_* run_script.sh .ipcache *.str
+	-$(RMDIR) $(BUILD_DIR)  build_dir.sw_emu* build_dir.hw_emu* build_dir.hw.*/*.xclbin \
+							emconfig.json *.html $(TEMP_DIR) $(CUR_DIR)/reports *.csv \
+							*.run_summary $(CUR_DIR)/*.raw package_* run_script.sh \
+							.ipcache *.str
 	-$(RMDIR) $(XFLIB_DIR)/common/data/*.xe2xd* $(XFLIB_DIR)/common/data/*.orig*
 
-	-$(RMDIR) $(AIE_CONTAINERS) $(CUR_DIR)/Work $(CUR_DIR)/*.xpe $(CUR_DIR)/hw.o $(CUR_DIR)/*.xsa $(CUR_DIR)/xnwOut aiesimulator_output .AIE_SIM_CMD_LINE_OPTIONS
+	-$(RMDIR) $(AIE_CONTAINERS) $(CUR_DIR)/Work $(CUR_DIR)/*.xpe $(CUR_DIR)/hw.o \
+		      $(CUR_DIR)/*.xsa $(CUR_DIR)/xnwOut aiesimulator_output .AIE_SIM_CMD_LINE_OPTIONS
 
 clean: cleanh

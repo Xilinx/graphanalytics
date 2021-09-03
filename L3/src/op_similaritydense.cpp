@@ -150,6 +150,7 @@ void opSimilarityDense::init(class openXRM *xrm, std::string kernelName,
   delete[] handleID;
 }
 
+/*
 void opSimilarityDense::initInt(class openXRM *xrm, char *kernelName,
                                 std::string kernelAlias, char *xclbinFile,
                                 uint32_t *deviceIDs, uint32_t *cuIDs,
@@ -184,6 +185,7 @@ void opSimilarityDense::initInt(class openXRM *xrm, char *kernelName,
   }
   delete[] handleID;
 }
+*/
 
 void opSimilarityDense::migrateMemObj(clHandle *hds, bool type,
                                       unsigned int num_runs,

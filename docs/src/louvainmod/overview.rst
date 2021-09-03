@@ -28,7 +28,7 @@ where
 
 The Louvain algorithm is a hierarchical clustering algorithm, that recursively merges communities 
 into a single node and executes the modularity clustering on the condensed graphs. The figure 
-below illusrates final detected communites with 3 levels after the modularity value is maximized.
+below illustrates final detected communities with 3 levels after the modularity value is maximized.
 
 .. image:: /images/louvain-hierarchy.png
    :alt: Louvain Modularity Formula

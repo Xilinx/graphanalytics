@@ -224,7 +224,7 @@ class openXRM {
                 printf("   xclbinFileName is:  %s\n", cuListResR.cuResources[i].xclbinFileName);
                 //printf("   kernelPluginFileName is:  %s\n", cuListResR.cuResources[i].kernelPluginFileName);
                 printf("   kernelName is:  %s\n", cuListResR.cuResources[i].kernelName);
-                //printf("   kernelAlias is:  %s\n", cuListResR.cuResources[i].kernelAlias);
+                printf("   kernelAlias is:  %s\n", cuListResR.cuResources[i].kernelAlias);
                 printf("   instanceName is:  %s\n", cuListResR.cuResources[i].instanceName);
                 printf("   cuName is:  %s\n", cuListResR.cuResources[i].cuName);
                 printf("   deviceId is:  %d\n", cuListResR.cuResources[i].deviceId);

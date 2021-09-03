@@ -29,7 +29,7 @@ int32_t Handle::initOpSimDense(std::string kernelName,
                                unsigned int cuPerBoard) 
 {
 #ifndef NDEBUG
-    std::cout << "DEBUG: initOpSimDense " <<
+    std::cout << "DEBUG: initOpSimDense " 
               << "\n    kernelName=" << kernelName
               << "\n    xclbinFile=" << xclbinFile
               << "\n    kernelAlias=" << kernelAlias
