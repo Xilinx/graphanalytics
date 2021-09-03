@@ -42,15 +42,16 @@ struct ComputedSettings {
     int numServers = 1;
     int modeZmq = ZMQ_NONE;
     int numPureWorker = 0;
-    int serverIndex = 0;  // this is the index of hostIp in hostIpAddresses 
-                               // It's used to construct partition file name
+    int serverIndex = -1;  // this is the index of hostIp in hostIpAddresses. It's used
+                           // to construct partition file name, sets driver/worker mode
+                           // Start with -1 to indicate it's not assigned.
     std::vector<std::string> nameWorkers;
     
     ComputedSettings(const Options &options) {
         const std::string delimiters(" ");
         const std::string hostIpStr = options.clusterIpAddresses;
         const std::string hostIpAddress = options.hostIpAddress;
-        modeZmq = (options.nodeId == 0) ? ZMQ_DRIVER : ZMQ_WORKER;
+        //modeZmq = (options.nodeId == 0) ? ZMQ_DRIVER : ZMQ_WORKER;
         int idx = 0; 
         for (int i = hostIpStr.find_first_not_of(delimiters, 0); i != std::string::npos;
             i = hostIpStr.find_first_not_of(delimiters, i))
@@ -62,15 +63,17 @@ struct ComputedSettings {
             hostIps.push_back(token);
             if (hostIpAddress == token)
                 serverIndex = idx;
-            idx++;
-            if (modeZmq == ZMQ_DRIVER && token != hostIpAddress)
+
+            if ((serverIndex == 0) && (idx > 0)) // The first IP in the list is the driver. Others are workers.
                 nameWorkers.push_back(std::string("tcp://" + token + ":5555"));
+            idx++;                
             i = tokenEnd;
         }
         
         numServers = hostIps.size();
         numPureWorker = nameWorkers.size();
-        //std::cout << "DEBUG: " << __FUNCTION__ << " serverIndex=" << serverIndex << std::endl;
+        modeZmq = (serverIndex == 0) ? ZMQ_DRIVER : ZMQ_WORKER;
+        std::cout << "DEBUG: " << __FUNCTION__ << " serverIndex=" << serverIndex << std::endl;
     }
 };
 
