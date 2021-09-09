@@ -89,6 +89,9 @@ inline void udf_start_whole_graph_collection() {
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     pContext->clearPartitionData();
     pContext->vertexMap.clear();
+#ifdef XILINX_COM_DETECT_DUMP_MTX
+    pContext->mtxFstream.open("/proj/gdba/xgstore/tg.mtx");
+#endif
 }
 
 // Adds one vertex to a temporary map of vertices to be sorted in udf_process_whole_graph_vertices.
@@ -110,6 +113,10 @@ inline void udf_process_whole_graph_vertices() {
     std::cout << "DEBUG: udf_process_whole_graph_vertices: vertexMap.size = " << pContext->vertexMap.size() << std::endl;
     uint64_t id = 0;
     pContext->degree_list.reserve(pContext->vertexMap.size());
+#ifdef XILINX_COM_DETECT_DUMP_MTX
+    pContext->mtxFstream << "*Vertices " << pContext->vertexMap.size() << std::endl;
+    pContext->mtxFstream << "*Edges 0" << std::endl;  // We're not going to add a query just to pre-count the edges
+#endif
     for (auto &entry : pContext->vertexMap) {
         pContext->degree_list.push_back(entry.second.outDegree_);
         entry.second.id_ = id++;
@@ -189,6 +196,9 @@ inline void udf_set_louvain_edge_list( uint64_t louvainIdSource, uint64_t louvai
     }*/
     pContext->mDgrVec[startingOffset+ pContext->addedOffset[idx]] = outDgr;
     pContext->addedOffset[idx]++;
+#ifdef XILINX_COM_DETECT_DUMP_MTX
+    pContext->mtxFstream << louvainIdSource << ' ' << louvainIdTarget << ' ' << wtAttr << std::endl;
+#endif
 }
 
 inline int udf_save_alveo_partition(uint numPar) {
@@ -241,6 +251,11 @@ inline int udf_save_alveo_partition(uint numPar) {
 inline void udf_finish_partition(MapAccum<uint64_t, int64_t> numAlveoPars){
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+
+#ifdef XILINX_COM_DETECT_DUMP_MTX
+    pContext->mtxFstream.close();
+#endif
+
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
     for(unsigned i=0;i<numAlveoPars.size();i++){
         pContext->addNumAlveoPartitions(((int)numAlveoPars.get(i)));

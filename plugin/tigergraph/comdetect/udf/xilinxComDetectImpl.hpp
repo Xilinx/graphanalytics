@@ -27,6 +27,9 @@
 // Enable this to dump graph vertices and edges, as seen by the partitioning logic
 //#define XILINX_COM_DETECT_DUMP_GRAPH
 
+// Enable this to dump an .mtx file of the graph, as seen by the partitioning logic
+//#define XILINX_COM_DETECT_DUMP_MTX
+
 #include <vector>
 #include <map>
 #include <fstream>
@@ -116,6 +119,9 @@ public:
     std::vector<long> addedOffset; //store each vertex edgelist offset
     std::map<uint64_t, LouvainVertex> vertexMap;  // maps from original (.mtx) vertex ID to properties of the vertex
     PartitionNameMode partitionNameMode_ = PartitionNameMode::Auto;
+#ifdef XILINX_COM_DETECT_DUMP_MTX
+    std::ofstream mtxFstream;
+#endif
 
     static Context *getInstance() {
         static Context *s_pContext = nullptr;
