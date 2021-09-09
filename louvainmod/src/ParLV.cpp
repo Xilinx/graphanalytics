@@ -1681,12 +1681,6 @@ ParLV::~ParLV() {
     num_par = 0;
     if (elist) free(elist);
     if (M_v) free(M_v);
-    //while (plv_src){
-    //    delete plv_src++;
-    //} 
-    //if (plv_src) delete[] plv_src;
-    if (plv_merged) delete plv_merged;
-    if (plv_final) delete plv_final;
 }
 
 void ParLV::PrintSelf() 
@@ -1987,7 +1981,6 @@ long ParLV::CheckGhost()
 #endif
             }
         }
-        free(p_v_new[p]);
     }
     return NV_gh_new;
 }
@@ -3768,7 +3761,6 @@ extern "C" float compute_louvain_alveo_seperated_compute(
         }
     }
 
-    delete para_lv;
     return 0;
 }
 
@@ -3824,7 +3816,6 @@ void createSharedHandle(
     std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesLouvainMod::instance().handlesMap[0];
     (handle0->oplouvainmod)->mapHostToClBuffers(NULL, flowMode, opts_coloring,
         opts_minGraphSize, opts_C_thresh, numThreads);
-     handleInstance->free();
 }
 
 void loadComputeUnitsToFPGAs(
@@ -3863,7 +3854,6 @@ void loadComputeUnitsToFPGAs(
     //----------------- enable handle0--------
     handle0->addOp(*op0);
     status = handle0->setUp(deviceNames);
-    delete op0;
 }
 
 /*
@@ -3920,14 +3910,7 @@ extern "C" float loadAlveoAndComputeLouvain(
         opts_outputFile, max_iter, max_level, tolerance, intermediateResult,
         verbose, final_Q, all_Q, handle0, &parlv_drv, &parlv_wkr);
 
-    if (mode_zmq == ZMQ_DRIVER) {
-        for (int i=0; i<numPartitions; i++) {
-            delete parlv_drv.par_src[i];
-            delete parlv_wkr.par_src[i];
-        }     
-    }
-    //parlv_drv.~ParLV();
-    //parlv_wkr.~ParLV();
+
 	return ret;
 
 }
@@ -3974,8 +3957,7 @@ int getNumPartitions(std::string alveoProjectFile)
     		numPartitions += atoi(ps.argv[idx_server+ 2 + i_svr]);
     	}
     }
-
-    free(fdata);
+    
     return numPartitions;
 
 }
