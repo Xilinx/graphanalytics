@@ -588,7 +588,6 @@ void GLV::FreeMem(){
 	if(C) free(C);
 	if(M) free(M);
 	if(colors) free(colors);
-	//com_list.clear();
 }
 void GLV::CleanCurrentG()
 {

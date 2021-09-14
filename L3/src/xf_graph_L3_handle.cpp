@@ -274,8 +274,6 @@ void Handle::getEnv() {
         delete[] value;
     }
     std::cout << "INFO: Total matching devices: " << totalSupportedDevices_ << std::endl; 
-    std::free(platforms);
-    std::free(devices);
 }
 
 void Handle::showHandleInfo() {
