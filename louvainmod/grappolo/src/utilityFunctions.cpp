@@ -61,7 +61,7 @@ void generateRandomNumbers(double* RandVec, long size) {
     cout << "Each thread will add " << block << " edges\n";
 #endif
 // Each thread will generate m/nT edges each
-// double start = omp_get_wtime();// unused variable ï¿½startï¿½
+// double start = omp_get_wtime();// unused variable ‘start’
 #pragma omp parallel
     {
         int myRank = omp_get_thread_num();
@@ -73,6 +73,7 @@ void generateRandomNumbers(double* RandVec, long size) {
 } // End of generateRandomNumbers()
 
 void displayGraphCharacteristics(graphNew* G) {
+    printf("Within displayGraphCharacteristics()\n");
     long sum = 0, sum_sq = 0;
     double average, avg_sq, variance, std_dev;
     long maxDegree = 0;

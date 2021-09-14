@@ -614,7 +614,7 @@ int CtrlLouvain::exe_LV_SAVE() {
         printf("\033[1;31;40mERROR\033[0m: Wrong parameter! Please using :save <ID>\n");
         return -1;
     }
-    filename = p_glv->name;
+    //filename = p_glv->name;
     if (SaveG_general(p_glv->G, filename) == -1) {
         printf("\033[1;31;40mERROR\033[0m: When running SaveG_general()\n");
         return -1;
@@ -1027,11 +1027,36 @@ double CtrlLouvain::CtrlPar(GLV* src, int num_par, bool isPrun, int th_prun) {
     }
     return omp_get_wtime() - time_fun;
 }
-
+void test_BFSPar_creatingEdgeLists_fixed(//return: real number of partition
+		int mode_start,
+		int mode_hop,
+		graphNew* G,
+		int num_par
+);
 int CtrlLouvain::exe_LV_PAR() {
     // par [curr] star end [temp]
     CHECKCURR;
     assert(glv_curr->G);
+    int idx_bfs = mycmd.cmd_findPara("-bfs");
+    if(idx_bfs>0){
+    	//par -bfs
+    	//par -bfs 4
+    	//par -bfs [?] -m ? -h ?
+
+    	int idx_mode_start = mycmd.cmd_findPara("-m");
+    	int idx_mode_hop = mycmd.cmd_findPara("-h");
+    	int num_par = ((mycmd.argc>idx_bfs+1 && (idx_mode_start!= (idx_bfs+1) ) && (idx_mode_hop!= (idx_bfs+1) ))?atoi(mycmd.argv[idx_bfs+1]):2);
+    	int mode_start = 0;
+    	if(idx_mode_start!=-1)
+    		mode_start =  atoi(mycmd.argv[idx_mode_start+1]);
+    	int mode_hop = 1;
+    	if(idx_mode_hop!=-1)
+    		mode_hop =  atoi(mycmd.argv[idx_mode_hop+1] );
+    	printf("\033[1;37;40mINFO\033[0m:Doing BFS partition vertices mode_star=%d, mode_hop=%d, num_par=%d\n", mode_start, mode_hop, num_par);
+    	test_BFSPar_creatingEdgeLists_fixed(mode_start, mode_hop, glv_curr->G, num_par);
+    	return 0;
+    }
+
     int idx_prun = mycmd.cmd_findPara("-prun");
     int th_prun = 1;
 

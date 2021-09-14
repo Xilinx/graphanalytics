@@ -91,7 +91,7 @@ graphNew* host_PrepareGraph(int opts_ftype, char opts_inFile[4096], bool opts_VF
         parse_EdgeListBinary(G, opts_inFile);
     else
         parse_SNAP(G, opts_inFile);
-    //displayGraphCharacteristics(G);
+    displayGraphCharacteristics(G);
     /* Vertex Following option */
     if (opts_VF) {
         printf("Vertex following is enabled.\n");

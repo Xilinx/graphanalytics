@@ -632,7 +632,9 @@ GLV* par_general(GLV* src, SttGPar* pstt, int& id_glv, long start, long end, boo
     if (isPrun) {
         printf("\033[1;37;40mINFO\033[0m: Partition of \033[1;31;40mPruning\033[0m is used and th_maxGhost=%d \n",
                th_prun);
-        des = pstt->ParNewGlv_Prun(src->G, start, end, id_glv, th_prun);
+        //des = pstt->ParNewGlv_Prun(src->G, start, end, id_glv, th_prun);
+        printf("\033[1;37;40mINFO\033[0m: Partition of \033[1;31;40mAbstractionPartition\033[0m \n");
+        des = pstt->AbstractionPartition(src->G, start, end, id_glv, th_prun);
     } else {
         printf("\033[1;37;40mINFO\033[0m: Partition of \033[1;31;40mNoraml\033[0m is used\n");
         des = pstt->ParNewGlv(src->G, start, end, id_glv);
