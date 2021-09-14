@@ -131,8 +131,8 @@ VPP_FLAGS += -I$(XFLIB_DIR)/L2/include/hw
 VPP_FLAGS += -I$(XFLIB_DIR)/L2/dense_similarity_multi_kernel_4pu/kernel
 
 denseSimilarityKernel4PU_VPP_FLAGS +=  -D KERNEL_NAME=denseSimilarityKernel4PU
-denseSimilarityKernel4PU_VPP_FLAGS += --hls.clock 300000000:denseSimilarityKernel4PU
-VPP_LDFLAGS_denseSimilarityKernel4PU += --kernel_frequency 250
+denseSimilarityKernel4PU_VPP_FLAGS += --hls.clock 200000000:denseSimilarityKernel4PU
+VPP_LDFLAGS_denseSimilarityKernel4PU += --kernel_frequency 200
 
 
 # Kernel args

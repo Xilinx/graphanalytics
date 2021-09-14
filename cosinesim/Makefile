@@ -396,15 +396,19 @@ XCLBIN_FILE_U50 = $(L2_BUILD_DIR_U50)/$(XCLBIN_NAME)
 XCLBIN_FILE_U55C = $(L2_BUILD_DIR_U55C)/$(XCLBIN_NAME_4PU)
 XCLBIN_INSTALLED_U50 = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin
 XCLBIN_INSTALLED_U55C = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32bit_xilinx_u55c_gen3x16_xdma_base_1.xclbin
+
+ifeq ($(findstring u55, $(DEVICE)), u55)
+	XCLBIN_BUILD_DIR=$(L2_TOP_DIR_4PU)
+else
+	XCLBIN_BUILD_DIR=$(L2_TOP_DIR)
+endif
+
 .PHONY: xclbin
-
-
 xclbin:
 	@if [ "$(PLATFORM_REPO_PATHS)" == "" ]; then \
 		echo "PLATFORM_REPO_PATHS environment varaible must be set to the path to Xilinx platform files" ; \
 	else \
-		cd $(L2_TOP_DIR); \
-		source $(XILINX_XRT)/setup.sh; \
+		cd $(XCLBIN_BUILD_DIR); \
 		make build TARGET=hw DEVICE=$(DEVICE); \
 	fi
 	
