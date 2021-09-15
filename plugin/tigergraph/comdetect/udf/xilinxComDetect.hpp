@@ -84,6 +84,7 @@ inline void udf_set_louvain_offset(uint64_t louvain_offset){
 
 
 inline void udf_start_whole_graph_collection() {
+    std::cout << "INFO: " << __FUNCTION__ << std::endl;
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     pContext->clearPartitionData();
@@ -99,6 +100,10 @@ inline void udf_add_whole_graph_vertex(uint64_t vertexId, uint64_t outDegree) {
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     pContext->vertexMap[vertexId] = xilComDetect::LouvainVertex(outDegree);
+#ifdef XILINX_COM_DETECT_DEBUG_ON
+    if (pContext->vertexMap.size() % 1000000 == 0)
+        std::cout << "DEBUG: " << __FUNCTION__ << " processed " << pContext->vertexMap.size() << " vertices." << std::endl;
+#endif
 }
 
 // From the temporary map of vertices collected by udf_add_whole_graph_vertex, produces an outbound edge degree list
