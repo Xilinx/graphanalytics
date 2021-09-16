@@ -150,8 +150,12 @@ CREATE QUERY tg_prenumbered_partition(
     udf_start_whole_graph_collection();
     vertexList = SELECT n FROM Start:n
         ACCUM udf_add_whole_graph_vertex(n.getAttr(louvainId_attr,"UINT"), n.outdegree());
+    PRINT udf_elapsed_time(true) AS CollectVerticesTime;
+
+    udf_reset_timer(true);
     udf_process_whole_graph_vertices();
     udf_save_EdgePtr();
+    PRINT udf_elapsed_time(true) AS ProcessVerticesTime;
 
     vertexList = SELECT s FROM Start:s-(e_types:e)->:t
         ACCUM udf_set_louvain_edge_list(udf_get_compressed_id(s.getAttr(louvainId_attr,"UINT")),

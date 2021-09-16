@@ -19,7 +19,6 @@
 #define XILINX_COM_DETECT_HPP
 
 // mergeHeaders 1 name xilinxComDetect
-#define XILINX_COM_DETECT_DEBUG_ON
 // mergeHeaders 1 section include start xilinxComDetect DO NOT REMOVE!
 #include "xilinxComDetectImpl.hpp"
 #include <cstdint>
@@ -85,10 +84,14 @@ inline void udf_set_louvain_offset(uint64_t louvain_offset){
 
 
 inline void udf_start_whole_graph_collection() {
+    std::cout << "INFO: " << __FUNCTION__ << std::endl;
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     pContext->clearPartitionData();
     pContext->vertexMap.clear();
+#ifdef XILINX_COM_DETECT_DUMP_MTX
+    pContext->mtxFstream.open("/proj/gdba/xgstore/tg.mtx");
+#endif
 }
 
 // Adds one vertex to a temporary map of vertices to be sorted in udf_process_whole_graph_vertices.
@@ -97,6 +100,10 @@ inline void udf_add_whole_graph_vertex(uint64_t vertexId, uint64_t outDegree) {
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
     pContext->vertexMap[vertexId] = xilComDetect::LouvainVertex(outDegree);
+#ifdef XILINX_COM_DETECT_DEBUG_ON
+    if (pContext->vertexMap.size() % 1000000 == 0)
+        std::cout << "DEBUG: " << __FUNCTION__ << " processed " << pContext->vertexMap.size() << " vertices." << std::endl;
+#endif
 }
 
 // From the temporary map of vertices collected by udf_add_whole_graph_vertex, produces an outbound edge degree list
@@ -110,6 +117,10 @@ inline void udf_process_whole_graph_vertices() {
     std::cout << "DEBUG: udf_process_whole_graph_vertices: vertexMap.size = " << pContext->vertexMap.size() << std::endl;
     uint64_t id = 0;
     pContext->degree_list.reserve(pContext->vertexMap.size());
+#ifdef XILINX_COM_DETECT_DUMP_MTX
+    pContext->mtxFstream << "*Vertices " << pContext->vertexMap.size() << std::endl;
+    pContext->mtxFstream << "*Edges 0" << std::endl;  // We're not going to add a query just to pre-count the edges
+#endif
     for (auto &entry : pContext->vertexMap) {
         pContext->degree_list.push_back(entry.second.outDegree_);
         entry.second.id_ = id++;
@@ -134,10 +145,10 @@ inline void udf_start_partition(const std::string &prj_pathname, const std::stri
     std::cout << "DEBUG: before alveo_parj_path" << std::endl;
     if(prj_pathname.empty()) {
         pContext->setAlveoProject(graph_name);
-        pContext->partitionNameMode_ = xilComDetect::PartitionNameMode::Auto;
+        pContext->setPartitionNameMode(xilComDetect::PartitionNameMode::Auto);
     } else {
         pContext->setAlveoProjectRaw(prj_pathname);
-        pContext->partitionNameMode_ = xilComDetect::PartitionNameMode::Flat;
+        pContext->setPartitionNameMode(xilComDetect::PartitionNameMode::Flat);
     }
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
     xilinx_apps::louvainmod::LouvainMod::PartitionOptions options; //use default value
@@ -189,6 +200,9 @@ inline void udf_set_louvain_edge_list( uint64_t louvainIdSource, uint64_t louvai
     }*/
     pContext->mDgrVec[startingOffset+ pContext->addedOffset[idx]] = outDgr;
     pContext->addedOffset[idx]++;
+#ifdef XILINX_COM_DETECT_DUMP_MTX
+    pContext->mtxFstream << louvainIdSource << ' ' << louvainIdTarget << ' ' << wtAttr << std::endl;
+#endif
 }
 
 inline int udf_save_alveo_partition(uint numPar) {
@@ -234,6 +248,7 @@ inline int udf_save_alveo_partition(uint numPar) {
     partitionData.end_vertex = pContext->getEndVertex(); //end_vertex;
     partitionData.NV_par_requested = NV_par_requested;
     int64_t number_of_partitions = (int64_t)pLouvainMod->addPartitionData(partitionData);
+    std::cout << "INFO: " << __FUNCTION__ << " final number_of_partitions=" << number_of_partitions << std::endl;
     return number_of_partitions;
 
 }
@@ -241,6 +256,11 @@ inline int udf_save_alveo_partition(uint numPar) {
 inline void udf_finish_partition(MapAccum<uint64_t, int64_t> numAlveoPars){
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
+
+#ifdef XILINX_COM_DETECT_DUMP_MTX
+    pContext->mtxFstream.close();
+#endif
+
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
     for(unsigned i=0;i<numAlveoPars.size();i++){
         pContext->addNumAlveoPartitions(((int)numAlveoPars.get(i)));
@@ -347,10 +367,10 @@ inline float udf_louvain_alveo(
     //pContext->setAlveoProject(alveo_parj_path);
     if(prj_pathname.empty()) {
         pContext->setAlveoProject(graph_name);
-        pContext->partitionNameMode_ = xilComDetect::PartitionNameMode::Auto;
+        pContext->setPartitionNameMode(xilComDetect::PartitionNameMode::Auto);
     } else {
         pContext->setAlveoProjectRaw(prj_pathname);
-        pContext->partitionNameMode_ = xilComDetect::PartitionNameMode::Flat;
+        pContext->setPartitionNameMode(xilComDetect::PartitionNameMode::Flat);
     }
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
 
