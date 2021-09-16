@@ -43,7 +43,7 @@ void createHandleLouvainModularity(class openXRM* xrm, clHandle& handle,
     	glb_MAXNV = (1ul << 26);
     	glb_MAXNE = (1ul << 27);
     	glb_MAXNV_M = (64000000);
-    } else if (devName == "xilinx_u55c_gen3x16_xdma_base_1"){
+    } else if (devName == "xilinx_u55c_gen3x16_xdma_base_2"){
     	glb_MAXNV = (1ul << 27);
     	glb_MAXNE = (1ul << 28);
     	glb_MAXNV_M = (128000000);
