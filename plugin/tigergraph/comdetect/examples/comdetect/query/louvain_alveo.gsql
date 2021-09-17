@@ -33,6 +33,8 @@ CREATE DISTRIBUTED QUERY tg_partition_phase_1(
 
     Start = {v_types};
     nodes = {dummy_nodes.*};
+    
+    udf_start_whole_graph_collection();
 
     nodeList = SELECT n FROM nodes:n
         ACCUM udf_xilinx_comdetect_set_node_id(n.NODE_ID), udf_reset_nextId();

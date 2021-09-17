@@ -73,7 +73,28 @@ struct LouvainVertex {
     LouvainVertex(long outDegree) : outDegree_(outDegree) {}
 };
 
+class Partitions{
+public:
 
+      std::vector<long> mEdgePtrVec;
+      std::vector<long> degree_list;
+      std::vector<xilinx_apps::louvainmod::Edge> mEdgeVec;
+      std::vector<long> mDgrVec;
+      std::vector<long> addedOffset; //store each vertex edgelist offset
+      std::map<uint64_t, LouvainVertex> vertexMap;  // maps from original (.mtx) vertex ID to properties of the vertex
+      void clearPartitionData(){
+
+          degree_list.clear();
+          mEdgeVec.clear();
+          mEdgePtrVec.clear();
+          mDgrVec.clear();
+          addedOffset.clear();
+          vertexMap.clear();
+      }
+
+      ~Partitions() {clearPartitionData();};
+
+};
 class Context {
 public:
     enum State {
@@ -114,12 +135,8 @@ private:
 public:
     std::string curNodeHostname_;
     std::string deviceNames_ = "xilinx_u50_gen3x16_xdma_201920_3";
-    std::vector<long> mEdgePtrVec;
-    std::vector<long> degree_list;
-    std::vector<xilinx_apps::louvainmod::Edge> mEdgeVec;
-    std::vector<long> mDgrVec;
-    std::vector<long> addedOffset; //store each vertex edgelist offset
-    std::map<uint64_t, LouvainVertex> vertexMap;  // maps from original (.mtx) vertex ID to properties of the vertex
+    Partitions* curParPtr=nullptr;
+
 #ifdef XILINX_COM_DETECT_DUMP_MTX
     std::ofstream mtxFstream;
 #endif
@@ -289,26 +306,10 @@ public:
             louvainModObjIsModified_ = true;
         partitionNameMode_ = partitionNameMode;
     }
-    
-    void addDegreeList(long p_degree){
-        degree_list.push_back(p_degree); 
-    }
-    
-    int getDegreeListSize(){
-        return degree_list.size(); 
-    }
-    
-    std::vector<long> getDegreeList(){
-        return degree_list; 
-    }
-    
+
     void clearPartitionData(){
         nextId_ = 0 ;
-        degree_list.clear();
-        mEdgeVec.clear();
-        mEdgePtrVec.clear();
-        mDgrVec.clear();
-        addedOffset.clear();
+
     }
     
     void clear() {
