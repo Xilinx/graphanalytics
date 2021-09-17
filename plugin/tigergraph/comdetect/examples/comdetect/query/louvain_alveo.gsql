@@ -116,7 +116,7 @@ CREATE DISTRIBUTED QUERY tg_partition_phase_3(
        
     udf_reset_timer(true);
     parList = SELECT n FROM nodes:n
-        ACCUM @@nodeAccum += (n.NODE_ID -> udf_save_alveo_partition(numPar));
+        ACCUM @@nodeAccum += (n.NODE_ID -> udf_save_alveo_partition(numPar, FALSE));
     PRINT @@nodeAccum;
     PRINT udf_elapsed_time(true) AS SaveAlveoPartitionTime;
 
@@ -167,7 +167,7 @@ CREATE QUERY tg_prenumbered_partition(
     PRINT udf_elapsed_time(true) AS StartPartitionTime;
        
     udf_reset_timer(true);
-    @@nodeAccum += (0 -> udf_save_alveo_partition(numPar));
+    @@nodeAccum += (0 -> udf_save_alveo_partition(numPar, TRUE));
     PRINT udf_elapsed_time(true) AS SaveAlveoPartitionTime;
 
     udf_reset_timer(true);

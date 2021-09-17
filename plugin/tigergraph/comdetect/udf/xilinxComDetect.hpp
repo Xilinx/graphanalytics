@@ -205,7 +205,7 @@ inline void udf_set_louvain_edge_list( uint64_t louvainIdSource, uint64_t louvai
 #endif
 }
 
-inline int udf_save_alveo_partition(uint numPar) {
+inline int udf_save_alveo_partition(uint numPar, bool isWholeGraph) {
     std::cout << "INFO: " << __FUNCTION__ << " numPar=" << numPar << std::endl;
 
     std::lock_guard<std::mutex> lockGuard(xilComDetect::getMutex());
@@ -246,7 +246,8 @@ inline int udf_save_alveo_partition(uint numPar) {
     partitionData.drglist_tg = pContext->getDrglistTg(); //drglist_tg;
     partitionData.start_vertex = pContext->getStartVertex(); //start_vertex;
     partitionData.end_vertex = pContext->getEndVertex(); //end_vertex;
-    partitionData.NV_par_requested = NV_par_requested;
+    partitionData.isWholeGraph = isWholeGraph;
+//    partitionData.NV_par_requested = NV_par_requested;
     int64_t number_of_partitions = (int64_t)pLouvainMod->addPartitionData(partitionData);
     std::cout << "INFO: " << __FUNCTION__ << " final number_of_partitions=" << number_of_partitions << std::endl;
     return number_of_partitions;

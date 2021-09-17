@@ -165,22 +165,34 @@ public:
         long NV_par_requested = partitionData.NV_par_requested;
         // No supplied desired partition size: calculate it
         if (NV_par_requested == 0) {
-            // Assume that we want one partition per Alveo card unless overridden by num_par option
-            int numPartitionsThisServer = globalOpts_.numDevices;
+            int totalNumDevices = settings_.numServers * globalOpts_.numDevices;
+
+            // Assume that we want one partition per Alveo card unless overridden by num_par or isWholeGraph option
+            int numPartitionsThisServer = (partitionData.isWholeGraph) ? totalNumDevices : globalOpts_.numDevices;
 
             // If num_par specifies more partitions than we have total number of devices in the cluster,
             // create num_par devices instead.  This feature is for testing partitioning of smaller graphs,
             // but can also be used to pre-calculate the partitions for graphs that are so large that each
             // Alveo card needs to process more than its maximum number of vertices.
-            int totalNumDevices = settings_.numServers * globalOpts_.numDevices;
             if (partOpts_.numPars > totalNumDevices) {
-                // Distribute partitions evenly among servers
-                numPartitionsThisServer = partOpts_.numPars / settings_.numServers;
-                // Distribute the L leftover partitions (where L = servers % partitions) among the first
-                // L servers
-                int extraPartitions = partOpts_.numPars % settings_.numServers;
-                if (extraPartitions > serverNum)
-                    ++numPartitionsThisServer;
+                // If we're in whole-graph mode, we'll create numPars partitions for this "server partition"
+                if (partitionData.isWholeGraph)
+                    numPartitionsThisServer = partOpts_.numPars;
+                
+                // Not whole-graph mode: this server partition represents a fraction of the total number of alveo
+                // partitions desired.  Calculate the number of alveo partitions for this server partition by
+                // dividing the desired total number of alveo partitions (numPars) by the total number of server
+                // partitions expected, distributing any remainder among the servers.
+                else {
+                    // Distribute partitions evenly among servers
+                    numPartitionsThisServer = partOpts_.numPars / settings_.numServers;
+
+                    // Distribute the L leftover partitions (where L = servers % partitions) among the first
+                    // L servers
+                    int extraPartitions = partOpts_.numPars % settings_.numServers;
+                    if (extraPartitions > serverNum)
+                        ++numPartitionsThisServer;
+                }
             }
 
             // Determine the number of vertices for each partition on this server, which is the lesser of
