@@ -146,9 +146,9 @@ elif [ "$partition_mode" -eq 2 ]; then
 elif [ "$partition_mode" -eq 3 ]; then
     echo "Running tg_prenumbered_partition"
     START=$(date +%s%3N)
-    echo gsql -u $username -p $password -g $xgraph \'run query tg_prenumbered_partition\([\"Person\"], [\"Coworker\"], \"weight\", \"num\", 9\)\'
+    echo gsql -u $username -p $password -g $xgraph \'run query tg_prenumbered_partition\([\"Person\"], [\"Coworker\"], \"weight\", \"num\", $num_partitions_node\)\'
     time gsql -u $username -p $password -g $xgraph "run query tg_prenumbered_partition([\"Person\"], [\"Coworker\"], \
-         \"weight\", \"num\", \"$alveo_prj\", 9)"
+         \"weight\", \"num\", \"$alveo_prj\", $num_partitions_node)"
     TOTAL_TIME=$(($(date +%s%3N) - START))
     echo "tg_prenumbered_partition: " $TOTAL_TIME
 

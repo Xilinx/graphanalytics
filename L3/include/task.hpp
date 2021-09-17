@@ -517,9 +517,6 @@ inline void worker(queue& q,
             if (curRequestId == requestNm) 
                 curRequestId = 0;
         }
-        for (int i = 0; i < requestNm; ++i) {
-            free(resR[i]);
-        }   
     }
 }
 
