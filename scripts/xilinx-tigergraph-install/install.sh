@@ -40,7 +40,7 @@ louvain_pkg=xilinx-louvainmod-0.1
 function usage() {
     echo "Usage: $0 [options]"
     echo "Options:"
-    echo "  -p product-name  : Products: cosinesin, louvainmod. Only base libraries are installed if product-name is not set."
+    echo "  -p product-name  : Supported products: cosinesim, louvainmod. Only base libraries are installed if product-name is not set."
     echo "  -h               : Print this help message"
 }
 

@@ -35,16 +35,17 @@ fi
 mem_alloc="tcmalloc"
 dev_mode=0
 debug_flag=0
+device_name="xilinx_u50_gen3x16_xdma_201920_3"
 xrt_profiling=0
 uninstall=0
 verbose=0
 node_flags=
 force=0
-while getopts ":a:dfgpuv" opt
+while getopts ":a:d:fgpuv" opt
 do
 case $opt in
     a) mem_alloc=$OPTARG;;
-    d) dev_mode=1;;
+    d) device_name=$OPTARG;;
     f) force=1; node_flags+=" -f";;
     g) debug_flag=1;;
     p) xrt_profiling=1;;
@@ -54,6 +55,7 @@ case $opt in
 esac
 done
 
+node_flags+=" -d $device_name"
 . $SCRIPTPATH/common.sh
 
 if ! [ -x "$(command -v gadmin)" ]; then
@@ -64,7 +66,7 @@ fi
 if [ $verbose -eq 1 ]; then
     echo "INFO: Cluster script is running with the settings below:"
     echo "      mem_alloc=$mem_alloc"
-    echo "      dev_mode=$dev_mode"
+    echo "      device_name=$device_name"
     echo "      force=$force"
     echo "      debug_flag=$debug_flag"
     echo "      xrt_profiling=$xrt_profiling"

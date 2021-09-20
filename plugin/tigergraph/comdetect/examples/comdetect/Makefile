@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+deviceNames=xilinx_u50_gen3x16_xdma_201920_3
 dataSource=$(CURDIR)/data/as-Skitter-wt-r100.mtx
 graphName=social_$(USER)
 alveoProject=""
@@ -41,7 +42,9 @@ all: run
 	@echo "-------------------------------------------------------"
 	@echo "Installing plugin files into TigerGraph software"
 	@echo "-------------------------------------------------------"
-	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/install.sh -v -f $(SSH_KEY_OPT) && \
+	cd ../../ && \
+	    make DEBUG=$(DEBUG) stage && \
+		./staging/install.sh -v -f $(SSH_KEY_OPT) -d $(deviceNames) && \
 	cd - && touch .install-plugin-done
 
 .install-udf-done: .install-plugin-done udf/louvainDemo.hpp
@@ -84,11 +87,17 @@ partition: .install-udf-done
 	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/examples/comdetect/partition.sh -v
 
 help:
-	@echo "Valid make targets:"
-	@echo "run:       Run the example"
-	@echo "partition: Run partition.sh to partition the graph in TigerGraph memory"
+	@echo "Makefile usage:"
+	@echo "make install-plugin [deviceNames=deviceNames]"
+	@echo "    Install the plugin"
 	@echo ""
-	@echo "Optional make parameters"
+	@echo "run            : Run the example"
+	@echo "partition      : Run partition.sh to partition the graph in TigerGraph memory"
+	@echo ""
+	@echo "Parameter descriptions:"
+	@echo "deviceNames       : Target device name. Supported devices: "
+	@echo "                    xilinx_u50_gen3x16_xdma_201920_3"
+	@echo "                    xilinx_u55c_gen3x16_xdma_base_2"
 	@echo "dataSource        : A .mtx file containing input graph. default=./data/as-Skitter-wt-r100.mtx"
 	@echo "graphName         : graph name (default=social_<username>"
 	@echo "alveoProject      : partition files path / partition file name prefix"
