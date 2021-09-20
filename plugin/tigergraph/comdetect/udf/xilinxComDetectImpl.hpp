@@ -22,10 +22,13 @@
 #include "xilinxlouvain.h"
 
 // Enable this to turn on debug output
-//#define XILINX_COM_DETECT_DEBUG_ON
+#define XILINX_COM_DETECT_DEBUG_ON
 
 // Enable this to dump graph vertices and edges, as seen by the partitioning logic
 //#define XILINX_COM_DETECT_DUMP_GRAPH
+
+// Enable this to dump an .mtx file of the graph, as seen by the partitioning logic
+//#define XILINX_COM_DETECT_DUMP_MTX
 
 #include <vector>
 #include <map>
@@ -70,7 +73,28 @@ struct LouvainVertex {
     LouvainVertex(long outDegree) : outDegree_(outDegree) {}
 };
 
+class Partitions{
+public:
 
+      std::vector<long> mEdgePtrVec;
+      std::vector<long> degree_list;
+      std::vector<xilinx_apps::louvainmod::Edge> mEdgeVec;
+      std::vector<long> mDgrVec;
+      std::vector<long> addedOffset; //store each vertex edgelist offset
+      std::map<uint64_t, LouvainVertex> vertexMap;  // maps from original (.mtx) vertex ID to properties of the vertex
+      void clearPartitionData(){
+
+          degree_list.clear();
+          mEdgeVec.clear();
+          mEdgePtrVec.clear();
+          mDgrVec.clear();
+          addedOffset.clear();
+          vertexMap.clear();
+      }
+
+      ~Partitions() {clearPartitionData();};
+
+};
 class Context {
 public:
     enum State {
@@ -81,13 +105,15 @@ public:
 
 
 private:
-
+    bool louvainModObjIsModified_ = false;  // true if a parameter has changed that requires a rebuild of
+                                            // the LouvainMod object
     std::string curNodeIp_;
     std::string nodeIps_;
     std::string xGraphStorePath_;
     std::string alveoProject_;
     unsigned numPartitions_;
     unsigned numDevices_ = 1;
+    PartitionNameMode partitionNameMode_ = PartitionNameMode::Auto;
 
     unsigned nodeId_ = 0;
     unsigned numNodes_ = 1;
@@ -109,13 +135,11 @@ private:
 public:
     std::string curNodeHostname_;
     std::string deviceNames_ = "xilinx_u50_gen3x16_xdma_201920_3";
-    std::vector<long> mEdgePtrVec;
-    std::vector<long> degree_list;
-    std::vector<xilinx_apps::louvainmod::Edge> mEdgeVec;
-    std::vector<long> mDgrVec;
-    std::vector<long> addedOffset; //store each vertex edgelist offset
-    std::map<uint64_t, LouvainVertex> vertexMap;  // maps from original (.mtx) vertex ID to properties of the vertex
-    PartitionNameMode partitionNameMode_ = PartitionNameMode::Auto;
+    Partitions* curParPtr=nullptr;
+
+#ifdef XILINX_COM_DETECT_DUMP_MTX
+    std::ofstream mtxFstream;
+#endif
 
     static Context *getInstance() {
         static Context *s_pContext = nullptr;
@@ -175,6 +199,19 @@ public:
     ~Context() { delete pLouvainMod_; }
 
     xilinx_apps::louvainmod::LouvainMod *getLouvainModObj() {
+#ifdef XILINX_COM_DETECT_DEBUG_ON
+        std::cout << "DEBUG: " << __FUNCTION__ << std::endl;
+#endif
+        if (louvainModObjIsModified_) {
+#ifdef XILINX_COM_DETECT_DEBUG_ON
+            std::cout << "DEBUG: louvainmod options changed.  Deleting old louvainmod object (if it exists)."
+                << std::endl;
+#endif
+            delete pLouvainMod_;
+            pLouvainMod_ = nullptr;
+            louvainModObjIsModified_ = false;
+        }
+        
         if (pLouvainMod_ == nullptr) {
             xilinx_apps::louvainmod::Options options;
             options.xclbinPath = PLUGIN_XCLBIN_PATH;
@@ -199,7 +236,6 @@ public:
                     << "\n    hostIpAddress=" << options.hostIpAddress <<std::endl;
 #endif
             pLouvainMod_= new xilinx_apps::louvainmod::LouvainMod(options);
-            
         }
         
         return pLouvainMod_;
@@ -208,12 +244,16 @@ public:
 
     void setAlveoProject(std::string alveoProject) {
         std::cout << "DEBUG: " << __FUNCTION__ << " AlveoProject=" << alveoProject << std::endl;
-        alveoProject_ = this->getXGraphStorePath() + "/" + alveoProject;
-
+        std::string newAlveoProject = this->getXGraphStorePath() + "/" + alveoProject;
+        if (newAlveoProject != alveoProject_)
+            louvainModObjIsModified_ = true;
+        alveoProject_ = newAlveoProject;
     }
 
     void setAlveoProjectRaw(std::string alveoProject) {
         std::cout << "DEBUG: " << __FUNCTION__ << " AlveoProject=" << alveoProject << std::endl;
+        if (alveoProject != alveoProject_)
+            louvainModObjIsModified_ = true;
         alveoProject_ = alveoProject;
     }
     std::string getAlveoProject() { return alveoProject_; }
@@ -260,25 +300,16 @@ public:
     State getState() const { return state_; }
     void setState(State state) { state_ = state; }
     
-    void addDegreeList(long p_degree){
-        degree_list.push_back(p_degree); 
+    PartitionNameMode getPartitionNameMode() const { return partitionNameMode_; }
+    void setPartitionNameMode(PartitionNameMode partitionNameMode) {
+        if (partitionNameMode != partitionNameMode_)
+            louvainModObjIsModified_ = true;
+        partitionNameMode_ = partitionNameMode;
     }
-    
-    int getDegreeListSize(){
-        return degree_list.size(); 
-    }
-    
-    std::vector<long> getDegreeList(){
-        return degree_list; 
-    }
-    
+
     void clearPartitionData(){
         nextId_ = 0 ;
-        degree_list.clear();
-        mEdgeVec.clear();
-        mEdgePtrVec.clear();
-        mDgrVec.clear();
-        addedOffset.clear();
+
     }
     
     void clear() {

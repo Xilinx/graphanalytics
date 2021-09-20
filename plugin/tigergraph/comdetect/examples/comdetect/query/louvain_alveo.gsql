@@ -33,6 +33,8 @@ CREATE DISTRIBUTED QUERY tg_partition_phase_1(
 
     Start = {v_types};
     nodes = {dummy_nodes.*};
+    
+    udf_start_whole_graph_collection();
 
     nodeList = SELECT n FROM nodes:n
         ACCUM udf_xilinx_comdetect_set_node_id(n.NODE_ID), udf_reset_nextId();
@@ -116,7 +118,7 @@ CREATE DISTRIBUTED QUERY tg_partition_phase_3(
        
     udf_reset_timer(true);
     parList = SELECT n FROM nodes:n
-        ACCUM @@nodeAccum += (n.NODE_ID -> udf_save_alveo_partition(numPar));
+        ACCUM @@nodeAccum += (n.NODE_ID -> udf_save_alveo_partition(numPar, FALSE));
     PRINT @@nodeAccum;
     PRINT udf_elapsed_time(true) AS SaveAlveoPartitionTime;
 
@@ -150,8 +152,12 @@ CREATE QUERY tg_prenumbered_partition(
     udf_start_whole_graph_collection();
     vertexList = SELECT n FROM Start:n
         ACCUM udf_add_whole_graph_vertex(n.getAttr(louvainId_attr,"UINT"), n.outdegree());
+    PRINT udf_elapsed_time(true) AS CollectVerticesTime;
+
+    udf_reset_timer(true);
     udf_process_whole_graph_vertices();
     udf_save_EdgePtr();
+    PRINT udf_elapsed_time(true) AS ProcessVerticesTime;
 
     vertexList = SELECT s FROM Start:s-(e_types:e)->:t
         ACCUM udf_set_louvain_edge_list(udf_get_compressed_id(s.getAttr(louvainId_attr,"UINT")),
@@ -163,7 +169,7 @@ CREATE QUERY tg_prenumbered_partition(
     PRINT udf_elapsed_time(true) AS StartPartitionTime;
        
     udf_reset_timer(true);
-    @@nodeAccum += (0 -> udf_save_alveo_partition(numPar));
+    @@nodeAccum += (0 -> udf_save_alveo_partition(numPar, TRUE));
     PRINT udf_elapsed_time(true) AS SaveAlveoPartitionTime;
 
     udf_reset_timer(true);
