@@ -39,7 +39,7 @@ help::
 	$(ECHO) "      Command to build host application."
 	$(ECHO) ""
 	$(ECHO) "  Supported devices:"
-	$(ECHO) "  xilinx_u55c_gen3x16_xdma_1_202110_1"
+	$(ECHO) "  xilinx_u55c_gen3x16_xdma_2_202110_1"
 	$(ECHO) ""
 
 # ##################### Setting up default value of TARGET ##########################
