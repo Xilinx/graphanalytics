@@ -36,9 +36,8 @@ ifndef XILINX_XRM
 endif
 
 #the default PRODUCT_VER as the latest version
-ifndef PRODUCT_VER 
-    PRODUCT_VER = 0.1
-endif
+# Product version
+PRODUCT_VER=$(strip $(shell cat ../VERSION))
 
 # Location of Alveo product if installed from sources
 MK_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))

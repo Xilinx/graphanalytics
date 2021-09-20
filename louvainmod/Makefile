@@ -46,8 +46,8 @@ GRAPH_ANALYTICS_DIR = ..
 
 # General output directory for intermediate build artifacts
 BUILD_DIR = build
-
-
+# Product version
+PRODUCT_VER=$(strip $(shell cat VERSION))
 
 #######################################################################################################################
 #
@@ -200,7 +200,7 @@ $(CPP_DOXY_TRIGGER_FILE): include/xilinxlouvain.hpp $(CPP_DOXY_CONFIG_FILE)
 	    false; \
 	fi; \
 	mkdir -p $(CPP_DOXY_TARGET_DIR); \
-	sed 's,LOUVAINMOD_VERSION,$(strip $(shell cat VERSION)),g' < $(CPP_DOXY_CONFIG_FILE) > $(CPP_DOXY_TARGET_DIR)/doxyfile.tmp; \
+	sed 's,LOUVAINMOD_VERSION,$(PRODUCT_VER),g' < $(CPP_DOXY_CONFIG_FILE) > $(CPP_DOXY_TARGET_DIR)/doxyfile.tmp; \
 	doxygen $(CPP_DOXY_TARGET_DIR)/doxyfile.tmp; \
 	rm -f $(CPP_DOXY_TARGET_DIR)/doxyfile.tmp
 
@@ -334,9 +334,7 @@ ifneq ($(communityOutput),)
     communityOutputOpt = -o $(communityOutput)
 endif
 
-#deviceNames="xilinx_u50_gen3x16_xdma_201920_3 xilinx_u55c_gen3x16_xdma_base_1"
 deviceNames="xilinx_u50_gen3x16_xdma_201920_3"
-#deviceNames="xilinx_u55c_gen3x16_xdma_base_1"
 CMDLINE_CREATE_PARTITIONS = $(graph) -fast -num_pars $(numPars) -create_alveo_partitions \
                             -name $(alveoProject)
 
@@ -430,38 +428,56 @@ endif
 #
 # XCLBIN
 #
+# U50 XCLBIN 
+L2_TOP_DIR_U50 = $(GRAPH_ANALYTICS_DIR)/L2/louvainmod_pruning_kernel
+L2_XDEVICE_U50 = xilinx_u50_gen3x16_xdma_201920_3
+L2_BUILD_DIR_U50 = $(L2_TOP_DIR_U50)/build_dir.hw.$(L2_XDEVICE_U50)
+XCLBIN_NAME_U50 = kernel_louvain_pruning.xclbin
+XCLBIN_FILE_U50 = $(L2_BUILD_DIR_U50)/$(XCLBIN_NAME_U50)
+XCLBIN_INSTALLED_NAME_U50 = louvainmod_pruning_$(L2_XDEVICE_U50).xclbin
+XCLBIN_INSTALLED_U50 =/opt/xilinx/apps/graphanalytics/louvainmod/1.0/xclbin/$(XCLBIN_INSTALLED_NAME_U50)
+# U50 XCLBIN 
+L2_TOP_DIR_U55 = $(GRAPH_ANALYTICS_DIR)/L2/louvainmod_2cu_u55c_kernel
+L2_XDEVICE_U55 = xilinx_u55c_gen3x16_xdma_2_202110_1
+L2_BUILD_DIR_U55 = $(L2_TOP_DIR_U55)/build_dir.hw.$(L2_XDEVICE_U55)
+XCLBIN_NAME_U55 = kernel_louvain.xclbin
+XCLBIN_FILE_U55 = $(L2_BUILD_DIR_U55)/$(XCLBIN_NAME_U55)
+XCLBIN_INSTALLED_NAME_U55 = louvainmod_2cu_$(L2_XDEVICE_U55).xclbin
+XCLBIN_INSTALLED_U55 =/opt/xilinx/apps/graphanalytics/louvainmod/1.0/xclbin/$(XCLBIN_INSTALLED_NAME_U55)
+
 
 ifeq ($(USE_U55C),1)
-L2_TOP_DIR = $(GRAPH_ANALYTICS_DIR)/L2/louvainmod_renum_kernel
-L2_XDEVICE = xilinx_u55c_gen3x16_xdma_1_202110_1
-L2_BUILD_DIR = $(L2_TOP_DIR)/build_dir.hw.$(L2_XDEVICE)
-XCLBIN_NAME = kernel_louvain.xclbin
-XCLBIN_FILE = $(L2_BUILD_DIR)/$(XCLBIN_NAME)
-XCLBIN_INSTALLED_NAME = louvainmod_renum_$(L2_XDEVICE).xclbin
-XCLBIN_INSTALLED =/opt/xilinx/apps/graphanalytics/louvainmod/1.0/xclbin/$(XCLBIN_INSTALLED_NAME)
+	XCLBIN_BUILD_DIR=$(L2_TOP_DIR_U55)
 else
-L2_TOP_DIR = $(GRAPH_ANALYTICS_DIR)/L2/louvainmod_pruning_kernel
-L2_XDEVICE = xilinx_u50_gen3x16_xdma_201920_3
-L2_BUILD_DIR = $(L2_TOP_DIR)/build_dir.hw.$(L2_XDEVICE)
-XCLBIN_NAME = kernel_louvain_pruning.xclbin
-XCLBIN_FILE = $(L2_BUILD_DIR)/$(XCLBIN_NAME)
-XCLBIN_INSTALLED_NAME = louvainmod_pruning_$(L2_XDEVICE).xclbin
-XCLBIN_INSTALLED =/opt/xilinx/apps/graphanalytics/louvainmod/1.0/xclbin/$(XCLBIN_INSTALLED_NAME)
+	XCLBIN_BUILD_DIR=$(L2_TOP_DIR_U50)
 endif
-.PHONY: xclbin
 
+.PHONY: xclbin
 xclbin:
-	cd $(L2_TOP_DIR); \
+	cd $(XCLBIN_BUILD_DIR); \
 	source $(XILINX_XRT)/setup.sh; \
 	export PLATFORM_REPO_PATHS=$(XILINX_PLATFORMS); \
 	make build TARGET=hw
 	
-$(XCLBIN_FILE):
-	@if [ -r $(XCLBIN_INSTALLED) ]; then \
-	    echo "INFO: The XCLBIN file $(XCLBIN_FILE) is missing.  Copying from installed area."; \
-	    cp -r $(XCLBIN_INSTALLED) $@; \
+$(XCLBIN_FILE_U50):
+	@if [ -r $(XCLBIN_INSTALLED_U50) ]; then \
+	    echo "INFO: The XCLBIN file $(XCLBIN_FILE_U50) is missing.  Copying from installed area."; \
+	    cp -r $(XCLBIN_INSTALLED_U50) $@; \
 	else \
-	    echo "ERROR: The XCLBIN file $(XCLBIN_FILE) is missing."; \
+	    echo "ERROR: The XCLBIN file $(XCLBIN_FILE_U50) is missing."; \
+	    echo "Because building an XCLBIN file can be an all-day proposition, you have two choices for completing this build:"; \
+	    echo "1. Copy a pre-built XCLBIN to the target location above.  (Recommended for developers)"; \
+	    echo "2. Do 'make xclbin' and go for a very long coffee break.  (Recommended for build automation)"; \
+	    false; \
+	fi
+
+	
+$(XCLBIN_FILE_U55):
+	@if [ -r $(XCLBIN_INSTALLED_U55) ]; then \
+	    echo "INFO: The XCLBIN file $(XCLBIN_FILE_U50) is missing.  Copying from installed area."; \
+	    cp -r $(XCLBIN_INSTALLED_U55) $@; \
+	else \
+	    echo "ERROR: The XCLBIN file $(XCLBIN_FILE_U55) is missing."; \
 	    echo "Because building an XCLBIN file can be an all-day proposition, you have two choices for completing this build:"; \
 	    echo "1. Copy a pre-built XCLBIN to the target location above.  (Recommended for developers)"; \
 	    echo "2. Do 'make xclbin' and go for a very long coffee break.  (Recommended for build automation)"; \
@@ -529,17 +545,22 @@ stage-examples: $(STAGE_EXAMPLE_FILES)
 	@make fill-example-stage
 
 fill-example-stage: $(STAGE_STAGED_EXAMPLE_FILES)
+	cp VERSION $(STAGE_DIR)/examples/
 	
 $(STAGE_STAGED_EXAMPLE_FILES):
 	cp -f $(patsubst $(STAGE_DIR)/%,%,$@) $@
 	
 
 # XCLBIN file
+STAGE_XCLBIN_NAME_U50 = $(XCLBIN_INSTALLED_NAME_U50)
+STAGE_XCLBIN_FILE_U50 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U50)
+STAGE_XCLBIN_NAME_U55 = $(XCLBIN_INSTALLED_NAME_U55)
+STAGE_XCLBIN_FILE_U55 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U55)
 
-STAGE_XCLBIN_NAME = $(XCLBIN_INSTALLED_NAME)
-STAGE_XCLBIN_FILE = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME)
+$(STAGE_XCLBIN_FILE_U50): $(XCLBIN_FILE_U50)
+	cp -f $^ $@
 
-$(STAGE_XCLBIN_FILE): $(XCLBIN_FILE)
+$(STAGE_XCLBIN_FILE_U55): $(XCLBIN_FILE_U55)
 	cp -f $^ $@
 
 # Top-level packaging rule
@@ -549,7 +570,8 @@ STAGE_SUBDIRS = $(addprefix $(STAGE_DIR)/,$(STAGE_SUBDIR_NAMES))
 STAGE_ALL_FILES = \
     $(addprefix $(STAGE_DIR)/,$(STAGE_COPY_FILES)) \
     $(addprefix $(STAGE_DIR)/lib/,$(STAGE_LIB_FILES)) \
-    $(STAGE_XCLBIN_FILE) \
+    $(STAGE_XCLBIN_FILE_U50) \
+	$(STAGE_XCLBIN_FILE_U55) \
     $(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP) \
 
 # make staging areaing in two steps so intermediate outputs can be included in the 
@@ -609,7 +631,7 @@ clean:
 	@echo "To clean the XCLBIN, use 'make clean-xclbin'"
 	
 clean-xclbin:
-	rm -f $(XCLBIN_FILE)
+	rm -f $(XCLBIN_FILE_U50)
 
 clean-par:
 	rm -f $(CPPDEMO_OUT_DIR)/$(graphBasename)*
