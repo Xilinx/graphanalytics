@@ -1,6 +1,7 @@
 /.Xil/
-/_x_temp.hw.xilinx_u50_gen3x16_xdma_201920_3/
-/build_dir.hw.xilinx_u50_gen3x16_xdma_201920_3/
+_x_temp.hw.xilinx_u55c_gen3x16_xdma_2_202110_1
+/build_dir.hw.xilinx_u55c_gen3x16_xdma_2_202110_1/*
+!/build_dir.hw.xilinx_u55c_gen3x16_xdma_2_202110_1/*.vclf
 /reports/
 /v++_denseSimilarityKernel.log
 /xcd.log
