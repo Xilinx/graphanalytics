@@ -385,7 +385,7 @@ endif
 L2_TOP_DIR = $(GRAPH_ANALYTICS_DIR)/L2/dense_similarity_multi_kernel
 L2_TOP_DIR_4PU = $(GRAPH_ANALYTICS_DIR)/L2/dense_similarity_multi_kernel_4pu
 L2_XDEVICE_U50 = xilinx_u50_gen3x16_xdma_201920_3
-L2_XDEVICE_U55C = xilinx_u55c_gen3x16_xdma_1_202110_1
+L2_XDEVICE_U55C = xilinx_u55c_gen3x16_xdma_2_202110_1
 L2_BUILD_DIR_U50 = $(L2_TOP_DIR)/build_dir.hw.$(L2_XDEVICE_U50)
 L2_BUILD_DIR_U55C = $(L2_TOP_DIR_4PU)/build_dir.hw.$(L2_XDEVICE_U55C)
 
@@ -395,7 +395,7 @@ XCLBIN_NAME_4PU = denseSimilarityKernel4PUWithAlias.xclbin
 XCLBIN_FILE_U50 = $(L2_BUILD_DIR_U50)/$(XCLBIN_NAME)
 XCLBIN_FILE_U55C = $(L2_BUILD_DIR_U55C)/$(XCLBIN_NAME_4PU)
 XCLBIN_INSTALLED_U50 = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin
-XCLBIN_INSTALLED_U55C = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32bit_xilinx_u55c_gen3x16_xdma_base_1.xclbin
+XCLBIN_INSTALLED_U55C = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32bit_xilinx_u55c_gen3x16_xdma_base_2.xclbin
 
 ifeq ($(findstring u55, $(DEVICE)), u55)
 	XCLBIN_BUILD_DIR=$(L2_TOP_DIR_4PU)
@@ -585,7 +585,7 @@ javaTest:
 #
 
 #### Clean target deletes all generated files ####
-.PHONY: clean clean-xclbin
+.PHONY: clean clean-xclbin clean-pyenv
 
 clean:
 	rm -rf Debug Release $(JAVA_LIB_DIR) $(BUILD_DIR) $(STAGE_DIR)
@@ -595,6 +595,9 @@ clean:
 	
 clean-xclbin:
 	rm -f $(XCLBIN_FILE_U50) $(XCLBIN_FILE_U55C)
+
+clean-pyenv:
+	rm -rf $(PYTHONENV_NAME)
 
 .PHONY: help
 help:
@@ -616,5 +619,5 @@ help:
 	@echo "      Build xclbin file targetting specified device. Vitis tool and PLATFORM_REPO_PATHS must be set to make xclbin."
 	@echo "      Supported devices:"
 	@echo "      xilinx_u50_gen3x16_xdma_201920_3 (Vitis 2020.2)"
-	@echo "      xilinx_u55c_gen3x16_xdma_1_202110_1 (Vitis 2021.1)"
+	@echo "      xilinx_u55c_gen3x16_xdma_2_202110_1 (Vitis 2021.2)"
 	@echo ""
