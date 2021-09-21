@@ -357,6 +357,10 @@ public:
         nextId_ = nextId;
     }
 
+    void clearNumAlveoPartitions() {
+        numAlveoPartitions.clear();
+    }
+    
     const std::vector<int>& getNumAlveoPartitions() {
         return numAlveoPartitions;
     }

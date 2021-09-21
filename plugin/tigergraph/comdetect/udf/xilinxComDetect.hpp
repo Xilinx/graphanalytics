@@ -248,7 +248,8 @@ inline int udf_save_alveo_partition(uint numPar, bool isWholeGraph) {
     partitionData.start_vertex = pContext->getStartVertex(); //start_vertex;
     partitionData.end_vertex = pContext->getEndVertex(); //end_vertex;
     partitionData.isWholeGraph = isWholeGraph;
-//    partitionData.NV_par_requested = NV_par_requested;
+    if (numPar > 1)
+        partitionData.NV_par_requested = NV_par_requested;
     int64_t number_of_partitions = (int64_t)pLouvainMod->addPartitionData(partitionData);
     std::cout << "INFO: " << __FUNCTION__ << " final number_of_partitions=" << number_of_partitions << std::endl;
     return number_of_partitions;
@@ -264,6 +265,7 @@ inline void udf_finish_partition(MapAccum<uint64_t, int64_t> numAlveoPars){
 #endif
 
     xilinx_apps::louvainmod::LouvainMod *pLouvainMod = pContext->getLouvainModObj();
+    pContext->clearNumAlveoPartitions();
     for(unsigned i=0;i<numAlveoPars.size();i++){
         pContext->addNumAlveoPartitions(((int)numAlveoPars.get(i)));
     }
