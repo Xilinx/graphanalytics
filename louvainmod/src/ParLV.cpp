@@ -1010,6 +1010,7 @@ int host_ParserParameters(int argc,
                 nameWorkers[i] = argv[indx2 + i];
             }
         }
+
         if ((has_driverAlone == -1) && (has_workerAlone == -1)) {
             mode_zmq = ZMQ_NONE;
         } else {
@@ -1264,9 +1265,9 @@ ToolOptions::ToolOptions(int argcIn, char** argvIn) {
     host_ParserParameters(argc, argv, 
         opts_C_thresh, opts_minGraphSize, threshold, opts_ftype, opts_inFile,
         opts_coloring, opts_output, outputFile, opts_VF, xclbinPath, deviceNames, 
-        numThreads, numPars, gh_par, flow_fast, numDevices, mode_zmq, path_zmq, 
+        numThreads, numPars, gh_par, flow_fast, numDevices, modeZmq, path_zmq, 
         useCmd, mode_alveo, nameProj, alveoProject, numPureWorker, nameWorkers, 
-        nodeID, numNodes, max_level, max_iter);
+        nodeId, numNodes, max_level, max_iter);
 }
 
 void PrintTimeRpt(GLV* glv, int num_dev, bool isHead) {
