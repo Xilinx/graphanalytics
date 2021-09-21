@@ -213,8 +213,11 @@ class openXRM {
         uint32_t availNumDevices = 0;
         if (alloc0 != 0) {
             std::cout << "ERROR: " << __FUNCTION__ 
-                      <<  "Fail to alloc cu list (xrmCuListAlloc): alloc0=" << alloc0 
+                      << " Fail to alloc cu list (xrmCuListAlloc): ErrorCode=" << alloc0 
                       << std::endl;
+            std::cout << "INFO: " << __FUNCTION__ 
+                      << "Try reset the Alveo cards by running xbutil reset command" 
+                      << std::endl;                      
             return alloc0;
         } else {
             memBankSizeTransfer(cuListResR.cuResources[0].membankSize, maxChannelSize);

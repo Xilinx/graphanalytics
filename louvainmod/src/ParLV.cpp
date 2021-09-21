@@ -3788,10 +3788,12 @@ void freeSharedHandle()
 // create a new shared handle if
 // 1. The shared handle does not exist or
 // 2. The numDevices option changes
-void createSharedHandle(
+int createSharedHandle(
     char* xclbinPath, int flowMode, unsigned int numDevices, std::string deviceNames,
     bool opts_coloring, long opts_minGraphSize, double opts_C_thresh, int numThreads)
 {
+    int status = 0;
+
     // return right away if the handle has already been created
     if (!sharedHandlesLouvainMod::instance().handlesMap.empty()) {
         std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesLouvainMod::instance().handlesMap[0];
@@ -3806,19 +3808,24 @@ void createSharedHandle(
         } else {
             std::cout << "INFO: " << __FUNCTION__ << " Using exsiting handle with "
                      << handle0->getNumDevices() << " devices loaded." << std::endl;
-            return;
+            return 0;
         }
     }
     std::cout << "INFO: " << __FUNCTION__ << std::endl;
     std::shared_ptr<xf::graph::L3::Handle> handleInstance(new xf::graph::L3::Handle);
     sharedHandlesLouvainMod::instance().handlesMap[0] = handleInstance;
-    loadComputeUnitsToFPGAs(xclbinPath, flowMode, numDevices, deviceNames);
+    status = loadComputeUnitsToFPGAs(xclbinPath, flowMode, numDevices, deviceNames);
+    if (status < 0)
+        return status;
+
     std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesLouvainMod::instance().handlesMap[0];
     (handle0->oplouvainmod)->mapHostToClBuffers(NULL, flowMode, opts_coloring,
         opts_minGraphSize, opts_C_thresh, numThreads);
+
+    return status;
 }
 
-void loadComputeUnitsToFPGAs(
+int loadComputeUnitsToFPGAs(
     char* xclbinPath, 
     int flowMode,
     unsigned int numDevices,
@@ -3854,6 +3861,8 @@ void loadComputeUnitsToFPGAs(
     //----------------- enable handle0--------
     handle0->addOp(*op0);
     status = handle0->setUp(deviceNames);
+
+    return status;
 }
 
 /*
@@ -3862,6 +3871,7 @@ Return values:
     -1 to 1: Modularity value
     -2: Error in getNumPartitions
     -3: Error in compute_louvain_alveo_seperated_load
+    -4: Error in createSharedHandle
 */
 extern "C" float loadAlveoAndComputeLouvain(
     char* xclbinPath, int flowMode, unsigned int numDevices, std::string deviceNames,
@@ -3892,8 +3902,10 @@ extern "C" float loadAlveoAndComputeLouvain(
         }     
     }
     
-    createSharedHandle(xclbinPath, flowMode, numDevices, deviceNames, opts_coloring,
-                       opts_minGraphSize, opts_C_thresh, numThreads);
+    int status = createSharedHandle(xclbinPath, flowMode, numDevices, deviceNames, opts_coloring,
+                                    opts_minGraphSize, opts_C_thresh, numThreads);
+    if (status < 0)
+        return -4;
 
     std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesLouvainMod::instance().handlesMap[0];
     ret = compute_louvain_alveo_seperated_load(
