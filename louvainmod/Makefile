@@ -58,7 +58,7 @@ CCC = g++
 CXX = g++
 CXXFLAGS = -std=c++11 -DPRAGMA -Ofast -fopenmp -fmessage-length=0  -fPIC -Wall -Wno-unknown-pragmas -Wno-unused-label \
     -Wno-unused-variable -Wno-sign-compare -Wno-unused-result -Wno-unused-but-set-variable \
-    -Wno-narrowing -D USE_HBM -fmessage-length=0 -D LOUVAINMOD
+    -Wno-narrowing -D USE_HBM -fmessage-length=0 -D LOUVAINMOD -D PRINTINFO
 
 # Define the target directories.
 #DEBUG = 1
@@ -67,7 +67,8 @@ CPP_BUILD_DIR = Debug
 CXXFLAGS += -O0 -g
 else
 CPP_BUILD_DIR = Release
-CXXFLAGS += -O3 -DNDEBUG
+#CXXFLAGS += -O3 -DNDEBUG
+CXXFLAGS += -O3 -g
 endif
 
 USE_U55C = 0
