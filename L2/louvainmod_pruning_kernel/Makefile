@@ -130,8 +130,8 @@ LDFLAGS += -L$(XILINX_XRT)/lib -lOpenCL -lpthread -lrt -Wno-unused-label -Wno-un
 CXXFLAGS += -fmessage-length=0 -DPRAGMA -fopenmp -fPIC -DMULTITHREAD
 #CXXFLAGS += -g
 CXXFLAGS += -O3
+#CXXFLAGS += -D DEBUGPAR
 CXXFLAGS += -I$(CUR_DIR)/src/ 
-CXXFLAGS += -D DEBUGPAR
 
 ifeq ($(HOST_ARCH), x86)
 #LDFLAGS += -L$(XILINX_VIVADO)/lnx64/tools/fpo_v7_0 -Wl,--as-needed -lgmp -lmpfr -lIp_floating_point_v7_0_bitacc_cmodel
