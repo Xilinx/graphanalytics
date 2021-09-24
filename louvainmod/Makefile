@@ -328,6 +328,7 @@ graph = ./examples/data/as-Skitter-wt-r100.mtx
 graphFilename = $(notdir $(graph))
 graphBasename = $(basename $(graphFilename))
 alveoProject = $(CPPDEMO_OUT_DIR)/$(graphBasename)
+numNodes = 1
 numPars = 9
 numDevices = 1
 communityOutputOpt =
@@ -345,15 +346,15 @@ CMDLINE_LOAD_COMPUTE = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50
 	$(alveoProject).par.proj -setwkr 0 -driverAlone $(communityOutputOpt)
 
 CMDLINE_LOAD_COMPUTE_DRIVER = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
-    -fast -num_devices $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
+    -fast -num_nodes $(numNodes) -num_devices $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
 	$(alveoProject).par.proj -setwkr 2 $(WORKERS) -driverAlone $(communityOutputOpt)
 
 CMDLINE_LOAD_COMPUTE_WORKER1 = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
-    -fast -num_devices $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
+    -fast -num_nodes $(numNodes) -num_devices $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
 	$(alveoProject).par.proj -workerAlone 1
 
 CMDLINE_LOAD_COMPUTE_WORKER2 = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
-    -fast -num_devices $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
+    -fast -num_nodes $(numNodes) -num_devices $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
 	$(alveoProject).par.proj -workerAlone 2
 
 .PHONY: run-create-partitions run-load-compute run-load-compute-driver run-load-compute-worker1 run-load-compute-worker2
@@ -653,13 +654,13 @@ help:
 	@echo ""
 	@echo "  Run test in a 3 node cluster"
 	@echo "  ssh to driver"
-	@echo "  make run-load-compute-driver [graph=/path/to/graph.mtx] [numDevices=1]"
+	@echo "  make run-load-compute-driver [graph=/path/to/graph.mtx] [numNodes=1] [numDevices=1]"
 	@echo ""
 	@echo "  ssh to worker1"
-	@echo "  make run-load-compute-worker1 [graph=/path/to/graph.mtx] [numDevices=1]"
+	@echo "  make run-load-compute-worker1 [graph=/path/to/graph.mtx] [numNodes=1] [numDevices=1]"
 	@echo ""
 	@echo "  ssh to worker2"
-	@echo "  make run-load-compute-worker2 [graph=/path/to/graph.mtx] [numDevices=1]"
+	@echo "  make run-load-compute-worker2 [graph=/path/to/graph.mtx] [numNodes=1] [numDevices=1]"
 	@echo ""
 	@echo "  debug-cppdemo"
 	@echo "  Debug cppdemo"
@@ -668,6 +669,7 @@ help:
 	@echo "DEBUG          : 1: build application in debug mode. 0: build application in release mode."
 	@echo "graph          : graph input .mtx file"
 	@echo "alveoProject   : Alveo project name without .par.proj extension"
+	@echo "numNodes       : Number of nodes (default=1)"
 	@echo "deviceNames    : Target device name. Supported devices: "
 	@echo "                 xilinx_u50_gen3x16_xdma_201920_3"
 	@echo "                 xilinx_u55c_gen3x16_xdma_base_2"
