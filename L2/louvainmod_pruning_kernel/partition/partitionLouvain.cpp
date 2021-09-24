@@ -1229,6 +1229,21 @@ GLV* SttGPar::ParNewGlv_Prun(graphNew* G, long st, long ed, int& id_glv, int th_
 }
 typedef int t_sel;
 #define NOTSELECT (0)
+long FindStartVertexlastround(graphNew* G, t_sel V_selected[]){
+    long NV = G->numVertices;
+    long* offsets = G->edgeListPtrs;
+    edge* indices = G->edgeList;
+    long v_start=-1;
+    int degree_max = 1;
+    for(int v = 0; v<NV; v++){
+        if(V_selected[v])
+            continue;
+        v_start = v;
+        break;
+    }
+        return  v_start;
+}
+
 long FindStartVertex(graphNew* G, t_sel V_selected[]){
     long NV = G->numVertices;
 	long* offsets = G->edgeListPtrs;
@@ -2233,24 +2248,32 @@ void BFSPar_creatingEdgeLists_fixed_1(
 
             if(!notQueueEmpty && notAllQueuesEmpty && (num_v_l[p]<MAX_PAR_VERTEX) ){
              //   printf("2. add a new start for the empty par-queue to continue the growing of partition graph\n ");
-                long v_start;
-                if(mode_start==0)
-                    v_start = FindStartVertex(G, V_selected);
-                else
-                    v_start = p*(NV_all/num_par);
-                if(v_start<0){      
-                    printf(" ----all vertex selected, go to add ghost\n");                      
-                    break;
-                } 
-                V_selected[v_start] = p+1;//true;
-                HopV hv_start;
-                hv_start.hop=0;
-                hv_start.v = v_start;
-                q_par[p].push(hv_start);
-                map_v_l[p][v_start] = num_v_l[p];
-                num_v_l[p]++;
-                notQueueEmpty = true;
-                printf(" ==== Empty case par=%d_push_v_start=%d, num_v_l[%d]=%d\n", p, v_start, p, num_v_l[p]);
+                    long v_start;
+                    if(mode_start==0)
+                       
+                        if(p < num_par - 1)
+                            v_start = FindStartVertex(G, V_selected);
+                        else{
+                            v_start = FindStartVertexlastround(G, V_selected);                      
+//                            printf("last round\n");
+                        }
+                    else
+                        v_start = p*(NV_all/num_par);
+                    if(v_start<0){      
+                        printf(" ----all vertex selected, go to add ghost\n");                      
+                        break;
+                    } 
+                    V_selected[v_start] = p+1;//true;
+                    HopV hv_start;
+                    hv_start.hop=0;
+                    hv_start.v = v_start;
+                    q_par[p].push(hv_start);
+                    map_v_l[p][v_start] = num_v_l[p];
+                    num_v_l[p]++;
+                    notQueueEmpty = true;
+                    printf(" ==== Empty case par=%d_push_v_start=%d, num_v_l[%d]=%d\n", p, v_start, p, num_v_l[p]);
+                                  
+                
             }
 
 #ifdef DEBUGPAR
