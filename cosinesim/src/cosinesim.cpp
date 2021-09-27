@@ -105,9 +105,9 @@ public:
         deviceNames = options.deviceNames;
 
         if (deviceNames == "xilinx_u50_gen3x16_xdma_201920_3")
-            xclbinPath = "/opt/xilinx/apps/graphanalytics/cosinesim/1.3/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin";
+            xclbinPath = std::string("/opt/xilinx/apps/graphanalytics/cosinesim/") + std::string(VERSION) + std::string("/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin");
         else if (deviceNames == "xilinx_u55c_gen3x16_xdma_base_1")
-            xclbinPath = "/opt/xilinx/apps/graphanalytics/cosinesim/1.3/xclbin/cosinesim_32bit_xilinx_u55c_gen3x16_xdma_base_1.xclbin";
+            xclbinPath = std::string("/opt/xilinx/apps/graphanalytics/cosinesim/") + std::string(VERSION) + std::string("/cosinesim_32bit_xilinx_u55c_gen3x16_xdma_base_1.xclbin");
 
         std::cout << "INFO: Options::xcbinPath = " << (options.xclbinPath == nullptr ? "null"
             : options.xclbinPath) << std::endl;
@@ -508,8 +508,11 @@ void PrivateImpl::load_graph_cosinesim_ss_dense_fpga(
     std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
 
     //---------------- Run Load Graph -----------------------------------
+    uint32_t deviceId, cuId;
     for (uint32_t i = 0; i < deviceNeeded * cuNm; ++i) {
-        (handle0->opsimdense)->loadGraphMultiCardNonBlocking(i / cuNm, i % cuNm, graph[i][0]);
+        deviceId = handle0->supportedDeviceIds_[i / cuNm];
+        cuId = i % cuNm;
+        (handle0->opsimdense)->loadGraphMultiCardNonBlocking(deviceId, cuId, graph[i][0]);
     }
 
     return;

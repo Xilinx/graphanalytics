@@ -30,8 +30,9 @@ void createHandleLouvainModularity(class openXRM* xrm, clHandle& handle,
                                    unsigned int requestLoad)
 {
 #ifndef NDEBUG
-    std::cout << "DEBUG: " << __FUNCTION__ << " IDDevice=" << IDDevice 
-              << " handle=" << &handle << std::endl;
+    std::cout << "DEBUG: " << __FUNCTION__ 
+              << "\n    IDDevice=" << IDDevice 
+              << "\n    handle=" << &handle << std::endl;
 #endif
     // Platform related operations
     std::vector<cl::Device> devices = xcl::get_xil_devices();
@@ -237,7 +238,7 @@ int opLouvainModularity::compute(unsigned int deviceID,
                                  double* eachTimeReadBuff) 
 {
 	uint32_t which = channelID + cuID * dupNmLouvainModularity +
-                                 deviceID * dupNmLouvainModularity * cuPerBoardLouvainModularity;
+                     deviceID * dupNmLouvainModularity * cuPerBoardLouvainModularity;
 #ifdef PRINTINFO
 	printf("INFO: compute channelID=%d, cuID=%d dupNmLouvainModularity=%d deviceID=%d cuPerBoardLouvainModularity=%d which=%d \n",
 			channelID, cuID, dupNmLouvainModularity, deviceID, cuPerBoardLouvainModularity, which);

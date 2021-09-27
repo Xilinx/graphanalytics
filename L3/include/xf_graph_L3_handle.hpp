@@ -107,6 +107,7 @@ class Handle {
 #endif
         xrm = new class openXRM;
     };
+    uint32_t supportedDeviceIds_[XF_GRAPH_L3_MAX_DEVICES_PER_NODE];
 
     void free();
 
@@ -126,7 +127,6 @@ class Handle {
     uint32_t numDevices_;                          // Number of devices requested by current operation
     uint32_t totalSupportedDevices_;               // Total number of supported devices
     std::vector<std::string> supportedDeviceNames_;     // Supported device names
-    uint32_t supportedDeviceIds_[XF_GRAPH_L3_MAX_DEVICES_PER_NODE];
     uint64_t maxChannelSize;
     std::vector<singleOP> ops;
 
