@@ -127,19 +127,13 @@ class Handle {
     std::thread loadXclbinNonBlock(unsigned int deviceId, std::string& xclbinName);
     std::future<int> loadXclbinAsync(unsigned int deviceId, std::string& xclbinName);
 
-    int32_t initOpSimDense(std::string kernelName,
-                           std::string xclbinFile,
-                           std::string kernelAlias,
-                           unsigned int requestLoad,
-                           unsigned int numDevices,
-                           unsigned int cuPerBoard);
+    int32_t initOpSimDense(std::string xclbinFile, std::string kernelName,
+                           std::string kernelAlias, unsigned int requestLoad,
+                           unsigned int numDevices, unsigned int cuPerBoard);
 
-    int32_t initOpLouvainModularity(std::string kernelName,
-                                    std::string xclbinFile,
-                                    std::string kernelAlias,
-                                    unsigned int requestLoad,
-                                    unsigned int deviceNeeded,
-                                    unsigned int cuPerBoard);
+    int32_t initOpLouvainModularity(std::string xclbinFile, std::string kernelName,
+                                    std::string kernelAlias, unsigned int requestLoad,
+                                    unsigned int deviceNeeded, unsigned int cuPerBoard);
 };
 } // L3
 } // graph

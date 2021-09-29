@@ -1571,7 +1571,7 @@ void PrintRptParameters(double opts_C_thresh,   // Threshold with coloring on
     printf(
         "FPGA Parameter \033[1;37;40mkernelName      \033[0m: %s      \t\t Default=kernel_louvain,  by config.json     "
         "                  \n",
-        op0.kernelName.c_str());
+        op0.kernelName_.c_str());
     if (opts_xclbinPath[0] == 0)
         printf(
             "FPGA Parameter \033[1;37;40mxclbinFile      \033[0m: %s    \t  by config.json           or by \" "
