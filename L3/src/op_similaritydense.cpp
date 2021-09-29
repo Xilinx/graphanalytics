@@ -50,7 +50,7 @@ void createHandleSimDense(class openXRM *xrm, clHandle &handle,
     memset(handle.resR, 0, sizeof(xrmCuResource));
     xrm->allocCU(handle.resR, kernelName.c_str(), kernelAlias.c_str(), requestLoad);
     std::string instanceName0 = handle.resR->instanceName;
-    instanceName0 = "denseSimilarityKernel:{" + instanceName0 + "}";
+    instanceName0 = kernelName + ":{" + instanceName0 + "}";
   
     const char *instanceName = instanceName0.c_str();
     handle.kernel = cl::Kernel(handle.program, instanceName);
@@ -123,7 +123,7 @@ void opSimilarityDense::init(class openXRM *xrm, std::string kernelName,
 {
     dupNmSimDense = 100 / requestLoad;
     cuPerBoardSimDense /= dupNmSimDense;
-    uint32_t bufferNm = 20;
+    uint32_t numBuffers = 32;
     unsigned int cnt = 0;
     unsigned int *handleID = new unsigned int[maxCU_];
     handleID[0] = cnt;
@@ -133,7 +133,7 @@ void opSimilarityDense::init(class openXRM *xrm, std::string kernelName,
     std::thread th[maxCU_];
     createHandleSimDense(xrm, handles[cnt], kernelName, kernelAlias, xclbinFile,
                          deviceIDs[cnt], requestLoad);
-    handles[cnt].buffer = new cl::Buffer[bufferNm];
+    handles[cnt].buffer = new cl::Buffer[numBuffers];
     unsigned int prev = deviceIDs[0];
     deviceOffset.push_back(0);
     for (unsigned int i = 1; i < maxCU_; ++i) {
@@ -142,7 +142,7 @@ void opSimilarityDense::init(class openXRM *xrm, std::string kernelName,
       handles[i].dupID = i % dupNmSimDense;
       createHandleSimDense(xrm, handles[i], kernelName, kernelAlias, xclbinFile,
                            deviceIDs[i], requestLoad);
-      handles[i].buffer = new cl::Buffer[bufferNm];
+      handles[i].buffer = new cl::Buffer[numBuffers];
       if (deviceIDs[i] != prev) {
           prev = deviceIDs[i];
           deviceOffset.push_back(i);
@@ -224,7 +224,7 @@ void loadGraphCoreSimDenseInt(clHandle *hds, int nrows, int nnz, int cuID,
   // declare map of host buffers
   std::vector<cl_mem_ext_ptr_t> mext_o(4 * splitNm);
   for (unsigned int i = 0; i < splitNm; i++) {
-    if (std::string(hds[0].resR->instanceName) == "denseSimilarityKernel_0") {
+    if (std::string(hds[0].resR->instanceName).find("_0") != std::string::npos) {
       mext_o[4 * i + 0] = {(uint32_t)(8 * i) | XCL_MEM_TOPOLOGY,
                            g.weightsDense[4 * i], 0};
       mext_o[4 * i + 1] = {(uint32_t)(8 * i + 1) | XCL_MEM_TOPOLOGY,
@@ -379,9 +379,7 @@ void opSimilarityDense::loadGraphMultiCardNonBlocking(
     if ((handles[j].deviceID == (unsigned int)deviceID) &&
         (handles[j].cuID == (unsigned int)cuID) && (handles[j].dupID == 0)) {
       cnt = j;
-      std::packaged_task<void(clHandle *, int, int, int,
-                              xf::graph::Graph<int32_t, int32_t>)>
-          t(loadGraphCoreSimDenseInt);
+      std::packaged_task<void(clHandle *, int, int, int, xf::graph::Graph<int32_t, int32_t>)>t(loadGraphCoreSimDenseInt);
       fut[j] = t.get_future();
       th[j] = std::thread(std::move(t), &handles[j], nrows, nnz, cuID, graph);
     }
@@ -445,11 +443,11 @@ void opSimilarityDense::bufferInitInt(clHandle *hds, std::string instanceName0,
               << std::endl;
 #endif    
 
-    int32_t splitNm = g.splitNum;
+    uint32_t splitNm = g.splitNum;
     int32_t CHANNEL_NUMBER = 16;
     uint32_t startID[splitNm];
     uint32_t tmp = (uint32_t)g.refID;
-    for (unsigned int i = 0; i < (unsigned int)(splitNm - 1); i++) { 
+    for (uint32_t i = 0; i < splitNm - 1; i++) { 
         // calculate multi PU start address
         startID[i] = tmp;
         tmp += g.numVerticesPU[i];
@@ -462,26 +460,33 @@ void opSimilarityDense::bufferInitInt(clHandle *hds, std::string instanceName0,
   
     int edgeAlign8 =
         ((g.edgeNum + CHANNEL_NUMBER - 1) / CHANNEL_NUMBER) * CHANNEL_NUMBER;
-    for (unsigned int j = 0; j < (unsigned int)splitNm; j++) {
+    for (uint32_t j = 0; j < splitNm; j++) {
       config[4 + j] = startID[j];
       config[4 + splitNm + j] = (g.numVerticesPU[j] + 3) / 4;
       config[4 + 2 * splitNm + j] = edgeAlign8;
     }
   
     // declare map of host buffers
+    int32_t XCL_PU0_COMMON_HBM = 24;  // HBM for storing common arguments for 3 PUs
+    int32_t XCL_PU1_COMMON_HBM = 28;
+    if (splitNm == 4) { // 4 PUs
+        XCL_PU0_COMMON_HBM = 0;  // HBM for storing common arguments for 3 PUs
+        XCL_PU1_COMMON_HBM = 4;
+    }
     std::vector<cl_mem_ext_ptr_t> mext_o(5);
-    if (std::string(hds[0].resR->instanceName) == "denseSimilarityKernel_0") {
-        mext_o[0] = {(unsigned int32_t)(24) | XCL_MEM_TOPOLOGY, config, 0};
-        mext_o[1] = {(int32_t)(24) | XCL_MEM_TOPOLOGY, sourceWeight, 0};
-        mext_o[2] = {(int32_t)(24) | XCL_MEM_TOPOLOGY, sourceCoeffs, 0};
-        mext_o[3] = {(int32_t)(24) | XCL_MEM_TOPOLOGY, resultID, 0};
-        mext_o[4] = {(int32_t)(24) | XCL_MEM_TOPOLOGY, similarity, 0};
+    if (std::string(hds[0].resR->instanceName).find("_0") != std::string::npos) {
+        // Compute unit 0
+        mext_o[0] = {XCL_PU0_COMMON_HBM | XCL_MEM_TOPOLOGY, config, 0};
+        mext_o[1] = {XCL_PU0_COMMON_HBM | XCL_MEM_TOPOLOGY, sourceWeight, 0};
+        mext_o[2] = {XCL_PU0_COMMON_HBM | XCL_MEM_TOPOLOGY, sourceCoeffs, 0};
+        mext_o[3] = {XCL_PU0_COMMON_HBM | XCL_MEM_TOPOLOGY, resultID, 0};
+        mext_o[4] = {XCL_PU0_COMMON_HBM | XCL_MEM_TOPOLOGY, similarity, 0};
     } else {
-        mext_o[0] = {(int32_t)(28) | XCL_MEM_TOPOLOGY, config, 0};
-        mext_o[1] = {(int32_t)(28) | XCL_MEM_TOPOLOGY, sourceWeight, 0};
-        mext_o[2] = {(int32_t)(28) | XCL_MEM_TOPOLOGY, sourceCoeffs, 0};
-        mext_o[3] = {(int32_t)(28) | XCL_MEM_TOPOLOGY, resultID, 0};
-        mext_o[4] = {(int32_t)(28) | XCL_MEM_TOPOLOGY, similarity, 0};
+        mext_o[0] = {XCL_PU1_COMMON_HBM | XCL_MEM_TOPOLOGY, config, 0};
+        mext_o[1] = {XCL_PU1_COMMON_HBM | XCL_MEM_TOPOLOGY, sourceWeight, 0};
+        mext_o[2] = {XCL_PU1_COMMON_HBM | XCL_MEM_TOPOLOGY, sourceCoeffs, 0};
+        mext_o[3] = {XCL_PU1_COMMON_HBM | XCL_MEM_TOPOLOGY, resultID, 0};
+        mext_o[4] = {XCL_PU1_COMMON_HBM | XCL_MEM_TOPOLOGY, similarity, 0};
     }
 
     // declare cl::buffers
@@ -521,11 +526,11 @@ void opSimilarityDense::bufferInitInt(clHandle *hds, std::string instanceName0,
     kernel0.setArg(1, hds[0].buffer[1]); // source weight
     kernel0.setArg(2, hds[0].buffer[2]); // source coeffs
 
-    for (unsigned int k = 0; k < (unsigned int)(4 * splitNm); k++) {
+    for (uint32_t k = 0; k < 4 * splitNm; k++) {
         kernel0.setArg(3 + k, hds[0].buffer[5 + k]); // weights
     }
-    kernel0.setArg(15, hds[0].buffer[3]); // resultID
-    kernel0.setArg(16, hds[0].buffer[4]); // similarity
+    kernel0.setArg(3 + (4 * splitNm), hds[0].buffer[3]); // resultID
+    kernel0.setArg(4 + (4 * splitNm), hds[0].buffer[4]); // similarity
 
 };
 

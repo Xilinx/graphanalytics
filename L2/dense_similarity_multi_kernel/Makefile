@@ -39,15 +39,15 @@ help::
 	$(ECHO) "      Command to build host application."
 	$(ECHO) ""
 	$(ECHO) "  Supported devices: "
-	$(ECHO) "      xilinx_u50_gen3x16_xdma_201920_3 (Vitis 2020.2)"
-	$(ECHO) "      xilinx_u55c_gen3x16_xdma_1_202110_1 (Vitis 2021.1)"
+	$(ECHO) "      xilinx_u50_gen3x16_xdma_201920_3 (Vitis 2021.2)"
+	$(ECHO) "      xilinx_u55c_gen3x16_xdma_2_202110_1 (Vitis 2021.2)"
 	$(ECHO) ""
 
 # ##################### Setting up default value of TARGET ##########################
 TARGET ?= sw_emu
 
 # ################### Setting up default value of DEVICE ##############################
-DEVICE ?= xilinx_u55c_gen3x16_xdma_1_202110_1
+DEVICE ?= xilinx_u50_gen3x16_xdma_201920_3
 
 # ###################### Setting up default value of HOST_ARCH ####################### 
 HOST_ARCH ?= x86
@@ -172,6 +172,12 @@ $(BUILD_DIR)/denseSimilarityKernel.xclbin: $(BINARY_CONTAINER_denseSimilarityKer
 	mkdir -p $(BUILD_DIR)
 	$(VPP) -l $(VPP_FLAGS) --temp_dir $(TEMP_DIR) --report_dir $(BUILD_REPORT_DIR)/denseSimilarityKernel $(VPP_LDFLAGS) $(VPP_LDFLAGS_denseSimilarityKernel) -o '$@' $(+)
 
+# Add kernel alias to xclbin post-build to support the same kernel targeting different devices
+# can be differentiated
+	rm -f $(BUILD_DIR)/denseSimilarityKernelWithAlias.xclbin
+	/opt/xilinx/xrt/bin/xclbinutil -i $(BUILD_DIR)/denseSimilarityKernel.xclbin \
+								   --key-value=USER:denseSimilarityKernel:'{"alias": "denseSimilarityKernel_U50"}' \
+	                               -o $(BUILD_DIR)/denseSimilarityKernelWithAlias.xclbin
 
 # ################# Setting Rules for Host (Building Host Executable) ################
 ifeq ($(HOST_ARCH), x86)

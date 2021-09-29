@@ -383,20 +383,22 @@ endif
 
 
 L2_TOP_DIR = $(GRAPH_ANALYTICS_DIR)/L2/dense_similarity_multi_kernel
-L2_TOP_DIR_4PU = $(GRAPH_ANALYTICS_DIR)/L2/dense_similarity_multi_kernel_4pu
 L2_XDEVICE_U50 = xilinx_u50_gen3x16_xdma_201920_3
-L2_XDEVICE_U55C = xilinx_u55c_gen3x16_xdma_2_202110_1
 L2_BUILD_DIR_U50 = $(L2_TOP_DIR)/build_dir.hw.$(L2_XDEVICE_U50)
+XCLBIN_NAME = denseSimilarityKernelWithAlias.xclbin
+XCLBIN_FILE_U50 = $(L2_BUILD_DIR_U50)/$(XCLBIN_NAME)
+XCLBIN_NAME_U50 = cosinesim_32bit_$(L2_XDEVICE_U50).xclbin
+XCLBIN_INSTALLED_U50 = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/$(XCLBIN_NAME_U50)
+
+L2_XDEVICE_U55C = xilinx_u55c_gen3x16_xdma_2_202110_1
 L2_BUILD_DIR_U55C = $(L2_TOP_DIR_4PU)/build_dir.hw.$(L2_XDEVICE_U55C)
+L2_TOP_DIR_4PU = $(GRAPH_ANALYTICS_DIR)/L2/dense_similarity_multi_kernel_4pu
+XCLBIN_NAME_4PU = denseSimilarityKernel4PUWithAlias.xclbin
+XCLBIN_NAME_U55C = cosinesim_32bit_4pu_xilinx_u55c_gen3x16_xdma_base_2.xclbin
+XCLBIN_FILE_U55C = $(L2_BUILD_DIR_U55C)/$(XCLBIN_NAME_4PU)
+XCLBIN_INSTALLED_U55C = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/$(XCLBIN_NAME_U55C)
 
 DEVICE ?= $(L2_XDEVICE)
-XCLBIN_NAME = denseSimilarityKernel.xclbin
-XCLBIN_NAME_4PU = denseSimilarityKernel4PUWithAlias.xclbin
-XCLBIN_FILE_U50 = $(L2_BUILD_DIR_U50)/$(XCLBIN_NAME)
-XCLBIN_FILE_U55C = $(L2_BUILD_DIR_U55C)/$(XCLBIN_NAME_4PU)
-XCLBIN_INSTALLED_U50 = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin
-XCLBIN_INSTALLED_U55C = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32bit_xilinx_u55c_gen3x16_xdma_base_2.xclbin
-
 ifeq ($(findstring u55, $(DEVICE)), u55)
 	XCLBIN_BUILD_DIR=$(L2_TOP_DIR_4PU)
 else
@@ -505,14 +507,14 @@ $(STAGE_STAGED_EXAMPLE_FILES):
 
 # XCLBIN file
 
-STAGE_XCLBIN_NAME_U50 = cosinesim_32bit_$(L2_XDEVICE_U50).xclbin
+STAGE_XCLBIN_NAME_U50 = $(XCLBIN_NAME_U50)
 STAGE_XCLBIN_FILE_U50 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U50)
 
 $(STAGE_XCLBIN_FILE_U50): $(XCLBIN_FILE_U50)
 	cp -f $^ $@
 
 
-STAGE_XCLBIN_NAME_U55C = cosinesim_32bit_xilinx_u55c_gen3x16_xdma_base_1.xclbin
+STAGE_XCLBIN_NAME_U55C = $(XCLBIN_NAME_U55C)
 STAGE_XCLBIN_FILE_U55C = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U55C)
 
 $(STAGE_XCLBIN_FILE_U55C): $(XCLBIN_FILE_U55C)
@@ -615,7 +617,7 @@ help:
 	@echo "      Run standalone test with statically linked executable. numDevices, numVectors, and iterations are optional."
 	@echo "      Supported deviceNames: "
 	@echo "      xilinx_u50_gen3x16_xdma_201920_3"
-	@echo "      xilinx_u55c_gen3x16_xdma_base_1 "
+	@echo "      xilinx_u55c_gen3x16_xdma_base_2"
 	@echo ""
 	@echo "  make xclbin DEVICE=<FPGA platform>"
 	@echo "      Build xclbin file targetting specified device. Vitis tool and PLATFORM_REPO_PATHS must be set to make xclbin."

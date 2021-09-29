@@ -1,0 +1,8 @@
+{
+    "note": "stub file for large file",
+    "tags": [
+        "xilinx_u50_gen3x16_xdma_201920_3"
+    ],
+    "filename": "denseSimilarityKernelWithAlias.xclbin",
+    "sha256sum": "30779b4a1b37248f2e03f6cdfbcb754bd363a902d9449c8c31c9a14dab8b094f"
+}

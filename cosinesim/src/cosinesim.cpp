@@ -34,7 +34,7 @@ class PrivateImpl : public ImplBase {
 
 public:
     unsigned indexDeviceCuNm, indexSplitNm, indexNumVertices;
-    const unsigned splitNm = 3;    // kernel has 4 PUs, the input data should be splitted into 4 parts
+    unsigned numPUs_ = 3;    // number of partitions based on number of PUs
     const unsigned channelsPU = 4; // each PU has 4 HBM channels
     const unsigned cuNm = 2;       // TODO
     const unsigned channelW = 16;
@@ -50,6 +50,8 @@ public:
     int vecLength;
     int64_t numVertices;
     std::string xclbinPath;
+    std::string kernelName_;
+    std::string kernelAlias_;
     int32_t edgeAlign8;
     int subChNm;
     int lastPopulationCnt;
@@ -104,17 +106,28 @@ public:
 
         deviceNames = options.deviceNames;
 
-        if (deviceNames == "xilinx_u50_gen3x16_xdma_201920_3")
-            xclbinPath = std::string("/opt/xilinx/apps/graphanalytics/cosinesim/") + std::string(VERSION) + std::string("/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin");
-        else if (deviceNames == "xilinx_u55c_gen3x16_xdma_base_1")
-            xclbinPath = std::string("/opt/xilinx/apps/graphanalytics/cosinesim/") + std::string(VERSION) + std::string("/cosinesim_32bit_xilinx_u55c_gen3x16_xdma_base_1.xclbin");
+        // default xclbin to load
+        if (deviceNames == "xilinx_u50_gen3x16_xdma_201920_3") {
+            xclbinPath = std::string("/opt/xilinx/apps/graphanalytics/cosinesim/") + std::string(VERSION) + 
+                         std::string("/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin");
+            kernelName_ = "denseSimilarityKernel";
+            kernelAlias_ = "denseSimilarityKernel_U50";
+            numPUs_ = 3;
+        } else if (deviceNames == "xilinx_u55c_gen3x16_xdma_base_2") {
+            xclbinPath = std::string("/opt/xilinx/apps/graphanalytics/cosinesim/") + std::string(VERSION) + 
+                         std::string("/xclbin/cosinesim_32bit_4pu_xilinx_u55c_gen3x16_xdma_base_2.xclbin");
+            kernelName_ = "denseSimilarityKernel4PU";
+            kernelAlias_ = "denseSimilarityKernel4PU_U55C";
+            numPUs_ = 4;
+        }
 
-        std::cout << "INFO: Options::xcbinPath = " << (options.xclbinPath == nullptr ? "null"
-            : options.xclbinPath) << std::endl;
-        if (options.xclbinPath != nullptr)
+        if (options.xclbinPath != nullptr) {
+            std::cout << "INFO: xclbinPath set to options::xcbinPath: " << options.xclbinPath << std::endl;
             xclbinPath = options.xclbinPath;
-        std::cout << "INFO: xclbinPath set to " <<xclbinPath<<std::endl;
-        std::cout << "INFO: numDevices set to " <<numDevices<<std::endl;
+        } else {
+            std::cout << "INFO: xclbinPath set to default:" << xclbinPath<<std::endl;
+        }
+        std::cout << "INFO: numDevices set to " << numDevices << std::endl;
 
         numEdges = vecLength;
 
@@ -123,7 +136,7 @@ public:
 
         numVerticesPU  = new int32_t*[numDevices * cuNm];
         for (unsigned i = 0; i < numDevices * cuNm; ++i) {
-            numVerticesPU[i] = new int32_t[splitNm];
+            numVerticesPU[i] = new int32_t[numPUs_];
         }
 
         edgeAlign8 = ((numEdges + channelW - 1) / channelW) * channelW;
@@ -156,15 +169,15 @@ public:
         populationVectorRowNm=0;
         this->numVertices = numVertices;
         //the following calculation and assignment is based on numVertices
-        int general = ((numVertices - (numDevices * cuNm * splitNm * channelsPU + 1)) /
-                (numDevices * cuNm * splitNm * channelsPU)) * channelsPU;
-        int rest = numVertices - general * (numDevices * cuNm * splitNm - 1);
+        int general = ((numVertices - (numDevices * cuNm * numPUs_ * channelsPU + 1)) /
+                (numDevices * cuNm * numPUs_ * channelsPU)) * channelsPU;
+        int rest = numVertices - general * (numDevices * cuNm * numPUs_ - 1);
 
 #ifndef NDEBUG
         std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
                 << " numVertices=" << numVertices << ", general=" << general
                 << ", rest=" << rest
-                << ", split=" << numDevices * cuNm * splitNm 
+                << ", split=" << numDevices * cuNm * numPUs_ 
                 << ", numDevices=" << numDevices << std::endl;
 #endif
 
@@ -178,11 +191,11 @@ public:
         }
 
         for (unsigned i = 0; i < numDevices * cuNm; ++i) {
-            for (unsigned j = 0; j < splitNm; ++j) {
+            for (unsigned j = 0; j < numPUs_; ++j) {
                 numVerticesPU[i][j] = general;
             }
         }
-        numVerticesPU[numDevices * cuNm - 1][splitNm - 1] = rest;
+        numVerticesPU[numDevices * cuNm - 1][numPUs_ - 1] = rest;
         //initialize graph properties
         int fpgaNodeNm = 0;
         for(unsigned i=0;i<numDevices*cuNm; i++){
@@ -190,9 +203,7 @@ public:
             //g[i] = new xf::graph::Graph<int32_t, int32_t>("Dense", 4 * splitNm, numEdges, numVerticesPU[i]);
 
             if(valueSize_ == 4) {
-                g[i] = new xf::graph::Graph<int32_t, int32_t>("Dense", 4 * splitNm, numEdges,  numVerticesPU[i]);
-                //} else if(valueSize_ == 8) {
-                //	g[i] = new xf::graph::Graph<int32_t, int64_t>("Dense", 4 * splitNm, numEdges, numVerticesPU[i]);
+                g[i] = new xf::graph::Graph<int32_t, int32_t>("Dense", 4 * numPUs_, numEdges,  numVerticesPU[i]);
             } else {
                 // must exit at this point, or else crash on next line.  Throw exception here.
                 std::cout << "DEBUG: valueType is not supported" << std::endl;
@@ -203,13 +214,13 @@ public:
                 abort();
 
             }
-            g[i]->numEdgesPU = new int32_t[splitNm];
-            g[i]->numVerticesPU = new int32_t[splitNm];
+            g[i]->numEdgesPU = new int32_t[numPUs_];
+            g[i]->numVerticesPU = new int32_t[numPUs_];
             g[i]->edgeNum = numEdges;
             g[i]->nodeNum = numVertices;
-            g[i]->splitNum = splitNm;
+            g[i]->splitNum = numPUs_;
             g[i]->refID = fpgaNodeNm;
-            for (unsigned j = 0; j < splitNm; ++j) {
+            for (unsigned j = 0; j < numPUs_; ++j) {
                 fpgaNodeNm += numVerticesPU[i][j];
                 int depth = ((numVerticesPU[i][j] + channelsPU - 1) / channelsPU) * edgeAlign8;
                 g[i]->numVerticesPU[j] = numVerticesPU[i][j];
@@ -238,7 +249,7 @@ public:
             indexSplitNm++;
             indexNumVertices=0;
             std::fill(loadPopulationCnt.begin(),loadPopulationCnt.end(),0);
-            if(indexSplitNm == splitNm) {
+            if(indexSplitNm == numPUs_) {
                 indexDeviceCuNm++;
                 indexSplitNm = 0;
             }
@@ -259,9 +270,9 @@ public:
     virtual void finishLoadPopulation() {
         //for the last PU, the last channels may need to padded as the row will be the multiple of channelsPU
         const unsigned numCus = numDevices * cuNm;
-        int paddingDepth = ((numVerticesPU[numCus - 1][splitNm - 1] + channelsPU - 1) / channelsPU) * channelsPU
-                - numVerticesPU[numCus - 1][splitNm - 1];
-        int startPaddingDepth = numVerticesPU[numCus - 1][splitNm - 1] * edgeAlign8;
+        int paddingDepth = ((numVerticesPU[numCus - 1][numPUs_ - 1] + channelsPU - 1) / channelsPU) * channelsPU
+                - numVerticesPU[numCus - 1][numPUs_ - 1];
+        int startPaddingDepth = numVerticesPU[numCus - 1][numPUs_ - 1] * edgeAlign8;
         for (int k = startPaddingDepth; k < paddingDepth*edgeAlign8; ++k) {
             g[indexDeviceCuNm]->weightsDense[ (indexSplitNm-1) * channelsPU + 3][k] = 0;
         }
@@ -436,14 +447,14 @@ void PrivateImpl::load_cu_cosinesim_ss_dense_fpga()
 {
 
     std::string opName = "similarityDense";
-    std::string kernelName = "denseSimilarityKernel";
     //TODO check if requestLoad need to bring up to options for user to set
     int requestLoad = 100;
 
     //----------------- Setup denseSimilarityKernel thread ---------
     xf::graph::L3::Handle::singleOP op0;
     op0.operationName = (char*)opName.c_str();
-    op0.setKernelName((char*)kernelName.c_str());
+    op0.setKernelName(kernelName_);
+    op0.setKernelAlias(kernelAlias_);
     op0.requestLoad = requestLoad;
     //op0.xclbinFile = (char*)xclbinPath.c_str();
     op0.xclbinPath = xclbinPath;
