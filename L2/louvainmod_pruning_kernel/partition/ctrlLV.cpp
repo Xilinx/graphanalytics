@@ -1033,11 +1033,36 @@ void test_BFSPar_creatingEdgeLists_fixed(//return: real number of partition
 		graphNew* G,
 		int num_par
 );
+void test_BFSPar_creatingEdgeLists_fixed_prune(//return: real number of partition
+		int mode_start,
+		int mode_hop,
+		GLV* src,
+        ParLV* parlv,
+        int id_glv,
+		int num_par,
+        bool isPrun, 
+        int th_prun
+);
 int CtrlLouvain::exe_LV_PAR() {
     // par [curr] star end [temp]
     CHECKCURR;
     assert(glv_curr->G);
     int idx_bfs = mycmd.cmd_findPara("-bfs");
+
+    int idx_prun = mycmd.cmd_findPara("-prun");
+    int th_prun = 1;
+    if (idx_prun > 0 && mycmd.argc > idx_prun) {
+        th_prun = atoi(mycmd.argv[idx_prun + 1]);
+        if (th_prun > MAXGHOST_PRUN || th_prun < 1) {
+            printf(
+                "\033[1;31;40mERROR\033[0m: Wrong value of partition parameter for -prun which should be in range of 1 "
+                "~%d!\n",
+                MAXGHOST_PRUN);
+            return -1;
+        }
+    }
+    bool isPrun = idx_prun > 0;
+
     if(idx_bfs>0){
     	//par -bfs
     	//par -bfs 4
@@ -1053,24 +1078,18 @@ int CtrlLouvain::exe_LV_PAR() {
     	if(idx_mode_hop!=-1)
     		mode_hop =  atoi(mycmd.argv[idx_mode_hop+1] );
     	printf("\033[1;37;40mINFO\033[0m:Doing BFS partition vertices mode_star=%d, mode_hop=%d, num_par=%d\n", mode_start, mode_hop, num_par);
-    	test_BFSPar_creatingEdgeLists_fixed(mode_start, mode_hop, glv_curr->G, num_par);
-    	return 0;
-    }
-
-    int idx_prun = mycmd.cmd_findPara("-prun");
-    int th_prun = 1;
-
-    if (idx_prun > 0 && mycmd.argc > idx_prun) {
-        th_prun = atoi(mycmd.argv[idx_prun + 1]);
-        if (th_prun > MAXGHOST_PRUN || th_prun < 1) {
-            printf(
-                "\033[1;31;40mERROR\033[0m: Wrong value of partition parameter for -prun which should be in range of 1 "
-                "~%d!\n",
-                MAXGHOST_PRUN);
-            return -1;
+    	//test_BFSPar_creatingEdgeLists_fixed(mode_start, mode_hop, glv_curr->G, num_par);
+    	test_BFSPar_creatingEdgeLists_fixed_prune(mode_start, mode_hop, glv_curr, &parlv, id_glv, num_par, isPrun, th_prun);
+        for (int p = 0; p < num_par; p++)
+        {
+            glv_temp = parlv.par_src[p];
+            pushList(glv_temp);
         }
+        parlv.PrintSelf();
+        return 0;
     }
-    bool isPrun = idx_prun > 0;
+
+
     int idx_num = mycmd.cmd_findPara("-num");
     int num_par = 1;
     if (idx_num > 0 && mycmd.argc > idx_num) {

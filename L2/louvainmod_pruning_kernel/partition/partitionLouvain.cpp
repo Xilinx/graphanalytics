@@ -2008,7 +2008,7 @@ void BFSPar_creatingEdgeLists_fixed_prune(
         num_v_all_l += num_v_l[p];
 		//printf("add ghost: limit_v=%d, num_v_all_l=%d, num_v_l[%d] = %d, num_hop[p]=%d\n", limit_v, num_v_all_l, p , num_v_l[p],  num_hop[p] );
 
-        //2-3. find the next partition's start vertex
+        //2-3.find the next partition's start vertex
         if(p < num_par - 1)
         {
             num_v_l[p+1] = 0;
@@ -2514,18 +2514,25 @@ void test_BFSPar_creatingEdgeLists_fixed(//return: real number of partition
 			map_v_g //[]//std:map for ghost vertices, will be used for renumbering and creating M
 	    );
     }
-
-
-
-
 	/*for(int i=0; i<G->numVertices; i++)
 		printf(" V_selected[%d] = %d \t", i, V_selected[i]);
 	printf("\n");*/
 
-
 	free(V_selected);
 	for(int p = 0 ; p < num_par; p++ )
 		free(elist_par[p]);
+}
+
+bool MapRenumber(map<long, long> &map_v, long v, long& renum)
+{
+	map<long, long>::iterator storedAlready = map_v.find(v);
+	if(storedAlready != map_v.end()){
+		renum = storedAlready->second;
+        //printf("renum %ld to %ld\n", v, renum);
+        return true;
+    }else{
+		return false;
+    }
 }
 //step-2: renumbering the head and tail in edge lists
 void BFSPar_renumberingEdgeLists(//return: real number of partition
@@ -2540,8 +2547,61 @@ void BFSPar_renumberingEdgeLists(//return: real number of partition
 		long* M[]
 
 ){
-	long num_l;
-	long num_g;
+
+    for( int p = 0; p < num_par; p++){
+        for(int i = 0; i < num_e_dir[p]; i++){
+            edge e = elist_par[p][i];
+            long head = e.head;
+    	    long tail = e.tail;
+            long renum_h_l = 0;
+            long renum_t_l = 0;
+            long renum_h_g = 0;
+            long renum_t_g = 0;
+    	    bool isIn_h_l = MapRenumber(map_v_l[p],  head, renum_h_l);
+    	    bool isIn_t_l = MapRenumber(map_v_l[p],  tail, renum_t_l);
+    	    // bool isIn_h_g = isInMap(map_v_g,  head);
+    	    // bool isIn_t_g = isInMap(map_v_g,  tail);
+            if(isIn_h_l && isIn_t_l){// is local
+                elist_par[p][i].head = renum_h_l;
+                elist_par[p][i].tail = renum_t_l;
+                M[p][renum_h_l] = head;
+                M[p][renum_t_l] = tail;
+            }else if (isIn_h_l && (!isIn_t_l)){// tail is ghost            
+                MapRenumber(map_v_g[p], tail, renum_t_g);
+                printf("tail %ld, %ld \n",tail, renum_t_g+num_v_l[p]);
+                elist_par[p][i].head = renum_h_l;
+                elist_par[p][i].tail = renum_t_g+num_v_l[p];
+                M[p][ renum_h_l ] = head;
+                M[p][ renum_t_g+num_v_l[p] ] = (-1)*tail-1;
+            }else if (!isIn_h_l && isIn_t_l){// head is ghost and swap
+                MapRenumber(map_v_g[p], head, renum_h_g);
+                printf("h  %ld, %ld \n",head, renum_h_g+num_v_l[p]);
+                elist_par[p][i].head = renum_h_g+num_v_l[p];       
+                elist_par[p][i].tail = renum_t_l;
+                M[p][ renum_h_g+num_v_l[p] ] = (-1)*head-1;
+                M[p][ renum_t_l ] = tail;
+            }else{
+                printf("ERROR: in %s\n",__FUNCTION__);
+            }
+
+        }// end edgelist per partition
+
+        printf("check edgelist: \n");
+        for(int i = 0; i < num_e_dir[p]; i++){
+            printf("check_par:%3d, \t edge_%d_%d\n", p, elist_par[p][i].head, elist_par[p][i].tail);
+        }
+        
+        //convert to M
+        // for(int i=0; i < num_v_l[p]; i++){
+        //     M[p][map_v_l[p][i]] = i;
+        // }
+
+        printf("check M: \n");
+        for(int i = 0; i < num_v_l[p]+num_v_g[p]; i++){
+            printf("check_M:%3d, \t M[%d]=%lld\n", p, i, M[p][i]);
+        }
+
+    }//end all partition
 
 }
 //setp-3: greating sub-graph can be used for Louvain
@@ -2555,6 +2615,107 @@ void BFSPar_GetGFromEdgeLists(
 		graphNew* G_sub[])
 {
 
+}
+
+void test_BFSPar_creatingEdgeLists_fixed_prune(//return: real number of partition
+		int mode_start,
+		int mode_hop,
+		GLV* src,
+        ParLV* parlv,
+        int id_glv,
+		int num_par,
+        bool isPrun, 
+        int th_prun
+){
+
+    parlv->Init(1, src, num_par, 1);
+    graphNew* G = src->G;
+     
+
+	//const num_par = 4;
+	long limit_v;//,
+	long limit_e;//,
+	t_sel* V_selected;//, //inout, for recording whether a vertex is selected
+	//output
+    edge* elist_par[num_par];//,
+    long* tmp_M_v[num_par];
+	long num_e_dir[num_par];//
+	long num_e_dir_lg[num_par];//,
+	long num_v_l[num_par];//,
+	long num_v_g[num_par];//,
+	map<long, long> map_v_l[num_par];//,//std:map for local vertices, will be used for renumbering and creating M
+	map<long, long> map_v_g[num_par];////std:map for ghost vertices, will be used for renumbering and creating M
+	for(int p = 0 ; p < num_par; p++ ){
+		elist_par[p] = (edge*)malloc(sizeof(edge) * (G->numEdges));
+        tmp_M_v[p] = (long*)malloc(sizeof(long) * (G->numVertices));
+	}
+	V_selected = (t_sel*)malloc(sizeof(t_sel) * (G->numVertices));
+	for(int i=0; i<G->numVertices; i++)
+		V_selected[i] = 0;//false;
+    if(mode_hop<2){
+        BFSPar_creatingEdgeLists_fixed(//return: real number of partition
+                mode_start,
+                mode_hop,
+                G,
+                num_par,
+                limit_v,
+                limit_e,
+                V_selected, //[], //,inout, for recording whether a vertex is selected
+                //output
+                elist_par, //[],
+                num_e_dir, //[],
+                num_e_dir_lg, //[],
+                num_v_l, //[],
+                num_v_g, //[],
+                map_v_l, //[],//std:map for local vertices, will be used for renumbering and creating M
+                map_v_g //[]//std:map for ghost vertices, will be used for renumbering and creating M
+        );
+    }else{
+        BFSPar_creatingEdgeLists_fixed_prune(
+			mode_start,
+			mode_hop,
+			G,
+			num_par,
+			limit_v,
+			limit_e,
+	        V_selected, //[], //,inout, for recording whether a vertex is selected
+			//output
+	        elist_par, //[],
+			num_e_dir, //[],
+			num_e_dir_lg, //[],
+			num_v_l, //[],
+			num_v_g, //[],
+			map_v_l, //[],//std:map for local vertices, will be used for renumbering and creating M
+			map_v_g //[]//std:map for ghost vertices, will be used for renumbering and creating M
+	    );
+
+        BFSPar_renumberingEdgeLists(num_par, elist_par, num_e_dir, num_e_dir_lg,
+        num_v_l, num_v_g, map_v_l, map_v_g, tmp_M_v);
+
+        //2-3. generate GLV
+        for (int p = 0; p < num_par; p++)
+        {
+            //int id_glv = p+1;
+            graphNew *Gnew = (graphNew *)malloc(sizeof(graphNew));
+            GLV *glv = new GLV(id_glv);
+            GetGFromEdge(Gnew, elist_par[p], (num_v_l[p] + num_v_g[p]), num_e_dir[p]);
+            glv->SetByOhterG(Gnew);
+            glv->SetM(tmp_M_v[p]);
+            glv->SetName_par(glv->ID, p, p, p, isPrun ? 0 : th_prun);
+
+            parlv->par_src[p] = glv;
+        }
+        parlv->st_Partitioned = true; //?
+    }
+	/*for(int i=0; i<G->numVertices; i++)
+		printf(" V_selected[%d] = %d \t", i, V_selected[i]);
+	printf("\n");*/
+
+	free(V_selected);
+	for(int p = 0 ; p < num_par; p++ ){
+		free(elist_par[p]);
+        free(tmp_M_v[p]);
+    }
 }
 
 GLV* SttGPar::AbstractionPartition(graphNew* G, long st, long ed, int& id_glv, int th_maxGhost) {
@@ -2610,6 +2771,14 @@ GLV* SttGPar::AbstractionPartition(graphNew* G, long st, long ed, int& id_glv, i
             // gMinDgr.dgrs[i]);
         }
     }
+    printf("partition edgelist :\n");
+    for(int i = 0; i < num_e_dir; i++){
+        printf("%ld   %ld   %lf\n", tmp_elist[i].head, tmp_elist[i].tail, tmp_elist[i].weight);
+    }
+    for (int i = 0; i < NV_all; i++) {
+        printf("M[%d]=%ld \n", i, tmp_M_v[i]);
+    }
+
     num_v_l = end - start;
     num_v = num_v_l + num_v_g;
     graphNew* Gnew = (graphNew*)malloc(sizeof(graphNew));
@@ -2687,6 +2856,8 @@ void GetGFromEdge(graphNew* G, edge* edgeListTmp, long num_v, long num_e_dir) {
         edgeList[Where].head = head;
         edgeList[Where].tail = tail;
         edgeList[Where].weight = weight;
+       printf("where %ld, %ld   %ld   %lf\n", Where,edgeList[Where].head, edgeList[Where].tail, edgeList[Where].weight); 
+
         // added[head]++;
         // Now add the counter-edge:
         Where = edgeListPtr[tail] + __sync_fetch_and_add(&added[tail], 1);

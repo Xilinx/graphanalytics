@@ -128,9 +128,8 @@ endif
 CXXFLAGS += -I$(XILINX_XRT)/include -I$(XILINX_VIVADO)/include -std=c++11 -Wall -Wno-unknown-pragmas
 LDFLAGS += -L$(XILINX_XRT)/lib -lOpenCL -lpthread -lrt -Wno-unused-label -Wno-unused-variable -Wno-write-strings -Wno-narrowing -DVERBOSE -Wno-format
 CXXFLAGS += -fmessage-length=0 -DPRAGMA -fopenmp -fPIC -DMULTITHREAD
-#CXXFLAGS += -g
 CXXFLAGS += -O3
-#CXXFLAGS += -D DEBUGPAR
+#CXXFLAGS += -g -D DEBUGPAR
 CXXFLAGS += -I$(CUR_DIR)/src/ 
 
 ifeq ($(HOST_ARCH), x86)
