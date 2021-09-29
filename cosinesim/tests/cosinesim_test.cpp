@@ -77,8 +77,6 @@ int main(int argc, char **argv) {
 
     std::cout << "-------- START COSINESIME TEST numDevices=" << options.numDevices << "----------" << std::endl;
 
-    //user can set xclbinPath through jsonPath
-    //options.jsonPath = "Debug/config_cosinesim_ss_dense_fpga.json";
     std::vector<xilinx_apps::cosinesim::Result> results;
     try {
         xilinx_apps::cosinesim::CosineSim<std::int32_t> cosineSim(options);

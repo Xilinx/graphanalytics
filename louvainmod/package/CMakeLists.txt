@@ -24,7 +24,7 @@ set(CMAKE_INSTALL_PATH "${CMAKE_INSTALL_PREFIX}/louvainmod/${PROD_VERSION}")
 install(DIRECTORY "${CS_FILE_PATH}/lib/" DESTINATION ${CMAKE_INSTALL_PATH}/lib USE_SOURCE_PERMISSIONS)
 
 install(FILES "${CS_FILE_PATH}/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin" DESTINATION ${CMAKE_INSTALL_PATH}/xclbin)
-install(FILES "${CS_FILE_PATH}/xclbin/louvainmod_renum_xilinx_u55c_gen3x16_xdma_1_202110_1.xclbin" DESTINATION ${CMAKE_INSTALL_PATH}/xclbin)
+install(FILES "${CS_FILE_PATH}/xclbin/louvainmod_2cu_xilinx_u55c_gen3x16_xdma_2_202110_1.xclbin" DESTINATION ${CMAKE_INSTALL_PATH}/xclbin)
 install(FILES "${CS_FILE_PATH}/include/xilinxlouvain.h" DESTINATION ${CMAKE_INSTALL_PATH}/include)
 install(FILES "${CS_FILE_PATH}/include/app_common.h" DESTINATION ${CMAKE_INSTALL_PATH}/include)
 

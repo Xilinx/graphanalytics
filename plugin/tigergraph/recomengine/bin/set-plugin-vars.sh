@@ -27,7 +27,7 @@ pluginAlveoProductName="Xilinx Recommendation Engine"
 standaloneAlveoProductName="Xilinx Cosine Similarity"
 
 # The usual place where the Alveo Product is installed
-pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/cosinesim/1.1
+pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/cosinesim/1.4
 
 # Where to find the git repo for the Alveo Product if it exists
 pluginLocalAlveoProductPath=$SCRIPTPATH/../../../../../cosinesim/staging

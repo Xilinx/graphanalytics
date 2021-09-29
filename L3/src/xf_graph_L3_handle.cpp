@@ -21,8 +21,8 @@ namespace graph {
 namespace L3 {
 
 // currently used for cosine similarity
-int32_t Handle::initOpSimDense(std::string kernelName,
-                               std::string xclbinFile,
+int32_t Handle::initOpSimDense(std::string xclbinFile,
+                               std::string kernelName,
                                std::string kernelAlias,
                                unsigned int requestLoad,
                                unsigned int numDevices,
@@ -30,8 +30,8 @@ int32_t Handle::initOpSimDense(std::string kernelName,
 {
 #ifndef NDEBUG
     std::cout << "DEBUG: initOpSimDense " 
+              << "\n    xclbinFile=" << xclbinFile    
               << "\n    kernelName=" << kernelName
-              << "\n    xclbinFile=" << xclbinFile
               << "\n    kernelAlias=" << kernelAlias
               << "\n    requestLoad=" << requestLoad 
               << "\n    numDevices=" << numDevices
@@ -149,9 +149,8 @@ int Handle::setUp(std::string deviceNames)
             }
             deviceCounter += boardNm;
 
-            status = initOpSimDense(ops[i].kernelName.c_str(), ops[i].xclbinPath, 
-                                    ops[i].kernelAlias.c_str(), ops[i].requestLoad,
-                                    ops[i].numDevices, ops[i].cuPerBoard);
+            status = initOpSimDense(ops[i].xclbinPath, ops[i].kernelName_, ops[i].kernelAlias_, 
+                                    ops[i].requestLoad, ops[i].numDevices, ops[i].cuPerBoard);
             if (status < 0)
                 return XF_GRAPH_L3_ERROR_ALLOC_CU;
         } 
@@ -283,10 +282,11 @@ void Handle::showHandleInfo() {
     unsigned int opNm = ops.size();
     for (unsigned int i = 0; i < opNm; ++i) {
         std::cout << "INFO: " << __FUNCTION__ << 
-            " operationName=" << ops[i].operationName << 
-            " kernelname=" << ops[i].kernelName << 
-            " requestLoad=" << ops[i].requestLoad << 
-            " xclbinFile=" << ops[i].xclbinPath << std::endl;
+            "\n    operationName=" << ops[i].operationName << 
+            "\n    kernelName=" << ops[i].kernelName_ << 
+            "\n    kernelAlias=" << ops[i].kernelAlias_ << 
+            "\n    requestLoad=" << ops[i].requestLoad << 
+            "\n    xclbinFile=" << ops[i].xclbinPath << std::endl;
     }
 #endif    
 }

@@ -33,13 +33,13 @@ struct ToolOptions {
     std::string xclbinPath;
     std::string deviceNames;
     int numNodes;
-    int nodeID;
+    int nodeId;
     int numThreads;
     int numPars;
     int gh_par;  // same as par_prune
     int flow_fast;
     int numDevices;
-    int mode_zmq;
+    int modeZmq;
     char path_zmq[4096];
     bool useCmd;
     int mode_alveo;

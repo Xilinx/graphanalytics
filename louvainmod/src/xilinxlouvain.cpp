@@ -134,6 +134,7 @@ public:
 #endif
 
         parlv_.timesPar.timePar_all = getTime();
+        parlv_.timesPar.timePar_save = 0.0;  // Initialize in case we end up not writing to a file
     }
 
     ~PartitionRun() {}

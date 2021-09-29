@@ -71,8 +71,8 @@ void xilinx_louvainmod_destroyImpl(xilinx_apps::louvainmod::LouvainModImpl *pImp
 
 }
 
-void loadComputeUnitsToFPGAs(char* xclbinPath, int flowMode, 
-    unsigned numDevices, std::string deviceNames);
+int loadComputeUnitsToFPGAs(char* xclbinPath, int flowMode, 
+                            unsigned numDevices, std::string deviceNames);
 float loadAlveoAndComputeLouvainWrapper(int argc, char *argv[]);
 float louvain_modularity_alveo(int argc, char *argv[]);
 int compute_modularity(char* inFile, char* clusterInfoFile, int offset);

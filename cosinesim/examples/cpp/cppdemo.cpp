@@ -27,6 +27,7 @@ int main(int argc, char **argv) {
     unsigned Iterations = 1;
     unsigned NumVectors = 5000;
     const int MaxValue = 16383;
+    std::string deviceNames = "xilinx_u50_gen3x16_xdma_201920_3";
 
     if (argc > 1) {
         Iterations = std::stoi(argv[1]);
@@ -34,6 +35,10 @@ int main(int argc, char **argv) {
 
     if (argc > 2) {
         NumVectors = std::stoi(argv[2]);
+    } 
+
+    if (argc > 3) {
+        deviceNames = argv[3];
     } 
 
     using CosineSim = xilinx_apps::cosinesim::CosineSim<std::int32_t>;
@@ -46,6 +51,8 @@ int main(int argc, char **argv) {
     xilinx_apps::cosinesim::Options options;
     options.vecLength = VectorLength;
     options.numDevices = 1;
+    options.deviceNames = deviceNames;
+
     std::vector<xilinx_apps::cosinesim::Result> results;
     try {
         xilinx_apps::cosinesim::CosineSim<std::int32_t> cosineSim(options);

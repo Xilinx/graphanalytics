@@ -37,7 +37,7 @@ endif
 
 #the default PROD_VERSION as the latest version
 ifndef PROD_VERSION 
-    PROD_VERSION = 1.2
+    PROD_VERSION = 1.4
 endif
 
 # Location of Alveo product if installed from sources

@@ -186,7 +186,7 @@ $(BUILD_DIR)/denseSimilarityKernel4PU.xclbin: $(BINARY_CONTAINER_denseSimilarity
 # can be differentiated
 	rm -f $(BUILD_DIR)/denseSimilarityKernel4PUWithAlias.xclbin
 	/opt/xilinx/xrt/bin/xclbinutil -i $(BUILD_DIR)/denseSimilarityKernel4PU.xclbin \
-								   --key-value=USER:denseSimilarityKernel:'{"alias": "denseSimilarityKernel4PU_U55C"}' \
+								   --key-value=USER:denseSimilarityKernel4PU:'{"alias": "denseSimilarityKernel4PU_U55C"}' \
 	                               -o $(BUILD_DIR)/denseSimilarityKernel4PUWithAlias.xclbin
 
 

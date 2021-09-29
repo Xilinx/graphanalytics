@@ -21,14 +21,18 @@ namespace xf {
 namespace graph {
 namespace L3 {
 
+#define MAX_LOUVAINMOD_CU 128
+std::mutex louvainmodComputeMutex[MAX_LOUVAINMOD_CU];
+
 void createHandleLouvainModularity(class openXRM* xrm, clHandle& handle, 
                                    std::string kernelName, std::string kernelAlias,  
                                    std::string xclbinFile, int32_t IDDevice,
                                    unsigned int requestLoad)
 {
 #ifndef NDEBUG
-    std::cout << "DEBUG: " << __FUNCTION__ << " IDDevice=" << IDDevice 
-              << " handle=" << &handle << std::endl;
+    std::cout << "DEBUG: " << __FUNCTION__ 
+              << "\n    IDDevice=" << IDDevice 
+              << "\n    handle=" << &handle << std::endl;
 #endif
     // Platform related operations
     std::vector<cl::Device> devices = xcl::get_xil_devices();
@@ -234,12 +238,15 @@ int opLouvainModularity::compute(unsigned int deviceID,
                                  double* eachTimeReadBuff) 
 {
 	uint32_t which = channelID + cuID * dupNmLouvainModularity +
-                                 deviceID * dupNmLouvainModularity * cuPerBoardLouvainModularity;
+                     deviceID * dupNmLouvainModularity * cuPerBoardLouvainModularity;
 #ifdef PRINTINFO
-	printf("INFO: channelID=%d, cuID=%d dupNmLouvainModularity=%d deviceID=%d cuPerBoardLouvainModularity=%d which=%d \n",
+	printf("INFO: compute channelID=%d, cuID=%d dupNmLouvainModularity=%d deviceID=%d cuPerBoardLouvainModularity=%d which=%d \n",
 			channelID, cuID, dupNmLouvainModularity, deviceID, cuPerBoardLouvainModularity, which);
     printf("INFO: flowMode = %d\n\n", flowMode);
 #endif
+
+    std::lock_guard<std::mutex> lockMutex(louvainmodComputeMutex[which]);
+
     clHandle* hds = &handles[which];
 #ifdef PRINTINFO
      std::cout << "DEBUG: " << __FUNCTION__ << " IDDevice=" << deviceID
@@ -333,7 +340,7 @@ int opLouvainModularity::compute(unsigned int deviceID,
 #endif
         PhaseLoop_UsingFPGA_1_KernelSetup_prune(isLargeEdge, kernel_louvain, ob_in, ob_out, hds);
 #ifdef PRINTINFO
-        std::cout << "\tPhaseLoop_UsingFPGA_1_KernelSetup Device Available: "
+        std::cout << "\twhich=" << which <<" PhaseLoop_UsingFPGA_1_KernelSetup Device Available: "
                   << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 #endif
         // PhaseLoop_UsingFPGA_2_DataWriteTo (q, kernel_evt0, ob_in);
@@ -345,13 +352,13 @@ int opLouvainModularity::compute(unsigned int deviceID,
         // PhaseLoop_UsingFPGA_4_DataReadBack(q, kernel_evt1, ob_out);
         migrateMemObj(hds, 1, 1, ob_out, &events_kernel, &events_read[0]);
 #ifdef PRINTINFO
-		std::cout << "\tPhaseLoop_UsingFPGA_4_DataReadBack Device Available: "
+		std::cout << "\twhich=" << which <<" PhaseLoop_UsingFPGA_4_DataReadBack Device Available: "
 				  << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 #endif
         //PhaseLoop_UsingFPGA_5_KernelFinish(q);
         q.finish();
 #ifdef PRINTINFO
-        std::cout << "\tPhaseLoop_UsingFPGA_5_KernelFinish Device Available: "
+        std::cout << "\twhich=" << which <<" PhaseLoop_UsingFPGA_5_KernelFinish Device Available: "
                   << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 #endif
         eachTimeReadBuff[0] =
@@ -1221,6 +1228,9 @@ void opLouvainModularity::demo_par_core(int id_dev, int flowMode,
         {
         	pglv_orig->times.eachTimeE2E_2[pglv_orig->times.phase - 1] = omp_get_wtime();
 
+#ifdef PRINTINFO      
+            printf("DEBUG: addwork to FPGA task queue\n");
+#endif
             auto ev = addwork(pglv_iter, flowMode, opts_C_thresh, &pglv_orig->times.eachItrs[pglv_orig->times.phase - 1], currMod, &numClusters,
                               &pglv_orig->times.eachTimeInitBuff[pglv_orig->times.phase - 1], &pglv_orig->times.eachTimeReadBuff[pglv_orig->times.phase - 1]);
             ev.wait();
