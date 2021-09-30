@@ -97,19 +97,19 @@ public:
     {
         int flowMode = 2;
         switch (globalOpts.flow_fast) {
-        case 1:
-            flowMode = 1;
-            break;
         case 2:
             flowMode = 2;
             break;
         case 3:
             flowMode = 3;
             break;
+        case 4:
+            flowMode = 4;
+            break;
         default:
             {
                 std::ostringstream oss;
-                oss << "Invalid flow_fast value " << globalOpts.flow_fast << ".  The supported values are 1, 2, and 3.";
+                oss << "Invalid flow_fast value " << globalOpts.flow_fast << ".  The supported values are 2, 3 and 4.";
                 throw Exception(oss.str());
             }
             break;

@@ -337,26 +337,31 @@ ifneq ($(communityOutput),)
     communityOutputOpt = -o $(communityOutput)
 endif
 
-deviceNames="xilinx_u50_gen3x16_xdma_201920_3"
-CMDLINE_CREATE_PARTITIONS = $(graph) -fast -num_pars $(numPars) -create_alveo_partitions \
+deviceNames=xilinx_u50_gen3x16_xdma_201920_3
+ifeq ($(deviceNames),xilinx_u50_gen3x16_xdma_201920_3)
+    XCLBIN_RUN = $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+	KERNEL_MODE = -fast
+endif
+ifeq ($(deviceNames),xilinx_u55c_gen3x16_xdma_base_2)
+    XCLBIN_RUN = $(CURDIR)/staging/xclbin/louvainmod_2cu_xilinx_u55c_gen3x16_xdma_2_202110_1.xclbin
+	KERNEL_MODE = -fast2 -num_cu 2
+endif
+
+CMDLINE_CREATE_PARTITIONS = $(graph) $(KERNEL_MODE) -num_pars $(numPars) -create_alveo_partitions \
                             -name $(alveoProject)
 
 WORKERS=192.168.1.21 192.168.1.31
-CMDLINE_LOAD_COMPUTE = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
-    -fast -num_devices $(numDevices) -devices $(deviceNames) -num_level 100 -num_iter 100 -load_alveo_partitions \
-	$(alveoProject).par.proj -setwkr 0 -driverAlone $(communityOutputOpt)
+CMDLINE_LOAD_COMPUTE = -x $(XCLBIN_RUN) $(KERNEL_MODE) -num_devices $(numDevices) -devices $(deviceNames) \
+	-num_level 100 -num_iter 100 -load_alveo_partitions $(alveoProject).par.proj -setwkr 0 -driverAlone $(communityOutputOpt)
 
-CMDLINE_LOAD_COMPUTE_DRIVER = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
-    -fast -num_nodes $(numNodes) -num_devices $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
-	$(alveoProject).par.proj -setwkr 2 $(WORKERS) -driverAlone $(communityOutputOpt)
+CMDLINE_LOAD_COMPUTE_DRIVER = -x $(XCLBIN_RUN) $(KERNEL_MODE) -num_nodes $(numNodes) -num_devices $(numDevices) \
+	-num_level 100 -num_iter 100 -load_alveo_partitions $(alveoProject).par.proj -setwkr 2 $(WORKERS) -driverAlone $(communityOutputOpt)
 
-CMDLINE_LOAD_COMPUTE_WORKER1 = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
-    -fast -num_nodes $(numNodes) -num_devices $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
-	$(alveoProject).par.proj -workerAlone 1
+CMDLINE_LOAD_COMPUTE_WORKER1 = -x $(XCLBIN_RUN) $(KERNEL_MODE) -num_nodes $(numNodes) -num_devices $(numDevices) \
+	-num_level 100 -num_iter 100 -load_alveo_partitions $(alveoProject).par.proj -workerAlone 1
 
-CMDLINE_LOAD_COMPUTE_WORKER2 = -x $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin \
-    -fast -num_nodes $(numNodes) -num_devices $(numDevices) -num_level 100 -num_iter 100 -load_alveo_partitions \
-	$(alveoProject).par.proj -workerAlone 2
+CMDLINE_LOAD_COMPUTE_WORKER2 = -x $(XCLBIN_RUN) $(KERNEL_MODE) -num_nodes $(numNodes) -num_devices $(numDevices) \
+    -num_level 100 -num_iter 100 -load_alveo_partitions $(alveoProject).par.proj -workerAlone 2
 
 .PHONY: run-create-partitions run-load-compute run-load-compute-driver run-load-compute-worker1 run-load-compute-worker2
 
@@ -435,15 +440,15 @@ endif
 L2_TOP_DIR_U50 = $(GRAPH_ANALYTICS_DIR)/L2/louvainmod_pruning_kernel
 L2_XDEVICE_U50 = xilinx_u50_gen3x16_xdma_201920_3
 L2_BUILD_DIR_U50 = $(L2_TOP_DIR_U50)/build_dir.hw.$(L2_XDEVICE_U50)
-XCLBIN_NAME_U50 = kernel_louvain_pruning.xclbin
+XCLBIN_NAME_U50 = kernel_louvain_pruning_alias.xclbin
 XCLBIN_FILE_U50 = $(L2_BUILD_DIR_U50)/$(XCLBIN_NAME_U50)
 XCLBIN_INSTALLED_NAME_U50 = louvainmod_pruning_$(L2_XDEVICE_U50).xclbin
 XCLBIN_INSTALLED_U50 =/opt/xilinx/apps/graphanalytics/louvainmod/1.0/xclbin/$(XCLBIN_INSTALLED_NAME_U50)
-# U50 XCLBIN 
+# U55 XCLBIN 
 L2_TOP_DIR_U55 = $(GRAPH_ANALYTICS_DIR)/L2/louvainmod_2cu_u55c_kernel
 L2_XDEVICE_U55 = xilinx_u55c_gen3x16_xdma_2_202110_1
 L2_BUILD_DIR_U55 = $(L2_TOP_DIR_U55)/build_dir.hw.$(L2_XDEVICE_U55)
-XCLBIN_NAME_U55 = kernel_louvain.xclbin
+XCLBIN_NAME_U55 = kernel_louvain_alias.xclbin
 XCLBIN_FILE_U55 = $(L2_BUILD_DIR_U55)/$(XCLBIN_NAME_U55)
 XCLBIN_INSTALLED_NAME_U55 = louvainmod_2cu_$(L2_XDEVICE_U55).xclbin
 XCLBIN_INSTALLED_U55 =/opt/xilinx/apps/graphanalytics/louvainmod/1.0/xclbin/$(XCLBIN_INSTALLED_NAME_U55)
@@ -650,7 +655,7 @@ help:
 	@echo "  make run-create-partitions [graph=/path/to/graph.mtx] [numPars=1]"
 	@echo "  Create partitions on a single node"
 	@echo ""
-	@echo "  make run-load-compute [graph=/path/to/graph.mtx] [numPars=1] [numDevices=1]"
+	@echo "  make run-load-compute [graph=/path/to/graph.mtx] [numPars=1] [numDevices=1] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3]"
 	@echo "  Load partition and compute Louvain modularity on a single node"
 	@echo ""
 	@echo "  Run test in a 3 node cluster"
