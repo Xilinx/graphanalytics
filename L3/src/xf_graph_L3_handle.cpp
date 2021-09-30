@@ -59,12 +59,10 @@ int32_t Handle::initOpSimDense(std::string xclbinFile,
 
 
 #ifdef LOUVAINMOD
-int32_t Handle::initOpLouvainModularity(std::string kernelName,
-                                     std::string xclbinFile,
-                                     std::string kernelAlias,
-                                     unsigned int requestLoad,
-                                     unsigned int numDevices,
-                                     unsigned int cuPerBoard) {
+int32_t Handle::initOpLouvainModularity(std::string xclbinFile, std::string kernelName,
+                                        std::string kernelAlias, unsigned int requestLoad,
+                                        unsigned int numDevices, unsigned int cuPerBoard) 
+{
     uint32_t* deviceID;
     uint32_t* cuID;
     int32_t status = 0;
@@ -202,8 +200,8 @@ int Handle::setUp(std::string deviceNames)
             }
 
             deviceCounter += boardNm;
-            status = initOpLouvainModularity(ops[i].kernelName, ops[i].xclbinPath, 
-                                             ops[i].kernelAlias, ops[i].requestLoad,
+            status = initOpLouvainModularity(ops[i].xclbinPath, ops[i].kernelName_,  
+                                             ops[i].kernelAlias_, ops[i].requestLoad,
                                              ops[i].numDevices, ops[i].cuPerBoard);
             if (status < 0)
                 return XF_GRAPH_L3_ERROR_ALLOC_CU;

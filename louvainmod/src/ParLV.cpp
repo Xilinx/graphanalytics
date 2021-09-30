@@ -940,7 +940,7 @@ int host_ParserParameters(int argc,
                           int& numThread,
                           int& numPars,
                           int& gh_par,
-                          int& flow_prune,
+                          int& flow_fast,
                           int& numDevices,
                           int& mode_zmq,
                           char* path_zmq,
@@ -1173,21 +1173,18 @@ int host_ParserParameters(int argc,
     printf("PARAMETER  gh_par = %i\n", gh_par);
 #endif
     if (has_flow_prune != -1) {
-        rec[has_flow_prune] = true;
-        flow_prune = 2;
+        flow_fast = 2;
     } else if(has_flow_fast != -1) {
-        rec[has_flow_fast] = true;
-        flow_prune = 2;
+        flow_fast = 2;
     } else if (has_flow_fast2 != -1) {
-        rec[has_flow_fast2] = true;
         if(numCu == 1)
-            flow_prune = 3;
+            flow_fast = 3;
         else
-            flow_prune = 4;
+            flow_fast = 4;
     } else 
-        flow_prune = 1;
+        flow_fast = 1;
 #ifdef PRINTINFO
-    printf("PARAMETER  flow_prune = %d\n", flow_prune);
+    printf("PARAMETER  flow_fast = %d\n", flow_fast);
 #endif
     if (has_opts_output != -1 && has_opts_output < (argc - 1)) {
         opts_output = true;
@@ -1571,7 +1568,7 @@ void PrintRptParameters(double opts_C_thresh,   // Threshold with coloring on
     printf(
         "FPGA Parameter \033[1;37;40mkernelName      \033[0m: %s      \t\t Default=kernel_louvain,  by config.json     "
         "                  \n",
-        op0.kernelName.c_str());
+        op0.kernelName_.c_str());
     if (opts_xclbinPath[0] == 0)
         printf(
             "FPGA Parameter \033[1;37;40mxclbinFile      \033[0m: %s    \t  by config.json           or by \" "
@@ -3845,7 +3842,6 @@ int loadComputeUnitsToFPGAs(
     std::string opName = "louvainModularity";
     std::string kernelName = "kernel_louvain";
     int requestLoad = 100;
-    int numCUs = 1;
 
     std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesLouvainMod::instance().handlesMap[0];
 
@@ -3853,11 +3849,15 @@ int loadComputeUnitsToFPGAs(
     //----------------- Set parameters of op0 again some of those will be covered by command-line
     op0->operationName = opName;
     op0->setKernelName((char*)kernelName.c_str());
+    if (flowMode == xf::graph::L3::LOUVAINMOD_PRUNING_KERNEL)
+        op0->setKernelAlias("kernel_louvain_pruning_u50");
+    else if (flowMode == xf::graph::L3::LOUVAINMOD_2CU_U55C_KERNEL)
+        op0->setKernelAlias("kernel_louvain_2cu_u55");
+    
     op0->requestLoad = requestLoad;
     op0->xclbinPath = xclbinPath;
     op0->numDevices = numDevices;
-    if (flowMode == xf::graph::L3::LOUVAINMOD_2CU_U55C_KERNEL) numCUs = 2;
-    op0->cuPerBoard = numCUs;
+    op0->cuPerBoard = (flowMode == xf::graph::L3::LOUVAINMOD_2CU_U55C_KERNEL) ? 2 : 1;
 
     //----------------- enable handle0--------
     handle0->addOp(*op0);
