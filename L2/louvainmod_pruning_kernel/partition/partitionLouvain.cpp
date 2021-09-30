@@ -2039,6 +2039,8 @@ void BFSPar_creatingEdgeLists_fixed_prune(
         }
 	}//for all partition
 
+#ifdef DEBUGPAR
+
 	bool ret_checkParEdges=false;
 	for(int p=0; p< num_par; p++){
 		printf("Check par(%d) edges in vertices\n",p);
@@ -2091,6 +2093,8 @@ void BFSPar_creatingEdgeLists_fixed_prune(
 	else
 		printf("FAIL: num_e_all != NE_all\n");
 	printf("**************************************************\n");
+
+#endif
 }
 
 void BFSPar_creatingEdgeLists_fixed(
@@ -2568,14 +2572,14 @@ void BFSPar_renumberingEdgeLists(//return: real number of partition
                 M[p][renum_t_l] = tail;
             }else if (isIn_h_l && (!isIn_t_l)){// tail is ghost            
                 MapRenumber(map_v_g[p], tail, renum_t_g);
-                printf("tail %ld, %ld \n",tail, renum_t_g+num_v_l[p]);
+                //printf("tail %ld, %ld \n",tail, renum_t_g+num_v_l[p]);
                 elist_par[p][i].head = renum_h_l;
                 elist_par[p][i].tail = renum_t_g+num_v_l[p];
                 M[p][ renum_h_l ] = head;
                 M[p][ renum_t_g+num_v_l[p] ] = (-1)*tail-1;
             }else if (!isIn_h_l && isIn_t_l){// head is ghost and swap
                 MapRenumber(map_v_g[p], head, renum_h_g);
-                printf("h  %ld, %ld \n",head, renum_h_g+num_v_l[p]);
+                //printf("h  %ld, %ld \n",head, renum_h_g+num_v_l[p]);
                 elist_par[p][i].head = renum_h_g+num_v_l[p];       
                 elist_par[p][i].tail = renum_t_l;
                 M[p][ renum_h_g+num_v_l[p] ] = (-1)*head-1;
@@ -2588,7 +2592,7 @@ void BFSPar_renumberingEdgeLists(//return: real number of partition
 
         printf("check edgelist: \n");
         for(int i = 0; i < num_e_dir[p]; i++){
-            printf("check_par:%3d, \t edge_%d_%d\n", p, elist_par[p][i].head, elist_par[p][i].tail);
+            //printf("check_par:%3d, \t edge_%d_%d\n", p, elist_par[p][i].head, elist_par[p][i].tail);
         }
         
         //convert to M
@@ -2598,7 +2602,7 @@ void BFSPar_renumberingEdgeLists(//return: real number of partition
 
         printf("check M: \n");
         for(int i = 0; i < num_v_l[p]+num_v_g[p]; i++){
-            printf("check_M:%3d, \t M[%d]=%lld\n", p, i, M[p][i]);
+            //printf("check_M:%3d, \t M[%d]=%lld\n", p, i, M[p][i]);
         }
 
     }//end all partition
@@ -2856,7 +2860,7 @@ void GetGFromEdge(graphNew* G, edge* edgeListTmp, long num_v, long num_e_dir) {
         edgeList[Where].head = head;
         edgeList[Where].tail = tail;
         edgeList[Where].weight = weight;
-       printf("where %ld, %ld   %ld   %lf\n", Where,edgeList[Where].head, edgeList[Where].tail, edgeList[Where].weight); 
+        //printf("where %ld, %ld   %ld   %lf\n", Where,edgeList[Where].head, edgeList[Where].tail, edgeList[Where].weight); 
 
         // added[head]++;
         // Now add the counter-edge:
