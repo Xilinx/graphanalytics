@@ -97,6 +97,7 @@ INCLUDES_libCosineSim = \
 	-I$(XILINX_XRM)/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L2/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L3/include \
+	-I$(GRAPH_ANALYTICS_DIR)/ext \
 	-I$(GRAPH_ANALYTICS_DIR)/ext/xcl2 \
 	-Iinclude
 #	-I${JAVA_HOME}/include \
@@ -233,6 +234,7 @@ SRC_FILE_NAMES_python = pythonapi.cpp
 
 INCLUDES_python = \
     -I$(PYTHON_DIR) \
+	-I$(GRAPH_ANALYTICS_DIR)/ext \
     -Iinclude
 
 SRCS_python = $(addprefix $(PYTHON_API_DIR)/,$(SRC_FILE_NAMES_python))
@@ -298,6 +300,7 @@ INCLUDES_test = \
 	-I$(XILINX_XRM)/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L2/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L3/include \
+	-I$(GRAPH_ANALYTICS_DIR)/ext \
 	-I$(GRAPH_ANALYTICS_DIR)/ext/xcl2 \
 	-Iinclude
 

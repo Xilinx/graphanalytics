@@ -243,6 +243,8 @@ namespace cosinesim
 #include <exception>
 #include <cstring>
 
+#include "xilinx_apps_common.hpp"
+
 namespace xilinx_apps
 {
 namespace cosinesim
@@ -334,23 +336,17 @@ struct Options {
     // number of Alveo accelerator cards to use.  Default is 1.
     std::int32_t numDevices;
     // device names (e.g. xilinx_u50_gen3x16_xdma_201920_3) to be used
-    std::string deviceNames;
+    XString deviceNames;
     
     /**
      * FPGA binary file (XCLBIN) path.  Default is the package installation path.
-     * 
-     * When setting this field, the field takes ownership of the buffer pointed to.
-     * The buffer must have been allocated with new[].
-     * To avoid dealing with allocation, use the @ref setXclbinPath() function instead.
      */
-    char *xclbinPath = nullptr;
+    XString xclbinPath;
 
     /**
      * Destroys this Options object.
      */
-    ~Options() {
-        delete[] xclbinPath;
-    }
+    ~Options() { }
     
     /**
      * Constructs an Options object with default values.
@@ -376,27 +372,30 @@ struct Options {
      * 
      * @param newXclbinPath the XCLBIN path string to set @ref xclbinPath to
      */
-    void setXclbinPath(const char *newXclbinPath) {
+    /*void setXclbinPath(const char *newXclbinPath) {
         delete[] xclbinPath;
         xclbinPath = nullptr;
         if (newXclbinPath != nullptr) {
             xclbinPath = new char[std::strlen(newXclbinPath) + 1];
             std::strcpy(xclbinPath, newXclbinPath);
         }
-    }
+    }*/
     
     /**
      * Sets the @ref xclbinPath field to the given string, which is deep-copied.
      * 
      * @param newXclbinPath the XCLBIN path string to set @ref xclbinPath to
      */
-    void setXclbinPath(const std::string &xclbinPath) { setXclbinPath(xclbinPath.c_str()); }
+    //void setXclbinPath(const std::string &xclbinPath) { setXclbinPath(xclbinPath.c_str()); }
 
 private:    
     void copyIn(const Options &opt) {
         vecLength = opt.vecLength;
         numDevices = opt.numDevices;
-        setXclbinPath(opt.xclbinPath);
+        //setXclbinPath(opt.xclbinPath);
+        xclbinPath = opt.xclbinPath;
+        deviceNames = opt.deviceNames;
+
     }
 };
 

@@ -23,10 +23,11 @@
 #include <unordered_map>
 #include <iostream>
 #include <sstream>
-#include "cosinesim.hpp"
-#include "xf_graph_L3.hpp"
 #include <assert.h>
 
+#include "cosinesim.hpp"
+#include "xf_graph_L3.hpp"
+#include "xilinx_apps_common.hpp"
 
 namespace xilinx_apps {
 namespace cosinesim {
@@ -41,7 +42,7 @@ public:
 
     int valueSize_;
     uint32_t numDevices;
-    std::string deviceNames;
+    XString deviceNames;
     int populationVectorRowNm;
     int32_t** numVerticesPU ; // vertex numbers in each PU
 
@@ -49,7 +50,7 @@ public:
     int32_t numEdges;
     int vecLength;
     int64_t numVertices;
-    std::string xclbinPath;
+    XString xclbinPath;
     std::string kernelName_;
     std::string kernelAlias_;
     int32_t edgeAlign8;
@@ -105,15 +106,14 @@ public:
             numDevices = options.numDevices;
 
         deviceNames = options.deviceNames;
-
         // default xclbin to load
-        if (deviceNames == "xilinx_u50_gen3x16_xdma_201920_3") {
+        if (deviceNames == XString("xilinx_u50_gen3x16_xdma_201920_3")) {
             xclbinPath = std::string("/opt/xilinx/apps/graphanalytics/cosinesim/") + std::string(VERSION) + 
                          std::string("/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin");
             kernelName_ = "denseSimilarityKernel";
             kernelAlias_ = "denseSimilarityKernel_U50";
             numPUs_ = 3;
-        } else if (deviceNames == "xilinx_u55c_gen3x16_xdma_base_2") {
+        } else if (deviceNames == XString("xilinx_u55c_gen3x16_xdma_base_2")) {
             xclbinPath = std::string("/opt/xilinx/apps/graphanalytics/cosinesim/") + std::string(VERSION) + 
                          std::string("/xclbin/cosinesim_32bit_4pu_xilinx_u55c_gen3x16_xdma_base_2.xclbin");
             kernelName_ = "denseSimilarityKernel4PU";
@@ -121,7 +121,7 @@ public:
             numPUs_ = 4;
         }
 
-        if (options.xclbinPath != nullptr) {
+        if (!options.xclbinPath.empty()) {
             std::cout << "INFO: xclbinPath set to options::xcbinPath: " << options.xclbinPath << std::endl;
             xclbinPath = options.xclbinPath;
         } else {
@@ -457,11 +457,11 @@ void PrivateImpl::load_cu_cosinesim_ss_dense_fpga()
     op0.setKernelAlias(kernelAlias_);
     op0.requestLoad = requestLoad;
     //op0.xclbinFile = (char*)xclbinPath.c_str();
-    op0.xclbinPath = xclbinPath;
+    op0.xclbinPath = (char *)xclbinPath.c_str();
     op0.numDevices = numDevices;
     op0.cuPerBoard = cuNm;
   
-    std::fstream xclbinFS(xclbinPath, std::ios::in);
+    std::fstream xclbinFS((char*)xclbinPath.c_str(), std::ios::in);
 
     if (!xclbinFS) {
         std::ostringstream oss;
