@@ -21,7 +21,7 @@ gsql="java -jar $HOME/gsql_client/gsql_client.jar"
 read -p "Enter user tigergraph's password for gsql client:" password 
 if [[ "$uninstall" -eq 1 ]]; then
     echo "INFO: Removing Recommendation Engine tuples"
-    if [ $($gsql "LS" | grep -c XilCosinesimMatch) -gt 0 ]; then
+    if [ $($gsql "LS"  -p $password | grep -c XilCosinesimMatch) -gt 0 ]; then
         $gsql "DROP TUPLE XilCosinesimMatch"
     fi
     echo ""

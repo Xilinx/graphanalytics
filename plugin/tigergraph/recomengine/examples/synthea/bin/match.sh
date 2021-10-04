@@ -31,10 +31,11 @@
 #
 
 set -e
+set -x
 SCRIPT=$(readlink -f $0)
 script_dir=$(dirname $SCRIPT)
 # common.sh sets up gsql client, gets username, passowrd, xgraph name
-. $script_dir/bin/common.sh
+. $script_dir/common.sh
 
 mkdir -p log
 if ! chmod 777 log ; then
@@ -53,25 +54,25 @@ fi
 if [ "$load_cache" -eq 1 ]
 then
     echo "Clearing embeddings..."
-    time gsql -g $xgraph "set query_timeout=240000000 run query cosinesim_clear_embeddings()"
+    time gsql -u $username -p $password -g $xgraph "set query_timeout=240000000 run query cosinesim_clear_embeddings()"
     echo "Caching cosine similarity vectors to patient vertices..."
-    time gsql -g $xgraph "set query_timeout=240000000 run query cosinesim_embed_vectors()"
-    time gsql -g $xgraph "set query_timeout=240000000 run query cosinesim_embed_normals()"
+    time gsql -u $username -p $password -g $xgraph "set query_timeout=240000000 run query cosinesim_embed_vectors()"
+    time gsql -u $username -p $password -g $xgraph "set query_timeout=240000000 run query cosinesim_embed_normals()"
 fi
 
 if [ "$load_fpga" -eq 1 ]; then
     echo "Run query load_graph_cosinesim_ss_fpga"
-    gsql -g $xgraph "run query cosinesim_set_num_devices($num_devices)"
-    time gsql -g $xgraph "run query load_graph_cosinesim_ss_fpga_core()"
+    gsql -u $username -p $password -g $xgraph "run query cosinesim_set_num_devices($num_devices)"
+    time gsql -u $username -p $password -g $xgraph "run query load_graph_cosinesim_ss_fpga_core()"
 fi
 
 for ((j = 0 ; j < $iterations ; ++j))
 do
     echo "------ iteration $j --------"
     echo "Run query cosinesim_ss_tg"
-    time gsql -g $xgraph "run query cosinesim_ss_tg(\"/tmp/tg.txt\")"
+    time gsql -u $username -p $password -g $xgraph "run query cosinesim_ss_tg(\"/tmp/tg.txt\")"
     echo "Run query cosinesim_ss_fpga"
-    time gsql -g $xgraph "run query cosinesim_ss_fpga(\"/tmp/fpga.txt\")"
+    time gsql -u $username -p $password -g $xgraph "run query cosinesim_ss_fpga(\"/tmp/fpga.txt\")"
 done
 
 

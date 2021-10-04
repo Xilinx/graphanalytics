@@ -62,7 +62,11 @@ public:
     
 private:
     unsigned nodeId_;
+    std::string curNodeIp_;
+    std::string nodeIps_;
     unsigned numDevices_ = 1;
+    std::string xGraphStorePath_;
+
     xilinx_apps::cosinesim::ColIndex vectorLength_ = 0;
     bool vectorLengthSet_ = false;
     bool isInitialized_ = false;
@@ -70,6 +74,9 @@ private:
     IdMap idMap_;  // maps from vector ID to FPGA row number
     
 public:
+    std::string curNodeHostname_;
+    std::string deviceNames_ = "xilinx_u50_gen3x16_xdma_201920_3";
+
     static Context *getInstance() {
         static Context *s_pContext = nullptr;
         if (s_pContext == nullptr)
@@ -77,7 +84,53 @@ public:
         return s_pContext;
     }
     
-    Context() = default;
+    Context() {
+        // PLUGIN_CONFIG_PATH will be replaced by the actual config path during plugin installation
+        std::fstream config_json(PLUGIN_CONFIG_PATH, std::ios::in);
+        if (!config_json) {
+            std::cout << "ERROR: config file doesn't exist:" << PLUGIN_CONFIG_PATH << std::endl;
+            return;
+        }
+        char line[1024] = {0};
+        char* token;
+        nodeIps_.clear();
+        bool scanNodeIp;
+        while (config_json.getline(line, sizeof(line))) {
+            token = strtok(line, "\"\t ,}:{\n");
+            scanNodeIp = false;
+            while (token != NULL) {
+                if (!std::strcmp(token, "curNodeHostname")) {
+                    token = strtok(NULL, "\"\t ,}:{\n");
+                    curNodeHostname_ = token;
+                } else if (!std::strcmp(token, "curNodeIp")) {
+                    token = strtok(NULL, "\"\t ,}:{\n");
+                    curNodeIp_ = token;
+                } else if (!std::strcmp(token, "xGraphStore")) {
+                    token = strtok(NULL, "\"\t ,}:{\n");
+                    xGraphStorePath_ = token;
+                } else if (!std::strcmp(token, "numDevices")) {
+                    token = strtok(NULL, "\"\t ,}:{\n");
+                    numDevices_ = atoi(token);
+                    std::cout << "numDevices=" << numDevices_ << std::endl;
+                } else if (!std::strcmp(token, "nodeIps")) {
+                    // this field has multipe space separated IPs
+                    scanNodeIp = true;
+                    // read the next token
+                    token = strtok(NULL, "\"\t ,}:{\n");
+                    nodeIps_ += token;
+                    std::cout << "node_ips=" << nodeIps_ << std::endl;
+                } else if (scanNodeIp) {
+                    // In the middle of nodeIps field
+                    nodeIps_ += " ";
+                    nodeIps_ += token;
+                    std::cout << "node_ips=" << nodeIps_ << std::endl;
+                }
+                token = strtok(NULL, "\"\t ,}:{\n");
+            }
+        }
+        config_json.close();
+    }
+
     ~Context() { delete pCosineSim_; }
     
     void setNodeId(unsigned nodeId) {

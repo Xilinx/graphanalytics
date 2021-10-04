@@ -67,6 +67,8 @@ collaborate with Xilinx and contribute to the development of the product.
 .. code-block:: bash
 
    git clone https://github.com/Xilinx/graphanalytics.git
+   cd graphanalytics
+   git submodule update --init --recursive
 
 * Build and install the Cosine Similarity package. The example below shows installation using the
   Ubuntu ``apt`` package manager.

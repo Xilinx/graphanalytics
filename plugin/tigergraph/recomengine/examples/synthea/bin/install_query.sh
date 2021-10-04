@@ -31,20 +31,17 @@
 #
 
 set -e
-script_dir=$(dirname "$0")
-# common.sh sets up things like gsql client, username and passowrd, graph name, etc
-. $script_dir/bin/common.sh
 
-echo "data_root=$data_root"
+SCRIPT=$(readlink -f $0)
+SCRIPTPATH=`dirname $SCRIPT`
+ROOT=`dirname $SCRIPTPATH`
 
-$script_dir/bin/install-udf.sh $ssh_key_flag $verbose_flag $force_clean_flag
+# common.sh sets up gsql client and gets username and passowrd
+. $SCRIPTPATH/common.sh
+# if -i option is set in common.sh, ssh_key_flag is set to -i $ssh_key, 
+# otherwise it's an empty string
+echo " "
+gsql -u $username -p $password "$(cat $ROOT/query/base.gsql | sed "s/@graph/$xgraph/")"
+gsql -u $username -p $password -g $xgraph "RUN QUERY insert_dummy_nodes($num_nodes)"
+gsql -u $username -p $password "$(cat $ROOT/query/query.gsql | sed "s/@graph/$xgraph/")"
 
-gsql "$(cat $script_dir/query/schema_xgraph.gsql | sed "s/@graph/$xgraph/")"
-
-# load data from data files into the graph
-time gsql "SET sys.data_root=\"$data_root\" $(cat $script_dir/query/load_xgraph.gsql | sed "s/@graph/$xgraph/")"
-
-# set timeout of loading job to 1 hour
-time gsql -g $xgraph "SET QUERY_TIMEOUT=3600000 SET sys.data_root=\"$data_root\" RUN LOADING JOB load_xgraph"
-gsql -g $xgraph "DROP JOB load_xgraph"
-echo "INFO: -------- $(date) load_xgraph completed. --------"

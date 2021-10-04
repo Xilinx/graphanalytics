@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Copyright 2020-2021 Xilinx, Inc.
 #
@@ -31,16 +31,10 @@
 #
 
 set -e
-
-SCRIPT=$(readlink -f $0)
-SCRIPTPATH=`dirname $SCRIPT`
+script_dir=$(dirname "$0")
 
 # common.sh sets up gsql client and gets username and passowrd
-. $SCRIPTPATH/bin/common.sh
-# if -i option is set in common.sh, ssh_key_flag is set to -i $ssh_key, 
-# otherwise it's an empty string
-echo " "
-gsql "$(cat $SCRIPTPATH/query/base.gsql | sed "s/@graph/$xgraph/")"
-gsql -g $xgraph "RUN QUERY insert_dummy_nodes($num_nodes)"
-gsql "$(cat $SCRIPTPATH/query/query.gsql | sed "s/@graph/$xgraph/")"
-
+. $script_dir/common.sh
+$script_dir/init_graph.sh $@
+$script_dir/install_query.sh $@
+$script_dir/match.sh $@

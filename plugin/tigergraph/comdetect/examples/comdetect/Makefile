@@ -75,7 +75,8 @@ run: .install-udf-done
 	@echo "-------------------------------------------------------"
 	@echo "Running run.sh from staging "
 	@echo "-------------------------------------------------------"
-	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/examples/comdetect/bin/run.sh -v \
+	cd ../../ && make DEBUG=$(DEBUG) stage && \
+	    ./staging/examples/comdetect/bin/run.sh -v \
 	    -g $(graphName) -s $(dataSource) -a $(alveoProject) \
 		-n $(numPartitionsNode) -c $(compileMode) -x $(partitionMode) -r $(runMode) 
 

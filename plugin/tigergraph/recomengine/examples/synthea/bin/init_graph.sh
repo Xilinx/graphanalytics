@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
 # Copyright 2020-2021 Xilinx, Inc.
 #
@@ -32,9 +32,17 @@
 
 set -e
 script_dir=$(dirname "$0")
+# common.sh sets up things like gsql client, username and passowrd, graph name, etc
+. $script_dir/common.sh
 
-# common.sh sets up gsql client and gets username and passowrd
-. $script_dir/bin/common.sh
-$script_dir/init_graph.sh $@
-$script_dir/install_query.sh $@
-$script_dir/match.sh $@
+echo "data_root=$data_root"
+
+gsql -u $username -p $password "$(cat $script_dir/../query/schema_xgraph.gsql | sed "s/@graph/$xgraph/")"
+
+# load data from data files into the graph
+time gsql -u $username -p $password "SET sys.data_root=\"$data_root\" $(cat $script_dir/../query/load_xgraph.gsql | sed "s/@graph/$xgraph/")"
+
+# set timeout of loading job to 1 hour
+time gsql -u $username -p $password -g $xgraph "SET QUERY_TIMEOUT=3600000 SET sys.data_root=\"$data_root\" RUN LOADING JOB load_xgraph"
+gsql -u $username -p $password -g $xgraph "DROP JOB load_xgraph"
+echo "INFO: -------- $(date) load_xgraph completed. --------"

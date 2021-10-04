@@ -32,7 +32,7 @@
 
 gsql_command="java -jar $HOME/gsql_client/gsql_client.jar"
 function gsql () {
-     $gsql_command -u $username -p $password "$@"
+     $gsql_command "$@"
 }
 
 function usage() {
@@ -104,7 +104,7 @@ fi
 #    echo "INFO: Downloaded the latest gsql client"
 #fi
 
-if [ $($gsql_command "show user" | grep -c $username) -lt 1 ]; then
+if [ $(gsql -u $username -p $password "show user" | grep -c $username) -lt 1 ]; then
     echo "ERROR: TigerGraph user $username does not exist."
     echo "Please create the user by logging in as user tigergraph and doing:"
     echo "    gsql \"create user\""
