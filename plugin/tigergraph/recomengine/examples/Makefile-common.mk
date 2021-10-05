@@ -15,6 +15,8 @@
 
 PLUGIN_DEPS = ../../udf/xilinxRecomEngine.hpp \
 			  ../../udf/xilinxRecomEngineImpl.hpp \
+			  ../../bin/set-plugin-vars.sh \
+			  ../../../common/bin/install-plugin-node.sh
 
 help-common:
 	@echo "Makefile usage:"

@@ -31,7 +31,7 @@
 #
 
 set -e
-set -x
+
 SCRIPT=$(readlink -f $0)
 script_dir=$(dirname $SCRIPT)
 # common.sh sets up gsql client, gets username, passowrd, xgraph name

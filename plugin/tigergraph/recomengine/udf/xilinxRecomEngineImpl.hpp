@@ -66,6 +66,7 @@ private:
     std::string nodeIps_;
     unsigned numDevices_ = 1;
     std::string xGraphStorePath_;
+    std::string xclbinPath_;
 
     xilinx_apps::cosinesim::ColIndex vectorLength_ = 0;
     bool vectorLengthSet_ = false;
@@ -95,6 +96,9 @@ public:
         char* token;
         nodeIps_.clear();
         bool scanNodeIp;
+#ifdef XILINX_RECOM_DEBUG_ON
+        std::cout << "DEBUG: Parsing config file " << PLUGIN_CONFIG_PATH << std::endl;
+#endif        
         while (config_json.getline(line, sizeof(line))) {
             token = strtok(line, "\"\t ,}:{\n");
             scanNodeIp = false;
@@ -105,30 +109,47 @@ public:
                 } else if (!std::strcmp(token, "curNodeIp")) {
                     token = strtok(NULL, "\"\t ,}:{\n");
                     curNodeIp_ = token;
+                } else if (!std::strcmp(token, "deviceName")) {
+                    token = strtok(NULL, "\"\t ,}:{\n");
+                    deviceNames_ = token;
+#ifdef XILINX_RECOM_DEBUG_ON
+                    std::cout << "    deviceNames_=" << deviceNames_ << std::endl;
+#endif
                 } else if (!std::strcmp(token, "xGraphStore")) {
                     token = strtok(NULL, "\"\t ,}:{\n");
                     xGraphStorePath_ = token;
                 } else if (!std::strcmp(token, "numDevices")) {
                     token = strtok(NULL, "\"\t ,}:{\n");
                     numDevices_ = atoi(token);
-                    std::cout << "numDevices=" << numDevices_ << std::endl;
+#ifdef XILINX_RECOM_DEBUG_ON                    
+                    std::cout << "    numDevices=" << numDevices_ << std::endl;
+#endif
                 } else if (!std::strcmp(token, "nodeIps")) {
                     // this field has multipe space separated IPs
                     scanNodeIp = true;
                     // read the next token
                     token = strtok(NULL, "\"\t ,}:{\n");
                     nodeIps_ += token;
-                    std::cout << "node_ips=" << nodeIps_ << std::endl;
+#ifdef XILINX_RECOM_DEBUG_ON                    
+                    std::cout << "    node_ips=" << nodeIps_ << std::endl;
+#endif                    
                 } else if (scanNodeIp) {
                     // In the middle of nodeIps field
                     nodeIps_ += " ";
                     nodeIps_ += token;
-                    std::cout << "node_ips=" << nodeIps_ << std::endl;
+#ifdef XILINX_RECOM_DEBUG_ON                    
+                    std::cout << "    node_ips=" << nodeIps_ << std::endl;
+#endif                    
                 }
                 token = strtok(NULL, "\"\t ,}:{\n");
             }
         }
         config_json.close();
+
+        if (deviceNames_ == "xilinx_u50_gen3x16_xdma_201920_3")
+            xclbinPath_ = PLUGIN_XCLBIN_PATH;
+        else if (deviceNames_ == "xilinx_u55c_gen3x16_xdma_base_2")
+            xclbinPath_ = PLUGIN_XCLBIN_PATH_U55C;
     }
 
     ~Context() { delete pCosineSim_; }
@@ -162,11 +183,12 @@ public:
             xilinx_apps::cosinesim::Options options;
             options.vecLength = vectorLength_;
             options.numDevices = numDevices_;
-            options.xclbinPath = PLUGIN_XCLBIN_PATH;
-            options.deviceNames = "xilinx_u50_gen3x16_xdma_201920_3";
+            options.xclbinPath = xclbinPath_;
+            options.deviceNames = deviceNames_;
 #ifdef XILINX_RECOM_DEBUG_ON
             std::cout << "DEBUG: cosinesim options: " 
                     << "\n    vecLength=" << options.vecLength
+                    << "\n    deviceNames=" << options.deviceNames                    
                     << "\n    numDevices=" << options.numDevices
                     << "\n    xclbinPath=" << options.xclbinPath << std::endl;
 #endif
