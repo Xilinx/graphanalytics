@@ -132,7 +132,7 @@ struct Options {
     XString nameProj;  // -name option: location of "partition project" created by partitioning, read by load/compute
     XString alveoProject; // Alveo project file .par.proj TODO: to be combined with nameProj
     int modeAlveo;
-    int flow_fast = 2;  // C
+    int kernelMode = 2;  // C
     unsigned numDevices = 1;  // number of devices
     XString deviceNames;  // space-separated list of target device names
     unsigned nodeId = 0;  // node ID 0 will be the driver, all others will be workers

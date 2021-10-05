@@ -34,6 +34,7 @@ pluginLocalAlveoProductPath=$SCRIPTPATH/../../../../../louvainmod/staging
 
 # The name of the Alveo Product's XCLBIN file
 pluginXclbinName=louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+pluginXclbinNameU55C=louvainmod_2cu_xilinx_u55c_gen3x16_xdma_2_202110_1.xclbin
 
 # The name of the Alveo Product's .so file
 pluginLibName=libXilinxLouvain.so

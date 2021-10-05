@@ -92,35 +92,27 @@ public:
     std::string inputFileName_ = "no-file";  // file name for the source file for the graph, or a dummy string if no file
 
     PartitionRun(const Options &globalOpts, const ComputedSettings &settings,
-        const LouvainMod::PartitionOptions &partOpts)
+                 const LouvainMod::PartitionOptions &partOpts)
     : globalOpts_(globalOpts), settings_(settings), partOpts_(partOpts), isVerbose_(globalOpts.verbose)
     {
-        int flowMode = 2;
-        switch (globalOpts.flow_fast) {
-        case 2:
-            flowMode = 2;
-            break;
-        case 3:
-            flowMode = 3;
-            break;
-        case 4:
-            flowMode = 4;
-            break;
-        default:
-            {
-                std::ostringstream oss;
-                oss << "Invalid flow_fast value " << globalOpts.flow_fast << ".  The supported values are 2, 3 and 4.";
-                throw Exception(oss.str());
-            }
-            break;
+        int kernelMode = globalOpts.kernelMode;
+
+        if (kernelMode < 2 || kernelMode > 4) {
+            std::ostringstream oss;
+            oss << "Invalid flow_fast value " << kernelMode << ".  The supported values are 2, 3 and 4.";
+            throw Exception(oss.str());
         }
         
-        parlv_.Init(flowMode, nullptr, partOpts.numPars, globalOpts.numDevices, true, partOpts.par_prune);
+        parlv_.Init(kernelMode, nullptr, partOpts.numPars, globalOpts.numDevices, true, partOpts.par_prune);
         parlv_.num_par = partOpts.numPars;
         parlv_.th_prun = partOpts.par_prune;
         parlv_.num_server = settings_.numServers;
 
-        assert(!globalOpts.nameProj.empty());
+        if (globalOpts.nameProj.empty()) {
+            std::ostringstream oss1;
+            oss1 << "ERROR: Alveo project name is empty";
+            throw Exception(oss1.str());
+        }
         //////////////////////////// Set the name for partition project////////////////////////////
         char path_proj[1024];
         char name_proj[256];
@@ -456,7 +448,7 @@ float LouvainMod::loadAlveoAndComputeLouvain(const ComputeOptions &computeOpts)
         
     finalQ = ::loadAlveoAndComputeLouvain(
                 (char *)(pImpl_->options_.xclbinPath.c_str()), 
-                pImpl_->options_.flow_fast, 
+                pImpl_->options_.kernelMode, 
                 pImpl_->options_.numDevices, 
                 pImpl_->options_.deviceNames,
                 (char*)(pImpl_->options_.alveoProject.c_str()),
@@ -487,7 +479,7 @@ void LouvainModImpl::loadComputeUnitsToFPGAs()
 #endif
     // call the one in global namespace
     ::loadComputeUnitsToFPGAs((char *)(options_.xclbinPath.c_str()), 
-                              options_.flow_fast,
+                              options_.kernelMode,
                               options_.numDevices,
                               options_.deviceNames);
 }

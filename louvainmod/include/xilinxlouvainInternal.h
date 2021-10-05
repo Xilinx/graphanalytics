@@ -579,4 +579,13 @@ struct LouvainPara{
     int    max_num_level;
     int    max_num_iter;
 };
+
+enum {
+    //LOUVAINMOD_OPT_KERNEL = 1,
+    LOUVAINMOD_PRUNING_KERNEL = 2,
+    LOUVAINMOD_RENUM_KERNEL = 3,
+    LOUVAINMOD_2CU_U55C_KERNEL = 4
+};
+
+
 #endif

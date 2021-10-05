@@ -110,6 +110,7 @@ private:
     std::string curNodeIp_;
     std::string nodeIps_;
     std::string xGraphStorePath_;
+    std::string xclbinPath_;
     std::string alveoProject_;
     unsigned numPartitions_;
     unsigned numDevices_ = 1;
@@ -160,6 +161,9 @@ public:
         char* token;
         nodeIps_.clear();
         bool scanNodeIp;
+#ifdef XILINX_COM_DETECT_DEBUG_ON
+        std::cout << "DEBUG: Parsing config file " << PLUGIN_CONFIG_PATH << std::endl;
+#endif
         while (config_json.getline(line, sizeof(line))) {
             token = strtok(line, "\"\t ,}:{\n");
             scanNodeIp = false;
@@ -170,30 +174,46 @@ public:
                 } else if (!std::strcmp(token, "curNodeIp")) {
                     token = strtok(NULL, "\"\t ,}:{\n");
                     curNodeIp_ = token;
+                } else if (!std::strcmp(token, "deviceName")) {
+                    token = strtok(NULL, "\"\t ,}:{\n");
+                    deviceNames_ = token;
+#ifdef XILINX_COM_DETECT_DEBUG_ON
+                    std::cout << "    deviceNames_=" << deviceNames_ << std::endl;
+#endif
                 } else if (!std::strcmp(token, "xGraphStore")) {
                     token = strtok(NULL, "\"\t ,}:{\n");
                     xGraphStorePath_ = token;
                 } else if (!std::strcmp(token, "numDevices")) {
                     token = strtok(NULL, "\"\t ,}:{\n");
                     numDevices_ = atoi(token);
+#ifdef XILINX_COM_DETECT_DEBUG_ON
                     std::cout << "numDevices=" << numDevices_ << std::endl;
+#endif
                 } else if (!std::strcmp(token, "nodeIps")) {
                     // this field has multipe space separated IPs
                     scanNodeIp = true;
                     // read the next token
                     token = strtok(NULL, "\"\t ,}:{\n");
                     nodeIps_ += token;
+#ifdef XILINX_COM_DETECT_DEBUG_ON
                     std::cout << "node_ips=" << nodeIps_ << std::endl;
+#endif
                 } else if (scanNodeIp) {
                     // In the middle of nodeIps field
                     nodeIps_ += " ";
                     nodeIps_ += token;
+#ifdef XILINX_COM_DETECT_DEBUG_ON
                     std::cout << "node_ips=" << nodeIps_ << std::endl;
+#endif
                 }
                 token = strtok(NULL, "\"\t ,}:{\n");
             }
         }
         config_json.close();
+        if (deviceNames_ == "xilinx_u50_gen3x16_xdma_201920_3")
+            xclbinPath_ = PLUGIN_XCLBIN_PATH;
+        else if (deviceNames_ == "xilinx_u55c_gen3x16_xdma_base_2")
+            xclbinPath_ = PLUGIN_XCLBIN_PATH_U55C;
     }
     
     ~Context() { delete pLouvainMod_; }
@@ -214,7 +234,7 @@ public:
         
         if (pLouvainMod_ == nullptr) {
             xilinx_apps::louvainmod::Options options;
-            options.xclbinPath = PLUGIN_XCLBIN_PATH;
+            options.xclbinPath = xclbinPath_;
             options.nameProj = alveoProject_;
             options.numDevices = numDevices_;
             options.deviceNames = deviceNames_;

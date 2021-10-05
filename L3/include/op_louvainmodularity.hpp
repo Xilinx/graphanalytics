@@ -32,13 +32,6 @@ namespace xf {
 namespace graph {
 namespace L3 {
 
-enum {
-    LOUVAINMOD_OPT_KERNEL = 1,
-    LOUVAINMOD_PRUNING_KERNEL = 2,
-    LOUVAINMOD_RENUM_KERNEL = 3,
-    LOUVAINMOD_2CU_U55C_KERNEL = 4
-};
-
 class opLouvainModularity : public opBase {
    public:
     static uint32_t cuPerBoardLouvainModularity;

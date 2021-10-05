@@ -21,7 +21,7 @@ alveoProject=""
 numPartitionsNode=9
 
 compileMode=0
-partitionMode=2
+partitionMode=3
 runMode=1
 
 
@@ -90,10 +90,13 @@ partition: .install-udf-done
 help:
 	@echo "Makefile usage:"
 	@echo "make install-plugin [deviceNames=deviceNames]"
-	@echo "    Install the plugin"
+	@echo "    Install the plugin for the selected target device"
 	@echo ""
-	@echo "run            : Run the example"
-	@echo "partition      : Run partition.sh to partition the graph in TigerGraph memory"
+	@echo "make run [deviceNames=deviceNames]"
+	@echo "    Run the example"
+	@echo ""
+	@echo "make partition"
+	@echo "    Partition the graph in TigerGraph memory"
 	@echo ""
 	@echo "Parameter descriptions:"
 	@echo "deviceNames       : Target device name. Supported devices: "
@@ -109,8 +112,8 @@ help:
 	@echo "                    2: skip database creation and gsql compilation"
 	@echo "partitionMode     : 0: Use existing partitions from disks; "
 	@echo "                    1: Generate partitions from TigerGraph memory"
-	@echo "                    2: Generate partitions from .mtx file (default)"
-	@echo "                    3: Generate partitions from TigerGraph using whole-graph technique"
+	@echo "                    2: Generate partitions from .mtx file"
+	@echo "                    3: Generate partitions from TigerGraph using whole-graph technique (default)"
 	@echo "runMode           : 0: Run only on CPU"
 	@echo "                    1: Run only on Alveo (default)"
 	@echo "                    2: Run on both CPU and Alveo"

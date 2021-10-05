@@ -37,7 +37,7 @@ struct ToolOptions {
     int numThreads;
     int numPars;
     int gh_par;  // same as par_prune
-    int flow_fast;
+    int kernelMode;
     int numDevices;
     int modeZmq;
     char path_zmq[4096];

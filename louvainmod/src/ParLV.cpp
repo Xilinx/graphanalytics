@@ -940,7 +940,7 @@ int host_ParserParameters(int argc,
                           int& numThread,
                           int& numPars,
                           int& gh_par,
-                          int& flow_fast,
+                          int& kernelMode,
                           int& numDevices,
                           int& mode_zmq,
                           char* path_zmq,
@@ -972,9 +972,7 @@ int host_ParserParameters(int argc,
     int has_numThread = general_findPara(argc, argv, "-thread");
     int hasNumPars = general_findPara(argc, argv, "-num_pars");
     int has_gh_par = general_findPara(argc, argv, "-par_prune");
-    int has_flow_prune = general_findPara(argc, argv, "-prun");
-    int has_flow_fast = general_findPara(argc, argv, "-fast");
-    int has_flow_fast2 = general_findPara(argc, argv, "-fast2");
+    int hasKernelMode = general_findPara(argc, argv, "-kernel_mode");
     int hasNumDevices = general_findPara(argc, argv, "-num_devices");
     int hasNumCu = general_findPara(argc, argv, "-num_cu");
     int has_driver = general_findPara(argc, argv, "-driver");
@@ -1169,22 +1167,20 @@ int host_ParserParameters(int argc,
         gh_par = atoi(argv[has_gh_par + 1]);
     } else
         gh_par = 1;
+
+    // Kernel mode handling
 #ifdef PRINTINFO
     printf("PARAMETER  gh_par = %i\n", gh_par);
 #endif
-    if (has_flow_prune != -1) {
-        flow_fast = 2;
-    } else if(has_flow_fast != -1) {
-        flow_fast = 2;
-    } else if (has_flow_fast2 != -1) {
-        if(numCu == 1)
-            flow_fast = 3;
-        else
-            flow_fast = 4;
-    } else 
-        flow_fast = 1;
-#ifdef PRINTINFO
-    printf("PARAMETER  flow_fast = %d\n", flow_fast);
+    if (hasKernelMode != -1 && hasKernelMode < (argc - 1)) {
+        rec[hasNumDevices] = true;
+        rec[hasNumDevices + 1] = true;
+        kernelMode = atoi(argv[hasKernelMode + 1]);
+    } else
+        kernelMode = 1;
+
+#ifndef NDEBUG
+    printf("PARAMETER  kernelMode=%d\n", kernelMode);
 #endif
     if (has_opts_output != -1 && has_opts_output < (argc - 1)) {
         opts_output = true;
@@ -1262,7 +1258,7 @@ ToolOptions::ToolOptions(int argcIn, char** argvIn) {
     host_ParserParameters(argc, argv, 
         opts_C_thresh, opts_minGraphSize, threshold, opts_ftype, opts_inFile,
         opts_coloring, opts_output, outputFile, opts_VF, xclbinPath, deviceNames, 
-        numThreads, numPars, gh_par, flow_fast, numDevices, modeZmq, path_zmq, 
+        numThreads, numPars, gh_par, kernelMode, numDevices, modeZmq, path_zmq, 
         useCmd, mode_alveo, nameProj, alveoProject, numPureWorker, nameWorkers, 
         nodeId, numNodes, max_level, max_iter);
 }
@@ -3849,15 +3845,15 @@ int loadComputeUnitsToFPGAs(
     //----------------- Set parameters of op0 again some of those will be covered by command-line
     op0->operationName = opName;
     op0->setKernelName((char*)kernelName.c_str());
-    if (flowMode == xf::graph::L3::LOUVAINMOD_PRUNING_KERNEL)
+    if (flowMode == LOUVAINMOD_PRUNING_KERNEL)
         op0->setKernelAlias("kernel_louvain_pruning_u50");
-    else if (flowMode == xf::graph::L3::LOUVAINMOD_2CU_U55C_KERNEL)
+    else if (flowMode == LOUVAINMOD_2CU_U55C_KERNEL)
         op0->setKernelAlias("kernel_louvain_2cu_u55");
     
     op0->requestLoad = requestLoad;
     op0->xclbinPath = xclbinPath;
     op0->numDevices = numDevices;
-    op0->cuPerBoard = (flowMode == xf::graph::L3::LOUVAINMOD_2CU_U55C_KERNEL) ? 2 : 1;
+    op0->cuPerBoard = (flowMode == LOUVAINMOD_2CU_U55C_KERNEL) ? 2 : 1;
 
     //----------------- enable handle0--------
     handle0->addOp(*op0);
