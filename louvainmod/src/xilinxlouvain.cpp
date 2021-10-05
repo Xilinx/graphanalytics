@@ -99,7 +99,7 @@ public:
 
         if (kernelMode < 2 || kernelMode > 4) {
             std::ostringstream oss;
-            oss << "Invalid flow_fast value " << kernelMode << ".  The supported values are 2, 3 and 4.";
+            oss << "Invalid kernelMode value " << kernelMode << ".  The supported values are 2, 3 and 4.";
             throw Exception(oss.str());
         }
         

@@ -42,6 +42,13 @@ enum {
     ALVEOAPI_RUN
 };
 
+enum {
+    //LOUVAINMOD_OPT_KERNEL = 1,
+    LOUVAINMOD_PRUNING_KERNEL = 2,
+    LOUVAINMOD_RENUM_KERNEL = 3,
+    LOUVAINMOD_2CU_U55C_KERNEL = 4
+};
+
 /**
  * Define this macro to make functions in louvainmod_loader.cpp inline instead of extern.  You would use this macro
  * when including louvainmod_loader.cpp in a header file, as opposed to linking with libXilinxCosineSim_loader.a.
@@ -59,7 +66,7 @@ int create_and_load_alveo_partitions(int argc, char *argv[]);
 
 XILINX_LOUVAINMOD_IMPL_DECL
 float loadAlveoAndComputeLouvain(    
-    char* xclbinPath, int flow_fast, unsigned numDevices, std::string deviceNames,
+    char* xclbinPath, int kernelMode, unsigned numDevices, std::string deviceNames,
     char* alveoProject, unsigned mode_zmq, unsigned numPureWorker, 
     char* nameWorkers[128], unsigned int nodeID,  char* opts_outputFile, 
     unsigned int max_iter, unsigned int max_level, float tolerance, 
@@ -73,7 +80,7 @@ void xilinx_louvainmod_destroyImpl(xilinx_apps::louvainmod::LouvainModImpl *pImp
 
 }
 
-int loadComputeUnitsToFPGAs(char* xclbinPath, int flowMode, 
+int loadComputeUnitsToFPGAs(char* xclbinPath, int kernelMode, 
                             unsigned numDevices, std::string deviceNames);
 float loadAlveoAndComputeLouvainWrapper(int argc, char *argv[]);
 float louvain_modularity_alveo(int argc, char *argv[]);
@@ -132,7 +139,7 @@ struct Options {
     XString nameProj;  // -name option: location of "partition project" created by partitioning, read by load/compute
     XString alveoProject; // Alveo project file .par.proj TODO: to be combined with nameProj
     int modeAlveo;
-    int kernelMode = 2;  // C
+    int kernelMode = LOUVAINMOD_PRUNING_KERNEL;  // Kernel mode
     unsigned numDevices = 1;  // number of devices
     XString deviceNames;  // space-separated list of target device names
     unsigned nodeId = 0;  // node ID 0 will be the driver, all others will be workers

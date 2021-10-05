@@ -111,13 +111,14 @@ private:
     std::string nodeIps_;
     std::string xGraphStorePath_;
     std::string xclbinPath_;
+    uint32_t kernelMode_;
     std::string alveoProject_;
-    unsigned numPartitions_;
-    unsigned numDevices_ = 1;
+    uint32_t numPartitions_;
+    uint32_t numDevices_ = 1;
     PartitionNameMode partitionNameMode_ = PartitionNameMode::Auto;
 
-    unsigned nodeId_ = 0;
-    unsigned numNodes_ = 1;
+    uint32_t nodeId_ = 0;
+    uint32_t numNodes_ = 1;
     State state_ = UninitializedState;
     LouvainMod *pLouvainMod_ = nullptr;
 
@@ -210,10 +211,13 @@ public:
             }
         }
         config_json.close();
-        if (deviceNames_ == "xilinx_u50_gen3x16_xdma_201920_3")
+        if (deviceNames_ == "xilinx_u50_gen3x16_xdma_201920_3") {
             xclbinPath_ = PLUGIN_XCLBIN_PATH;
-        else if (deviceNames_ == "xilinx_u55c_gen3x16_xdma_base_2")
+            kernelMode_ = LOUVAINMOD_PRUNING_KERNEL;
+        } else if (deviceNames_ == "xilinx_u55c_gen3x16_xdma_base_2") {
             xclbinPath_ = PLUGIN_XCLBIN_PATH_U55C;
+            kernelMode_ = LOUVAINMOD_2CU_U55C_KERNEL;
+        }
     }
     
     ~Context() { delete pLouvainMod_; }
@@ -235,6 +239,7 @@ public:
         if (pLouvainMod_ == nullptr) {
             xilinx_apps::louvainmod::Options options;
             options.xclbinPath = xclbinPath_;
+            options.kernelMode = kernelMode_;
             options.nameProj = alveoProject_;
             options.numDevices = numDevices_;
             options.deviceNames = deviceNames_;

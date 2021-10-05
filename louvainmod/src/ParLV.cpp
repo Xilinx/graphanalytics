@@ -1535,7 +1535,7 @@ void PrintRptParameters(double opts_C_thresh,   // Threshold with coloring on
                         int numThreads,
                         int num_par,
                         int par_prune,
-                        bool flow_fast,
+                        bool kernelMode,
                         int devNeed_cmd,
                         int mode_zmq,
                         char* path_zmq,
@@ -1576,9 +1576,8 @@ void PrintRptParameters(double opts_C_thresh,   // Threshold with coloring on
             "<path>\033[0m\" or by config.json                \n",
             op0.xclbinPath.c_str());
     printf(
-        "FPGA Parameter \033[1;37;40mtype of xclbin  \033[0m: %s    \t\t\t Default=  normal ,       by command-line: "
-        "\" \033[1;37;40m-fast\033[0m \"         \n",
-        flow_fast ? "fast" : "normal");
+        "FPGA Parameter \033[1;37;40mtype of xclbin  \033[0m: %d    \t\t\t Default=  normal ,       by command-line: "
+        "\" \033[1;37;40m-fast\033[0m \"         \n", kernelMode);
     printf(
         "Louv Parameter \033[1;37;40mLouvain_inFile  \033[0m: %s    \t\t\t Required -f  3   ,       by command-line: "
         "\" \033[1;37;40m<name>\033[0m \"        \n",
@@ -1649,7 +1648,7 @@ void ParLV::Init(int mode)
     NV_list_l = 0;
     NV_list_g = 0;
     num_dev = 1;
-    flowMode = mode;
+    kernelMode = mode;
     num_server = 1;
 }
 
@@ -2146,7 +2145,7 @@ GLV* ParLV::FinalLouvain(char* opts_xclbinPath,
 {
     if (st_Merged == false) return NULL;
     bool hasGhost = false;
-    plv_final = LouvainGLV_general(hasGhost, this->flowMode, 0, plv_merged, opts_xclbinPath, numThreads, id_glv,
+    plv_final = LouvainGLV_general(hasGhost, this->kernelMode, 0, plv_merged, opts_xclbinPath, numThreads, id_glv,
                                    minGraphSize, threshold, C_threshold, isParallel, numPhase);
 #ifdef PRINTINFO
     printf("\033[1;37;40mINFO: PAR\033[0m: Community of plv_merged is updated\n");
@@ -2235,7 +2234,7 @@ void ParLV::CleanTmpGlv() {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ParLV_general_batch_thread(int flowMode,
+void ParLV_general_batch_thread(int kernelMode,
                                 GLV* plv_orig,
                                 int id_dev,
                                 int num_dev,
@@ -2266,7 +2265,7 @@ void ParLV_general_batch_thread(int flowMode,
 
     for (int p = id_dev; p < num_par; p += num_dev) {
         double time1 = getTime();
-        glv_t = LouvainGLV_general(true, flowMode, 0, par_src[p], xclbinPath, numThreads, id_glv, minGraphSize,
+        glv_t = LouvainGLV_general(true, kernelMode, 0, par_src[p], xclbinPath, numThreads, id_glv, minGraphSize,
                                    threshold, C_threshold, isParallel, numPhase);
         par_lved[p] = glv_t;
         // pushList(glv_t);
@@ -2298,7 +2297,7 @@ GLV* par_general(GLV* src, int& id_glv, long start, long end, bool isPrun, int t
     return par_general(src, &stt, id_glv, start, end, isPrun, th_prun);
 }
 
-GLV* LouvainGLV_general_par(int flowMode,
+GLV* LouvainGLV_general_par(int kernelMode,
                             ParLV& parlv,
                             char* xclbinPath,
                             int numThreads,
@@ -2333,7 +2332,7 @@ GLV* LouvainGLV_general_par(int flowMode,
         for (int dev = 0; dev < parlv.num_dev; dev++) {
             parlv.timesPar.timeLv_dev[dev] = getTime();
             bool hasGhost = true;
-            td[dev] = std::thread(LouvainGLV_general_batch_thread, hasGhost, flowMode, dev, id_glv, parlv.num_dev,
+            td[dev] = std::thread(LouvainGLV_general_batch_thread, hasGhost, kernelMode, dev, id_glv, parlv.num_dev,
                                   parlv.num_par, parlv.timesPar.timeLv, parlv.par_src, parlv.par_lved, xclbinPath,
                                   numThreads, minGraphSize, threshold, C_threshold, isParallel, numPhase);
         }
@@ -2371,7 +2370,7 @@ GLV* LouvainGLV_general_par(int flowMode,
     return glv_final;
 }
 
-GLV* LouvainGLV_general_par_OneDev(int flowMode,
+GLV* LouvainGLV_general_par_OneDev(int kernelMode,
                                    ParLV& parlv,
                                    char* xclbinPath,
                                    int numThreads,
@@ -2408,7 +2407,7 @@ GLV* LouvainGLV_general_par_OneDev(int flowMode,
         double time1 = getTime();
         int id_glv_dev = id_glv + p;
         bool hasGhost = true;
-        GLV* glv_t = LouvainGLV_general(hasGhost, flowMode, id_dev, parlv.par_src[p], xclbinPath, numThreads,
+        GLV* glv_t = LouvainGLV_general(hasGhost, kernelMode, id_dev, parlv.par_src[p], xclbinPath, numThreads,
                                         id_glv_dev, minGraphSize, threshold, C_threshold, isParallel, numPhase);
         parlv.par_lved[p] = glv_t;
         // pushList(glv_t);
@@ -2460,7 +2459,7 @@ void BackAnnotateC(ParLV& parlv) {
     BackAnnotateC(parlv.num_par, parlv.par_src, parlv.off_src, parlv.plv_merged->C, parlv.plv_src);
 }
 
-void ParLouvainMeger(int flowMode,
+void ParLouvainMeger(int kernelMode,
                      ParLV& parlv,
                      char* xclbinPath,
                      int numThreads,
@@ -2520,7 +2519,7 @@ void ParLouvainMeger(int flowMode,
     for (int p = 0; p < num_par_worker; p++) {
         bool hasGhost = true;
         glv_par_lved_worker[p] =
-            LouvainGLV_general(hasGhost, flowMode, id_dev, glv_par_src_worker[p], xclbinPath, numThreads, id_glv_wkr,
+            LouvainGLV_general(hasGhost, kernelMode, id_dev, glv_par_src_worker[p], xclbinPath, numThreads, id_glv_wkr,
                                minGraphSize, threshold, C_threshold, isParallel, numPhase);
     }
     // Worker: Saving result
@@ -2589,7 +2588,7 @@ GLV* LouvainGLV_general_par(int mode,
         // 3) updating plv_merged
         if (false) {
             parlv_1.plv_final =
-                LouvainGLV_general(false, parlv_1.flowMode, 0, parlv_1.plv_merged, xclbinPath, numThreads, id_glv,
+                LouvainGLV_general(false, parlv_1.kernelMode, 0, parlv_1.plv_merged, xclbinPath, numThreads, id_glv,
                                    minGraphSize, threshold, C_threshold, isParallel, numPhase);
             glv_final = parlv_1.plv_final;
         } else {
@@ -2601,7 +2600,7 @@ GLV* LouvainGLV_general_par(int mode,
                             isParallel, numPhase);
             // updating plv_merged
             parlv_2.plv_final =
-                LouvainGLV_general(false, parlv_2.flowMode, 0, parlv_2.plv_merged, xclbinPath, numThreads, id_glv,
+                LouvainGLV_general(false, parlv_2.kernelMode, 0, parlv_2.plv_merged, xclbinPath, numThreads, id_glv,
                                    minGraphSize, threshold, C_threshold, isParallel, numPhase);
 // plv_merged -> plv_src
 #ifdef PRINTINFO
@@ -2657,10 +2656,10 @@ int LoadParLV(char* name, ParLV* p_parlv) {
     }
 
     char* ptr = (char*)p_parlv;
-    int flowMode = p_parlv->flowMode;
+    int kernelMode = p_parlv->kernelMode;
     int num_dev = p_parlv->num_dev;
     fread(ptr, sizeof(ParLVVar), 1, fp);
-    p_parlv->flowMode = flowMode;
+    p_parlv->kernelMode = kernelMode;
     p_parlv->num_dev = num_dev;
     fclose(fp);
 
@@ -2668,21 +2667,22 @@ int LoadParLV(char* name, ParLV* p_parlv) {
 }
 
 void Louvain_thread_core(std::shared_ptr<xf::graph::L3::Handle> handle0,
-                         int flowMode,
+                         int kernelMode,
                          GLV* glv_src,
                          GLV* glv,
 						 LouvainPara* para_lv)
 {
 #ifndef NDEBUG
     std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__ 
-              << " flowMode=" << flowMode << " NVl=" << glv->NVl << std::endl;
+              << "\n    kernelMode=" << kernelMode 
+              << "\n    NVl=" << glv->NVl << std::endl;
 #endif
-    xf::graph::L3::louvainModularity(handle0, flowMode, glv_src, glv, para_lv);
+    xf::graph::L3::louvainModularity(handle0, kernelMode, glv_src, glv, para_lv);
 }
 
 GLV* L3_LouvainGLV_general(int& id_glv,
                            std::shared_ptr<xf::graph::L3::Handle>& handle0,
-                           int flowMode,
+                           int kernelMode,
                            GLV* glv_src,
 						   LouvainPara* para_lv)
 {
@@ -2696,7 +2696,7 @@ GLV* L3_LouvainGLV_general(int& id_glv,
     assert(glv_iter);
     glv_iter->SetName_lv(glv_iter->ID, glv_src->ID);
 
-    td = std::thread(Louvain_thread_core, handle0, flowMode, glv_src, glv_iter, para_lv);
+    td = std::thread(Louvain_thread_core, handle0, kernelMode, glv_src, glv_iter, para_lv);
     td.join();
     return glv_iter;
 }
@@ -2733,7 +2733,7 @@ void Server_SubLouvain(std::shared_ptr<xf::graph::L3::Handle>& handle0,
             printf("INFO:     start Louvain_thread_core thread %d\n", parCnt+cu);
             parlv.timesPar.timeLv[parCnt+cu] = getTime();
             assert(glv[parCnt+cu]);
-            td[parCnt+cu] = std::thread(Louvain_thread_core, handle0, parlv.flowMode,
+            td[parCnt+cu] = std::thread(Louvain_thread_core, handle0, parlv.kernelMode,
                                          parlv.par_src[parCnt+cu], glv[parCnt+cu], para_lv);
             parlv.par_lved[parCnt+cu] = glv[parCnt+cu];
             char tmp_name[1024];
@@ -2786,7 +2786,7 @@ GLV* Driver_Merge_Final(std::shared_ptr<xf::graph::L3::Handle>& handle0,
     glv_final->SetName_lv(glv_final->ID, parlv.plv_merged->ID);
 
     // parlv.timesPar.timeFinal = getTime();
-    Louvain_thread_core(handle0, parlv.flowMode, parlv.plv_merged, glv_final, para_lv);
+    Louvain_thread_core(handle0, parlv.kernelMode, parlv.plv_merged, glv_final, para_lv);
     for (int p = 0; p < parlv.num_par; p++) {
         for (long v_sub = 0; v_sub < parlv.par_src[p]->NVl; v_sub++) {
             long v_orig = v_sub + parlv.off_src[p];
@@ -2817,7 +2817,7 @@ int LouvainProcess_part1(int& nodeID, ParLV& parlv, char* tmp_msg_d2w, ParLV& pa
     int status = 0;
 
     // this will be initialized by message again
-    parlv_wkr.Init(parlv.flowMode, NULL, parlv.num_par, parlv.num_dev, parlv.isPrun, parlv.th_prun);
+    parlv_wkr.Init(parlv.kernelMode, NULL, parlv.num_par, parlv.num_dev, parlv.isPrun, parlv.th_prun);
     char path_driver[1024];
     char names[32][256];
 
@@ -2906,43 +2906,6 @@ void Driver_Partition(ParLV& parlv, int& id_glv) {
     }
     parlv.st_Partitioned = true;
 }
-
-/*
-GLV* UpdateCwithFinal(std::shared_ptr<xf::graph::L3::Handle>& handle0,
-                      int flowMode,
-                      GLV* glv_orig,
-                      int num_dev,
-                      bool isPrun,
-                      int par_prune,
-                      int& id_glv,
-					  LouvainPara* para_lv) {
-    const long MaxSize = glb_MAXNV_M;
-    const long safeSize = MaxSize * 0.9;
-    long NV = glv_orig->NV;
-    long NE = glv_orig->NE;
-#ifdef PRINTINFO
-    printf("INFO:CHECK SIZE for glv_orig NV=%ld NE=%ld MaxSize=%ld\n", NV, NE, MaxSize);
-#endif
-    if (NV > MaxSize || NE > MaxSize) {
-        int num_par = (NE + safeSize - 1) / safeSize;
-#ifdef PRINTINFO_2
-    printf("\033[1;37;40mINFO: Now doing Partition for merged graph with num_par=%d \033[0m\n", num_par);
-#endif
-        ParLV parlv;
-        parlv.Init(flowMode, glv_orig, num_par, num_dev, isPrun, par_prune);
-        GLV* glv_final = LouvainGLV_general_top(handle0, parlv, id_glv, para_lv);
-        return glv_final;
-    } else {
-#ifdef PRINTINFO
-        printf("INFO:CHECK SIZE for glv_orig successful, final Louvain will be done!\n");
-#endif
-        GLV* glv_final = glv_orig->CloneSelf(id_glv);
-        glv_final->SetName_lv(glv_final->ID, glv_orig->ID);
-        Louvain_thread_core(handle0, flowMode, glv_orig, glv_final, para_lv);
-        return glv_final;
-    }
-}
-*/
 
 GLV* Driver_Merge_Final_LoacalPar(std::shared_ptr<xf::graph::L3::Handle>& handle0,
                                   ParLV& parlv,
@@ -3582,7 +3545,7 @@ extern "C" float load_alveo_partitions(unsigned int num_partitions, unsigned int
  -3:
 */
 int compute_louvain_alveo_seperated_load(
-    int flowMode, unsigned int numDevices,
+    int kernelMode, unsigned int numDevices,
     unsigned int numPartitions, char* alveoProject,
     int mode_zmq, int numPureWorker, char* nameWorkers[128], unsigned int nodeID,
     float tolerance, bool verbose, std::shared_ptr<xf::graph::L3::Handle>& handle0,
@@ -3590,7 +3553,7 @@ int compute_louvain_alveo_seperated_load(
 {
 #ifndef NDEBUG
     std::cout << "DEBUG: " << __FUNCTION__   
-              << "\n     flowMode=" << flowMode
+              << "\n     kernelMode=" << kernelMode
               << "\n     numDevices=" << numDevices
               << "\n     numPartitions=" << numPartitions 
               << "\n     alveoProject=" << alveoProject
@@ -3621,8 +3584,8 @@ int compute_louvain_alveo_seperated_load(
         //-----------------------------------------------------------------
         char inFile[1024];
 
-        p_parlv_dvr->Init(flowMode, NULL, numPartitions, numDevices, isPrun, par_prune);
-        p_parlv_wkr->Init(flowMode, NULL, numPartitions, numDevices, isPrun, par_prune);
+        p_parlv_dvr->Init(kernelMode, NULL, numPartitions, numDevices, isPrun, par_prune);
+        p_parlv_wkr->Init(kernelMode, NULL, numPartitions, numDevices, isPrun, par_prune);
 
             // API FOR LOADING
         {
@@ -3662,13 +3625,13 @@ int compute_louvain_alveo_seperated_load(
         //-----------------------------------------------------------------
         // WORKER
         //-----------------------------------------------------------------
-    	p_parlv_wkr->Init(flowMode, NULL, numPartitions, numDevices, isPrun, par_prune);
+    	p_parlv_wkr->Init(kernelMode, NULL, numPartitions, numDevices, isPrun, par_prune);
     	p_parlv_wkr->timesPar.timeAll = getTime();
         char LoadCommand[MAX_LEN_MESSAGE];
         {
             char inFile[1024];
             ParLV parlv_tmp;
-            parlv_tmp.Init(flowMode, NULL, numPartitions, numDevices, isPrun, par_prune);
+            parlv_tmp.Init(kernelMode, NULL, numPartitions, numDevices, isPrun, par_prune);
 
             status = LouvainGLV_general_top_zmq_worker_new_part1(parlv_tmp, nodeID, (*p_parlv_wkr), NULL);
         }
@@ -3783,7 +3746,7 @@ void freeSharedHandle()
 // 1. The shared handle does not exist or
 // 2. The numDevices option changes
 int createSharedHandle(
-    char* xclbinPath, int flowMode, unsigned int numDevices, std::string deviceNames,
+    char* xclbinPath, int kernelMode, unsigned int numDevices, std::string deviceNames,
     bool opts_coloring, long opts_minGraphSize, double opts_C_thresh, int numThreads)
 {
     int status = 0;
@@ -3808,12 +3771,12 @@ int createSharedHandle(
     std::cout << "INFO: " << __FUNCTION__ << std::endl;
     std::shared_ptr<xf::graph::L3::Handle> handleInstance(new xf::graph::L3::Handle);
     sharedHandlesLouvainMod::instance().handlesMap[0] = handleInstance;
-    status = loadComputeUnitsToFPGAs(xclbinPath, flowMode, numDevices, deviceNames);
+    status = loadComputeUnitsToFPGAs(xclbinPath, kernelMode, numDevices, deviceNames);
     if (status < 0)
         return status;
 
     std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesLouvainMod::instance().handlesMap[0];
-    (handle0->oplouvainmod)->mapHostToClBuffers(NULL, flowMode, opts_coloring,
+    (handle0->oplouvainmod)->mapHostToClBuffers(NULL, kernelMode, opts_coloring,
         opts_minGraphSize, opts_C_thresh, numThreads);
 
     return status;
@@ -3821,14 +3784,14 @@ int createSharedHandle(
 
 int loadComputeUnitsToFPGAs(
     char* xclbinPath, 
-    int flowMode,
+    int kernelMode,
     unsigned int numDevices,
     std::string deviceNames)
 {
 #ifndef NDEBUG
     std::cout << "DEBUG: loadComputeUnitsToFPGAs"
               << "\n     xclbinPath=" << xclbinPath
-              << "\n     flowMode=" << flowMode
+              << "\n     kernelMode=" << kernelMode
               << "\n     numDevices=" << numDevices
               << "\n     deviceNames=" << deviceNames
               << std::endl;
@@ -3845,15 +3808,15 @@ int loadComputeUnitsToFPGAs(
     //----------------- Set parameters of op0 again some of those will be covered by command-line
     op0->operationName = opName;
     op0->setKernelName((char*)kernelName.c_str());
-    if (flowMode == LOUVAINMOD_PRUNING_KERNEL)
+    if (kernelMode == LOUVAINMOD_PRUNING_KERNEL)
         op0->setKernelAlias("kernel_louvain_pruning_u50");
-    else if (flowMode == LOUVAINMOD_2CU_U55C_KERNEL)
+    else if (kernelMode == LOUVAINMOD_2CU_U55C_KERNEL)
         op0->setKernelAlias("kernel_louvain_2cu_u55");
     
     op0->requestLoad = requestLoad;
     op0->xclbinPath = xclbinPath;
     op0->numDevices = numDevices;
-    op0->cuPerBoard = (flowMode == LOUVAINMOD_2CU_U55C_KERNEL) ? 2 : 1;
+    op0->cuPerBoard = (kernelMode == LOUVAINMOD_2CU_U55C_KERNEL) ? 2 : 1;
 
     //----------------- enable handle0--------
     handle0->addOp(*op0);
@@ -3871,7 +3834,7 @@ Return values:
     -4: Error in createSharedHandle
 */
 extern "C" float loadAlveoAndComputeLouvain(
-    char* xclbinPath, int flowMode, unsigned int numDevices, std::string deviceNames,
+    char* xclbinPath, int kernelMode, unsigned int numDevices, std::string deviceNames,
     char* alveoProject, unsigned mode_zmq, unsigned numPureWorker, char* nameWorkers[128], 
     unsigned int nodeID, char* opts_outputFile, unsigned int max_iter, unsigned int max_level, 
     float tolerance, bool intermediateResult, bool verbose, bool final_Q, bool all_Q) {
@@ -3899,14 +3862,14 @@ extern "C" float loadAlveoAndComputeLouvain(
         }     
     }
     
-    int status = createSharedHandle(xclbinPath, flowMode, numDevices, deviceNames, opts_coloring,
+    int status = createSharedHandle(xclbinPath, kernelMode, numDevices, deviceNames, opts_coloring,
                                     opts_minGraphSize, opts_C_thresh, numThreads);
     if (status < 0)
         return -4;
 
     std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesLouvainMod::instance().handlesMap[0];
     ret = compute_louvain_alveo_seperated_load(
-            flowMode, numDevices, numPartitions, alveoProject,
+            kernelMode, numDevices, numPartitions, alveoProject,
             mode_zmq, numPureWorker, nameWorkers, nodeID, tolerance, verbose, handle0, 
             &parlv_drv, &parlv_wkr);
     
