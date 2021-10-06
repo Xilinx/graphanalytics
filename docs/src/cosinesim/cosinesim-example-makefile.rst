@@ -11,8 +11,6 @@ C++ Example using Makefile
     cd cosinesim-example 
     cp /opt/xilinx/apps/graphanalytics/cosinesim/1.0/examples.zip .
     unzip examples.zip
-    cd examples/cppdemo
+    cd examples/cpp
     make
     make run
-
-
