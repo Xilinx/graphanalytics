@@ -1,4 +1,4 @@
-Healthcare Conconcept Similarity with UMLS
+Healthcare Concept Similarity with UMLS
 ===========================================
 
 In this use case, we will try to find similar drugs/healthcare terms from the `Unified 
@@ -23,5 +23,27 @@ returns top matching drugs, drug ingredients or related healthcare concepts.
 In General, finding Cosine Similarity on large datasets take a large amount of time 
 on CPU. With the Xilinx Cosine Similarity Acceleration, speedups > ~ 80x can be achieved.
 
-This   can be downloaded from `Healthcare Conconcept Similarity with UMLS notebook on GitHub 
+Run Jupyter Notebook
+------------------------
+
+* Install the Drug Similarity Demo Plugin
+
+.. code-block:: bash
+
+    (fpga)$ cd drug_similarity
+    (fpga)$ su - tigergraph
+    Password:
+    (fpga)$ bin/install_udf.sh
+
+
+* Run the command below to start Jupyter Notebook
+
+.. code-block:: bash
+
+    (fpga)$ cd jupyter-demo
+    (fpga)$ jupyter notebook drug_similarity_TG_demo.ipynb
+
+* Follow the step-by-step instructions in the notebook once it is loaded in your browser.
+
+This Notebook can be downloaded from `Healthcare Conconcept Similarity with UMLS notebook on GitHub
 <https://github.com/Xilinx/graphanalytics/blob/master/plugin/tigergraph/recomengine/examples/drug_similarity/jupyter-demo/drug_similarity_TG_demo.ipynb>`_. 
