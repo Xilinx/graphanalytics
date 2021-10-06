@@ -61,19 +61,16 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 if [[ $OSDIST == "ubuntu" ]]; then
-    if (( $OSREL == 1604 )); then
-        pkg_dir="./ubuntu-16.04"
-    elif (( $OSREL == 1804 )); then
+    if (( $OSREL == 1804 )); then
         pkg_dir="./ubuntu-18.04"
     elif (( $OSREL == 2004 )); then
         pkg_dir="./ubuntu-20.04"        
     else
-        echo "ERROR: Ubuntu release version must be 16.04 or 18.04."
+        echo "ERROR: Ubuntu release version must be 18.04 or 20.04."
         return 1
     fi
 elif [[ $OSDIST == "centos" ]]; then
     pkg_dir="./centos-7.8"
-
 else 
     echo "ERROR: only Ubuntu and Centos are supported."
     return 1
