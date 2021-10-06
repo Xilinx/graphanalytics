@@ -345,7 +345,7 @@ numVectors=5000
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3
 run-test: cppTest
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) $(CPP_BUILD_DIR)/cosinesim_test \
-	                $(numDevices) $(iterations) $(numVectors) $(deviceNames)
+	                -d $(numDevices) -i $(iterations) -t $(deviceNames)
 
 run-dyn-test: cppTest
 	LD_PRELOAD=$(PWD)/$(CPP_BUILD_DIR)/$(LIB_NAME) LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) \

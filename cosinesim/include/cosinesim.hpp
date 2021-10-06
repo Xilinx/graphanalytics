@@ -575,8 +575,8 @@ public:
      * 
      * The `elements` array argument must contain as many elements as specified in Options::vecLength.
      */
-    std::vector<Result> matchTargetVector(unsigned numResults, Value *elements) {
-        return CosineSimBase::matchTargetVector(numResults, elements);
+    std::vector<Result> matchTargetVector(unsigned numResults, const Value *elements) {
+        return CosineSimBase::matchTargetVector(numResults, const_cast<Value *>(elements));  // TODO: fix constness
     }
 private:
     Options options_;
