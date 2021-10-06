@@ -72,42 +72,44 @@ void createHandleSimDense(class openXRM *xrm, clHandle &handle,
 }
 
 uint32_t opSimilarityDense::cuPerBoardSimDense;
-
 uint32_t opSimilarityDense::dupNmSimDense;
 
-void opSimilarityDense::setHWInfo(uint32_t numDevices, uint32_t maxCU) {
+void opSimilarityDense::setHWInfo(uint32_t numDevices, uint32_t maxCU) 
+{
 #ifndef NDEBUG
-  std::cout << "DEBUG: " << __FUNCTION__ << " numDev=" << numDevices
-            << " maxCU=" << maxCU << std::endl;
+    std::cout << "DEBUG: " << __FUNCTION__ << " numDev=" << numDevices
+              << " maxCU=" << maxCU << std::endl;
 #endif
-  maxCU_ = maxCU;
-  numDevices_ = numDevices;
-  cuPerBoardSimDense = maxCU_ / numDevices_;
-  handles = new clHandle[maxCU_];
+    maxCU_ = maxCU;
+    numDevices_ = numDevices;
+    cuPerBoardSimDense = maxCU_ / numDevices_;
+    handles = new clHandle[maxCU_];
 };
 
-void opSimilarityDense::freeSimDense(xrmContext *ctx) {
-  std::cout << "INFO: " << __FUNCTION__ << std::endl;
+void opSimilarityDense::freeSimDense(xrmContext *ctx) 
+{
+    std::cout << "INFO: " << __FUNCTION__ << " maxCU_=" << maxCU_ << std::endl;
 
-  for (unsigned int i = 0; i < maxCU_; ++i) {
-    delete[] handles[i].buffer;
-    int deviceId = handles[i].resR->deviceId;
-    int cuId = handles[i].resR->cuId;
+    for (unsigned int i = 0; i < maxCU_; ++i) {
+        delete[] handles[i].buffer;
+        int deviceId = handles[i].resR->deviceId;
+        int cuId = handles[i].resR->cuId;
 #ifndef NDEBUG
-    std::cout << "DEBUG:" << __FUNCTION__
-              << " resR.deviceId=" << handles[i].resR->deviceId
-              << " resR.cuId=" << handles[i].resR->cuId
-              << " resR.channelID=" << handles[i].resR->channelId
-              << " resR.instanceName=" << handles[i].resR->instanceName
-              << std::endl;
+        std::cout << "DEBUG:" << __FUNCTION__
+                  << " resR.deviceId=" << handles[i].resR->deviceId
+                  << " resR.cuId=" << handles[i].resR->cuId
+                  << " resR.channelID=" << handles[i].resR->channelId
+                  << " resR.instanceName=" << handles[i].resR->instanceName
+                  << std::endl;
 #endif
-    if (!xrmCuRelease(ctx, handles[i].resR)) {
-      std::cout << "ERROR:" << __FUNCTION__
-                << " xrmCuRelease failed: deviceId=" << deviceId
-                << " cuId=" << cuId << std::endl;
-    };
-  }
-  delete[] handles;
+        if (!xrmCuRelease(ctx, handles[i].resR)) {
+            std::cout << "ERROR:" << __FUNCTION__
+                      << " xrmCuRelease failed: deviceId=" << deviceId
+                      << " cuId=" << cuId << std::endl;
+        };
+    }
+
+    delete[] handles;
 };
 
 void opSimilarityDense::cuRelease(xrmContext *ctx, xrmCuResource *resR) {

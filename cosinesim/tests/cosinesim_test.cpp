@@ -375,6 +375,11 @@ int main(int argc, char **argv) {
         generateVectors(testParams, targetVec, populationVecs);
         ResultVector swResults = runSwCosineSim(testParams, targetVec, populationVecs);
         ResultVector hwResults = runHwCosineSim(testParams, targetVec, populationVecs, numDevices, deviceTypes);
+        if (hwResults.size() == 0) {
+            std::cout << "# TEST " << testNum << " failed: empty results returned ############" << std::endl;
+            continue;
+        }
+
         bool doResultsMatch = areMatchesEqual(swResults, hwResults);
         if (doResultsMatch)
             ++numPassingTests;

@@ -412,13 +412,17 @@ void freeSharedHandle()
 // create a new shared handle if
 // 1. The shared handle does not exist or
 // 2. The numDevices option changes
-void createSharedHandle(uint32_t numDevices)
+// 
+// Return values:
+// 0: Using exsiting handle
+// 1: A new handle is created
+int createSharedHandle(uint32_t numDevices)
 {
     // return right away if the handle has already been created
     if (!sharedHandlesCosSimDense::instance().handlesMap.empty()) {
         std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
 
-        std::cout << "DEBUG: " << __FUNCTION__ << "numDevices=" << handle0->getNumDevices() << std::endl;
+        std::cout << "DEBUG: " << __FUNCTION__ << " numDevices=" << handle0->getNumDevices() << std::endl;
         handle0->showHandleInfo();
         if (numDevices != handle0->getNumDevices()) {
             std::cout << "INFO: " << __FUNCTION__ << "numDevices changed. Creating a new handle." 
@@ -428,12 +432,14 @@ void createSharedHandle(uint32_t numDevices)
         } else {
             std::cout << "INFO: " << __FUNCTION__ << " Using exsiting handle with "
                      << handle0->getNumDevices() << " devices loaded." << std::endl;
-            return;
+            return 0;
         }
     }
-    std::cout << "INFO: " << __FUNCTION__ << std::endl;
+    std::cout << "INFO: " << __FUNCTION__ << " Create a new sharedHandle" << std::endl;
     std::shared_ptr<xf::graph::L3::Handle> handleInstance(new xf::graph::L3::Handle);
     sharedHandlesCosSimDense::instance().handlesMap[0] = handleInstance;
+    
+    return 1;
 }
 
 
@@ -476,19 +482,20 @@ void PrivateImpl::load_cu_cosinesim_ss_dense_fpga()
               << "\n    deviceNames=" << deviceNames
               << std::endl;
 #endif
-
-    createSharedHandle(numDevices);
+    int statusSetUp = 0;
+    int statusCreateHandle = createSharedHandle(numDevices);
     std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
-
-    handle0->addOp(op0);
-    int status = handle0->setUp(deviceNames);
-    if (status != 0) {
-       // std::cout<< "ERROR: FPGA is not setup properly. free the handle! status:"<<status<<std::endl;
+    if (statusCreateHandle == 1) {
+        // new handle is created. Set it up
+        handle0->addOp(op0);
+        statusSetUp = handle0->setUp(deviceNames);
+    }
+    if (statusSetUp != 0) {
+        // std::cout<< "ERROR: FPGA is not setup properly. free the handle! status:"<<status<<std::endl;
         freeSharedHandle();
         std::ostringstream oss;
-        oss << "FPGA is not setup properly. Try the following instructions to fix: " <<std::endl;
-        oss << "Try \'xbutil reset\' and run application again"<< std::endl;
-        oss << "If not working, seek help for Xilinx technical support " << std::endl;
+        oss << "FPGA is not setup properly. Try the instructions in the error messages above. " <<std::endl;
+        oss << "    If not working, seek help for Xilinx technical support " << std::endl;
         throw xilinx_apps::cosinesim::Exception(oss.str());
         std::cerr << "ERROR: FPGA is not setup properly." <<std::endl;
         abort();
