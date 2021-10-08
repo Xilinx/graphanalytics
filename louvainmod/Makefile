@@ -356,13 +356,13 @@ WORKERS=192.168.1.21 192.168.1.31
 CMDLINE_LOAD_COMPUTE = -x $(XCLBIN_RUN) $(KERNEL_MODE) -num_devices $(numDevices) -devices $(deviceNames) \
 	-num_level 100 -num_iter 100 -load_alveo_partitions $(alveoProject).par.proj -setwkr 0 -driverAlone $(communityOutputOpt)
 
-CMDLINE_LOAD_COMPUTE_DRIVER = -x $(XCLBIN_RUN) $(KERNEL_MODE) -num_nodes $(numNodes) -num_devices $(numDevices) \
+CMDLINE_LOAD_COMPUTE_DRIVER = -x $(XCLBIN_RUN) $(KERNEL_MODE) -num_nodes 3 -num_devices $(numDevices) \
 	-num_level 100 -num_iter 100 -load_alveo_partitions $(alveoProject).par.proj -setwkr 2 $(WORKERS) -driverAlone $(communityOutputOpt)
 
-CMDLINE_LOAD_COMPUTE_WORKER1 = -x $(XCLBIN_RUN) $(KERNEL_MODE) -num_nodes $(numNodes) -num_devices $(numDevices) \
+CMDLINE_LOAD_COMPUTE_WORKER1 = -x $(XCLBIN_RUN) $(KERNEL_MODE) -num_nodes 3 -num_devices $(numDevices) \
 	-num_level 100 -num_iter 100 -load_alveo_partitions $(alveoProject).par.proj -workerAlone 1
 
-CMDLINE_LOAD_COMPUTE_WORKER2 = -x $(XCLBIN_RUN) $(KERNEL_MODE) -num_nodes $(numNodes) -num_devices $(numDevices) \
+CMDLINE_LOAD_COMPUTE_WORKER2 = -x $(XCLBIN_RUN) $(KERNEL_MODE) -num_nodes 3 -num_devices $(numDevices) \
     -num_level 100 -num_iter 100 -load_alveo_partitions $(alveoProject).par.proj -workerAlone 2
 
 .PHONY: run-create-partitions run-load-compute run-load-compute-driver run-load-compute-worker1 run-load-compute-worker2

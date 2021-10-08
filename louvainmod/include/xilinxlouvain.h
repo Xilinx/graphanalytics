@@ -49,6 +49,14 @@ enum {
     LOUVAINMOD_2CU_U55C_KERNEL = 4
 };
 
+enum {
+    ERRORCODE_COMPUTE_LOUVAIN_ALVEO_SEPERATED_LOAD = -3,
+    ERRORCODE_CREATESHAREDHANDLE = -4,
+    ERRORCODE_GETNUMPARTITIONS_INVALID_ARGC = -5,
+    ERRORCODE_GETNUMPARTITIONS_INVALID_NUMPARS = -6,
+    ERRORCODE_GETNUMPARTITIONS_FAILED_OPEN_ALVEOPRJ = -7,
+};
+
 /**
  * Define this macro to make functions in louvainmod_loader.cpp inline instead of extern.  You would use this macro
  * when including louvainmod_loader.cpp in a header file, as opposed to linking with libXilinxCosineSim_loader.a.

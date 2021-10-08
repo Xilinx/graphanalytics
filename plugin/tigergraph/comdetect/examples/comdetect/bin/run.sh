@@ -38,7 +38,7 @@ script_dir=`dirname $SCRIPT`
 
 . $script_dir/common.sh
 
-if [ "$compile_mode" -eq 0 ]; then
+if [ "$compile_mode" -eq 1 ]; then
     echo "-------------------------------------------------------------------------"
     echo "Running schema.gsql"
     echo "gsql -u $username -p $password \"\$(cat $script_dir/../query/schema.gsql | sed \"s/@graph/$xgraph/\")\""
@@ -68,7 +68,7 @@ if [ "$compile_mode" -eq 0 ]; then
     gsql -u $username -p $password -g $xgraph "RUN QUERY insert_dummy_nodes($num_nodes)"
 fi
 
-if [ "$compile_mode" -eq 0 ] || [ "$compile_mode" -eq 1 ]; then
+if [ "$compile_mode" -eq 1 ] || [ "$compile_mode" -eq 2 ]; then
     echo "-------------------------------------------------------------------------"
     echo "Installing louvain_distributed_cpu query"
     echo "gsql -u $username -p $password -g $xgraph \"$script_dir/../query/louvain_distributed_q_cpu.gsql\""
@@ -88,7 +88,7 @@ fi
 echo "-------------------------------------------------------------------------"
 echo "Run mode: $run_mode"
 
-if [ "$run_mode" -eq 0 ] || [ "$run_mode" -eq 2 ]; then
+if [ "$run_mode" -eq 1 ] || [ "$run_mode" -eq 3 ]; then
     if [ "$gen_outfile" -eq 1 ]; then
         cpu_log=$tg_home/output_cpu.txt
     else
@@ -103,10 +103,6 @@ if [ "$run_mode" -eq 0 ] || [ "$run_mode" -eq 2 ]; then
          \"weight\",20,1,0.0001,FALSE,FALSE,\"\",\"$cpu_log\",TRUE,FALSE)"
     TOTAL_TIME=$(($(date +%s%3N) - START))
     echo "louvain_distributed_cpu runtime: " $tg_home
-fi
-
-if [ "$run_mode" -eq 0 ]; then
-    exit 0
 fi
 
 # Partition the graph and save partitions on disk.
@@ -157,7 +153,7 @@ else
 fi
 
 # Run Louvain computation on FPGA
-if [ "$run_mode" -eq 1 ] || [ "$run_mode" -eq 2 ]; then
+if [ "$run_mode" -eq 2 ] || [ "$run_mode" -eq 3 ]; then
     if [ "$gen_outfile" -eq 1 ]; then
         alveo_log=$tg_home/output_alveo.txt
     fi

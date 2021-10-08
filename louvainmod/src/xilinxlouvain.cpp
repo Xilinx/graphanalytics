@@ -73,7 +73,9 @@ struct ComputedSettings {
         numServers = hostIps.size();
         numPureWorker = nameWorkers.size();
         modeZmq = (serverIndex == 0) ? ZMQ_DRIVER : ZMQ_WORKER;
+#ifndef NDEBUG        
         std::cout << "DEBUG: " << __FUNCTION__ << " serverIndex=" << serverIndex << std::endl;
+#endif        
     }
 };
 

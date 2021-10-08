@@ -74,6 +74,7 @@ typedef double DWEIGHT;
 #define MAX_NUM_PHASE   (200)
 #define MAX_NUM_TOTITR  (10000)
 #define MAX_NUM_DEV     (64)
+#define MAX_NUM_PARTITIONS (1024)
 
 
 //typedef struct /* the edge data structure */

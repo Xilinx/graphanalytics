@@ -3432,13 +3432,14 @@ Return values:
 -1:  
 */
 int LouvainGLV_general_top_zmq_worker_new_part1(
-    ParLV& parlv, int nodeID, ParLV& parlv_wkr, char* LoadCommand) 
+    ParLV& parlv, int nodeId, ParLV& parlv_wkr, char* LoadCommand) 
 {
-#ifndef NDEBUG
-    std::cout << "DEBUG:" << __FILE__ << "::" << __FUNCTION__ 
-              << " parlv_wkr num_par=" << parlv_wkr.num_par 
-              << " LoadCommand=" << LoadCommand << std::endl;
-#endif
+//#ifndef NDEBUG
+    std::cout << "DEBUG:" << __FUNCTION__ 
+              << "\n    parlv_wkr num_par=" << parlv_wkr.num_par 
+              << "\n    nodeId=" << nodeId
+              << "\n    LoadCommand=" << LoadCommand << std::endl;
+//#endif
     int status = 0;
     char MSG_LOAD_START[MAX_LEN_MESSAGE]; // 4096 usually// for dirver itself
     if (LoadCommand == NULL) {
@@ -3448,12 +3449,12 @@ int LouvainGLV_general_top_zmq_worker_new_part1(
         printf("INFO: Received %s\n", MSG_LOAD_START);
 
         parlv.timesPar.timeAll = getTime();
-        status = LouvainProcess_part1(nodeID, parlv, MSG_LOAD_START, parlv_wkr);
+        status = LouvainProcess_part1(nodeId, parlv, MSG_LOAD_START, parlv_wkr);
         // TODO: need to send error status to the driver
         if (status < 0)
             return status;
         char MSG_LOAD_DONE[MAX_LEN_MESSAGE]; // 4096 usually
-        MessageGen_W2D(MSG_LOAD_DONE, nodeID);
+        MessageGen_W2D(MSG_LOAD_DONE, nodeId);
         printf("INFO: MSG_LOAD_DONE to the driver\n");
         worker.send(MSG_LOAD_DONE, MAX_LEN_MESSAGE, 0);
     } else {
@@ -3463,12 +3464,12 @@ int LouvainGLV_general_top_zmq_worker_new_part1(
         printf("Using Command for loading %s\n", MSG_LOAD_START);
 
         parlv.timesPar.timeAll = getTime();
-        status = LouvainProcess_part1(nodeID, parlv, MSG_LOAD_START, parlv_wkr);
+        status = LouvainProcess_part1(nodeId, parlv, MSG_LOAD_START, parlv_wkr);
         if (status < 0)
             return status;
         char MSG_LOAD_DONE[MAX_LEN_MESSAGE]; // 4096 usually
-        MessageGen_W2D(MSG_LOAD_DONE, nodeID);
-        printf("\n\nINFO: Worker-%d LOADING DONE\n", nodeID);
+        MessageGen_W2D(MSG_LOAD_DONE, nodeId);
+        printf("\n\nINFO: Worker-%d LOADING DONE\n", nodeId);
         printf("MSG_LOAD_DONE to the driver\n");
         worker.receive(MSG_LOAD_START, 4096);
         worker.send(MSG_LOAD_DONE, MAX_LEN_MESSAGE, 0);
@@ -3547,7 +3548,7 @@ extern "C" float load_alveo_partitions(unsigned int num_partitions, unsigned int
 int compute_louvain_alveo_seperated_load(
     int kernelMode, unsigned int numDevices,
     unsigned int numPartitions, char* alveoProject,
-    int mode_zmq, int numPureWorker, char* nameWorkers[128], unsigned int nodeID,
+    int mode_zmq, int numPureWorker, char* nameWorkers[128], unsigned int nodeId,
     float tolerance, bool verbose, std::shared_ptr<xf::graph::L3::Handle>& handle0,
     ParLV* p_parlv_dvr, ParLV* p_parlv_wkr)
 {
@@ -3559,7 +3560,7 @@ int compute_louvain_alveo_seperated_load(
               << "\n     alveoProject=" << alveoProject
               << "\n     mode_zmq=" << mode_zmq 
               << "\n     numPureWorker=" << numPureWorker
-              << "\n     nodeID=" << nodeID
+              << "\n     nodeId=" << nodeId
               << "\n     tolerance=" << tolerance 
               << "\n     verbose=" << verbose 
               << std::endl;
@@ -3633,7 +3634,7 @@ int compute_louvain_alveo_seperated_load(
             ParLV parlv_tmp;
             parlv_tmp.Init(kernelMode, NULL, numPartitions, numDevices, isPrun, par_prune);
 
-            status = LouvainGLV_general_top_zmq_worker_new_part1(parlv_tmp, nodeID, (*p_parlv_wkr), NULL);
+            status = LouvainGLV_general_top_zmq_worker_new_part1(parlv_tmp, nodeId, (*p_parlv_wkr), NULL);
         }
     }
 
@@ -3773,7 +3774,7 @@ int createSharedHandle(
     sharedHandlesLouvainMod::instance().handlesMap[0] = handleInstance;
     status = loadComputeUnitsToFPGAs(xclbinPath, kernelMode, numDevices, deviceNames);
     if (status < 0)
-        return status;
+        return ERRORCODE_CREATESHAREDHANDLE;
 
     std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesLouvainMod::instance().handlesMap[0];
     (handle0->oplouvainmod)->mapHostToClBuffers(NULL, kernelMode, opts_coloring,
@@ -3837,7 +3838,8 @@ extern "C" float loadAlveoAndComputeLouvain(
     char* xclbinPath, int kernelMode, unsigned int numDevices, std::string deviceNames,
     char* alveoProject, unsigned mode_zmq, unsigned numPureWorker, char* nameWorkers[128], 
     unsigned int nodeID, char* opts_outputFile, unsigned int max_iter, unsigned int max_level, 
-    float tolerance, bool intermediateResult, bool verbose, bool final_Q, bool all_Q) {
+    float tolerance, bool intermediateResult, bool verbose, bool final_Q, bool all_Q) 
+{
 
     ParLV parlv_drv, parlv_wkr;
     float ret = 0;
@@ -3847,35 +3849,33 @@ extern "C" float loadAlveoAndComputeLouvain(
     double opts_C_thresh = tolerance;   // Threshold with coloring on
     int numThreads = 16;
 
-
     int numPartitions = getNumPartitions(alveoProject);
 
-    if (numPartitions < 0)
-        return -2;
+    if (numPartitions < 0)  // return error code directly
+        return numPartitions;
 
     // Allocating memory for load
     if (mode_zmq == ZMQ_DRIVER) {
         int id_glv = 0;
         for (int i=0; i<numPartitions; i++) {
-            //std::cout << "------------" << __FUNCTION__ << " id_glv=" << id_glv << std::endl;
             parlv_drv.par_src[i] = new GLV(id_glv);
         }     
     }
-    
+
     int status = createSharedHandle(xclbinPath, kernelMode, numDevices, deviceNames, opts_coloring,
                                     opts_minGraphSize, opts_C_thresh, numThreads);
     if (status < 0)
-        return -4;
+        return status;
 
     std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesLouvainMod::instance().handlesMap[0];
     ret = compute_louvain_alveo_seperated_load(
             kernelMode, numDevices, numPartitions, alveoProject,
             mode_zmq, numPureWorker, nameWorkers, nodeID, tolerance, verbose, handle0, 
             &parlv_drv, &parlv_wkr);
-    
+
     // return right away if load returns an error code
     if (ret < 0)
-        return -3;
+        return ERRORCODE_COMPUTE_LOUVAIN_ALVEO_SEPERATED_LOAD;
 
     ret = compute_louvain_alveo_seperated_compute(
         mode_zmq, numPureWorker, nameWorkers, nodeID, 
@@ -3894,14 +3894,12 @@ extern "C" float loadAlveoAndComputeLouvain(
 */
 int getNumPartitions(std::string alveoProjectFile)
 {
-    std::cout << __FUNCTION__ << " alveoProjectFile=" << alveoProjectFile << std::endl;
-
     int numPartitions;
     int numServers;
     FILE* fp = fopen(alveoProjectFile.c_str(), "r");
     if (fp == NULL) {
         std::cout << "ERROR: Failed to open Alveo project file " << alveoProjectFile << std::endl; 
-        return -1;
+        return ERRORCODE_GETNUMPARTITIONS_FAILED_OPEN_ALVEOPRJ;
     }
     fseek(fp, 0, SEEK_END);
     int fsize = ftell(fp);
@@ -3916,8 +3914,9 @@ int getNumPartitions(std::string alveoProjectFile)
     if (ps.argc < 8) {
         std::cout << "ERROR: Invalid Alveo project settings in " << alveoProjectFile << std::endl; 
         free(fdata);
-        return -1;
+        return ERRORCODE_GETNUMPARTITIONS_INVALID_ARGC;
     }
+
 
     //////////////////////////////////////////////////////////////////////////
     //for multi-server partition [-server_par <num_server> <num_par on server0> <num_par on server?>]
@@ -3930,8 +3929,14 @@ int getNumPartitions(std::string alveoProjectFile)
     	}
     }
     
-    return numPartitions;
-
+    // make sure numPartitions is reasonable
+    if (numPartitions > MAX_NUM_PARTITIONS) {
+        std::cout << "ERROR: number of partitions in Alveo project file " << alveoProjectFile
+                  << " exceeds the maximum " << MAX_NUM_PARTITIONS << std::endl;
+        std::cout << "    Please check that the project file is on a shared drive accessible by all nodes and is not corrupted." << std::endl;
+        return ERRORCODE_GETNUMPARTITIONS_INVALID_NUMPARS;
+    } else
+        return numPartitions;
 }
 
 /* 
