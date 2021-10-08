@@ -87,7 +87,7 @@ run-create-partitions: cppdemo
 	@set -e; \
 	. $(XILINX_XRT)/setup.sh; \
 	. $(XILINX_XRM)/setup.sh; \
-	LD_LIBRARY_PATH=$(LIB_PATH):$(LD_LIBRARAY_PATH); \
+	LD_LIBRARY_PATH=$(LIB_PATH):$(LD_LIBRARY_PATH); \
 	./cppdemo $(graph) -fast -num_pars $(numPars) -create_alveo_partitions \
 	    -name $(alveoProject)
 
@@ -98,7 +98,7 @@ run-load-compute: cppdemo
 	@set -e; \
 	. $(XILINX_XRT)/setup.sh; \
 	. $(XILINX_XRM)/setup.sh; \
-	LD_LIBRARY_PATH=$(LIB_PATH):$(LD_LIBRARAY_PATH); \
+	LD_LIBRARY_PATH=$(LIB_PATH):$(LD_LIBRARY_PATH); \
 	./cppdemo -x $(xclbin) -fast -num_devices $(numDevices) -devices $(deviceNames) \
 	    -num_level 100 -num_iter 100 -load_alveo_partitions \
 	    $(alveoProject).par.proj -setwkr 0 -driverAlone
@@ -110,7 +110,7 @@ run-load-compute-driver: cppdemo
 	@set -e; \
 	. $(XILINX_XRT)/setup.sh; \
 	. $(XILINX_XRM)/setup.sh; \
-	LD_LIBRARY_PATH=$(LIB_PATH):$(LD_LIBRARAY_PATH); \
+	LD_LIBRARY_PATH=$(LIB_PATH):$(LD_LIBRARY_PATH); \
 	./cppdemo -x $(xclbin) -fast -num_nodes $(numNodes) -num_devices $(numDevices) -devices $(deviceNames) \
 	    -num_level 100 -num_iter 100 -load_alveo_partitions \
 	    $(alveoProject).par.proj -setwkr 2 $(workers) -driverAlone
@@ -122,7 +122,7 @@ run-load-compute-worker1: cppdemo
 	@set -e; \
 	. $(XILINX_XRT)/setup.sh; \
 	. $(XILINX_XRM)/setup.sh; \
-	LD_LIBRARY_PATH=$(LIB_PATH):$(LD_LIBRARAY_PATH); \
+	LD_LIBRARY_PATH=$(LIB_PATH):$(LD_LIBRARY_PATH); \
 	./cppdemo -x $(xclbin) -fast -num_nodes $(numNodes) -num_devices $(numDevices) -devices $(deviceNames) \
 	    -num_level 100 -num_iter 100 -load_alveo_partitions \
 	    $(alveoProject).par.proj -workerAlone 1
@@ -134,7 +134,7 @@ run-load-compute-worker2: cppdemo
 	@set -e; \
 	. $(XILINX_XRT)/setup.sh; \
 	. $(XILINX_XRM)/setup.sh; \
-	LD_LIBRARY_PATH=$(LIB_PATH):$(LD_LIBRARAY_PATH); \
+	LD_LIBRARY_PATH=$(LIB_PATH):$(LD_LIBRARY_PATH); \
 	./cppdemo -x $(xclbin) -fast -num_nodes $(numNodes) -num_devices $(numDevices) -devices $(deviceNames) \
 	    -num_level 100 -num_iter 100 -load_alveo_partitions \
 	    $(alveoProject).par.proj -workerAlone 2

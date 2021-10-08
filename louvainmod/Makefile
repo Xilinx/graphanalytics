@@ -373,7 +373,7 @@ $(alveoProject).par.proj: $(graph)
 	@echo "------------------------------------------------------------------------"
 	rm -rf $(CPPDEMO_OUT_DIR)
 	mkdir -p $(CPPDEMO_OUT_DIR)
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_CREATE_PARTITIONS)
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_CREATE_PARTITIONS)
 
 run-create-partitions: stage cppTest
 	@echo "------------------------------------------------------------------------"
@@ -381,27 +381,39 @@ run-create-partitions: stage cppTest
 	@echo "------------------------------------------------------------------------"
 	rm -rf $(CPPDEMO_OUT_DIR)
 	mkdir -p $(CPPDEMO_OUT_DIR)
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_CREATE_PARTITIONS)
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_CREATE_PARTITIONS)
 
 run-load-compute: stage cppTest $(alveoProject).par.proj
 	@echo "------------------------------------------------------------------------"
 	@echo "-                    Load Partitions and Compute                       -"
 	@echo "------------------------------------------------------------------------"
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE)
+	set -e; \
+	. $(XILINX_XRT)/setup.sh; \
+	. $(XILINX_XRM)/setup.sh; \
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE)
 
 run-load-compute-driver: stage cppTest $(alveoProject).par.proj
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE_DRIVER)
+	set -e; \
+	. $(XILINX_XRT)/setup.sh; \
+	. $(XILINX_XRM)/setup.sh; \
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE_DRIVER)
 
 run-load-compute-worker1: stage cppTest 
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE_WORKER1)
+	set -e; \
+	. $(XILINX_XRT)/setup.sh; \
+	. $(XILINX_XRM)/setup.sh; \
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH; $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE_WORKER1)
 
 run-load-compute-worker2: stage cppTest
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE_WORKER2)	
+	set -e; \
+	. $(XILINX_XRT)/setup.sh; \
+	. $(XILINX_XRM)/setup.sh; \
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH; $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE_WORKER2)	
 
 debug-cppdemo: cppTest
 	rm -rf $(CPPDEMO_OUT_DIR)
 	mkdir -p $(CPPDEMO_OUT_DIR)
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); totalview $(CPP_BUILD_DIR)/cppdemo -a $(CMDLINE_CREATE_PARTITIONS)
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARY_PATH); totalview $(CPP_BUILD_DIR)/cppdemo -a $(CMDLINE_CREATE_PARTITIONS)
 
 $(CPP_BUILD_DIR)/pardump: $(CPP_BUILD_DIR)/pardump.o $(CPP_BUILD_DIR)/$(LIB_NAME)
 	$(LINK.cc) -o $@ $< $(LDFLAGS_test) $(LIB_DEPS)

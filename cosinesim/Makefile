@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 
+SHELL := /bin/bash
+
 #
 # Define __PROFILING__ to turn on profiling message from compute units
 #
@@ -344,11 +346,13 @@ iterations=1
 numVectors=5000
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3
 run-test: cppTest
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) $(CPP_BUILD_DIR)/cosinesim_test \
-	                -d $(numDevices) -i $(iterations) -t $(deviceNames)
+	set -e; \
+	. $(XILINX_XRT)/setup.sh && \
+	. $(XILINX_XRM)/setup.sh && \
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH $(CPP_BUILD_DIR)/cosinesim_test -d $(numDevices) -i $(iterations) -t $(deviceNames)
 
 run-dyn-test: cppTest
-	LD_PRELOAD=$(PWD)/$(CPP_BUILD_DIR)/$(LIB_NAME) LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) \
+	LD_PRELOAD=$(PWD)/$(CPP_BUILD_DIR)/$(LIB_NAME) LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARY_PATH) \
 	    $(CPP_BUILD_DIR)/cosinesim_dyn_test $(numDevices)
 
 # Macro to create a .o rule and a .d rule for each .cpp
