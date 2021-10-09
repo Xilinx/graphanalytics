@@ -142,9 +142,10 @@ void generateVectors(const TestParams &testParams, CosineSimVector &targetVec,
         //
         // Additionally, the amount that the range scales down doesn't reduce to less than 20% of the full range.
         // This restriction ensures that large data sets don't produce results that have scores that are all 1.
-        double rangeRatio = (testParams.m_numVectors - 1 - i) / (testParams.m_numVectors - 1);
-        if (rangeRatio < 0.2)
-            rangeRatio = 0.2;
+//        double rangeRatio = (testParams.m_numVectors - 1 - i) / (testParams.m_numVectors - 1);
+//        if (rangeRatio < 0.2)
+//            rangeRatio = 0.2;
+        double rangeRatio = std::log10(testParams.m_numVectors - i);
         const Element range = Element((testParams.m_maxValue - testParams.m_minValue) * rangeRatio);
         const Element halfRange = range / 2;
         
