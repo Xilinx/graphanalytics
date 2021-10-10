@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                1.0
+                1.4
               </div>
             
           
@@ -356,7 +356,7 @@
 <p class="caption"><span class="caption-text">Software Stack Integration Products</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../recom-tg3/index.html"> Recommendation Engine for TigerGraph 3.x</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../comdet-tg3/index.html"> Community Detection Engine for TigerGraph 3.x</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../comdet-tg3/index.html"> Community Detection for TigerGraph 3.x</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Use Cases</span></p>
 <ul>
@@ -366,9 +366,6 @@
 <p class="caption"><span class="caption-text">Additional Info</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../tg3-plugins.html">TigerGraph 3.x Plugin Methodology</a></li>
-</ul>
-<p class="caption"><span class="caption-text">Collaborate with Us</span></p>
-<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../vitis-dev-flow.html">Vitis Development Flow</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Notice</span></p>
@@ -478,7 +475,11 @@
     <span class="k">const</span> <a class="reference internal" href="../../rst-cpp-docs/struct_xilinx_apps_cosinesim_Options.html#doxid-structxilinx-apps-1-1cosinesim-1-1-options"><span class="std std-ref">Options</span></a><span></span><span class="o">&amp;</span> <a class="reference internal" href="../../rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSim.html#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-1a99a891972a0589e284b6e085e73e3a79"><span class="std std-ref">getOptions</span></a><span></span><span class="p">();</span>
     <span class="n">Value</span><span class="o">*</span> <a class="reference internal" href="../../rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSim.html#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-1a9714a6a8e055976e49c477ef5f5f362f"><span class="std std-ref">getPopulationVectorBuffer</span></a><span></span><span class="p">(</span><span class="n">RowIndex</span><span class="o">&amp;</span> <span class="n">rowIndex</span><span class="p">);</span>
     <span class="kt">void</span> <a class="reference internal" href="../../rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSim.html#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-1ad3fe9ba20f0a327deb15d558e882843e"><span class="std std-ref">finishCurrentPopulationVector</span></a><span></span><span class="p">(</span><span class="n">Value</span><span class="o">*</span> <span class="n">pbuf</span><span class="p">);</span>
-    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><a class="reference internal" href="../../rst-cpp-docs/struct_xilinx_apps_cosinesim_Result.html#doxid-structxilinx-apps-1-1cosinesim-1-1-result"><span class="std std-ref">Result</span></a><span></span><span class="o">&gt;</span> <a class="reference internal" href="../../rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSim.html#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-1a7ce1782322ecdd449a7268e6a8f329fd"><span class="std std-ref">matchTargetVector</span></a><span></span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">numResults</span><span class="p">,</span> <span class="n">Value</span><span class="o">*</span> <span class="n">elements</span><span class="p">);</span>
+
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><a class="reference internal" href="../../rst-cpp-docs/struct_xilinx_apps_cosinesim_Result.html#doxid-structxilinx-apps-1-1cosinesim-1-1-result"><span class="std std-ref">Result</span></a><span></span><span class="o">&gt;</span> <a class="reference internal" href="#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-1a7559e56b09d6594d18160a8a2dbd30f3"><span class="std std-ref">matchTargetVector</span></a><span></span><span class="p">(</span>
+        <span class="kt">unsigned</span> <span class="n">numResults</span><span class="p">,</span>
+        <span class="k">const</span> <span class="n">Value</span><span class="o">*</span> <span class="n">elements</span>
+        <span class="p">);</span>
 <span class="p">};</span></pre>
 <div class="section" id="inherited-members">
 <h3>Inherited Members<a class="headerlink" href="#inherited-members" title="Permalink to this headline">¶</a></h3>
@@ -526,7 +527,7 @@
 <p>an <a class="reference internal" href="../../rst-cpp-docs/struct_xilinx_apps_cosinesim_Options.html#doxid-structxilinx-apps-1-1cosinesim-1-1-options"><span class="std std-ref">Options</span></a> struct containing the configuration settings</p>
 <pre class="highlight doxyrest-title-code-block literal-block" id="doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-1a9714a6a8e055976e49c477ef5f5f362f"><span id="index-4"></span><span></span><span class="n">Value</span><span class="o">*</span> <span class="n">getPopulationVectorBuffer</span><span class="p">(</span><span class="n">RowIndex</span><span class="o">&amp;</span> <span class="n">rowIndex</span><span class="p">)</span></pre>
 <p>Allocates a buffer for the caller to fill with population vector element values.</p>
-<p>Call this function to fetch a buffer to fill with integers for one population vector. Also supply an integer variable, which is passed by reference, to receive the assigned row index for the population vector. Upon running <a class="reference internal" href="../../rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSim.html#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-1a7ce1782322ecdd449a7268e6a8f329fd"><span class="std std-ref">matchTargetVector()</span></a>, match results will contain this same row index to refer to the matching population vector.</p>
+<p>Call this function to fetch a buffer to fill with integers for one population vector. Also supply an integer variable, which is passed by reference, to receive the assigned row index for the population vector. Upon running <a class="reference internal" href="#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-1a7559e56b09d6594d18160a8a2dbd30f3"><span class="std std-ref">matchTargetVector()</span></a>, match results will contain this same row index to refer to the matching population vector.</p>
 <p>After fetching the memory buffer, write your population vector values to the buffer. The buffer will be interpreted as a C array whose element type is an integer of the size specified in the <code class="docutils literal notranslate"><span class="pre">valueSize</span></code> argument to the <a class="reference internal" href="../../rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSimBase.html#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base-1a957349bc2633fbaa0cbb685d71f6cb76"><span class="std std-ref">CosineSimBase()</span></a> constructor.</p>
 <p>You may write to separate buffers from multiple threads simultaneously, but this function itself is not thread safe, so be sure to call it in a critical section.</p>
 <p class="rubric">Parameters:</p>
@@ -558,7 +559,10 @@
 </tr>
 </tbody>
 </table>
-<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-1a7ce1782322ecdd449a7268e6a8f329fd"><span id="index-6"></span><span></span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><a class="reference internal" href="../../rst-cpp-docs/struct_xilinx_apps_cosinesim_Result.html#doxid-structxilinx-apps-1-1cosinesim-1-1-result"><span class="std std-ref">Result</span></a><span></span><span class="o">&gt;</span> <span class="n">matchTargetVector</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">numResults</span><span class="p">,</span> <span class="n">Value</span><span class="o">*</span> <span class="n">elements</span><span class="p">)</span></pre>
+<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-1a7559e56b09d6594d18160a8a2dbd30f3"><span id="index-6"></span><span></span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><a class="reference internal" href="../../rst-cpp-docs/struct_xilinx_apps_cosinesim_Result.html#doxid-structxilinx-apps-1-1cosinesim-1-1-result"><span class="std std-ref">Result</span></a><span></span><span class="o">&gt;</span> <span class="n">matchTargetVector</span><span class="p">(</span>
+    <span class="kt">unsigned</span> <span class="n">numResults</span><span class="p">,</span>
+    <span class="k">const</span> <span class="n">Value</span><span class="o">*</span> <span class="n">elements</span>
+    <span class="p">)</span></pre>
 <p>Runs a match of a given target vector against all population vectors.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">elements</span></code> array argument must contain as many elements as specified in Options::vecLength.</p>
 <p class="rubric">Parameters:</p>
@@ -611,7 +615,7 @@
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on October 04, 2021.
+        Last updated on October 10, 2021.
       </span>
 
     </p>

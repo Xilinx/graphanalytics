@@ -60,7 +60,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="C++ Example using Makefile" href="cosinesim-example-makefile.html" />
-    <link rel="prev" title="Jupyter Notebook with CosineSim Python API" href="cosinesim-example-jupyter.html" /> 
+    <link rel="prev" title="Setup Cosine Similarity for Stand-Alone runs" href="setup-standalone.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                1.0
+                1.4
               </div>
             
           
@@ -340,7 +340,10 @@
 <li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="demos.html">Demos</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="cosinesim-example-jupyter.html">Jupyter Notebook with CosineSim Python API</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Python Example</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Python Example</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="setup-standalone.html">Setup</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="cosinesim-example-makefile.html">C++ Example using Makefile</a></li>
 </ul>
 </li>
@@ -352,7 +355,7 @@
 <p class="caption"><span class="caption-text">Software Stack Integration Products</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../recom-tg3/index.html"> Recommendation Engine for TigerGraph 3.x</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../comdet-tg3/index.html"> Community Detection Engine for TigerGraph 3.x</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../comdet-tg3/index.html"> Community Detection for TigerGraph 3.x</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Use Cases</span></p>
 <ul>
@@ -362,9 +365,6 @@
 <p class="caption"><span class="caption-text">Additional Info</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../tg3-plugins.html">TigerGraph 3.x Plugin Methodology</a></li>
-</ul>
-<p class="caption"><span class="caption-text">Collaborate with Us</span></p>
-<ul>
 <li class="toctree-l1"><a class="reference internal" href="../vitis-dev-flow.html">Vitis Development Flow</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Notice</span></p>
@@ -446,13 +446,15 @@
             
   <div class="section" id="python-example">
 <h1>Python Example<a class="headerlink" href="#python-example" title="Permalink to this headline">¶</a></h1>
-<p>Run following commands in a Python virtual environment to run the example:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>alveo-demo<span class="o">)</span><span class="nv">$mkdir</span> cosinesim-example
-<span class="o">(</span>alveo-demo<span class="o">)</span><span class="nv">$cd</span> cosinesim-example
-<span class="o">(</span>alveo-demo<span class="o">)</span><span class="nv">$cp</span> /opt/xilinx/apps/graphanalytics/cosinesim/1.0/examples.zip .
-<span class="o">(</span>alveo-demo<span class="o">)</span><span class="nv">$unzip</span> examples.zip
-<span class="o">(</span>alveo-demo<span class="o">)</span><span class="nv">$cd</span> examples/python
-<span class="o">(</span>alveo-demo<span class="o">)</span>$./run.sh python3 pythondemo.py
+<p>Follow the setup process below before running the notebook:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="setup-standalone.html">Setup</a></li>
+</ul>
+</div>
+<p>Run following commands in the Python virtual environment (from setup) to run the example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ <span class="nb">cd</span> examples/python
+<span class="o">(</span>fpga<span class="o">)</span>$ ./run.sh python pythondemo.py
 </pre></div>
 </div>
 </div>
@@ -476,7 +478,7 @@
         <a href="cosinesim-example-makefile.html" class="btn btn-neutral float-right" title="C++ Example using Makefile" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="cosinesim-example-jupyter.html" class="btn btn-neutral float-left" title="Jupyter Notebook with CosineSim Python API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="setup-standalone.html" class="btn btn-neutral float-left" title="Setup Cosine Similarity for Stand-Alone runs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -486,7 +488,7 @@
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on October 04, 2021.
+        Last updated on October 10, 2021.
       </span>
 
     </p>

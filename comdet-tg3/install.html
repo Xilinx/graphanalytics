@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                1.0
+                1.4
               </div>
             
           
@@ -341,12 +341,12 @@
 <p class="caption"><span class="caption-text">Software Stack Integration Products</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../recom-tg3/index.html"> Recommendation Engine for TigerGraph 3.x</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html"> Community Detection Engine for TigerGraph 3.x</a><ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html"> Community Detection for TigerGraph 3.x</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="overview.html">Overview</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Installation</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#install-tigergraph-enterprise-3-x">Install TigerGraph Enterprise 3.x</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#install-the-community-detection-software">Install the Community Detection Software</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#build-the-community-detection-engine-from-sources">Build the Community Detection Engine from Sources</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#collaboring-on-community-detection-plugin">Collaboring on Community Detection Plugin</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#uninstalling-the-community-detection">Uninstalling the Community Detection</a></li>
@@ -366,9 +366,6 @@
 <p class="caption"><span class="caption-text">Additional Info</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../tg3-plugins.html">TigerGraph 3.x Plugin Methodology</a></li>
-</ul>
-<p class="caption"><span class="caption-text">Collaborate with Us</span></p>
-<ul>
 <li class="toctree-l1"><a class="reference internal" href="../vitis-dev-flow.html">Vitis Development Flow</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Notice</span></p>
@@ -427,7 +424,7 @@
     
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-          <li><a href="index.html">Xilinx Community Detection Engine for TigerGraph 3.x</a> &raquo;</li>
+          <li><a href="index.html">Xilinx Community Detection for TigerGraph 3.x</a> &raquo;</li>
         
       <li>Xilinx Community Detection for TigerGraph 3.x Installation</li>
     
@@ -452,16 +449,18 @@
 <p>Follow the instructions in each of the sections below to install the Community Detection on your server.</p>
 <div class="section" id="install-tigergraph-enterprise-3-x">
 <h2>Install TigerGraph Enterprise 3.x<a class="headerlink" href="#install-tigergraph-enterprise-3-x" title="Permalink to this headline">¶</a></h2>
-<p>Next, follow the steps below to install TigerGraph on your server if you have not already.  The latest version tested
-with the Community Detection is version 3.1.</p>
+<p>Next, follow the steps below to install TigerGraph on your server if you have not
+already.  The latest version tested with the Community Detection is version 3.1.</p>
 <ul class="simple">
-<li><p>Install <a class="reference external" href="https://info.tigergraph.com/enterprise-free">TigerGraph Enterprise version 3.1</a>, accepting the defaults
-for all settings that have them.  Be sure to leave the database owner as user “tigergraph”, as the Recommendation
-Engine install scripts depend on that user name.  Make a note of the password for the user
-“tigergraph”. That password will be needed for later steps.</p></li>
-<li><p>Create an account in the TigerGraph installation for yourself in the role of a TigerGraph application developer
-by issuing the commands below (replace YOUR-LINUX-USERNAME with your actual Linux username).
-The Community Detection Engine examples will use this account to create graphs and install GSQL queries on your behalf.</p></li>
+<li><p>Install <a class="reference external" href="https://info.tigergraph.com/enterprise-free">TigerGraph Enterprise version 3.1</a>,
+accepting the defaults for all settings. Be sure to leave the database owner
+as user “tigergraph”, as the Community Engine install scripts depend on that
+user name.  Make a note of the password for the user “tigergraph”. That password
+will be needed for later steps.</p></li>
+<li><p>Create an account in the TigerGraph installation for yourself in the role of a
+TigerGraph application developer by issuing the commands below (replace
+YOUR-LINUX-USERNAME with your actual Linux username). The Community Detection
+examples will use this account to create graphs and install GSQL queries on your behalf.</p></li>
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">$su</span> - tigergraph
 Password:
@@ -481,11 +480,17 @@ Role <span class="s2">&quot;globaldesigner&quot;</span> is successfully granted 
 <h2>Install the Community Detection Software<a class="headerlink" href="#install-the-community-detection-software" title="Permalink to this headline">¶</a></h2>
 <p>Install the Community Detection plug-in into the TigerGraph installation. This step makes TigerGraph aware
 of the Community Detection features.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/install.sh
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/0.5/install.sh
 </pre></div>
 </div>
-<div class="section" id="build-the-community-detection-engine-from-sources">
-<h3>Build the Community Detection Engine from Sources<a class="headerlink" href="#build-the-community-detection-engine-from-sources" title="Permalink to this headline">¶</a></h3>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you only need to build applications utilizing Xilinx GraphAnalytics
+products, you can skip the section “Collaborating on Community Detection
+Plugin” below.</p>
+</div>
+<div class="section" id="collaboring-on-community-detection-plugin">
+<h3>Collaboring on Community Detection Plugin<a class="headerlink" href="#collaboring-on-community-detection-plugin" title="Permalink to this headline">¶</a></h3>
 <p>Follow the instructions below if you want to collaborate and contribute to the
 Xilinx Louvain Modularity Alveo Product and Community Detection for TigerGraph 3.x.
 Both products reside in one GitHub repository.</p>
@@ -500,23 +505,23 @@ Both products reside in one GitHub repository.</p>
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> louvainmod
 make dist
-sudo apt install --reinstall ./package/xilinx-louvainmod-1.0_18.04-x86_64.deb
+sudo apt install --reinstall ./package/xilinx-louvainmod-0.5_18.04-x86_64.deb
 </pre></div>
 </div>
 <ul class="simple">
 <li><p>Build and install the Community Detection package. (Replace the package
 installation command and name for your server’s OS.)</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> plugin/tigergraph/
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> plugin/tigergraph/comdetect
 make dist
-sudo apt install --reinstall ./package/xilinx-comdetect-tigergraph-1.0_18.04-x86_64.deb
+sudo apt install --reinstall ./package/xilinx-comdetect-tigergraph-0.5_18.04-x86_64.deb
 </pre></div>
 </div>
 <ul class="simple">
 <li><p>Install the Community Detection plug-in into the TigerGraph installation.  This step makes TigerGraph aware
 of the Community Detection features.</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/install.sh
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/0.5/install.sh
 </pre></div>
 </div>
 </div>
@@ -524,7 +529,7 @@ of the Community Detection features.</p></li>
 <div class="section" id="uninstalling-the-community-detection">
 <h2>Uninstalling the Community Detection<a class="headerlink" href="#uninstalling-the-community-detection" title="Permalink to this headline">¶</a></h2>
 <p>You can uninstall the Community Detection from TigerGraph by running the install script with the <code class="docutils literal notranslate"><span class="pre">-u</span></code> option:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/install.sh -u
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/0.5/install.sh -u
 </pre></div>
 </div>
 <p><strong>TIP</strong>: To avoid TigerGraph errors, uninstall any queries and UDFs that use the Community Detection,
@@ -561,7 +566,7 @@ before uninstalling the Community Detection itself.</p>
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on October 04, 2021.
+        Last updated on October 10, 2021.
       </span>
 
     </p>

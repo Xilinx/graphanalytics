@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                1.0
+                1.4
               </div>
             
           
@@ -341,7 +341,7 @@
 <p class="caption"><span class="caption-text">Software Stack Integration Products</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../recom-tg3/index.html"> Recommendation Engine for TigerGraph 3.x</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html"> Community Detection Engine for TigerGraph 3.x</a><ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html"> Community Detection for TigerGraph 3.x</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="overview.html">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="install.html">Installation</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="comdetect.html">Community Detection Demo</a><ul class="current">
@@ -365,9 +365,6 @@
 <p class="caption"><span class="caption-text">Additional Info</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../tg3-plugins.html">TigerGraph 3.x Plugin Methodology</a></li>
-</ul>
-<p class="caption"><span class="caption-text">Collaborate with Us</span></p>
-<ul>
 <li class="toctree-l1"><a class="reference internal" href="../vitis-dev-flow.html">Vitis Development Flow</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Notice</span></p>
@@ -426,7 +423,7 @@
     
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-          <li><a href="index.html">Xilinx Community Detection Engine for TigerGraph 3.x</a> &raquo;</li>
+          <li><a href="index.html">Xilinx Community Detection for TigerGraph 3.x</a> &raquo;</li>
         
           <li><a href="comdetect.html">Community Detection Demo</a> &raquo;</li>
         
@@ -457,14 +454,15 @@ this document.</p></li>
 <li><p>Execute the commands below to run the demo</p></li>
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Copy examples from the installation to your own working directory</span>
-cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/0.1/examples comdetec-examples
+cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/0.5/examples comdetect-examps
 
 <span class="nb">cd</span> comdetect-examples/comdetect
 <span class="c1"># Print comdetect demo help messages</span>
 ./bin/run.sh -h
 
-<span class="c1"># Run comdetect demo on a graph (.mtx) on a cluster with 3 nodes and 7 Alveo cards/nodes (21 partitions)</span>
-./bin/run.sh ./bin/run.sh -s /path/to/as-Skitter-wt.mtx -a /tg-share/as-Skitter-wt -m <span class="m">3</span> -n <span class="m">21</span>
+<span class="c1"># Run comdetect demo with default settings. Settings can be changed via command</span>
+<span class="c1"># line options as shown above</span>
+./bin/run.sh
 </pre></div>
 </div>
 </div>
@@ -498,7 +496,7 @@ cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/0.1/examples co
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on October 04, 2021.
+        Last updated on October 10, 2021.
       </span>
 
     </p>

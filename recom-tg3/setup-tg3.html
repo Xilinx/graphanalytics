@@ -59,8 +59,8 @@
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Xilinx Louvain Modularity Use Cases" href="../louvainmod/usecases.html" />
-    <link rel="prev" title="Error Log Analysis" href="usecases-log.html" /> 
+    <link rel="next" title="Installing and Uninstalling the Demo use cases" href="setup-demo-plugin-install.html" />
+    <link rel="prev" title="Wikipedia Search Engine" href="../cosinesim/usecases-wiki-search.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                1.0
+                1.4
               </div>
             
           
@@ -335,21 +335,28 @@
             
               <p class="caption"><span class="caption-text">Stand-Alone Alveo Products</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="index.html">Cosine Similarity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cosinesim/index.html">Cosine Similarity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/index.html">Louvain Modularity</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Software Stack Integration Products</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../recom-tg3/index.html"> Recommendation Engine for TigerGraph 3.x</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../comdet-tg3/index.html"> Community Detection Engine for TigerGraph 3.x</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html"> Recommendation Engine for TigerGraph 3.x</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../comdet-tg3/index.html"> Community Detection for TigerGraph 3.x</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Use Cases</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="usecases.html"> Cosine Similarity Use Cases</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="usecases-wiki-search.html">Wikipedia Search Engine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../recom-tg3/synthea.html">Patient Similarity using Synthetic Patient Data (Synthea)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usecases-log.html">Error Log Analysis</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Heathcare Concept Similarity with UMLS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../cosinesim/usecases.html"> Cosine Similarity Use Cases</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../cosinesim/usecases.html#stand-alone-alveo-product">Stand-Alone Alveo Product</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../cosinesim/usecases.html#recommendation-engine-product">Recommendation Engine Product</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Setup</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="setup-demo-plugin-install.html">Demo Plugin Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="synthea.html">Patient Similarity using Synthetic Patient Data (Synthea)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usecases-log.html">Error Log Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usecases-healthcare.html">Heathcare Concept Similarity with UMLS</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/usecases.html"> Louvain Modularity Use Cases</a></li>
@@ -357,9 +364,6 @@
 <p class="caption"><span class="caption-text">Additional Info</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../tg3-plugins.html">TigerGraph 3.x Plugin Methodology</a></li>
-</ul>
-<p class="caption"><span class="caption-text">Collaborate with Us</span></p>
-<ul>
 <li class="toctree-l1"><a class="reference internal" href="../vitis-dev-flow.html">Vitis Development Flow</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Notice</span></p>
@@ -418,9 +422,9 @@
     
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-          <li><a href="usecases.html">Xilinx Cosine Similarity Use Cases</a> &raquo;</li>
+          <li><a href="../cosinesim/usecases.html">Xilinx Cosine Similarity Use Cases</a> &raquo;</li>
         
-      <li>Healthcare Conconcept Similarity with UMLS</li>
+      <li>Setup Recommendation Engine for TigerGraph 3.x run</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -437,26 +441,61 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="healthcare-conconcept-similarity-with-umls">
-<h1>Healthcare Conconcept Similarity with UMLS<a class="headerlink" href="#healthcare-conconcept-similarity-with-umls" title="Permalink to this headline">¶</a></h1>
-<p>In this use case, we will try to find similar drugs/healthcare terms from the <a class="reference external" href="https://www.nlm.nih.gov/research/umls/index.html">Unified
-Medical Language System (UMLS)</a>
-dataset. UMLS is a collection of health and biomedical vocabularies from a wide
-variety of Healthcare data sources. One of the knowledge source in UMLS is a
-metathesaurus that is a collection of medical concepts called atoms and links them
-through useful relationships.</p>
-<p>For the purpose of this demo, we use a small subset of the atoms file MRCONSO.RRF
-and use relationships between atoms from the relationships file MRREL.RRF. The
-atoms and their relations are modeled as a graph database using TigerGraph database
-and Cosine Similarity is used as the match similarity measure.</p>
-<p>Each atom is converted into an embedding representation by probabilistically capturing
-their relations. We use the Node2Vec algorithm to compute embeddings for each atom
-vertex in the graph.</p>
-<p>This Example selects a random vertex in the graph from a query of UMLS database and
-returns top matching drugs, drug ingredients or related healthcare concepts.</p>
-<p>In General, finding Cosine Similarity on large datasets take a large amount of time
-on CPU. With the Xilinx Cosine Similarity Acceleration, speedups &gt; ~ 80x can be achieved.</p>
-<p>This   can be downloaded from <a class="reference external" href="https://github.com/Xilinx/graphanalytics/blob/master/plugin/tigergraph/recomengine/examples/drug_similarity/jupyter-demo/drug_similarity_TG_demo.ipynb">Healthcare Conconcept Similarity with UMLS notebook on GitHub</a>.</p>
+  <div class="section" id="setup-recommendation-engine-for-tigergraph-3-x-run">
+<span id="cosinesim-setup-tg3-label"></span><h1>Setup Recommendation Engine for TigerGraph 3.x run<a class="headerlink" href="#setup-recommendation-engine-for-tigergraph-3-x-run" title="Permalink to this headline">¶</a></h1>
+<p>The Recommendation Engine consists of Cosine Similarity library integrated into TigerGraph 3.x via plugins and UDFs.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The Recommendation Engine Jupyter Notebooks can be run from any machine that is on the same network as the TigerGraph server i.e. can connect via HTTP connections. These Notebooks use <strong>pytigerGraph</strong> module to connect to the TigerGraph server via REST APIs.</p>
+</div>
+<ul class="simple">
+<li><p>To run the TigerGraph jupyter notebooks, start by creating a python virtual environment and installing the required packages.</p></li>
+</ul>
+<p><strong>using Conda</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Install conda by following instructions on <a class="reference external" href="https://docs.conda.io/en/latest/miniconda.html">https://docs.conda.io/en/latest/miniconda.html</a></p></li>
+<li><p>Create and activate a new virtual environment and install all required packages</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ conda env list
+$ conda create -n fpga <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.6
+$ conda activate fpga
+<span class="o">(</span>fpga<span class="o">)</span>$ conda install -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.4/requirements.txt
+</pre></div>
+</div>
+</div></blockquote>
+<p><strong>using local python</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>At least Python version 3.6 is required, install or upgrade python using your package manager</p></li>
+<li><p>Create and activate a new virtual environment and install all required packages</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python3 -m venv fpga
+$ <span class="nb">source</span> fpga/bin/activate
+<span class="o">(</span>fpga<span class="o">)</span>$ pip install -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.4/requirements.txt
+</pre></div>
+</div>
+</div></blockquote>
+<ul class="simple">
+<li><p>Now copy examples to user accessible directory</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ mkdir recomengine-example
+<span class="o">(</span>fpga<span class="o">)</span>$ <span class="nb">cd</span> recomengine-example
+<span class="o">(</span>fpga<span class="o">)</span>$ cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.4/examples .
+</pre></div>
+</div>
+<ul>
+<li><p>(For info purpose only) To understand the Demo specific plugin, go to the section below:</p>
+<blockquote>
+<div><div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="setup-demo-plugin-install.html">Demo Plugin Installation</a></li>
+</ul>
+</div>
+</div></blockquote>
+</li>
+<li><p>Now follow instructions in the Demo use cases pages to run the corresponding Notebooks</p></li>
+</ul>
 </div>
 
 
@@ -475,10 +514,10 @@ on CPU. With the Xilinx Cosine Similarity Acceleration, speedups &gt; ~ 80x can 
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../louvainmod/usecases.html" class="btn btn-neutral float-right" title="Xilinx Louvain Modularity Use Cases" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="setup-demo-plugin-install.html" class="btn btn-neutral float-right" title="Installing and Uninstalling the Demo use cases" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="usecases-log.html" class="btn btn-neutral float-left" title="Error Log Analysis" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="../cosinesim/usecases-wiki-search.html" class="btn btn-neutral float-left" title="Wikipedia Search Engine" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -488,7 +527,7 @@ on CPU. With the Xilinx Cosine Similarity Acceleration, speedups &gt; ~ 80x can 
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on October 04, 2021.
+        Last updated on October 10, 2021.
       </span>
 
     </p>

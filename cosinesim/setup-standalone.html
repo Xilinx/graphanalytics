@@ -59,8 +59,8 @@
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Healthcare Conconcept Similarity with UMLS" href="usecases-healthcare.html" />
-    <link rel="prev" title="Synthea Demo Query Reference" href="../recom-tg3/synthea-query.html" /> 
+    <link rel="next" title="Python Example" href="cosinesim-example-python.html" />
+    <link rel="prev" title="Jupyter Notebook with CosineSim Python API" href="cosinesim-example-jupyter.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                1.0
+                1.4
               </div>
             
           
@@ -341,15 +341,21 @@
 <p class="caption"><span class="caption-text">Software Stack Integration Products</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../recom-tg3/index.html"> Recommendation Engine for TigerGraph 3.x</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../comdet-tg3/index.html"> Community Detection Engine for TigerGraph 3.x</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../comdet-tg3/index.html"> Community Detection for TigerGraph 3.x</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Use Cases</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="usecases.html"> Cosine Similarity Use Cases</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="usecases-wiki-search.html">Wikipedia Search Engine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../recom-tg3/synthea.html">Patient Similarity using Synthetic Patient Data (Synthea)</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Error Log Analysis</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usecases-healthcare.html">Heathcare Concept Similarity with UMLS</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="usecases.html#stand-alone-alveo-product">Stand-Alone Alveo Product</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Setup</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#method-1-connect-to-a-locally-running-jupyterhub-server-from-a-remote-system">Method 1: Connect to a locally running Jupyterhub server from a remote system</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#method-2-run-directly-on-the-local-server">Method 2: Run directly on the local server</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="usecases-wiki-search.html">Wikipedia Search Engine</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usecases.html#recommendation-engine-product">Recommendation Engine Product</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/usecases.html"> Louvain Modularity Use Cases</a></li>
@@ -357,9 +363,6 @@
 <p class="caption"><span class="caption-text">Additional Info</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../tg3-plugins.html">TigerGraph 3.x Plugin Methodology</a></li>
-</ul>
-<p class="caption"><span class="caption-text">Collaborate with Us</span></p>
-<ul>
 <li class="toctree-l1"><a class="reference internal" href="../vitis-dev-flow.html">Vitis Development Flow</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Notice</span></p>
@@ -418,9 +421,13 @@
     
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-          <li><a href="usecases.html">Xilinx Cosine Similarity Use Cases</a> &raquo;</li>
+          <li><a href="index.html">Xilinx Cosine Similarity Alveo Product</a> &raquo;</li>
         
-      <li>Error Log Analysis</li>
+          <li><a href="demos.html">Xilinx Cosine Similarity Alveo Product Demos</a> &raquo;</li>
+        
+          <li><a href="cosinesim-example-jupyter.html">Jupyter Notebook with CosineSim Python API</a> &raquo;</li>
+        
+      <li>Setup Cosine Similarity for Stand-Alone runs</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -437,19 +444,63 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="error-log-analysis">
-<h1>Error Log Analysis<a class="headerlink" href="#error-log-analysis" title="Permalink to this headline">¶</a></h1>
-<p>This example uses TigerGraph database to represent log messages within their contexts
-and finds similar trouble Logs messages for a given query message.</p>
-<p>This example selects a random vertex in the graph from a query and returns the top
-matching Logs based on cosine similarity. Solutions from the matching logs can help
-resolve current issues.</p>
-<p>Instead of finding similarity with the direct one-hot word representation, we used
-GloVe Word Embeddings, which maps words into more meaningful space.</p>
-<p>In General, finding Cosine Similarity on large dataset will take a huge amount of time
-on CPU. With the Xilinx Cosine Similarity Acceleration, it can speed up the process
-by multiple orders.</p>
-<p>This use case can be downloaded from <a class="reference external" href="https://github.com/Xilinx/graphanalytics/blob/master/plugin/tigergraph/recomengine/examples/log_similarity/jupyter-demo/log_similarity_TG_demo.ipynb">Error Log Analysis Jupyter notebook on GitHub</a>.</p>
+  <div class="section" id="setup-cosine-similarity-for-stand-alone-runs">
+<span id="cosinesim-setup-standalone-label"></span><h1>Setup Cosine Similarity for Stand-Alone runs<a class="headerlink" href="#setup-cosine-similarity-for-stand-alone-runs" title="Permalink to this headline">¶</a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If running Python Example only, directly go to Method 2</p>
+</div>
+<p>The stand-alone cosine similarity jupyter notebooks run on the same server that has the Alveo cards installed.
+Consequently, there a few ways to run the notebooks:</p>
+<div class="section" id="method-1-connect-to-a-locally-running-jupyterhub-server-from-a-remote-system">
+<h2>Method 1: Connect to a locally running Jupyterhub server from a remote system<a class="headerlink" href="#method-1-connect-to-a-locally-running-jupyterhub-server-from-a-remote-system" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Jupyterhub must be running with proper configuration, contact Xilinx Support for instructions</p>
+</div>
+<ul class="simple">
+<li><p>Login to the <strong>local</strong> (Alveo) machine and copy examples to user accessible directory</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ mkdir cosinesim-example
+$ <span class="nb">cd</span> cosinesim-example
+$ cp /opt/xilinx/apps/graphanalytics/cosinesim/1.4/examples.zip .
+$ unzip examples.zip
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Open a web browser on your <strong>remote</strong> machine, enter the IP address and port of the Jupyterhub server</p></li>
+<li><p>Navigate to <code class="code docutils literal notranslate"><span class="pre">cosinesim-example/examples/python/jupyter</span></code> and open the notebook(s)</p></li>
+</ul>
+</div>
+<div class="section" id="method-2-run-directly-on-the-local-server">
+<h2>Method 2: Run directly on the local server<a class="headerlink" href="#method-2-run-directly-on-the-local-server" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>To run the stand alone cosine similarity jupyter notebooks, start by creating a python virtual environment and installing the required packages.</p></li>
+</ul>
+<p><strong>Using Conda</strong></p>
+<ul class="simple">
+<li><p>Install conda by following instructions on <a class="reference external" href="https://docs.conda.io/en/latest/miniconda.html">https://docs.conda.io/en/latest/miniconda.html</a></p></li>
+<li><p>Create and activate a new virtual environment and install all required packages</p></li>
+</ul>
+<p><strong>Using local python</strong>
+* At least Python version 3.6 is required, install or upgrade python using your package manager
+* Create and activate a new virtual environment and install all required packages
+.. code-block:: bash</p>
+<blockquote>
+<div><p>$ python3 -m venv fpga
+$ source fpga/bin/activate
+(fpga)$ pip install -r /opt/xilinx/apps/graphanalytics/cosinesim/1.4/requirements.txt</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>Now copy examples to user accessible directory</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ mkdir cosinesim-example
+<span class="o">(</span>fpga<span class="o">)</span>$ <span class="nb">cd</span> cosinesim-example
+<span class="o">(</span>fpga<span class="o">)</span>$ cp /opt/xilinx/apps/graphanalytics/cosinesim/1.4/examples.zip .
+<span class="o">(</span>fpga<span class="o">)</span>$ unzip examples.zip
+</pre></div>
+</div>
+</div>
 </div>
 
 
@@ -468,10 +519,10 @@ by multiple orders.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="usecases-healthcare.html" class="btn btn-neutral float-right" title="Healthcare Conconcept Similarity with UMLS" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="cosinesim-example-python.html" class="btn btn-neutral float-right" title="Python Example" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../recom-tg3/synthea-query.html" class="btn btn-neutral float-left" title="Synthea Demo Query Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="cosinesim-example-jupyter.html" class="btn btn-neutral float-left" title="Jupyter Notebook with CosineSim Python API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -481,7 +532,7 @@ by multiple orders.</p>
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on October 04, 2021.
+        Last updated on October 10, 2021.
       </span>
 
     </p>
