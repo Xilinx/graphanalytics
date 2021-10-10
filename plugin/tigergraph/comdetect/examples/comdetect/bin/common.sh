@@ -39,17 +39,17 @@ function usage() {
     echo "Usage: $0 -u TG-username -p TG-password [optional options]"
     echo "Optional options:"
     echo "  -a alveoProject      : Alveo partition project basename. It can include a path (.e.g /path/to/alveo_proj"
-    echo "  -c compileMode       : 0: recreate database and compile all (default)"
-    echo "                         1: only compile query gsql" 
-    echo "                         2: skip database creation and gsql compilation"
-    echo "  -x partitionMode     : 0: Use existing partitions from disks"
-    echo "                         1: Generate partitions from TigerGraph memory"
-    echo "                         2: Generate partitions from mtx (default)"
-    echo "                         3: Generate partitions from TigerGraph using whole-graph technique"
-    echo "  -r runMode           : 0: Run only on CPU"
-    echo "                         1: Run only on Alveo (default)"
-    echo "                         2: Run on both CPU and Alveo"
-    echo ""
+	echo "  -c compileMode       : 0: skip database creation and gsql compilation"
+	echo "                         1: recreate database and compile all (default)"
+	echo "                         2: only compile query gsql"
+	echo "  -x partitionMode          : 0: Use existing partitions from disks; "
+	echo "                         1: Generate partitions from TigerGraph memory"
+	echo "                         2: Generate partitions from .mtx file"
+	echo "                         3: Generate partitions from TigerGraph using whole-graph technique (default)"
+	echo "  -r runMode           : 0: Skip both CPU and Alveo run (i.e. only run partition)"
+	echo "                         1: Run only on CPU"
+	echo "                         2: Run only on Alveo (default)"
+	echo "                         3: Run on both CPU and Alveo"    
     echo "  -d numDevices        : number of FPGAs needed (default=1)"
     echo "  -f                   : Force (re)install"
     echo "  -g graphName         : graph name (default=social_<username>"
@@ -75,9 +75,9 @@ num_partitions_node=1
 verbose=0
 xgraph="social_$username"
 force_clean=0
-run_mode=1
-compile_mode=0
-partition_mode=2
+compile_mode=1
+partition_mode=3
+run_mode=2
 force_clean_flag=
 verbose_flag=
 gen_outfile=0
@@ -91,6 +91,7 @@ fi
 while getopts "c:fg:i:lm:n:p:r:s:u:vx:ha:" opt
 do
 case $opt in
+    a) alveo_prj=$OPTARG;;
     c) compile_mode=$OPTARG;;
     f) force_clean=1; force_clean_flag=-f;;
     g) xgraph=$OPTARG;;
@@ -104,7 +105,6 @@ case $opt in
     u) username=$OPTARG;;
     v) verbose=1; verbose_flag=-v;;
     x) partition_mode=$OPTARG;;
-    a) alveo_prj=$OPTARG;;
     h) usage; exit 0;;
     ?) echo "ERROR: Unknown option: -$OPTARG"; usage; exit 1;;
 esac
@@ -116,6 +116,11 @@ if [ -z "$username" ] || [ -z "$password" ]; then
     exit 2
 fi
 
+if [ -z "$alveo_prj" ]; then
+    echo "ERROR: Alveo project must be specified."
+    usage
+    exit 3
+fi
 # need to download gsql client first before using it to check for other error conditions
 #if [ ! -f "$HOME/gsql-client/gsql_client.jar" ]; then
 #    mkdir -p $HOME/gsql-client
