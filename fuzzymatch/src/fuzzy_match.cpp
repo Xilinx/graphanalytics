@@ -309,16 +309,65 @@ namespace xf
        
         }
 
-        int FMChecker::startFuzzyMatch(const std::string &xclbinPath, const unsigned int cardID)
+        int FMChecker::getDeviceId(std::string deviceNames)
         {
-            // get devices
-            std::vector<cl::Device> devices = xcl::get_xil_devices();
-            if (cardID >= devices.size())
-            {
-                std::cout << "ERROR: device index out of range [0, " << devices.size() << ")" << std::endl;
-                exit(1);
+            cl_uint platformID = 0;
+            cl_platform_id* platforms = NULL;
+            char vendor_name[128] = {0};
+            cl_uint num_platforms = 0;
+            cl_int err2 = clGetPlatformIDs(0, NULL, &num_platforms);
+            if (CL_SUCCESS != err2) {
+                std::cout << "INFO: get platform failed" << std::endl;
             }
-            cl::Device device = devices[cardID];
+            platforms = (cl_platform_id*)malloc(sizeof(cl_platform_id) * num_platforms);
+            if (NULL == platforms) {
+                std::cout << "INFO: allocate platform failed" << std::endl;
+            }
+            err2 = clGetPlatformIDs(num_platforms, platforms, NULL);
+            if (CL_SUCCESS != err2) {
+                std::cout << "INFO: get platform failed" << std::endl;
+            }
+            for (cl_uint ui = 0; ui < num_platforms; ++ui) {
+                err2 = clGetPlatformInfo(platforms[ui], CL_PLATFORM_VENDOR, 128 * sizeof(char), vendor_name, NULL);
+                if (CL_SUCCESS != err2) {
+                    std::cout << "INFO: get platform failed" << std::endl;
+                } else if (!std::strcmp(vendor_name, "Xilinx")) {
+                    platformID = ui;
+                }
+            }
+            cl_device_id* devices;
+            std::vector<cl::Device> devices0 = xcl::get_xil_devices();
+            uint32_t totalXilinxDevices = devices0.size();
+            totalSupportedDevices_ = 0;
+            devices = (cl_device_id*)malloc(sizeof(cl_device_id) * totalXilinxDevices);
+            err2 = clGetDeviceIDs(platforms[platformID], CL_DEVICE_TYPE_ALL, totalXilinxDevices, devices, NULL);
+            size_t valueSize;
+            char* value;
+        
+            for (uint32_t i = 0; i < totalXilinxDevices; ++i) {
+                // print device name
+                clGetDeviceInfo(devices[i], CL_DEVICE_NAME, 0, NULL, &valueSize);
+                value = new char[valueSize];
+                clGetDeviceInfo(devices[i], CL_DEVICE_NAME, valueSize, value, NULL);
+                if (std::find(supportedDeviceNames_.begin(), supportedDeviceNames_.end(), value) != supportedDeviceNames_.end()) {
+                    std::cout << "INFO: Found requested device: " << value << " ID=" << i << std::endl;            
+                    supportedDeviceIds_[totalSupportedDevices_++] = i;  // save curret supported supported devices
+                } else {
+                    std::cout << "INFO: Skipped non-requested device: " << value << " ID=" << i << std::endl;
+                }
+                delete[] value;
+            }
+            std::cout << "INFO: Total matching devices: " << totalSupportedDevices_ << std::endl;             
+
+        }
+
+        int FMChecker::startFuzzyMatch(const std::string &xclbinPath, std::string deviceNames)
+        {
+            std::cout << "INFO: Start Fuzzy Match on " << deviceNames << std::endl;
+            const unsigned int cardID = 2;
+            // get devices
+            std::vector<cl::Device> devices0 = xcl::get_xil_devices();
+            cl::Device device = devices0[cardID];
 
             // Creating Context and Command Queue for selected Device
             ctx = cl::Context(device);
@@ -330,9 +379,9 @@ namespace xf
 
             // Create program with given xclbin file
             cl::Program::Binaries xclBins = xcl::import_binary_file(xclbinPath);
-            devices.resize(1);
-            devices[0] = device;
-            prg = cl::Program(ctx, devices, xclBins);
+            devices0.resize(1);
+            devices0[0] = device;
+            prg = cl::Program(ctx, devices0, xclBins);
 
             fuzzy[0] = cl::Kernel(prg, "fuzzy_kernel_1");
             fuzzy[1] = cl::Kernel(prg, "fuzzy_kernel_2");

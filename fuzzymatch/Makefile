@@ -14,10 +14,24 @@
 # limitations under the License.
 #
 
+.DELETE_ON_ERROR:
+.PHONY: all
+
+#all: javaApi cppBuild javaTest stage
+#all: stage
+all: cppBuild stage
+
 help:
 	@echo "Makefile usages:"
-	@echo "  make run-test"
+	@echo "  make run-test [runMode=0] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3]"
 	@echo "  Run standalone test with statically linked executable"
+	@echo "  Options:"
+	@echo "  deviceNames: Specify Alveo devices to use for computation"
+	@echo "      Supported devices: xilinx_u50_gen3x16_xdma_201920_3 (default)"
+	@echo ""
+	@echo "  runMode: 0: Run on Alveo Only (default)"
+	@echo "           1: Run on CPU Only"
+	@echo "           2: Run on both Alveo and CPU"
 	@echo ""
 	@echo "  make all"
 	@echo "  Compile fuzzyMatch lib and generate staging area"
@@ -42,13 +56,6 @@ ifndef XILINX_PLATFORMS
     XILINX_PLATFORMS = /opt/xilinx/platforms
     export XILINX_PLATFORMS
 endif
-
-.DELETE_ON_ERROR:
-.PHONY: all
-
-#all: javaApi cppBuild javaTest stage
-#all: stage
-all: cppBuild stage
 
 #
 # Global Definitions
@@ -267,18 +274,21 @@ $(CPP_BUILD_DIR)/fuzzymatch_test: $(CPP_BUILD_DIR)/fuzzymatch_test.o $(CPP_BUILD
 	$(LINK.cc) -o $@ $< $(LDFLAGS_test) $(LIB_DEPS)
 
 ###############################################################################
-#
+# Test targets and parameters
+
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3
 ifeq ($(deviceNames),xilinx_u50_gen3x16_xdma_201920_3)
     XCLBIN_RUN = $(CURDIR)/staging/xclbin/fuzzy_xilinx_u50_gen3x16_xdma_201920_3.xclbin
 endif
 
-run-test: cppTest
+runMode=0
+
+run-test: cppTest stage
 	set -e; \
 	. $(XILINX_XRT)/setup.sh && \
 	. $(XILINX_XRM)/setup.sh && \
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH $(CPP_BUILD_DIR)/fuzzymatch_test \
-	    -xclbin $(XCLBIN_RUN) -d ./examples/data -c 2
+	    -xclbin $(XCLBIN_RUN) -d ./examples/data -c $(runMode) --devices $(deviceNames)
 
 
 # Macro to create a .o rule and a .d rule for each .cpp
