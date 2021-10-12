@@ -313,6 +313,14 @@ $(STAGE_SUBDIRS):
 
 #######################################################################################################################
 #
+# C++ Tests
+#
+
+TEST_DIR = tests
+
+
+#######################################################################################################################
+#
 # Packaging
 #
 
@@ -352,6 +360,8 @@ javaTest:
 #### Clean target deletes all generated files ####
 .PHONY: clean clean-xclbin
 
+run: 
+
 clean:
 	rm -rf Debug Release $(JAVA_LIB_DIR) $(BUILD_DIR) $(STAGE_DIR)
 	@echo "Note: because the XCLBIN file takes so long to generate, it is not removed with this 'clean' target."
@@ -372,6 +382,7 @@ help:
 	@echo "Makefile usages:"
 	@echo "  make all"
 	@echo "  Compile fuzzyMatch lib and generate staging area"
+	@echo "" 
 	@echo "  make dist"
 	@echo "  Generate product installation package (RPM or DEB) for the current OS and architecture"
 @echo "":w!
