@@ -82,6 +82,8 @@ int main(int argc, const char* argv[]) {
     std::string xclbin_path;
     std::string in_dir;
     unsigned int work_mode = 0; // FPGA-only mode
+    std::string deviceNames;
+
     if (parser.getCmdOption("-h")) {
         std::cout << "Usage:\n\ttest.exe -xclbin XCLBIN_PATH -d WATCH_LIST_PATH [-c (0|1|2)]\n" << std::endl;
         std::cout
@@ -106,6 +108,12 @@ int main(int argc, const char* argv[]) {
         } catch (...) {
             work_mode = 0;
         }
+    }
+    if (parser.getCmdOption("--devices", deviceNames)) {
+        std::cout << "INFO: Set deviceNames to " << deviceNames << std::endl;
+    } else {
+    	deviceNames = "xilinx_u50_gen3x16_xdma_201920_3";
+        std::cout << "INFO: Use default deviceNames " << deviceNames << std::endl;
     }
 
     if (work_mode == 0)
@@ -173,7 +181,7 @@ int main(int argc, const char* argv[]) {
     if (work_mode == 0 || work_mode == 2) {
         FMChecker fm;
         //checker.initialize(xclbin_path, stopKeywordFile, peopleFile, entityFile, BICRefFile, 0); // card 0
-        fm.startFuzzyMatch(xclbin_path,2); //card 0
+        fm.startFuzzyMatch(xclbin_path, deviceNames); 
         fm.fuzzyMatchLoadVec(peopleVec);
         float min = std::numeric_limits<float>::max(), max = 0.0, sum = 0.0;
         for (int i = 0; i < trans_num; i++) {

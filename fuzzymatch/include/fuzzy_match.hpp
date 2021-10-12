@@ -100,7 +100,7 @@ class FMChecker : public internal::FMCPUChecker {
     FMChecker() { this->max_fuzzy_len = 35; }
 
     // The intialize process will download FPGA binary to FPGA card, and initialize the HBM/DDR FACTIVA tables.
-    int startFuzzyMatch(const std::string& xclbinPath, const unsigned int cardID);
+    int startFuzzyMatch(const std::string& xclbinPath, std::string deviceNames);
     int fuzzyMatchLoadVec(std::vector<std::string>& vecPattern);
 
     // The check method returns whether the transaction is okay, and triggering condition if any.
