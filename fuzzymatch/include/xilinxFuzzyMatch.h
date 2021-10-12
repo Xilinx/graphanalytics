@@ -36,7 +36,7 @@
 namespace xf {
 namespace fuzzyMatch {
 
-const int max_validated_people = 10000000;
+const int max_validated_pattern = 10000000;
 
 
 // extract select column from CSV file.
@@ -69,10 +69,10 @@ class FMCPUChecker {
     size_t max_contain_len;
     size_t max_equan_len;
 
-    std::vector<std::vector<std::string> > vec_grp =
+    std::vector<std::vector<std::string> > vec_pattern_grp =
         std::vector<std::vector<std::string> >(max_len_in_char);
 
-
+    void preSortbyLength(std::vector<std::string>& vec_pattern);
     // do one fuzzy process
     bool doFuzzyTask(int id,
                      const size_t upper_limit,
