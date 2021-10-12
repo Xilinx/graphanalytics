@@ -34,6 +34,8 @@ namespace xf
                      const unsigned col,
                      std::vector<std::string> &vec)
         {
+            std::cout << "INFO: Loading " << max_entry_num << " entities from CSV file " << file_path << std::endl;
+
             std::ifstream file(file_path.c_str());
             if (!file.is_open())
             {
@@ -92,6 +94,7 @@ namespace xf
                 }
                 assert(cur_col == col && "not enough column!");
                 std::string data = outs.str();
+                //std::cout << data << std::endl;
                 if (data.length() <= max_field_len)
                 {
                     vec.push_back(data);
