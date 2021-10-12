@@ -43,37 +43,41 @@ using RowIndex = xilinx_apps::cosinesim::RowIndex;
 
 const double DoubleEqualityResolution = 0.001; // 0.000001;
 
+static bool g_isVerbose = false;
+
 struct TestParams {
     Element m_minValue = 0;
     Element m_maxValue = 0;
     unsigned m_vectorLength = 0;
     unsigned m_numVectors = 0;
-    unsigned m_numResults = 0;
     
-    TestParams(Element minVal, Element maxVal, unsigned vecLen, unsigned numVecs, unsigned numResults)
-        : m_minValue(minVal), m_maxValue(maxVal), m_vectorLength(vecLen), m_numVectors(numVecs),
-          m_numResults(numResults)
+    TestParams(Element minVal, Element maxVal, unsigned vecLen, unsigned numVecs)
+        : m_minValue(minVal), m_maxValue(maxVal), m_vectorLength(vecLen), m_numVectors(numVecs)
     {}
 };
 
 
 static const TestParams s_testParamSet[] = {
-//   min      max  vec len  num pop vecs  num results
-    {-8192,   8192,  200,     100,        15},  
-    {-8192,   8192,  200,     200,        15},  
-    {-8192,   8192,  200,     500,        15},  
-    {-8192,   8192,  200,    1000,        15},  
-    {-8192,   8192,  200,    2000,        15},  
-    {-8192,   8192,  200,    5000,        15},
-    {100,    10000,  200,     100,        20},
-    {100,    10000,   50,     500,        20},
-    {100,    10000,   20,    1000,        30},
-    {100,    10000,   10,    2000,        30},
-    {100,    10000,    5,    5000,        50},
-    {100,    10000,  400,    5000,        50},
-    {100,    10000,  400,   20000,        100},
-    {100,    10000,  500,  100000,        100},
+//   min      max  vec len  num pop vecs
+    {-8192,   8192,  200,     100},  
+    {-8192,   8192,  200,     200},  
+    {-8192,   8192,  200,     500},  
+    {-8192,   8192,  200,    1000},  
+    {-8192,   8192,  200,    2000},  
+    {-8192,   8192,  200,    5000},
+    {100,    10000,  200,     100},
+    {100,    10000,   50,     500},
+    {100,    10000,   20,    1000},
+    {100,    10000,   10,    2000},
+    {100,    10000,    5,    5000},
+    {100,    10000,  400,    5000},
+    {100,    10000,  400,   20000},
+    {100,    10000,  500,  100000},
 };
+
+
+// Number of results to request for each set of test parameters
+static const unsigned s_numResultsList[] = {1, 5, 10, 20, 50, 100};
 
 
 inline Element generateRandomElement(Element minValue, Element maxValue) {
@@ -83,7 +87,7 @@ inline Element generateRandomElement(Element minValue, Element maxValue) {
 
 inline double roundDouble(double d) {
     double rounded = std::round(d / DoubleEqualityResolution) * DoubleEqualityResolution;
-    std::printf("roundDouble: in=%.12g, out=%.12g\n", d, rounded);
+//    std::printf("roundDouble: in=%.12g, out=%.12g\n", d, rounded);
     return rounded;
 }
 
@@ -196,11 +200,11 @@ public:
 };
 
 
-ResultVector runSwCosineSim(const TestParams &testParams, const CosineSimVector &targetVec,
+ResultVector runSwCosineSim(const TestParams &testParams, unsigned numResults, const CosineSimVector &targetVec,
     const std::vector<CosineSimVector> &populationVecs)
 {
     std::cout << "#### Running SW cosine similarity" << std::endl;
-    MatchHeap heap(testParams.m_numResults);
+    MatchHeap heap(numResults);
     for (RowIndex rowNum = 0, end = populationVecs.size(); rowNum < end; ++rowNum) {
         double score = targetVec.cosineSimilarity(populationVecs[rowNum]);
         heap.addMatch(score, rowNum);
@@ -209,70 +213,13 @@ ResultVector runSwCosineSim(const TestParams &testParams, const CosineSimVector 
 }
 
 
-ResultVector runHwCosineSim(const TestParams &testParams, const CosineSimVector &targetVec,
-    const std::vector<CosineSimVector> &populationVecs, unsigned numDevices, const std::string &deviceTypes)
-{
-    std::cout << "#### Running HW cosine similarity, numDevices=" << numDevices << std::endl;
-    xilinx_apps::cosinesim::Options options;
-    options.vecLength = testParams.m_vectorLength;
-    options.numDevices = numDevices;
-    options.deviceNames = deviceTypes;
-
-    ResultVector results;
-    try {
-        CosineSim cosineSim(options);
-
-        // Generate random vectors, writing each into the Alveo card
-
-        std::cout << "======== Loading population vectors into Alveo card..." << std::endl;
-        //cosineSim.openFpga();
-        cosineSim.startLoadPopulation(testParams.m_numVectors);
-        for (RowIndex vecNum = 0; vecNum < testParams.m_numVectors; ++vecNum) {
-            CosineSim::ValueType *pBuf = cosineSim.getPopulationVectorBuffer(vecNum);
-            CosineSim::ValueType *p = pBuf;
-            for (Element value : populationVecs[vecNum].m_elements)
-                *p++ = CosineSim::ValueType(value);
-            cosineSim.finishCurrentPopulationVector(pBuf);
-        }
-        cosineSim.finishLoadPopulation();
-
-        // Run the match in the FPGA
-
-        std::cout << "======== Running match..." << std::endl;
-        results = cosineSim.matchTargetVector(testParams.m_numResults, targetVec.m_elements.data());
-    } 
-    catch (const xilinx_apps::cosinesim::Exception &ex) {
-        std::cout << "#### ERROR during Cosinesim Running:" << ex.what() << std::endl;
-    }
-    return results;
-}
-
-
 void printResultVector(const ResultVector &results) {
-    std::cout << "Index   Similarity   Vector #" << std::endl;
-    std::cout << "-----   ----------   --------" << std::endl;
+    std::cout << "Index      Similarity      Vector #" << std::endl;
+    std::cout << "-----   ----------------   ---------" << std::endl;
     unsigned index = 0;
     for (const Result &result : results)
-        std::cout << index++ << "       " << result.similarity << "       " << result.index << std::endl;
+        std::printf("%5d  %16.12g  %9ld\n", index++, result.similarity, result.index);
 }
-
-
-#if 0
-bool compareResultStructs(const Result &res1, const Result &res2) {
-//    std::cout << "(" << res1.similarity << ", " << res1.index << ") < (" << res2.similarity << ", " << res2.index
-//        << ") = ";
-    if (res1.similarity > res2.similarity + DoubleEqualityResolution) {
-//        std::cout << "true (test 1)" << std::endl;
-        return true;
-    }
-    if (res1.similarity < res2.similarity - DoubleEqualityResolution) {
-//        std::cout << "false (test 2)" << std::endl;
-        return false;
-    }
-//    std::cout << (res1.index < res2.index ? "true" : "false") << " (test 3)" << std::endl;
-    return res1.index < res2.index;
-}
-#endif
 
 
 bool compareResultStructs(const Result &res1, const Result &res2) {
@@ -304,7 +251,7 @@ bool areMatchesEqual(const ResultVector &refVec, const ResultVector &testVec) {
         std::cout << "#### FAIL: Test vector is empty." << std::endl;
         return false;
     }
-    
+
     // Copy the vectors, round their elements, and sort them in place
     ResultVector refVecSorted = refVec;
     ResultVector::iterator dummyIter = refVecSorted.begin();
@@ -350,10 +297,14 @@ bool areMatchesEqual(const ResultVector &refVec, const ResultVector &testVec) {
         }
     }
     
-    if (isSuccess)
-        std::cout << "#### PASS" << std::endl;
-    /*else*/ {
-        std::cout << "==========================================" << std::endl;
+    if (!isSuccess || g_isVerbose) {
+        std::cout << "= Original ===============================" << std::endl;
+        std::cout << "Reference (SW model)" << std::endl;
+        printResultVector(refVec);
+        std::cout << "------------------------------------------" << std::endl;
+        std::cout << "Test (Alveo)" << std::endl;
+        printResultVector(testVec);
+        std::cout << "= Final ==================================" << std::endl;
         std::cout << "Reference (SW model)" << std::endl;
         printResultVector(refVecSorted);
         std::cout << "------------------------------------------" << std::endl;
@@ -361,6 +312,8 @@ bool areMatchesEqual(const ResultVector &refVec, const ResultVector &testVec) {
         printResultVector(testVecSorted);
         std::cout << "==========================================" << std::endl;
     }
+    if (isSuccess)
+        std::cout << "#### PASS" << std::endl;
     return isSuccess;
 }
 
@@ -369,21 +322,24 @@ void printUsage(const char *progName) {
     std::cout << progName << " [options]" << std::endl
         << "where 'options' is one or more of:" << std::endl
         << "  -d <numDevices>     the number of Alveo cards to use (default = 1)" << std::endl
-        << "  -i <numIterations>  the number of times to run each hardware run (default = 1)" << std::endl
         << "  -t <deviceTypes>    a space-separated list of shell names (default = xilinx_u50_gen3x16_xdma_201920_3)" << std::endl
         << "  -1 <testNum>        run one test of the given index (default = run all tests)" << std::endl
+        << "  -n <numResults>     run each test with only the given numResults (default = run all numResults)" << std::endl
+        << "  -v                  verbose: display extra info, such as results for passing tests" << std::endl
         << "  -h                  prints this help message" << std::endl;
 }
 
 
 int main(int argc, char **argv) {
-    const unsigned NumTests = sizeof(s_testParamSet)/sizeof(TestParams);
+    const unsigned NumTests = sizeof(s_testParamSet)/sizeof(TestParams);  // how many tests defined
+    const unsigned NumNumResults = sizeof(s_numResultsList)/sizeof(unsigned);  // how many variations of numResults
 
     unsigned numDevices = 1;
     unsigned numIterations = 1;
     int singleTestNum = -1;  // < 0 means run all tests
     (void) numIterations;  // TODO: implement multiple runs on hardware
     std::string deviceTypes = "xilinx_u50_gen3x16_xdma_201920_3";
+    int userNumResults = -1;  // < 0 means all values of numResults
 
     int curArgNum = 1;
     while (curArgNum < argc) {
@@ -396,17 +352,6 @@ int main(int argc, char **argv) {
                 }
                 else {
                     std::cout << "ERROR: option -d requires an argument." << std::endl;
-                    printUsage(argv[0]);
-                    return 2;
-                }
-            }
-            else if (curArg == "-i") {
-                if (curArgNum < argc) {
-//                    std::cout << "-i argument: " << argv[curArgNum] << std::endl;
-                    numIterations = std::stoi(argv[curArgNum++]);
-                }
-                else {
-                    std::cout << "ERROR: option -i requires an argument." << std::endl;
                     printUsage(argv[0]);
                     return 2;
                 }
@@ -436,6 +381,25 @@ int main(int argc, char **argv) {
                     return 2;
                 }
             }
+            else if (curArg == "-n") {
+                if (curArgNum < argc) {
+//                    std::cout << "-n argument: " << argv[curArgNum] << std::endl;
+                    userNumResults = std::stoi(argv[curArgNum++]);
+                    if (userNumResults > 100 || userNumResults == 0) {
+                        std::cout << "ERROR: numResults " << singleTestNum << " is invalid." << std::endl;
+                        std::cout << "Valid range is 1 to 100" << std::endl;
+                        return 2;
+                    }
+                }
+                else {
+                    std::cout << "ERROR: option -1 requires an argument." << std::endl;
+                    printUsage(argv[0]);
+                    return 2;
+                }
+            }
+            else if (curArg == "-v") {
+                g_isVerbose = true;
+            }
             else if (curArg == "-h" || curArg == "-help" || curArg == "--help") {
                 printUsage(argv[0]);
                 return 0;
@@ -456,29 +420,76 @@ int main(int argc, char **argv) {
     std::vector<bool> testResults;  // whether each test passed (true) or failed (false)
     const unsigned startTestNum = (singleTestNum >= 0) ? unsigned(singleTestNum) : 0;
     const unsigned endTestNum = (singleTestNum >= 0) ? unsigned(singleTestNum) : NumTests - 1;
+    const unsigned NumRuns = (userNumResults > 0) ? 1 : NumNumResults;
     for (unsigned testNum = startTestNum; testNum <= endTestNum ; ++testNum) {
-        std::cout << "# TEST " << testNum << " ##############################################" << std::endl;
+        std::cout << "#####################################################" << std::endl;
+        std::cout << "# TEST " << testNum << std::endl;
+        std::cout << "#####################################################" << std::endl;
         CosineSimVector targetVec;
         std::vector<CosineSimVector> populationVecs;
         const TestParams &testParams = s_testParamSet[testNum];
         
         generateVectors(testParams, targetVec, populationVecs);
-        ResultVector swResults = runSwCosineSim(testParams, targetVec, populationVecs);
-
+        
         try {
-            ResultVector hwResults = runHwCosineSim(testParams, targetVec, populationVecs, numDevices, deviceTypes);
-            bool doResultsMatch = areMatchesEqual(swResults, hwResults);
-            testResults.push_back(doResultsMatch);
-            if (doResultsMatch)
+            std::cout << "#### Running HW cosine similarity, numDevices=" << numDevices << std::endl;
+            xilinx_apps::cosinesim::Options options;
+            options.vecLength = testParams.m_vectorLength;
+            options.numDevices = numDevices;
+            options.deviceNames = deviceTypes;
+
+            CosineSim cosineSim(options);
+
+            // Generate random vectors, writing each into the Alveo card
+
+            std::cout << "======== Loading population vectors into Alveo card..." << std::endl;
+            //cosineSim.openFpga();
+            cosineSim.startLoadPopulation(testParams.m_numVectors);
+            for (RowIndex vecNum = 0; vecNum < testParams.m_numVectors; ++vecNum) {
+                CosineSim::ValueType *pBuf = cosineSim.getPopulationVectorBuffer(vecNum);
+                CosineSim::ValueType *p = pBuf;
+                for (Element value : populationVecs[vecNum].m_elements)
+                    *p++ = CosineSim::ValueType(value);
+                cosineSim.finishCurrentPopulationVector(pBuf);
+            }
+            cosineSim.finishLoadPopulation();
+
+            // Run the matches in the SW model and FPGA, once per numResults value
+            
+            unsigned numPassingRuns = 0;
+            for (unsigned numResultsIndex = 0; numResultsIndex < NumRuns; ++numResultsIndex) {
+                const unsigned numResults = (userNumResults > 0) ? userNumResults : s_numResultsList[numResultsIndex];
+                std::cout << "#### RUN " << numResultsIndex << ": numResults = " << numResults
+                        << " #############################" << std::endl;
+                
+                // Run the match in the SW model
+                ResultVector swResults = runSwCosineSim(testParams, numResults, targetVec, populationVecs);
+
+                // Run the match in the FPGA
+                std::cout << "======== Running match..." << std::endl;
+                ResultVector hwResults = cosineSim.matchTargetVector(numResults, targetVec.m_elements.data());
+
+                // Check whether the SW and HW results match and record the test results
+                bool doResultsMatch = areMatchesEqual(swResults, hwResults);
+                if (doResultsMatch)
+                    ++numPassingRuns;
+            }
+            
+            // The whole test passes if all the runs pass
+            testResults.push_back(numPassingRuns == NumRuns);
+            if (numPassingRuns == NumRuns)
                 ++numPassingTests;
-        } 
+        }
         catch (const xilinx_apps::cosinesim::Exception &ex) {
             std::cout << "#### FAIL: Error during HW cosinesim execution: " << ex.what() << std::endl;
             testResults.push_back(false);
         }
     }
-    
-    std::cout << std::endl << "# SUMMARY ##############################################" << std::endl;
+
+    std::cout << std::endl;
+    std::cout << "#####################################################" << std::endl;
+    std::cout << "# SUMMARY" << std::endl;
+    std::cout << "#####################################################" << std::endl;
     for (unsigned i = 0; i < testResults.size(); ++i)
         std::cout << "Test " << i << ": " << (testResults[i] ? "PASS" : "FAIL") << std::endl;
     std::cout << std::endl << numPassingTests << '/' << (singleTestNum >= 0 ? 1 : NumTests)
