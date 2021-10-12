@@ -34,6 +34,9 @@
 #include <cmath>
 #include <algorithm>
 
+// Enable this macro to include tests under development (positive test cases that we know fail)
+#define DEV_TESTS 1
+
 using Element = std::int32_t;
 using Vector = std::vector<Element>;
 using CosineSim = xilinx_apps::cosinesim::CosineSim<Element>;
@@ -59,20 +62,24 @@ struct TestParams {
 
 static const TestParams s_testParamSet[] = {
 //   min      max  vec len  num pop vecs
-    {-8192,   8192,  200,     100},  
+    {-8192,   8192,  200,     100},  // 0
     {-8192,   8192,  200,     200},  
     {-8192,   8192,  200,     500},  
     {-8192,   8192,  200,    1000},  
     {-8192,   8192,  200,    2000},  
-    {-8192,   8192,  200,    5000},
+    {-8192,   8192,  200,    5000},  // 5
     {100,    10000,  200,     100},
     {100,    10000,   50,     500},
     {100,    10000,   20,    1000},
     {100,    10000,   10,    2000},
-    {100,    10000,    5,    5000},
+    {100,    10000,    5,    5000},  // 10
     {100,    10000,  400,    5000},
     {100,    10000,  400,   20000},
     {100,    10000,  500,  100000},
+    
+#ifdef DEV_TESTS
+    {1000,  100000,  200,     100},
+#endif
 };
 
 
@@ -417,17 +424,23 @@ int main(int argc, char **argv) {
 
     std::srand(0x12345);
     unsigned numPassingTests = 0;
-    std::vector<bool> testResults;  // whether each test passed (true) or failed (false)
+    std::vector<bool> testResults(NumTests, false);  // whether each test passed (true) or failed (false)
     const unsigned startTestNum = (singleTestNum >= 0) ? unsigned(singleTestNum) : 0;
     const unsigned endTestNum = (singleTestNum >= 0) ? unsigned(singleTestNum) : NumTests - 1;
     const unsigned NumRuns = (userNumResults > 0) ? 1 : NumNumResults;
     for (unsigned testNum = startTestNum; testNum <= endTestNum ; ++testNum) {
         std::cout << "#####################################################" << std::endl;
         std::cout << "# TEST " << testNum << std::endl;
-        std::cout << "#####################################################" << std::endl;
+
         CosineSimVector targetVec;
         std::vector<CosineSimVector> populationVecs;
         const TestParams &testParams = s_testParamSet[testNum];
+        std::cout << "minValue = " << testParams.m_minValue
+            << ", maxValue = " << testParams.m_maxValue
+            << ", vectorLength = " << testParams.m_vectorLength
+            << ", numVectors = " << testParams.m_numVectors
+            << std::endl;
+        std::cout << "#####################################################" << std::endl;
         
         generateVectors(testParams, targetVec, populationVecs);
         
@@ -476,7 +489,7 @@ int main(int argc, char **argv) {
             }
             
             // The whole test passes if all the runs pass
-            testResults.push_back(numPassingRuns == NumRuns);
+            testResults[testNum] = (numPassingRuns == NumRuns);
             if (numPassingRuns == NumRuns)
                 ++numPassingTests;
         }
@@ -490,11 +503,11 @@ int main(int argc, char **argv) {
     std::cout << "#####################################################" << std::endl;
     std::cout << "# SUMMARY" << std::endl;
     std::cout << "#####################################################" << std::endl;
-    for (unsigned i = 0; i < testResults.size(); ++i)
+    for (unsigned i = startTestNum; i <= endTestNum; ++i)
         std::cout << "Test " << i << ": " << (testResults[i] ? "PASS" : "FAIL") << std::endl;
-    std::cout << std::endl << numPassingTests << '/' << (singleTestNum >= 0 ? 1 : NumTests)
-        << " tests passed" << std::endl;
-    if (numPassingTests < NumTests) {
+    const unsigned NumTestsRan = (singleTestNum >= 0 ? 1 : NumTests);
+    std::cout << std::endl << numPassingTests << '/' << NumTestsRan << " tests passed" << std::endl;
+    if (numPassingTests < NumTestsRan) {
         std::cout << "FAIL" << std::endl;
         return 1;
     }
