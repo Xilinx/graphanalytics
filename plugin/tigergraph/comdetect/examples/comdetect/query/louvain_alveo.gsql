@@ -265,7 +265,7 @@ CREATE DISTRIBUTED QUERY louvain_alveo(
         modularity = modularity + @@modularityAccum.get(i);
     END;
     print modularity AS Modularity;
-    print "Xilinx Alveo U50" AS ComputationTechnique;
+    print "Xilinx Alveo device" AS ComputationTechnique;
     print vm_peak/1000000.0 as PeakVirtualMemoryInGB;
     print vm_hwm/1000000.0 as PeakResidentMemoryInGB;
     print udf_time as ExecTimeInMs;

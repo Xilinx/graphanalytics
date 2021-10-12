@@ -1988,7 +1988,7 @@ GLV* LouvainGLV_general(bool hasGhost,
 }
 
 void LouvainGLV_general_batch_thread(bool hasGhost,
-                                     int flowMode,
+                                     int kernelMode,
                                      int id_dev,
                                      int id_glv,
                                      int num_dev,
@@ -2008,7 +2008,7 @@ void LouvainGLV_general_batch_thread(bool hasGhost,
     for (int p = id_dev; p < num_par; p += num_dev) {
         double time1 = omp_get_wtime();
         int id_glv_dev = id_glv + p;
-        glv_t = LouvainGLV_general(hasGhost, flowMode, id_dev, par_src[p], xclbinPath, numThreads, id_glv_dev,
+        glv_t = LouvainGLV_general(hasGhost, kernelMode, id_dev, par_src[p], xclbinPath, numThreads, id_glv_dev,
                                    minGraphSize, threshold, C_threshold, isParallel, numPhase);
         par_lved[p] = glv_t;
         // pushList(glv_t);

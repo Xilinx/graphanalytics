@@ -8,7 +8,7 @@ Run the command below to install UDFs specific to the community detection demo:
 
 .. code-block:: bash
 
-    /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/0.1/examples/comdetect/bin/install-udf.sh
+    /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/0.5/examples/comdetect/bin/install-udf.sh
 
 
 Uninstalling the Demo
@@ -38,6 +38,6 @@ Run the command below to uninstall the UDFs for this demo:
 
 .. code-block:: bash
 
-   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/0.1/examples/comdetect/bin/install-udf.sh -u
+   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/0.5/examples/comdetect/bin/install-udf.sh -u
 
-Uninstalling the demo UDFs leaves the Recommendation Engine UDFs in place.
+Uninstalling the demo UDFs leaves the Community Detection UDFs in place.

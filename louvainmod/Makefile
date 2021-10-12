@@ -87,6 +87,7 @@ INCLUDES_libLouvain = \
 	-I$(GRAPH_ANALYTICS_DIR)/L3/include \
 	-isystem $(GRAPH_ANALYTICS_DIR)/ext/HLS_arbitrary_Precision_Types/include \
 	-I$(GRAPH_ANALYTICS_DIR)/ext/xcl2 \
+	-I$(GRAPH_ANALYTICS_DIR)/ext \
 	-I$(GRAPH_ANALYTICS_DIR)/plugin/tigergraph/comdetect/udf/QueryUdf \
 #	-I${JAVA_HOME}/include \
 #	-I${JAVA_HOME}/include/linux
@@ -288,6 +289,7 @@ INCLUDES_test = \
 	-I$(XILINX_XRM)/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L2/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L3/include \
+	-I$(GRAPH_ANALYTICS_DIR)/ext \
 	-I$(GRAPH_ANALYTICS_DIR)/ext/xcl2 \
 	-isystem $(GRAPH_ANALYTICS_DIR)/ext/HLS_arbitrary_Precision_Types/include 
 
@@ -340,11 +342,11 @@ endif
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3
 ifeq ($(deviceNames),xilinx_u50_gen3x16_xdma_201920_3)
     XCLBIN_RUN = $(CURDIR)/staging/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin
-	KERNEL_MODE = -fast
+	KERNEL_MODE = -kernel_mode 2
 endif
 ifeq ($(deviceNames),xilinx_u55c_gen3x16_xdma_base_2)
     XCLBIN_RUN = $(CURDIR)/staging/xclbin/louvainmod_2cu_xilinx_u55c_gen3x16_xdma_2_202110_1.xclbin
-	KERNEL_MODE = -fast2 -num_cu 2
+	KERNEL_MODE = -kernel_mode 4
 endif
 
 CMDLINE_CREATE_PARTITIONS = $(graph) $(KERNEL_MODE) -num_pars $(numPars) -create_alveo_partitions \
@@ -354,16 +356,16 @@ WORKERS=192.168.1.21 192.168.1.31
 CMDLINE_LOAD_COMPUTE = -x $(XCLBIN_RUN) $(KERNEL_MODE) -num_devices $(numDevices) -devices $(deviceNames) \
 	-num_level 100 -num_iter 100 -load_alveo_partitions $(alveoProject).par.proj -setwkr 0 -driverAlone $(communityOutputOpt)
 
-CMDLINE_LOAD_COMPUTE_DRIVER = -x $(XCLBIN_RUN) $(KERNEL_MODE) -num_nodes $(numNodes) -num_devices $(numDevices) \
+CMDLINE_LOAD_COMPUTE_DRIVER = -x $(XCLBIN_RUN) $(KERNEL_MODE) -num_nodes 3 -num_devices $(numDevices) \
 	-num_level 100 -num_iter 100 -load_alveo_partitions $(alveoProject).par.proj -setwkr 2 $(WORKERS) -driverAlone $(communityOutputOpt)
 
-CMDLINE_LOAD_COMPUTE_WORKER1 = -x $(XCLBIN_RUN) $(KERNEL_MODE) -num_nodes $(numNodes) -num_devices $(numDevices) \
+CMDLINE_LOAD_COMPUTE_WORKER1 = -x $(XCLBIN_RUN) $(KERNEL_MODE) -num_nodes 3 -num_devices $(numDevices) \
 	-num_level 100 -num_iter 100 -load_alveo_partitions $(alveoProject).par.proj -workerAlone 1
 
-CMDLINE_LOAD_COMPUTE_WORKER2 = -x $(XCLBIN_RUN) $(KERNEL_MODE) -num_nodes $(numNodes) -num_devices $(numDevices) \
+CMDLINE_LOAD_COMPUTE_WORKER2 = -x $(XCLBIN_RUN) $(KERNEL_MODE) -num_nodes 3 -num_devices $(numDevices) \
     -num_level 100 -num_iter 100 -load_alveo_partitions $(alveoProject).par.proj -workerAlone 2
 
-.PHONY: run-create-partitions run-load-compute run-load-compute-driver run-load-compute-worker1 run-load-compute-worker2
+.PHONY: run run-create-partitions run-load-compute run-load-compute-driver run-load-compute-worker1 run-load-compute-worker2
 
 $(alveoProject).par.proj: $(graph)
 	@echo "------------------------------------------------------------------------"
@@ -371,7 +373,9 @@ $(alveoProject).par.proj: $(graph)
 	@echo "------------------------------------------------------------------------"
 	rm -rf $(CPPDEMO_OUT_DIR)
 	mkdir -p $(CPPDEMO_OUT_DIR)
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_CREATE_PARTITIONS)
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_CREATE_PARTITIONS)
+
+run: run-load-compute
 
 run-create-partitions: stage cppTest
 	@echo "------------------------------------------------------------------------"
@@ -379,27 +383,39 @@ run-create-partitions: stage cppTest
 	@echo "------------------------------------------------------------------------"
 	rm -rf $(CPPDEMO_OUT_DIR)
 	mkdir -p $(CPPDEMO_OUT_DIR)
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_CREATE_PARTITIONS)
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_CREATE_PARTITIONS)
 
 run-load-compute: stage cppTest $(alveoProject).par.proj
 	@echo "------------------------------------------------------------------------"
 	@echo "-                    Load Partitions and Compute                       -"
 	@echo "------------------------------------------------------------------------"
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE)
+	set -e; \
+	. $(XILINX_XRT)/setup.sh; \
+	. $(XILINX_XRM)/setup.sh; \
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE)
 
 run-load-compute-driver: stage cppTest $(alveoProject).par.proj
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE_DRIVER)
+	set -e; \
+	. $(XILINX_XRT)/setup.sh; \
+	. $(XILINX_XRM)/setup.sh; \
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE_DRIVER)
 
 run-load-compute-worker1: stage cppTest 
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE_WORKER1)
+	set -e; \
+	. $(XILINX_XRT)/setup.sh; \
+	. $(XILINX_XRM)/setup.sh; \
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH; $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE_WORKER1)
 
 run-load-compute-worker2: stage cppTest
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE_WORKER2)	
+	set -e; \
+	. $(XILINX_XRT)/setup.sh; \
+	. $(XILINX_XRM)/setup.sh; \
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH; $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_LOAD_COMPUTE_WORKER2)	
 
 debug-cppdemo: cppTest
 	rm -rf $(CPPDEMO_OUT_DIR)
 	mkdir -p $(CPPDEMO_OUT_DIR)
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH); totalview $(CPP_BUILD_DIR)/cppdemo -a $(CMDLINE_CREATE_PARTITIONS)
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARY_PATH); totalview $(CPP_BUILD_DIR)/cppdemo -a $(CMDLINE_CREATE_PARTITIONS)
 
 $(CPP_BUILD_DIR)/pardump: $(CPP_BUILD_DIR)/pardump.o $(CPP_BUILD_DIR)/$(LIB_NAME)
 	$(LINK.cc) -o $@ $< $(LDFLAGS_test) $(LIB_DEPS)
@@ -448,7 +464,7 @@ XCLBIN_INSTALLED_U50 =/opt/xilinx/apps/graphanalytics/louvainmod/1.0/xclbin/$(XC
 L2_TOP_DIR_U55 = $(GRAPH_ANALYTICS_DIR)/L2/louvainmod_2cu_u55c_kernel
 L2_XDEVICE_U55 = xilinx_u55c_gen3x16_xdma_2_202110_1
 L2_BUILD_DIR_U55 = $(L2_TOP_DIR_U55)/build_dir.hw.$(L2_XDEVICE_U55)
-XCLBIN_NAME_U55 = kernel_louvain_alias.xclbin
+XCLBIN_NAME_U55 = kernel_louvain_2cu_u55c_alias.xclbin
 XCLBIN_FILE_U55 = $(L2_BUILD_DIR_U55)/$(XCLBIN_NAME_U55)
 XCLBIN_INSTALLED_NAME_U55 = louvainmod_2cu_$(L2_XDEVICE_U55).xclbin
 XCLBIN_INSTALLED_U55 =/opt/xilinx/apps/graphanalytics/louvainmod/1.0/xclbin/$(XCLBIN_INSTALLED_NAME_U55)
@@ -571,6 +587,11 @@ $(STAGE_XCLBIN_FILE_U50): $(XCLBIN_FILE_U50)
 $(STAGE_XCLBIN_FILE_U55): $(XCLBIN_FILE_U55)
 	cp -f $^ $@
 
+STAGE_XILINX_APPS_COMMON = $(STAGE_DIR)/include/xilinx_apps_common.hpp
+XILINX_APPS_COMMON = $(GRAPH_ANALYTICS_DIR)/ext/xilinx_apps_common.hpp
+$(STAGE_XILINX_APPS_COMMON): $(XILINX_APPS_COMMON)
+	cp -f $^ $@
+
 # Top-level packaging rule
 
 STAGE_SUBDIR_NAMES = include lib src xclbin
@@ -581,6 +602,7 @@ STAGE_ALL_FILES = \
     $(STAGE_XCLBIN_FILE_U50) \
 	$(STAGE_XCLBIN_FILE_U55) \
     $(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP) \
+	$(STAGE_XILINX_APPS_COMMON)
 
 # make staging areaing in two steps so intermediate outputs can be included in the 
 # staging output as well.
@@ -644,6 +666,13 @@ clean-xclbin:
 clean-par:
 	rm -f $(CPPDEMO_OUT_DIR)/$(graphBasename)*
 
+cleanpy:
+	rm -rf $(PYTHONENV_NAME)
+
+cleanall: clean cleanpy
+	rm -f ./package/*.deb ./package/*.rpm
+	
+
 help:
 	@echo "Makefile usages:"
 	@echo "  make dist"
@@ -655,7 +684,7 @@ help:
 	@echo "  make run-create-partitions [graph=/path/to/graph.mtx] [numPars=1]"
 	@echo "  Create partitions on a single node"
 	@echo ""
-	@echo "  make run-load-compute [graph=/path/to/graph.mtx] [numPars=1] [numDevices=1] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3]"
+	@echo "  make run [graph=/path/to/graph.mtx] [numPars=1] [numDevices=1] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3]"
 	@echo "  Load partition and compute Louvain modularity on a single node"
 	@echo ""
 	@echo "  Run test in a 3 node cluster"

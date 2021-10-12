@@ -138,6 +138,7 @@ if [ $pluginAlveoProductNeedsInstall -eq 1 ]; then
     fi
     mkdir -p $tg_udf_xclbin_dir
     cp -f $pluginAlveoProductXclbinPath $tg_udf_xclbin_dir
+    cp -f $pluginAlveoProductXclbinPathU55C $tg_udf_xclbin_dir
     cp -f $pluginAlveoProductLibDir/$pluginLibName $tg_udf_dir
 fi
 
@@ -182,6 +183,8 @@ python3 $SCRIPTPATH/gen-cluster-info.py $tg_udf_dir/xilinx-plugin-config.json $t
 # Substitute the XCLBIN path for PLUGIN_XCLBIN_PATH in all files that need the substitution
 
 for i in $pluginXclbinPathFiles; do
+    # replace the longest string first
+    sed -i "s|PLUGIN_XCLBIN_PATH_U55C|\"$runtimeXclbinPathU55C\"|" $tg_udf_dir/${i##*/}
     sed -i "s|PLUGIN_XCLBIN_PATH|\"$runtimeXclbinPath\"|" $tg_udf_dir/${i##*/}
 done
 

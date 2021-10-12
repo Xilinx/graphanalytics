@@ -38,7 +38,11 @@ STAGE_COPY_FILES = \
     \
     $(wildcard $(SYNTHEA_DIR)/1000_patients/csv/*.csv) \
     $(SYNTHEA_DIR)/bin/common.sh \
-    $(SYNTHEA_DIR)/bin/set-plugin-vars.sh \
+    $(SYNTHEA_DIR)/bin/run.sh \
+	$(SYNTHEA_DIR)/bin/set-plugin-vars.sh \
+    $(SYNTHEA_DIR)/bin/init_graph.sh \
+    $(SYNTHEA_DIR)/bin/install_query.sh \
+    $(SYNTHEA_DIR)/bin/match.sh \
     $(SYNTHEA_DIR)/jupyter-demo/TG_demo.ipynb \
     $(SYNTHEA_DIR)/python/TG_demo.py \
     $(SYNTHEA_DIR)/query/base.gsql \
@@ -49,10 +53,6 @@ STAGE_COPY_FILES = \
     $(SYNTHEA_DIR)/udf/codevector.hpp \
     $(SYNTHEA_DIR)/udf/syntheaDemo.hpp \
     $(SYNTHEA_DIR)/README.md \
-    $(SYNTHEA_DIR)/init_graph.sh \
-    $(SYNTHEA_DIR)/install_query.sh \
-    $(SYNTHEA_DIR)/match.sh \
-    $(SYNTHEA_DIR)/run.sh \
     \
     $(wildcard $(LOGSIM_DIR)/data/csv/*.csv) \
     $(wildcard $(LOGSIM_DIR)/data/json/*.log) \

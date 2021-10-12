@@ -62,6 +62,8 @@ stage: update-version stage-common
 
 clean: clean-common
 
+cleanall: cleanall-common
+
 help: help-common
 
 

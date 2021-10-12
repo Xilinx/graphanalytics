@@ -1,17 +1,33 @@
-../../../../cosinesim/staging/lib/libXilinxCosineSim.so: ../../../../cosinesim/src/cosinesim.cpp
-	cd ../../../../cosinesim && \
-	make DEBUG=1 all 
+# Copyright 2020 Xilinx, Inc.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WANCUNCUANTIES ONCU CONDITIONS OF ANY KIND, either express or
+# implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-../../install-plugin-done: ../../udf/xilinxRecomEngine.hpp ../../udf/xilinxRecomEngineImpl.hpp ../../../../cosinesim/staging/lib/libXilinxCosineSim.so
-	cd ../../ && \
-	./install.sh && \
-	touch install-done
+deviceNames=xilinx_u50_gen3x16_xdma_201920_3
 
-./install-query-done: query/base.gsql
-	./install_query.sh && touch install-query-done
-	
-run-test: ../../install-plugin-done ./install-query-done
-	gsql query/test.gsql
+ifdef sshKey
+    SSH_KEY_OPT=-i $(sshKey)
+endif
 
+.PHONY: run
+run: .install-udf-done
+	@echo "-------------------------------------------------------"
+	@echo "Running run.sh from staging "
+	@echo "-------------------------------------------------------"
+	cd ../../ && make DEBUG=$(DEBUG) stage && \
+	    ./staging/examples/synthea/bin/run.sh -v
 
+include ../Makefile-common.mk
+
+help: help-common
 

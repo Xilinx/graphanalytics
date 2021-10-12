@@ -76,30 +76,41 @@ alveoProject = $(basename $(notdir $(graph)))
 numNodes = 1
 numPars = 1
 numDevices = 1
-deviceNames="xilinx_u50_gen3x16_xdma_201920_3"
-xclbin=$(XILINX_LOUVAIN)/${PRODUCT_VER}/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+deviceNames=xilinx_u50_gen3x16_xdma_201920_3
+ifeq ($(deviceNames),xilinx_u50_gen3x16_xdma_201920_3)
+    xclbin = $(XILINX_LOUVAIN)/${PRODUCT_VER}/xclbin/louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+	KERNEL_MODE = -kernel_mode 2
+endif
+ifeq ($(deviceNames),xilinx_u55c_gen3x16_xdma_base_2)
+    xclbin = $(XILINX_LOUVAIN)/${PRODUCT_VER}/xclbin/louvainmod_2cu_xilinx_u55c_gen3x16_xdma_2_202110_1.xclbin
+	KERNEL_MODE = -kernel_mode 4
+endif
 workers=192.168.1.21 192.168.1.31
+
+.PHONY: run run-create-partitions run-load-compute
+
+run: run-create-partitions run-load-compute
 
 run-create-partitions: cppdemo
 	@echo "------------------------------------------------------------------------"
 	@echo "-                       Create Partitions                              -"
 	@echo "------------------------------------------------------------------------"
-	@set -e; \
+	set -e; \
 	. $(XILINX_XRT)/setup.sh; \
 	. $(XILINX_XRM)/setup.sh; \
-	LD_LIBRARY_PATH=$(LIB_PATH):$(LD_LIBRARAY_PATH); \
-	./cppdemo $(graph) -fast -num_pars $(numPars) -create_alveo_partitions \
+	LD_LIBRARY_PATH=$(LIB_PATH):$(LD_LIBRARY_PATH); \
+	./cppdemo $(graph) $(KERNEL_MODE) -num_pars $(numPars) -create_alveo_partitions \
 	    -name $(alveoProject)
 
 run-load-compute: cppdemo
 	@echo "------------------------------------------------------------------------"
 	@echo "-                    Load Partitions and Compute                       -"
 	@echo "------------------------------------------------------------------------"
-	@set -e; \
+	set -e; \
 	. $(XILINX_XRT)/setup.sh; \
 	. $(XILINX_XRM)/setup.sh; \
-	LD_LIBRARY_PATH=$(LIB_PATH):$(LD_LIBRARAY_PATH); \
-	./cppdemo -x $(xclbin) -fast -num_devices $(numDevices) -devices $(deviceNames) \
+	LD_LIBRARY_PATH=$(LIB_PATH):$$LD_LIBRARY_PATH; \
+	./cppdemo -x $(xclbin) $(KERNEL_MODE) -num_devices $(numDevices) -devices $(deviceNames) \
 	    -num_level 100 -num_iter 100 -load_alveo_partitions \
 	    $(alveoProject).par.proj -setwkr 0 -driverAlone
 
@@ -107,11 +118,11 @@ run-load-compute-driver: cppdemo
 	@echo "------------------------------------------------------------------------"
 	@echo "-              Load Partitions and Compute on Driver                   -"
 	@echo "------------------------------------------------------------------------"
-	@set -e; \
+	set -e; \
 	. $(XILINX_XRT)/setup.sh; \
 	. $(XILINX_XRM)/setup.sh; \
-	LD_LIBRARY_PATH=$(LIB_PATH):$(LD_LIBRARAY_PATH); \
-	./cppdemo -x $(xclbin) -fast -num_nodes $(numNodes) -num_devices $(numDevices) -devices $(deviceNames) \
+	LD_LIBRARY_PATH=$(LIB_PATH):$$LD_LIBRARY_PATH; \
+	./cppdemo -x $(xclbin) $(KERNEL_MODE) -num_nodes $(numNodes) -num_devices $(numDevices) -devices $(deviceNames) \
 	    -num_level 100 -num_iter 100 -load_alveo_partitions \
 	    $(alveoProject).par.proj -setwkr 2 $(workers) -driverAlone
 
@@ -119,11 +130,11 @@ run-load-compute-worker1: cppdemo
 	@echo "------------------------------------------------------------------------"
 	@echo "-              Load Partitions and Compute on Worker1                  -"
 	@echo "------------------------------------------------------------------------"
-	@set -e; \
+	set -e; \
 	. $(XILINX_XRT)/setup.sh; \
 	. $(XILINX_XRM)/setup.sh; \
-	LD_LIBRARY_PATH=$(LIB_PATH):$(LD_LIBRARAY_PATH); \
-	./cppdemo -x $(xclbin) -fast -num_nodes $(numNodes) -num_devices $(numDevices) -devices $(deviceNames) \
+	LD_LIBRARY_PATH=$(LIB_PATH):$$LD_LIBRARY_PATH; \
+	./cppdemo -x $(xclbin) $(KERNEL_MODE) -num_nodes $(numNodes) -num_devices $(numDevices) -devices $(deviceNames) \
 	    -num_level 100 -num_iter 100 -load_alveo_partitions \
 	    $(alveoProject).par.proj -workerAlone 1
 
@@ -131,11 +142,11 @@ run-load-compute-worker2: cppdemo
 	@echo "------------------------------------------------------------------------"
 	@echo "-              Load Partitions and Compute on Worker 2                 -"
 	@echo "------------------------------------------------------------------------"
-	@set -e; \
+	set -e; \
 	. $(XILINX_XRT)/setup.sh; \
 	. $(XILINX_XRM)/setup.sh; \
-	LD_LIBRARY_PATH=$(LIB_PATH):$(LD_LIBRARAY_PATH); \
-	./cppdemo -x $(xclbin) -fast -num_nodes $(numNodes) -num_devices $(numDevices) -devices $(deviceNames) \
+	LD_LIBRARY_PATH=$(LIB_PATH):$$LD_LIBRARY_PATH; \
+	./cppdemo -x $(xclbin) $(KERNEL_MODE) -num_nodes $(numNodes) -num_devices $(numDevices) -devices $(deviceNames) \
 	    -num_level 100 -num_iter 100 -load_alveo_partitions \
 	    $(alveoProject).par.proj -workerAlone 2
 
@@ -150,7 +161,7 @@ help:
 	@echo "  make run-create-partitions [graph=/path/to/graph.mtx] [numPars=1]"
 	@echo "  Create partitions on a single node"
 	@echo ""
-	@echo "  make run-load-compute [graph=/path/to/graph.mtx] [numPars=1] [numDevices=1]"
+	@echo "  make run [graph=/path/to/graph.mtx] [numPars=1] [numDevices=1]"
 	@echo "  Load partition and compute Louvain modularity on a single node"
 	@echo ""
 	@echo "  Run test in a 3 node cluster"

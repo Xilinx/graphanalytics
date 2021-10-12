@@ -70,7 +70,7 @@ struct ParLVVar{
 	bool st_Merged_gh;
 	bool isMergeGhost;
 	bool isOnlyGL;
-	int   flowMode;
+	int   kernelMode;
     int   num_par;
     int   num_dev;
     long   NV;
@@ -114,7 +114,7 @@ public:
 	bool st_Merged_gh;
 	bool isMergeGhost;
 	bool isOnlyGL;
-	int   flowMode;
+	int   kernelMode;
     int   num_par;
     int   num_dev;
     long   NV;
@@ -205,27 +205,27 @@ GLV* par_general(GLV* src, SttGPar* pstt, int&id_glv, long start, long end, bool
 GLV* par_general(GLV* src, int&id_glv, long start, long end, bool isPrun,  int th_prun);
 
 GLV* LouvainGLV_general_par(
-		int flowMode,
+		int kernelMode,
 		ParLV &parlv,
 		//
 		char* xclbinPath, int numThreads, int& id_glv,
 		long minGraphSize, double threshold, double C_threshold, bool isParallel, int numPhase);
 GLV* LouvainGLV_general_par_OneDev(
-		int flowMode,
+		int kernelMode,
 		ParLV &parlv,
 		//
 		char* xclbinPath, int numThreads, int& id_glv,
 		long minGraphSize, double threshold, double C_threshold, bool isParallel, int numPhase);
 
 GLV* LouvainGLV_general_par(
-		int flowMode,
+		int kernelMode,
 		GLV* glv_orig, int num_par, int num_dev, int isPrun, int th_prun,
 		//
 		char* xclbinPath, int numThreads, int& id_glv,
 		long minGraphSize, double threshold, double C_threshold, bool isParallel, int numPhase);
 
 void ParLV_general_batch_thread(
-		int flowMode, GLV* plv_orig,
+		int kernelMode, GLV* plv_orig,
 		int id_dev, int num_dev, int num_par,
 		double* timeLv, GLV* par_src[], GLV* par_lved[],
 		char* xclbinPath, int numThreads,
@@ -267,12 +267,5 @@ void sim_getServerPar(
 );
 
 int getNumPartitions(std::string alveoProjectFile);
-/*
-float loadAlveoAndComputeLouvain(    
-    char* xclbinPath, bool flow_fast, unsigned int numDevices,
-    char* alveoProject, unsigned mode_zmq, unsigned numPureWorker, 
-    char* nameWorkers[128], unsigned int nodeID,  char* opts_outputFile, 
-    unsigned int max_iter, unsigned int max_level, float tolerance, 
-    bool intermediateResult, bool verbose, bool final_Q, bool all_Q);*/
 
 #endif

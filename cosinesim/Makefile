@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 
+SHELL := /bin/bash
+
 #
 # Define __PROFILING__ to turn on profiling message from compute units
 #
@@ -97,6 +99,7 @@ INCLUDES_libCosineSim = \
 	-I$(XILINX_XRM)/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L2/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L3/include \
+	-I$(GRAPH_ANALYTICS_DIR)/ext \
 	-I$(GRAPH_ANALYTICS_DIR)/ext/xcl2 \
 	-Iinclude
 #	-I${JAVA_HOME}/include \
@@ -233,6 +236,7 @@ SRC_FILE_NAMES_python = pythonapi.cpp
 
 INCLUDES_python = \
     -I$(PYTHON_DIR) \
+	-I$(GRAPH_ANALYTICS_DIR)/ext \
     -Iinclude
 
 SRCS_python = $(addprefix $(PYTHON_API_DIR)/,$(SRC_FILE_NAMES_python))
@@ -298,6 +302,7 @@ INCLUDES_test = \
 	-I$(XILINX_XRM)/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L2/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L3/include \
+	-I$(GRAPH_ANALYTICS_DIR)/ext \
 	-I$(GRAPH_ANALYTICS_DIR)/ext/xcl2 \
 	-Iinclude
 
@@ -337,15 +342,25 @@ $(CPP_BUILD_DIR)/cosinesim_dyn_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUI
 	$(LINK.cc) -o $@ $< -fPIC -w -L $(CPP_BUILD_DIR) -l$(LOADER_SHORT_NAME) -ldl $(LIB_DEPS)
 
 numDevices=1
-iterations=1
 numVectors=5000
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3
+testNum=-1
+numResults=-1
+verbose=0
+verboseFlag=
+ifneq ($(verbose),0)
+  verboseFlag=-v
+endif
+
 run-test: cppTest
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) $(CPP_BUILD_DIR)/cosinesim_test \
-	                $(numDevices) $(iterations) $(numVectors) $(deviceNames)
+	set -e; \
+	. $(XILINX_XRT)/setup.sh && \
+	. $(XILINX_XRM)/setup.sh && \
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH $(CPP_BUILD_DIR)/cosinesim_test \
+	    -d $(numDevices) -t $(deviceNames) -1 $(testNum) -n $(numResults) $(verboseFlag)
 
 run-dyn-test: cppTest
-	LD_PRELOAD=$(PWD)/$(CPP_BUILD_DIR)/$(LIB_NAME) LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) \
+	LD_PRELOAD=$(PWD)/$(CPP_BUILD_DIR)/$(LIB_NAME) LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARY_PATH) \
 	    $(CPP_BUILD_DIR)/cosinesim_dyn_test $(numDevices)
 
 # Macro to create a .o rule and a .d rule for each .cpp
@@ -587,7 +602,7 @@ javaTest:
 #
 
 #### Clean target deletes all generated files ####
-.PHONY: clean clean-xclbin clean-pyenv
+.PHONY: clean clean-xclbin clean-pyenv clean-all
 
 clean:
 	rm -rf Debug Release $(JAVA_LIB_DIR) $(BUILD_DIR) $(STAGE_DIR)
@@ -598,8 +613,13 @@ clean:
 clean-xclbin:
 	rm -f $(XCLBIN_FILE_U50) $(XCLBIN_FILE_U55C)
 
-clean-pyenv:
+cleanpy:
 	rm -rf $(PYTHONENV_NAME)
+
+cleanall: clean cleanpy
+	# remove generated packages as well
+	rm -f ./package/*.deb ./package/*.rpm 
+	
 
 .PHONY: help
 help:

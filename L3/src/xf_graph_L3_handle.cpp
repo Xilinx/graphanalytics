@@ -84,7 +84,11 @@ int32_t Handle::initOpLouvainModularity(std::string xclbinFile, std::string kern
 };
 #endif
 
-void Handle::addOp(singleOP op) {
+void Handle::addOp(singleOP op) 
+{
+#ifndef NDEBUG
+    std::cout << "DEBUG: addOp" << std::endl;
+#endif    
     ops.push_back(op);
 }
 
@@ -138,10 +142,10 @@ int Handle::setUp(std::string deviceNames)
             for (unsigned int j = 0; j < boardNm; ++j) {
                 auto loadedDevId = th[j].get();
                 if (loadedDevId < 0) {
-                        std::cout << "ERROR: failed to load " << ops[i].xclbinPath << 
-                        "(Status=" << loadedDevId << "). Please check if it is " <<
-                        "created for the Xilinx Acceleration card installed on " <<
-                        "the server." << std::endl;
+                    std::cout << "ERROR: Failed to load " << ops[i].xclbinPath << 
+                        "(Status=" << loadedDevId << ")." << std::endl;
+                    std::cout << "    Try 'xbutil reset -d " << supportedDeviceIds_[j]
+                              << "' and rerun the application." << std::endl;
                     return loadedDevId;
                 }
             }
@@ -191,7 +195,7 @@ int Handle::setUp(std::string deviceNames)
             for (int j = 0; j < boardNm; ++j) {
                 auto loadedDevId = th[j].get();
                 if (loadedDevId < 0) {
-                        std::cout << "ERROR: failed to load " << ops[i].xclbinPath << 
+                        std::cout << "ERROR: Failed to load " << ops[i].xclbinPath << 
                         "(Status=" << loadedDevId << "). Please check if it is " <<
                         "created for the Xilinx Acceleration card installed on " <<
                         "the server." << std::endl;
@@ -279,7 +283,7 @@ void Handle::showHandleInfo() {
               << " maxCU_=" << maxCU_ << std::endl;
     unsigned int opNm = ops.size();
     for (unsigned int i = 0; i < opNm; ++i) {
-        std::cout << "INFO: " << __FUNCTION__ << 
+        std::cout << "INFO: " << __FUNCTION__ << " operation " << i <<
             "\n    operationName=" << ops[i].operationName << 
             "\n    kernelName=" << ops[i].kernelName_ << 
             "\n    kernelAlias=" << ops[i].kernelAlias_ << 
@@ -293,6 +297,7 @@ void Handle::free() {
     unsigned int opNm = ops.size();
     unsigned int deviceCounter = 0;
     for (unsigned int i = 0; i < opNm; ++i) {
+        std::cout << "----------------opNm=" << opNm << std::endl;        
         if (ops[i].operationName == "similarityDense") {
             opsimdense->freeSimDense(xrm->ctx);            
             unsigned int boardNm = ops[i].numDevices;

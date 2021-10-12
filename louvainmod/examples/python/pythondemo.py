@@ -56,7 +56,7 @@ if __name__ == '__main__':
      
     # Create options for louvainMod
     
-    opt.flow_fast = 2
+    opt.kernelMode = 2
     
     if args.mode_zmq == 'driver':
       opt.nodeId = 0

@@ -33,7 +33,7 @@ class clHandle {
     cl::Program::Binaries xclBins;
     cl::Program program;
     cl::Kernel kernel;
-    cl::Buffer* buffer;
+    cl::Buffer* buffer = nullptr;
     xrmCuResource* resR;
     unsigned int deviceID;
     unsigned int cuID;

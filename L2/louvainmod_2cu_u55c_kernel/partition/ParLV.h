@@ -58,7 +58,7 @@ class ParLV {
     GLV* par_lved[MAX_PARTITION];
     GLV* plv_merged;
     GLV* plv_final;
-    int flowMode;
+    int kernelMode;
     int num_par;
     int num_dev;
     long NV;
