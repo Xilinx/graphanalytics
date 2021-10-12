@@ -83,6 +83,8 @@ int main(int argc, const char* argv[]) {
     std::string in_dir;
     unsigned int work_mode = 0; // FPGA-only mode
     std::string deviceNames;
+    unsigned int totalEntities = 10000000;
+    unsigned int numEntities = 100;
 
     if (parser.getCmdOption("-h")) {
         std::cout << "Usage:\n\ttest.exe -xclbin XCLBIN_PATH -d WATCH_LIST_PATH [-c (0|1|2)]\n" << std::endl;
@@ -115,6 +117,22 @@ int main(int argc, const char* argv[]) {
     	deviceNames = "xilinx_u50_gen3x16_xdma_201920_3";
         std::cout << "INFO: Use default deviceNames " << deviceNames << std::endl;
     }
+    
+    if (parser.getCmdOption("--total_entities", is_check_str)) {
+        try {
+            totalEntities = std::stoi(is_check_str);
+        } catch (...) {
+            totalEntities = 10000000;
+        }
+    }
+
+    if (parser.getCmdOption("--num_entities", is_check_str)) {
+        try {
+            numEntities = std::stoi(is_check_str);
+        } catch (...) {
+            numEntities = 100;
+        }
+    }
 
     if (work_mode == 0)
         std::cout << "Select FPGA-only work mode\n";
@@ -145,7 +163,6 @@ int main(int argc, const char* argv[]) {
    
 
     // Read some transactions
-    const int trans_num = 100;
     std::string test_input = in_dir + "/" + "txdata.csv";
     f.open(test_input);
     if (f.good()) {
@@ -159,23 +176,23 @@ int main(int argc, const char* argv[]) {
 
     std::vector<std::vector<std::string> > list_trans(2);
  
-    load_csv(trans_num, -1U, test_input, 15, list_trans[0]); // NombrePersona1
-    load_csv(trans_num, -1U, test_input, 18, list_trans[1]); // NombrePersona2
+    load_csv(numEntities, -1U, test_input, 15, list_trans[0]); // Load NombrePersona1 column
+    load_csv(numEntities, -1U, test_input, 18, list_trans[1]); // Load NombrePersona2 column
 
     //std::vector<SwiftMT103> test_transaction(trans_num);
-    std::vector<std::string> test_transaction0(trans_num);
-    std::vector<std::string> test_transaction1(trans_num);
-    for (int i = 0; i < trans_num; i++) {
+    std::vector<std::string> test_transaction0(numEntities);
+    std::vector<std::string> test_transaction1(numEntities);
+    for (int i = 0; i < numEntities; i++) {
      
         test_transaction0[i] = list_trans[0][i];
         test_transaction1[i] = list_trans[1][i];
     }
 
-    std::vector<bool> result_set0(trans_num);
-    std::vector<float> perf0(trans_num);
+    std::vector<bool> result_set0(numEntities);
+    std::vector<float> perf0(numEntities);
 
     std::vector<std::string> peopleVec;
-    load_csv(10000000, -1U, peopleFile , 1, peopleVec);
+    load_csv(totalEntities, -1U, peopleFile , 1, peopleVec);
     
     // Begin to analyze if on mode 0 or 2
     if (work_mode == 0 || work_mode == 2) {
@@ -188,7 +205,7 @@ int main(int argc, const char* argv[]) {
 
         fm.fuzzyMatchLoadVec(peopleVec);
         float min = std::numeric_limits<float>::max(), max = 0.0, sum = 0.0;
-        for (int i = 0; i < trans_num; i++) {
+        for (int i = 0; i < numEntities; i++) {
             auto ts = std::chrono::high_resolution_clock::now();
             //result_set[i] = checker.check(test_transaction[i]);
             result_set0[i] = fm.executefuzzyMatch(test_transaction0[i]);
@@ -203,30 +220,30 @@ int main(int argc, const char* argv[]) {
 
         // print the result
         std::cout << "\nTransaction Id, OK/KO, Field of match, Time taken(:ms)" << std::endl;
-        for (int i = 0; i < trans_num; i++) {
+        for (int i = 0; i < numEntities; i++) {
             std::string s = print_result(i,result_set0[i],perf0[i]);
             std::cout << s << std::endl;
         }
 
         std::cout << "\nFor FPGA, ";
-        std::cout << trans_num << " transactions were processed.\n";
+        std::cout << numEntities << " transactions were processed.\n";
 
         std::cout << "Min(ms)\t\tMax(ms)\t\tAvg(ms)\n";
         std::cout << "----------------------------------------" << std::endl;
-        std::cout << min << "\t\t" << max << "\t\t" << sum / trans_num << std::endl;
+        std::cout << min << "\t\t" << max << "\t\t" << sum / numEntities << std::endl;
         std::cout << "----------------------------------------" << std::endl;
     }
 
     // check the result
     internal::FMCPUChecker cpu_checker;
     if (work_mode == 1 || work_mode == 2) {
-        std::vector<float> swperf0(trans_num);
+        std::vector<float> swperf0(numEntities);
         if (work_mode == 2) std::cout << "\nStart to check...\n";
         int nerror = 0;
         cpu_checker.initialize(peopleFile);
 
         float min = std::numeric_limits<float>::max(), max = 0.0, sum = 0.0;
-        for (int i = 0; i < trans_num; i++) {
+        for (int i = 0; i < numEntities; i++) {
             auto ts = std::chrono::high_resolution_clock::now();
             bool t = cpu_checker.check(test_transaction0[i]);
             auto te = std::chrono::high_resolution_clock::now();
@@ -248,7 +265,7 @@ int main(int argc, const char* argv[]) {
         std::cout << "\nFor CPU, " << std::endl;
         std::cout << "Min(ms)\t\tMax(ms)\t\tAvg(ms)\n";
         std::cout << "----------------------------------------" << std::endl;
-        std::cout << min << "\t\t" << max << "\t\t" << sum / (trans_num - nerror) << std::endl;
+        std::cout << min << "\t\t" << max << "\t\t" << sum / (numEntities - nerror) << std::endl;
         std::cout << "----------------------------------------" << std::endl;
 
         if (work_mode == 2) {

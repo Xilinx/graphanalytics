@@ -23,15 +23,16 @@ all: cppBuild stage
 
 help:
 	@echo "Makefile usages:"
-	@echo "  make run-test [runMode=0] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3]"
+	@echo "  make run-test [runMode=0] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3] [totalEntities=10000000]"
 	@echo "  Run standalone test with statically linked executable"
 	@echo "  Options:"
-	@echo "  deviceNames: Specify Alveo devices to use for computation"
-	@echo "      Supported devices: xilinx_u50_gen3x16_xdma_201920_3 (default)"
-	@echo ""
-	@echo "  runMode: 0: Run on Alveo Only (default)"
-	@echo "           1: Run on CPU Only"
-	@echo "           2: Run on both Alveo and CPU"
+	@echo "  deviceNames  : Specify Alveo devices to use for computation"
+	@echo "                 Supported devices: xilinx_u50_gen3x16_xdma_201920_3 (default)"
+	@echo "  numEntities  : Number of entities to match (default=100)"
+	@echo "  runMode      : 0: Run on Alveo Only (default)"
+	@echo "                 1: Run on CPU Only"
+	@echo "                 2: Run on both Alveo and CPU"
+	@echo "  totalEntities: total number of entities to match against(default=10000000)"
 	@echo ""
 	@echo "  make all"
 	@echo "  Compile fuzzyMatch lib and generate staging area"
@@ -282,13 +283,15 @@ ifeq ($(deviceNames),xilinx_u50_gen3x16_xdma_201920_3)
 endif
 
 runMode=0
-
+totalEntities=10000000
+numEntities=100
 run-test: cppTest stage
 	@set -e; \
 	. $(XILINX_XRT)/setup.sh && \
 	. $(XILINX_XRM)/setup.sh && \
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH $(CPP_BUILD_DIR)/fuzzymatch_test \
-	    -xclbin $(XCLBIN_RUN) -d ./examples/data -c $(runMode) --devices $(deviceNames)
+	    -xclbin $(XCLBIN_RUN) -d ./examples/data -c $(runMode) --devices $(deviceNames) \
+		--total_entities $(totalEntities) --num_entities $(numEntities)
 
 
 # Macro to create a .o rule and a .d rule for each .cpp
