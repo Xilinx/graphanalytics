@@ -341,6 +341,8 @@ $(CPP_BUILD_DIR)/cosinesim_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUILD_D
 $(CPP_BUILD_DIR)/cosinesim_dyn_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUILD_DIR)/$(LOADER_NAME) $(CPP_BUILD_DIR)/$(LIB_NAME)
 	$(LINK.cc) -o $@ $< -fPIC -w -L $(CPP_BUILD_DIR) -l$(LOADER_SHORT_NAME) -ldl $(LIB_DEPS)
 
+###############################################################################
+# Parameters and targets for running tests
 numDevices=1
 numVectors=5000
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3

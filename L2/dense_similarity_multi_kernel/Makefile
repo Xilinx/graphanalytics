@@ -18,7 +18,7 @@
 # ####################################### Help Section #####################################
 .PHONY: help
 
-help::
+help:
 	$(ECHO) "Makefile Usage:"
 	$(ECHO) "  make all TARGET=<sw_emu/hw_emu/hw> DEVICE=<FPGA platform> HOST_ARCH=<x86>"
 	$(ECHO) "      Command to generate the design for specified Target and Shell."
@@ -67,7 +67,7 @@ CUR_DIR := $(patsubst %/,%,$(dir $(MK_PATH)))
 XFLIB_DIR = $(XF_PROJ_ROOT)
 
 # ######################### Include environment variables in utils.mk ####################
-include ./utils.mk
+include ../common/utils.mk
 XDEVICE := $(call device2xsa, $(DEVICE))
 TEMP_DIR := _x_temp.$(TARGET).$(XDEVICE)
 TEMP_REPORT_DIR := $(CUR_DIR)/reports/_x.$(TARGET).$(XDEVICE)
