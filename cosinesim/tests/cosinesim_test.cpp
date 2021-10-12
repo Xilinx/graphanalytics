@@ -37,22 +37,32 @@
 // Enable this macro to include tests under development (positive test cases that we know fail)
 //#define DEV_TESTS 1
 
+// Enable this macro to dump a vector and the calculation of cosine similarity whenever the similarity is
+// calculated to be outside the expected range of [-1.0, 1.0]
+//#define DEBUG_DUMP_CALCULATIONS 1
+
 using Element = std::int32_t;
 using Vector = std::vector<Element>;
 using CosineSim = xilinx_apps::cosinesim::CosineSim<Element>;
 using Result = xilinx_apps::cosinesim::Result;
 using ResultVector = std::vector<Result>;
+using ColIndex = xilinx_apps::cosinesim::ColIndex;
 using RowIndex = xilinx_apps::cosinesim::RowIndex;
 
-const double DoubleEqualityResolution = 0.001; // 0.000001;
+const double DoubleEqualityResolution = 0.000000001; // 0.001; // 0.000001;
 
-static bool g_isVerbose = false;
+static bool g_isVerbose = false;  // true to dump debug messages
+
+#ifdef DEBUG_DUMP_CALCULATIONS
+static bool g_debugDumpCalculations = false;  // true to dump cosine similarity calculations
+#endif
+
 
 struct TestParams {
     Element m_minValue = 0;
     Element m_maxValue = 0;
-    unsigned m_vectorLength = 0;
-    unsigned m_numVectors = 0;
+    ColIndex m_vectorLength = 0;
+    RowIndex m_numVectors = 0;
     
     TestParams(Element minVal, Element maxVal, unsigned vecLen, unsigned numVecs)
         : m_minValue(minVal), m_maxValue(maxVal), m_vectorLength(vecLen), m_numVectors(numVecs)
@@ -62,23 +72,28 @@ struct TestParams {
 
 static const TestParams s_testParamSet[] = {
 //   min      max  vec len  num pop vecs
-    {-8192,   8192,  200,     100},  // 0
+    {-8192,   8192,  200,     110},
     {-8192,   8192,  200,     200},  
     {-8192,   8192,  200,     500},  
     {-8192,   8192,  200,    1000},  
     {-8192,   8192,  200,    2000},  
-    {-8192,   8192,  200,    5000},  // 5
+    {-8192,   8192,  200,    5000},
     {100,    10000,  200,     100},
     {100,    10000,   50,     500},
     {100,    10000,   20,    1000},
     {100,    10000,   10,    2000},
-    {100,    10000,    5,    5000},  // 10
+    {100,    10000,    5,    5000},
     {100,    10000,  400,    5000},
     {100,    10000,  400,   20000},
     {100,    10000,  500,  100000},
+//    {100,    10000,  512, 3125000},  Too big for U50?
+    {100,    10000,  512, 3000000},
     
 #ifdef DEV_TESTS
-    {1000,  100000,  200,     100},
+    {-8192,   8192,  200,     100},  // when numResults=100, rows 95-99 are blank
+    {1000,  100000,  200,     100},  // overflow of 32-bit mult (awaiting kernel fix)
+    {100,    10000,   16,      64},  // when numResults=100, rows 64-99 are blank
+    {100,    10000,   16,      48},  // crashes, min is 49
 #endif
 };
 
@@ -101,23 +116,52 @@ inline double roundDouble(double d) {
 
 struct CosineSimVector {
     std::vector<Element> m_elements;
-    double m_normal = 0.0;
+    float m_normal = 0.0;  // HW doesn't have double-precision sqrt, so it uses float
     
     void setNormal() {
         std::int64_t inormal = 0;
         for (auto eltInt : m_elements) {
-//            const double elt = eltInt;
-            inormal += eltInt * eltInt;
+            const std::int64_t eltInt64 = std::int64_t(eltInt);
+            inormal += eltInt64 * eltInt64;
+            
+#ifdef DEBUG_DUMP_CALCULATIONS
+            if (g_debugDumpCalculations)
+                printf("Value=%d, square=%ld, accum=%ld\n", eltInt, eltInt64 * eltInt64, inormal);
+#endif
         }
         m_normal = inormal;
+        
+#ifdef DEBUG_DUMP_CALCULATIONS
+        if (g_debugDumpCalculations)
+            printf("float(accum)=%.12g\n", m_normal);
+#endif
+        
         m_normal = std::sqrt(m_normal);
+        
+#ifdef DEBUG_DUMP_CALCULATIONS
+        if (g_debugDumpCalculations)
+            printf("---> normal=%.12g\n", m_normal);
+#endif
     }
     
     double cosineSimilarity(const CosineSimVector &other) const {
         std::int64_t dotProduct = 0.0;
-        for (unsigned i = 0, end = m_elements.size(); i < end; ++i)
-            dotProduct = dotProduct + m_elements[i] * other.m_elements[i];
-        double result = double(dotProduct) / (m_normal * other.m_normal);
+        for (unsigned i = 0, end = m_elements.size(); i < end; ++i) {
+            const std::int64_t term64 = std::int64_t(m_elements[i]) * std::int64_t(other.m_elements[i]);
+            dotProduct = dotProduct + term64;
+
+#ifdef DEBUG_DUMP_CALCULATIONS
+            if (g_debugDumpCalculations)
+                printf("val1=%d, val2=%d, term64=%ld, accum=%ld\n", m_elements[i], other.m_elements[i], term64, dotProduct);
+#endif
+        }
+        double result = float(dotProduct) / (m_normal * other.m_normal);
+        
+#ifdef DEBUG_DUMP_CALCULATIONS
+        if (g_debugDumpCalculations)
+            printf("---> dotProduct=%.12g, normProd=%.12g, similarity=%.12g\n", float(dotProduct), m_normal * other.m_normal, result);
+#endif
+
         return result;
     }
 };
@@ -128,9 +172,9 @@ void generateVectors(const TestParams &testParams, CosineSimVector &targetVec,
 {
     // Create the target vector with random numbers whose range is limited only by the test parameter min and max values
     
-    std::cout << "#### Generating target and population vectors" << std::endl;
+    std::cout << "======== Generating target and population vectors" << std::endl;
     targetVec.m_elements.clear();
-    for (unsigned i = 0; i < testParams.m_vectorLength; ++i)
+    for (ColIndex i = 0; i < testParams.m_vectorLength; ++i)
         targetVec.m_elements.push_back(generateRandomElement(testParams.m_minValue, testParams.m_maxValue));
     targetVec.setNormal();
     
@@ -176,10 +220,8 @@ void generateVectors(const TestParams &testParams, CosineSimVector &targetVec,
 
 
 class MatchHeap {
-public:
     using Map = std::multimap<double, RowIndex>;
     
-private:
     const unsigned m_maxSize;
     Map m_map;
     
@@ -202,6 +244,7 @@ public:
         unsigned vecIndex = mv.size() - 1;
         for (auto entry : m_map)
             mv[vecIndex--] = Result(entry.second, entry.first);
+//        std::cout << "Heap.size=" << m_map.size() << ", vec.size=" << mv.size() << std::endl;
         return mv;
     }
 };
@@ -210,10 +253,28 @@ public:
 ResultVector runSwCosineSim(const TestParams &testParams, unsigned numResults, const CosineSimVector &targetVec,
     const std::vector<CosineSimVector> &populationVecs)
 {
-    std::cout << "#### Running SW cosine similarity" << std::endl;
+    std::cout << "======== Running SW match" << std::endl;
     MatchHeap heap(numResults);
     for (RowIndex rowNum = 0, end = populationVecs.size(); rowNum < end; ++rowNum) {
         double score = targetVec.cosineSimilarity(populationVecs[rowNum]);
+        
+        // If the cosine similarity score is outside the proper range, dump the vector and calculations leading
+        // to the erroneous score.
+        if (score < -1.0001 || score > 1.0001) {
+            std::cout << "ERROR: SW model generated similarity score of " << score << '.' << std::endl;
+
+#ifdef DEBUG_DUMP_CALCULATIONS
+            g_debugDumpCalculations = true;
+            std::cout << "Population vector normal calculation:" << std::endl;
+            const_cast<CosineSimVector &>(populationVecs[rowNum]).setNormal();
+            std::cout << "Target vector normal calculation:" << std::endl;
+            const_cast<CosineSimVector &>(targetVec).setNormal();
+            std::cout << "Cosine similarity calculation:" << std::endl;
+            targetVec.cosineSimilarity(populationVecs[rowNum]);
+            g_debugDumpCalculations = false;
+#endif
+        }
+        
         heap.addMatch(score, rowNum);
     }
     return heap.toMatchVector();
@@ -269,6 +330,7 @@ bool areMatchesEqual(const ResultVector &refVec, const ResultVector &testVec) {
     std::transform(testVecSorted.begin(), testVecSorted.end(), dummyIter, roundResult);
     std::sort(testVecSorted.begin(), testVecSorted.end(), compareResultStructs);
 
+//    std::cout << "refVec.size=" << refVec.size() << ", testVec.size=" << testVec.size() << std::endl;
     if (refVec.size() != testVec.size()) {
         std::cout << "#### FAIL: Result vector sizes are different.  Reference:" << refVec.size() << ", Test:"
             << testVec.size() << std::endl;
@@ -284,7 +346,9 @@ bool areMatchesEqual(const ResultVector &refVec, const ResultVector &testVec) {
         while (tailStart > 0 && refVecSorted[tailStart - 1].similarity == tailScore
                 && testVecSorted[tailStart - 1].similarity == tailScore)
             --tailStart;
-        std::cout << "INFO: Matching tails start at result # " << tailStart << std::endl;
+        
+        if (g_isVerbose)
+            std::cout << "INFO: Matching tails start at result # " << tailStart << std::endl;
         
         // Compare the non-tail results strictly (results must match exactly)
         for (unsigned i = 0; i < tailStart; ++i) {
@@ -445,7 +509,7 @@ int main(int argc, char **argv) {
         generateVectors(testParams, targetVec, populationVecs);
         
         try {
-            std::cout << "#### Running HW cosine similarity, numDevices=" << numDevices << std::endl;
+            std::cout << "======== Loading population vectors into Alveo card, numDevices=" << numDevices << std::endl;
             xilinx_apps::cosinesim::Options options;
             options.vecLength = testParams.m_vectorLength;
             options.numDevices = numDevices;
@@ -455,7 +519,6 @@ int main(int argc, char **argv) {
 
             // Generate random vectors, writing each into the Alveo card
 
-            std::cout << "======== Loading population vectors into Alveo card..." << std::endl;
             //cosineSim.openFpga();
             cosineSim.startLoadPopulation(testParams.m_numVectors);
             for (RowIndex vecNum = 0; vecNum < testParams.m_numVectors; ++vecNum) {
@@ -479,7 +542,7 @@ int main(int argc, char **argv) {
                 ResultVector swResults = runSwCosineSim(testParams, numResults, targetVec, populationVecs);
 
                 // Run the match in the FPGA
-                std::cout << "======== Running match..." << std::endl;
+                std::cout << "======== Running HW match" << std::endl;
                 ResultVector hwResults = cosineSim.matchTargetVector(numResults, targetVec.m_elements.data());
 
                 // Check whether the SW and HW results match and record the test results
