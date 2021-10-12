@@ -5,31 +5,36 @@ Xilinx Louvain Modularity Alveo Product Installation
 
 Follow the steps below to install the Louvain Modularity Alveo Product.
 
-Installing the Alveo U50 Accelerator Card
+Installing the Alveo Accelerator Cards
 -----------------------------------------
 
 * Power off the server.
-* Plug the Xilinx U50 Alveo acclerator card into a PCIe Gen3 x16 slot.
+* Plug the Xilinx U50 or U55C Alveo Data Center Acclerator card into a PCIe Gen3 x16 slot
 * Power on the server.
 
 Installing Louvain Modularity Library from a Pre-built Package
 -------------------------------------------------------------
-* Get the installation package `xilinx-tigergraph-install-1.0.2.tar.gz from 
-  Xilinx website <https://www.xilinx.com/member/forms/download/design-license-xef.html?filename=xilinx-tigergraph-install-1.0.2.tar.gz>`_ 
+* Get the installation package `xilinx-tigergraph-install-1.4.tar.gz from 
+  Xilinx website <https://www.xilinx.com/member/forms/download/design-license-xef.html?filename=xilinx-tigergraph-install-1.4.tar.gz>`_ 
 
-* Install Xilinx Louvain Modularity Alveo product and dependencies (XRT, XRM, and Alveo platform packages)
+* Install Xilinx Louvain Modularity and Community Detection Alveo products and dependencies 
+  (XRT, XRM, and Alveo firmware packages)
 
 .. code-block:: bash
 
-   tar xzf xilinx-tigergraph-install-1.0.2.tar.gz
+   tar xzf xilinx-tigergraph-install-1.4.tar.gz
    cd xilinx-tigergraph-install && ./install.sh -p louvainmod
 
 
 Setting up the Alveo Accelerator Card
 -------------------------------------
 
-The Louvain Modularity Alveo Product requires the xilinx_u50_gen3x16_xdma_201920_3 shell to be installed on each
-Alveo card to use.  Check and install the shell by following the steps below.
+The Cosine Similarity Alveo Product requires the following Alveo cards and their 
+correponding firmware versions to be installed on each Alveo card to use.  
+* U50: xilinx_u50_gen3x16_xdma_201920_3 
+* U55C: xilinx_u55c_gen3x16_xdma_base_2
+ 
+Check and install the firmware by following the steps below:
 
 * Run ``xbutil scan`` command to check the status of all Alveo cards on the server.
 
@@ -42,10 +47,8 @@ Alveo card to use.  Check and install the shell by following the steps below.
 
 .. code-block::
 
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     [0] 0000:81:00.1 xilinx_u50_gen3x16_xdma_201920_3 user(inst=130)
-     [1] 0000:21:00.1 xilinx_u50_gen3x16_xdma_201920_3 user(inst=129)
-     [2] 0000:01:00.1 xilinx_u50_gen3x16_xdma_201920_3 user(inst=128)
+    [0] 0000:81:00.1 xilinx_u50_gen3x16_xdma_201920_3 user(inst=131)
+    [1] 0000:04:00.1 xilinx_u55c_gen3x16_xdma_base_2 user(inst=130)
 
 * If all cards to use contain the right shell, skip the remainder of this section.
 
@@ -53,12 +56,21 @@ Alveo card to use.  Check and install the shell by following the steps below.
 
 .. code-block:: bash
 
+    U50
     sudo /opt/xilinx/xrt/bin/xbmgmt flash --update --shell xilinx_u50_gen3x16_xdma_201920_3
+
+    U55C
+    sudo /opt/xilinx/xrt/bin/xbmgmt flash --update --shell xilinx_u55c_gen3x16_xdma_base_2
 
 * Cold reboot the server after flashing is done.
 
+..  note:: 
+    
+    If you only need to build applications utilizing Xilinx GraphAnalytics 
+    products, you can skip the section "Collaborating on Louvain Modularity 
+    Product" below.
 
-Collaborating on the Louvain Modularity Product
+Collaborating on Louvain Modularity Product
 ----------------------------------------------
 The Louvain Modularity product is an open-source project hosted on github, you can 
 collaborate with Xilinx and contribute to the development of the product.
@@ -68,6 +80,16 @@ collaborate with Xilinx and contribute to the development of the product.
 .. code-block:: bash
 
    git clone https://github.com/Xilinx/graphanalytics.git
+   cd graphanalytics
+   git submodule update --init --recursive
+
+All commands below are executed from the root direcotry of the repository.
+
+* Install required devlopment packages. 
+
+.. code-block:: bash
+
+   sudo scripts/devdeps.sh
 
 * Build and install the Cosine Similarity package. The example below shows installation using the
   Ubuntu ``apt`` package manager.

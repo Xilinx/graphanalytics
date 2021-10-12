@@ -365,7 +365,7 @@ CMDLINE_LOAD_COMPUTE_WORKER1 = -x $(XCLBIN_RUN) $(KERNEL_MODE) -num_nodes 3 -num
 CMDLINE_LOAD_COMPUTE_WORKER2 = -x $(XCLBIN_RUN) $(KERNEL_MODE) -num_nodes 3 -num_devices $(numDevices) \
     -num_level 100 -num_iter 100 -load_alveo_partitions $(alveoProject).par.proj -workerAlone 2
 
-.PHONY: run-create-partitions run-load-compute run-load-compute-driver run-load-compute-worker1 run-load-compute-worker2
+.PHONY: run run-create-partitions run-load-compute run-load-compute-driver run-load-compute-worker1 run-load-compute-worker2
 
 $(alveoProject).par.proj: $(graph)
 	@echo "------------------------------------------------------------------------"
@@ -374,6 +374,8 @@ $(alveoProject).par.proj: $(graph)
 	rm -rf $(CPPDEMO_OUT_DIR)
 	mkdir -p $(CPPDEMO_OUT_DIR)
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARY_PATH); $(CPP_BUILD_DIR)/cppdemo $(CMDLINE_CREATE_PARTITIONS)
+
+run: run-load-compute
 
 run-create-partitions: stage cppTest
 	@echo "------------------------------------------------------------------------"
@@ -664,6 +666,13 @@ clean-xclbin:
 clean-par:
 	rm -f $(CPPDEMO_OUT_DIR)/$(graphBasename)*
 
+cleanpy:
+	rm -rf $(PYTHONENV_NAME)
+
+cleanall: clean cleanpy
+	rm -f ./package/*.deb ./package/*.rpm
+	
+
 help:
 	@echo "Makefile usages:"
 	@echo "  make dist"
@@ -675,7 +684,7 @@ help:
 	@echo "  make run-create-partitions [graph=/path/to/graph.mtx] [numPars=1]"
 	@echo "  Create partitions on a single node"
 	@echo ""
-	@echo "  make run-load-compute [graph=/path/to/graph.mtx] [numPars=1] [numDevices=1] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3]"
+	@echo "  make run [graph=/path/to/graph.mtx] [numPars=1] [numDevices=1] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3]"
 	@echo "  Load partition and compute Louvain modularity on a single node"
 	@echo ""
 	@echo "  Run test in a 3 node cluster"

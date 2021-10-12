@@ -143,11 +143,14 @@ install: stage
 #
 
 #### Clean target deletes all generated files ####
-.PHONY: clean
+.PHONY: clean-common cleanall-common
 
 clean-common:
 	@cd package; make clean
 	rm -rf $(STAGE_DIR)
+
+cleanall-common: clean-common
+	rm -f package/*.deb package/*.rpm
 
 .PHONY: help-common
 help-common:

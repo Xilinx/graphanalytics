@@ -602,7 +602,7 @@ javaTest:
 #
 
 #### Clean target deletes all generated files ####
-.PHONY: clean clean-xclbin clean-pyenv
+.PHONY: clean clean-xclbin clean-pyenv clean-all
 
 clean:
 	rm -rf Debug Release $(JAVA_LIB_DIR) $(BUILD_DIR) $(STAGE_DIR)
@@ -613,8 +613,13 @@ clean:
 clean-xclbin:
 	rm -f $(XCLBIN_FILE_U50) $(XCLBIN_FILE_U55C)
 
-clean-pyenv:
+cleanpy:
 	rm -rf $(PYTHONENV_NAME)
+
+cleanall: clean cleanpy
+	# remove generated packages as well
+	rm -f ./package/*.deb ./package/*.rpm 
+	
 
 .PHONY: help
 help:
