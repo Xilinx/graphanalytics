@@ -14,6 +14,18 @@
 # limitations under the License.
 #
 
+help:
+	@echo "Makefile usages:"
+	@echo "  make run-test"
+	@echo "  Run standalone test with statically linked executable"
+	@echo ""
+	@echo "  make all"
+	@echo "  Compile fuzzyMatch lib and generate staging area"
+	@echo "" 
+	@echo "  make dist"
+	@echo "  Generate product installation package (RPM or DEB) for the current OS and architecture"
+
+
 SHELL := /bin/bash
 
 ifndef XILINX_XRT
@@ -216,6 +228,86 @@ $(XCLBIN_FILE_U50):
 	    false; \
 	fi
 
+#######################################################################################################################
+#
+# C++ Tests
+#
+
+TEST_DIR = tests
+
+INCLUDES_test = \
+    -Iinclude \
+
+
+SRC_FILE_NAMES_test = \
+    fuzzymatch_test.cpp 
+
+SRCS_test = $(addprefix $(TEST_DIR)/,$(SRC_FILE_NAMES_test))
+OBJS_test = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_test:.cpp=.o)))
+DEPS_test = $(OBJS_test:.o=.d)
+
+# List of all test executables to build
+EXEC_FILE_NAMES_test = \
+    fuzzymatch_test \
+
+EXECS_test = $(addprefix $(CPP_BUILD_DIR)/,$(EXEC_FILE_NAMES_test))
+
+.PHONY: cppTest cppTest2
+
+# Make in a child process so that we can isolate the run that includes automatic header dependencies
+cppTest: cppBuild
+	@make cppTest2
+
+cppTest2: $(EXECS_test)
+
+# Test executables
+LDFLAGS_test = -fPIC -w -L $(CPP_BUILD_DIR) -l$(LIB_SHORT_NAME)
+
+$(CPP_BUILD_DIR)/fuzzymatch_test: $(CPP_BUILD_DIR)/fuzzymatch_test.o $(CPP_BUILD_DIR)/$(LIB_NAME)
+	$(LINK.cc) -o $@ $< $(LDFLAGS_test) $(LIB_DEPS)
+
+###############################################################################
+#
+deviceNames=xilinx_u50_gen3x16_xdma_201920_3
+ifeq ($(deviceNames),xilinx_u50_gen3x16_xdma_201920_3)
+    XCLBIN_RUN = $(CURDIR)/staging/xclbin/fuzzy_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+endif
+
+run-test: cppTest
+	set -e; \
+	. $(XILINX_XRT)/setup.sh && \
+	. $(XILINX_XRM)/setup.sh && \
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH $(CPP_BUILD_DIR)/fuzzymatch_test \
+	    -xclbin $(XCLBIN_RUN) -d ./examples/data -c 2
+
+
+# Macro to create a .o rule and a .d rule for each .cpp
+
+define BUILD_CPP_RULE
+
+$(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o): $(1)
+	$(COMPILE.cc) $(INCLUDES_test) -o $$@ $$<
+
+$(CPP_BUILD_DIR)/$(notdir $(basename $(1)).d): $(1)
+	@set -e; \
+	rm -f $$@; \
+	$(COMPILE.cc) -MM -MT $(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o) $(INCLUDES_test) -MF $$@.$$$$$$$$ $$<; \
+        sed 's,\($(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o)\)[ :]*,\1 $$@ : ,g' < $$@.$$$$$$$$ > $$@; \
+	rm -f $$@.$$$$$$$$
+
+endef
+
+# Expand the macro for each test source file
+
+$(foreach src,$(SRCS_test),$(eval $(call BUILD_CPP_RULE,$(src))))
+
+# Include generated header dependency rules, but only if building the JNI .so
+# (This restriction prevents problems with the dependency on the Java API for the JNI header.)
+
+ifeq ($(MAKECMDGOALS),cppTest2)
+-include $(DEPS_test)
+endif
+
 
 #######################################################################################################################
 #
@@ -311,13 +403,6 @@ stage2: $(STAGE_SUBDIRS) stage-examples $(STAGE_ALL_FILES)
 $(STAGE_SUBDIRS):
 	mkdir -p $@
 
-#######################################################################################################################
-#
-# C++ Tests
-#
-
-TEST_DIR = tests
-
 
 #######################################################################################################################
 #
@@ -378,13 +463,6 @@ cleanall: clean cleanpy
 	rm -f ./package/*.deb ./package/*.rpm
 	
 
-help:
-	@echo "Makefile usages:"
-	@echo "  make all"
-	@echo "  Compile fuzzyMatch lib and generate staging area"
-	@echo "" 
-	@echo "  make dist"
-	@echo "  Generate product installation package (RPM or DEB) for the current OS and architecture"
-@echo "":w!
+
 
 
