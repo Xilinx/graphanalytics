@@ -342,14 +342,22 @@ $(CPP_BUILD_DIR)/cosinesim_dyn_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUI
 	$(LINK.cc) -o $@ $< -fPIC -w -L $(CPP_BUILD_DIR) -l$(LOADER_SHORT_NAME) -ldl $(LIB_DEPS)
 
 numDevices=1
-iterations=1
 numVectors=5000
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3
+testNum=-1
+numResults=-1
+verbose=0
+verboseFlag=
+ifneq ($(verbose),0)
+  verboseFlag=-v
+endif
+
 run-test: cppTest
 	set -e; \
 	. $(XILINX_XRT)/setup.sh && \
 	. $(XILINX_XRM)/setup.sh && \
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH $(CPP_BUILD_DIR)/cosinesim_test -d $(numDevices) -i $(iterations) -t $(deviceNames)
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH $(CPP_BUILD_DIR)/cosinesim_test \
+	    -d $(numDevices) -t $(deviceNames) -1 $(testNum) -n $(numResults) $(verboseFlag)
 
 run-dyn-test: cppTest
 	LD_PRELOAD=$(PWD)/$(CPP_BUILD_DIR)/$(LIB_NAME) LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARY_PATH) \
