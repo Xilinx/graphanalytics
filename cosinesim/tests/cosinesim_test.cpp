@@ -35,7 +35,7 @@
 #include <algorithm>
 
 // Enable this macro to include tests under development (positive test cases that we know fail)
-#define DEV_TESTS 1
+//#define DEV_TESTS 1
 
 using Element = std::int32_t;
 using Vector = std::vector<Element>;
