@@ -284,7 +284,7 @@ endif
 runMode=0
 
 run-test: cppTest stage
-	set -e; \
+	@set -e; \
 	. $(XILINX_XRT)/setup.sh && \
 	. $(XILINX_XRM)/setup.sh && \
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH $(CPP_BUILD_DIR)/fuzzymatch_test \

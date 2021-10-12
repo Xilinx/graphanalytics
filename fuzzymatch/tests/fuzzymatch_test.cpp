@@ -181,7 +181,11 @@ int main(int argc, const char* argv[]) {
     if (work_mode == 0 || work_mode == 2) {
         FMChecker fm;
         //checker.initialize(xclbin_path, stopKeywordFile, peopleFile, entityFile, BICRefFile, 0); // card 0
-        fm.startFuzzyMatch(xclbin_path, deviceNames); 
+        if (fm.startFuzzyMatch(xclbin_path, deviceNames) < 0) {
+            std::cout << "ERROR: Failed to initialize " << deviceNames << " with xclbin " << xclbin_path << std::endl;
+            return -1;
+        }
+
         fm.fuzzyMatchLoadVec(peopleVec);
         float min = std::numeric_limits<float>::max(), max = 0.0, sum = 0.0;
         for (int i = 0; i < trans_num; i++) {
