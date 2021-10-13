@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 
+set -x 
 SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`
 
@@ -99,7 +100,7 @@ if [ $uninstall -eq 0 ] && [ ! -f $pluginAlveoProductXclbinPath ]; then
     exit 1
 fi
 
-if [ $uninstall -eq 0 ] && [ ! -f $pluginAlveoProductXclbinPathU55C ]; then
+if [ $uninstall -eq 0 ] && [ ! -z "$pluginXclbinNameU55C" ] && [ ! -f $pluginAlveoProductXclbinPathU55C ]; then
     printf "${RED}ERROR: $standaloneAlveoProductName Alveo U55C product not found.${NC}\n"
     printf "INFO: Please download $standaloneAlveoProductName Alveo product installation package "
     printf "from Xilinx Database PoC site: https://www.xilinx.com/member/dba_poc.html\n"
