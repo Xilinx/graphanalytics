@@ -20,6 +20,7 @@ endif
 
 DEVICE ?= xilinx_u50_gen3x16_xdma_201920_3
 XDEVICE = $(basename $(notdir $(DEVICE)))
+BUILD_DIR := build_dir.$(TARGET).$(XDEVICE)
 
 MK_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 CUR_DIR := $(patsubst %/,%,$(dir $(MK_PATH)))
@@ -27,15 +28,15 @@ XF_PROJ_ROOT ?= $(shell bash -c 'export MK_PATH=$(MK_PATH); echo $${MK_PATH%make
 XF_LIB_DIR := $(abspath $(XF_PROJ_ROOT))
 
 ifneq (,$(shell echo $(XDEVICE) | awk '/u50/'))
-XCLBIN_FILE := $(XF_PROJ_ROOT)/../shipment/xclbin/fuzzy_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+XCLBIN_FILE := $(BUILD_DIR)/fuzzy_xilinx_u50_gen3x16_xdma_201920_3.xclbin
 else ifneq (,$(shell echo $(XDEVICE) | awk '/u200/'))
-XCLBIN_FILE := $(XF_PROJ_ROOT)/../shipment/xclbin/fuzzy_xilinx_u200_xdma_201830_2.xclbin
+XCLBIN_FILE := $(BUILD_DIR)/fuzzy_xilinx_u200_xdma_201830_2.xclbin
 else ifneq (,$(shell echo $(XDEVICE) | awk '/u250_xdma/'))
-XCLBIN_FILE := $(XF_PROJ_ROOT)/../shipment/xclbin/fuzzy_xilinx_u250_xdma_201830_2.xclbin
+XCLBIN_FILE := $(BUILD_DIR)/xclbin/fuzzy_xilinx_u250_xdma_201830_2.xclbin
 else ifneq (,$(shell echo $(XDEVICE) | awk '/u250_gen3x16/'))
-XCLBIN_FILE := $(XF_PROJ_ROOT)/../shipment/xclbin/fuzzy_xilinx_u250_gen3x16_xdma_2_1_202010_1.xclbin
+XCLBIN_FILE := $(BUILD_DIR)/fuzzy_xilinx_u250_gen3x16_xdma_2_1_202010_1.xclbin
 else ifneq (,$(shell echo $(XDEVICE) | awk '/aws-vu9p-f1/'))
-XCLBIN_FILE := $(XF_PROJ_ROOT)/../shipment/xclbin/fuzzy_xilinx_aws-vu9p-f1_shell-v04261818_201920_1.xclbin
+XCLBIN_FILE := $(BUILD_DIR)/fuzzy_xilinx_aws-vu9p-f1_shell-v04261818_201920_1.xclbin
 else
 $(warning [WARNING]: This project has not been tested for $(DEVICE). It may or may not work.)
 endif
@@ -77,7 +78,7 @@ $(PYTHONLIB_SO): ${PYTHONLIB_SRCS} $(LIB_HDRS)
 lib: $(LIB_SO)
 
 $(XCLBIN_FILE):
-	make -C tests/fpga xclbin TARGET=hw DEVICE=$(DEVICE)
+	make -f Makefile-fpga.mk xclbin TARGET=hw DEVICE=$(DEVICE)
 
 xclbin: | $(XCLBIN_FILE)
 

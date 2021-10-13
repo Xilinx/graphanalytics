@@ -75,7 +75,7 @@ export PATH := $(XILINX_VIVADO)/bin:$(PATH)
 
 # MK_INC_BEGIN vitis.mk
 
-TOOL_VERSION ?= 2019.2
+TOOL_VERSION ?= 2021.2
 
 ifeq (,$(XILINX_VITIS))
 XILINX_VITIS = /opt/xilinx/Vitis/$(TOOL_VERSION)
@@ -179,41 +179,41 @@ XDEVICE := $(basename $(notdir $(firstword $(XPLATFORM))))
 # BEGIN_XF_MK_USER_SECTION
 # -----------------------------------------------------------------------------
 
-XF_PROJ_ROOT ?= $(shell bash -c 'export MK_PATH=$(MK_PATH); echo $${MK_PATH%tests/*}')
+XF_PROJ_ROOT ?= $(shell bash -c 'export MK_PATH=$(MK_PATH); echo $${MK_PATH%L2/*}')
 XFLIB_DIR := $(abspath $(XF_PROJ_ROOT))
 
 # -----------------------------------------------------------------------------
 
-KSRC_DIR = $(XFLIB_DIR)/kernel
+KSRC_DIR = $(XFLIB_DIR)/L2/fuzzy_kernel/kernel
 
 XCLBIN_NAME := fuzzy_kernel
 
-VPP_CFLAGS += -I$(XFLIB_DIR)/kernel/include/
+VPP_CFLAGS += -I$(XFLIB_DIR)/L2/fuzzy_kernel/kernel/include/
 
 ifneq (,$(shell echo $(XPLATFORM) | awk '/u50/'))
 KERNELS := fuzzy_kernel_1:fuzzy_kernel_1.cpp fuzzy_kernel_2:fuzzy_kernel_2.cpp
 CXXFLAGS += -D USE_HBM
-VPP_LFLAGS += --config $(CUR_DIR)/../../conn_u50.ini
+VPP_LFLAGS += --config $(CUR_DIR)/conn_u50.ini
 else ifneq (,$(shell echo $(XPLATFORM) | awk '/u200/'))
 KERNELS := fuzzy_kernel_1:fuzzy_kernel_1.cpp fuzzy_kernel_2:fuzzy_kernel_2.cpp
 CXXFLAGS += -D USE_DDR
-VPP_LFLAGS += --config $(CUR_DIR)/../../conn_u200.ini
+VPP_LFLAGS += --config $(CUR_DIR)/conn_u200.ini
 else ifneq (,$(shell echo $(XPLATFORM) | awk '/u250_xdma/'))
 CXXFLAGS += -D USE_DDR
 KERNELS := fuzzy_kernel_1:fuzzy_kernel_1.cpp fuzzy_kernel_2:fuzzy_kernel_2.cpp
 KERNELS += fuzzy_kernel_3:fuzzy_kernel_3.cpp fuzzy_kernel_4:fuzzy_kernel_4.cpp
-VPP_LFLAGS += --config $(CUR_DIR)/../../conn_u250.ini
+VPP_LFLAGS += --config $(CUR_DIR)/conn_u250.ini
 else ifneq (,$(shell echo $(XPLATFORM) | awk '/u250_gen3x16/'))
 CXXFLAGS += -D USE_DDR
 KERNELS := fuzzy_kernel_1:fuzzy_kernel_1.cpp fuzzy_kernel_2:fuzzy_kernel_2.cpp
 KERNELS += fuzzy_kernel_3:fuzzy_kernel_3.cpp fuzzy_kernel_4:fuzzy_kernel_4.cpp
-VPP_LFLAGS += --config $(CUR_DIR)/../../conn_azure_u250.ini
+VPP_LFLAGS += --config $(CUR_DIR)/conn_azure_u250.ini
 VPP_LFLAGS += --config /proj/xtools/dsv/projects/FaaS/security/xclbin_noencrypt/xclbin_noencrypt.ini
 VPP_LFLAGS += --advanced.param compiler.acceleratorBinaryContent=dcp
 else ifneq (,$(shell echo $(XPLATFORM) | awk '/aws-vu9p-f1/'))
 KERNELS := fuzzy_kernel_1:fuzzy_kernel_1.cpp fuzzy_kernel_2:fuzzy_kernel_2.cpp
 CXXFLAGS += -D USE_DDR
-VPP_LFLAGS += --config $(CUR_DIR)/../../conn_aws_f1.ini
+VPP_LFLAGS += --config $(CUR_DIR)/conn_aws_f1.ini
 endif
 # -----------------------------------------------------------------------------
 
@@ -239,32 +239,30 @@ xcl2_CXXFLAGS = -I $(EXT_DIR)/tests/fpga/host
 # -----------------------------------------------------------------------------
 
 .PHONY: all
-all: host xclbin
+all: xclbin
 
 # MK_INC_BEGIN vitis_kernel_rules.mk
 
-VPP_DIR_BASE ?= _x$(tag)
-XO_DIR_BASE ?= xo$(tag)
 XCLBIN_DIR_BASE ?= xclbin$(tag)
 
 XCLBIN_DIR_SUFFIX ?= _$(XDEVICE)_$(TARGET)
 
-VPP_DIR = $(CUR_DIR)/$(VPP_DIR_BASE)$(XCLBIN_DIR_SUFFIX)
-XO_DIR = $(CUR_DIR)/$(XO_DIR_BASE)$(XCLBIN_DIR_SUFFIX)
-XCLBIN_DIR = $(CUR_DIR)/$(XCLBIN_DIR_BASE)$(XCLBIN_DIR_SUFFIX)
+XO_DIR = _x_temp.$(TARGET).$(XDEVICE)
+TEMP_DIR = $(XO_DIR)
+BUILD_DIR := build_dir.$(TARGET).$(XDEVICE)
 
 XFREQUENCY ?= 300
 
 VPP = v++
 VPP_CFLAGS += -I$(KSRC_DIR)
-VPP_CFLAGS += --target $(TARGET) --platform $(XPLATFORM) --temp_dir $(VPP_DIR) --save-temps
+VPP_CFLAGS += --target $(TARGET) --platform $(XPLATFORM) --temp_dir $(TEMP_DIR) --save-temps
 VPP_CFLAGS += --kernel_frequency $(XFREQUENCY) --report_level 2
 VPP_LFLAGS += --optimize 2 --jobs 16 \
   --xp "vivado_param:project.writeIntermediateCheckpoints=1"
 
 KERNEL_NAMES := $(foreach k,$(KERNELS),$(word 1, $(subst :, ,$(k))))
 XO_FILES := $(foreach k,$(KERNEL_NAMES),$(XO_DIR)/$(k).xo)
-XCLBIN_FILE ?= $(XCLBIN_DIR)/$(XCLBIN_NAME).xclbin
+XCLBIN_FILE ?= $(BUILD_DIR)/$(XCLBIN_NAME).xclbin
 
 define kernel_src_dep
 kernelname := $(word 1, $(subst :, ,$(1)))
@@ -293,7 +291,7 @@ $(XO_DIR)/%.xo: $$($$(*)_SRCS) $$($$(*)_HDRS) | check_vpp
 
 $(XCLBIN_FILE): $(XO_FILES) | check_vpp
 	@echo -e "----\nCompiling xclbin..."
-	mkdir -p $(XCLBIN_DIR)
+	mkdir -p $(BUILD_DIR)
 	$(VPP) -o $@ --link $^ \
 		$(VPP_CFLAGS) $(VPP_LFLAGS) \
 		$(foreach k,$(KERNEL_NAMES),$($(k)_VPP_CFLAGS)) \
@@ -351,16 +349,6 @@ $(EXTRA_OBJ_FILES): $(OBJ_DIR)/%.o: $$($$(*)_SRCS) $$($$(*)_HDRS) | check_vpp ch
 	mkdir -p $(@D)
 	$(CXX) -o $@ -c $< $(CXXFLAGS)
 
-EXE_EXT ?= exe
-EXE_FILE ?= $(BIN_DIR)/$(EXE_NAME)$(if $(EXE_EXT),.,)$(EXE_EXT)
-
-$(EXE_FILE): $(OBJ_FILES) $(EXTRA_OBJ_FILES) | check_vpp check_xrt check_platform
-	@echo -e "----\nCompiling host $(notdir $@)..."
-	mkdir -p $(BIN_DIR)
-	$(CXX) -o $@ $^ $(CXXFLAGS) $(LDFLAGS)
-
-.PHONY: host
-host: check_vpp check_xrt check_platform $(EXE_FILE)
 
 # MK_INC_END vitis_host_rules.mk
 
@@ -378,15 +366,6 @@ ifneq (,$(BIN_DIR_BASE))
 endif
 
 cleanx:
-ifneq (,$(VPP_DIR_BASE))
-	rm -rf $(CUR_DIR)/$(VPP_DIR_BASE)*
-endif
-ifneq (,$(XO_DIR_BASE))
-	rm -rf $(CUR_DIR)/$(XO_DIR_BASE)*
-endif
-ifneq (,$(XCLBIN_DIR_BASE))
-	rm -rf $(CUR_DIR)/$(XCLBIN_DIR_BASE)*
-endif
 ifneq (,$(BIN_DIR_BASE))
 	rm -rf $(CUR_DIR)/$(BIN_DIR_BASE)*/emconfig.json
 endif
