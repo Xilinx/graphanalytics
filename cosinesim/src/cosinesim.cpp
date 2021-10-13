@@ -337,6 +337,11 @@ public:
     };
 
     virtual std::vector<Result> matchTargetVector(unsigned numResults, void *elements){
+        // Don't allow more results to be returned than the number of population vectors.  The kernel would return
+        // blank results (index and similarity 0) in that case, so we need to prevent it here.
+        if (numResults > this->numVertices)
+            numResults = this->numVertices;
+        
         std::vector<Result> result;
         //---------------- Generate Source Indice and Weight Array -------
         int sourceLen = edgeAlign8; // sourceIndice array length

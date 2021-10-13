@@ -34,6 +34,10 @@
 #include <cmath>
 #include <algorithm>
 
+
+// Enable this macro to include tests with long run times (lots of population vectors)
+#define LONG_TESTS 1
+
 // Enable this macro to include tests under development (positive test cases that we know fail)
 //#define DEV_TESTS 1
 
@@ -78,6 +82,7 @@ static const TestParams s_testParamSet[] = {
     {-8192,   8192,  200,    1000},  
     {-8192,   8192,  200,    2000},  
     {-8192,   8192,  200,    5000},
+    {100,    10000,   16,      64},
     {100,    10000,  200,     100},
     {100,    10000,   50,     500},
     {100,    10000,   20,    1000},
@@ -87,12 +92,14 @@ static const TestParams s_testParamSet[] = {
     {100,    10000,  400,   20000},
     {100,    10000,  500,  100000},
 //    {100,    10000,  512, 3125000},  Too big for U50?
+
+#ifdef LONG_TESTS
     {100,    10000,  512, 3000000},
+#endif
     
 #ifdef DEV_TESTS
     {-8192,   8192,  200,     100},  // when numResults=100, rows 95-99 are blank
     {1000,  100000,  200,     100},  // overflow of 32-bit mult (awaiting kernel fix)
-    {100,    10000,   16,      64},  // when numResults=100, rows 64-99 are blank
     {100,    10000,   16,      48},  // crashes, min is 49
 #endif
 };
