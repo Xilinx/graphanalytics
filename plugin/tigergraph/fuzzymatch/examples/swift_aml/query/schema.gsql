@@ -19,8 +19,12 @@ DROP GRAPH @graph CASCADE
 CREATE GRAPH @graph()
 
 CREATE SCHEMA_CHANGE JOB job_schema_change_local FOR GRAPH @graph {
-    ADD VERTEX person (primary_id id UINT, name STRING);
-    ADD UNDIRECTED EDGE transaction(from person, to person, weight UINT);
+    // person database to match against
+    ADD VERTEX person (PRIMARY_ID id UINT, name STRING);
+    // person extracted from transactions
+    ADD VERTEX person_tx(PRIMARY_ID id STRING, name STRING);
+    // transaction
+    ADD UNDIRECTED EDGE transaction(FROM person_tx, TO person_tx, weight UINT);
 }
 
 RUN SCHEMA_CHANGE JOB job_schema_change_local

@@ -19,7 +19,14 @@ USE GRAPH @graph
 
 CREATE LOADING JOB load_job FOR GRAPH @graph {
 	DEFINE FILENAME person_csv;
-	LOAD person_csv
-        TO VERTEX person VALUES ($0, $1)
-		USING separator=",", Header="true";
+    DEFINE FILENAME tx_csv;
+
+    // load person database
+	LOAD person_csv TO VERTEX person VALUES ($0, $1) USING separator=",", Header="true";
+    
+    // load transactions. Using the name directly as the primary key
+    LOAD tx_csv TO VERTEX person_tx VALUES ($15, $15),
+                TO VERTEX person_tx VALUES ($18, $18),
+                TO EDGE transaction VALUES ($15, $18, 1)
+                USING separator=",", Header="true";
 }

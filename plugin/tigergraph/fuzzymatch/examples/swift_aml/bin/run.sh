@@ -53,9 +53,9 @@ if [ "$compile_mode" -eq 1 ]; then
 
     echo "-------------------------------------------------------------------------"
     echo "Loading $files"
-    echo "gsql -u $username -p $password -g $xgraph \"run loading job load_job USING person_csv = \"$personSource\"\""
+    echo "gsql -u $username -p $password -g $xgraph \"run loading job load_job USING person_csv = \"$personSource\", tx_csv = \"$txSource\""
     echo "-------------------------------------------------------------------------"
-    gsql -u $username -p $password -g $xgraph "run loading job load_job USING person_csv = \"$personSource\""
+    gsql -u $username -p $password -g $xgraph "run loading job load_job USING person_csv = \"$personSource\", tx_csv = \"$txSource\""
 
     echo "-------------------------------------------------------------------------"
     echo "Install base queries"
