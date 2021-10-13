@@ -395,7 +395,10 @@ STAGE_XCLBIN_FILE_U50 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U50)
 $(STAGE_XCLBIN_FILE_U50): $(XCLBIN_FILE_U50)
 	cp -f $^ $@
 
-
+STAGE_XILINX_APPS_COMMON = $(STAGE_DIR)/include/xilinx_apps_common.hpp
+XILINX_APPS_COMMON = $(GRAPH_ANALYTICS_DIR)/ext/xilinx_apps_common.hpp
+$(STAGE_XILINX_APPS_COMMON): $(XILINX_APPS_COMMON)
+	cp -f $^ $@
 
 # Top-level packaging rule
 
@@ -405,7 +408,9 @@ STAGE_ALL_FILES = \
     $(addprefix $(STAGE_DIR)/,$(STAGE_COPY_FILES)) \
     $(addprefix $(STAGE_DIR)/lib/,$(STAGE_LIB_FILES)) \
     $(STAGE_XCLBIN_FILE_U50) \
-    $(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP) 
+    $(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP) \
+	$(STAGE_XILINX_APPS_COMMON) \
+
 # make staging areaing in two steps so intermediate outputs can be included in the 
 # staging output as well.
 stage: 

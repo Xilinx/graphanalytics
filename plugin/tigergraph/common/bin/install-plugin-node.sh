@@ -138,7 +138,9 @@ if [ $pluginAlveoProductNeedsInstall -eq 1 ]; then
     fi
     mkdir -p $tg_udf_xclbin_dir
     cp -f $pluginAlveoProductXclbinPath $tg_udf_xclbin_dir
-    cp -f $pluginAlveoProductXclbinPathU55C $tg_udf_xclbin_dir
+    if [ ! -z "$pluginXclbinNameU55C" ]; then
+        cp -f $pluginAlveoProductXclbinPathU55C $tg_udf_xclbin_dir
+    fi
     cp -f $pluginAlveoProductLibDir/$pluginLibName $tg_udf_dir
 fi
 

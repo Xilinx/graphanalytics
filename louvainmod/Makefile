@@ -602,7 +602,7 @@ STAGE_ALL_FILES = \
     $(STAGE_XCLBIN_FILE_U50) \
 	$(STAGE_XCLBIN_FILE_U55) \
     $(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP) \
-	$(STAGE_XILINX_APPS_COMMON)
+	$(STAGE_XILINX_APPS_COMMON) \
 
 # make staging areaing in two steps so intermediate outputs can be included in the 
 # staging output as well.
