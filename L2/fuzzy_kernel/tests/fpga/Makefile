@@ -193,27 +193,27 @@ VPP_CFLAGS += -I$(XFLIB_DIR)/kernel/include/
 ifneq (,$(shell echo $(XPLATFORM) | awk '/u50/'))
 KERNELS := fuzzy_kernel_1:fuzzy_kernel_1.cpp fuzzy_kernel_2:fuzzy_kernel_2.cpp
 CXXFLAGS += -D USE_HBM
-VPP_LFLAGS += --config $(CUR_DIR)/conn_u50.ini
+VPP_LFLAGS += --config $(CUR_DIR)/../../conn_u50.ini
 else ifneq (,$(shell echo $(XPLATFORM) | awk '/u200/'))
 KERNELS := fuzzy_kernel_1:fuzzy_kernel_1.cpp fuzzy_kernel_2:fuzzy_kernel_2.cpp
 CXXFLAGS += -D USE_DDR
-VPP_LFLAGS += --config $(CUR_DIR)/conn_u200.ini
+VPP_LFLAGS += --config $(CUR_DIR)/../../conn_u200.ini
 else ifneq (,$(shell echo $(XPLATFORM) | awk '/u250_xdma/'))
 CXXFLAGS += -D USE_DDR
 KERNELS := fuzzy_kernel_1:fuzzy_kernel_1.cpp fuzzy_kernel_2:fuzzy_kernel_2.cpp
 KERNELS += fuzzy_kernel_3:fuzzy_kernel_3.cpp fuzzy_kernel_4:fuzzy_kernel_4.cpp
-VPP_LFLAGS += --config $(CUR_DIR)/conn_u250.ini
+VPP_LFLAGS += --config $(CUR_DIR)/../../conn_u250.ini
 else ifneq (,$(shell echo $(XPLATFORM) | awk '/u250_gen3x16/'))
 CXXFLAGS += -D USE_DDR
 KERNELS := fuzzy_kernel_1:fuzzy_kernel_1.cpp fuzzy_kernel_2:fuzzy_kernel_2.cpp
 KERNELS += fuzzy_kernel_3:fuzzy_kernel_3.cpp fuzzy_kernel_4:fuzzy_kernel_4.cpp
-VPP_LFLAGS += --config $(CUR_DIR)/conn_azure_u250.ini
+VPP_LFLAGS += --config $(CUR_DIR)/../../conn_azure_u250.ini
 VPP_LFLAGS += --config /proj/xtools/dsv/projects/FaaS/security/xclbin_noencrypt/xclbin_noencrypt.ini
 VPP_LFLAGS += --advanced.param compiler.acceleratorBinaryContent=dcp
 else ifneq (,$(shell echo $(XPLATFORM) | awk '/aws-vu9p-f1/'))
 KERNELS := fuzzy_kernel_1:fuzzy_kernel_1.cpp fuzzy_kernel_2:fuzzy_kernel_2.cpp
 CXXFLAGS += -D USE_DDR
-VPP_LFLAGS += --config $(CUR_DIR)/conn_aws_f1.ini
+VPP_LFLAGS += --config $(CUR_DIR)/../../conn_aws_f1.ini
 endif
 # -----------------------------------------------------------------------------
 
