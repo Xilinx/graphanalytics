@@ -344,7 +344,6 @@ $(CPP_BUILD_DIR)/cosinesim_dyn_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUI
 ###############################################################################
 # Parameters and targets for running tests
 numDevices=1
-numVectors=5000
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3
 testNum=-1
 numResults=-1
