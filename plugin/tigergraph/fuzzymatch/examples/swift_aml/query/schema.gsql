@@ -25,6 +25,9 @@ CREATE SCHEMA_CHANGE JOB job_schema_change_local FOR GRAPH @graph {
     ADD VERTEX person_tx(PRIMARY_ID id STRING, name STRING);
     // transaction
     ADD UNDIRECTED EDGE transaction(FROM person_tx, TO person_tx, weight UINT);
+    // dummy nodes vertex for distributed processing
+    ADD VERTEX dummy_nodes(PRIMARY_ID ID UINT, NODE_ID UINT);
+
 }
 
 RUN SCHEMA_CHANGE JOB job_schema_change_local
