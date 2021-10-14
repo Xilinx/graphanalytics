@@ -14,33 +14,33 @@
  * limitations under the License.
  */
 
-#ifndef XILINX_COM_DETECT_IMPL_HPP
-#define XILINX_COM_DETECT_IMPL_HPP
+#ifndef XILINX_FUZZYMATCH_IMPL_HPP
+#define XILINX_FUZZYMATCH_IMPL_HPP
 
 // Use inline definitions for dynamic loading functions
-#define XILINX_LOUVAINMOD_INLINE_IMPL
-#include "xilinxlouvain.h"
+#define XILINX_FUZZYMATCH_INLINE_IMPL
+//#include "xilinxFuzzyMatch.h"
 
 // Enable this to turn on debug output
-#define XILINX_COM_DETECT_DEBUG_ON
+#define XILINX_FUZZYMATCH_DEBUG_ON
 
 // Enable this to dump graph vertices and edges, as seen by the partitioning logic
-//#define XILINX_COM_DETECT_DUMP_GRAPH
+//#define XILINX_FUZZYMATCH_DUMP_GRAPH
 
 // Enable this to dump an .mtx file of the graph, as seen by the partitioning logic
-//#define XILINX_COM_DETECT_DUMP_MTX
+//#define XILINX_FUZZYMATCH_DUMP_MTX
 
 #include <vector>
 #include <map>
 #include <fstream>
 
-namespace xilComDetect {
+namespace xilFuzzyMatch {
 
 using Mutex = std::mutex;
 
-#define XILINX_COM_DETECT_DEBUG_MUTEX
+#define XILINX_FUZZYMATCH_DEBUG_MUTEX
 
-#ifdef XILINX_COM_DETECT_DEBUG_MUTEX
+#ifdef XILINX_FUZZYMATCH_DEBUG_MUTEX
 struct Lock {
     using RealLock = std::lock_guard<Mutex>;
     RealLock lock_;
@@ -62,86 +62,32 @@ inline Mutex &getMutex() {
     return *pMutex;
 }
 
-using LouvainMod = xilinx_apps::louvainmod::LouvainMod;
-using PartitionNameMode = xilinx_apps::louvainmod::PartitionNameMode;
+//using LouvainMod = xilinx_apps::louvainmod::LouvainMod;
 
-struct LouvainVertex {
-    uint64_t id_ = 0;  // compressed ID
-    long outDegree_ = 0;
-    
-    LouvainVertex() = default;
-    LouvainVertex(long outDegree) : outDegree_(outDegree) {}
-};
-
-class Partitions{
-public:
-
-      std::vector<long> mEdgePtrVec;
-      std::vector<long> degree_list;
-      std::vector<xilinx_apps::louvainmod::Edge> mEdgeVec;
-      std::vector<long> mDgrVec;
-      std::vector<long> addedOffset; //store each vertex edgelist offset
-      std::map<uint64_t, LouvainVertex> vertexMap;  // maps from original (.mtx) vertex ID to properties of the vertex
-      void clearPartitionData(){
-
-          degree_list.clear();
-          mEdgeVec.clear();
-          mEdgePtrVec.clear();
-          mDgrVec.clear();
-          addedOffset.clear();
-          vertexMap.clear();
-      }
-
-      ~Partitions() {clearPartitionData();};
-
-};
 class Context {
 public:
     enum State {
         UninitializedState = 0,  // no state-updating function has been called
-        CalledExecuteLouvainState,  // after execute called
+        CalledExecuteFuzzyState,  // after execute called
         NumStates
     };
 
 
 private:
-    bool louvainModObjIsModified_ = false;  // true if a parameter has changed that requires a rebuild of
-                                            // the LouvainMod object
     std::string curNodeIp_;
     std::string nodeIps_;
     std::string xGraphStorePath_;
     std::string xclbinPath_;
-    uint32_t kernelMode_;
-    std::string alveoProject_;
-    uint32_t numPartitions_;
     uint32_t numDevices_ = 1;
-    PartitionNameMode partitionNameMode_ = PartitionNameMode::Auto;
 
     uint32_t nodeId_ = 0;
     uint32_t numNodes_ = 1;
     State state_ = UninitializedState;
-    LouvainMod *pLouvainMod_ = nullptr;
+    //LouvainMod *pLouvainMod_ = nullptr;
 
-    //long* offsets_tg; //travel and add i-1 to i to build the offset_tg
-    std::vector<int> numAlveoPartitions;
-
-    uint64_t nextId_ = 0 ; // can be used as partition size after traverse the graph done
-    uint64_t louvain_offset = 0 ;
-    // Partition data
-    long* offsets_tg;
-    const xilinx_apps::louvainmod::Edge* edgelist_tg;
-    long* drglist_tg;
-    long  start_vertex;     // If a vertex is smaller than star_vertex, it is a ghost
-    long  end_vertex;
- 
 public:
     std::string curNodeHostname_;
     std::string deviceNames_ = "xilinx_u50_gen3x16_xdma_201920_3";
-    Partitions* curParPtr=nullptr;
-
-#ifdef XILINX_COM_DETECT_DUMP_MTX
-    std::ofstream mtxFstream;
-#endif
 
     static Context *getInstance() {
         static Context *s_pContext = nullptr;
@@ -162,7 +108,7 @@ public:
         char* token;
         nodeIps_.clear();
         bool scanNodeIp;
-#ifdef XILINX_COM_DETECT_DEBUG_ON
+#ifdef XILINX_FUZZYMATCH_DEBUG_ON
         std::cout << "DEBUG: Parsing config file " << PLUGIN_CONFIG_PATH << std::endl;
 #endif
         while (config_json.getline(line, sizeof(line))) {
@@ -178,7 +124,7 @@ public:
                 } else if (!std::strcmp(token, "deviceName")) {
                     token = strtok(NULL, "\"\t ,}:{\n");
                     deviceNames_ = token;
-#ifdef XILINX_COM_DETECT_DEBUG_ON
+#ifdef XILINX_FUZZYMATCH_DEBUG_ON
                     std::cout << "    deviceNames_=" << deviceNames_ << std::endl;
 #endif
                 } else if (!std::strcmp(token, "xGraphStore")) {
@@ -187,7 +133,7 @@ public:
                 } else if (!std::strcmp(token, "numDevices")) {
                     token = strtok(NULL, "\"\t ,}:{\n");
                     numDevices_ = atoi(token);
-#ifdef XILINX_COM_DETECT_DEBUG_ON
+#ifdef XILINX_FUZZYMATCH_DEBUG_ON
                     std::cout << "numDevices=" << numDevices_ << std::endl;
 #endif
                 } else if (!std::strcmp(token, "nodeIps")) {
@@ -196,14 +142,14 @@ public:
                     // read the next token
                     token = strtok(NULL, "\"\t ,}:{\n");
                     nodeIps_ += token;
-#ifdef XILINX_COM_DETECT_DEBUG_ON
+#ifdef XILINX_FUZZYMATCH_DEBUG_ON
                     std::cout << "node_ips=" << nodeIps_ << std::endl;
 #endif
                 } else if (scanNodeIp) {
                     // In the middle of nodeIps field
                     nodeIps_ += " ";
                     nodeIps_ += token;
-#ifdef XILINX_COM_DETECT_DEBUG_ON
+#ifdef XILINX_FUZZYMATCH_DEBUG_ON
                     std::cout << "node_ips=" << nodeIps_ << std::endl;
 #endif
                 }
@@ -213,21 +159,19 @@ public:
         config_json.close();
         if (deviceNames_ == "xilinx_u50_gen3x16_xdma_201920_3") {
             xclbinPath_ = PLUGIN_XCLBIN_PATH;
-            kernelMode_ = LOUVAINMOD_PRUNING_KERNEL;
         } else if (deviceNames_ == "xilinx_u55c_gen3x16_xdma_base_2") {
-            xclbinPath_ = PLUGIN_XCLBIN_PATH_U55C;
-            kernelMode_ = LOUVAINMOD_2CU_U55C_KERNEL;
+            //xclbinPath_ = PLUGIN_XCLBIN_PATH_U55C;
         }
     }
     
-    ~Context() { delete pLouvainMod_; }
-
+    ~Context() { /*delete pLouvainMod_; */}
+/*
     xilinx_apps::louvainmod::LouvainMod *getLouvainModObj() {
-#ifdef XILINX_COM_DETECT_DEBUG_ON
+#ifdef XILINX_FUZZYMATCH_DEBUG_ON
         std::cout << "DEBUG: " << __FUNCTION__ << std::endl;
 #endif
         if (louvainModObjIsModified_) {
-#ifdef XILINX_COM_DETECT_DEBUG_ON
+#ifdef XILINX_FUZZYMATCH_DEBUG_ON
             std::cout << "DEBUG: louvainmod options changed.  Deleting old louvainmod object (if it exists)."
                 << std::endl;
 #endif
@@ -239,17 +183,14 @@ public:
         if (pLouvainMod_ == nullptr) {
             xilinx_apps::louvainmod::Options options;
             options.xclbinPath = xclbinPath_;
-            options.kernelMode = kernelMode_;
-            options.nameProj = alveoProject_;
             options.numDevices = numDevices_;
             options.deviceNames = deviceNames_;
             options.nodeId = nodeId_;
             options.hostName = curNodeHostname_;
             options.clusterIpAddresses = nodeIps_;
             options.hostIpAddress = curNodeIp_;
-            options.partitionNameMode = partitionNameMode_;
 
-#ifdef XILINX_COM_DETECT_DEBUG_ON
+#ifdef XILINX_FUZZYMATCH_DEBUG_ON
             std::cout << "DEBUG: louvainmod options:"
                     << "\n    xclbinPath=" << options.xclbinPath
                     << "\n    nameProj=" << options.nameProj
@@ -265,23 +206,7 @@ public:
         
         return pLouvainMod_;
     }
-
-
-    void setAlveoProject(std::string alveoProject) {
-        std::cout << "DEBUG: " << __FUNCTION__ << " AlveoProject=" << alveoProject << std::endl;
-        std::string newAlveoProject = this->getXGraphStorePath() + "/" + alveoProject;
-        if (newAlveoProject != alveoProject_)
-            louvainModObjIsModified_ = true;
-        alveoProject_ = newAlveoProject;
-    }
-
-    void setAlveoProjectRaw(std::string alveoProject) {
-        std::cout << "DEBUG: " << __FUNCTION__ << " AlveoProject=" << alveoProject << std::endl;
-        if (alveoProject != alveoProject_)
-            louvainModObjIsModified_ = true;
-        alveoProject_ = alveoProject;
-    }
-    std::string getAlveoProject() { return alveoProject_; }
+*/
 
     void setCurNodeIp(std::string curNodeIp) {
         std::cout << "DEBUG: " << __FUNCTION__ << " curNodeIp=" << curNodeIp << std::endl;
@@ -294,12 +219,6 @@ public:
         nodeIps_ = nodeIps;
     }
     std::string getNodeIps() { return nodeIps_; }
-
-    void setNumPartitions(unsigned numPartitions) {
-        std::cout << "DEBUG: " << __FUNCTION__ << " numPartitions=" << numPartitions << std::endl;
-        numPartitions_ = numPartitions;
-    }
-    unsigned getNumPartitions() { return numPartitions_; }
 
     void setNodeId(unsigned nodeId) {
         std::cout << "DEBUG: " << __FUNCTION__ << " nodeId=" << nodeId << std::endl;
@@ -324,105 +243,11 @@ public:
     
     State getState() const { return state_; }
     void setState(State state) { state_ = state; }
-    
-    PartitionNameMode getPartitionNameMode() const { return partitionNameMode_; }
-    void setPartitionNameMode(PartitionNameMode partitionNameMode) {
-        if (partitionNameMode != partitionNameMode_)
-            louvainModObjIsModified_ = true;
-        partitionNameMode_ = partitionNameMode;
-    }
-
-    void clearPartitionData(){
-        nextId_ = 0 ;
-
-    }
-    
+      
     void clear() {
         state_ = UninitializedState;
     }
-
-    long *getDrglistTg() {
-        return drglist_tg;
-    }
-
-    void setDrglistTg(long * drglistTg) {
-        drglist_tg = drglistTg;
-    }
-
-    const xilinx_apps::louvainmod::Edge* getEdgelistTg() {
-        return edgelist_tg;
-    }
-
-    void setEdgelistTg(const xilinx_apps::louvainmod::Edge* edgelistTg) {
-        edgelist_tg = edgelistTg;
-    }
-
-    long getEndVertex() {
-        return end_vertex;
-    }
-
-    void setEndVertex(long endVertex) {
-        end_vertex = endVertex;
-    }
-
-    uint64_t getLouvainOffset() const {
-        return louvain_offset;
-    }
-
-
-    void setLouvainOffset(uint64_t louvainOffset = 0) {
-        louvain_offset = louvainOffset;
-    }
-
-    uint64_t getNextId() const {
-        return nextId_;
-    }
-
-    void setNextId(uint64_t nextId = 0) {
-        nextId_ = nextId;
-    }
-
-    void clearNumAlveoPartitions() {
-        numAlveoPartitions.clear();
-    }
-    
-    const std::vector<int>& getNumAlveoPartitions() {
-        return numAlveoPartitions;
-    }
-
-    void setNumAlveoPartitions(const std::vector<int>& numAlveoPartitions) {
-        this->numAlveoPartitions = numAlveoPartitions;
-    }
-
-    void addNumAlveoPartitions(const int num) {
-        this->numAlveoPartitions.push_back(num);
-    }
-
-    long *getOffsetsTg() const {
-        return offsets_tg;
-    }
-
-    void setOffsetsTg(long * offsetsTg) {
-        offsets_tg = offsetsTg;
-    }
-
-    long getOffsetTg(int idx) const {
-          return offsets_tg[idx];
-      }
-
-    void setOffsetsTg(int idx, long offsetsTg) {
-        offsets_tg[idx] = offsetsTg;
-    }
-
-
-    long getStartVertex() const {
-        return start_vertex;
-    }
-
-    void setStartVertex(long startVertex) {
-        start_vertex = startVertex;
-    }
-    
+   
     void setXGraphStorePath(const std::string& path){
         xGraphStorePath_= path;
     }
@@ -432,10 +257,10 @@ public:
     }
 };
 
-}  // namespace xilComDetect
+}  // namespace xilFuzzyMatch
 
-#include "louvainmod_loader.cpp"
+//#include "fuzzymatch_loader.cpp"
 
-#endif /* XILINX_COM_DETECT_IMPL_HPP */
+#endif /* XILINX_FUZZYMATCH_IMPL_HPP */
 
 

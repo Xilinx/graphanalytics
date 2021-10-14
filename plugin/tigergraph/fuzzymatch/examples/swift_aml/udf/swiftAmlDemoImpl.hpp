@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-#ifndef LOUVAIN_DEMO_IMPL_HPP
-#define LOUVAIN_DEMO_IMPL_HPP
+#ifndef SWIFTAML_DEMO_IMPL_HPP
+#define SWIFTAML_DEMO_IMPL_HPP
 
 #include <chrono>
 
-namespace louvainDemo {
+namespace swiftAmlDemo {
 
-using Mutex = xilComDetect::Mutex;
-using Lock = xilComDetect::Lock;
+using Mutex = xilFuzzyMatch::Mutex;
+using Lock = xilFuzzyMatch::Lock;
 
 typedef std::chrono::time_point<std::chrono::high_resolution_clock> t_time_point, *pt_time_point; 
 //extern t_time_point timer_start_time;
@@ -50,5 +50,5 @@ inline double extract_size_in_kB(std::string& line) {
 
 } // namespace
 
-#endif /* LOUVAIN_DEMO_IMPL_HPP */
+#endif /* SWIFTAML_DEMO_IMPL_HPP */
 
