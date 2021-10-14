@@ -21,13 +21,9 @@
 #include <cstdlib>
 #include "xilinxFuzzyMatch.h"
 
-using namespace xf::fuzzyMatch;
 
-//const std::string KO[2] = {"OK", "KO"};
-//const std::string DES[2] = {"", "Description"};
-//const std::string SWC[2] = {"", "SwiftCode"};
-//const std::string ENT[2] = {"", "Entity"};
-//const std::string SND[2] = {"", "Sender"};
+using namespace xilinx_apps::fuzzymatch;
+
 std::string print_result(int id, bool r, float timeTaken) {
     std::string res = "";
     res += std::to_string(id);
@@ -196,9 +192,13 @@ int main(int argc, const char* argv[]) {
     
     // Begin to analyze if on mode 0 or 2
     if (work_mode == 0 || work_mode == 2) {
-        FMChecker fm;
+        Options options;
+        options.xclbinPath=xclbin_path;
+        options.deviceNames=deviceNames;
+        FuzzyMatch fm(options);
+        
         //checker.initialize(xclbin_path, stopKeywordFile, peopleFile, entityFile, BICRefFile, 0); // card 0
-        if (fm.startFuzzyMatch(xclbin_path, deviceNames) < 0) {
+        if (fm.startFuzzyMatch() < 0) {
             std::cout << "ERROR: Failed to initialize " << deviceNames << " with xclbin " << xclbin_path << std::endl;
             return -1;
         }
@@ -235,7 +235,7 @@ int main(int argc, const char* argv[]) {
     }
 
     // check the result
-    internal::FMCPUChecker cpu_checker;
+    FuzzyMatchSW cpu_checker;
     if (work_mode == 1 || work_mode == 2) {
         std::vector<float> swperf0(numEntities);
         if (work_mode == 2) std::cout << "\nStart to check...\n";

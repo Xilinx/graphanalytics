@@ -33,10 +33,73 @@
 #include <string>
 #include <vector>
 
-namespace xf {
-namespace fuzzyMatch {
+namespace xilinx_apps
+{
+namespace fuzzymatch
+{
+    struct Options;
+    class FuzzyMatchImpl;
+}
 
-const int max_validated_pattern = 10000000;
+}
+
+/**
+ * Define this macro to make functions in fuzzymatch_loader.cpp inline instead of extern.  You would use this macro
+ * when including fuzzymatch_loader.cpp in a header file, as opposed to linking with libXilinxFuzzyMatch_loader.a.
+ */
+#ifdef XILINX_FUZZYMATCH_INLINE_IMPL
+#define XILINX_FUZZYMATCH_IMPL_DECL inline
+#else
+#define XILINX_FUZZYMATCH_IMPL_DECL extern
+#endif
+
+extern "C" {
+XILINX_FUZZYMATCH_IMPL_DECL
+xilinx_apps::fuzzymatch::FuzzyMatchImpl *xilinx_fuzzymatch_createImpl(const xilinx_apps::fuzzymatch::Options& options);
+
+XILINX_FUZZYMATCH_IMPL_DECL
+void xilinx_fuzzymatch_destroyImpl(xilinx_apps::fuzzymatch::FuzzyMatchImpl *pImpl);
+}
+
+namespace xilinx_apps {
+namespace fuzzymatch {
+
+/**
+ * @brief %Exception class for cosine similarity run-time errors
+ * 
+ * This exception class is derived from `std::exception` and provides the standard @ref what() member function.
+ * An object of this class is constructed with an error message string, which is stored internally and
+ * retrieved with the @ref what() member function.
+ */
+class Exception : public std::exception {
+    std::string message;
+public:
+    /**
+     * Constructs an Exception object.
+     * 
+     * @param msg an error message string, which is copied and stored internal to the object
+     */
+    Exception(const std::string &msg) : message(msg) {}
+    
+    /**
+     * Returns the error message string passed to the constructor.
+     * 
+     * @return the error message string
+     */
+    virtual const char* what() const noexcept override { return message.c_str(); }
+};
+
+/**
+ * @brief Struct containing CosineSim configuration options
+ */
+struct Options {
+    //XString xclbinPath;
+    std::string xclbinPath;
+    std::string deviceNames;
+
+};
+
+
 
 
 // extract select column from CSV file.
@@ -48,11 +111,34 @@ int load_csv(const size_t max_entry_num,
              const unsigned col,
              std::vector<std::string>& vec_str);
 
-namespace internal {
 
-class FMCPUChecker {
+
+
+
+
+class FuzzyMatch  {
    public:
-    FMCPUChecker() {
+    
+    FuzzyMatch(const Options &options) : pImpl_(xilinx_fuzzymatch_createImpl(options)) { }
+
+    ~FuzzyMatch() { xilinx_fuzzymatch_destroyImpl(pImpl_); }
+    // The intialize process will download FPGA binary to FPGA card, and initialize the HBM/DDR FACTIVA tables.
+    int startFuzzyMatch();
+    int fuzzyMatchLoadVec(std::vector<std::string>& patternVec);
+
+    // The check method returns whether the transaction is okay, and triggering condition if any.
+    bool executefuzzyMatch(const std::string& t);
+
+   private:
+     FuzzyMatchImpl *pImpl_ = nullptr;
+   
+
+
+}; // end class FuzzyMatch
+
+class FuzzyMatchSW {
+   public:
+    FuzzyMatchSW() {
         max_fuzzy_len = -1;
         max_contain_len = -1;
         max_equan_len = 12;
@@ -72,78 +158,17 @@ class FMCPUChecker {
     std::vector<std::vector<std::string> > vec_pattern_grp =
         std::vector<std::vector<std::string> >(max_len_in_char);
 
-    void preSortbyLength(std::vector<std::string>& vec_pattern);
-    // do one fuzzy process
-    bool doFuzzyTask(int id,
-                     const size_t upper_limit,
-                     const std::string& ptn_str,
-                     const std::vector<std::vector<std::string> >& vec_grp);
-    // do fuzzy match against given list, return true if matched.
-    bool strFuzzy(const size_t upper_limit,
-                  const std::string& ptn_str,
-                  std::vector<std::vector<std::string> >& vec_grp_str);
-                  /*
-    // do equal match against given list, return true if matched.
-    bool strEqual(const std::string& code1, const std::string& code2);
-    // do string contain against given list, return true if matched.
-    bool strContain(const std::string& description);*/
+
 
    private:
     static const size_t max_len_in_char = 1024 * 1024; // in char
-  
-
-    std::future<bool> worker[100];
-    unsigned int totalThreadNum = std::thread::hardware_concurrency();
-
-}; // end class FMCPUChecker
-} // namespace internal
-
-class FMChecker : public internal::FMCPUChecker {
-   public:
-    FMChecker() { this->max_fuzzy_len = 35; }
-
-    // The intialize process will download FPGA binary to FPGA card, and initialize the HBM/DDR FACTIVA tables.
-    int getDevice(std::string deviceNames);
-    int startFuzzyMatch(const std::string& xclbinPath, std::string deviceNames);
-    int fuzzyMatchLoadVec(std::vector<std::string>& patternVec);
-
-    // The check method returns whether the transaction is okay, and triggering condition if any.
-    bool executefuzzyMatch(const std::string& t);
-
-   private:
-   static const int PU_NUM = 8;
-    int boost;
-    cl::Context ctx;
-    cl::Device device;
-    cl::Program prg;
-    cl::CommandQueue queue;
-    cl::Kernel fuzzy[4];
-    int buf_f_i_idx=0;
-
-    int sum_line;
-    //std::vector<int> vec_base = std::vector<std::vector<int> >;
-    //std::vector<int> vec_offset = std::vector<std::vector<int> >;
-    std::vector<int> vec_base ;
-    std::vector<int> vec_offset ;
-
-   cl::Buffer buf_field_i1;
-   cl::Buffer buf_field_i2;
-   cl::Buffer buf_csv[2 * PU_NUM];
-   cl::Buffer buf_field_o1;
-   cl::Buffer buf_field_o2;
-
-   std::vector<cl::Event> events_write;
-   std::vector<cl::Event> events_kernel;
-   std::vector<cl::Event> events_read;
-
-   void preCalculateOffsetPerPU(std::vector<std::vector<std::string> >& vec_grp_str,
-                 std::vector<int>& vec_base,
-                 std::vector<int>& vec_offset);
 
 
-}; // end class FMChecker
+}; // end class FuzzyMatchSW
 
-} // namespace Fuzzymatch
-} // namespace xf
+} // namespace fuzzymatch
+} // namespace xilinx_apps
 
 #endif
+
+
