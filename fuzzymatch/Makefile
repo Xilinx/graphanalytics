@@ -108,7 +108,7 @@ INCLUDES_libFuzzyMatch = \
 	-I$(GRAPH_ANALYTICS_DIR)/L3/include \
 	-isystem $(GRAPH_ANALYTICS_DIR)/ext/HLS_arbitrary_Precision_Types/include \
 	-I$(GRAPH_ANALYTICS_DIR)/ext/xcl2 \
-	-I$(GRAPH_ANALYTICS_DIR)/ext \
+	-I$(GRAPH_ANALYTICS_DIR)/ext
 #	-I$(GRAPH_ANALYTICS_DIR)/plugin/tigergraph/comdetect/udf/QueryUdf 
 #	-I${JAVA_HOME}/include \
 #	-I${JAVA_HOME}/include/linux
@@ -245,6 +245,13 @@ TEST_DIR = tests
 
 INCLUDES_test = \
     -Iinclude \
+	-I$(XILINX_XRT)/include \
+	-I$(XILINX_XRM)/include \
+	-I$(GRAPH_ANALYTICS_DIR)/L2/include \
+	-I$(GRAPH_ANALYTICS_DIR)/L3/include \
+	-I$(GRAPH_ANALYTICS_DIR)/ext \
+	-I$(GRAPH_ANALYTICS_DIR)/ext/xcl2 \
+	-isystem $(GRAPH_ANALYTICS_DIR)/ext/HLS_arbitrary_Precision_Types/include 
 
 
 SRC_FILE_NAMES_test = \
@@ -333,8 +340,8 @@ STAGE_DIR = staging
 
 STAGE_COPY_FILES = \
     VERSION \
-    include/xilinxFuzzyMatch.h 
- #   src/louvainmod_loader.cpp
+    include/xilinxFuzzyMatch.h \
+    src/fuzzy_match_loader.cpp
 
 define STAGE_COPY_RULE
 $(STAGE_DIR)/$(1): $(1)

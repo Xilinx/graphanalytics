@@ -33,6 +33,8 @@
 #include <string>
 #include <vector>
 
+#include "xilinx_apps_common.hpp"
+
 namespace xilinx_apps
 {
 namespace fuzzymatch
@@ -93,10 +95,10 @@ public:
  * @brief Struct containing CosineSim configuration options
  */
 struct Options {
-    //XString xclbinPath;
-    std::string xclbinPath;
-    std::string deviceNames;
-
+    XString xclbinPath;
+    XString deviceNames;
+    //std::string xclbinPath;
+    //std::string deviceNames;
 };
 
 
