@@ -991,14 +991,15 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune(int numColors,
 
     for (int i = 0; i < vertexNum + 1; i++) {
         buff_host.offsets[i] = (int)vtxPtr[i];
+        buff_host.offsetsdup[i] = buff_host.offsets[i]; // zyl
         if (i != vertexNum) {
             if (M[i] < 0) {
                 buff_host.offsets[i] = (int)(0x80000000 | (unsigned int)vtxPtr[i]);
             }
         } else {
             buff_host.offsets[i] = (int)(vtxPtr[i]);
-        }
-        buff_host.offsetsdup[i] = buff_host.offsets[i]; // zyl
+            printf("GET final host v=%d, offset=%d\n",i, buff_host.offsets[i]);
+        }       
     }
     edgeNum = buff_host.offsets[vertexNum];
 
@@ -1708,7 +1709,7 @@ void ConsumingOnePhase_prune(GLV* pglv_iter,
                              double opts_C_thresh,
                              KMemorys_clBuff_prune& buff_cl,
                              KMemorys_host_prune& buff_host,
-                             cl::Kernel& kernel_louvain,
+                             cl::Kernel& kernel_louvain0,
                              cl::CommandQueue& q,
                              int& eachItrs,
                              double& currMod,
@@ -1721,26 +1722,15 @@ void ConsumingOnePhase_prune(GLV* pglv_iter,
     kernel_evt0[0].resize(1);
     kernel_evt1[0].resize(1);
     cl_uint cntq = 0;
-cl_uint  sizeq = 0;
-cl_int error_number;
-cntq = q.getInfo<CL_QUEUE_REFERENCE_COUNT>(&error_number  );
- if (error_number != CL_SUCCESS)
- {
-         std::cerr << "Failed call to clGetqueueInfo(..., cnt,...)\n";
- }
- error_number = q.getInfo(CL_QUEUE_SIZE, &sizeq);
- if (error_number != CL_SUCCESS)
- {
-         std::cerr << "Failed call to clGetqueueInfo(..., size,...)\n";
- }
- printf("q_count:%lu\n", (unsigned long)cntq);
- printf("q_size:%lu\n", (unsigned long)sizeq);
+    cl_uint  sizeq = 0;
+    cl_int error_number;
 
     bool isLargeEdge = pglv_iter->G->numEdges > ((1<<27) / 2);
     eachTimeInitBuff = PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune(
         pglv_iter->numColors, pglv_iter->G, pglv_iter->M, opts_C_thresh, currMod, pglv_iter->colors, buff_host);
     //getchar();
-    PhaseLoop_UsingFPGA_1_KernelSetup_prune(isLargeEdge, kernel_louvain, ob_in, ob_out, buff_cl);
+    #if 1
+    PhaseLoop_UsingFPGA_1_KernelSetup_prune(isLargeEdge, kernel_louvain0, ob_in, ob_out, buff_cl);
     std::cout << "\t\PhaseLoop_UsingFPGA_1_KernelSetup Device Available: "
               << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 
@@ -1749,7 +1739,7 @@ cntq = q.getInfo<CL_QUEUE_REFERENCE_COUNT>(&error_number  );
               << std::endl; //  << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
     //getchar();
 
-    PhaseLoop_UsingFPGA_3_KernelRun(q, kernel_evt0, kernel_evt1, kernel_louvain);
+    PhaseLoop_UsingFPGA_3_KernelRun(q, kernel_evt0, kernel_evt1, kernel_louvain0);
     std::cout << "\t\PhaseLoop_UsingFPGA_3_KernelRun Device Available: "
               << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 
@@ -1760,6 +1750,18 @@ cntq = q.getInfo<CL_QUEUE_REFERENCE_COUNT>(&error_number  );
     PhaseLoop_UsingFPGA_5_KernelFinish(q);
     std::cout << "\t\PhaseLoop_UsingFPGA_5_KernelFinish Device Available: "
               << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
+    #else
+    kernel_louvain(buff_host.config0, buff_host.config1, (ap_uint<DWIDTHS>*)buff_host.offsets, (ap_uint<DWIDTHS>*)buff_host.indices,
+    (ap_uint<DWIDTHS>*)buff_host.weights, 
+    (ap_uint<32>*)buff_host.colorAxi, (ap_uint<32>*)buff_host.colorInx,
+     (ap_uint<DWIDTHS>*)buff_host.cidPrev, 
+    (ap_uint<DWIDTHS>*)buff_host.cidSizePrev, (ap_uint<DWIDTHS>*)buff_host.totPrev, 
+    (ap_uint<DWIDTHS>*)buff_host.cidCurr, (ap_uint<DWIDTHS>*)buff_host.cidSizeCurr, 
+    (ap_uint<DWIDTHS>*)buff_host.totCurr, (ap_uint<DWIDTHS>*)buff_host.cidSizeUpdate, 
+    (ap_uint<DWIDTHS>*)buff_host.totUpdate, (ap_uint<DWIDTHS>*)buff_host.cWeight,
+    (ap_uint<DWIDTHS>*)buff_host.offsetsdup, (ap_uint<DWIDTHS>*)buff_host.indicesdup, 
+    buff_host.flag, buff_host.flagUpdate);   
+    #endif
 
 
     eachTimeReadBuff = PhaseLoop_UsingFPGA_Prep_Read_buff_host_prune(pglv_iter->NV, buff_host, eachItrs, pglv_iter->C,
@@ -1980,7 +1982,7 @@ GLV* LouvainGLV_general(bool hasGhost,
                         int numPhase) {
     double time1 = omp_get_wtime();
     assert(glv_src);
-
+    printf("warning: the ghost flag is %d !\n", (int)hasGhost);
     GLV* glv = glv_src->CloneSelf(id_glv);
     assert(glv);
     glv->SetName_lv(glv->ID, glv_src->ID);
