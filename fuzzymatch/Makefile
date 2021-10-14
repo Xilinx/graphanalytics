@@ -123,17 +123,17 @@ LOADER_NAME = lib$(LOADER_SHORT_NAME).a
 SRCS_L3 = $(GRAPH_ANALYTICS_DIR)/ext/xcl2/xcl2.cpp
 OBJS_L3 = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_L3:.cpp=.o)))
 # louvain dynamic load 
-# todo: loader
-#SRCS_loader = src/louvainmod_loader.cpp
-#OBJS_loader = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_loader:.cpp=.o)))
-#DEPS_loader = $(OBJS_loader:.o=.d)
 
-#SRCS_top = $(filter-out $(SRCS_loader),$(wildcard src/*.cpp))
-SRCS_top = $(wildcard src/*.cpp) 
+SRCS_loader = src/fuzzy_match_loader.cpp
+OBJS_loader = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_loader:.cpp=.o)))
+DEPS_loader = $(OBJS_loader:.o=.d)
+
+SRCS_top = $(filter-out $(SRCS_loader),$(wildcard src/*.cpp))
+#SRCS_top = $(wildcard src/*.cpp) 
 OBJS_top = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_top:.cpp=.o)))
 
-#SRCS_all = $(SRCS_top) $(SRCS_loader)
-SRCS_all = $(SRCS_L3) $(SRCS_top) 
+SRCS_all = $(SRCS_L3) $(SRCS_top) $(SRCS_loader)
+#SRCS_all = $(SRCS_L3) $(SRCS_top) 
 OBJS_all = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_all:.cpp=.o)))
 DEPS_all = $(OBJS_all:.o=.d)
 
@@ -146,8 +146,8 @@ OBJS_libFuzzyMatch = $(OBJS_L3) $(OBJS_top)
 cppBuild: $(CPP_BUILD_DIR)
 	@make cppBuild2
 
-cppBuild2: $(CPP_BUILD_DIR)/$(LIB_NAME) 
-#cppBuild2: $(CPP_BUILD_DIR)/$(LIB_NAME) $(CPP_BUILD_DIR)/$(LOADER_NAME)
+#cppBuild2: $(CPP_BUILD_DIR)/$(LIB_NAME) 
+cppBuild2: $(CPP_BUILD_DIR)/$(LIB_NAME) $(CPP_BUILD_DIR)/$(LOADER_NAME)
 
 # Create the target directory (if needed)
 $(CPP_BUILD_DIR):
