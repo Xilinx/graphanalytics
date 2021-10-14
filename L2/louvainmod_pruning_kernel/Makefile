@@ -84,6 +84,8 @@ EMCONFIG_DIR := $(BUILD_DIR)
 XCLBIN_DIR := $(CUR_DIR)/$(BUILD_DIR)
 export XCL_BINDIR = $(XCLBIN_DIR)
 
+CXX := /tools/batonroot/rodin/devkits/lnx64/gcc-6.2.0/bin/g++
+$(warning [WARNING]: CXX is $(CXX).)
 # ######################### Setting up Host Variables #########################
 #Include Required Host Source Files
 HOST_SRCS += $(XFLIB_DIR)/louvainmod/grappolo/src/driverForGraphClustering.cpp
@@ -103,6 +105,7 @@ HOST_SRCS += $(XFLIB_DIR)/L2/louvainmod_pruning_kernel/partition/ParLV.cpp
 HOST_SRCS += $(XFLIB_DIR)/L2/louvainmod_pruning_kernel/partition/ctrlLV.cpp
 HOST_SRCS += $(XFLIB_DIR)/L2/louvainmod_pruning_kernel/partition/louvainPhase.cpp
 HOST_SRCS += $(XFLIB_DIR)/L2/louvainmod_pruning_kernel/partition/partitionLouvain.cpp
+#HOST_SRCS += $(XFLIB_DIR)/L2/louvainmod_pruning_kernel/kernel_louvain.cpp
 HOST_SRCS += $(XFLIB_DIR)/ext/xcl2/xcl2.cpp
 CXXFLAGS += -I$(XFLIB_DIR)/L2/include/hw
 CXXFLAGS += -I$(XFLIB_DIR)/louvainmod/grappolo/include
@@ -128,7 +131,8 @@ endif
 CXXFLAGS += -I$(XILINX_XRT)/include -I$(XILINX_VIVADO)/include -std=c++11 -Wall -Wno-unknown-pragmas
 LDFLAGS += -L$(XILINX_XRT)/lib -lOpenCL -lpthread -lrt -Wno-unused-label -Wno-unused-variable -Wno-write-strings -Wno-narrowing -DVERBOSE -Wno-format
 CXXFLAGS += -fmessage-length=0 -DPRAGMA -fopenmp -fPIC -DMULTITHREAD
-CXXFLAGS += -O3
+CXXFLAGS += -O3 -Ofast
+#CXXFLAGS += -g
 #CXXFLAGS += -g -D DEBUGPAR
 CXXFLAGS += -I$(CUR_DIR)/src/ 
 
@@ -150,7 +154,7 @@ HOST_ARGS :=  -x $(BUILD_DIR)/kernel_louvain.xclbin -f 3 -c -o -m 10000 -prun $(
 
 # ##################### Kernel compiler global settings ##########################
 VPP_FLAGS += -t $(TARGET) --platform $(XPLATFORM) --save-temps --optimize 2
-VPP_FLAGS += --jobs 8
+VPP_FLAGS += --jobs 8 
 VPP_FLAGS += --config $(CUR_DIR)/conn_u50_u55c_u280.ini
 
 VPP_FLAGS += -I$(XFLIB_DIR)/L2/include
@@ -164,7 +168,7 @@ VPP_FLAGS += -I$(XFLIB_DIR)/../utils/L1/include
 VPP_FLAGS += -I$(XFLIB_DIR)/L2/louvainmod_pruning_kernel
 VPP_FLAGS += --advanced.param compiler.userPostSysLinkOverlayTcl=$(CUR_DIR)/postSysLink.tcl
 
-kernel_louvain_VPP_FLAGS +=  -D KERNEL_NAME=kernel_louvain
+kernel_louvain_VPP_FLAGS +=  -D KERNEL_NAME=kernel_louvain 
 kernel_louvain_VPP_FLAGS += --hls.clock 300000000:kernel_louvain
 VPP_LDFLAGS_kernel_louvain += --kernel_frequency 300
 
