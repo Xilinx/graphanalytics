@@ -38,8 +38,8 @@ STAGE_COPY_FILES = \
 	$(EXAMPLE_DIR)/README.md \
     $(EXAMPLE_DIR)/bin/common.sh \
     $(EXAMPLE_DIR)/bin/set-plugin-vars.sh \
-    $(EXAMPLE_DIR)/udf/fuzzyMatchDemo.hpp \
-    $(EXAMPLE_DIR)/udf/fuzzyMatchDemoImpl.hpp \
+    $(EXAMPLE_DIR)/udf/swiftAmlDemo.hpp \
+    $(EXAMPLE_DIR)/udf/swiftAmlDemoImpl.hpp \
 	$(EXAMPLE_DIR)/query/base.gsql \
     $(EXAMPLE_DIR)/query/load.gsql \
     $(EXAMPLE_DIR)/query/fuzzy_match.gsql \

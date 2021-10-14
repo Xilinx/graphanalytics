@@ -25,8 +25,12 @@ ifdef sshKey
 endif	
 
 STANDALONE_NAME = fuzzymatch
-PLUGIN_DEPS = ../../../../../$(STANDALONE_NAME)/src/fuzzy_match.cpp
-UDF_DEPS = udf/fuzzyMatchDemo.hpp udf/fuzzyMatchDemoImpl.hpp
+EXAMPLE=swift_aml
+PLUGIN_DEPS = ../../../../../$(STANDALONE_NAME)/src/fuzzy_match.cpp \
+              ../../udf/xilinxFuzzyMatch.hpp \
+			  ../../udf/xilinxFuzzyMatchImpl.hpp
+			  
+UDF_DEPS = udf/swiftAmlDemo.hpp udf/swiftAmlDemoImpl.hpp
 
 all: run
 
@@ -45,7 +49,7 @@ all: run
 	@echo "Installing application specific UDFs into TigerGraph software"
 	@echo "--------------------------------------------------------------"
 	cd ../../ && make DEBUG=$(DEBUG) stage && \
-	./staging/examples/comdetect/bin/install-udf.sh -v -f $(SSH_KEY_OPT) && \
+	./staging/examples/$(EXAMPLE)/bin/install-udf.sh -v -f $(SSH_KEY_OPT) && \
 	cd - && touch .install-udf-done
 
 run-test: .install-query-done
@@ -63,7 +67,7 @@ run: .install-udf-done
 	@echo "Running run.sh from staging "
 	@echo "-------------------------------------------------------"
 	cd ../../ && make DEBUG=$(DEBUG) stage && \
-	    ./staging/examples/swift_aml/bin/run.sh -v \
+	    ./staging/examples/$(EXAMPLE)/bin/run.sh -v \
 	    -g $(graphName) -s $(personSource) \
 		-c $(compileMode) -r $(runMode) 
 
