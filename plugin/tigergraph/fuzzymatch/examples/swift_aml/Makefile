@@ -26,6 +26,7 @@ endif
 
 STANDALONE_NAME = fuzzymatch
 PLUGIN_DEPS = ../../../../../$(STANDALONE_NAME)/src/fuzzy_match.cpp
+UDF_DEPS = udf/fuzzyMatchDemo.hpp udf/fuzzyMatchDemoImpl.hpp
 
 all: run
 
@@ -39,19 +40,13 @@ all: run
 		./staging/install.sh -v -f $(SSH_KEY_OPT) -d $(deviceNames) && \
 	cd - && touch .install-plugin-done
 
-.install-udf-done: .install-plugin-done udf/louvainDemo.hpp
+.install-udf-done: .install-plugin-done $(UDF_DEPS)
 	@echo "--------------------------------------------------------------"
 	@echo "Installing application specific UDFs into TigerGraph software"
 	@echo "--------------------------------------------------------------"
 	cd ../../ && make DEBUG=$(DEBUG) stage && \
 	./staging/examples/comdetect/bin/install-udf.sh -v -f $(SSH_KEY_OPT) && \
 	cd - && touch .install-udf-done
-
-.install-query-done: .install-udf-done query/test.gsql 
-	@echo "-------------------------------------------------------"
-	@echo "make install-query-done"
-	@echo "-------------------------------------------------------"
-	@gsql query/test.gsql && touch .install-query-done
 
 run-test: .install-query-done
 	@echo "-------------------------------------------------------"
@@ -84,20 +79,19 @@ help:
 	@echo "Parameter descriptions:"
 	@echo "deviceNames       : Target device name. Supported devices: "
 	@echo "                    xilinx_u50_gen3x16_xdma_201920_3"
-	@echo "personSource        : A .mtx file containing input graph. default=./data/people1k.csv"
-	@echo "DgraphName         : graph name (default=social_<username>"
-	@echo "DcompileMode       : 0: skip database creation and gsql compilation"
+	@echo "personSource      : A csv file with person records. default=../data/people1k.csv"
+	@echo "txSource          : A csv file with transactions records. default=../data/txdata.csv"
+	@echo "graphName         : graph name (default=social_<username>"
+	@echo "compileMode       : 0: skip database creation and gsql compilation"
 	@echo "                    1: recreate database and compile all (default)"
 	@echo "                    2: only compile query gsql"
-	@echo "DrunMode           : 0: Skip both CPU and Alveo run (i.e. only run partition)"
+	@echo "runMode           : 0: Skip both CPU and Alveo run"
 	@echo "                    1: Run only on CPU"
 	@echo "                    2: Run only on Alveo (default)"
 	@echo "                    3: Run on both CPU and Alveo"
 	@echo ""
 	@echo "sshKey            : SSH key for user tigergraph"	
 	@echo ""
-	@echo "Examples:"
-	@echo "make dataSource=/proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx"
 
 clean:
 	cd ../../../../../$(STANDALONE_NAME) && make clean
