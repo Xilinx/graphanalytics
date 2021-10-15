@@ -19,7 +19,7 @@
 
 #all: javaApi cppBuild javaTest stage
 #all: stage
-all: cppBuild stage
+all: cppBuild pythonApi stage 
 
 help:
 	@echo "Makefile usages:"
@@ -235,6 +235,77 @@ $(XCLBIN_FILE_U50):
 	    echo "2. Do 'make xclbin' and go for a very long coffee break.  (Recommended for build automation)"; \
 	    false; \
 	fi
+
+
+#######################################################################################################################
+#
+# python API wrapper
+#
+
+PYTHON = python3
+PYTHON_DIR = /usr/include/$(PYTHON)
+PYTHONENV_NAME = pyvenv
+PYTHONENV = ./$(PYTHONENV_NAME)/bin/$(PYTHON)
+PYTHON_API_DIR = src/
+PYTHON_LIB_NAME := xilFuzzyMatchPython.so #$(shell python-config --extension-suffix)
+
+SRC_FILE_NAMES_python = pythonapi.cpp
+PYTHON_INC_FLAGS = $(shell python3-config --includes)
+INCLUDES_python = \
+    -I$(PYTHON_DIR) \
+    -Iinclude \
+	-I$(GRAPH_ANALYTICS_DIR)/ext \
+	-I$(PYTHON_INC_FLAGS)
+
+SRCS_python = $(addprefix $(PYTHON_API_DIR)/,$(SRC_FILE_NAMES_python))
+OBJS_python = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_python:.cpp=.o)))
+
+LIB_PATH = $(CPP_BUILD_DIR)
+
+LDFLAGS_python = -L$(LIB_PATH) -l$(LIB_SHORT_NAME) -lzmq
+
+# Add pybind11 includes and set library name after setting virtual env
+ifeq ($(MAKECMDGOALS),pythonApi2)
+INCLUDES_python += $(shell $(PYTHONENV) -m pybind11 --includes)
+endif
+
+SHAREDLIB_FLAGS_python = -shared
+
+.PHONY: pythonApi pythonApi2
+
+# Make in a child process so that we can isolate the run that includes automatic header dependencies
+pythonApi: cppBuild $(PYTHONENV_NAME)
+	@make pythonApi2
+
+$(PYTHONENV_NAME):
+	$(PYTHON) -m venv $(PYTHONENV_NAME);\
+	$(PYTHONENV) -m pip install pybind11 \
+	$(PYTHONENV) -m pip install python-config
+
+pythonApi2: $(CPP_BUILD_DIR) $(CPP_BUILD_DIR)/$(PYTHON_LIB_NAME)
+
+$(CPP_BUILD_DIR)/$(PYTHON_LIB_NAME): $(OBJS_python)
+	$(LINK.cc) $^ -o $@ $(SHAREDLIB_FLAGS_python) $(LDFLAGS_python)
+
+# Macro to create a .o rule and a .d rule for each .cpp
+
+define BUILD_CPP_RULE
+
+$(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o): $(1)
+	$(COMPILE.cc) $(INCLUDES_python) -o $$@ $$<
+
+$(CPP_BUILD_DIR)/$(notdir $(basename $(1)).d): $(1)
+	@set -e; \
+	rm -f $$@; \
+	$(COMPILE.cc) -MM -MT $(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o) $(INCLUDES_python)   -MF $$@.$$$$$$$$ $$<; \
+        sed 's,\($(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o)\)[ :]*,\1 $$@ : ,g' < $$@.$$$$$$$$ > $$@; \
+	rm -f $$@.$$$$$$$$
+
+endef
+
+# Expand the macro for each source file
+
+$(foreach src,$(SRCS_python),$(eval $(call BUILD_CPP_RULE,$(src))))
 
 #######################################################################################################################
 #
