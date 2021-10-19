@@ -20,7 +20,7 @@ CREATE GRAPH @graph()
 
 CREATE SCHEMA_CHANGE JOB job_schema_change_local FOR GRAPH @graph {
     // person database to match against
-    ADD VERTEX person (PRIMARY_ID id UINT, name STRING);
+    ADD VERTEX blacklist (PRIMARY_ID id UINT, name STRING);
     // person extracted from transactions
     ADD VERTEX person_tx(PRIMARY_ID id STRING, name STRING);
     // transaction

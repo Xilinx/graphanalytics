@@ -24,7 +24,8 @@ all: cppBuild stage
 help:
 	@echo "Makefile usages:"
 	@echo "  make run-test [runMode=0] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3] [totalEntities=10000000]"
-	@echo "  Run standalone test with statically linked executable"
+	@echo "    Run standalone test with statically linked executable"
+	@echo ""
 	@echo "  Options:"
 	@echo "  deviceNames  : Specify Alveo devices to use for computation"
 	@echo "                 Supported devices: xilinx_u50_gen3x16_xdma_201920_3 (default)"
