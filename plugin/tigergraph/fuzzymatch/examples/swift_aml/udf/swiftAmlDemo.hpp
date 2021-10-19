@@ -69,6 +69,20 @@ inline int64_t udf_peak_memory_usage(double& VmPeak, double& VmHWM)
     return 0L;
 }
 
+inline bool udf_fuzzy_match_cpu(ListAccum<string> blacklist, ListAccum<string> txPersons) 
+{
+    std::cout << "INFO: udf_fuzzy_match_cpu " << std::endl;
+
+    uint32_t blacklistLen = blacklist.size();
+    for (unsigned i = 0 ; i < blacklistLen; ++i)
+        std::cout << "blacklist " << i << "=" << blacklist.get(i) << std::endl;
+
+    uint32_t txPersonsLen = txPersons.size();
+    for (unsigned i = 0 ; i < txPersonsLen; ++i)
+        std::cout << "txPersons " << i << "=" << txPersons.get(i) << std::endl;
+
+    return true;
+}
 
 // mergeHeaders 1 section body end swiftAmlDemo DO NOT REMOVE!
 

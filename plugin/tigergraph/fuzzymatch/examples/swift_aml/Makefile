@@ -52,11 +52,11 @@ all: run
 	./staging/examples/$(EXAMPLE)/bin/install-udf.sh -v -f $(SSH_KEY_OPT) && \
 	cd - && touch .install-udf-done
 
-run-test: .install-query-done
+test: .install-udf-done
 	@echo "-------------------------------------------------------"
-	@echo "make run-test"
+	@echo "Running quick gsql test"
 	@echo "-------------------------------------------------------"
-	gsql -g $(graphName) "run query insert_dummy_nodes(1)"
+	gsql -g $(graphName) test.gsql
 	time gsql -g $(graphName) "run query test()"
 
 install-plugin: .install-plugin-done
