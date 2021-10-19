@@ -17,13 +17,6 @@
 #ifndef _XILINX_AML_CHECKER_HEADER_
 #define _XILINX_AML_CHECKER_HEADER_
 
-#define CL_HPP_CL_1_2_DEFAULT_BUILD
-#define CL_HPP_TARGET_OPENCL_VERSION 120
-#define CL_HPP_MINIMUM_OPENCL_VERSION 120
-#define CL_HPP_ENABLE_PROGRAM_CONSTRUCTION_FROM_ARRAY_COMPATIBILITY 1
-
-#include <CL/cl2.hpp>
-
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
@@ -32,6 +25,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <cstring>
 
 #include "xilinx_apps_common.hpp"
 

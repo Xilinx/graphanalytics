@@ -19,7 +19,7 @@
 
 // Use inline definitions for dynamic loading functions
 #define XILINX_FUZZYMATCH_INLINE_IMPL
-//#include "xilinxFuzzyMatch.h"
+#include "fuzzymatch.hpp"
 
 // Enable this to turn on debug output
 #define XILINX_FUZZYMATCH_DEBUG_ON
@@ -56,7 +56,7 @@ inline Mutex &getMutex() {
     return *pMutex;
 }
 
-//using LouvainMod = xilinx_apps::louvainmod::LouvainMod;
+using FuzzyMatch = xilinx_apps::fuzzymatch::FuzzyMatch;
 
 class Context {
 public:
@@ -77,7 +77,7 @@ private:
     uint32_t nodeId_ = 0;
     uint32_t numNodes_ = 1;
     State state_ = UninitializedState;
-    //LouvainMod *pLouvainMod_ = nullptr;
+    FuzzyMatch *pFuzzyMatch_ = nullptr;
 
 public:
     std::string curNodeHostname_;

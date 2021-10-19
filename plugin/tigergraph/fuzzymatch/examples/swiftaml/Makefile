@@ -25,8 +25,9 @@ ifdef sshKey
 endif	
 
 STANDALONE_NAME = fuzzymatch
-EXAMPLE=swift_aml
-PLUGIN_DEPS = ../../../../../$(STANDALONE_NAME)/src/fuzzy_match.cpp \
+EXAMPLE=swiftaml
+PLUGIN_DEPS = ../../../../../$(STANDALONE_NAME)/src/fuzzymatch.cpp \
+              ../../../../../$(STANDALONE_NAME)/include/fuzzymatch.hpp \
               ../../udf/xilinxFuzzyMatch.hpp \
 			  ../../udf/xilinxFuzzyMatchImpl.hpp
 			  

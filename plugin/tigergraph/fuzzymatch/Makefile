@@ -22,7 +22,7 @@ all: stage
 # Product version
 PRODUCT_VER=$(strip $(shell cat VERSION))
 
-EXAMPLE_DIR = examples/swift_aml
+EXAMPLE_DIR = examples/swiftaml
 
 # Files to be direct-copied from plugin source tree to staging area
 

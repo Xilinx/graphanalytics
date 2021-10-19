@@ -1,5 +1,5 @@
 /**
-* Copyright (C) 2020 Xilinx, Inc
+* Copyright (C) 2021 Xilinx, Inc
 *
 * Licensed under the Apache License, Version 2.0 (the "License"). You may
 * not use this file except in compliance with the License. A copy of the
@@ -19,9 +19,9 @@
 #include <sstream>
 #include <limits>
 
+#include "xilinx_runtime_common.hpp"
 #include "fuzzymatch.hpp"
-#include "xcl2.hpp"
-#include "CL/cl_ext_xilinx.h"
+
 namespace xilinx_apps {
 namespace fuzzymatch {
 const int max_validated_pattern = 10000000;
