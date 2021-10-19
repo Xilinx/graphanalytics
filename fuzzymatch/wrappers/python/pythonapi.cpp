@@ -17,7 +17,7 @@
 
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
-#include <xilinxFuzzyMatch.h>
+#include <fuzzymatch.hpp>
 
 using namespace xilinx_apps::fuzzymatch;
 

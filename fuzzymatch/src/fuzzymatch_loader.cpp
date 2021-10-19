@@ -17,7 +17,7 @@
 
 // Thanks to Aaron Isotton for his dynamic loading ideas in https://tldp.org/HOWTO/pdf/C++-dlopen.pdf
 
-#include "xilinxFuzzyMatch.h"
+#include "fuzzymatch.hpp"
 #include <string>
 #include <dlfcn.h>
 #include <iostream>
