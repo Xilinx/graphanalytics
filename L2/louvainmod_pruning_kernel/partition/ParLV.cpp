@@ -160,6 +160,65 @@ int GetScl(long v) {
     }
     return ret;
 }
+
+
+#define bfs 
+
+#ifdef bfs
+
+pair<long, long> ParLV::FindCM_1hop_bfs(int idx, long e_org, long addr_v) {
+    // 2.
+    pair<long, long> ret;
+    //long addr_v = e_org - off_src[idx];
+    long c_src_sync = par_src[idx]->C[addr_v];
+    long c_lved_new = c_src_sync; // key logic
+    long m_lved_new = par_lved[idx]->M[c_lved_new];
+    ret.first = c_lved_new;
+    ret.second = m_lved_new;
+    return ret;
+}
+
+long ParLV::FindC_nhop_bfs(long m_g) {
+    assert(m_g < 0);
+    long m_next = m_g;
+    int cnt = 0;
+
+    do {
+        long e_org = -m_next - 1;
+        int idx = bfs_adjacent[e_org].par_idx;//FindParIdx(e_org);
+        long addr_v = bfs_adjacent[e_org].renum_in_par;
+            //dbg
+            //long v_src = e_org - off_src[idx]; // dbg
+            //dbg
+        pair<long, long> cm = FindCM_1hop_bfs(idx, e_org, addr_v);
+        long c_lved_new = cm.first;
+        long m_lved_new = cm.second;
+        
+                //debug begin
+                // printf("DBG:FindC:cnt=%d, m:%-4d --> e_org:%-4d, idx:%-2d, --> v_src:%-4d, c_src&lved:%-4d, m_lved:%-4d --> c_new:%d",
+                //                   cnt,     m_next,   e_org,      idx,          addr_v,     c_lved_new,    m_lved_new, c_lved_new + off_lved[idx]);
+                if(m_lved_new>=0)
+                        printf("-> c_new:%d\n",c_lved_new + off_lved[idx]);
+                else
+                        printf("\n");
+                //debug end
+
+        cnt++;
+
+        if (m_lved_new >= 0)
+            return c_lved_new + off_lved[idx];
+        else if (m_lved_new == m_g) {
+            return m_g;
+        } else { // m_lved_new<0;
+            m_next = m_lved_new;
+        }
+
+    } while (cnt < 2 * num_par);
+    return m_g; // no local community for the ghost which should be add as a new community
+}
+
+#endif
+
 void ParLV::PreMerge() {
     // Do following things
     // 1) Get real NVl by accumulating NVl of louvained sub-graphNews
@@ -191,7 +250,9 @@ void ParLV::PreMerge() {
     scl_NE = GetScl(max_NE);
     scl_NVl = GetScl(max_NVl);
     scl_NElg = GetScl(max_NElg);
+
     NV_gh = CheckGhost(); // + NVl;;
+
     NV = NV_gh + NVl;
     elist = (edge*)malloc(sizeof(edge) * (NE));
     M_v = (long*)malloc(sizeof(long) * (NV));
@@ -304,23 +365,22 @@ long ParLV::FindC_nhop(long m_g) {
     do {
         long e_org = -m_next - 1;
         int idx = FindParIdx(e_org);
-        long v_src = e_org - off_src[idx]; // dbg
+            //dbg
+            long v_src = e_org - off_src[idx]; // dbg
+            //dbg
         pair<long, long> cm = FindCM_1hop(idx, e_org);
         long c_lved_new = cm.first;
         long m_lved_new = cm.second;
-        /*
-                        //debug begin
-                        printf("DBG:FindC:cnt=%d, m:%-4d --> e_org:%-4d, idx:%-2d, --> v_src:%-4d, c_src&lved:%-4d,
-           m_lved:%-4d --> c_new:%d",
-                                                  cnt,  m_next,   e_org,      idx,          v_src,     c_lved_new,
-           m_lved_new, c_lved_new + off_lved[idx]);
-                        if(m_lved_new>=0)
-                                printf("-> c_new:%d\n",c_lved_new + off_lved[idx]);
-                        else
-                                printf("\n");
-                        //debug end
-                         *
-                         */
+        
+                //debug begin
+                // printf("DBG:FindC:cnt=%d, m:%-4d --> e_org:%-4d, idx:%-2d, --> v_src:%-4d, c_src&lved:%-4d, m_lved:%-4d --> c_new:%d",
+                //                   cnt,     m_next,   e_org,      idx,          v_src,     c_lved_new,    m_lved_new, c_lved_new + off_lved[idx]);
+                if(m_lved_new>=0)
+                        printf("-> c_new:%d\n",c_lved_new + off_lved[idx]);
+                else
+                        printf("\n");
+                //debug end
+
         cnt++;
 
         if (m_lved_new >= 0)
@@ -342,14 +402,14 @@ long FindOldOrAddNew(map<long, long>& map_v, long& NV, long v) {
     iter = map_v.find(v);
     if (iter == map_v.end()) {
         ret = NV++; // add new
-#ifdef DBG_PAR_PRINT
-        printf("DBG_PAR_PRINT, new:%d ", ret);
-#endif
+//#ifdef DBG_PAR_PRINT
+        printf("DBG_PAR_PRINT, new:%d \n", ret);
+//#endif
     } else {
         ret = iter->second; // find old
-#ifdef DBG_PAR_PRINT
-        printf("DBG_PAR_PRINT, old:%d ", ret);
-#endif
+//#ifdef DBG_PAR_PRINT
+        printf("DBG_PAR_PRINT, old:%d \n", ret);
+//#endif
     }
     return ret;
 }
@@ -364,13 +424,17 @@ long ParLV::CheckGhost() {
         assert(p_v_new[p]);
         for (int v = G_lved->NVl; v < G_lved->NV; v++) {
             long mv = G_lved->M[v];
-            long v_new = FindC_nhop(mv);
-            if (v_new == mv) {
+            long v_new=0;
+            if(use_bfs)
+                v_new = FindC_nhop_bfs(mv);//find old
+            else
+                v_new = FindC_nhop(mv);//find old
+            if (v_new == mv) {//not find add new
                 p_v_new[p][v] = FindOldOrAddNew(m_v_gh, NV_gh_new, v_new) + this->NVl;
 #ifdef DBG_PAR_PRINT
                 printf("CheckGhost: p=%-2d  v=%-6d mv=%-6d  v_new=%-6d NV_gh=%d\n", p, v, mv, p_v_new[p][v], NV_gh_new);
 #endif
-            } else {
+            } else {// has find, use new
                 p_v_new[p][v] = v_new;
 #ifdef DBG_PAR_PRINT
                 printf("CheckGhost: p=%-2d  v=%-6d mv=%-6d  v_new=%-6d  isNVL%d\n", p, v, mv, v_new, v_new < this->NVl);

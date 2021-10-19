@@ -97,8 +97,8 @@ void printG(graphNew* G, long* C, long* M, long star, long end, bool isCid, bool
         // printf(" c=%-4d, v=%-4d,", c, v, m, adj1, degree);
         if (m < 0) {
             if (p_par->st_PreMerged == true) c_final = p_par->p_v_new[idx][v];
-            printf(" \033[1;31;40mc=%-5d (%-5d)   v=%-5d m=%-5d c(m)=%-5d\033[0m", c, c_final, v, m,
-                   p_par->FindC_nhop(m));
+            // printf(" \033[1;31;40mc=%-5d (%-5d)   v=%-5d m=%-5d c(m)=%-5d\033[0m", c, c_final, v, m,
+            //        p_par->FindC_nhop(m));
         } else
             printf(" c=%-5d (%-5d)   v=%-5d m=%-5d c(m)=%-5d", c, c_final, v, m, c);
         printf(" o=%-5d d=%-4d |", adj1, degree);
@@ -2464,8 +2464,8 @@ void test_BFSPar_creatingEdgeLists_fixed(//return: real number of partition
 		int num_par
 ){
 	//const num_par = 4;
-	long limit_v;//,
-	long limit_e;//,
+	long limit_v=0;//,
+	long limit_e=0;//,
 	t_sel* V_selected;//, //inout, for recording whether a vertex is selected
 	//output
     edge* elist_par[num_par];//,
@@ -2522,11 +2522,13 @@ void test_BFSPar_creatingEdgeLists_fixed(//return: real number of partition
 		printf(" V_selected[%d] = %d \t", i, V_selected[i]);
 	printf("\n");*/
 
+    //free
 	free(V_selected);
 	for(int p = 0 ; p < num_par; p++ )
 		free(elist_par[p]);
 }
 
+//find the v in the map and renum use the second value of map
 bool MapRenumber(map<long, long> &map_v, long v, long& renum)
 {
 	map<long, long>::iterator storedAlready = map_v.find(v);
@@ -2551,7 +2553,7 @@ void BFSPar_renumberingEdgeLists(//return: real number of partition
 		long* M[]
 
 ){
-
+    //map_v_l first value is v_global(key), second value is renum (value++)
     for( int p = 0; p < num_par; p++){
         for(int i = 0; i < num_e_dir[p]; i++){
             edge e = elist_par[p][i];
@@ -2591,9 +2593,9 @@ void BFSPar_renumberingEdgeLists(//return: real number of partition
         }// end edgelist per partition
 
         printf("check edgelist: \n");
-        for(int i = 0; i < num_e_dir[p]; i++){
+        //for(int i = 0; i < num_e_dir[p]; i++){
             //printf("check_par:%3d, \t edge_%d_%d\n", p, elist_par[p][i].head, elist_par[p][i].tail);
-        }
+        //}
         
         //convert to M
         // for(int i=0; i < num_v_l[p]; i++){
@@ -2601,9 +2603,9 @@ void BFSPar_renumberingEdgeLists(//return: real number of partition
         // }
 
         printf("check M: \n");
-        for(int i = 0; i < num_v_l[p]+num_v_g[p]; i++){
+        //for(int i = 0; i < num_v_l[p]+num_v_g[p]; i++){
             //printf("check_M:%3d, \t M[%d]=%lld\n", p, i, M[p][i]);
-        }
+        //}
 
     }//end all partition
 
@@ -2632,13 +2634,13 @@ void test_BFSPar_creatingEdgeLists_fixed_prune(//return: real number of partitio
         int th_prun
 ){
 
-    parlv->Init(1, src, num_par, 1);
+    parlv->Init(parlv->flowMode, src, num_par, 1);
     graphNew* G = src->G;
      
 
 	//const num_par = 4;
-	long limit_v;//,
-	long limit_e;//,
+	long limit_v=0;//,
+	long limit_e=0;//,
 	t_sel* V_selected;//, //inout, for recording whether a vertex is selected
 	//output
     edge* elist_par[num_par];//,
@@ -2702,6 +2704,7 @@ void test_BFSPar_creatingEdgeLists_fixed_prune(//return: real number of partitio
             //int id_glv = p+1;
             graphNew *Gnew = (graphNew *)malloc(sizeof(graphNew));
             GLV *glv = new GLV(id_glv);
+            printf("par%d num_v = %d,num_e_dir = %d  \n",p, (num_v_l[p] + num_v_g[p]), num_e_dir[p]);
             GetGFromEdge(Gnew, elist_par[p], (num_v_l[p] + num_v_g[p]), num_e_dir[p]);
             glv->SetByOhterG(Gnew);
             glv->SetM(tmp_M_v[p]);
@@ -2711,9 +2714,45 @@ void test_BFSPar_creatingEdgeLists_fixed_prune(//return: real number of partitio
         }
         parlv->st_Partitioned = true; //?
     }
-	/*for(int i=0; i<G->numVertices; i++)
-		printf(" V_selected[%d] = %d \t", i, V_selected[i]);
-	printf("\n");*/
+	
+    //check
+    // for(int i=0; i<G->numVertices; i++){
+	// 	printf(" V_selected[%d] = %d \t\n", i, V_selected[i]);
+    // }
+
+
+    //connect V_selected with map_v_l+map_v_l to bfs_adjacent
+    
+    parlv->bfs_adjacent = (bfs_selected*)malloc(sizeof(bfs_selected) * (G->numVertices));
+    bfs_selected* bfs_adjacent = parlv->bfs_adjacent;
+    for(int p=0; p<num_par; p++){
+        for(map<long, long>::iterator itr = map_v_l[p].begin(); itr != map_v_l[p].end(); ++itr){
+            int v = itr->first;
+            bfs_adjacent[v].par_idx = V_selected[v]-1;
+            bfs_adjacent[v].renum_in_par = itr->second;
+        }
+    }
+
+    //check
+    // for(int v=0; v<G->numVertices; v++)
+    //     printf(" v= %d, par= %d, renum= %d\n", v, bfs_adjacent[v].par_idx, bfs_adjacent[v].renum_in_par);
+    //save adjacent
+
+        char fullName[125]="_proj.bfs.adj";
+        //sprintf(fullName, "_proj.bfs.adj\0", wfileName.c_str());
+        string fn = fullName;
+        FILE* f = fopen(fn.c_str(), "wb");
+        std::cout << "WARNING: " << fn << " will be opened for binary write." << std::endl;
+        if (!f) {
+            std::cerr << "ERROR: " << fn << " cannot be opened for binary write." << std::endl;
+        }
+        int nv = G->numVertices;
+        fprintf(f, "*Vertices %d\n", G->numVertices);
+        fprintf(f, "v\t par\t renum\t\n");
+        for(int v=0; v<G->numVertices; v++)
+            fprintf(f, " %d\t %d\t %d\t\n", v, bfs_adjacent[v].par_idx, bfs_adjacent[v].renum_in_par);
+
+        fclose(f);
 
 	free(V_selected);
 	for(int p = 0 ; p < num_par; p++ ){
