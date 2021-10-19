@@ -19,7 +19,7 @@
 #include <fstream>
 #include <chrono>
 #include <cstdlib>
-#include "xilinxFuzzyMatch.h"
+#include "fuzzymatch.hpp"
 
 
 using namespace xilinx_apps::fuzzymatch;

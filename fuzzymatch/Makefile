@@ -19,11 +19,11 @@
 
 #all: javaApi cppBuild javaTest stage
 #all: stage
-all: cppBuild pythonApi stage 
+all: stage cppBuild pythonApi  
 
 help:
 	@echo "Makefile usages:"
-	@echo "  make run-test [runMode=0] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3] [totalEntities=10000000]"
+	@echo "  make run [runMode=0] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3] [totalEntities=10000000]"
 	@echo "    Run standalone test with statically linked executable"
 	@echo ""
 	@echo "  Options:"
@@ -125,7 +125,7 @@ SRCS_L3 = $(GRAPH_ANALYTICS_DIR)/ext/xcl2/xcl2.cpp
 OBJS_L3 = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_L3:.cpp=.o)))
 # louvain dynamic load 
 
-SRCS_loader = src/fuzzy_match_loader.cpp
+SRCS_loader = src/fuzzymatch_loader.cpp
 OBJS_loader = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_loader:.cpp=.o)))
 DEPS_loader = $(OBJS_loader:.o=.d)
 
@@ -247,7 +247,7 @@ PYTHON = python3
 PYTHON_DIR = /usr/include/$(PYTHON)
 PYTHONENV_NAME = pyvenv
 PYTHONENV = ./$(PYTHONENV_NAME)/bin/$(PYTHON)
-PYTHON_API_DIR = src/
+PYTHON_API_DIR = wrappers/python
 PYTHON_LIB_NAME := xilFuzzyMatchPython.so #$(shell python-config --extension-suffix)
 
 SRC_FILE_NAMES_python = pythonapi.cpp
@@ -263,7 +263,7 @@ OBJS_python = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_python:.cpp=.o)))
 
 LIB_PATH = $(CPP_BUILD_DIR)
 
-LDFLAGS_python = -L$(LIB_PATH) -l$(LIB_SHORT_NAME) -lzmq
+LDFLAGS_python = -L$(LIB_PATH) -l$(LIB_SHORT_NAME)
 
 # Add pybind11 includes and set library name after setting virtual env
 ifeq ($(MAKECMDGOALS),pythonApi2)
@@ -280,7 +280,8 @@ pythonApi: cppBuild $(PYTHONENV_NAME)
 
 $(PYTHONENV_NAME):
 	$(PYTHON) -m venv $(PYTHONENV_NAME);\
-	$(PYTHONENV) -m pip install pybind11 \
+	$(PYTHONENV) -m pip install wheel; \
+	$(PYTHONENV) -m pip install pybind11; \
 	$(PYTHONENV) -m pip install python-config
 
 pythonApi2: $(CPP_BUILD_DIR) $(CPP_BUILD_DIR)/$(PYTHON_LIB_NAME)
@@ -364,7 +365,7 @@ endif
 runMode=0
 totalEntities=10000000
 numEntities=100
-run-test: cppTest stage
+run: cppTest stage
 	@set -e; \
 	. $(XILINX_XRT)/setup.sh && \
 	. $(XILINX_XRM)/setup.sh && \
@@ -412,8 +413,8 @@ STAGE_DIR = staging
 
 STAGE_COPY_FILES = \
     VERSION \
-    include/xilinxFuzzyMatch.h \
-    src/fuzzy_match_loader.cpp
+    include/fuzzymatch.hpp \
+    src/fuzzymatch_loader.cpp
 
 define STAGE_COPY_RULE
 $(STAGE_DIR)/$(1): $(1)
@@ -441,7 +442,7 @@ $(foreach f,$(STAGE_LIB_FILES),$(eval $(call STAGE_LIB_RULE,$(f))))
 
 #STAGE_EXAMPLE_ZIP = examples.zip
 STAGE_EXAMPLE_FILE_NAMES = \
-	cpp/fuzzy_match_test.cpp cpp/Makefile cpp/README.md \
+	cpp/fuzzymatch_test.cpp cpp/Makefile cpp/README.md \
 	data/people.zip data/README.md data/txdata.csv
 
 STAGE_EXAMPLE_FILES = $(addprefix examples/,$(STAGE_EXAMPLE_FILE_NAMES))
@@ -492,7 +493,7 @@ STAGE_ALL_FILES = \
 
 # make staging areaing in two steps so intermediate outputs can be included in the 
 # staging output as well.
-stage: 
+stage: pythonApi
 	make stage2
 
 stage2: $(STAGE_SUBDIRS) stage-examples $(STAGE_ALL_FILES)

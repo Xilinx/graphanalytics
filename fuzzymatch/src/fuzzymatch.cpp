@@ -19,7 +19,7 @@
 #include <sstream>
 #include <limits>
 
-#include "xilinxFuzzyMatch.h"
+#include "fuzzymatch.hpp"
 #include "xcl2.hpp"
 #include "CL/cl_ext_xilinx.h"
 namespace xilinx_apps {

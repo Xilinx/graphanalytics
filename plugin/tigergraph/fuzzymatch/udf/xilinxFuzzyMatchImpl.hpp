@@ -24,12 +24,6 @@
 // Enable this to turn on debug output
 #define XILINX_FUZZYMATCH_DEBUG_ON
 
-// Enable this to dump graph vertices and edges, as seen by the partitioning logic
-//#define XILINX_FUZZYMATCH_DUMP_GRAPH
-
-// Enable this to dump an .mtx file of the graph, as seen by the partitioning logic
-//#define XILINX_FUZZYMATCH_DUMP_MTX
-
 #include <vector>
 #include <map>
 #include <fstream>
@@ -259,7 +253,7 @@ public:
 
 }  // namespace xilFuzzyMatch
 
-//#include "fuzzymatch_loader.cpp"
+#include "fuzzymatch_loader.cpp"
 
 #endif /* XILINX_FUZZYMATCH_IMPL_HPP */
 
