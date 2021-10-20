@@ -68,6 +68,8 @@ public:
 
 
 private:
+    bool fuzzyMatchObjIsModified_ = false;  // true if a parameter has changed that requires a rebuild of
+
     std::string curNodeIp_;
     std::string nodeIps_;
     std::string xGraphStorePath_;
@@ -137,14 +139,14 @@ public:
                     token = strtok(NULL, "\"\t ,}:{\n");
                     nodeIps_ += token;
 #ifdef XILINX_FUZZYMATCH_DEBUG_ON
-                    std::cout << "node_ips=" << nodeIps_ << std::endl;
+                    std::cout << "nodeIps_=" << nodeIps_ << std::endl;
 #endif
                 } else if (scanNodeIp) {
                     // In the middle of nodeIps field
                     nodeIps_ += " ";
                     nodeIps_ += token;
 #ifdef XILINX_FUZZYMATCH_DEBUG_ON
-                    std::cout << "node_ips=" << nodeIps_ << std::endl;
+                    std::cout << "nodeIps_=" << nodeIps_ << std::endl;
 #endif
                 }
                 token = strtok(NULL, "\"\t ,}:{\n");
@@ -158,49 +160,36 @@ public:
         }
     }
     
-    ~Context() { /*delete pLouvainMod_; */}
-/*
-    xilinx_apps::louvainmod::LouvainMod *getLouvainModObj() {
+    ~Context() { delete pFuzzyMatch_; }
+
+    xilinx_apps::fuzzymatch::FuzzyMatch *getFuzzyMatchObj() 
+    {
 #ifdef XILINX_FUZZYMATCH_DEBUG_ON
         std::cout << "DEBUG: " << __FUNCTION__ << std::endl;
 #endif
-        if (louvainModObjIsModified_) {
+        if (fuzzyMatchObjIsModified_) {
 #ifdef XILINX_FUZZYMATCH_DEBUG_ON
-            std::cout << "DEBUG: louvainmod options changed.  Deleting old louvainmod object (if it exists)."
-                << std::endl;
+            std::cout << "DEBUG: fuzzymach options changed.  Deleting old fuzzymatch object (if it exists)." << std::endl;
 #endif
-            delete pLouvainMod_;
-            pLouvainMod_ = nullptr;
-            louvainModObjIsModified_ = false;
+            delete pFuzzyMatch_;
+            pFuzzyMatch_ = nullptr;
+            fuzzyMatchObjIsModified_ = false;
         }
         
-        if (pLouvainMod_ == nullptr) {
-            xilinx_apps::louvainmod::Options options;
-            options.xclbinPath = xclbinPath_;
-            options.numDevices = numDevices_;
-            options.deviceNames = deviceNames_;
-            options.nodeId = nodeId_;
-            options.hostName = curNodeHostname_;
-            options.clusterIpAddresses = nodeIps_;
-            options.hostIpAddress = curNodeIp_;
+        if (pFuzzyMatch_ == nullptr) {
+            xilinx_apps::fuzzymatch::Options options;
 
 #ifdef XILINX_FUZZYMATCH_DEBUG_ON
             std::cout << "DEBUG: louvainmod options:"
                     << "\n    xclbinPath=" << options.xclbinPath
-                    << "\n    nameProj=" << options.nameProj
-                    << "\n    numDevices=" << options.numDevices
                     << "\n    deviceNames=" << options.deviceNames
-                    << "\n    nodeId=" << options.nodeId
-                    << "\n    hostName=" << options.hostName
-                    << "\n    clusterIpAddresses=" << options.clusterIpAddresses
-                    << "\n    hostIpAddress=" << options.hostIpAddress <<std::endl;
+                    << std::endl;
 #endif
-            pLouvainMod_= new xilinx_apps::louvainmod::LouvainMod(options);
+            pFuzzyMatch_= new xilinx_apps::fuzzymatch::FuzzyMatch(options);
         }
         
-        return pLouvainMod_;
+        return pFuzzyMatch_;
     }
-*/
 
     void setCurNodeIp(std::string curNodeIp) {
         std::cout << "DEBUG: " << __FUNCTION__ << " curNodeIp=" << curNodeIp << std::endl;
@@ -254,6 +243,7 @@ public:
 }  // namespace xilFuzzyMatch
 
 #include "fuzzymatch_loader.cpp"
+#include "fuzzymatch_utils.cpp"
 
 #endif /* XILINX_FUZZYMATCH_IMPL_HPP */
 

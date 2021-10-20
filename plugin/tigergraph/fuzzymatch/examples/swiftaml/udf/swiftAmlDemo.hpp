@@ -69,13 +69,20 @@ inline int64_t udf_peak_memory_usage(double& VmPeak, double& VmHWM)
     return 0L;
 }
 
-inline bool udf_fuzzy_match_cpu(ListAccum<string> blacklist, ListAccum<string> txPersons) 
+inline bool udf_fuzzymatch_cpu(ListAccum<string> blacklist, ListAccum<string> txPersons) 
 {
-    std::cout << "INFO: udf_fuzzy_match_cpu " << std::endl;
 
+    std::cout << "INFO: udf_fuzzymatch_cpu " << std::endl;
+
+    std::vector<std::string> blacklistVector;
+    xilFuzzyMatch::Context *pContext = xilFuzzyMatch::Context::getInstance();
+    xilinx_apps::fuzzymatch::FuzzyMatch *pFuzzyMatch = pContext->getFuzzyMatchObj();
+    
     uint32_t blacklistLen = blacklist.size();
     for (unsigned i = 0 ; i < blacklistLen; ++i)
-        std::cout << "blacklist " << i << "=" << blacklist.get(i) << std::endl;
+        blacklistVector.push_back(blacklist.get(i));
+
+    std::cout << "blacklistVector size=" << blacklistVector.size() << std::endl;
 
     uint32_t txPersonsLen = txPersons.size();
     for (unsigned i = 0 ; i < txPersonsLen; ++i)

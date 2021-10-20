@@ -83,11 +83,11 @@ echo "-------------------------------------------------------------------------"
 echo "Run mode: $run_mode"
 
 if [ "$run_mode" -eq 1 ] || [ "$run_mode" -eq 3 ]; then
-    echo "Running fuzzy_match_cpu"
-    echo gsql -u $username -p $password -g $xgraph \'run query fuzzy_match_cpu\(\)\'
+    echo "Running fuzzymatch_cpu"
+    echo gsql -u $username -p $password -g $xgraph \'run query fuzzymatch_cpu\(\)\'
     echo "-------------------------------------------------------------------------"
     START=$(date +%s%3N)
-    time gsql -u $username -p $password -g $xgraph "run query fuzzy_match_cpu()"
+    time gsql -u $username -p $password -g $xgraph "run query fuzzymatch_cpu()"
     TOTAL_TIME=$(($(date +%s%3N) - START))
     echo "fuzzy_match_cpu runtime: " $tg_home
 fi
@@ -95,9 +95,9 @@ fi
 # Run on FPGA
 if [ "$run_mode" -eq 2 ] || [ "$run_mode" -eq 3 ]; then
     START=$(date +%s%3N)
-    echo "Running fuzzy_match_alveo"
-    echo gsql -u $username -p $password -g $xgraph \'run query fuzzy_match_alveo\(\)\'
-    time gsql -u $username -p $password -g $xgraph "run query fuzzy_match_alveo()"
+    echo "Running fuzzymatch_alveo"
+    echo gsql -u $username -p $password -g $xgraph \'run query fuzzymatch_alveo\(\)\'
+    time gsql -u $username -p $password -g $xgraph "run query fuzzymatch_alveo()"
     TOTAL_TIME=$(($(date +%s%3N) - START))
     echo "fuzzy_match_alveo: " $TOTAL_TIME
 fi
