@@ -15,13 +15,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+#python3 -m venv venv
+#. venv/bin/activate
+#pip install pandas
 
 # Product version
 test -d "$PRODUCT_VER" || export PRODUCT_VER=0.1
 
 # Location of cosine similarity Alveo product
 export XF_PROJ_ROOT=$PWD/../../staging
-test -d "$XILINX_FUZZYMATCH" || $XILINX_LOUVAINMOD=/opt/xilinx/apps/graphanalytics/fuzzymatch
+test -d "$XILINX_FUZZYMATCH" || $XILINX_FUZZYMATCH=/opt/xilinx/apps/graphanalytics/fuzzymatch
 
 # Location of XRT and XRM
 test -d "$XILINX_XRT" || export XILINX_XRT=/opt/xilinx/xrt
