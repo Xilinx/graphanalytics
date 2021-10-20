@@ -7,12 +7,8 @@ C++ Example using Makefile
 
 .. code-block:: bash
 
-    mkdir cosinesim-example
-    cd cosinesim-example 
-    cp /opt/xilinx/apps/graphanalytics/cosinesim/1.0/examples.zip .
-    unzip examples.zip
-    cd examples/cppdemo
-    make
+    cp -r /opt/xilinx/apps/graphanalytics/louvainmod/0.5/examples louvain-examples
+    cd louvain-examples/cpp
     make run
 
 

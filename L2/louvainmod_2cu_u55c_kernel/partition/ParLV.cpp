@@ -63,7 +63,7 @@ void ParLV::Init(int mode) {
     NV_list_l = 0;
     NV_list_g = 0;
     num_dev = 1;
-    flowMode = mode;
+    kernelMode = mode;
 }
 void ParLV::Init(int mode, GLV* src, int nump, int numd) {
     Init(mode);
@@ -647,7 +647,7 @@ GLV* par_general(GLV* src, int& id_glv, long start, long end, bool isPrun, int t
     return par_general(src, &stt, id_glv, start, end, isPrun, th_prun);
 }
 
-GLV* LouvainGLV_general_par(int flowMode,
+GLV* LouvainGLV_general_par(int kernelMode,
                             ParLV& parlv,
                             char* xclbinPath,
                             int numThreads,
@@ -681,7 +681,7 @@ GLV* LouvainGLV_general_par(int flowMode,
         for (int dev = 0; dev < parlv.num_dev; dev++) {
             parlv.timesPar.timeLv_dev[dev] = omp_get_wtime();
             bool hasGhost = true;
-            td[dev] = std::thread(LouvainGLV_general_batch_thread, hasGhost, flowMode, dev, id_glv, parlv.num_dev,
+            td[dev] = std::thread(LouvainGLV_general_batch_thread, hasGhost, kernelMode, dev, id_glv, parlv.num_dev,
                                   parlv.num_par, parlv.timesPar.timeLv, parlv.par_src, parlv.par_lved, xclbinPath,
                                   numThreads, minGraphSize, threshold, C_threshold, isParallel, numPhase);
         }
@@ -719,7 +719,7 @@ GLV* LouvainGLV_general_par(int flowMode,
     return glv_final;
 }
 
-GLV* LouvainGLV_general_par_OneDev(int flowMode,
+GLV* LouvainGLV_general_par_OneDev(int kernelMode,
                                    ParLV& parlv,
                                    char* xclbinPath,
                                    int numThreads,
@@ -754,7 +754,7 @@ GLV* LouvainGLV_general_par_OneDev(int flowMode,
         double time1 = omp_get_wtime();
         int id_glv_dev = id_glv + p;
         bool hasGhost = true;
-        GLV* glv_t = LouvainGLV_general(hasGhost, flowMode, id_dev, parlv.par_src[p], xclbinPath, numThreads,
+        GLV* glv_t = LouvainGLV_general(hasGhost, kernelMode, id_dev, parlv.par_src[p], xclbinPath, numThreads,
                                         id_glv_dev, minGraphSize, threshold, C_threshold, isParallel, numPhase);
         parlv.par_lved[p] = glv_t;
         // pushList(glv_t);
@@ -782,7 +782,7 @@ GLV* LouvainGLV_general_par_OneDev(int flowMode,
     return glv_final;
 }
 
-GLV* LouvainGLV_general_par_OneDev_forl3(int flowMode,
+GLV* LouvainGLV_general_par_OneDev_forl3(int kernelMode,
                                          ParLV& parlv,
                                          char* xclbinPath,
                                          int numThreads,
@@ -822,23 +822,13 @@ GLV* LouvainGLV_general_par_OneDev_forl3(int flowMode,
         double time1 = omp_get_wtime();
         int id_glv_dev = id_glv + p;
         bool hasGhost = true;
-        GLV* glv_t = LouvainGLV_general(hasGhost, flowMode, id_dev, parlv.par_src[p], xclbinPath, numThreads,
+        GLV* glv_t = LouvainGLV_general(hasGhost, kernelMode, id_dev, parlv.par_src[p], xclbinPath, numThreads,
                                         id_glv_dev, minGraphSize, threshold, C_threshold, isParallel, numPhase);
         parlv.par_lved[p] = glv_t;
         // pushList(glv_t);
         parlv.timesPar.timeLv[p] = omp_get_wtime() - time1;
     }
 
-    //	for(int p=0; p<parlv.num_par; p++){
-    //		double time1 = omp_get_wtime();
-    //		int id_glv_dev= id_glv+p;
-    //		bool hasGhost=true;
-    //		GLV* glv_t = LouvainGLV_general(hasGhost, flowMode, id_dev, parlv.par_src[p],  xclbinPath,  numThreads,
-    // id_glv_dev, minGraphSize, threshold, C_threshold, isParallel, numPhase);
-    //		parlv.par_lved[p] = glv_t;
-    //		//pushList(glv_t);
-    //		parlv.timesPar.timeLv[p] = omp_get_wtime() - time1;
-    //	}
     parlv.timesPar.timeLv_dev[id_dev] = omp_get_wtime() - parlv.timesPar.timeLv_dev[id_dev];
 
     parlv.st_ParLved = true;
@@ -890,7 +880,7 @@ GLV* LouvainGLV_general_par(int mode,
     return glv_final;
 }
 
-void ParLV_general_batch_thread(int flowMode,
+void ParLV_general_batch_thread(int kernelMode,
                                 GLV* plv_orig,
                                 int id_dev,
                                 int num_dev,
@@ -919,7 +909,7 @@ void ParLV_general_batch_thread(int flowMode,
     }
     for (int p = id_dev; p < num_par; p += num_dev) {
         double time1 = omp_get_wtime();
-        glv_t = LouvainGLV_general(true, flowMode, 0, par_src[p], xclbinPath, numThreads, id_glv, minGraphSize,
+        glv_t = LouvainGLV_general(true, kernelMode, 0, par_src[p], xclbinPath, numThreads, id_glv, minGraphSize,
                                    threshold, C_threshold, isParallel, numPhase);
         par_lved[p] = glv_t;
         // pushList(glv_t);

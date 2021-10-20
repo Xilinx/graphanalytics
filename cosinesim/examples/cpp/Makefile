@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 
+SHELL := /bin/bash
+
 # Run make using "make DEBUG=1" to build debuggable executables
 
 # Location of cosine similarity Alveo product 
@@ -35,7 +37,7 @@ endif
 
 #the default PROD_VERSION as the latest version
 ifndef PROD_VERSION 
-    PROD_VERSION = 1.2
+    PROD_VERSION = 1.4
 endif
 
 # Location of Alveo product if installed from sources

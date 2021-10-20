@@ -23,10 +23,11 @@
 #include <unordered_map>
 #include <iostream>
 #include <sstream>
-#include "cosinesim.hpp"
-#include "xf_graph_L3.hpp"
 #include <assert.h>
 
+#include "cosinesim.hpp"
+#include "xf_graph_L3.hpp"
+#include "xilinx_apps_common.hpp"
 
 namespace xilinx_apps {
 namespace cosinesim {
@@ -34,14 +35,14 @@ class PrivateImpl : public ImplBase {
 
 public:
     unsigned indexDeviceCuNm, indexSplitNm, indexNumVertices;
-    const unsigned splitNm = 3;    // kernel has 4 PUs, the input data should be splitted into 4 parts
+    unsigned numPUs_ = 3;    // number of partitions based on number of PUs
     const unsigned channelsPU = 4; // each PU has 4 HBM channels
     const unsigned cuNm = 2;       // TODO
     const unsigned channelW = 16;
 
     int valueSize_;
     uint32_t numDevices;
-    std::string deviceNames;
+    XString deviceNames;
     int populationVectorRowNm;
     int32_t** numVerticesPU ; // vertex numbers in each PU
 
@@ -49,7 +50,9 @@ public:
     int32_t numEdges;
     int vecLength;
     int64_t numVertices;
-    std::string xclbinPath;
+    XString xclbinPath;
+    std::string kernelName_;
+    std::string kernelAlias_;
     int32_t edgeAlign8;
     int subChNm;
     int lastPopulationCnt;
@@ -103,18 +106,28 @@ public:
             numDevices = options.numDevices;
 
         deviceNames = options.deviceNames;
+        // default xclbin to load
+        if (deviceNames == XString("xilinx_u50_gen3x16_xdma_201920_3")) {
+            xclbinPath = std::string("/opt/xilinx/apps/graphanalytics/cosinesim/") + std::string(VERSION) + 
+                         std::string("/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin");
+            kernelName_ = "denseSimilarityKernel";
+            kernelAlias_ = "denseSimilarityKernel_U50";
+            numPUs_ = 3;
+        } else if (deviceNames == XString("xilinx_u55c_gen3x16_xdma_base_2")) {
+            xclbinPath = std::string("/opt/xilinx/apps/graphanalytics/cosinesim/") + std::string(VERSION) + 
+                         std::string("/xclbin/cosinesim_32bit_4pu_xilinx_u55c_gen3x16_xdma_base_2.xclbin");
+            kernelName_ = "denseSimilarityKernel4PU";
+            kernelAlias_ = "denseSimilarityKernel4PU_U55C";
+            numPUs_ = 4;
+        }
 
-        if (deviceNames == "xilinx_u50_gen3x16_xdma_201920_3")
-            xclbinPath = "/opt/xilinx/apps/graphanalytics/cosinesim/1.3/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin";
-        else if (deviceNames == "xilinx_u55c_gen3x16_xdma_base_1")
-            xclbinPath = "/opt/xilinx/apps/graphanalytics/cosinesim/1.3/xclbin/cosinesim_32bit_xilinx_u55c_gen3x16_xdma_base_1.xclbin";
-
-        std::cout << "INFO: Options::xcbinPath = " << (options.xclbinPath == nullptr ? "null"
-            : options.xclbinPath) << std::endl;
-        if (options.xclbinPath != nullptr)
+        if (!options.xclbinPath.empty()) {
+            std::cout << "INFO: xclbinPath set to options::xcbinPath: " << options.xclbinPath << std::endl;
             xclbinPath = options.xclbinPath;
-        std::cout << "INFO: xclbinPath set to " <<xclbinPath<<std::endl;
-        std::cout << "INFO: numDevices set to " <<numDevices<<std::endl;
+        } else {
+            std::cout << "INFO: xclbinPath set to default:" << xclbinPath<<std::endl;
+        }
+        std::cout << "INFO: numDevices set to " << numDevices << std::endl;
 
         numEdges = vecLength;
 
@@ -123,7 +136,7 @@ public:
 
         numVerticesPU  = new int32_t*[numDevices * cuNm];
         for (unsigned i = 0; i < numDevices * cuNm; ++i) {
-            numVerticesPU[i] = new int32_t[splitNm];
+            numVerticesPU[i] = new int32_t[numPUs_];
         }
 
         edgeAlign8 = ((numEdges + channelW - 1) / channelW) * channelW;
@@ -156,15 +169,15 @@ public:
         populationVectorRowNm=0;
         this->numVertices = numVertices;
         //the following calculation and assignment is based on numVertices
-        int general = ((numVertices - (numDevices * cuNm * splitNm * channelsPU + 1)) /
-                (numDevices * cuNm * splitNm * channelsPU)) * channelsPU;
-        int rest = numVertices - general * (numDevices * cuNm * splitNm - 1);
+        int general = ((numVertices - (numDevices * cuNm * numPUs_ * channelsPU + 1)) /
+                (numDevices * cuNm * numPUs_ * channelsPU)) * channelsPU;
+        int rest = numVertices - general * (numDevices * cuNm * numPUs_ - 1);
 
 #ifndef NDEBUG
         std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
                 << " numVertices=" << numVertices << ", general=" << general
                 << ", rest=" << rest
-                << ", split=" << numDevices * cuNm * splitNm 
+                << ", split=" << numDevices * cuNm * numPUs_ 
                 << ", numDevices=" << numDevices << std::endl;
 #endif
 
@@ -178,11 +191,11 @@ public:
         }
 
         for (unsigned i = 0; i < numDevices * cuNm; ++i) {
-            for (unsigned j = 0; j < splitNm; ++j) {
+            for (unsigned j = 0; j < numPUs_; ++j) {
                 numVerticesPU[i][j] = general;
             }
         }
-        numVerticesPU[numDevices * cuNm - 1][splitNm - 1] = rest;
+        numVerticesPU[numDevices * cuNm - 1][numPUs_ - 1] = rest;
         //initialize graph properties
         int fpgaNodeNm = 0;
         for(unsigned i=0;i<numDevices*cuNm; i++){
@@ -190,9 +203,7 @@ public:
             //g[i] = new xf::graph::Graph<int32_t, int32_t>("Dense", 4 * splitNm, numEdges, numVerticesPU[i]);
 
             if(valueSize_ == 4) {
-                g[i] = new xf::graph::Graph<int32_t, int32_t>("Dense", 4 * splitNm, numEdges,  numVerticesPU[i]);
-                //} else if(valueSize_ == 8) {
-                //	g[i] = new xf::graph::Graph<int32_t, int64_t>("Dense", 4 * splitNm, numEdges, numVerticesPU[i]);
+                g[i] = new xf::graph::Graph<int32_t, int32_t>("Dense", 4 * numPUs_, numEdges,  numVerticesPU[i]);
             } else {
                 // must exit at this point, or else crash on next line.  Throw exception here.
                 std::cout << "DEBUG: valueType is not supported" << std::endl;
@@ -203,13 +214,13 @@ public:
                 abort();
 
             }
-            g[i]->numEdgesPU = new int32_t[splitNm];
-            g[i]->numVerticesPU = new int32_t[splitNm];
+            g[i]->numEdgesPU = new int32_t[numPUs_];
+            g[i]->numVerticesPU = new int32_t[numPUs_];
             g[i]->edgeNum = numEdges;
             g[i]->nodeNum = numVertices;
-            g[i]->splitNum = splitNm;
+            g[i]->splitNum = numPUs_;
             g[i]->refID = fpgaNodeNm;
-            for (unsigned j = 0; j < splitNm; ++j) {
+            for (unsigned j = 0; j < numPUs_; ++j) {
                 fpgaNodeNm += numVerticesPU[i][j];
                 int depth = ((numVerticesPU[i][j] + channelsPU - 1) / channelsPU) * edgeAlign8;
                 g[i]->numVerticesPU[j] = numVerticesPU[i][j];
@@ -238,7 +249,7 @@ public:
             indexSplitNm++;
             indexNumVertices=0;
             std::fill(loadPopulationCnt.begin(),loadPopulationCnt.end(),0);
-            if(indexSplitNm == splitNm) {
+            if(indexSplitNm == numPUs_) {
                 indexDeviceCuNm++;
                 indexSplitNm = 0;
             }
@@ -259,9 +270,9 @@ public:
     virtual void finishLoadPopulation() {
         //for the last PU, the last channels may need to padded as the row will be the multiple of channelsPU
         const unsigned numCus = numDevices * cuNm;
-        int paddingDepth = ((numVerticesPU[numCus - 1][splitNm - 1] + channelsPU - 1) / channelsPU) * channelsPU
-                - numVerticesPU[numCus - 1][splitNm - 1];
-        int startPaddingDepth = numVerticesPU[numCus - 1][splitNm - 1] * edgeAlign8;
+        int paddingDepth = ((numVerticesPU[numCus - 1][numPUs_ - 1] + channelsPU - 1) / channelsPU) * channelsPU
+                - numVerticesPU[numCus - 1][numPUs_ - 1];
+        int startPaddingDepth = numVerticesPU[numCus - 1][numPUs_ - 1] * edgeAlign8;
         for (int k = startPaddingDepth; k < paddingDepth*edgeAlign8; ++k) {
             g[indexDeviceCuNm]->weightsDense[ (indexSplitNm-1) * channelsPU + 3][k] = 0;
         }
@@ -326,6 +337,11 @@ public:
     };
 
     virtual std::vector<Result> matchTargetVector(unsigned numResults, void *elements){
+        // Don't allow more results to be returned than the number of population vectors.  The kernel would return
+        // blank results (index and similarity 0) in that case, so we need to prevent it here.
+        if (numResults > this->numVertices)
+            numResults = this->numVertices;
+        
         std::vector<Result> result;
         //---------------- Generate Source Indice and Weight Array -------
         int sourceLen = edgeAlign8; // sourceIndice array length
@@ -401,13 +417,17 @@ void freeSharedHandle()
 // create a new shared handle if
 // 1. The shared handle does not exist or
 // 2. The numDevices option changes
-void createSharedHandle(uint32_t numDevices)
+// 
+// Return values:
+// 0: Using exsiting handle
+// 1: A new handle is created
+int createSharedHandle(uint32_t numDevices)
 {
     // return right away if the handle has already been created
     if (!sharedHandlesCosSimDense::instance().handlesMap.empty()) {
         std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
 
-        std::cout << "DEBUG: " << __FUNCTION__ << "numDevices=" << handle0->getNumDevices() << std::endl;
+        std::cout << "DEBUG: " << __FUNCTION__ << " numDevices=" << handle0->getNumDevices() << std::endl;
         handle0->showHandleInfo();
         if (numDevices != handle0->getNumDevices()) {
             std::cout << "INFO: " << __FUNCTION__ << "numDevices changed. Creating a new handle." 
@@ -417,12 +437,14 @@ void createSharedHandle(uint32_t numDevices)
         } else {
             std::cout << "INFO: " << __FUNCTION__ << " Using exsiting handle with "
                      << handle0->getNumDevices() << " devices loaded." << std::endl;
-            return;
+            return 0;
         }
     }
-    std::cout << "INFO: " << __FUNCTION__ << std::endl;
+    std::cout << "INFO: " << __FUNCTION__ << " Create a new sharedHandle" << std::endl;
     std::shared_ptr<xf::graph::L3::Handle> handleInstance(new xf::graph::L3::Handle);
     sharedHandlesCosSimDense::instance().handlesMap[0] = handleInstance;
+    
+    return 1;
 }
 
 
@@ -436,21 +458,21 @@ void PrivateImpl::load_cu_cosinesim_ss_dense_fpga()
 {
 
     std::string opName = "similarityDense";
-    std::string kernelName = "denseSimilarityKernel";
     //TODO check if requestLoad need to bring up to options for user to set
     int requestLoad = 100;
 
     //----------------- Setup denseSimilarityKernel thread ---------
     xf::graph::L3::Handle::singleOP op0;
     op0.operationName = (char*)opName.c_str();
-    op0.setKernelName((char*)kernelName.c_str());
+    op0.setKernelName(kernelName_);
+    op0.setKernelAlias(kernelAlias_);
     op0.requestLoad = requestLoad;
     //op0.xclbinFile = (char*)xclbinPath.c_str();
-    op0.xclbinPath = xclbinPath;
+    op0.xclbinPath = (char *)xclbinPath.c_str();
     op0.numDevices = numDevices;
     op0.cuPerBoard = cuNm;
   
-    std::fstream xclbinFS(xclbinPath, std::ios::in);
+    std::fstream xclbinFS((char*)xclbinPath.c_str(), std::ios::in);
 
     if (!xclbinFS) {
         std::ostringstream oss;
@@ -465,19 +487,20 @@ void PrivateImpl::load_cu_cosinesim_ss_dense_fpga()
               << "\n    deviceNames=" << deviceNames
               << std::endl;
 #endif
-
-    createSharedHandle(numDevices);
+    int statusSetUp = 0;
+    int statusCreateHandle = createSharedHandle(numDevices);
     std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
-
-    handle0->addOp(op0);
-    int status = handle0->setUp(deviceNames);
-    if (status != 0) {
-       // std::cout<< "ERROR: FPGA is not setup properly. free the handle! status:"<<status<<std::endl;
+    if (statusCreateHandle == 1) {
+        // new handle is created. Set it up
+        handle0->addOp(op0);
+        statusSetUp = handle0->setUp(deviceNames);
+    }
+    if (statusSetUp != 0) {
+        // std::cout<< "ERROR: FPGA is not setup properly. free the handle! status:"<<status<<std::endl;
         freeSharedHandle();
         std::ostringstream oss;
-        oss << "FPGA is not setup properly. Try the following instructions to fix: " <<std::endl;
-        oss << "Try \'xbutil reset\' and run application again"<< std::endl;
-        oss << "If not working, seek help for Xilinx technical support " << std::endl;
+        oss << "FPGA is not setup properly. Try the instructions in the error messages above. " <<std::endl;
+        oss << "    If not working, seek help for Xilinx technical support " << std::endl;
         throw xilinx_apps::cosinesim::Exception(oss.str());
         std::cerr << "ERROR: FPGA is not setup properly." <<std::endl;
         abort();
@@ -508,8 +531,11 @@ void PrivateImpl::load_graph_cosinesim_ss_dense_fpga(
     std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
 
     //---------------- Run Load Graph -----------------------------------
+    uint32_t deviceId, cuId;
     for (uint32_t i = 0; i < deviceNeeded * cuNm; ++i) {
-        (handle0->opsimdense)->loadGraphMultiCardNonBlocking(i / cuNm, i % cuNm, graph[i][0]);
+        deviceId = handle0->supportedDeviceIds_[i / cuNm];
+        cuId = i % cuNm;
+        (handle0->opsimdense)->loadGraphMultiCardNonBlocking(deviceId, cuId, graph[i][0]);
     }
 
     return;

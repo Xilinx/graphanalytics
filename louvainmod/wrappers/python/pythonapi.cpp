@@ -40,7 +40,7 @@ PYBIND11_MODULE (xilLouvainmod, pc) {
     .def(py::init())
     .def_readwrite("modeAlveo", &Options::modeAlveo)
     .def_readwrite("xclbinPath", &Options::xclbinPath)
-    .def_readwrite("flow_fast", &Options::flow_fast)
+    .def_readwrite("kernelMode", &Options::kernelMode)
     .def_readwrite("nameProj", &Options::nameProj)
     .def_readwrite("alveoProject", &Options::alveoProject)
     .def_readwrite("numDevices", &Options::numDevices)

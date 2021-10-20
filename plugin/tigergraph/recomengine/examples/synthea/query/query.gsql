@@ -122,7 +122,7 @@ CREATE QUERY cosinesim_ss_fpga(string log_file1) for graph @graph {
         RAISE cosinesimMatchFailed("ERROR: Cosine Similarity match operation failed.  Please see the GPE log for details.");
     END;
 
-    print "Xilinx Alveo U50" AS ComputationTechnique;
+    print "Xilinx Alveo device" AS ComputationTechnique;
     print newPatient.FIRST_NAME + " " + newPatient.LAST_NAME AS Patient;
     print run_time AS ExecTimeInMs;
     file1.println("SCORE", "FIRST_NAME", "LAST_NAME", "AGE", "RACE", "ETHNICITY", "GENDER",

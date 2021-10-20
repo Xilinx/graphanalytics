@@ -21,8 +21,8 @@ namespace graph {
 namespace L3 {
 
 // currently used for cosine similarity
-int32_t Handle::initOpSimDense(std::string kernelName,
-                               std::string xclbinFile,
+int32_t Handle::initOpSimDense(std::string xclbinFile,
+                               std::string kernelName,
                                std::string kernelAlias,
                                unsigned int requestLoad,
                                unsigned int numDevices,
@@ -30,8 +30,8 @@ int32_t Handle::initOpSimDense(std::string kernelName,
 {
 #ifndef NDEBUG
     std::cout << "DEBUG: initOpSimDense " 
+              << "\n    xclbinFile=" << xclbinFile    
               << "\n    kernelName=" << kernelName
-              << "\n    xclbinFile=" << xclbinFile
               << "\n    kernelAlias=" << kernelAlias
               << "\n    requestLoad=" << requestLoad 
               << "\n    numDevices=" << numDevices
@@ -59,12 +59,10 @@ int32_t Handle::initOpSimDense(std::string kernelName,
 
 
 #ifdef LOUVAINMOD
-int32_t Handle::initOpLouvainModularity(std::string kernelName,
-                                     std::string xclbinFile,
-                                     std::string kernelAlias,
-                                     unsigned int requestLoad,
-                                     unsigned int numDevices,
-                                     unsigned int cuPerBoard) {
+int32_t Handle::initOpLouvainModularity(std::string xclbinFile, std::string kernelName,
+                                        std::string kernelAlias, unsigned int requestLoad,
+                                        unsigned int numDevices, unsigned int cuPerBoard) 
+{
     uint32_t* deviceID;
     uint32_t* cuID;
     int32_t status = 0;
@@ -86,7 +84,11 @@ int32_t Handle::initOpLouvainModularity(std::string kernelName,
 };
 #endif
 
-void Handle::addOp(singleOP op) {
+void Handle::addOp(singleOP op) 
+{
+#ifndef NDEBUG
+    std::cout << "DEBUG: addOp" << std::endl;
+#endif    
     ops.push_back(op);
 }
 
@@ -140,18 +142,17 @@ int Handle::setUp(std::string deviceNames)
             for (unsigned int j = 0; j < boardNm; ++j) {
                 auto loadedDevId = th[j].get();
                 if (loadedDevId < 0) {
-                        std::cout << "ERROR: failed to load " << ops[i].xclbinPath << 
-                        "(Status=" << loadedDevId << "). Please check if it is " <<
-                        "created for the Xilinx Acceleration card installed on " <<
-                        "the server." << std::endl;
+                    std::cout << "ERROR: Failed to load " << ops[i].xclbinPath << 
+                        "(Status=" << loadedDevId << ")." << std::endl;
+                    std::cout << "    Try 'xbutil reset -d " << supportedDeviceIds_[j]
+                              << "' and rerun the application." << std::endl;
                     return loadedDevId;
                 }
             }
             deviceCounter += boardNm;
 
-            status = initOpSimDense(ops[i].kernelName.c_str(), ops[i].xclbinPath, 
-                                    ops[i].kernelAlias.c_str(), ops[i].requestLoad,
-                                    ops[i].numDevices, ops[i].cuPerBoard);
+            status = initOpSimDense(ops[i].xclbinPath, ops[i].kernelName_, ops[i].kernelAlias_, 
+                                    ops[i].requestLoad, ops[i].numDevices, ops[i].cuPerBoard);
             if (status < 0)
                 return XF_GRAPH_L3_ERROR_ALLOC_CU;
         } 
@@ -194,7 +195,7 @@ int Handle::setUp(std::string deviceNames)
             for (int j = 0; j < boardNm; ++j) {
                 auto loadedDevId = th[j].get();
                 if (loadedDevId < 0) {
-                        std::cout << "ERROR: failed to load " << ops[i].xclbinPath << 
+                        std::cout << "ERROR: Failed to load " << ops[i].xclbinPath << 
                         "(Status=" << loadedDevId << "). Please check if it is " <<
                         "created for the Xilinx Acceleration card installed on " <<
                         "the server." << std::endl;
@@ -203,8 +204,8 @@ int Handle::setUp(std::string deviceNames)
             }
 
             deviceCounter += boardNm;
-            status = initOpLouvainModularity(ops[i].kernelName, ops[i].xclbinPath, 
-                                             ops[i].kernelAlias, ops[i].requestLoad,
+            status = initOpLouvainModularity(ops[i].xclbinPath, ops[i].kernelName_,  
+                                             ops[i].kernelAlias_, ops[i].requestLoad,
                                              ops[i].numDevices, ops[i].cuPerBoard);
             if (status < 0)
                 return XF_GRAPH_L3_ERROR_ALLOC_CU;
@@ -282,11 +283,12 @@ void Handle::showHandleInfo() {
               << " maxCU_=" << maxCU_ << std::endl;
     unsigned int opNm = ops.size();
     for (unsigned int i = 0; i < opNm; ++i) {
-        std::cout << "INFO: " << __FUNCTION__ << 
-            " operationName=" << ops[i].operationName << 
-            " kernelname=" << ops[i].kernelName << 
-            " requestLoad=" << ops[i].requestLoad << 
-            " xclbinFile=" << ops[i].xclbinPath << std::endl;
+        std::cout << "INFO: " << __FUNCTION__ << " operation " << i <<
+            "\n    operationName=" << ops[i].operationName << 
+            "\n    kernelName=" << ops[i].kernelName_ << 
+            "\n    kernelAlias=" << ops[i].kernelAlias_ << 
+            "\n    requestLoad=" << ops[i].requestLoad << 
+            "\n    xclbinFile=" << ops[i].xclbinPath << std::endl;
     }
 #endif    
 }
@@ -295,6 +297,7 @@ void Handle::free() {
     unsigned int opNm = ops.size();
     unsigned int deviceCounter = 0;
     for (unsigned int i = 0; i < opNm; ++i) {
+        std::cout << "----------------opNm=" << opNm << std::endl;        
         if (ops[i].operationName == "similarityDense") {
             opsimdense->freeSimDense(xrm->ctx);            
             unsigned int boardNm = ops[i].numDevices;

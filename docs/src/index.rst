@@ -45,7 +45,7 @@ under Apache License, Version 2.0
    :maxdepth: 1
 
     Recommendation Engine for TigerGraph 3.x <recom-tg3/index.rst>
-    Community Detection Engine for TigerGraph 3.x <comdet-tg3/index.rst>
+    Community Detection for TigerGraph 3.x <comdet-tg3/index.rst>
 
 .. toctree::
    :caption: Use Cases
@@ -59,13 +59,7 @@ under Apache License, Version 2.0
     :maxdepth: 1
 
     tg3-plugins.rst
-
-
-.. toctree::
-   :caption: Collaborate with Us
-   :maxdepth: 1
-
-   vitis-dev-flow.rst
+    vitis-dev-flow.rst
 
 .. toctree::
    :caption: Notice

@@ -13,16 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+deviceNames=xilinx_u50_gen3x16_xdma_201920_3
 dataSource=$(CURDIR)/data/as-Skitter-wt-r100.mtx
 graphName=social_$(USER)
-alveoProject=""
+alveoProject=
 
 numPartitionsNode=9
 
-compileMode=0
-partitionMode=2
-runMode=1
-
+compileMode=1
+partitionMode=3
+runMode=2
 
 ifdef sshKey
     SSH_KEY_OPT=-i $(sshKey)
@@ -41,7 +41,9 @@ all: run
 	@echo "-------------------------------------------------------"
 	@echo "Installing plugin files into TigerGraph software"
 	@echo "-------------------------------------------------------"
-	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/install.sh -v -f $(SSH_KEY_OPT) && \
+	cd ../../ && \
+	    make DEBUG=$(DEBUG) stage && \
+		./staging/install.sh -v -f $(SSH_KEY_OPT) -d $(deviceNames) && \
 	cd - && touch .install-plugin-done
 
 .install-udf-done: .install-plugin-done udf/louvainDemo.hpp
@@ -72,7 +74,11 @@ run: .install-udf-done
 	@echo "-------------------------------------------------------"
 	@echo "Running run.sh from staging "
 	@echo "-------------------------------------------------------"
-	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/examples/comdetect/bin/run.sh -v \
+ifeq ($(alveoProject),)
+	$(error "ERROR: alveoProject must be set to a pathname accessiable by all nodes")
+endif	
+	cd ../../ && make DEBUG=$(DEBUG) stage && \
+	    ./staging/examples/comdetect/bin/run.sh -v \
 	    -g $(graphName) -s $(dataSource) -a $(alveoProject) \
 		-n $(numPartitionsNode) -c $(compileMode) -x $(partitionMode) -r $(runMode) 
 
@@ -84,27 +90,36 @@ partition: .install-udf-done
 	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/examples/comdetect/partition.sh -v
 
 help:
-	@echo "Valid make targets:"
-	@echo "run:       Run the example"
-	@echo "partition: Run partition.sh to partition the graph in TigerGraph memory"
+	@echo "Makefile usage:"
+	@echo "make install-plugin [deviceNames=deviceNames]"
+	@echo "    Install the plugin for the selected target device"
 	@echo ""
-	@echo "Optional make parameters"
+	@echo "make run [deviceNames=deviceNames]"
+	@echo "    Run the example"
+	@echo ""
+	@echo "make partition"
+	@echo "    Partition the graph in TigerGraph memory"
+	@echo ""
+	@echo "Parameter descriptions:"
+	@echo "deviceNames       : Target device name. Supported devices: "
+	@echo "                    xilinx_u50_gen3x16_xdma_201920_3"
+	@echo "                    xilinx_u55c_gen3x16_xdma_base_2"
 	@echo "dataSource        : A .mtx file containing input graph. default=./data/as-Skitter-wt-r100.mtx"
 	@echo "graphName         : graph name (default=social_<username>"
 	@echo "alveoProject      : partition files path / partition file name prefix"
 	@echo "numPartitionsNode : Number of Alveo partitions per node"
 	@echo ""
-	@echo "compileMode       : 0: recreate database and compile all (default)"
-	@echo "                    1: only compile query gsql"
-	@echo "                    2: skip database creation and gsql compilation"
+	@echo "compileMode       : 0: skip database creation and gsql compilation"
+	@echo "                    1: recreate database and compile all (default)"
+	@echo "                    2: only compile query gsql"
 	@echo "partitionMode     : 0: Use existing partitions from disks; "
 	@echo "                    1: Generate partitions from TigerGraph memory"
-	@echo "                    2: Generate partitions from .mtx file (default)"
-	@echo "                    3: Generate partitions from TigerGraph using whole-graph technique"
-	@echo "runMode           : 0: Run only on CPU"
-	@echo "                    1: Run only on Alveo (default)"
-	@echo "                    2: Run on both CPU and Alveo"
-	@echo "                    3: Skip both CPU and Alveo run (i.e. only run partition)"
+	@echo "                    2: Generate partitions from .mtx file"
+	@echo "                    3: Generate partitions from TigerGraph using whole-graph technique (default)"
+	@echo "runMode           : 0: Skip both CPU and Alveo run (i.e. only run partition)"
+	@echo "                    1: Run only on CPU"
+	@echo "                    2: Run only on Alveo (default)"
+	@echo "                    3: Run on both CPU and Alveo"
 	@echo ""
 	@echo "sshKey            : SSH key for user tigergraph"	
 	@echo ""

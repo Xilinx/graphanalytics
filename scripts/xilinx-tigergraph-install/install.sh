@@ -32,15 +32,11 @@
 SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`
 
-##########################################################################################
-# Update package version for each release
-##########################################################################################
-louvain_pkg=xilinx-louvainmod-0.1
-
 function usage() {
-    echo "Usage: $0 [options]"
-    echo "Options:"
-    echo "  -p product-name  : Products: cosinesin, louvainmod. Only base libraries are installed if product-name is not set."
+    echo "Usage: $0 -p product-name [options]"
+    echo "Required options:"
+    echo "  -p product-name  : Product to install: cosinesim, louvainmod. "
+    echo "Optional options:"
     echo "  -h               : Print this help message"
 }
 
@@ -54,56 +50,51 @@ case $opt in
 esac
 done
 
-
 OSDIST=`lsb_release -i |awk -F: '{print tolower($2)}' | tr -d ' \t'`
 OSREL=`lsb_release -r |awk -F: '{print tolower($2)}' |tr -d ' \t' | awk -F. '{print $1*100+$2}'`
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 if [[ $OSDIST == "ubuntu" ]]; then
-    if (( $OSREL == 1604 )); then
-        pkg_dir="./ubuntu-16.04"
-    elif (( $OSREL == 1804 )); then
+    if (( $OSREL == 1804 )); then
         pkg_dir="./ubuntu-18.04"
     elif (( $OSREL == 2004 )); then
         pkg_dir="./ubuntu-20.04"        
     else
-        echo "ERROR: Ubuntu release version must be 16.04 or 18.04."
+        echo "ERROR: Ubuntu release version must be 18.04 or 20.04."
         return 1
     fi
 elif [[ $OSDIST == "centos" ]]; then
     pkg_dir="./centos-7.8"
-
 else 
     echo "ERROR: only Ubuntu and Centos are supported."
     return 1
 fi
 
-echo "INFO: Installing packages on $OSDIST $OSREL"
-
-read -p "It is recommended to remove current XRT/XRM if present. Remove? (y/n): " confirm 
+if [[ $product == "cosinesim" || $product == "louvainmod" ]] ; then
+    echo "INFO: Installing Xilinx $product product and its dependencies on $OSDIST $OSREL..."
+else
+    echo "ERROR: product-name must be set to cosinesim or louvainmod."
+    usage
+    exit 2
+fi
 
 if [[ $OSDIST == "ubuntu" ]]; then
-    if [[ $confirm == [yY] ]]; then
-        printf "\nEnter sudo password below to remove XRT/XRM:\n"
-        sudo apt remove xrm xrt -y
-    fi
-
     # install XRT/XRM/Deployment shell
     printf "\n-------------------------------------------------------------\n"
     printf "INFO: Install XRT. Enter sudo password if asked."
     printf "\n-------------------------------------------------------------\n"
-    sudo apt install $pkg_dir/xrt/xrt*.deb
+    sudo apt install --reinstall $pkg_dir/xrt/xrt*.deb
 
     printf "\n-------------------------------------------------------------\n"
     printf "INFO: Install XRM. Enter sudo password if asked."
     printf "\n-------------------------------------------------------------\n"
-    sudo apt install $pkg_dir/xrm/xrm*.deb
+    sudo apt install --reinstall $pkg_dir/xrm/xrm*.deb
 
     printf "\n-------------------------------------------------------------\n"
     printf "INFO: Install deployment shell. Enter sudo password if asked."
     printf "\n-------------------------------------------------------------\n"
-    sudo apt install $pkg_dir/deployment-shell/xilinx*.deb
+    sudo apt install $pkg_dir/../deployment-shell/xilinx*.deb
 
     # install required package
     sudo apt install jq opencl-headers -y
@@ -114,29 +105,26 @@ if [[ $OSDIST == "ubuntu" ]]; then
         printf "\n-------------------------------------------------------------\n"
         printf "INFO: Install Xilinx CosineSim. Enter sudo password if asked."
         printf "\n-------------------------------------------------------------\n"
-        sudo apt install $pkg_dir/cosinesim/xilinx-cosinesim*.deb
+        sudo apt install --reinstall $pkg_dir/cosinesim/xilinx-cosinesim*.deb
 
         printf "\n-------------------------------------------------------------\n"
         printf "INFO: Install Xilinx Recommend Engine. Enter sudo password if asked."
         printf "\n-------------------------------------------------------------\n"
-        sudo apt install $pkg_dir/recomengine/xilinx-recomengine*.deb
-    fi
-
-    if [[ $product == "louvainmod" ]]; then
+        sudo apt install --reinstall $pkg_dir/cosinesim/xilinx-recomengine*.deb
+    elif [[ $product == "louvainmod" ]]; then
         printf "\n-------------------------------------------------------------\n"
         printf "INFO: Install Xilinx LouvainMod. Enter sudo password if asked."
         printf "\n-------------------------------------------------------------\n"
-        sudo apt remove -y $louvain_pkg
-        sudo apt install $pkg_dir/louvainmod/$louvain_pkg*.deb
+        sudo apt install --reinstall $pkg_dir/louvainmod/xilinx-louvainmod*.deb
+
+        printf "\n-------------------------------------------------------------\n"
+        printf "INFO: Install Xilinx ComDetect. Enter sudo password if asked."
+        printf "\n-------------------------------------------------------------\n"        
+        sudo apt install --reinstall $pkg_dir/louvainmod/xilinx-comdetect*.deb
     fi
 fi
 
 if [[ $OSDIST == "centos" ]]; then
-    if [[ $confirm == [yY] ]]; then
-        printf "\nEnter sudo password below to remove XRT/XRM:\n"
-        sudo yum remove xrt -y
-    fi
-
     # install XRT/XRM/Deployment shell
     printf "\nINFO: Install XRT. \n"
     sudo yum install $pkg_dir/xrt/xrt*.rpm
@@ -164,6 +152,8 @@ if [[ $OSDIST == "centos" ]]; then
     cp /usr/lib64/libstdc++.so.6* $HOME/libstd
 fi
 
-
-printf "\nINFO: All packages have been installed. Please run the command below to flash the card if needed. \n" 
+printf "\nINFO: All packages have been installed. Please run the command below to flash your Alveo card if needed. \n" 
+printf "Xilinx Alveo U50 card\n"
 printf "${YELLOW}sudo /opt/xilinx/xrt/bin/xbmgmt flash --update --shell xilinx_u50_gen3x16_xdma_201920_3${NC}\n"
+printf "\nXilinx Alveo U55C card\n"
+printf "${YELLOW}sudo /opt/xilinx/xrt/bin/xbmgmt flash --update --shell xilinx_u55c_gen3x16_xdma_base_2${NC}\n"

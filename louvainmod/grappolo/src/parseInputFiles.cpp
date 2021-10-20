@@ -44,8 +44,11 @@
 
 /* Remove self- and duplicate edges.                                */
 /* For each node, we store its non-duplicate edges as a linked list */
-long removeEdges(long NV, long NE, edge* edgeList) {
-    printf("Within removeEdges()\n");
+long removeEdges(long NV, long NE, edge* edgeList) 
+{
+#ifndef NDEBUG    
+    std::cout << "DEBUG: removeEdges NV=" << NV << " NE=" << NE << std::endl;
+#endif    
     long NGE = 0;
     long* head = (long*)malloc(NV * sizeof(long)); /* head of linked list points to an edge */
     long* next = (long*)malloc(NE * sizeof(long)); /* ptr to next edge in linked list */
@@ -91,9 +94,10 @@ long removeEdges(long NV, long NE, edge* edgeList) {
     printf("About to free memory\n");
     free(head);
     free(next);
-    printf("Exiting removeEdges()\n");
+    //printf("Exiting removeEdges()\n");
     return NGE;
 } // End of removeEdges()
+
 
 /* Since graphNew is undirected, sort each edge head --> tail AND tail --> head */
 void SortEdgesUndirected(long NV, long NE, edge* list1, edge* list2, long* ptrs) {
@@ -1054,8 +1058,9 @@ void parse_Dimacs9FormatDirectedNewD(graphNew* G, char* fileName) {
 /*-------------------------------------------------------*
  * This function reads a Pajek file and builds the graphNew
  *-------------------------------------------------------*/
-void parse_PajekFormat(graphNew* G, char* fileName) {
-    printf("Parsing a Pajek File...\n");
+void parse_PajekFormat(graphNew* G, char* fileName) 
+{
+    printf("INFO: Parsing Pajek file %s...\n", fileName);
     int nthreads;
 //#pragma omp parallel
     {
@@ -1066,7 +1071,7 @@ void parse_PajekFormat(graphNew* G, char* fileName) {
     double time1, time2;
     FILE* file = fopen(fileName, "r");
     if (file == NULL) {
-        printf("Cannot open the input file: %s\n", fileName);
+        printf("ERROR: Cannot open the input file: %s\n", fileName);
         exit(1);
     }
     // Parse the first line:
@@ -1080,7 +1085,7 @@ void parse_PajekFormat(graphNew* G, char* fileName) {
     }
     // printf("(%s) --- (%s) \n", LS1, LS2);
     if (strcmp(LS1, "*Vertices") != 0) {
-        printf("Error: The first line should start with *Vertices word \n");
+        printf("ERROR: The first line should start with *Vertices word \n");
         exit(1);
     }
     NV = atol(LS2);

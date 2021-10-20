@@ -73,7 +73,9 @@ struct ComputedSettings {
         numServers = hostIps.size();
         numPureWorker = nameWorkers.size();
         modeZmq = (serverIndex == 0) ? ZMQ_DRIVER : ZMQ_WORKER;
+#ifndef NDEBUG        
         std::cout << "DEBUG: " << __FUNCTION__ << " serverIndex=" << serverIndex << std::endl;
+#endif        
     }
 };
 
@@ -92,35 +94,27 @@ public:
     std::string inputFileName_ = "no-file";  // file name for the source file for the graph, or a dummy string if no file
 
     PartitionRun(const Options &globalOpts, const ComputedSettings &settings,
-        const LouvainMod::PartitionOptions &partOpts)
+                 const LouvainMod::PartitionOptions &partOpts)
     : globalOpts_(globalOpts), settings_(settings), partOpts_(partOpts), isVerbose_(globalOpts.verbose)
     {
-        int flowMode = 2;
-        switch (globalOpts.flow_fast) {
-        case 1:
-            flowMode = 1;
-            break;
-        case 2:
-            flowMode = 2;
-            break;
-        case 3:
-            flowMode = 3;
-            break;
-        default:
-            {
-                std::ostringstream oss;
-                oss << "Invalid flow_fast value " << globalOpts.flow_fast << ".  The supported values are 1, 2, and 3.";
-                throw Exception(oss.str());
-            }
-            break;
+        int kernelMode = globalOpts.kernelMode;
+
+        if (kernelMode < 2 || kernelMode > 4) {
+            std::ostringstream oss;
+            oss << "Invalid kernelMode value " << kernelMode << ".  The supported values are 2, 3 and 4.";
+            throw Exception(oss.str());
         }
         
-        parlv_.Init(flowMode, nullptr, partOpts.numPars, globalOpts.numDevices, true, partOpts.par_prune);
+        parlv_.Init(kernelMode, nullptr, partOpts.numPars, globalOpts.numDevices, true, partOpts.par_prune);
         parlv_.num_par = partOpts.numPars;
         parlv_.th_prun = partOpts.par_prune;
         parlv_.num_server = settings_.numServers;
 
-        assert(!globalOpts.nameProj.empty());
+        if (globalOpts.nameProj.empty()) {
+            std::ostringstream oss1;
+            oss1 << "ERROR: Alveo project name is empty";
+            throw Exception(oss1.str());
+        }
         //////////////////////////// Set the name for partition project////////////////////////////
         char path_proj[1024];
         char name_proj[256];
@@ -134,6 +128,7 @@ public:
 #endif
 
         parlv_.timesPar.timePar_all = getTime();
+        parlv_.timesPar.timePar_save = 0.0;  // Initialize in case we end up not writing to a file
     }
 
     ~PartitionRun() {}
@@ -165,22 +160,34 @@ public:
         long NV_par_requested = partitionData.NV_par_requested;
         // No supplied desired partition size: calculate it
         if (NV_par_requested == 0) {
-            // Assume that we want one partition per Alveo card unless overridden by num_par option
-            int numPartitionsThisServer = globalOpts_.numDevices;
+            int totalNumDevices = settings_.numServers * globalOpts_.numDevices;
+
+            // Assume that we want one partition per Alveo card unless overridden by num_par or isWholeGraph option
+            int numPartitionsThisServer = (partitionData.isWholeGraph) ? totalNumDevices : globalOpts_.numDevices;
 
             // If num_par specifies more partitions than we have total number of devices in the cluster,
             // create num_par devices instead.  This feature is for testing partitioning of smaller graphs,
             // but can also be used to pre-calculate the partitions for graphs that are so large that each
             // Alveo card needs to process more than its maximum number of vertices.
-            int totalNumDevices = settings_.numServers * globalOpts_.numDevices;
             if (partOpts_.numPars > totalNumDevices) {
-                // Distribute partitions evenly among servers
-                numPartitionsThisServer = partOpts_.numPars / settings_.numServers;
-                // Distribute the L leftover partitions (where L = servers % partitions) among the first
-                // L servers
-                int extraPartitions = partOpts_.numPars % settings_.numServers;
-                if (extraPartitions > serverNum)
-                    ++numPartitionsThisServer;
+                // If we're in whole-graph mode, we'll create numPars partitions for this "server partition"
+                if (partitionData.isWholeGraph)
+                    numPartitionsThisServer = partOpts_.numPars;
+                
+                // Not whole-graph mode: this server partition represents a fraction of the total number of alveo
+                // partitions desired.  Calculate the number of alveo partitions for this server partition by
+                // dividing the desired total number of alveo partitions (numPars) by the total number of server
+                // partitions expected, distributing any remainder among the servers.
+                else {
+                    // Distribute partitions evenly among servers
+                    numPartitionsThisServer = partOpts_.numPars / settings_.numServers;
+
+                    // Distribute the L leftover partitions (where L = servers % partitions) among the first
+                    // L servers
+                    int extraPartitions = partOpts_.numPars % settings_.numServers;
+                    if (extraPartitions > serverNum)
+                        ++numPartitionsThisServer;
+                }
             }
 
             // Determine the number of vertices for each partition on this server, which is the lesser of
@@ -443,7 +450,7 @@ float LouvainMod::loadAlveoAndComputeLouvain(const ComputeOptions &computeOpts)
         
     finalQ = ::loadAlveoAndComputeLouvain(
                 (char *)(pImpl_->options_.xclbinPath.c_str()), 
-                pImpl_->options_.flow_fast, 
+                pImpl_->options_.kernelMode, 
                 pImpl_->options_.numDevices, 
                 pImpl_->options_.deviceNames,
                 (char*)(pImpl_->options_.alveoProject.c_str()),
@@ -474,7 +481,7 @@ void LouvainModImpl::loadComputeUnitsToFPGAs()
 #endif
     // call the one in global namespace
     ::loadComputeUnitsToFPGAs((char *)(options_.xclbinPath.c_str()), 
-                              options_.flow_fast,
+                              options_.kernelMode,
                               options_.numDevices,
                               options_.deviceNames);
 }

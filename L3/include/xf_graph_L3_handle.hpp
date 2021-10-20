@@ -47,8 +47,8 @@ class Handle {
      * \brief setup information of single operation
      *
      * \param operationName operation's name
-     * \param kernelName kernel's name, if kernelName is defined, kernelAlias will not be needed
-     * \param kernelAlias kernel's name, if kernelName is not defined, kernelName will not be needed
+     * \param kernelName_ kernel name, if kernelName is defined, kernelAlias will not be needed
+     * \param kernelAlias kernel alias, if kernelName is not defined, kernelName will not be needed
      * \param requestLoad percentation of computing unit's occupation. Maximum is 100, which represents that 100% of the
      * computing unit are occupied. By using lower requestLoad, the hardware resources can be pipelined and higher
      * throughput can be achieved
@@ -59,24 +59,16 @@ class Handle {
      */
     struct singleOP {
         std::string operationName;           // for example, cosineSim
-        std::string kernelName;              // user defined kernel names
-        std::string kernelAlias;             // user defined kernel names
+        std::string kernelName_;              // user defined kernel names
+        std::string kernelAlias_;             // user defined kernel names
         unsigned int requestLoad = 100;
         std::string xclbinPath;              // xclbin full path
         unsigned int numDevices = 0;         // requested FPGA device number
         unsigned int cuPerBoard = 1;         // requested FPGA device number
 
-        void setKernelName(char* input) {
-            std::string tmp = "";
-            kernelName = input;
-            kernelAlias = (char*)tmp.c_str();
-        }
+        void setKernelName(std::string kernelName) { kernelName_ = kernelName; }
 
-        void setKernelAlias(char* input) {
-            std::string tmp = "";
-            kernelName = (char*)tmp.c_str();
-            kernelAlias = input;
-        }
+        void setKernelAlias(std::string kernelAlias) { kernelAlias_ = kernelAlias; }
     };
 
     /**
@@ -107,6 +99,7 @@ class Handle {
 #endif
         xrm = new class openXRM;
     };
+    uint32_t supportedDeviceIds_[XF_GRAPH_L3_MAX_DEVICES_PER_NODE];
 
     void free();
 
@@ -126,7 +119,6 @@ class Handle {
     uint32_t numDevices_;                          // Number of devices requested by current operation
     uint32_t totalSupportedDevices_;               // Total number of supported devices
     std::vector<std::string> supportedDeviceNames_;     // Supported device names
-    uint32_t supportedDeviceIds_[XF_GRAPH_L3_MAX_DEVICES_PER_NODE];
     uint64_t maxChannelSize;
     std::vector<singleOP> ops;
 
@@ -135,19 +127,13 @@ class Handle {
     std::thread loadXclbinNonBlock(unsigned int deviceId, std::string& xclbinName);
     std::future<int> loadXclbinAsync(unsigned int deviceId, std::string& xclbinName);
 
-    int32_t initOpSimDense(std::string kernelName,
-                           std::string xclbinFile,
-                           std::string kernelAlias,
-                           unsigned int requestLoad,
-                           unsigned int numDevices,
-                           unsigned int cuPerBoard);
+    int32_t initOpSimDense(std::string xclbinFile, std::string kernelName,
+                           std::string kernelAlias, unsigned int requestLoad,
+                           unsigned int numDevices, unsigned int cuPerBoard);
 
-    int32_t initOpLouvainModularity(std::string kernelName,
-                                    std::string xclbinFile,
-                                    std::string kernelAlias,
-                                    unsigned int requestLoad,
-                                    unsigned int deviceNeeded,
-                                    unsigned int cuPerBoard);
+    int32_t initOpLouvainModularity(std::string xclbinFile, std::string kernelName,
+                                    std::string kernelAlias, unsigned int requestLoad,
+                                    unsigned int deviceNeeded, unsigned int cuPerBoard);
 };
 } // L3
 } // graph

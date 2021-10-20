@@ -39,7 +39,7 @@ help::
 	$(ECHO) "      Command to build host application."
 	$(ECHO) ""
 	$(ECHO) "  Supported devices:"
-	$(ECHO) "  xilinx_u55c_gen3x16_xdma_1_202110_1"
+	$(ECHO) "  xilinx_u55c_gen3x16_xdma_2_202110_1"
 	$(ECHO) ""
 
 # ##################### Setting up default value of TARGET ##########################
@@ -131,8 +131,8 @@ VPP_FLAGS += -I$(XFLIB_DIR)/L2/include/hw
 VPP_FLAGS += -I$(XFLIB_DIR)/L2/dense_similarity_multi_kernel_4pu/kernel
 
 denseSimilarityKernel4PU_VPP_FLAGS +=  -D KERNEL_NAME=denseSimilarityKernel4PU
-denseSimilarityKernel4PU_VPP_FLAGS += --hls.clock 300000000:denseSimilarityKernel4PU
-VPP_LDFLAGS_denseSimilarityKernel4PU += --kernel_frequency 250
+denseSimilarityKernel4PU_VPP_FLAGS += --hls.clock 200000000:denseSimilarityKernel4PU
+VPP_LDFLAGS_denseSimilarityKernel4PU += --kernel_frequency 200
 
 
 # Kernel args
@@ -186,7 +186,7 @@ $(BUILD_DIR)/denseSimilarityKernel4PU.xclbin: $(BINARY_CONTAINER_denseSimilarity
 # can be differentiated
 	rm -f $(BUILD_DIR)/denseSimilarityKernel4PUWithAlias.xclbin
 	/opt/xilinx/xrt/bin/xclbinutil -i $(BUILD_DIR)/denseSimilarityKernel4PU.xclbin \
-								   --key-value=USER:denseSimilarityKernel:'{"alias": "denseSimilarityKernel4PU_U55C"}' \
+								   --key-value=USER:denseSimilarityKernel4PU:'{"alias": "denseSimilarityKernel4PU_U55C"}' \
 	                               -o $(BUILD_DIR)/denseSimilarityKernel4PUWithAlias.xclbin
 
 

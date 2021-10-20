@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 
+SHELL := /bin/bash
+
 #
 # Define __PROFILING__ to turn on profiling message from compute units
 #
@@ -78,7 +80,7 @@ $(JAVA_API_DOC_JAR): $(JAVA_API_JAR)
 CCC = g++
 CXX = g++
 CXXFLAGS = -std=c++11 -fPIC -Wall -Wno-unknown-pragmas -Wno-unused-label \
-           -Wno-narrowing -D USE_HBM -fmessage-length=0 -D COSINESIM 
+           -Wno-narrowing -D USE_HBM -fmessage-length=0 -D COSINESIM -D VERSION=\"$(PRODUCT_VER)\"
 
 # Define the target directories.
 
@@ -97,6 +99,7 @@ INCLUDES_libCosineSim = \
 	-I$(XILINX_XRM)/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L2/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L3/include \
+	-I$(GRAPH_ANALYTICS_DIR)/ext \
 	-I$(GRAPH_ANALYTICS_DIR)/ext/xcl2 \
 	-Iinclude
 #	-I${JAVA_HOME}/include \
@@ -233,6 +236,7 @@ SRC_FILE_NAMES_python = pythonapi.cpp
 
 INCLUDES_python = \
     -I$(PYTHON_DIR) \
+	-I$(GRAPH_ANALYTICS_DIR)/ext \
     -Iinclude
 
 SRCS_python = $(addprefix $(PYTHON_API_DIR)/,$(SRC_FILE_NAMES_python))
@@ -298,6 +302,7 @@ INCLUDES_test = \
 	-I$(XILINX_XRM)/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L2/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L3/include \
+	-I$(GRAPH_ANALYTICS_DIR)/ext \
 	-I$(GRAPH_ANALYTICS_DIR)/ext/xcl2 \
 	-Iinclude
 
@@ -336,16 +341,27 @@ $(CPP_BUILD_DIR)/cosinesim_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUILD_D
 $(CPP_BUILD_DIR)/cosinesim_dyn_test: $(CPP_BUILD_DIR)/cosinesim_test.o $(CPP_BUILD_DIR)/$(LOADER_NAME) $(CPP_BUILD_DIR)/$(LIB_NAME)
 	$(LINK.cc) -o $@ $< -fPIC -w -L $(CPP_BUILD_DIR) -l$(LOADER_SHORT_NAME) -ldl $(LIB_DEPS)
 
+###############################################################################
+# Parameters and targets for running tests
 numDevices=1
-iterations=1
-numVectors=5000
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3
+testNum=-1
+numResults=-1
+verbose=0
+verboseFlag=
+ifneq ($(verbose),0)
+  verboseFlag=-v
+endif
+
 run-test: cppTest
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) $(CPP_BUILD_DIR)/cosinesim_test \
-	                $(numDevices) $(iterations) $(numVectors) $(deviceNames)
+	set -e; \
+	. $(XILINX_XRT)/setup.sh && \
+	. $(XILINX_XRM)/setup.sh && \
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH $(CPP_BUILD_DIR)/cosinesim_test \
+	    -d $(numDevices) -t $(deviceNames) -1 $(testNum) -n $(numResults) $(verboseFlag)
 
 run-dyn-test: cppTest
-	LD_PRELOAD=$(PWD)/$(CPP_BUILD_DIR)/$(LIB_NAME) LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARAY_PATH) \
+	LD_PRELOAD=$(PWD)/$(CPP_BUILD_DIR)/$(LIB_NAME) LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARY_PATH) \
 	    $(CPP_BUILD_DIR)/cosinesim_dyn_test $(numDevices)
 
 # Macro to create a .o rule and a .d rule for each .cpp
@@ -383,28 +399,34 @@ endif
 
 
 L2_TOP_DIR = $(GRAPH_ANALYTICS_DIR)/L2/dense_similarity_multi_kernel
-L2_TOP_DIR_4PU = $(GRAPH_ANALYTICS_DIR)/L2/dense_similarity_multi_kernel_4pu
 L2_XDEVICE_U50 = xilinx_u50_gen3x16_xdma_201920_3
-L2_XDEVICE_U55C = xilinx_u55c_gen3x16_xdma_1_202110_1
 L2_BUILD_DIR_U50 = $(L2_TOP_DIR)/build_dir.hw.$(L2_XDEVICE_U50)
+XCLBIN_NAME = denseSimilarityKernelWithAlias.xclbin
+XCLBIN_FILE_U50 = $(L2_BUILD_DIR_U50)/$(XCLBIN_NAME)
+XCLBIN_NAME_U50 = cosinesim_32bit_$(L2_XDEVICE_U50).xclbin
+XCLBIN_INSTALLED_U50 = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/$(XCLBIN_NAME_U50)
+
+L2_XDEVICE_U55C = xilinx_u55c_gen3x16_xdma_2_202110_1
 L2_BUILD_DIR_U55C = $(L2_TOP_DIR_4PU)/build_dir.hw.$(L2_XDEVICE_U55C)
+L2_TOP_DIR_4PU = $(GRAPH_ANALYTICS_DIR)/L2/dense_similarity_multi_kernel_4pu
+XCLBIN_NAME_4PU = denseSimilarityKernel4PUWithAlias.xclbin
+XCLBIN_NAME_U55C = cosinesim_32bit_4pu_xilinx_u55c_gen3x16_xdma_base_2.xclbin
+XCLBIN_FILE_U55C = $(L2_BUILD_DIR_U55C)/$(XCLBIN_NAME_4PU)
+XCLBIN_INSTALLED_U55C = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/$(XCLBIN_NAME_U55C)
 
 DEVICE ?= $(L2_XDEVICE)
-XCLBIN_NAME = denseSimilarityKernel.xclbin
-XCLBIN_NAME_4PU = denseSimilarityKernel4PUWithAlias.xclbin
-XCLBIN_FILE_U50 = $(L2_BUILD_DIR_U50)/$(XCLBIN_NAME)
-XCLBIN_FILE_U55C = $(L2_BUILD_DIR_U55C)/$(XCLBIN_NAME_4PU)
-XCLBIN_INSTALLED_U50 = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin
-XCLBIN_INSTALLED_U55C = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/cosinesim_32bit_xilinx_u55c_gen3x16_xdma_base_1.xclbin
+ifeq ($(findstring u55, $(DEVICE)), u55)
+	XCLBIN_BUILD_DIR=$(L2_TOP_DIR_4PU)
+else
+	XCLBIN_BUILD_DIR=$(L2_TOP_DIR)
+endif
+
 .PHONY: xclbin
-
-
 xclbin:
 	@if [ "$(PLATFORM_REPO_PATHS)" == "" ]; then \
 		echo "PLATFORM_REPO_PATHS environment varaible must be set to the path to Xilinx platform files" ; \
 	else \
-		cd $(L2_TOP_DIR); \
-		source $(XILINX_XRT)/setup.sh; \
+		cd $(XCLBIN_BUILD_DIR); \
 		make build TARGET=hw DEVICE=$(DEVICE); \
 	fi
 	
@@ -501,14 +523,14 @@ $(STAGE_STAGED_EXAMPLE_FILES):
 
 # XCLBIN file
 
-STAGE_XCLBIN_NAME_U50 = cosinesim_32bit_$(L2_XDEVICE_U50).xclbin
+STAGE_XCLBIN_NAME_U50 = $(XCLBIN_NAME_U50)
 STAGE_XCLBIN_FILE_U50 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U50)
 
 $(STAGE_XCLBIN_FILE_U50): $(XCLBIN_FILE_U50)
 	cp -f $^ $@
 
 
-STAGE_XCLBIN_NAME_U55C = cosinesim_32bit_xilinx_u55c_gen3x16_xdma_base_1.xclbin
+STAGE_XCLBIN_NAME_U55C = $(XCLBIN_NAME_U55C)
 STAGE_XCLBIN_FILE_U55C = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U55C)
 
 $(STAGE_XCLBIN_FILE_U55C): $(XCLBIN_FILE_U55C)
@@ -581,7 +603,7 @@ javaTest:
 #
 
 #### Clean target deletes all generated files ####
-.PHONY: clean clean-xclbin
+.PHONY: clean clean-xclbin clean-pyenv clean-all
 
 clean:
 	rm -rf Debug Release $(JAVA_LIB_DIR) $(BUILD_DIR) $(STAGE_DIR)
@@ -591,6 +613,14 @@ clean:
 	
 clean-xclbin:
 	rm -f $(XCLBIN_FILE_U50) $(XCLBIN_FILE_U55C)
+
+cleanpy:
+	rm -rf $(PYTHONENV_NAME)
+
+cleanall: clean cleanpy
+	# remove generated packages as well
+	rm -f ./package/*.deb ./package/*.rpm 
+	
 
 .PHONY: help
 help:
@@ -606,11 +636,13 @@ help:
 	@echo ""
 	@echo "  make run-test [numDevices=1] [iterations=1] [numVectors=5000] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3]"
 	@echo "      Run standalone test with statically linked executable. numDevices, numVectors, and iterations are optional."
-	@echo "      Supported deviceNames: xilinx_u50_gen3x16_xdma_201920_3 xilinx_u55c_gen3x16_xdma_base_1 "
+	@echo "      Supported deviceNames: "
+	@echo "      xilinx_u50_gen3x16_xdma_201920_3"
+	@echo "      xilinx_u55c_gen3x16_xdma_base_2"
 	@echo ""
 	@echo "  make xclbin DEVICE=<FPGA platform>"
 	@echo "      Build xclbin file targetting specified device. Vitis tool and PLATFORM_REPO_PATHS must be set to make xclbin."
 	@echo "      Supported devices:"
 	@echo "      xilinx_u50_gen3x16_xdma_201920_3 (Vitis 2020.2)"
-	@echo "      xilinx_u55c_gen3x16_xdma_1_202110_1 (Vitis 2021.1)"
+	@echo "      xilinx_u55c_gen3x16_xdma_2_202110_1 (Vitis 2021.2)"
 	@echo ""

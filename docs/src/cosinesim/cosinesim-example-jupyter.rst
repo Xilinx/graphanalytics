@@ -2,18 +2,19 @@
 Jupyter Notebook with CosineSim Python API
 ===========================================
 
-Jupyter Notebook is assumed to be installed in the Synthea Example in Jupyter Notebook section.
+Follow the setup process below before running the notebook:
 
-Run following commands in a Python virtual environment to run the example:
+.. toctree::
+    :maxdepth: 1
+
+    Setup <setup-standalone.rst>
+
+Run following commands in the Python virtual environment (from setup) to run the example:
 
 .. code-block:: bash
 
-    (alveo-demo)$mkdir cosinesim-example
-    (alveo-demo)$cd cosinesim-example 
-    (alveo-demo)$cp /opt/xilinx/apps/graphanalytics/cosinesim/1.0/examples.zip .
-    (alveo-demo)$unzip examples.zip
-    (alveo-demo)$cd examples/python
-    (alveo-demo)$./run.sh jupyter notebook jupyter/jupyter_demo.ipynb
+    (fpga)$ cd examples/python
+    (fpga)$ ./run.sh jupyter notebook jupyter/jupyter_demo.ipynb
 
 
 The Jupter Notebook demo is also available on 

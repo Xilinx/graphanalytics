@@ -54,7 +54,7 @@ void runLouvainWithFPGA_demo_par_core_prune(bool hasGhost,
                                             int numThreads);
 
 GLV* LouvainGLV_general(bool hasGhost,
-                        int flowMode,
+                        int kernelMode,
                         int id_dev,
                         GLV* glv_src,
                         char* xclbinPath,
@@ -67,7 +67,7 @@ GLV* LouvainGLV_general(bool hasGhost,
                         int numPhase);
 
 void LouvainGLV_general_batch_thread(bool hasGhost,
-                                     int flowMode,
+                                     int kernelMode,
                                      int id_dev,
                                      int id_glv,
                                      int num_dev,

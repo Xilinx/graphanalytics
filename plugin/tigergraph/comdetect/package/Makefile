@@ -14,7 +14,7 @@
 #
 PKGDIR := PKG_Release
 RM := rm -rf
-PLUGIN := Tigergraph-3.x
+PLUGIN := Tigergraph-3.x/comdetect
 PROD_VERSION := $(strip $(shell cat ../staging/VERSION))
 
 OSDIST = $(shell lsb_release -si)

@@ -27,13 +27,14 @@ pluginAlveoProductName="Xilinx Community Detection Engine"
 standaloneAlveoProductName="Xilinx Louvain Modularity"
 
 # The usual place where the Alveo Product is installed
-pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/louvainmod/0.1
+pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/louvainmod/0.5
 
 # Where to find the git repo for the Alveo Product if it exists
 pluginLocalAlveoProductPath=$SCRIPTPATH/../../../../../louvainmod/staging
 
 # The name of the Alveo Product's XCLBIN file
 pluginXclbinName=louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+pluginXclbinNameU55C=louvainmod_2cu_xilinx_u55c_gen3x16_xdma_2_202110_1.xclbin
 
 # The name of the Alveo Product's .so file
 pluginLibName=libXilinxLouvain.so
@@ -58,7 +59,7 @@ pluginMainUdf=udf/xilinxComDetect.hpp
 
 # List of header files to copy from the Alveo Product into the TigerGraph application area
 # and UDF compilation area.  The paths are relative to $pluginAlveoProductPath.
-pluginAlveoProductHeaders="include/xilinxlouvain.h src/louvainmod_loader.cpp"
+pluginAlveoProductHeaders="include/xilinxlouvain.h include/xilinx_apps_common.hpp src/louvainmod_loader.cpp"
 
 # List of header files to copy from the plugin into the TigerGraph application area
 # and UDF compilation area.  The paths are relative to the plugin top directory

@@ -8,17 +8,19 @@ Follow the instructions in each of the sections below to install the Community D
 Install TigerGraph Enterprise 3.x
 ---------------------------------
 
-Next, follow the steps below to install TigerGraph on your server if you have not already.  The latest version tested
-with the Community Detection is version 3.1.
+Next, follow the steps below to install TigerGraph on your server if you have not 
+already.  The latest version tested with the Community Detection is version 3.1.
 
-* Install `TigerGraph Enterprise version 3.1 <https://info.tigergraph.com/enterprise-free>`_, accepting the defaults
-  for all settings that have them.  Be sure to leave the database owner as user "tigergraph", as the Recommendation
-  Engine install scripts depend on that user name.  Make a note of the password for the user 
-  "tigergraph". That password will be needed for later steps.
+* Install `TigerGraph Enterprise version 3.1 <https://info.tigergraph.com/enterprise-free>`_, 
+  accepting the defaults for all settings. Be sure to leave the database owner 
+  as user "tigergraph", as the Community Engine install scripts depend on that 
+  user name.  Make a note of the password for the user "tigergraph". That password 
+  will be needed for later steps.
 
-* Create an account in the TigerGraph installation for yourself in the role of a TigerGraph application developer
-  by issuing the commands below (replace YOUR-LINUX-USERNAME with your actual Linux username). 
-  The Community Detection Engine examples will use this account to create graphs and install GSQL queries on your behalf.
+* Create an account in the TigerGraph installation for yourself in the role of a 
+  TigerGraph application developer by issuing the commands below (replace 
+  YOUR-LINUX-USERNAME with your actual Linux username). The Community Detection 
+  examples will use this account to create graphs and install GSQL queries on your behalf.
 
 .. code-block:: bash
 
@@ -43,10 +45,16 @@ of the Community Detection features.
 
 .. code-block:: bash
 
-   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/install.sh
+   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/0.5/install.sh
 
-Build the Community Detection Engine from Sources
-*************************************************
+..  note:: 
+    
+    If you only need to build applications utilizing Xilinx GraphAnalytics 
+    products, you can skip the section "Collaborating on Community Detection 
+    Plugin" below.
+
+Collaboring on Community Detection Plugin 
+*****************************************
 
 Follow the instructions below if you want to collaborate and contribute to the 
 Xilinx Louvain Modularity Alveo Product and Community Detection for TigerGraph 3.x.
@@ -64,23 +72,23 @@ Both products reside in one GitHub repository.
 
    cd louvainmod
    make dist
-   sudo apt install --reinstall ./package/xilinx-louvainmod-1.0_18.04-x86_64.deb
+   sudo apt install --reinstall ./package/xilinx-louvainmod-0.5_18.04-x86_64.deb
 
 * Build and install the Community Detection package. (Replace the package 
   installation command and name for your server's OS.)
 
 .. code-block:: bash
 
-  cd plugin/tigergraph/
+  cd plugin/tigergraph/comdetect
   make dist
-  sudo apt install --reinstall ./package/xilinx-comdetect-tigergraph-1.0_18.04-x86_64.deb
+  sudo apt install --reinstall ./package/xilinx-comdetect-tigergraph-0.5_18.04-x86_64.deb
 
 * Install the Community Detection plug-in into the TigerGraph installation.  This step makes TigerGraph aware
   of the Community Detection features.
 
 .. code-block:: bash
 
-   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/install.sh
+   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/0.5/install.sh
 
 Uninstalling the Community Detection
 --------------------------------------
@@ -89,7 +97,7 @@ You can uninstall the Community Detection from TigerGraph by running the install
 
 .. code-block:: bash
 
-   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/install.sh -u
+   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/0.5/install.sh -u
 
 **TIP**: To avoid TigerGraph errors, uninstall any queries and UDFs that use the Community Detection,
 before uninstalling the Community Detection itself.

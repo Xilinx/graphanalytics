@@ -1,0 +1,35 @@
+#
+# Copyright 2020-2021 Xilinx, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+USE GRAPH @graph
+DROP GRAPH @graph CASCADE
+
+CREATE GRAPH @graph()
+
+CREATE SCHEMA_CHANGE JOB job_schema_change_local FOR GRAPH @graph {
+    // person database to match against
+    ADD VERTEX blacklist (PRIMARY_ID id UINT, name STRING);
+    // person extracted from transactions
+    ADD VERTEX person_tx(PRIMARY_ID id STRING, name STRING);
+    // transaction
+    ADD UNDIRECTED EDGE transaction(FROM person_tx, TO person_tx, weight UINT);
+    // dummy nodes vertex for distributed processing
+    ADD VERTEX dummy_nodes(PRIMARY_ID ID UINT, NODE_ID UINT);
+
+}
+
+RUN SCHEMA_CHANGE JOB job_schema_change_local
+DROP JOB job_schema_change_local
+
