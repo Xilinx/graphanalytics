@@ -63,7 +63,6 @@ namespace fuzzymatch {
     // extract select column from CSV file.
     // column id starts from 0.
     // pass -1 to max_entry_num to get all lines.
-    XILINX_FUZZYMATCH_IMPL_DECL
     int load_csv(const size_t max_entry_num, const size_t max_field_len, const std::string &file_path,
                  const unsigned col, std::vector<std::string> &vec);
 
@@ -163,8 +162,9 @@ class FuzzyMatchSW {
         max_equan_len = 12;
     }
 
-    //  initialize the FACTIVA tables and do pre-sort
+    //  initialize the FACTIVA tables and do pre-sort from a file or from a vector
     int initialize(const std::string& fileName);
+    int initialize(std::vector<std::string>& vec_pattern);
 
     // The check method returns whether the transaction is okay, and triggering condition if any.
     bool check(const std::string& t);

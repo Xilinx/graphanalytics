@@ -77,16 +77,23 @@ inline bool udf_fuzzymatch_cpu(ListAccum<string> blacklist, ListAccum<string> tx
     std::vector<std::string> blacklistVector;
     xilFuzzyMatch::Context *pContext = xilFuzzyMatch::Context::getInstance();
     xilinx_apps::fuzzymatch::FuzzyMatch *pFuzzyMatch = pContext->getFuzzyMatchObj();
-    
+    xilinx_apps::fuzzymatch::FuzzyMatchSW cpu_checker;
+    bool check_result;
+
     uint32_t blacklistLen = blacklist.size();
     for (unsigned i = 0 ; i < blacklistLen; ++i)
         blacklistVector.push_back(blacklist.get(i));
 
     std::cout << "blacklistVector size=" << blacklistVector.size() << std::endl;
+    cpu_checker.initialize(blacklistVector);
 
     uint32_t txPersonsLen = txPersons.size();
-    for (unsigned i = 0 ; i < txPersonsLen; ++i)
-        std::cout << "txPersons " << i << "=" << txPersons.get(i) << std::endl;
+    for (unsigned i = 0 ; i < txPersonsLen; ++i) {
+        //std::cout << "txPersons " << i << "=" << txPersons.get(i) << std::endl;
+        check_result = cpu_checker.check(txPersons.get(i));
+        std::cout << i << "," << txPersons.get(i) << "," << (check_result ? "KO" : "OK") << ","
+                  << (check_result ? ":Sender" : "") << std::endl;
+    }
 
     return true;
 }
