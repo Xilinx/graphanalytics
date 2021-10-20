@@ -18,19 +18,56 @@
 SET QUERY_TIMEOUT = 600000
 USE GRAPH @graph
 
-DROP QUERY fuzzy_match_cpu, fuzzy_match_cpu
+DROP QUERY fuzzymatch_cpu, fuzzymatch_alveo
 
-CREATE QUERY fuzzy_match_cpu( ) for graph @graph 
+CREATE QUERY fuzzymatch_cpu( ) for graph @graph 
 {
+    DOUBLE vm_peak, vm_hwm;
+  	INT ret;
+    bool isMatch;
+    DOUBLE udf_time;
 
-    PRINT "fuzzy_match_cpu done.";
+    ListAccum<string > @@blacklistAccum, @@txPersonsAccum;
+
+    udf_reset_timer(true);
+
+
+    blacklistSet = {blacklist.*};
+    blacklistSelect = SELECT b FROM blacklistSet:b ACCUM @@blacklistAccum += b.name;
+
+    txPersonsSet = {person_tx.*};
+    txPersonsSelect = SELECT t FROM txPersonsSet:t ACCUM @@txPersonsAccum += t.name;
+
+    isMatch = udf_fuzzymatch_cpu(@@blacklistAccum, @@txPersonsAccum);
+
+    udf_time = udf_elapsed_time(true);
+    ret = udf_peak_memory_usage(vm_peak, vm_hwm);
+    ret = udf_peak_memory_usage(vm_peak, vm_hwm);
+    print "TigerGraph CPU" AS ComputationTechnique;
+    print vm_peak/1000000.0 as PeakVirtualMemoryInGB;
+    print vm_hwm/1000000.0 as PeakResidentMemoryInGB;
+    print udf_time as ExecTimeInMs;
+
 }
 
 
-CREATE QUERY fuzzy_match_alveo( ) for graph @graph 
+CREATE QUERY fuzzymatch_alveo( ) for graph @graph 
 {
-    PRINT "fuzzy_match_alveo done.";
+    DOUBLE vm_peak, vm_hwm;
+  	INT ret;    
+    DOUBLE udf_time;
+
+    udf_reset_timer(true);
+
+    udf_time = udf_elapsed_time(true);
+    ret = udf_peak_memory_usage(vm_peak, vm_hwm);
+    ret = udf_peak_memory_usage(vm_peak, vm_hwm);
+    print "Xilinx Alveo device" AS ComputationTechnique;
+    print vm_peak as PeakVirtualMemoryInKB;
+    print vm_hwm as PeakResidentMemoryInKB;
+    print udf_time as ExecTimeInMs;
+    
 }
 
 
-INSTALL QUERY fuzzy_match_cpu, fuzzy_match_alveo
+INSTALL QUERY fuzzymatch_cpu, fuzzymatch_alveo

@@ -29,16 +29,6 @@
 
 #include "xilinx_apps_common.hpp"
 
-namespace xilinx_apps
-{
-namespace fuzzymatch
-{
-    struct Options;
-    class FuzzyMatchImpl;
-}
-
-}
-
 /**
  * Define this macro to make functions in fuzzymatch_loader.cpp inline instead of extern.  You would use this macro
  * when including fuzzymatch_loader.cpp in a header file, as opposed to linking with libXilinxFuzzyMatch_loader.a.
@@ -48,6 +38,58 @@ namespace fuzzymatch
 #else
 #define XILINX_FUZZYMATCH_IMPL_DECL extern
 #endif
+
+// Make the variables below macro for now so the code can be shared with TigerGraph
+// UDFs
+#define max_validated_pattern 10000000
+#define max_len_in_char 1024*1024
+#define totalThreadNum std::thread::hardware_concurrency()
+#define max_pattern_len_in_char 1024*1024
+
+namespace xilinx_apps {
+namespace fuzzymatch {
+
+    struct Options;
+    class FuzzyMatchImpl;
+
+    // ------------------------------------------------------------------------
+    // Utility functions 
+    // ------------------------------------------------------------------------
+    // generate the pattern by group 
+    XILINX_FUZZYMATCH_IMPL_DECL
+    void preSortbyLength(std::vector<std::string>& vec_pattern,
+                         std::vector<std::vector<std::string>>& vec_pattern_grp);
+
+    // extract select column from CSV file.
+    // column id starts from 0.
+    // pass -1 to max_entry_num to get all lines.
+    XILINX_FUZZYMATCH_IMPL_DECL
+    int load_csv(const size_t max_entry_num, const size_t max_field_len, const std::string &file_path,
+                 const unsigned col, std::vector<std::string> &vec);
+
+    XILINX_FUZZYMATCH_IMPL_DECL         
+    int min(int a, int b);
+    
+    XILINX_FUZZYMATCH_IMPL_DECL
+    int abs(int a, int b);
+
+    XILINX_FUZZYMATCH_IMPL_DECL
+    float similarity(std::string str1, std::string str2);
+
+    XILINX_FUZZYMATCH_IMPL_DECL
+    size_t getMaxDistance(size_t len);
+
+    XILINX_FUZZYMATCH_IMPL_DECL
+    bool doFuzzyTask(int thread_id, const size_t upper_limit, const std::string &pattern,
+                     const std::vector<std::vector<std::string>> &vec_grp_str);
+
+    XILINX_FUZZYMATCH_IMPL_DECL
+    bool strFuzzy(const size_t upper_limit, const std::string &pattern,
+                  std::vector<std::vector<std::string>> &vec_grp_str);
+
+}
+
+}
 
 extern "C" {
 XILINX_FUZZYMATCH_IMPL_DECL
@@ -91,26 +133,7 @@ public:
 struct Options {
     XString xclbinPath;
     XString deviceNames;
-    //std::string xclbinPath;
-    //std::string deviceNames;
 };
-
-
-
-
-// extract select column from CSV file.
-// column id starts from 0.
-// pass -1 to max_entry_num to get all lines.
-int load_csv(const size_t max_entry_num,
-             const size_t max_field_len,
-             const std::string& file_path,
-             const unsigned col,
-             std::vector<std::string>& vec_str);
-
-
-
-
-
 
 class FuzzyMatch  {
    public:
@@ -153,11 +176,6 @@ class FuzzyMatchSW {
 
     std::vector<std::vector<std::string> > vec_pattern_grp =
         std::vector<std::vector<std::string> >(max_len_in_char);
-
-
-
-   private:
-    static const size_t max_len_in_char = 1024 * 1024; // in char
 
 
 }; // end class FuzzyMatchSW

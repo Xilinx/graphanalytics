@@ -255,7 +255,10 @@ int main(int argc, const char* argv[]) {
                 std::cout << result_set0[i] << " ";
                 std::cout << std::endl;
                 nerror++;
-            } else {
+            } else {                
+                std::string s = print_result(i, t, swperf0[i]);
+                std::cout << s << std::endl;                
+
                 if (min > swperf0[i]) min = swperf0[i];
                 if (max < swperf0[i]) max = swperf0[i];
                 sum +=swperf0[i] ;

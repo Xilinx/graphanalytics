@@ -414,7 +414,9 @@ STAGE_DIR = staging
 STAGE_COPY_FILES = \
     VERSION \
     include/fuzzymatch.hpp \
-    src/fuzzymatch_loader.cpp
+    src/fuzzymatch_loader.cpp \
+	src/fuzzymatch_utils.cpp \
+	src/fuzzymatch.cpp
 
 define STAGE_COPY_RULE
 $(STAGE_DIR)/$(1): $(1)
