@@ -24,7 +24,7 @@ using namespace xilinx_apps::fuzzymatch;
 namespace py = pybind11;
 
 
-PYBIND11_MODULE (fuzzymatch, pc) {
+PYBIND11_MODULE (xilFuzzyMatchPython, pc) {
   pc.doc() = "Python bindings for the Xilinx FuzzyMatch library";
 
   py::class_<XString>(pc, "xString")
