@@ -1127,9 +1127,10 @@ int CtrlLouvain::exe_LV_PAR() {
         }
         parlv.PrintSelf();
         return 0;
-    }else{
-        parlv.use_bfs = false;
-    }
+     }
+    //else{//because this flag also used in premerge
+    //     parlv.use_bfs = false;
+    // }
 
 
     int idx_num = mycmd.cmd_findPara("-num");

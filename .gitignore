@@ -3,3 +3,10 @@ plugin/tigergraph/jupter-demo/.ipynb_checkpoints/TG_demo-checkpoint.ipynb
 *.bat
 *.txt
 tmp*
+log.*
+*.tcl
+*.sh
+*.exe
+ID*
+build_*
+_x*

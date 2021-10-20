@@ -275,7 +275,7 @@ int LvTest_main_par_cmd(int argc, char** argv) {
         lvc.C_threshold = atof(argv[idx_d + 1]);
 
     int idx = general_findPara(argc, argv, "-cmdbat");
-
+        lvc.parlv.use_bfs = false;
     if (idx > 0 && argc > idx)
         return lvc.exe_batch(argv[idx + 1]);
     else
