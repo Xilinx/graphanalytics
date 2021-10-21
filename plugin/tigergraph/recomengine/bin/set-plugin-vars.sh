@@ -27,13 +27,14 @@ pluginAlveoProductName="Xilinx Recommendation Engine"
 standaloneAlveoProductName="Xilinx Cosine Similarity"
 
 # The usual place where the Alveo Product is installed
-pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/cosinesim/1.1
+pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/cosinesim/1.4
 
 # Where to find the git repo for the Alveo Product if it exists
 pluginLocalAlveoProductPath=$SCRIPTPATH/../../../../../cosinesim/staging
 
 # The name of the Alveo Product's XCLBIN file
 pluginXclbinName=cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+pluginXclbinNameU55C=cosinesim_32bit_4pu_xilinx_u55c_gen3x16_xdma_base_2.xclbin
 
 # The name of the Alveo Product's .so file
 pluginLibName=libXilinxCosineSim.so
@@ -73,3 +74,8 @@ pluginExtraFiles=
 # List of files (name only, no path) that need to have the identifier PLUGIN_XCLBIN_PATH
 # replaced with the XCLBIN path.
 pluginXclbinPathFiles=xilinxRecomEngineImpl.hpp
+
+# List of files (name only, no path) that need to have the identifier PLUGIN_CONFIG_PATH
+# replaced with the config path.
+pluginConfigPathFiles="xilinxRecomEngineImpl.hpp"
+

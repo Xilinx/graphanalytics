@@ -1744,8 +1744,8 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune_renumber_2cu(
     buff_host[0].config1[1] = currMod[0];
     time1  = omp_get_wtime() - time1;
 
-    printf("INFO: glb_MAXNV:%ld, vertexNum: %ld, NE: %ld , edgeNum:%ld, NVl:%ld, buff_host[0].config0[4]=%ld \n", glb_MAXNV, vertexNum, NE, edgeNum,NVl,buff_host[0].config0[4]);
-    std::cout << "INFO: numColors" <<buff_host[0].config0[1] <<", "<<"eachItr[0] = "<<buff_host[0].config0[2]<<", "<<"currMod[0] = "<<buff_host[0].config1[1]<< std::endl;
+    //printf("INFO: glb_MAXNV:%ld, vertexNum: %ld, NE: %ld , edgeNum:%ld, NVl:%ld, buff_host[0].config0[4]=%ld \n", glb_MAXNV, vertexNum, NE, edgeNum,NVl,buff_host[0].config0[4]);
+    //std::cout << "INFO: numColors" <<buff_host[0].config0[1] <<", "<<"eachItr[0] = "<<buff_host[0].config0[2]<<", "<<"currMod[0] = "<<buff_host[0].config1[1]<< std::endl;
 
     return time1;
 

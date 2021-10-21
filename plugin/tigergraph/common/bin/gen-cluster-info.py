@@ -27,6 +27,7 @@ from pathlib import Path
 
 pluginConfigFile = Path(sys.argv[1])
 tgDataRoot = sys.argv[2]
+deviceName = sys.argv[3]
 
 # get IP addresses from TG configuration
 command = 'gadmin config dump'
@@ -60,11 +61,12 @@ for line in p_out:
         curNodeIp = m[0]
 
 curNodeHostname = socket.gethostname()
-print('curNodeHostname=', curNodeHostname, 'curNodeIp=', curNodeIp)
-print('nodeIps', nodeIps)
+print('DEBUG: curNodeHostname=', curNodeHostname, 'curNodeIp=', curNodeIp)
+print('DEBUG: nodeIps', nodeIps)
 
 # Get number of U50 devices
-re_u50 = re.compile('xilinx_u50_gen3x16_xdma_201920_3')
+print('DEBUG: Searching device', deviceName)
+re_u50 = re.compile(deviceName)
 command = '/opt/xilinx/xrt/bin/xbutil scan'
 p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
 p_out = p.stdout.readlines()
@@ -80,12 +82,13 @@ for line in p_out:
         numDevices += 1
 
 curNodeHostname = socket.gethostname()
-print('numDevices=', numDevices)
+print('DEBUG: numDevices=', numDevices)
 
 pluginConfigDict = {'curNodeHostname': curNodeHostname,
                     'curNodeIp'  : curNodeIp,
                     'nodeIps'    : ' '.join(nodeIps),
                     'numNodes'   : len(nodeIps),
+                    'deviceName' : deviceName,
                     'numDevices' : numDevices,
                     'xGraphStore': tgDataRoot + '/xgstore'}
 

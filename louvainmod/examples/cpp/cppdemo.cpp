@@ -36,35 +36,31 @@ int main(int argc, char **argv) {
     std::ostringstream clusterIps;
     std::ostringstream serverIp;
 
-    if (toolOptions.mode_alveo == ALVEOAPI_PARTITION) {
-        for (int i = 0; i < toolOptions.numNodes; ++i) {
-            if (i == 0)
-                serverIp << "192.168.0." << (i + 1) * 10 + 1;
-            else
-                clusterIps << ' ';
-            clusterIps << "192.168.0." << (i + 1) * 10 + 1;
-        }
+
+    for (int i = 0; i < toolOptions.numNodes; ++i) {
+        if (i != 0)
+            clusterIps << ' ';
+
+        clusterIps << "192.168.1." << (i + 1) * 10 + 1;
     }
-    if (toolOptions.mode_alveo == ALVEOAPI_LOAD) {
-        serverIp << "127.0.0.1";  // serverIp is not used. set it to localhost for future use
-        clusterIps << "127.0.0.1";
-        for (int i = 0; i < toolOptions.numPureWorker; i++) {
-            clusterIps << ' ' << toolOptions.nameWorkers[i];
-        }
-    }
+
+    serverIp << "192.168.1." << (toolOptions.nodeId + 1) * 10 + 1;
 
     // set internal options fields based to commandline options
     options.modeAlveo = toolOptions.mode_alveo;
     options.xclbinPath = toolOptions.xclbinPath;
-    options.flow_fast = toolOptions.flow_fast;
+    options.kernelMode = toolOptions.kernelMode;
     options.nameProj = toolOptions.nameProj;
     options.alveoProject = toolOptions.alveoProject;
     options.numDevices = toolOptions.numDevices;
     options.deviceNames = toolOptions.deviceNames;   
-    if (toolOptions.mode_zmq == ZMQ_DRIVER)
+    if (toolOptions.modeZmq == ZMQ_DRIVER)
         options.nodeId = 0;
-    else if (toolOptions.mode_zmq == ZMQ_WORKER)
-        options.nodeId = toolOptions.nodeID;
+    else if (toolOptions.modeZmq == ZMQ_WORKER)
+        options.nodeId = toolOptions.nodeId;
+
+    std::cout << "toolOptions.modeZmq=" << toolOptions.modeZmq << " toolOptions.nodeId=" << toolOptions.nodeId 
+              << " toolOptions.numNodes=" << toolOptions.numNodes << std::endl;
 
     options.hostName = "localhost";
     options.hostIpAddress = serverIp.str();
@@ -95,7 +91,7 @@ int main(int argc, char **argv) {
         if (finalQ < -1) {
             std::cout << "ERROR: loadAlveoAndComputeLouvain completed with error. ErrorCode=" << finalQ << std::endl;
             status = -1;
-        } else if (toolOptions.mode_zmq == ZMQ_DRIVER)  // only the driver reports the final modularity value
+        } else if (toolOptions.modeZmq == ZMQ_DRIVER)  // only the driver reports the final modularity value
             std::cout << "INFO: loadAlveoAndComputeLouvain completed. finalQ=" << finalQ << std::endl;
         break;
     case ALVEOAPI_RUN:  // 3

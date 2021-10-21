@@ -204,6 +204,12 @@ $(BUILD_DIR)/kernel_louvain.xclbin: $(BINARY_CONTAINER_kernel_louvain_OBJS)
 	mkdir -p $(BUILD_DIR)
 	$(VPP) -l $(VPP_FLAGS) --temp_dir $(BUILD_DIR) --report_dir $(BUILD_REPORT_DIR)/kernel_louvain $(VPP_LDFLAGS) $(VPP_LDFLAGS_kernel_louvain) -o '$@' $(+)
 
+# Add kernel alias to xclbin post-build so that the same kernel targeting different devices can be differentiated.
+	rm -f $(BUILD_DIR)/kernel_louvain_pruning_alias.xclbin
+	/opt/xilinx/xrt/bin/xclbinutil -i $(BUILD_DIR)/kernel_louvain.xclbin \
+								   --key-value=USER:kernel_louvain:'{"alias": "kernel_louvain_pruning_u50"}' \
+	                               -o $(BUILD_DIR)/kernel_louvain_pruning_alias.xclbin
+
 
 # ################# Setting Rules for Host (Building Host Executable) ################
 $(EXE_FILE): $(HOST_SRCS) | check_xrt

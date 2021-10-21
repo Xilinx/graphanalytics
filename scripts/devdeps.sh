@@ -71,6 +71,7 @@ ub_package_list()
      g++ \
      git \
      python3-dev \
+     python3-venv \
      libzmq3-dev \
      jq \
      )

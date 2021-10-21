@@ -18,7 +18,7 @@
 # ####################################### Help Section #####################################
 .PHONY: help
 
-help::
+help:
 	$(ECHO) "Makefile Usage:"
 	$(ECHO) "  make all TARGET=<sw_emu/hw_emu/hw> DEVICE=<FPGA platform> HOST_ARCH=<x86>"
 	$(ECHO) "      Command to generate the design for specified Target and Shell."
@@ -39,15 +39,15 @@ help::
 	$(ECHO) "      Command to build host application."
 	$(ECHO) ""
 	$(ECHO) "  Supported devices: "
-	$(ECHO) "      xilinx_u50_gen3x16_xdma_201920_3 (Vitis 2020.2)"
-	$(ECHO) "      xilinx_u55c_gen3x16_xdma_1_202110_1 (Vitis 2021.1)"
+	$(ECHO) "      xilinx_u50_gen3x16_xdma_201920_3 (Vitis 2021.2)"
+	$(ECHO) "      xilinx_u55c_gen3x16_xdma_2_202110_1 (Vitis 2021.2)"
 	$(ECHO) ""
 
 # ##################### Setting up default value of TARGET ##########################
 TARGET ?= sw_emu
 
 # ################### Setting up default value of DEVICE ##############################
-DEVICE ?= xilinx_u55c_gen3x16_xdma_1_202110_1
+DEVICE ?= xilinx_u50_gen3x16_xdma_201920_3
 
 # ###################### Setting up default value of HOST_ARCH ####################### 
 HOST_ARCH ?= x86
@@ -67,7 +67,7 @@ CUR_DIR := $(patsubst %/,%,$(dir $(MK_PATH)))
 XFLIB_DIR = $(XF_PROJ_ROOT)
 
 # ######################### Include environment variables in utils.mk ####################
-include ./utils.mk
+include ../common/utils.mk
 XDEVICE := $(call device2xsa, $(DEVICE))
 TEMP_DIR := _x_temp.$(TARGET).$(XDEVICE)
 TEMP_REPORT_DIR := $(CUR_DIR)/reports/_x.$(TARGET).$(XDEVICE)
@@ -172,6 +172,12 @@ $(BUILD_DIR)/denseSimilarityKernel.xclbin: $(BINARY_CONTAINER_denseSimilarityKer
 	mkdir -p $(BUILD_DIR)
 	$(VPP) -l $(VPP_FLAGS) --temp_dir $(TEMP_DIR) --report_dir $(BUILD_REPORT_DIR)/denseSimilarityKernel $(VPP_LDFLAGS) $(VPP_LDFLAGS_denseSimilarityKernel) -o '$@' $(+)
 
+# Add kernel alias to xclbin post-build to support the same kernel targeting different devices
+# can be differentiated
+	rm -f $(BUILD_DIR)/denseSimilarityKernelWithAlias.xclbin
+	/opt/xilinx/xrt/bin/xclbinutil -i $(BUILD_DIR)/denseSimilarityKernel.xclbin \
+								   --key-value=USER:denseSimilarityKernel:'{"alias": "denseSimilarityKernel_U50"}' \
+	                               -o $(BUILD_DIR)/denseSimilarityKernelWithAlias.xclbin
 
 # ################# Setting Rules for Host (Building Host Executable) ################
 ifeq ($(HOST_ARCH), x86)

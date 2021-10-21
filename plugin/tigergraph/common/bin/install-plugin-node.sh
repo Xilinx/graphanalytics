@@ -29,15 +29,17 @@ NC='\033[0m' # No Color
 ###############################################################################
 
 # script options processing
+device_name="xilinx_u50_gen3x16_xdma_201920_3"
 use_tcmalloc=0
 uninstall=0
 verbose=0
 force=0
 
-while getopts ":fhuv" opt
+while getopts ":d:fhuv" opt
 do
 case $opt in
     f) force=1;;
+    d) device_name=$OPTARG;;    
     u) uninstall=1;;
     v) verbose=1;;
     ?) echo "ERROR: Unknown option: -$OPTARG"; exit 1;;
@@ -51,6 +53,7 @@ done
 if [ $verbose -eq 1 ]; then
     echo "INFO: Script is running with the settings below:"
     echo "      uninstall=$uninstall"
+    echo "      device_name=$device_name"
 fi
 
 ###############################################################################
@@ -135,6 +138,9 @@ if [ $pluginAlveoProductNeedsInstall -eq 1 ]; then
     fi
     mkdir -p $tg_udf_xclbin_dir
     cp -f $pluginAlveoProductXclbinPath $tg_udf_xclbin_dir
+    if [ ! -z "$pluginXclbinNameU55C" ]; then
+        cp -f $pluginAlveoProductXclbinPathU55C $tg_udf_xclbin_dir
+    fi
     cp -f $pluginAlveoProductLibDir/$pluginLibName $tg_udf_dir
 fi
 
@@ -173,12 +179,14 @@ done
 mkdir -p $tg_data_root/xgstore
 
 # Generate cluster configuration file
-echo "INFO: Generate plugin configration file $tg_udf_dir/xilinx-plugin-config.json"
-python3 $SCRIPTPATH/gen-cluster-info.py $tg_udf_dir/xilinx-plugin-config.json $tg_data_root
+echo "INFO: Generate plugin configration file $tg_udf_dir/xilinx-plugin-config.json for $device_name"
+python3 $SCRIPTPATH/gen-cluster-info.py $tg_udf_dir/xilinx-plugin-config.json $tg_data_root $device_name
 
 # Substitute the XCLBIN path for PLUGIN_XCLBIN_PATH in all files that need the substitution
 
 for i in $pluginXclbinPathFiles; do
+    # replace the longest string first
+    sed -i "s|PLUGIN_XCLBIN_PATH_U55C|\"$runtimeXclbinPathU55C\"|" $tg_udf_dir/${i##*/}
     sed -i "s|PLUGIN_XCLBIN_PATH|\"$runtimeXclbinPath\"|" $tg_udf_dir/${i##*/}
 done
 

@@ -37,7 +37,7 @@ class opSimilarityDense : public opBase {
 
     std::vector<event<int> > eventQueue;
 
-    class clHandle* handles;
+    class clHandle* handles = nullptr;
 
     opSimilarityDense() : opBase() {};
 
