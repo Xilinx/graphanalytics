@@ -145,12 +145,10 @@ class FuzzyMatch  {
     int fuzzyMatchLoadVec(std::vector<std::string>& patternVec);
 
     // The check method returns whether the transaction is okay, and triggering condition if any.
-    bool executefuzzyMatch(const std::string& t);
+    bool executefuzzyMatch(std::string t);
 
    private:
      FuzzyMatchImpl *pImpl_ = nullptr;
-   
-
 
 }; // end class FuzzyMatch
 

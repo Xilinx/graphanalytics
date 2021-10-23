@@ -39,6 +39,47 @@ inline int udf_xilinx_fuzzymatch_set_node_id(uint nodeId)
     return nodeId;
 }
 
+// Return value:
+//    0: Success
+//   -1: Failed to initialize Alveo device
+//   
+inline int udf_fuzzymatch_alveo(ListAccum<string> sourceList, ListAccum<string> targetList) 
+{
+
+    std::cout << "INFO: udf_fuzzymatch_alveo " << std::endl;
+
+    std::vector<std::string> sourceVector;
+    xilFuzzyMatch::Context *pContext = xilFuzzyMatch::Context::getInstance();
+    xilinx_apps::fuzzymatch::FuzzyMatch *pFuzzyMatch = pContext->getFuzzyMatchObj();
+    bool match_result;
+
+    if (pFuzzyMatch->startFuzzyMatch() < 0) {
+        std::cout << "ERROR: Failed to initialize Alveo device" << std::endl;
+        return -1;
+    }
+
+    uint32_t sourceListLen = sourceList.size();
+    for (unsigned i = 0 ; i < sourceListLen; ++i)
+        sourceVector.push_back(sourceList.get(i));
+
+    std::cout << "sourceVector size=" << sourceVector.size() << std::endl;
+    pFuzzyMatch->fuzzyMatchLoadVec(sourceVector);
+
+    uint32_t targetListLen = targetList.size();
+    for (unsigned i = 0 ; i < targetListLen; ++i) {       
+        // TigerGraph uses gcc 4.8.5 while latest Linux has newer gcc (e.g. 9.3 
+        // on Ubuntu 20.04). This causes incompatibility issue when passing 
+        // std::string between TG UDF and Xilinx libraries. The workaround documented 
+        // in https://stackoverflow.com/questions/33394934/converting-std-cxx11string-to-stdstring
+        // is added to Xilinx standalone library Makefile: -D_GLIBCXX_USE_CXX11_ABI=0
+        match_result = pFuzzyMatch->executefuzzyMatch(targetList.get(i));
+        std::cout << i << "," << targetList.get(i) << "," << (match_result ? "KO" : "OK") << ","
+                  << (match_result ? ":Sender" : "") << std::endl;
+    }
+
+    return 0;
+}
+
 // mergeHeaders 1 section body end xilinxFuzzyMatch DO NOT REMOVE!
 
 }

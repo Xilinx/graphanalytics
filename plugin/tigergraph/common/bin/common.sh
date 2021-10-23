@@ -15,7 +15,6 @@
 # limitations under the License.
 #
 
-set -x 
 SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`
 

@@ -77,175 +77,7 @@ namespace fuzzymatch {
                         std::vector<int>& vec_offset);
     
     };
-    
-   
-    /*
-    
-    int min(int a, int b)
-    {
-        return (a < b ? a : b);
-    }
-    
-    int abs(int a, int b)
-    {
-        return (a < b ? (b - a) : (a - b));
-    }
-    */
-    /*
-    float similarity(std::string str1, std::string str2)
-    {
-        const int n = str1.length();
-        const int m = str2.length();
-        if (n == 0 || m == 0)
-            return 0.0;
-    
-        int maxDistance = (int)(0.1 * min(n, m));
-    
-        if (maxDistance < abs(m, n))
-            return 0.0;
-    
-        std::vector<int> p(n + 1, 0);
-        std::vector<int> d(n + 1, 0);
-    
-        for (int i = 0; i <= n; i++)
-            p[i] = i;
-    
-        for (int j = 1; j <= m; j++)
-        {
-            int bestPossibleEditDistance = m;
-            char t_j = str2.at(j - 1);
-            d[0] = j;
-    
-            for (int i = 1; i <= n; i++)
-            {
-                if (t_j != str1.at(i - 1))
-                    d[i] = min(min(d[i - 1], p[i]), p[i - 1]) + 1;
-                else
-                    d[i] = min(min(d[i - 1] + 1, p[i] + 1), p[i - 1]);
-                bestPossibleEditDistance = min(bestPossibleEditDistance, d[i]);
-            }
-    
-            if (j > maxDistance && bestPossibleEditDistance > maxDistance)
-                return 0.0;
-    
-            std::swap_ranges(p.begin(), p.end(), d.begin());
-        }
-    
-        return (1.0 - ((float)p[n] / (float)min(m, n)));
-    }
-    */
-    
-    /*
-    size_t getMaxDistance(size_t len)
-    {
-        return (len / 10);
-    } */
-    
-    
-    // generate the pattern by group 
-    /*void preSortbyLength(std::vector<std::string>& vec_pattern,
-                         std::vector<std::vector<std::string>>& vec_pattern_grp)
-    {
-        for (std::vector<std::string>::iterator it = vec_pattern.begin(); it != vec_pattern.end(); ++it)
-        {
-            size_t len = it->length();
-            assert(len < max_pattern_len_in_char && "Defined <max_pattern_len_in_char> is not enough!");
-            vec_pattern_grp[len].push_back(*it);
-        }
-    }*/
-    
-    /*
-    int FuzzyMatchSW::initialize(const std::string &fileName)
-    {
-        std::vector<std::string> vec_pattern;
-        // Read Watch List data
-        int nerror = 0;
-        std::cout << "Loading people.csv..." << std::flush;
-        nerror = load_csv(max_validated_pattern, -1U, fileName, 1, vec_pattern);
-        if (nerror)
-        {
-            std::cout << "Failed to load file: people.csv\n";
-            exit(1);
-        }
-        else
-            std::cout << "completed\n";
-    
-        // do pre-sort on pattern LIST
-            preSortbyLength(vec_pattern,this->vec_pattern_grp);
-    
-        return nerror;
-    }
-    */
-    
-    /*
-    bool doFuzzyTask(int thread_id,
-                                            const size_t upper_limit,
-                                            const std::string &pattern,
-                                            const std::vector<std::vector<std::string>> &vec_grp_str)
-    {
-        bool match = false;
-        size_t len = pattern.length();
-        size_t med = getMaxDistance(len);
-        size_t start_len = (len > (upper_limit - 3) && len <= upper_limit) ? (upper_limit + 1) : (len - med);
-        size_t end_len = len + med;
-    
-        for (size_t n = start_len; n <= end_len; n++)
-        {
-            std::vector<std::string> deny_list = vec_grp_str[n];
-            int step = (deny_list.size() + totalThreadNum - 1) / totalThreadNum;
-            int size = size_t(thread_id * step + step) > deny_list.size() ? (deny_list.size() - thread_id * step) : step;
-            for (int i = thread_id * step; i < (thread_id * step + size); i++)
-            {
-                float sim = similarity(pattern, deny_list.at(i));
-                if (sim >= 0.9)
-                {
-                    match = true;
-                    break;
-                }
-            }
-    
-            if (match)
-                break;
-        }
-    
-        return match;
-    } 
-    */
-    
-    /*
-    bool strFuzzy(const size_t upper_limit,
-                                        const std::string &pattern,
-                                        std::vector<std::vector<std::string>> &vec_grp_str)
-    {
-        std::future<bool> worker[100];
-        for (unsigned i = 0; i < totalThreadNum; i++)
-        {
-            worker[i] = std::async(std::launch::async, &doFuzzyTask, i, upper_limit,
-                                    std::ref(pattern), std::ref(vec_grp_str));
-        }
-        bool sw_match = false;
-        for (unsigned i = 0; i < totalThreadNum; i++)
-            sw_match = sw_match || worker[i].get();
-        return sw_match;
-    }
-    */
-    
-    /*
-    bool FuzzyMatchSW::check(const std::string &t)
-    {
-    
-        //auto ts = std::chrono::high_resolution_clock::now();
-        //FMResult r;
-        // check for t against pattern vec
-        bool r = strFuzzy(this->max_fuzzy_len, t, vec_pattern_grp);
-    
-        //auto te = std::chrono::high_resolution_clock::now();
-        //r.timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(te - ts).count() / 1000.0f;
-    
-        return r;
-    }
-    */
-    
+       
     int getRange(const std::string& input, std::vector<int> &vec_base, std::vector<int> &vec_offset, int &base, int &nrow)
     {
         int cnt = 0;
@@ -329,9 +161,7 @@ namespace fuzzymatch {
         ctx = cl::Context(device);
         queue = cl::CommandQueue(ctx, device, CL_QUEUE_PROFILING_ENABLE | CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE);
         std::string devName = device.getInfo<CL_DEVICE_NAME>();
-    #ifdef XVERBOSE
-        std::cout << "INFO: Found Device=" << devName << std::endl;
-    #endif
+        std::cout << "INFO: found device=" << devName << std::endl; 
     
         // Create program with given xclbin file
         cl::Program::Binaries xclBins = xcl::import_binary_file(xclbinPath);
@@ -379,6 +209,7 @@ namespace fuzzymatch {
     
     int FuzzyMatchImpl::fuzzyMatchLoadVec(std::vector<std::string>& vec_pattern)
     {
+        std::cout << "INFO: FuzzyMatchImpl::fuzzyMatchLoadVec vec_pattern size=" << vec_pattern.size() << std::endl;
             // Create device Buffer
         cl_mem_ext_ptr_t mext_i1, mext_i2, mext_o1, mext_o2;
         //cl_mem_ext_ptr_t mext_i3[2], mext_i4[2], mext_o3[2], mext_o4[2];
@@ -401,12 +232,12 @@ namespace fuzzymatch {
         vec_base.resize(40, 0);
         vec_offset.resize(40, 0);
     
-        std::cout << "Pre-sorting..." << std::flush;
+        std::cout << "    Pre-sorting..." << std::flush;
         std::vector<std::vector<std::string>> vec_grp_str(40);
         
         preCalculateOffsetPerPU(vec_grp_str, vec_base, vec_offset);
         int sum_line_num = sum_line;
-        std::cout << "completed\n";
+        std::cout << "    Pre-sort completed" << std::endl;
     
         char *csv_part[PU_NUM];
         for (int i = 0; i < PU_NUM; i++)
@@ -481,22 +312,19 @@ namespace fuzzymatch {
         return 0;
     }
     
-    bool FuzzyMatch::executefuzzyMatch(const std::string& t){ return pImpl_->executefuzzyMatch(t);}
+
+    bool FuzzyMatch::executefuzzyMatch(std::string t) 
+    { 
+        return pImpl_->executefuzzyMatch(t);
+    }
+
     bool FuzzyMatchImpl::executefuzzyMatch(const std::string& t)
     {
-        //uint32_t buf_f_i0[2][9]; // {<Persona1>, <Bank1>}
-        //uint32_t buf_f_i1[2][9]; // {<Persona2>, <Bank2>}
         uint32_t buf_f_i0[9];
         uint32_t buf_f_o0 = 0;
         uint32_t buf_f_o1 = 1;
-        // uint32_t buf_f_o0[2] = {0, 0};
-        // uint32_t buf_f_o1[2] = {0, 0};
-        // uint32_t buf_f_o2[2] = {0, 0};
-        // uint32_t buf_f_o3[2] = {0, 0};
     
         std::string name_list[4] = {"nombrePersona1", "nombrePersona2", "bank1", "bank2"};
-        //std::string vec_str1[4] = {t.nombrePersona1, t.nombrePersona2, t.bank1, t.bank2};
-    
     
         //for (int i = 0; i < 4; i++)
         //{
@@ -549,12 +377,6 @@ namespace fuzzymatch {
                 //getRange(t, vec_base[i / 2], vec_offset[i / 2], base_trans[i], nrow_trans[i]);
                 getRange(t, vec_base, vec_offset, base_trans, nrow_trans);
         //}
-        //base_trans[2] += sum_line[0] * 3;
-        //base_trans[3] += sum_line[0] * 3;
-        // std::cout << "i:" << t.id << " " << skip_field[0] << " " << skip_field[1] << " " << skip_field[2] << " "
-        //          << skip_field[3] << " | " << sw_fuzzy_result[0] << " " << sw_fuzzy_result[1] << " " <<
-        //          sw_fuzzy_result[2]
-        //          << " " << sw_fuzzy_result[3] << std::endl;
     
         int dup = (boost == 0) ? 2 : 4;
     
@@ -621,26 +443,9 @@ namespace fuzzymatch {
         queue.flush();
         queue.finish();
     
-        //bool sw_equal, sw_contain;
-        //sw_equal = strEqual(t.swiftCode1, t.swiftCode2);
-        //sw_contain = strContain(t.transactionDescription);
-    
         bool r=false;
-        //vector<bool> r(4, false);
-        //r.id = t.id;
-        //r.isMatch = 0;
-        // r.matchField.resize(4);
-        //for (int i = 0; i < 4; i++) r[i] = false;
-    
-        //if (sw_contain) r.matchField[0] = 1;                                                 // description
-        //if (sw_equal) r.matchField[1] = 1;                                                   // swiftcode
         if(sw_fuzzy_result || buf_f_o0 == 1 || buf_f_o1 == 1) r = true; // person1
-    
-        //if (sw_contain || sw_equal || buf_f_o0[0] == 1 || buf_f_o1[0] == 1 || buf_f_o0[1] == 1 || buf_f_o1[1] == 1 ||
-        //    buf_f_o2[0] == 1 || buf_f_o3[0] == 1 || buf_f_o2[1] == 1 || buf_f_o3[1] == 1 || sw_fuzzy_result[0] ||
-        //    sw_fuzzy_result[1] || sw_fuzzy_result[2] || sw_fuzzy_result[3])
-        //    r.isMatch = 1;
-    
+       
         return r;
     }
        
