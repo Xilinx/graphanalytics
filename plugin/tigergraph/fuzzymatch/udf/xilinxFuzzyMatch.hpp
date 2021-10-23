@@ -23,6 +23,7 @@
 #include "xilinxFuzzyMatchImpl.hpp"
 #include <cstdint>
 #include <vector>
+#include <chrono>
 // mergeHeaders 1 section include end xilinxFuzzyMatch DO NOT REMOVE!
 
 namespace UDIMPL {
@@ -40,7 +41,7 @@ inline int udf_xilinx_fuzzymatch_set_node_id(uint nodeId)
 }
 
 // Return value:
-//    0: Success
+//    Positive number: Match execution time in ms
 //   -1: Failed to initialize Alveo device
 //   
 inline int udf_fuzzymatch_alveo(ListAccum<string> sourceList, ListAccum<string> targetList) 
@@ -52,6 +53,7 @@ inline int udf_fuzzymatch_alveo(ListAccum<string> sourceList, ListAccum<string> 
     xilFuzzyMatch::Context *pContext = xilFuzzyMatch::Context::getInstance();
     xilinx_apps::fuzzymatch::FuzzyMatch *pFuzzyMatch = pContext->getFuzzyMatchObj();
     bool match_result;
+    int execTime;
 
     if (pFuzzyMatch->startFuzzyMatch() < 0) {
         std::cout << "ERROR: Failed to initialize Alveo device" << std::endl;
@@ -65,6 +67,8 @@ inline int udf_fuzzymatch_alveo(ListAccum<string> sourceList, ListAccum<string> 
     std::cout << "sourceVector size=" << sourceVector.size() << std::endl;
     pFuzzyMatch->fuzzyMatchLoadVec(sourceVector);
 
+    // only measure match time
+    auto ts = std::chrono::high_resolution_clock::now();
     uint32_t targetListLen = targetList.size();
     for (unsigned i = 0 ; i < targetListLen; ++i) {       
         // TigerGraph uses gcc 4.8.5 while latest Linux has newer gcc (e.g. 9.3 
@@ -76,8 +80,11 @@ inline int udf_fuzzymatch_alveo(ListAccum<string> sourceList, ListAccum<string> 
         //std::cout << i << "," << targetList.get(i) << "," << (match_result ? "KO" : "OK") << ","
         //          << (match_result ? ":Sender" : "") << std::endl;
     }
+    auto te = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> l_durationSec = te - ts;
+    execTime = l_durationSec.count() * 1e3;
 
-    return 0;
+    return execTime;
 }
 
 // mergeHeaders 1 section body end xilinxFuzzyMatch DO NOT REMOVE!
