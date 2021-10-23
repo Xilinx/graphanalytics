@@ -15,6 +15,9 @@
 
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3
 blacklist=$(CURDIR)/data/people1k.csv
+blacklistCSV=$(abspath $(blacklist))
+txdata=$(CURDIR)/data/txdata.csv
+txdataCSV=$(abspath $(txdata))
 graphName=swift_$(USER)
 
 compileMode=1
@@ -69,7 +72,7 @@ run: .install-udf-done
 	@echo "-------------------------------------------------------"
 	cd ../../ && make DEBUG=$(DEBUG) stage && \
 	    ./staging/examples/$(EXAMPLE)/bin/run.sh -v \
-	    -g $(graphName) -b $(blacklist) \
+	    -g $(graphName) -b $(blacklistCSV) -t $(txdataCSV) \
 		-c $(compileMode) -r $(runMode) 
 
 help:
@@ -82,20 +85,20 @@ help:
 	@echo ""
 	@echo ""
 	@echo "Parameter descriptions:"
-	@echo "deviceNames       : Target device name. Supported devices: "
-	@echo "                    xilinx_u50_gen3x16_xdma_201920_3"
-    @echo "blacklist         : A csv file with people on the blacklist. default=../data/people1k.csv"
-	@echo "txSource          : A csv file with transactions records. default=../data/txdata.csv"
-	@echo "graphName         : graph name (default=social_<username>"
-	@echo "compileMode       : 0: skip database creation and gsql compilation"
-	@echo "                    1: recreate database and compile all (default)"
-	@echo "                    2: only compile query gsql"
-	@echo "runMode           : 0: Skip both CPU and Alveo run"
-	@echo "                    1: Run only on CPU"
-	@echo "                    2: Run only on Alveo (default)"
-	@echo "                    3: Run on both CPU and Alveo"
+	@echo "deviceNames : Target device name. Supported devices: "
+	@echo "              xilinx_u50_gen3x16_xdma_201920_3"
+	@echo "blacklist   : A csv file with people on the blacklist. default=../data/people1k.csv"
+	@echo "txdata      : A csv file with transactions records. default=../data/txdata.csv"
+	@echo "graphName   : graph name (default=swift_<username>"
+	@echo "compileMode : 0: skip database creation and gsql compilation"
+	@echo "              1: recreate database and compile all (default)"
+	@echo "              2: only compile query gsql"
+	@echo "runMode     : 0: Skip both CPU and Alveo run"
+	@echo "              1: Run only on CPU"
+	@echo "              2: Run only on Alveo (default)"
+	@echo "              3: Run on both CPU and Alveo"
 	@echo ""
-	@echo "sshKey            : SSH key for user tigergraph"	
+	@echo "sshKey      : SSH key for user tigergraph"	
 	@echo ""
 
 clean:

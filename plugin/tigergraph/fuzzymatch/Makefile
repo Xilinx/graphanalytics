@@ -42,7 +42,7 @@ STAGE_COPY_FILES = \
     $(EXAMPLE_DIR)/udf/swiftAmlDemoImpl.hpp \
 	$(EXAMPLE_DIR)/query/base.gsql \
     $(EXAMPLE_DIR)/query/load.gsql \
-    $(EXAMPLE_DIR)/query/fuzzy_match.gsql \
+    $(EXAMPLE_DIR)/query/fuzzymatch.gsql \
     $(EXAMPLE_DIR)/query/schema.gsql \
     \
     $(EXAMPLE_DIR)/bin/run.sh \
