@@ -90,8 +90,8 @@ inline bool udf_fuzzymatch_cpu(ListAccum<string> sourceList, ListAccum<string> t
     for (unsigned i = 0 ; i < targetListLen; ++i) {
         //std::cout << "targetList " << i << "=" << targetList.get(i) << std::endl;
         check_result = cpu_checker.check(targetList.get(i));
-        std::cout << i << "," << targetList.get(i) << "," << (check_result ? "KO" : "OK") << ","
-                  << (check_result ? ":Sender" : "") << std::endl;
+        //std::cout << i << "," << targetList.get(i) << "," << (check_result ? "KO" : "OK") << ","
+        //          << (check_result ? ":Sender" : "") << std::endl;
     }
 
     return true;

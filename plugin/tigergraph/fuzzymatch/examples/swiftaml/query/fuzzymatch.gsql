@@ -47,7 +47,9 @@ CREATE QUERY fuzzymatch_cpu( ) for graph @graph
     print vm_peak/1000000.0 as PeakVirtualMemoryInGB;
     print vm_hwm/1000000.0 as PeakResidentMemoryInGB;
     print udf_time as ExecTimeInMs;
-
+    print @@blacklistAccum.size() as BlacklistSize;
+    print @@txPersonsAccum.size() as TargetPersonsSize;
+    print udf_time/@@txPersonsAccum.size() as AvergeTimePerPersonInMs;
 }
 
 
@@ -78,9 +80,9 @@ CREATE QUERY fuzzymatch_alveo( ) for graph @graph
     print vm_peak/1000000.0 as PeakVirtualMemoryInGB;
     print vm_hwm/1000000.0 as PeakResidentMemoryInGB;
     print udf_time as ExecTimeInMs;
-
-
-    
+    print @@blacklistAccum.size() as BlacklistSize;
+    print @@txPersonsAccum.size() as TargetPersonsSize;
+    print udf_time/@@txPersonsAccum.size() as AvergeTimePerPersonInMs;   
 }
 
 

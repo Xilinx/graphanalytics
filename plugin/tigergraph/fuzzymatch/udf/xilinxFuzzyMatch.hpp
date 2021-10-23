@@ -73,8 +73,8 @@ inline int udf_fuzzymatch_alveo(ListAccum<string> sourceList, ListAccum<string> 
         // in https://stackoverflow.com/questions/33394934/converting-std-cxx11string-to-stdstring
         // is added to Xilinx standalone library Makefile: -D_GLIBCXX_USE_CXX11_ABI=0
         match_result = pFuzzyMatch->executefuzzyMatch(targetList.get(i));
-        std::cout << i << "," << targetList.get(i) << "," << (match_result ? "KO" : "OK") << ","
-                  << (match_result ? ":Sender" : "") << std::endl;
+        //std::cout << i << "," << targetList.get(i) << "," << (match_result ? "KO" : "OK") << ","
+        //          << (match_result ? ":Sender" : "") << std::endl;
     }
 
     return 0;

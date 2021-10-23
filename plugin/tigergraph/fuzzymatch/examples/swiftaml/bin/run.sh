@@ -53,9 +53,9 @@ if [ "$compile_mode" -eq 1 ]; then
 
     echo "-------------------------------------------------------------------------"
     echo "Loading $files"
-    echo "gsql -u $username -p $password -g $xgraph \"run loading job load_job USING blacklist_csv = \"$blacklist\", transaction_csv = \"$txSource\""
+    echo "gsql -u $username -p $password -g $xgraph \"run loading job load_job USING blacklist_csv = \"$blacklist\", transaction_csv = \"$txdata\""
     echo "-------------------------------------------------------------------------"
-    gsql -u $username -p $password -g $xgraph "run loading job load_job USING blacklist_csv = \"$blacklist\", transaction_csv = \"$txSource\""
+    gsql -u $username -p $password -g $xgraph "run loading job load_job USING blacklist_csv = \"$blacklist\", transaction_csv = \"$txdata\""
 
     echo "-------------------------------------------------------------------------"
     echo "Install base queries"
@@ -71,9 +71,9 @@ fi
 if [ "$compile_mode" -eq 1 ] || [ "$compile_mode" -eq 2 ]; then
     echo "-------------------------------------------------------------------------"
     echo "Installing Fuzzy Match CPU and FPGA queries"
-    echo "gsql -u $username -p $password -g $xgraph \"\$(cat $script_dir/../query/fuzzy_match.gsql | sed \"s/@graph/$xgraph/\")\""
+    echo "gsql -u $username -p $password -g $xgraph \"\$(cat $script_dir/../query/fuzzymatch.gsql | sed \"s/@graph/$xgraph/\")\""
     echo "-------------------------------------------------------------------------"
-    gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/fuzzy_match.gsql | sed "s/@graph/$xgraph/")"
+    gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/fuzzymatch.gsql | sed "s/@graph/$xgraph/")"
 
     # IMPORTANT: DO NOT USE A NETWORK DRIVE FOR LOG FILES IN DISTRIBUTED QUERIES.
     # OTHERWISE EACH NODE WILL OVERWRITE IT
