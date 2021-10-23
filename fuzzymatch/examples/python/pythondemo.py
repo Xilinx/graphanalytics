@@ -58,14 +58,19 @@ stats=pd.read_csv(test_input, delimiter=',',names = ['Id','Company,Channel','Ope
 
 peopleVecs=pd.read_csv(peopleFile, delimiter=',',names = ['Id','Name'])
 
+totalEntities = 10000000
+
 stats=stats.iloc[1:]
 peopleVecs=peopleVecs.iloc[1:]
 peopleVec=peopleVecs[['Name']]
+#print(peopleVec)
 data_vec=stats[['NombrePersona1','NombrePersona2']]
 
 inputVec=[]
-for ele in peopleVec:
-    inputVec.append(ele)
+print(len(peopleVec['Name']))
+for idx in range(1,len(peopleVec['Name'])):
+    #print(peopleVec['Name'][idx])
+    inputVec.append(peopleVec['Name'][idx])
 
 #peopleFile
 opt = xfm.options()
@@ -79,10 +84,6 @@ test_transaction=[]
 
 
 for idx in range (trans_num):
-    #each_transaction=[]
-    #each_transaction.append(data_vec['NombrePersona1'][idx])
-    #each_transaction.append(data_vec['NombrePersona2'][idx])
-    #test_transaction.append(each_transaction)
     test_transaction.append(data_vec['NombrePersona1'][idx])
     #test_transaction.append(data_vec['NombrePersona2'][idx])
 

@@ -72,11 +72,10 @@ inline int64_t udf_peak_memory_usage(double& VmPeak, double& VmHWM)
 inline bool udf_fuzzymatch_cpu(ListAccum<string> sourceList, ListAccum<string> targetList) 
 {
 
-    std::cout << "INFO: udf_fuzzymatch_cpu " << std::endl;
+    std::cout << "INFO: udf_fuzzymatch_cpu sourceList size=" << sourceList.size() 
+              << " targetList size=" << targetList.size() << std::endl;
 
     std::vector<std::string> sourceVector;
-    //xilFuzzyMatch::Context *pContext = xilFuzzyMatch::Context::getInstance();
-    //xilinx_apps::fuzzymatch::FuzzyMatch *pFuzzyMatch = pContext->getFuzzyMatchObj();
     xilinx_apps::fuzzymatch::FuzzyMatchSW cpu_checker;
     bool check_result;
 

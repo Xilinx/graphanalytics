@@ -94,9 +94,9 @@ CXXFLAGS += -O3 -DNDEBUG
 #CXXFLAGS += -O3 -g
 endif
 
-USE_U55C = 0
-ifeq ($(USE_U55C),1)
-    CXXFLAGS += -D USE_U55C
+USE_F1 = 0
+ifeq ($(USE_F1),1)
+    CXXFLAGS += -D USE_F1
 endif
 
 ## Target: libFuzzyMatch.so
@@ -212,10 +212,19 @@ L2_BUILD_DIR_U50 = $(L2_TOP_DIR_U50)/build_dir.hw.$(L2_XDEVICE_U50)
 XCLBIN_NAME_U50 = fuzzy_xilinx_u50_gen3x16_xdma_201920_3.xclbin 
 XCLBIN_FILE_U50 = $(L2_BUILD_DIR_U50)/$(XCLBIN_NAME_U50)
 XCLBIN_INSTALLED_NAME_U50 = $(XCLBIN_NAME_U50)
-XCLBIN_INSTALLED_U50 =/opt/xilinx/apps/graphanalytics/louvainmod/1.0/xclbin/$(XCLBIN_INSTALLED_NAME_U50)
+XCLBIN_INSTALLED_U50 =/opt/xilinx/apps/graphanalytics/fuzzymatch/1.0/xclbin/$(XCLBIN_INSTALLED_NAME_U50)
 
 XCLBIN_BUILD_DIR=$(L2_TOP_DIR_U50)
 
+
+# F1 XCLBIN 
+L2_TOP_DIR_F1 = $(GRAPH_ANALYTICS_DIR)/L2/fuzzy_kernel
+L2_XDEVICE_F1 = xilinx_aws-vu9p-f1_shell-v04261818_201920_2
+L2_BUILD_DIR_F1 = $(L2_TOP_DIR_F1)/build_dir.hw.$(L2_XDEVICE_F1)
+XCLBIN_NAME_F1 = fuzzy_xilinx_aws-vu9p-f1_shell-v04261818_201920_2.awsxclbin
+XCLBIN_FILE_F1 = $(L2_BUILD_DIR_F1)/$(XCLBIN_NAME_F1)
+XCLBIN_INSTALLED_NAME_F1 = $(XCLBIN_NAME_F1)
+XCLBIN_INSTALLED_F1 =/opt/xilinx/apps/graphanalytics/fuzzymatch/1.0/xclbin/$(XCLBIN_INSTALLED_NAME_F1)
 
 .PHONY: xclbin
 #todo migrate kernel src files from aml design 
@@ -237,7 +246,17 @@ $(XCLBIN_FILE_U50):
 	    false; \
 	fi
 
-
+$(XCLBIN_FILE_F1):
+	@if [ -r $(XCLBIN_INSTALLED_F1) ]; then \
+	    echo "INFO: The XCLBIN file $(XCLBIN_FILE_F1) is missing.  Copying from installed area."; \
+	    cp -r $(XCLBIN_INSTALLED_F1) $@; \
+	else \
+	    echo "ERROR: The XCLBIN file $(XCLBIN_FILE_F1) is missing."; \
+	    echo "Because building an XCLBIN file can be an all-day proposition, you have two choices for completing this build:"; \
+	    echo "1. Copy a pre-built XCLBIN to the target location above.  (Recommended for developers)"; \
+	    echo "2. Do 'make xclbin' and go for a very long coffee break.  (Recommended for build automation)"; \
+	    false; \
+	fi
 #######################################################################################################################
 #
 # python API wrapper
@@ -473,8 +492,13 @@ $(STAGE_STAGED_EXAMPLE_FILES):
 # XCLBIN file
 STAGE_XCLBIN_NAME_U50 = $(XCLBIN_INSTALLED_NAME_U50)
 STAGE_XCLBIN_FILE_U50 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U50)
+STAGE_XCLBIN_NAME_F1 = $(XCLBIN_INSTALLED_NAME_F1)
+STAGE_XCLBIN_FILE_F1 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_F1)
 
 $(STAGE_XCLBIN_FILE_U50): $(XCLBIN_FILE_U50)
+	cp -f $^ $@
+
+$(STAGE_XCLBIN_FILE_F1): $(XCLBIN_FILE_F1)
 	cp -f $^ $@
 
 STAGE_XILINX_APPS_COMMON = $(STAGE_DIR)/include/xilinx_apps_common.hpp
@@ -490,6 +514,7 @@ STAGE_ALL_FILES = \
     $(addprefix $(STAGE_DIR)/,$(STAGE_COPY_FILES)) \
     $(addprefix $(STAGE_DIR)/lib/,$(STAGE_LIB_FILES)) \
     $(STAGE_XCLBIN_FILE_U50) \
+	$(STAGE_XCLBIN_FILE_F1) \
     $(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP) \
 	$(STAGE_XILINX_APPS_COMMON) \
 

@@ -15,7 +15,6 @@
 
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3
 blacklist=$(CURDIR)/data/people1k.csv
-blacklist_abs=$(abspath $(blacklist))
 graphName=swift_$(USER)
 
 compileMode=1
@@ -70,7 +69,7 @@ run: .install-udf-done
 	@echo "-------------------------------------------------------"
 	cd ../../ && make DEBUG=$(DEBUG) stage && \
 	    ./staging/examples/$(EXAMPLE)/bin/run.sh -v \
-	    -g $(graphName) -b $(blacklist_abs) \
+	    -g $(graphName) -b $(blacklist) \
 		-c $(compileMode) -r $(runMode) 
 
 help:
@@ -85,7 +84,7 @@ help:
 	@echo "Parameter descriptions:"
 	@echo "deviceNames       : Target device name. Supported devices: "
 	@echo "                    xilinx_u50_gen3x16_xdma_201920_3"
-	@echo "blacklist         : A csv file with people on the blacklist. default=../data/people1k.csv"
+    @echo "blacklist         : A csv file with people on the blacklist. default=../data/people1k.csv"
 	@echo "txSource          : A csv file with transactions records. default=../data/txdata.csv"
 	@echo "graphName         : graph name (default=social_<username>"
 	@echo "compileMode       : 0: skip database creation and gsql compilation"
