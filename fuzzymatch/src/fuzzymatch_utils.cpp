@@ -262,21 +262,18 @@ namespace fuzzymatch {
             std::cout << "completed\n";
     
         // do pre-sort on pattern LIST
-        preSortbyLength(vec_pattern, this->vec_pattern_grp);
+        preSortbyLength(vec_pattern,this->vec_pattern_grp);
     
         return nerror;
     }
-    
+
     XILINX_FUZZYMATCH_IMPL_DECL   
     int FuzzyMatchSW::initialize(std::vector<std::string>& vec_pattern)
     {
-        std::cout << "DEBUG: FuzzyMatchSW::initialize vec_pattern size=" << vec_pattern.size() << std::endl;
-        // do pre-sort on pattern LIST
-        preSortbyLength(vec_pattern, this->vec_pattern_grp);
-    
+        preSortbyLength(vec_pattern,this->vec_pattern_grp);  
         return 0;
-    }
-
+    }    
+    
     XILINX_FUZZYMATCH_IMPL_DECL   
     bool FuzzyMatchSW::check(const std::string &t)
     {

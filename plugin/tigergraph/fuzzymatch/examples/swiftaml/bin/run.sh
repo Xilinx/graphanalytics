@@ -52,7 +52,7 @@ if [ "$compile_mode" -eq 1 ]; then
     gsql -u $username -p $password "$(cat $script_dir/../query/load.gsql | sed "s/@graph/$xgraph/")"
 
     echo "-------------------------------------------------------------------------"
-    echo "Loading $blacklist"
+    echo "Loading $files"
     echo "gsql -u $username -p $password -g $xgraph \"run loading job load_job USING blacklist_csv = \"$blacklist\", transaction_csv = \"$txSource\""
     echo "-------------------------------------------------------------------------"
     gsql -u $username -p $password -g $xgraph "run loading job load_job USING blacklist_csv = \"$blacklist\", transaction_csv = \"$txSource\""
