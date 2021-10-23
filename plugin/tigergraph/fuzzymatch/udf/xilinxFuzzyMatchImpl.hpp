@@ -178,14 +178,16 @@ public:
         
         if (pFuzzyMatch_ == nullptr) {
             xilinx_apps::fuzzymatch::Options options;
+            options.xclbinPath = xclbinPath_;
+            options.deviceNames = deviceNames_;
 
 #ifdef XILINX_FUZZYMATCH_DEBUG_ON
-            std::cout << "DEBUG: louvainmod options:"
+            std::cout << "DEBUG: fuzzymatch options:"
                     << "\n    xclbinPath=" << options.xclbinPath
                     << "\n    deviceNames=" << options.deviceNames
                     << std::endl;
 #endif
-            pFuzzyMatch_= new xilinx_apps::fuzzymatch::FuzzyMatch(options);
+            pFuzzyMatch_ = new xilinx_apps::fuzzymatch::FuzzyMatch(options);
         }
         
         return pFuzzyMatch_;

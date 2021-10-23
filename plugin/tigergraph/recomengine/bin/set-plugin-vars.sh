@@ -59,7 +59,7 @@ pluginMainUdf=udf/xilinxRecomEngine.hpp
 
 # List of header files to copy from the Alveo Product into the TigerGraph application area
 # and UDF compilation area.  The paths are relative to $pluginAlveoProductPath.
-pluginAlveoProductHeaders="include/cosinesim.hpp src/cosinesim_loader.cpp"
+pluginAlveoProductHeaders="include/cosinesim.hpp include/xilinx_apps_common.hpp src/cosinesim_loader.cpp"
 
 # List of header files to copy from the plugin into the TigerGraph application area
 # and UDF compilation area.  The paths are relative to the plugin top directory
