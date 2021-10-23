@@ -69,32 +69,36 @@ inline int64_t udf_peak_memory_usage(double& VmPeak, double& VmHWM)
     return 0L;
 }
 
-inline bool udf_fuzzymatch_cpu(ListAccum<string> sourceList, ListAccum<string> targetList) 
+inline int udf_fuzzymatch_cpu(ListAccum<string> sourceList, ListAccum<string> targetList) 
 {
 
     std::cout << "INFO: udf_fuzzymatch_cpu sourceList size=" << sourceList.size() 
               << " targetList size=" << targetList.size() << std::endl;
 
     std::vector<std::string> sourceVector;
-    xilinx_apps::fuzzymatch::FuzzyMatchSW cpu_checker;
-    bool check_result;
+    xilinx_apps::fuzzymatch::FuzzyMatchSW cpuChecker;
+    bool checkResult;
+    int execTime;
 
     uint32_t sourceListLen = sourceList.size();
     for (unsigned i = 0 ; i < sourceListLen; ++i)
         sourceVector.push_back(sourceList.get(i));
 
     std::cout << "sourceVector size=" << sourceVector.size() << std::endl;
-    cpu_checker.initialize(sourceVector);
+    cpuChecker.initialize(sourceVector);
 
+    // only measure match time
+    udf_reset_timer(true);
     uint32_t targetListLen = targetList.size();
     for (unsigned i = 0 ; i < targetListLen; ++i) {
         //std::cout << "targetList " << i << "=" << targetList.get(i) << std::endl;
-        check_result = cpu_checker.check(targetList.get(i));
+        checkResult = cpuChecker.check(targetList.get(i));
         //std::cout << i << "," << targetList.get(i) << "," << (check_result ? "KO" : "OK") << ","
         //          << (check_result ? ":Sender" : "") << std::endl;
     }
+    execTime = udf_elapsed_time(true);
 
-    return true;
+    return execTime;
 }
 
 // mergeHeaders 1 section body end swiftAmlDemo DO NOT REMOVE!
