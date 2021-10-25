@@ -103,6 +103,11 @@ struct ParLVVar{
 	int   th_prun;
 };
 
+struct bfs_selected{
+    int par_idx;// idx of the partition
+    int renum_in_par;// the new number index in the partition
+};
+
 class ParLV{
 public:
 	bool st_Partitioned;
@@ -145,6 +150,9 @@ public:
     long  NV_list_g;
     bool  isPrun;
 	int   th_prun;
+    bool use_bfs;
+    bfs_selected* bfs_adjacent;
+    int flowMode;
 	///////////////////////////////////
 	int num_server;// default '1' means using concentration partition
 	int numServerCard[MAX_SERVER];
@@ -243,6 +251,16 @@ int SaveGLVBin(char* name, GLV* glv);
 double getTime();
 
 int xai_save_partition(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
+		long  start_vertex,     // If a vertex is smaller than star_vertex, it is a ghost
+		long  end_vertex,	    // If a vertex is larger than star_vertex-1, it is a ghost
+		char* path_prefix,      // For saving the partition files like <path_prefix>_xxx.par
+							    // Different server can have different path_prefix
+		int par_prune,          // Can always be set with value '1'
+		long NV_par_recommand,  // Allow to partition small graphs not bigger than FPGA limitation
+		long NV_par_max		    //  64*1000*1000;
+		);
+
+int xai_save_partition_bfs(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
 		long  start_vertex,     // If a vertex is smaller than star_vertex, it is a ghost
 		long  end_vertex,	    // If a vertex is larger than star_vertex-1, it is a ghost
 		char* path_prefix,      // For saving the partition files like <path_prefix>_xxx.par

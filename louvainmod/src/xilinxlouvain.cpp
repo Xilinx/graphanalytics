@@ -208,7 +208,19 @@ public:
              std::cout << "INFO: NV_par_requested is set to " << NV_par_requested << std::endl;           
         }
 
-        int numPartitionsCreated = xai_save_partition(
+        // int numPartitionsCreated = xai_save_partition(
+        //     const_cast<long *>(partitionData.offsets_tg),
+        //     const_cast<Edge *>(partitionData.edgelist_tg),
+        //     const_cast<long *>(partitionData.drglist_tg),
+        //     partitionData.start_vertex,
+        //     partitionData.end_vertex,
+        //     pathName_proj_svr,    // num_server==1? <dir>/louvain_partitions_ : louvain_partitions_svr<num_server>
+        //     partOpts_.par_prune,  // always be '1'
+        //     NV_par_requested,     // Allow to partition small graphs not bigger than FPGA limitation
+        //     NV_par_max
+        // );
+
+        int numPartitionsCreated = xai_save_partition_bfs(
             const_cast<long *>(partitionData.offsets_tg),
             const_cast<Edge *>(partitionData.edgelist_tg),
             const_cast<long *>(partitionData.drglist_tg),
