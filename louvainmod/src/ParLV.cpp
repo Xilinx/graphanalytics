@@ -988,6 +988,10 @@ int host_ParserParameters(int argc,
         mode_alveo = ALVEOAPI_PARTITION;
         int indx = general_findPara(argc, argv, "-name");
         if (argc > indx && indx != -1) strcpy(nameProj, argv[indx + 1]);
+    } else if (general_findPara(argc, argv, "-create_alveo_LBW_partitions") != -1) {
+        mode_alveo = ALVEOAPI_PARTITION_LBW;
+        int indx = general_findPara(argc, argv, "-name");
+        if (argc > indx && indx != -1) strcpy(nameProj, argv[indx + 1]);
     } else if (general_findPara(argc, argv, "-load_alveo_partitions") != -1) {
         int indx = general_findPara(argc, argv, "-load_alveo_partitions") + 1;
         mode_alveo = ALVEOAPI_LOAD;
