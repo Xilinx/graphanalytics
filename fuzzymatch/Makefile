@@ -155,7 +155,7 @@ $(CPP_BUILD_DIR):
 
 # .so
 
-LIB_DEPS = -L$(XILINX_XRT)/lib -lOpenCL -lpthread -lrt -Wno-unused-label -Wno-narrowing -DVERBOSE -L$(XILINX_XRM)/lib -lxrm
+LIB_DEPS = -L$(XILINX_XRT)/lib -lOpenCL -lpthread -lrt -Wno-unused-label -Wno-narrowing -DVERBOSE -L$(XILINX_XRM)/lib 
 
 ifeq ($(MEMALLOC),tcmalloc)
     LIB_DEPS += -ltcmalloc
