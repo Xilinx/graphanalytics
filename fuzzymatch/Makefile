@@ -463,7 +463,8 @@ $(foreach f,$(STAGE_LIB_FILES),$(eval $(call STAGE_LIB_RULE,$(f))))
 #STAGE_EXAMPLE_ZIP = examples.zip
 STAGE_EXAMPLE_FILE_NAMES = \
 	cpp/fuzzymatch_test.cpp cpp/Makefile cpp/README.md \
-	data/people.zip data/README.md data/txdata.csv
+	data/people.zip data/README.md data/txdata.csv \
+	python/pythondemo.py python/run.sh
 
 STAGE_EXAMPLE_FILES = $(addprefix examples/,$(STAGE_EXAMPLE_FILE_NAMES))
 STAGE_STAGED_EXAMPLE_FILES = $(addprefix $(STAGE_DIR)/,$(STAGE_EXAMPLE_FILES))
