@@ -36,6 +36,7 @@ struct ToolOptions {
     int nodeId;
     int numThreads;
     int numPars;
+    //bool LBW_partition; // use bfs partition mothed to get low-bandwidth subgraph
     int gh_par;  // same as par_prune
     int kernelMode;
     int numDevices;

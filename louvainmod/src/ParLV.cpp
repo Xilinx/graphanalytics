@@ -939,6 +939,7 @@ int host_ParserParameters(int argc,
                           std::string& deviceNames,    // Target device names
                           int& numThread,
                           int& numPars,
+                          //bool& LBW_partition,
                           int& gh_par,
                           int& kernelMode,
                           int& numDevices,
@@ -986,10 +987,12 @@ int host_ParserParameters(int argc,
 
     if (general_findPara(argc, argv, "-create_alveo_partitions") != -1) {
         mode_alveo = ALVEOAPI_PARTITION;
+        //LBW_partition = false;
         int indx = general_findPara(argc, argv, "-name");
         if (argc > indx && indx != -1) strcpy(nameProj, argv[indx + 1]);
     } else if (general_findPara(argc, argv, "-create_alveo_LBW_partitions") != -1) {
         mode_alveo = ALVEOAPI_PARTITION_LBW;
+        //LBW_partition = true;
         int indx = general_findPara(argc, argv, "-name");
         if (argc > indx && indx != -1) strcpy(nameProj, argv[indx + 1]);
     } else if (general_findPara(argc, argv, "-load_alveo_partitions") != -1) {
@@ -3576,6 +3579,7 @@ void BFS_par_general_4TG(
         long* offsets_tg, 
         edge* edgelist_tg, 
         long* drglist_tg, 
+        char* path_prefix,
         //no use new
         long start_parInGlb, // Start vertex for each partition
         long stride_par,     // Total local vertex. Number of ghost vertex is not available until partition finish
@@ -3670,9 +3674,12 @@ void BFS_par_general_4TG(
     //     printf(" v= %d, par= %d, renum= %d\n", v, bfs_adjacent[v].par_idx, bfs_adjacent[v].renum_in_par);
     //save adjacent
 
-    char fullName[125]="_proj.bfs.adj";
+    char tailName[125]="_proj.bfs.adj";
+    char pathName[1024];
+    strcpy(pathName, path_prefix);
+    strcat(pathName, tailName);
     //sprintf(fullName, "_proj.bfs.adj\0", wfileName.c_str());
-    string fn = fullName;
+    string fn = pathName;
     FILE* f = fopen(fn.c_str(), "wb");
     std::cout << "WARNING: " << fn << " will be opened for binary write." << std::endl;
     if (!f) {
@@ -3740,6 +3747,7 @@ int xai_save_partition_bfs(
 				offsets_tg,
 				edgelist_tg,
 				drglist_tg,
+                path_prefix,
 				//Partition parameters
 				start_vertext_par,    // Start vertex for each partition
 				NV_par,               // Total local vertex. Number of ghost vertex is not available until partition finish
@@ -3906,7 +3914,11 @@ int Parser_ParProjFile(std::string projFile, ParLV& parlv, char* path, char* nam
         return -1;
     }
 
-    if (strcmp("-create_alveo_partitions", ps.argv[0]) != 0) {
+    if (strcmp("-create_alveo_partitions", ps.argv[0]) == 0 && (strcmp("-create_alveo_LBW_partitions", ps.argv[0]) != 0) ) {
+        parlv.use_bfs = true;
+    }else if (strcmp("-create_alveo_partitions", ps.argv[0]) != 0 && (strcmp("-create_alveo_LBW_partitions", ps.argv[0]) == 0) ) {
+        parlv.use_bfs = false;
+    }else{
         printf("\033[1;31;40mERROR\033[0m: MessageParser_D2W: Unknow head%s. -create_alveo_partitions is required\n",
                ps.argv[0]);
         free(fdata);
@@ -3947,7 +3959,7 @@ int Parser_ParProjFile(std::string projFile, ParLV& parlv, char* path, char* nam
     char namePath_tmp[1024];
     sprintf(namePath_tmp, "%s/%s.par.parlv", path, name);
 #ifndef NDEBUG
-    printf("DEBUG: start LoadParLV\n");
+    printf("DEBUG: start LoadParLV, use_bfs=%d\n", parlv.use_bfs);
 #endif
     if (LoadParLV(namePath_tmp, &parlv) < 0)
         return -2;
