@@ -52,11 +52,14 @@ ifeq ($(wildcard $(LIB_PATH)/*.so),)
     INCLUDE_PATH = $(XILINX_FUZZYMATCH)/${PRODUCT_VER}/include
 endif
 
-CXXFLAGS = -std=c++11 -fPIC -pthread -I$(INCLUDE_PATH) -Wall -Wextra -Wno-unknown-pragmas -Wno-unused-label \
+CXXFLAGS = -std=c++11 -D_GLIBCXX_USE_CXX11_ABI=0 -fPIC -pthread -I$(INCLUDE_PATH) -Wall -Wextra -Wno-unknown-pragmas -Wno-unused-label \
     -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers -Wno-deprecated-declarations
 
-#deviceNames ?= xilinx_u50_gen3x16_xdma_201920_3
-deviceNames ?= xilinx_aws-vu9p-f1_shell-v04261818_201920_2
+ifdef U50
+    deviceNames ?= xilinx_u50_gen3x16_xdma_201920_3
+else
+    deviceNames ?= xilinx_aws-vu9p-f1_dynamic_5_0
+endif
 XDEVICE = $(basename $(notdir $(deviceNames)))
 
 

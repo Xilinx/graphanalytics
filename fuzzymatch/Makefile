@@ -18,9 +18,8 @@
 .PHONY: all
 
 #all: javaApi cppBuild javaTest stage
-#all: stage
-all: stage cppBuild pythonApi  
-
+all: stage
+#all: stage cppBuild pythonApi  
 help:
 	@echo "Makefile usages:"
 	@echo "  make run [runMode=0] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3] [totalEntities=10000000]"
