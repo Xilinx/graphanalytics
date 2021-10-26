@@ -79,7 +79,7 @@ else
 $(warning [WARNING]: This project has not been tested for $(deviceNames). It may or may not work.)
 endif
 
-LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):$(LIB_PATH)
+#LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):$(LIB_PATH)
 
 EXE_FILE := fmtest
 
@@ -109,6 +109,9 @@ runMode=0
 totalEntities=10000000
 numEntities=100
 run: $(EXE_FILE)
+	set -e; \
+	. $(XILINX_XRT)/setup.sh; \
+	LD_LIBRARY_PATH=$(LIB_PATH):$$LD_LIBRARY_PATH; \
 	$(abspath $^)  -xclbin $(XCLBIN_FILE) -d ../data -c $(runMode) --devices $(deviceNames) \
 		--total_entities $(totalEntities) --num_entities $(numEntities) 
 
