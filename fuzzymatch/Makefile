@@ -27,7 +27,9 @@ help:
 	@echo ""
 	@echo "  Options:"
 	@echo "  deviceNames  : Specify Alveo devices to use for computation"
-	@echo "                 Supported devices: xilinx_u50_gen3x16_xdma_201920_3 (default)"
+	@echo "                 Supported devices:"
+	@echo "                 xilinx_u50_gen3x16_xdma_201920_3 (default)"
+	@echo "                 xilinx_aws-vu9p-f1_dynamic_5_0"
 	@echo "  numEntities  : Number of entities to match (default=100)"
 	@echo "  runMode      : 0: Run on Alveo Only (default)"
 	@echo "                 1: Run on CPU Only"
@@ -39,7 +41,9 @@ help:
 	@echo "" 
 	@echo "  make dist"
 	@echo "  Generate product installation package (RPM or DEB) for the current OS and architecture"
-
+	@echo "" 
+	@echo "  make run-staging-cpp"
+	@echo "  Run the CPP example from the staging area"
 
 SHELL := /bin/bash
 
@@ -391,6 +395,8 @@ run: cppTest stage
 	    -xclbin $(XCLBIN_RUN) -d ./examples/data -c $(runMode) --devices $(deviceNames) \
 		--total_entities $(totalEntities) --num_entities $(numEntities)
 
+run-staging-cpp: cppTest stage
+	cd staging/examples/cpp && make run
 
 # Macro to create a .o rule and a .d rule for each .cpp
 
