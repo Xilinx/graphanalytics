@@ -196,6 +196,8 @@ public:
     pair<long, long> FindCM_1hop(int idx, long e_org);
     pair<long, long>FindCM_1hop(long e_org);
     long FindC_nhop(long m_gh);
+    pair<long, long> FindCM_1hop_bfs(int idx, long e_org, long addr_v);//for LBW premerge
+    long FindC_nhop_bfs(long m_gh);//for LBW premerge
     int  AddGLV(GLV* plv);
     void PrintTime();
     void PrintTime2();

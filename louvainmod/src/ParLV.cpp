@@ -1968,7 +1968,11 @@ long ParLV::CheckGhost()
         assert(p_v_new[p]);
         for (int v = G_lved->NVl; v < G_lved->NV; v++) {
             long mv = G_lved->M[v];
-            long v_new = FindC_nhop(mv);
+            long v_new=0;
+            if(use_bfs)
+                v_new = FindC_nhop_bfs(mv);//find the bfs-hop subgraph //LBW
+            else
+                v_new = FindC_nhop(mv);//find the directly cat subgraph
             if (v_new == mv) {
                 p_v_new[p][v] = FindOldOrAddNew(m_v_gh, NV_gh_new, v_new) + this->NVl;
 #ifdef DBG_PAR_PRINT
@@ -3037,6 +3041,9 @@ void sim_getServerPar(
 }
 
 //start bfs partition method 
+#define bfs 
+
+#ifdef bfs
 
 struct HopV{
 	long v;
@@ -3674,7 +3681,7 @@ void BFS_par_general_4TG(
     //     printf(" v= %d, par= %d, renum= %d\n", v, bfs_adjacent[v].par_idx, bfs_adjacent[v].renum_in_par);
     //save adjacent
 
-    char tailName[125]="_proj.bfs.adj";
+    char tailName[125]=".bfs.adj";
     char pathName[1024];
     strcpy(pathName, path_prefix);
     strcat(pathName, tailName);
@@ -3685,11 +3692,13 @@ void BFS_par_general_4TG(
     if (!f) {
         std::cerr << "ERROR: " << fn << " cannot be opened for binary write." << std::endl;
     }
-    int nv = G->numVertices;
-    fprintf(f, "*Vertices %ld\n", G->numVertices);
-    fprintf(f, "v\t par\t renum\t\n");
-    for(int v=0; v<G->numVertices; v++)
-        fprintf(f, " %d\t %d\t %d\t\n", v, bfs_adjacent[v].par_idx, bfs_adjacent[v].renum_in_par);
+    long nv = G->numVertices;
+    // fprintf(f, "*Vertices %ld\n", G->numVertices);
+    // fprintf(f, "v\t par\t renum\t\n");
+    // for(int v=0; v<G->numVertices; v++)
+    //     fprintf(f, " %d\t %d\t %d\t\n", v, bfs_adjacent[v].par_idx, bfs_adjacent[v].renum_in_par);
+    fwrite(&nv, sizeof(long), 1, f);
+    fwrite(bfs_adjacent, sizeof(bfs_adjacent), nv, f);
     fclose(f);
 
 	free(V_selected);
@@ -3698,6 +3707,61 @@ void BFS_par_general_4TG(
         free(tmp_M_v[p]);
     }
 }
+
+pair<long, long> ParLV::FindCM_1hop_bfs(int idx, long e_org, long addr_v) {
+    // 2.
+    pair<long, long> ret;
+    //long addr_v = e_org - off_src[idx];
+    long c_src_sync = par_src[idx]->C[addr_v];
+    long c_lved_new = c_src_sync; // key logic
+    long m_lved_new = par_lved[idx]->M[c_lved_new];
+    ret.first = c_lved_new;
+    ret.second = m_lved_new;
+    return ret;
+}
+
+long ParLV::FindC_nhop_bfs(long m_g) {
+    assert(m_g < 0);
+    long m_next = m_g;
+    int cnt = 0;
+
+    do {
+        long e_org = -m_next - 1;
+        int idx = bfs_adjacent[e_org].par_idx;//FindParIdx(e_org);
+        long addr_v = bfs_adjacent[e_org].renum_in_par;
+            //dbg
+            //long v_src = e_org - off_src[idx]; // dbg
+            //dbg
+        pair<long, long> cm = FindCM_1hop_bfs(idx, e_org, addr_v);
+        long c_lved_new = cm.first;
+        long m_lved_new = cm.second;
+        
+                //debug begin
+                // printf("DBG:FindC:cnt=%d, m:%-4d --> e_org:%-4d, idx:%-2d, --> v_src:%-4d, c_src&lved:%-4d, m_lved:%-4d --> c_new:%d",
+                //                   cnt,     m_next,   e_org,      idx,          addr_v,     c_lved_new,    m_lved_new, c_lved_new + off_lved[idx]);
+                // if(m_lved_new>=0)
+                //         printf("-> c_new:%d\n",c_lved_new + off_lved[idx]);
+                // else
+                //         printf("\n");
+                //debug end
+
+        cnt++;
+
+        if (m_lved_new >= 0)
+            return c_lved_new + off_lved[idx];
+        else if (m_lved_new == m_g) {
+            return m_g;
+        } else { // m_lved_new<0;
+            m_next = m_lved_new;
+        }
+
+    } while (cnt < 2 * num_par);
+    return m_g; // no local community for the ghost which should be add as a new community
+}
+
+#endif
+
+//end bfs partition method to get LBW subgraph
 
 int xai_save_partition_bfs(
     //long numVertices,
@@ -3714,7 +3778,7 @@ int xai_save_partition_bfs(
 {
     long NV_server = end_vertex - start_vertex;
     long NV_par = (NV_par_requested <= NV_par_max) ? NV_par_requested : NV_par_max;
-    int num_par = NV_server / NV_par;
+    int num_par = NV_server / (NV_par-1);
     long numEdges = offsets_tg[NV_server];
 #ifndef NDEBUG
     std::cout << "DEBUG: " << __FUNCTION__ 
@@ -3794,8 +3858,8 @@ int xai_save_partition_bfs(
 		//start_vertext_par += NV_par;
 		//p++;
 	//}
-    std::cout << "INFO: Total number of partitions created: " << p << std::endl;
-	return p;
+    std::cout << "INFO: Total number of partitions created: " << num_par << std::endl;
+	return num_par;
 }
 
 GLV* par_general_4TG(long start_vertexInGlb, long* offsets_tg, edge* edgelist_tg, long* drglist_tg, 
@@ -3915,9 +3979,9 @@ int Parser_ParProjFile(std::string projFile, ParLV& parlv, char* path, char* nam
     }
 
     if (strcmp("-create_alveo_partitions", ps.argv[0]) == 0 && (strcmp("-create_alveo_LBW_partitions", ps.argv[0]) != 0) ) {
-        parlv.use_bfs = true;
-    }else if (strcmp("-create_alveo_partitions", ps.argv[0]) != 0 && (strcmp("-create_alveo_LBW_partitions", ps.argv[0]) == 0) ) {
         parlv.use_bfs = false;
+    }else if (strcmp("-create_alveo_partitions", ps.argv[0]) != 0 && (strcmp("-create_alveo_LBW_partitions", ps.argv[0]) == 0) ) {
+        parlv.use_bfs = true;
     }else{
         printf("\033[1;31;40mERROR\033[0m: MessageParser_D2W: Unknow head%s. -create_alveo_partitions is required\n",
                ps.argv[0]);
@@ -3974,6 +4038,16 @@ int Parser_ParProjFile(std::string projFile, ParLV& parlv, char* path, char* nam
         parlv.plv_src->NC, parlv.plv_src->Q, parlv.plv_src->numColors, parlv.plv_src->numThreads, 
         parlv.plv_src->name, parlv.plv_src->ID);
 #endif
+
+    //add to parser LBW partition's global ID
+    if(parlv.use_bfs){
+        sprintf(namePath_tmp, "%s/%s.bfs.adj", path, name);
+        //std::cout << "------------" << __FUNCTION__ << " id_glv=" << id_glv << std::endl;
+        Loadselected<bfs_selected>(namePath_tmp, &(parlv.bfs_adjacent));
+#ifndef NDEBUG
+        printf("DEBUG: Loadselected results\n %d--> %d--> %d\t\n", 0, parlv.bfs_adjacent[0].par_idx, parlv.bfs_adjacent[0].renum_in_par);
+#endif
+    }
 
 #ifdef PRINTINFO
     printf("\033[1;37;40mINFO\033[0m:Partition Project: path = %s name = %s\n", path, name);

@@ -162,6 +162,20 @@ void LoadHead(char* name, T_HEAD* ptr){
 	fread(ptr, sizeof(T_HEAD), 1, fp);
 	fclose(fp);
 }
+template <class T_HEAD>
+void Loadselected(char* name, T_HEAD** ptr){
+	assert(name);
+	FILE* fp=fopen(name, "rb");
+    long nv=0;
+	fread(&nv, sizeof(long), 1, fp);
+    if (nv<0){
+        printf("ERROR: value(%ld) of NV is not right!!!  \n", nv);
+        fclose(fp);
+    }
+    *ptr = (T_HEAD*)malloc(sizeof(T_HEAD)*nv);
+    fread(*ptr, sizeof(T_HEAD), nv, fp);
+	fclose(fp);
+}
 struct FeatureLV;
 class GLV{
 public:

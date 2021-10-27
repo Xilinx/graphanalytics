@@ -56,8 +56,10 @@ PRODUCT_VER=$(strip $(shell cat VERSION))
 
 CCC = g++
 CXX = g++
+CXX := /tools/batonroot/rodin/devkits/lnx64/gcc-6.2.0/bin/g++
+$(warning [WARNING]: CXX is $(CXX).)
 # -D PRINTINFO: print additional debug messages
-CXXFLAGS = -std=c++11 -DPRAGMA -Ofast -fopenmp -fmessage-length=0  -fPIC -Wall -Wno-unknown-pragmas -Wno-unused-label \
+CXXFLAGS = -std=c++11 -DPRAGMA -fopenmp -fmessage-length=0  -fPIC -Wall -Wno-unknown-pragmas -Wno-unused-label \
     -Wno-unused-variable -Wno-sign-compare -Wno-unused-result -Wno-unused-but-set-variable \
     -Wno-narrowing -D USE_HBM -fmessage-length=0 -D LOUVAINMOD 
 
@@ -68,8 +70,9 @@ CPP_BUILD_DIR = Debug
 CXXFLAGS += -O0 -g
 else
 CPP_BUILD_DIR = Release
-#CXXFLAGS += -O3 -DNDEBUG
-CXXFLAGS += -O0 -g 
+CXXFLAGS += -O3 -Ofast
+#-DNDEBUG
+#CXXFLAGS += -O0 -g 
 endif
 
 USE_U55C = 0
