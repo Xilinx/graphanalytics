@@ -69,26 +69,36 @@ inline int64_t udf_peak_memory_usage(double& VmPeak, double& VmHWM)
     return 0L;
 }
 
-inline bool udf_fuzzymatch_cpu(ListAccum<string> blacklist, ListAccum<string> txPersons) 
+inline int udf_fuzzymatch_cpu(ListAccum<string> sourceList, ListAccum<string> targetList) 
 {
 
-    std::cout << "INFO: udf_fuzzymatch_cpu " << std::endl;
+    std::cout << "INFO: udf_fuzzymatch_cpu sourceList size=" << sourceList.size() 
+              << " targetList size=" << targetList.size() << std::endl;
 
-    std::vector<std::string> blacklistVector;
-    xilFuzzyMatch::Context *pContext = xilFuzzyMatch::Context::getInstance();
-    xilinx_apps::fuzzymatch::FuzzyMatch *pFuzzyMatch = pContext->getFuzzyMatchObj();
-    
-    uint32_t blacklistLen = blacklist.size();
-    for (unsigned i = 0 ; i < blacklistLen; ++i)
-        blacklistVector.push_back(blacklist.get(i));
+    std::vector<std::string> sourceVector;
+    xilinx_apps::fuzzymatch::FuzzyMatchSW cpuChecker;
+    bool checkResult;
+    int execTime;
 
-    std::cout << "blacklistVector size=" << blacklistVector.size() << std::endl;
+    uint32_t sourceListLen = sourceList.size();
+    for (unsigned i = 0 ; i < sourceListLen; ++i)
+        sourceVector.push_back(sourceList.get(i));
 
-    uint32_t txPersonsLen = txPersons.size();
-    for (unsigned i = 0 ; i < txPersonsLen; ++i)
-        std::cout << "txPersons " << i << "=" << txPersons.get(i) << std::endl;
+    std::cout << "sourceVector size=" << sourceVector.size() << std::endl;
+    cpuChecker.initialize(sourceVector);
 
-    return true;
+    // only measure match time
+    udf_reset_timer(true);
+    uint32_t targetListLen = targetList.size();
+    for (unsigned i = 0 ; i < targetListLen; ++i) {
+        //std::cout << "targetList " << i << "=" << targetList.get(i) << std::endl;
+        checkResult = cpuChecker.check(targetList.get(i));
+        //std::cout << i << "," << targetList.get(i) << "," << (check_result ? "KO" : "OK") << ","
+        //          << (check_result ? ":Sender" : "") << std::endl;
+    }
+    execTime = udf_elapsed_time(true);
+
+    return execTime;
 }
 
 // mergeHeaders 1 section body end swiftAmlDemo DO NOT REMOVE!

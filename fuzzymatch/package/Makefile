@@ -14,7 +14,6 @@
 #
 PKGDIR := PKG_Release
 RM := rm -rf
-PLUGIN := Tigergraph-3.x/recomengine
 PROD_VERSION := $(strip $(shell cat ../staging/VERSION))
 
 OSDIST = $(shell lsb_release -si)
@@ -24,9 +23,9 @@ else ifeq ($(OSDIST),CentOS)
     DIST_TARGET = rpm
 endif
 
-package: $(PKGDIR)
+package:$(PKGDIR)
 	cd $(PKGDIR); \
-	cmake -DCMAKE_BUILD_TYPE=Release -DPROD_VERSION=${PROD_VERSION} -DCMAKE_INSTALL_PREFIX=/opt/xilinx/apps/graphanalytics/integration/${PLUGIN}  ..;\
+	cmake -DCMAKE_BUILD_TYPE=Release -DPROD_VERSION=${PROD_VERSION} -DCMAKE_INSTALL_PREFIX=/opt/xilinx/apps/graphanalytics/  ..;\
 	cmake --build .;\
 	cpack -B $(shell pwd) ; \
 	cd ..; \
@@ -35,6 +34,3 @@ package: $(PKGDIR)
 
 $(PKGDIR):
 	mkdir $(PKGDIR); 
-
-clean:
-	rm -rf _CPack_Packages

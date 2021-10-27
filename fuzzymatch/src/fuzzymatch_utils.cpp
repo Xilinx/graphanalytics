@@ -270,15 +270,7 @@ namespace fuzzymatch {
     XILINX_FUZZYMATCH_IMPL_DECL   
     bool FuzzyMatchSW::check(const std::string &t)
     {
-    
-        //auto ts = std::chrono::high_resolution_clock::now();
-        //FMResult r;
-        // check for t against pattern vec
         bool r = strFuzzy(this->max_fuzzy_len, t, vec_pattern_grp);
-    
-        //auto te = std::chrono::high_resolution_clock::now();
-        //r.timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(te - ts).count() / 1000.0f;
-    
         return r;
     }
     

@@ -13,29 +13,24 @@
 # under the License.
 
 cmake_minimum_required(VERSION 2.8.11)
-project(xilinx-cosinesim)
+project(xilinx-fuzzymatch-tigergraph)
 
+set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE INTERNAL "No dev warnings")
 # Linking variables
 set (CMAKE_CXX_STANDARD 14)
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMake/")
+set (PROJ_FILE_PATH "${CMAKE_SOURCE_DIR}/../staging/")
+set(CMAKE_INSTALL_PATH "${CMAKE_INSTALL_PREFIX}/${PROD_VERSION}")
 
-set(CS_FILE_PATH "${CMAKE_SOURCE_DIR}/../staging/")
-set(CMAKE_INSTALL_PATH "${CMAKE_INSTALL_PREFIX}/cosinesim/${PROD_VERSION}")
-install(DIRECTORY "${CS_FILE_PATH}/lib/" DESTINATION ${CMAKE_INSTALL_PATH}/lib USE_SOURCE_PERMISSIONS)
-install(DIRECTORY "${CS_FILE_PATH}/include/" DESTINATION ${CMAKE_INSTALL_PATH}/include USE_SOURCE_PERMISSIONS)
+install(DIRECTORY "${PROJ_FILE_PATH}/bin" DESTINATION ${CMAKE_INSTALL_PATH}/ USE_SOURCE_PERMISSIONS )
+install(DIRECTORY "${PROJ_FILE_PATH}/examples" DESTINATION ${CMAKE_INSTALL_PATH}/ USE_SOURCE_PERMISSIONS )
+install(DIRECTORY "${PROJ_FILE_PATH}/udf" DESTINATION ${CMAKE_INSTALL_PATH}/ USE_SOURCE_PERMISSIONS )
+#install(PROGRAMS "${PROJ_FILE_PATH}/install.sh" DESTINATION ${CMAKE_INSTALL_PATH}/ )
+install(FILES "${PROJ_FILE_PATH}/VERSION" DESTINATION ${CMAKE_INSTALL_PATH}/ )
 
-install(FILES "${CS_FILE_PATH}/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin" DESTINATION ${CMAKE_INSTALL_PATH}/xclbin)
-install(FILES "${CS_FILE_PATH}/xclbin/cosinesim_32bit_4pu_xilinx_u55c_gen3x16_xdma_base_2.xclbin" DESTINATION ${CMAKE_INSTALL_PATH}/xclbin)
-
-install(FILES "${CS_FILE_PATH}/src/cosinesim_loader.cpp" DESTINATION ${CMAKE_INSTALL_PATH}/src)
-#install(FILES "${CS_FILE_PATH}/examples.zip" DESTINATION ${CMAKE_INSTALL_PATH}/)
-install(DIRECTORY "${CS_FILE_PATH}/examples/" DESTINATION ${CMAKE_INSTALL_PATH}/examples USE_SOURCE_PERMISSIONS)
-install(FILES "${CS_FILE_PATH}/VERSION" DESTINATION ${CMAKE_INSTALL_PATH}/ )
-
-#version 
-
-set(CPACK_PACKAGE_NAME "xilinx-cosinesim-${PROD_VERSION}")
+set(CPACK_PACKAGE_NAME "xilinx-fuzzymatch-tigergraph-${PROD_VERSION}")
 set(CPACK_PACKAGE_VERSION "1.0.0")
+
 
 # --- LSB Release ---
 find_program(LSB_RELEASE lsb_release)
@@ -69,11 +64,9 @@ if (${LINUX_FLAVOR} MATCHES "^(Ubuntu|Debian)")
     set(CPACK_GENERATOR "DEB")
     set(PACKAGE_KIND "DEB")
 
-
 elseif (${LINUX_FLAVOR} MATCHES "^(RedHat|CentOS|Amazon)")
     set(CPACK_GENERATOR "RPM")
     set(PACKAGE_KIND "RPM")
- 
 
 endif()
 
@@ -81,10 +74,11 @@ set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${CPACK_REL_VER}-${CPACK_ARCH
 
 message("-- ${CMAKE_BUILD_TYPE} ${PACKAGE_KIND} package")
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "xrt (>= 2.8.0),xrm (>= 1.2.0),python3")
-set(CPACK_RPM_PACKAGE_DEPENDS "xrt (>= 2.8.0), xrm (>= 1.2.0),python3 (>= 3.6)")
-#set(CPACK_PACKAGE_VERSION "1.0.0_18.04-x86_64")
-set(CPACK_PACKAGE_CONTACT "Xilinx CosineSim Development Team")
+set(CPACK_RPM_PACKAGE_DEPENDS "xrt (>= 2.8.0), xrm (>= 1.2.0),python3 (>= 3.6.0)")
+
+set(CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/rpmpreinst")
+set(CPACK_PACKAGE_CONTACT "Xilinx Fuzzymatch Development Team")
 set(CPACK_PACKAGE_VENDOR "Xilinx")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Xilinx Cosinesim Acceleration")
-set(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION "/opt" "/opt/xilinx" "/usr/lib64" "/opt/xilinx/apps" "/opt/xilinx/apps/graphanalytics"  )
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Xilinx Fuzzymatch Engine for tigergraph plugin ")
+set(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION "/opt" "/opt/xilinx" "/usr/lib64" "/opt/xilinx/apps" "/opt/xilinx/apps/graphanalytics")
 include(CPack)

@@ -1,0 +1,79 @@
+/*
+ * Copyright 2021 Xilinx, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WANCUNCUANTIES ONCU CONDITIONS OF ANY KIND, either express or
+ * implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+SET QUERY_TIMEOUT = 600000
+USE GRAPH @graph
+
+DROP QUERY fuzzymatch_cpu, fuzzymatch_alveo
+
+CREATE QUERY fuzzymatch_cpu( ) for graph @graph 
+{
+    DOUBLE vm_peak, vm_hwm;
+  	INT ret;
+    bool isMatch;
+    DOUBLE matchExecTime;
+
+    ListAccum<string > @@blacklistAccum, @@txPersonsAccum;
+
+    blacklistSet = {blacklist.*};
+    blacklistSelect = SELECT b FROM blacklistSet:b ACCUM @@blacklistAccum += b.name;
+
+    txPersonsSet = {person_tx.*};
+    txPersonsSelect = SELECT t FROM txPersonsSet:t ACCUM @@txPersonsAccum += t.name;
+
+    // matchExecTime only measures the match execution time. blacklist load time
+    // is excluded.
+    matchExecTime = udf_fuzzymatch_cpu(@@blacklistAccum, @@txPersonsAccum);
+    ret = udf_peak_memory_usage(vm_peak, vm_hwm);
+    print "TigerGraph CPU" AS ComputationTechnique;
+    print vm_peak/1000000.0 as PeakVirtualMemoryInGB;
+    print vm_hwm/1000000.0 as PeakResidentMemoryInGB;
+    print matchExecTime as ExecTimeInMs;
+    print @@blacklistAccum.size() as BlacklistSize;
+    print @@txPersonsAccum.size() as TargetPersonsSize;
+    print matchExecTime/@@txPersonsAccum.size() as AvergeTimePerPersonInMs;
+}
+
+
+CREATE QUERY fuzzymatch_alveo( ) for graph @graph 
+{
+    DOUBLE vm_peak, vm_hwm;
+  	INT ret;
+    DOUBLE matchExecTime;
+
+    ListAccum<string > @@blacklistAccum, @@txPersonsAccum;
+
+    blacklistSet = {blacklist.*};
+    blacklistSelect = SELECT b FROM blacklistSet:b ACCUM @@blacklistAccum += b.name;
+
+    txPersonsSet = {person_tx.*};
+    txPersonsSelect = SELECT t FROM txPersonsSet:t ACCUM @@txPersonsAccum += t.name;
+
+    matchExecTime = udf_fuzzymatch_alveo(@@blacklistAccum, @@txPersonsAccum);
+
+    ret = udf_peak_memory_usage(vm_peak, vm_hwm);
+    print "Xilinx Alveo device" AS ComputationTechnique;
+    print vm_peak/1000000.0 as PeakVirtualMemoryInGB;
+    print vm_hwm/1000000.0 as PeakResidentMemoryInGB;
+    print matchExecTime as MatchExecTimeInMs;
+    print @@blacklistAccum.size() as BlacklistSize;
+    print @@txPersonsAccum.size() as TargetPersonsSize;
+    print matchExecTime/@@txPersonsAccum.size() as AvergeTimePerPersonInMs;   
+}
+
+
+INSTALL QUERY fuzzymatch_cpu, fuzzymatch_alveo

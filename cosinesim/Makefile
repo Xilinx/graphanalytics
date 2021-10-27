@@ -475,6 +475,11 @@ $$(STAGE_DIR)/$(1): $(1)
 endef
 $(foreach f,$(STAGE_COPY_FILES),$(eval $(call STAGE_COPY_RULE,$(f))))
 
+STAGE_XILINX_APPS_COMMON = $(STAGE_DIR)/include/xilinx_apps_common.hpp
+XILINX_APPS_COMMON = $(GRAPH_ANALYTICS_DIR)/ext/xilinx_apps_common.hpp
+$(STAGE_XILINX_APPS_COMMON): $(XILINX_APPS_COMMON)
+	cp -f $^ $@
+
 # Binary (C++) files
 
 STAGE_LIB_FILES = \
@@ -544,7 +549,8 @@ STAGE_ALL_FILES = \
     $(addprefix $(STAGE_DIR)/,$(STAGE_COPY_FILES)) \
     $(addprefix $(STAGE_DIR)/lib/,$(STAGE_LIB_FILES)) \
     $(STAGE_XCLBIN_FILE_U50) \
-    $(STAGE_XCLBIN_FILE_U55C) 
+    $(STAGE_XCLBIN_FILE_U55C) \
+	$(STAGE_XILINX_APPS_COMMON) \
 #    $(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP) \
 
 .PHONY: stage stage2

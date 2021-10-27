@@ -44,7 +44,7 @@ MK_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 CUR_DIR := $(patsubst %/,%,$(dir $(MK_PATH)))
 XF_PROJ_ROOT ?= $(shell bash -c 'export MK_PATH=$(MK_PATH); echo $${MK_PATH%/examples/cpp/Makefile}')
 
-LIB_PATH = $(XF_PROJ_ROOT)/staging/lib
+LIB_PATH = $(XF_PROJ_ROOT)/lib
 INCLUDE_PATH = $(XF_PROJ_ROOT)/include
 
 ifeq ($(wildcard $(LIB_PATH)/*.so),)
@@ -52,30 +52,34 @@ ifeq ($(wildcard $(LIB_PATH)/*.so),)
     INCLUDE_PATH = $(XILINX_FUZZYMATCH)/${PRODUCT_VER}/include
 endif
 
-CXXFLAGS = -std=c++11 -fPIC -pthread -I$(INCLUDE_PATH) -Wall -Wextra -Wno-unknown-pragmas -Wno-unused-label \
+CXXFLAGS = -std=c++11 -D_GLIBCXX_USE_CXX11_ABI=0 -fPIC -pthread -I$(INCLUDE_PATH) -Wall -Wextra -Wno-unknown-pragmas -Wno-unused-label \
     -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers -Wno-deprecated-declarations
 
-DEVICE ?= xilinx_u50_gen3x16_xdma_201920_3
-XDEVICE = $(basename $(notdir $(DEVICE)))
+ifdef U50
+    deviceNames ?= xilinx_u50_gen3x16_xdma_201920_3
+else
+    deviceNames ?= xilinx_aws-vu9p-f1_dynamic_5_0
+endif
+XDEVICE = $(basename $(notdir $(deviceNames)))
 
 
 XF_LIB_DIR := $(abspath $(XF_PROJ_ROOT))/examples
 
 ifneq (,$(shell echo $(XDEVICE) | awk '/u50/'))
-XCLBIN_FILE := $(XF_PROJ_ROOT)/staging/xclbin/fuzzy_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+XCLBIN_FILE := $(XF_PROJ_ROOT)/xclbin/fuzzy_xilinx_u50_gen3x16_xdma_201920_3.xclbin
 else ifneq (,$(shell echo $(XDEVICE) | awk '/u200/'))
-XCLBIN_FILE := $(XF_PROJ_ROOT)/staging/xclbin/fuzzy_xilinx_u200_xdma_201830_2.xclbin
+XCLBIN_FILE := $(XF_PROJ_ROOT)/xclbin/fuzzy_xilinx_u200_xdma_201830_2.xclbin
 else ifneq (,$(shell echo $(XDEVICE) | awk '/u250_xdma/'))
-XCLBIN_FILE := $(XF_PROJ_ROOT)/staging/xclbin/fuzzy_xilinx_u250_xdma_201830_2.xclbin
+XCLBIN_FILE := $(XF_PROJ_ROOT)/xclbin/fuzzy_xilinx_u250_xdma_201830_2.xclbin
 else ifneq (,$(shell echo $(XDEVICE) | awk '/u250_gen3x16/'))
-XCLBIN_FILE := $(XF_PROJ_ROOT)/staging/xclbin/fuzzy_xilinx_u250_gen3x16_xdma_2_1_202010_1.azure.xclbin
+XCLBIN_FILE := $(XF_PROJ_ROOT)/xclbin/fuzzy_xilinx_u250_gen3x16_xdma_2_1_202010_1.azure.xclbin
 else ifneq (,$(shell echo $(XDEVICE) | awk '/aws-vu9p-f1/'))
-XCLBIN_FILE := $(XF_PROJ_ROOT)/staging/xclbin/fuzzy_xilinx_aws-vu9p-f1_shell-v04261818_201920_1.awsxclbin
+XCLBIN_FILE := $(XF_PROJ_ROOT)/xclbin/fuzzy_xilinx_aws-vu9p-f1_shell-v04261818_201920_2.awsxclbin 
 else
-$(warning [WARNING]: This project has not been tested for $(DEVICE). It may or may not work.)
+$(warning [WARNING]: This project has not been tested for $(deviceNames). It may or may not work.)
 endif
 
-LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):$(LIB_PATH)
+#LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):$(LIB_PATH)
 
 EXE_FILE := fmtest
 
@@ -93,7 +97,7 @@ endif
 ifneq ($(shell expr $(shell g++ -dumpversion) \>= 5), 1)
 $(error [ERROR]: g++ version too old. Please use 5.0 or above)
 endif
-$(EXE_FILE): fuzzy_match_test.cpp
+$(EXE_FILE): fuzzymatch_test.cpp
 	$(CXX) $(CXXFLAGS) $^ -o $@ \
 		-I$(XILINX_XRT)/include \
 		-L$(LIB_PATH) -lXilinxFuzzyMatch \
@@ -101,8 +105,15 @@ $(EXE_FILE): fuzzy_match_test.cpp
 
 .PHONY: run clean
 
+runMode=0
+totalEntities=10000000
+numEntities=100
 run: $(EXE_FILE)
-	$(abspath $^) -xclbin $(XCLBIN_FILE) -d $(XF_LIB_DIR)/data -c 2
+	set -e; \
+	. $(XILINX_XRT)/setup.sh; \
+	LD_LIBRARY_PATH=$(LIB_PATH):$$LD_LIBRARY_PATH; \
+	$(abspath $^)  -xclbin $(XCLBIN_FILE) -d ../data -c $(runMode) --devices $(deviceNames) \
+		--total_entities $(totalEntities) --num_entities $(numEntities) 
 
 clean:
 	rm -f $(EXE_FILE)

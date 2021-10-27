@@ -14,7 +14,7 @@
 #
 PKGDIR := PKG_Release
 RM := rm -rf
-PLUGIN := Tigergraph-3.x/recomengine
+PLUGIN := Tigergraph-3.x/fuzzymatch
 PROD_VERSION := $(strip $(shell cat ../staging/VERSION))
 
 OSDIST = $(shell lsb_release -si)
@@ -38,3 +38,4 @@ $(PKGDIR):
 
 clean:
 	rm -rf _CPack_Packages
+
