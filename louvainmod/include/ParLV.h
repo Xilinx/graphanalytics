@@ -150,8 +150,8 @@ public:
     long  NV_list_g;
     bool  isPrun;
 	int   th_prun;
-    bool use_bfs;
-    bfs_selected* bfs_adjacent;
+    bool use_bfs;//if is useing bfs Low Bandwidth methods(LBW)
+    bfs_selected* bfs_adjacent;// added structure and saing on disk by LBW
     int flowMode;
 	///////////////////////////////////
 	int num_server;// default '1' means using concentration partition
@@ -262,6 +262,7 @@ int xai_save_partition(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
 		long NV_par_max		    //  64*1000*1000;
 		);
 
+// API for LBW partition
 int xai_save_partition_bfs(long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
 		long  start_vertex,     // If a vertex is smaller than star_vertex, it is a ghost
 		long  end_vertex,	    // If a vertex is larger than star_vertex-1, it is a ghost

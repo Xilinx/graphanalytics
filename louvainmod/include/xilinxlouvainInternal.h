@@ -162,6 +162,7 @@ void LoadHead(char* name, T_HEAD* ptr){
 	fread(ptr, sizeof(T_HEAD), 1, fp);
 	fclose(fp);
 }
+// loading an other file on disk by LBW
 template <class T_HEAD>
 void Loadselected(char* name, T_HEAD** ptr){
 	assert(name);
