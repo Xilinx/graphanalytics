@@ -78,6 +78,19 @@ namespace fuzzymatch {
     
     };
        
+    template <typename T>
+    T* aligned_alloc(std::size_t num) {
+        void* ptr = nullptr;
+        #if _WIN32
+            ptr = (T*)malloc(num * sizeof(T));
+            if (num == 0) {
+        #else
+            if (posix_memalign(&ptr, 4096, num * sizeof(T))) {
+        #endif
+            throw std::bad_alloc();
+            }
+        return reinterpret_cast<T*>(ptr);
+    }
     int getRange(const std::string& input, std::vector<int> &vec_base, std::vector<int> &vec_offset, int &base, int &nrow)
     {
         int cnt = 0;
@@ -242,7 +255,8 @@ namespace fuzzymatch {
         char *csv_part[PU_NUM];
         for (int i = 0; i < PU_NUM; i++)
         {
-            csv_part[i] = (char *)malloc(16 * 3 * sum_line_num);
+            //csv_part[i] = (char *)malloc(16 * 3 * sum_line_num);
+            csv_part[i] = aligned_alloc<char>(16 * 3 * sum_line_num);
         }
     
         for (uint32_t i = 0; i < vec_grp_str.size(); i++)
