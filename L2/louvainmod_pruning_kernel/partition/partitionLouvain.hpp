@@ -18,6 +18,7 @@
 #define _PARTITIONLOUVAIN_H_
 #include "stdlib.h"
 #include <list>
+#include <queue>
 using namespace std;
 
 #define MAXGHOST_PRUN 128
@@ -98,6 +99,7 @@ class SttGPar {
     bool InRange(long v);
     GLV* ParNewGlv(graphNew* G, long star, long end, int& id_glv);
     GLV* ParNewGlv_Prun(graphNew* G, long star, long end, int& id_glv, int th_maxGhost);
+    GLV* AbstractionPartition(graphNew* G, long star, long end, int& id_glv, int th_maxGhost);
     long findAt(VGMinDgr& gMinDgr, long tail, long dgr, long num_vg, int th_maxGhost);
 };
 

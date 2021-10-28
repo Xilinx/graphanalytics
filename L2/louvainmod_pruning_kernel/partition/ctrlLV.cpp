@@ -590,6 +590,46 @@ int SaveG_general(graphNew* g, char* fileName) {
     printf("\033[1;37;40mINFO\033[0m: -f 3 file samed sef-loop edge has %d\n", cnt_self);
     return 0;
 }
+// int SaveGLV(GLV* g, char* fileName) {
+//     FILE* file = fopen(fileName, "w");
+//     if (file == NULL) {
+//         printf("\033[1;31;40mERROR\033[0m: Cannot open the batch file: %s\n", fileName);
+//         return -1;
+//     }
+//     long nv = g->G->numVertices;
+//     long ne = g->G->numEdges;
+//     map<long, long> map_self;
+//     map<long, long>::iterator itr;
+//     int cnt = 0;
+//     int cnt_self = 0;
+//     fprintf(file, "*Vertices %d\n", nv);
+//     fprintf(file, "*Edges %d\n", ne);
+//     for (int i = 0; i < g->G->edgeListPtrs[nv]; i++) {
+//         long h = g->G->edgeList[i].head + 1;
+//         long t = g->G->edgeList[i].tail + 1;
+//         double w = g->G->edgeList[i].weight;
+//         if (h > t) continue;
+//         if (h == t) {
+//             itr = map_self.find(h);
+//             if (itr != map_self.end()) {
+//                 continue;
+//             }
+//             map_self[h] = cnt_self++;
+//         }
+//         fprintf(file, "%d %d %f\n", h, t, w);
+//         cnt++;
+//     }
+
+//     fprintf(file, "*NVl %d\n", NVl);
+
+//     fclose(file);
+//     printf("\033[1;37;40mINFO\033[0m: -f 3 file samed name as %s\n", fileName);
+//     printf("\033[1;37;40mINFO\033[0m: -f 3 file samed NV is  %d\n", nv);
+//     printf("\033[1;37;40mINFO\033[0m: -f 3 file samed |NE| is  %d and self edge is %d\n", ne);
+//     printf("\033[1;37;40mINFO\033[0m: -f 3 file samed undirection edge has  %d \n", cnt);
+//     printf("\033[1;37;40mINFO\033[0m: -f 3 file samed sef-loop edge has %d\n", cnt_self);
+//     return 0;
+// }
 int CtrlLouvain::exe_LV_SAVE() {
     // del id
     GLV* p_glv = NULL;
@@ -1027,14 +1067,30 @@ double CtrlLouvain::CtrlPar(GLV* src, int num_par, bool isPrun, int th_prun) {
     }
     return omp_get_wtime() - time_fun;
 }
-
+void test_BFSPar_creatingEdgeLists_fixed(//return: real number of partition
+		int mode_start,
+		int mode_hop,
+		graphNew* G,
+		int num_par
+);
+void test_BFSPar_creatingEdgeLists_fixed_prune(//return: real number of partition
+		int mode_start,
+		int mode_hop,
+		GLV* src,
+        ParLV* parlv,
+        int id_glv,
+		int num_par,
+        bool isPrun, 
+        int th_prun
+);
 int CtrlLouvain::exe_LV_PAR() {
     // par [curr] star end [temp]
     CHECKCURR;
     assert(glv_curr->G);
+    int idx_bfs = mycmd.cmd_findPara("-bfs");
+
     int idx_prun = mycmd.cmd_findPara("-prun");
     int th_prun = 1;
-
     if (idx_prun > 0 && mycmd.argc > idx_prun) {
         th_prun = atoi(mycmd.argv[idx_prun + 1]);
         if (th_prun > MAXGHOST_PRUN || th_prun < 1) {
@@ -1046,6 +1102,37 @@ int CtrlLouvain::exe_LV_PAR() {
         }
     }
     bool isPrun = idx_prun > 0;
+
+    if(idx_bfs>0){
+    	//par -bfs
+    	//par -bfs 4
+    	//par -bfs [?] -m ? -h ?
+        parlv.use_bfs = true;
+    	int idx_mode_start = mycmd.cmd_findPara("-m");
+    	int idx_mode_hop = mycmd.cmd_findPara("-h");
+    	int num_par = ((mycmd.argc>idx_bfs+1 && (idx_mode_start!= (idx_bfs+1) ) && (idx_mode_hop!= (idx_bfs+1) ))?atoi(mycmd.argv[idx_bfs+1]):2);
+    	int mode_start = 0;
+    	if(idx_mode_start!=-1)
+    		mode_start =  atoi(mycmd.argv[idx_mode_start+1]);
+    	int mode_hop = 1;
+    	if(idx_mode_hop!=-1)
+    		mode_hop =  atoi(mycmd.argv[idx_mode_hop+1] );
+    	printf("\033[1;37;40mINFO\033[0m:Doing BFS partition vertices mode_star=%d, mode_hop=%d, num_par=%d\n", mode_start, mode_hop, num_par);
+    	//test_BFSPar_creatingEdgeLists_fixed(mode_start, mode_hop, glv_curr->G, num_par);
+    	test_BFSPar_creatingEdgeLists_fixed_prune(mode_start, mode_hop, glv_curr, &parlv, id_glv, num_par, isPrun, th_prun);
+        for (int p = 0; p < num_par; p++)
+        {
+            glv_temp = parlv.par_src[p];
+            pushList(glv_temp);
+        }
+        parlv.PrintSelf();
+        return 0;
+     }
+    //else{//because this flag also used in premerge
+    //     parlv.use_bfs = false;
+    // }
+
+
     int idx_num = mycmd.cmd_findPara("-num");
     int num_par = 1;
     if (idx_num > 0 && mycmd.argc > idx_num) {
@@ -1092,7 +1179,7 @@ int CtrlLouvain::exe_LV_PAR() {
             SafeCleanTemp();
             glv_temp =
                 LouvainGLV_general_par(flowMode, glv_curr, num_par, num_dev, isPrun, th_prun, xclbinPath, numThreads,
-                                       id_glv, minGraphSize, threshold, C_threshold, this->isParallel, this->numPhase);
+                                       id_glv, minGraphSize, threshold, C_threshold, this->isParallel, this->numPhase);                          
         }
     } else if (mycmd.cmd_findPara("-lv") != -1) {
         if (parlv.st_ParLved == true) {
@@ -1181,13 +1268,34 @@ int CtrlLouvain::exe_LV_LV() {
         mycmd.cmd_findPara("-noParallel") != -1)
         this->isParallel = false;
 
-    bool hasGhost = false;
+    //bool hasGhost = false;//test 
+    bool hasGhost = true;//test 
     if (mycmd.cmd_findPara("-gh") != -1 || mycmd.cmd_findPara("-ghost") != -1) hasGhost = true;
 
     if (mycmd.argc == 1 || idx_phase != -1) {
         SafeCleanTemp();
+        printf("warning: the ghost flag is %d !\n", (int)hasGhost);
         glv_temp = LouvainGLV_general(hasGhost, this->flowMode, 0, glv_curr, xclbinPath, numThreads, id_glv,
                                       minGraphSize, threshold, C_threshold, this->isParallel, this->numPhase);
+        
+        //save all sub-graph and result for debug
+        // exe_LV_SAVE();
+        // char* wfileName = glv_curr->name;
+        // sprintf(wfileName, "m_%d\0", (id_glv-1));
+        // string fn = wfileName;
+        // FILE* f = fopen(fn.c_str(), "wb");
+        // std::cout << "WARNING: " << fn << " will be opened for binary write." << std::endl;
+        // if (!f) {
+        //     std::cerr << "ERROR: " << fn << " cannot be opened for binary write." << std::endl;
+        // }
+        // int nv = glv_temp->G->numVertices;
+        // fprintf(f, "M*Vertices %d\n", nv);
+        // for(int i=0; i<nv; i++){
+        //    fprintf(f, "%d\n", glv_temp->M[i]); 
+        // }
+        // //fwrite(glv_temp->M, sizeof(int), nv, f);
+        // fclose(f);
+
         return 0;
     } else if (mycmd.cmd_findPara("-history") != -1) {
         glv_curr->printFeature();
@@ -1338,7 +1446,8 @@ int CtrlLouvain::exe_LV_RENAME() {
 }
 int CtrlLouvain::exe_LV_DEV() {
     std::vector<cl::Device> devices = xcl::get_xil_devices();
-    num_dev = devices.size();
+    //num_dev = devices.size();
+    num_dev = 1;
     printf("\033[1;37;40mINFO\033[0m: Number of devices: %d\n", num_dev);
     for (int d = 0; d < num_dev; d++) {
         std::string devName = devices[d].getInfo<CL_DEVICE_NAME>();
@@ -1538,4 +1647,17 @@ void WriteAdjMatrix2Raw(unsigned char* img, long size_img, char* nm_img) {
     long cnt = fwrite(img, size_img * size_img, 1, fp);
     fclose(fp);
     printf("WriteAdjMatrix2Raw: Total %d pixel wrote/n", cnt);
+}
+
+const char* NameNoPath(const char* name){
+	assert (name);
+	int len = strlen(name)-1;
+	char c = name[len];
+	while ((c!='/' && c!='\\'&& c!='\n'&& c!=0) && len>0) {
+		c = name[--len];
+	}
+	if(len==0)
+		return name+len;
+	else
+		return name+len+1;
 }

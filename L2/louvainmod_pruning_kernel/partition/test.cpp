@@ -50,7 +50,7 @@ int LvTest_main(int argc, char** argv) {
     char opts_inFile[4096];
     bool opts_coloring;
     bool opts_output;
-    bool opts_VF;
+    bool opts_VF=false;
     char opts_xclbinPath[4096];
 
     host_ParserParameters(argc, argv,
@@ -255,8 +255,10 @@ int LvTest_main_par_cmd(int argc, char** argv) {
     }
 
     if (general_findPara(argc, argv, "-prun") != -1 || general_findPara(argc, argv, "-lvprun") != -1 ||
-        general_findPara(argc, argv, "-fast") != -1)
+        general_findPara(argc, argv, "-fast") != -1){
         lvc.flowMode = MD_FAST;
+        lvc.parlv.flowMode = MD_FAST;//add
+    }
 
     int idx_m = general_findPara(argc, argv, "-m");
     if (idx_m != -1 && argc <= idx_m) {
@@ -273,7 +275,7 @@ int LvTest_main_par_cmd(int argc, char** argv) {
         lvc.C_threshold = atof(argv[idx_d + 1]);
 
     int idx = general_findPara(argc, argv, "-cmdbat");
-
+        lvc.parlv.use_bfs = false;
     if (idx > 0 && argc > idx)
         return lvc.exe_batch(argv[idx + 1]);
     else
@@ -291,7 +293,7 @@ int LvTest_main_par(int argc, char** argv) {
     char opts_inFile[4096];
     bool opts_coloring;
     bool opts_output;
-    bool opts_VF;
+    bool opts_VF=false;
     char opts_xclbinPath[4096];
     int num_par;
     int gh_par;

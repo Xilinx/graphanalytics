@@ -42,6 +42,10 @@ struct TimePartition {
     double timeAll;
 };
 
+struct bfs_selected{
+    int par_idx;// idx of the partition
+    int renum_in_par;// the new number index in the partition
+};
 class ParLV {
    public:
     bool st_Partitioned;
@@ -58,6 +62,8 @@ class ParLV {
     GLV* par_lved[MAX_PARTITION];
     GLV* plv_merged;
     GLV* plv_final;
+    bool use_bfs;
+    bfs_selected* bfs_adjacent;
     int flowMode;
     int num_par;
     int num_dev;
@@ -129,6 +135,8 @@ class ParLV {
     pair<long, long> FindCM_1hop(int idx, long e_org);
     pair<long, long> FindCM_1hop(long e_org);
     long FindC_nhop(long m_gh);
+    pair<long, long> FindCM_1hop_bfs(int idx, long e_org, long addr_v);
+    long FindC_nhop_bfs(long m_gh);
     int AddGLV(GLV* plv);
     void PrintTime();
     void PrintTime2();

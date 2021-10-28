@@ -28,20 +28,21 @@
 #include <hls_math.h>
 #include <hls_stream.h>
 
-//#define _DEBUG_SAMECOLOR
-//#define _DEBUG_GetV 1
-//#define _DEBUG_PUSHV 1
+//#define _MYDBG_SAMECOLOR
+//#define _MYDBG_GetV 1
+//#define _MYDBG_PUSHV 1
+//#define _MYDBG_GetE 1
 int pushcnt = 0;
 #define USE_PUSH (1)
 
-#ifdef _DEBUG_SAMECOLOR
-#define _DEBUG_GetV
-#define _DEBUG_GetE
-#define _DEBUG_GetC
-#define _DEBUG_SMALL
-#define _DEBUG_CID1
-#define _DEBUG_CID2
-#define _DEBUG_GAIN
+#ifdef _MYDBG_SAMECOLOR
+#define _MYDBG_GetV
+#define _MYDBG_GetE
+#define _MYDBG_GetC
+#define _MYDBG_SMALL
+#define _MYDBG_CID1
+#define _MYDBG_CID2
+#define _MYDBG_GAIN
 #endif
 namespace xf {
 namespace graph {
@@ -83,10 +84,10 @@ GET_V:
                 str_GetVout.write(dinout);
 
 #ifndef __SYNTHESIS__
-#ifdef _DEBUG_PUSHV
+#ifdef _MYDBG_PUSHV
                 printf("pushv = %d\n", v);
 #endif
-#ifdef _DEBUG_GetV
+#ifdef _MYDBG_GetV
                 printf("Get_pushV push_flag=%d: k=%d\t v=%d\t adj1=%d\t adj1=%d\t dgr=%d\t \n", (int)push_flag, k, v,
                        adj1, adj2, dgr);
 #endif
@@ -105,7 +106,7 @@ GET_V:
             out_v.vcd.get(dinout);
             str_GetVout.write(dinout);
 #ifndef __SYNTHESIS__
-#ifdef _DEBUG_GetV
+#ifdef _MYDBG_GetV
             printf("GetV: k=%d\t v=%d\t adj1=%d\t adj1=%d\t dgr=%d\t \n", k, v, adj1, adj2, dgr);
 #endif
 #endif
@@ -168,7 +169,7 @@ GetFlag3:
             str_od.write(dinout);
 #ifndef __SYNTHESIS__
             cnt++;
-#ifdef _DEBUG_PUSHV
+#ifdef _MYDBG_PUSHV
             printf("PUSHV : v=%d\t adj1=%d\t adj2=%d\t e_dgr=%d\t \n", pushV, adj1, adj2, e_dgr);
 #endif
 #endif
@@ -244,7 +245,7 @@ GET_E:
             str_GetEout.write(dinout);
             d = 0;
 #ifndef __SYNTHESIS__
-#ifdef _DEBUG_GetE
+#ifdef _MYDBG_GetE
             printf("GetE: d=%d\t v=%d,\t off=%d\t e_dgr=%d\t \n", d, v, off, e_dgr);
 #endif
 #endif
@@ -255,7 +256,7 @@ GET_E:
             str_GetEout.write(dinout);
             d++;
 #ifndef __SYNTHESIS__
-#ifdef _DEBUG_GetE
+#ifdef _MYDBG_GetE
             printf("GetE: d=%d\t v=%d,\t off=%d\t edge=%d\t wght=%f\n", d, v, off, edge, wght);
 #endif
 #endif
@@ -290,7 +291,7 @@ GET_C:
                 u_c.vcde.set(dout128, v, vCid, e_dgr, false);
                 str_GetCout.write(dout128);
 #ifndef __SYNTHESIS__
-#ifdef _DEBUG_GetC
+#ifdef _MYDBG_GetC
                 printf("GetC: d=%d\t v=%d,\t e_dgr=%d\t\n", d, v, e_dgr);
 #endif
 #endif
@@ -303,7 +304,7 @@ GET_C:
             u_c.ecw.set(dout128, edge, eCid, deg_w);
             str_GetCout.write(dout128);
 #ifndef __SYNTHESIS__
-#ifdef _DEBUG_GetC
+#ifdef _MYDBG_GetC
             printf("GetC: d=%d\t v=%d,\t e_dgr=%d\t edge=%d\t eCid=%d\n", d, v, e_dgr, edge, eCid);
 #endif
 #endif
@@ -372,7 +373,7 @@ GET_BEST:
                 d = 0;
                 ki_i = ToInt(ki, scl_2);
 #ifndef __SYNTHESIS__
-#ifdef _DEBUG_GAIN
+#ifdef _MYDBG_GAIN
                 printf("GAIN: v=%d\t, vCid=%d\t, degree=%d\t, numComm=%d\t, ki=%f\t, selfloop=%f\t \n", v, vCid, degree,
                        numComm, ki, selfloop);
 #endif
@@ -403,7 +404,7 @@ GET_BEST:
                     cgain.cgi.get(dout);
                     str_Gainout.write(dout);
 #ifndef __SYNTHESIS__
-#ifdef _DEBUG_GAIN
+#ifdef _MYDBG_GAIN
                     printf("GAIN: vCid=%d\t, best_gain_i%x\t \n", vCid, best_gain_i);
 #endif
 #endif
@@ -432,7 +433,7 @@ GET_BEST:
                     cgain.cgi.get(dout);
                     str_Gainout.write(dout);
 #ifndef __SYNTHESIS__
-#ifdef _DEBUG_GAIN
+#ifdef _MYDBG_GAIN
                     printf("GAIN: d=%d\t, eCid=%d\t, curr_gain_i%x\t \n", d, eCid, curr_gain_i);
 #endif
 #endif
@@ -506,7 +507,7 @@ GET_BEST:
                 d = 0;
                 ki_i = ToInt(ki, scl_2);
 #ifndef __SYNTHESIS__
-#ifdef _DEBUG_GAIN
+#ifdef _MYDBG_GAIN
                 printf("GAIN: v=%d\t, vCid=%d\t, degree=%d\t, numComm=%d\t, ki=%f\t, selfloop=%f\t \n", v, vCid, degree,
                        numComm, ki, selfloop);
 #endif
@@ -541,7 +542,7 @@ GET_BEST:
                     cgain.cgi.get(dout);
                     str_Gainout.write(dout);
 #ifndef __SYNTHESIS__
-#ifdef _DEBUG_GAIN
+#ifdef _MYDBG_GAIN
                     printf("GAIN: vCid=%d\t, best_gain_i%x\t \n", vCid, best_gain_i);
 #endif
 #endif
@@ -570,7 +571,7 @@ GET_BEST:
                     cgain.cgi.get(dout);
                     str_Gainout.write(dout);
 #ifndef __SYNTHESIS__
-#ifdef _DEBUG_GAIN
+#ifdef _MYDBG_GAIN
                     printf("GAIN: d=%d\t, eCid=%d\t, curr_gain_i%x\t \n", d, eCid, curr_gain_i);
 #endif
 #endif
@@ -582,6 +583,152 @@ GET_BEST:
     str_GainUpdate.write(vf);
 }
 
+template <int DWIDTH>
+void SameColor_GetBest_Update_Gain_step_II1(short scl,
+                                         hls::stream<ap_uint<128> >& str_Aggout,
+                                         DF_W_T constant_recip,
+                                         ap_uint<DWIDTH>* totPrev,
+                                         // output
+										 //hls::stream<ap_uint<1> >& done,
+										 //hls::stream<ap_uint<1> >& doneupdate,
+                                         hls::stream<StrmBus_S>& str_GainUpdate,
+                                         hls::stream<ap_uint<160> >& str_Gainout) {
+    double constant = (1.0 / constant_recip);
+    long long constant_i = (long long)constant;
+    int scl_2 = 10;
+
+    AxiMap<float, DWIDTH> axi_totPrev(totPrev);
+    // AxiMap<float, DWIDTH> axi_commWeight(commWeight);
+    StrmBus_S vf;
+
+    DF_WI_T constant_i_scl = ToInt(constant, 0);
+    DF_V_T v, vCid, target, best_comm;
+    DF_W_T selfloop, ki, ei_u, a_u, best_gain;
+    DF_WI_T selfloop_i, ki_i, ei_u_i, a_u_i;
+    DF_WI_T best_gain_i;
+    DF_D_T degree, numComm, d;
+    DF_W_T kinCk_0_;
+    DF_V_T Ck_0;
+    bool GetKins_e;
+    StrmBus_L vcdn, kisf, ckkin;
+    StrmBus_M vcn, m_ki;
+    StrmBus_XL vcnki, cgain, vcnki_tmp;
+    ap_uint<128> dinout;
+    ap_uint<160> dout;
+
+    bool readnew = false;
+    GetKins_e = false;
+    d = 0;
+    numComm = 0;
+GET_BEST:
+    while (GetKins_e == false) {
+#pragma HLS LOOP_TRIPCOUNT MIN = 1 MAX = 1000000
+
+#pragma HLS PIPELINE II = 1
+#pragma HLS DEPENDENCE variable = totPrev inter false
+        if (d == numComm && !readnew) {
+            str_Aggout.read(dinout);
+            vcdn.vcdn.set(dinout);
+            vcdn.vcdn.get(v, vCid, degree, numComm);
+            if (degree < 0)
+            	numComm = -1;
+            vcn.vcn.set(v, vCid, numComm);
+            vcnki.vcnk.set(v, vCid, numComm, 0.0);
+            GetKins_e = degree < 0;
+
+
+            if (GetKins_e == false) {
+            	readnew = true;
+            }
+        }else if (readnew){
+            if (GetKins_e == false) {
+                str_Aggout.read(dinout);
+                kisf.kisf.set(dinout);
+                selfloop = degree > 0 ? kisf.kisf.self : 0;
+                ki = degree > 0 ? kisf.kisf.ki : 0;
+                vcnki.vcnk.ki = degree > 0 ? kisf.kisf.ki : 0;
+                d = 0;
+                ki_i = ToInt(ki, scl_2);
+#ifndef __SYNTHESIS__
+#ifdef _MYDBG_GAIN
+                printf("GAIN: v=%d\t, vCid=%d\t, degree=%d\t, numComm=%d\t, ki=%f\t, selfloop=%f\t \n", v, vCid, degree,
+                       numComm, ki, selfloop);
+#endif
+#endif
+            }
+            vcnki.vcnk.get(dout);
+            vcnki_tmp.vcnk.set(dout);
+            str_Gainout.write(dout);
+            readnew = false;
+        }else if (GetKins_e == false)
+            if (degree > 0) {
+                if (d == 0) {
+                    str_Aggout.read(dinout);
+                    ckkin.n_ckk.set(dinout);
+                    kinCk_0_ = ckkin.n_ckk.kin;
+                    Ck_0 = ckkin.n_ckk.ck;
+                    best_gain = 0;
+                    best_comm = vCid;
+                    // commWeight[v]    = kinCk_0_;
+                    vf.vf.set(v, (float)kinCk_0_);
+                    str_GainUpdate.write(vf);
+                    // axi_commWeight.wr(v, (float)kinCk_0_);
+                    ei_u = kinCk_0_ - selfloop;
+                    // a_u              = totPrev[vCid]-ki;
+                    a_u = axi_totPrev.rdf(vCid) - ki;
+                    best_gain_i = 0;
+                    ei_u_i = ToInt(ei_u, scl_2 * 2);
+                    a_u_i = ToInt(a_u, scl_2);
+                    d = 1;
+                    cgain.cgi.set(vCid, best_gain_i);
+                    cgain.cgi.get(dout);
+                    str_Gainout.write(dout);
+#ifndef __SYNTHESIS__
+#ifdef _MYDBG_GAIN
+                    printf("GAIN: vCid=%d\t, best_gain_i%x\t \n", vCid, best_gain_i);
+#endif
+#endif
+                } else if (d < numComm) {
+                    str_Aggout.read(dinout);
+                    ckkin.n_ckk.set(dinout);
+                    DF_V_T eCid = ckkin.n_ckk.ck;
+                    DF_W_T ei_v = ckkin.n_ckk.kin;
+                    // DF_W_T a_v              = totPrev[eCid];
+                    DF_W_T a_v = axi_totPrev.rdf(eCid);
+                    ;
+                    DF_W_T diff_e = (ei_v - ei_u);
+                    DF_W_T diff_a = (a_v - a_u);
+                    DF_W_T v_pos = diff_e * constant;
+                    DF_W_T v_neg = diff_a * ki;
+                    DF_W_T curr_gain_org = v_pos - v_neg;
+                    DF_WI_T ei_v_i = ToInt(ei_v, scl_2 * 2);
+                    DF_WI_T a_v_i = ToInt(a_v, scl_2);
+                    DF_WI_T diff_e_i = (ei_v_i - ei_u_i);
+                    DF_WI_T diff_a_i = (a_v_i - a_u_i);
+                    DF_WI_T v_pos_i = diff_e_i * constant_i_scl;
+                    DF_WI_T v_neg_i = diff_a_i * ki_i;
+                    DF_WI_T curr_gain_i = v_pos_i - v_neg_i;
+                    DF_W_T curr_gain = (curr_gain_i >> (scl_2 * 2));
+                    cgain.cgi.set(eCid, curr_gain_i);
+                    cgain.cgi.get(dout);
+                    str_Gainout.write(dout);
+#ifndef __SYNTHESIS__
+#ifdef _MYDBG_GAIN
+                    printf("GAIN: d=%d\t, eCid=%d\t, curr_gain_i%x\t \n", d, eCid, curr_gain_i);
+#endif
+#endif
+                    d++;
+                }
+            }
+    }
+
+    vcnki.vcnk.get(dout);
+    vcnki_tmp.vcnk.set(dout);
+    str_Gainout.write(dout);
+
+    vf.vf.set(-1, -1);
+    str_GainUpdate.write(vf);
+}
 
 template <int DWIDTH>
 void SameColor_GetBest_Update_TOT_Csize_hash3(short scl,
@@ -716,7 +863,7 @@ UPDATE_CID:
             else
                 target = best_comm;
 #ifndef __SYNTHESIS__
-#ifdef _DEBUG_CID1
+#ifdef _MYDBG_CID1
             printf("CID1: size_best=%d\t, s_v=%d\t, best=%d\t, vCid=%d\t target=%d \n", size_best, size_vCid, best_comm,
                    vCid, target);
 #endif
@@ -775,7 +922,7 @@ void SameColor_GetBest_Update_CID_step2(ap_uint<DWIDTH>* cidCurr, hls::stream<St
                 int addr = off * size_batch + num_cid[off];
                 mem_vc[addr].vc.set(vc.vc.v, vc.vc.vCid);
 #ifndef __SYNTHESIS__
-#ifdef _DEBUG_CID2
+#ifdef _MYDBG_CID2
                 printf("CID2: cnt_all = %d\t%d\t%d\n", cnt_all, vc.vc.v, vc.vc.vCid);
 #endif
 #endif
@@ -795,7 +942,7 @@ void SameColor_GetBest_Update_CID_step2(ap_uint<DWIDTH>* cidCurr, hls::stream<St
                 vc.vc.set(mem_vc[addr].vc.v, mem_vc[addr].vc.vCid);
                 axi_cidCurr.wr(vc.vc.v, vc.vc.vCid);
 #ifndef __SYNTHESIS__
-#ifdef _DEBUG_CID2
+#ifdef _MYDBG_CID2
                 printf("CID2: off=%d\t j=%d\t %d\t%d\n", off, j, vc.vc.v, vc.vc.vCid);
 #endif
 #endif
@@ -834,7 +981,7 @@ void SameColor_GetBest_Update_CID_step2_org(ap_uint<DWIDTH>* cidCurr, hls::strea
                 int addr = off * size_batch + num_cid[off];
                 mem_vc[addr].vc.set(vc.vc.v, vc.vc.vCid);
 #ifndef __SYNTHESIS__
-#ifdef _DEBUG_CID2
+#ifdef _MYDBG_CID2
                 printf("CID2: cnt_all = %d\t%d\t%d\n", cnt_all, vc.vc.v, vc.vc.vCid);
 #endif
 #endif
@@ -854,7 +1001,7 @@ void SameColor_GetBest_Update_CID_step2_org(ap_uint<DWIDTH>* cidCurr, hls::strea
                 vc.vc.set(mem_vc[addr].vc.v, mem_vc[addr].vc.vCid);
                 axi_cidCurr.wr(vc.vc.v, vc.vc.vCid);
 #ifndef __SYNTHESIS__
-#ifdef _DEBUG_CID2
+#ifdef _MYDBG_CID2
                 printf("CID2: off=%d\t j=%d\t %d\t%d\n", off, j, vc.vc.v, vc.vc.vCid);
 #endif
 #endif
@@ -1027,7 +1174,7 @@ void SameColor_dataflow(int numVertex,
 #pragma HLS RESOURCE variable = str_Gainout_update core = FIFO_LUTRAM
 #pragma HLS STREAM variable = str_Gainout_update depth = 256
     // SameColor_GetBest_Update_Gain_bus3<DWIDTH>(scl, str_Aggout, constant_recip, totPrev, commWeight, str_Gainout);
-    SameColor_GetBest_Update_Gain_step1<DWIDTH>(scl, str_Aggout, constant_recip, totPrev, str_Gainout_update,
+    SameColor_GetBest_Update_Gain_step_II1<DWIDTH>(scl, str_Aggout, constant_recip, totPrev, str_Gainout_update,
                                                 str_Gainout);
     SameColor_GetBest_Update_Gain_step2<DWIDTH>(commWeight, str_Gainout_update);
 
