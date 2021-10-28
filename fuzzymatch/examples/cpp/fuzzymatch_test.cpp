@@ -107,14 +107,14 @@ int main(int argc, const char* argv[]) {
             work_mode = 0;
         }
     }
-    if (parser.getCmdOption("--devices", deviceNames)) {
+    if (parser.getCmdOption("-devices", deviceNames)) {
         std::cout << "INFO: Set deviceNames to " << deviceNames << std::endl;
     } else {
     	deviceNames = "xilinx_u50_gen3x16_xdma_201920_3";
         std::cout << "INFO: Use default deviceNames " << deviceNames << std::endl;
     }
     
-    if (parser.getCmdOption("--total_entities", is_check_str)) {
+    if (parser.getCmdOption("-total_entities", is_check_str)) {
         try {
             totalEntities = std::stoi(is_check_str);
         } catch (...) {
@@ -122,7 +122,7 @@ int main(int argc, const char* argv[]) {
         }
     }
 
-    if (parser.getCmdOption("--num_entities", is_check_str)) {
+    if (parser.getCmdOption("-num_entities", is_check_str)) {
         try {
             numEntities = std::stoi(is_check_str);
         } catch (...) {
