@@ -1062,7 +1062,7 @@ void parse_PajekFormat(graphNew* G, char* fileName)
 {
     printf("INFO: Parsing Pajek file %s...\n", fileName);
     int nthreads;
-//#pragma omp parallel
+#pragma omp parallel
     {
         nthreads = NUMTHREAD; // omp_get_num_threads();
     }
@@ -1153,10 +1153,10 @@ void parse_PajekFormat(graphNew* G, char* fileName)
 
     // Allocate for Edge Pointer and keep track of degree for each vertex
     long* edgeListPtr = (long*)malloc((NV + 1) * sizeof(long));
-//#pragma omp parallel for
+#pragma omp parallel for
     for (long i = 0; i <= NV; i++) edgeListPtr[i] = 0; // For first touch purposes
 
-//#pragma omp parallel for
+#pragma omp parallel for
     for (long i = 0; i < NE; i++) {
         __sync_fetch_and_add(&edgeListPtr[edgeListTmp[i].head + 1], 1); // Plus one to take care of the zeroth location
         __sync_fetch_and_add(&edgeListPtr[edgeListTmp[i].tail + 1], 1);
@@ -1182,7 +1182,7 @@ void parse_PajekFormat(graphNew* G, char* fileName)
     // Keep track of how many edges have been added for a vertex:
     long* added = (long*)malloc(NV * sizeof(long));
     assert(added != 0);
-//#pragma omp parallel for
+#pragma omp parallel for
     for (long i = 0; i < NV; i++) added[i] = 0;
     time2 = omp_get_wtime();
     printf("Time for allocating memory for edgeList = %lf\n", time2 - time1);
@@ -1191,7 +1191,7 @@ void parse_PajekFormat(graphNew* G, char* fileName)
 
     printf("About to build edgeList...\n");
 // Build the edgeList from edgeListTmp:
-//#pragma omp parallel for
+#pragma omp parallel for
     for (long i = 0; i < NE; i++) {
         long head = edgeListTmp[i].head;
         long tail = edgeListTmp[i].tail;

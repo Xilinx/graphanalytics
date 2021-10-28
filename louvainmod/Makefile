@@ -70,9 +70,7 @@ CPP_BUILD_DIR = Debug
 CXXFLAGS += -O0 -g
 else
 CPP_BUILD_DIR = Release
-CXXFLAGS += -O3 -Ofast
-#-DNDEBUG
-#CXXFLAGS += -O0 -g 
+CXXFLAGS += -O3 -Ofast -DNDEBUG
 endif
 
 USE_U55C = 0
