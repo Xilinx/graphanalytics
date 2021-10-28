@@ -312,6 +312,7 @@ namespace fuzzymatch {
         return 0;
     }
     
+
     bool FuzzyMatch::executefuzzyMatch(std::string t) 
     { 
         return pImpl_->executefuzzyMatch(t);
@@ -376,6 +377,72 @@ namespace fuzzymatch {
                 //getRange(t, vec_base[i / 2], vec_offset[i / 2], base_trans[i], nrow_trans[i]);
                 getRange(t, vec_base, vec_offset, base_trans, nrow_trans);
         //}
+    
+        int dup = (boost == 0) ? 2 : 4;
+    
+            events_write.resize(dup);
+            events_kernel.resize(dup);
+            events_read.resize(dup);
+    
+    
+        // struct timeval start_time, end_time;
+        // std::cout << "INFO: kernel start------" << std::endl;
+        // gettimeofday(&start_time, 0);
+    
+        // launch kernel and calculate kernel execution time
+        
+            int i=0;
+            if (!skip_field) {
+                    queue.enqueueWriteBuffer(buf_field_i1, CL_FALSE, 0, sizeof(uint32_t) * 9, buf_f_i0, nullptr,
+                                                &events_write[0]);
+    
+                    queue.enqueueWriteBuffer(buf_field_i2, CL_FALSE, 0, sizeof(uint32_t) * 9, buf_f_i0, nullptr,
+                                                &events_write[1]);
+            }
+        
+    //kernel0 will compare input str against first half of pattern tbl
+    //kernel1 will compare input str against first half of pattern tbl
+            //int nrow00 = (1 + (nrow_trans[i * 2] / 3)) / 2 * 3;
+            //int nrow01 = nrow_trans[i * 2] - nrow00;
+            int nrow00 = (1 + (nrow_trans / 3)) / 2 * 3;
+            int nrow01 = nrow_trans - nrow00;
+    
+            int j = 0;
+            fuzzy[0].setArg(j++, base_trans);
+            fuzzy[0].setArg(j++, nrow00);
+            fuzzy[0].setArg(j++, buf_field_i1);
+            for (int k = 0; k < PU_NUM; k++) fuzzy[0].setArg(j++, buf_csv[k]);
+            fuzzy[0].setArg(j++, buf_field_o1);
+    
+    
+            j = 0;
+            fuzzy[1].setArg(j++, (base_trans + nrow00));
+            fuzzy[1].setArg(j++, nrow01);
+            fuzzy[1].setArg(j++, buf_field_i2);
+            for (int k =  PU_NUM; k < 2 * PU_NUM; k++) fuzzy[1].setArg(j++, buf_csv[k]);
+            fuzzy[1].setArg(j++, buf_field_o2);
+    
+            std::vector<cl::Event> waitEnqueueEvents0{events_write[0]};
+            std::vector<cl::Event> waitEnqueueEvents1{events_write[1]};
+    
+            if (!skip_field) {
+                queue.enqueueTask(fuzzy[0], &waitEnqueueEvents0, &(events_kernel[0]));
+    
+                queue.enqueueTask(fuzzy[1], &waitEnqueueEvents1, &(events_kernel[1]));
+            }
+    
+            std::vector<cl::Event> waitEnqueueReadEvents0{events_kernel[0]};
+            std::vector<cl::Event> waitEnqueueReadEvents1{events_kernel[1]};
+    
+            if (!skip_field) {
+                queue.enqueueReadBuffer(buf_field_o1, CL_FALSE, 0, sizeof(uint32_t), &buf_f_o0, &waitEnqueueReadEvents0, &(events_read[0]));
+            
+                queue.enqueueReadBuffer(buf_field_o2, CL_FALSE, 0, sizeof(uint32_t), &buf_f_o1, &waitEnqueueReadEvents1, &(events_read[1]));
+            }
+        
+        queue.flush();
+        queue.finish();
+    
         bool r=false;
         if(sw_fuzzy_result || buf_f_o0 == 1 || buf_f_o1 == 1) r = true; // person1
        

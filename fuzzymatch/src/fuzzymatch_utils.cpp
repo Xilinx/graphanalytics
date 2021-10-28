@@ -266,6 +266,13 @@ namespace fuzzymatch {
     
         return nerror;
     }
+
+    XILINX_FUZZYMATCH_IMPL_DECL   
+    int FuzzyMatchSW::initialize(std::vector<std::string>& vec_pattern)
+    {
+        preSortbyLength(vec_pattern,this->vec_pattern_grp);  
+        return 0;
+    }    
     
     XILINX_FUZZYMATCH_IMPL_DECL   
     bool FuzzyMatchSW::check(const std::string &t)

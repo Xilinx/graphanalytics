@@ -94,9 +94,9 @@ CXXFLAGS += -O3 -DNDEBUG
 #CXXFLAGS += -O3 -g
 endif
 
-ifneq ($(shell expr $(shell g++ -dumpversion) \>= 5), 1)
-$(error [ERROR]: g++ version too old. Please use 5.0 or above)
-endif
+#ifneq ($(shell expr $(shell g++ -dumpversion) \>= 5), 1)
+#$(error [ERROR]: g++ version too old. Please use 5.0 or above)
+#endif
 $(EXE_FILE): fuzzymatch_test.cpp
 	$(CXX) $(CXXFLAGS) $^ -o $@ \
 		-I$(XILINX_XRT)/include \
