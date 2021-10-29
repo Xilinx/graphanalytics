@@ -659,7 +659,7 @@ void PhaseLoop_UsingFPGA_Prep(graphNew* G,
     edge* vtxInd = G->edgeList;
     long NE = G->numEdges;
     long NEx2 = NE << 1;
-    long NE1 = NEx2 < ((MAXNV)) ? NEx2 : ((MAXNV)); // 256MB/sizeof(int/float)=64M
+    long NE1 = NEx2 < ((1<<27)) ? NEx2 : ((1<<27)); // 256MB/sizeof(int/float)=64M
 
     long cnt_e = 0;
     for (int i = 0; i < vertexNum + 1; i++) {
@@ -985,20 +985,21 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune(int numColors,
     edge* vtxInd = G->edgeList;
     long NE = G->numEdges;
     long NEx2 = NE << 1;
-    long NE1 = NEx2 < ((MAXNV)) ? NEx2 : ((MAXNV)); // 256MB/sizeof(int/float)=64M
+    long NE1 = NEx2 < ((1<<27)) ? NEx2 : ((1<<27)); // 256MB/sizeof(int/float)=64M
 
     long cnt_e = 0;
 
     for (int i = 0; i < vertexNum + 1; i++) {
         buff_host.offsets[i] = (int)vtxPtr[i];
+        buff_host.offsetsdup[i] = buff_host.offsets[i]; // zyl
         if (i != vertexNum) {
             if (M[i] < 0) {
                 buff_host.offsets[i] = (int)(0x80000000 | (unsigned int)vtxPtr[i]);
             }
         } else {
             buff_host.offsets[i] = (int)(vtxPtr[i]);
-        }
-        buff_host.offsetsdup[i] = buff_host.offsets[i]; // zyl
+            printf("GET final host v=%d, offset=%d\n",i, buff_host.offsets[i]);
+        }       
     }
     edgeNum = buff_host.offsets[vertexNum];
 
@@ -1033,7 +1034,7 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune(int numColors,
 
     buff_host.config1[0] = opts_C_thresh;
     buff_host.config1[1] = currMod;
-    printf("maxv:%d, NEx2:%ld, vertexNum: %d, numColors:%d, edgeNum:%d, opts_C_thresh:%f, currMod:%f\n", (MAXNV), NEx2, vertexNum,numColors,edgeNum,opts_C_thresh,currMod);
+    printf("maxv:%d, NEx2:%ld, vertexNum: %d, numColors:%d, edgeNum:%d, opts_C_thresh:%f, currMod:%f", (1<<27), NEx2, vertexNum,numColors,edgeNum,opts_C_thresh,currMod);
     
     time1 = omp_get_wtime() - time1;
     return time1;
@@ -1053,7 +1054,7 @@ void runLouvainWithFPGA(graphNew* G,  // Input graphNew, undirectioned
     long NE_org = G->numEdges;
     long numClusters;
     /* Check graphNew size, limited by hardware features */
-    assert(NV < (MAXNV));
+    assert(NV < (1<<27));
     assert(NE_org < MAXNE);
 
     /* For coloring */
@@ -1090,7 +1091,7 @@ void runLouvainWithFPGA(graphNew* G,  // Input graphNew, undirectioned
     KMemorys_host buff_host;
     KMemorys_clBuff buff_cl;
     long NE_mem = NE_org * 2; // number for real edge to be stored in memory
-    long NE_mem_1 = NE_mem < ((MAXNV)) ? NE_mem : ((MAXNV));
+    long NE_mem_1 = NE_mem < ((1<<27)) ? NE_mem : ((1<<27));
     long NE_mem_2 = NE_mem - NE_mem_1;
     UsingFPGA_MapHostClBuff(NV, NE_mem_1, NE_mem_2, context, buff_host, buff_cl);
 
@@ -1171,7 +1172,7 @@ void runLouvainWithFPGA_demo(graphNew* G,
     long NV = G->numVertices;
     long NE_org = G->numEdges;
     long numClusters;
-    assert(NV < (MAXNV));
+    assert(NV < (1<<27));
     assert(NE_org < MAXNE);
 
     int* colors;
@@ -1201,7 +1202,7 @@ void runLouvainWithFPGA_demo(graphNew* G,
     KMemorys_host buff_host;
     KMemorys_clBuff buff_cl;
     long NE_mem = NE_org * 2; // number for real edge to be stored in memory
-    long NE_mem_1 = NE_mem < ((MAXNV)) ? NE_mem : ((MAXNV));
+    long NE_mem_1 = NE_mem < ((1<<27)) ? NE_mem : ((1<<27));
     long NE_mem_2 = NE_mem - NE_mem_1;
     UsingFPGA_MapHostClBuff(NV, NE_mem_1, NE_mem_2, context, buff_host, buff_cl);
 
@@ -1225,7 +1226,7 @@ void runLouvainWithFPGA_demo(graphNew* G,
 
         if (isUsingFPGA) {
             long vertexNum = G->numVertices;
-            bool isLargeEdge = G->numEdges > ((MAXNV) / 2);
+            bool isLargeEdge = G->numEdges > ((1<<27) / 2);
             num_runsFPGA++;
             struct timeval tstartE2E, tendE2E;
             std::vector<cl::Memory> ob_in;
@@ -1309,7 +1310,7 @@ double PhaseLoop_UsingFPGA_Prep_Init_buff_host(int numColors,
     edge* vtxInd = G->edgeList;
     long NE = G->numEdges;
     long NEx2 = NE << 1;
-    long NE1 = NEx2 < ((MAXNV)) ? NEx2 : ((MAXNV)); // 256MB/sizeof(int/float)=64M
+    long NE1 = NEx2 < ((1<<27)) ? NEx2 : ((1<<27)); // 256MB/sizeof(int/float)=64M
 
     long cnt_e = 0;
     for (int i = 0; i < vertexNum + 1; i++) {
@@ -1483,7 +1484,7 @@ void ConsumingOnePhase(GLV* pglv_iter,
     std::vector<std::vector<cl::Event> > kernel_evt1(1);
     kernel_evt0[0].resize(1);
     kernel_evt1[0].resize(1);
-    bool isLargeEdge = pglv_iter->G->numEdges > ((MAXNV) / 2);
+    bool isLargeEdge = pglv_iter->G->numEdges > ((1<<27) / 2);
 
     eachTimeInitBuff = PhaseLoop_UsingFPGA_Prep_Init_buff_host(pglv_iter->numColors, pglv_iter->G, pglv_iter->M,
                                                                opts_C_thresh, currMod, pglv_iter->colors, buff_host);
@@ -1532,7 +1533,7 @@ void runLouvainWithFPGA_demo_par_core(bool hasGhost,
     long NE_max = NE_orig; // hasGhost?(1.4 * NE_orig):NE_orig;//1.4 is Experience value, make clbuffer enough space
     long numClusters;
 
-    assert(NV_orig < (MAXNV));
+    assert(NV_orig < (1<<27));
     assert(NE_orig < MAXNE);
 
     timePrePre_dev = omp_get_wtime();
@@ -1563,7 +1564,7 @@ void runLouvainWithFPGA_demo_par_core(bool hasGhost,
     KMemorys_host buff_host;
     KMemorys_clBuff buff_cl;
     long NE_mem = NE_max * 2; // number for real edge to be stored in memory
-    long NE_mem_1 = NE_mem < ((MAXNV)) ? NE_mem : ((MAXNV));
+    long NE_mem_1 = NE_mem < ((1<<27)) ? NE_mem : ((1<<27));
     long NE_mem_2 = NE_mem - NE_mem_1;
     timePrePre_buff = omp_get_wtime();
     UsingFPGA_MapHostClBuff(NV_orig, NE_mem_1, NE_mem_2, context, buff_host, buff_cl);
@@ -1669,7 +1670,7 @@ void runLouvainWithFPGA_demo_par_core(bool hasGhost,
             printf("WARNING: ReMapBuff as %d < %d \n", NE_max, pglv_iter->G->numEdges);
             NE_max = pglv_iter->G->numEdges;
             long NE_mem = NE_max * 2; // number for real edge to be stored in memory
-            long NE_mem_1 = NE_mem < ((MAXNV)) ? NE_mem : ((MAXNV));
+            long NE_mem_1 = NE_mem < ((1<<27)) ? NE_mem : ((1<<27));
             long NE_mem_2 = NE_mem - NE_mem_1;
             double tm = omp_get_wtime();
             buff_host.freeMem();
@@ -1708,7 +1709,7 @@ void ConsumingOnePhase_prune(GLV* pglv_iter,
                              double opts_C_thresh,
                              KMemorys_clBuff_prune& buff_cl,
                              KMemorys_host_prune& buff_host,
-                             cl::Kernel& kernel_louvain,
+                             cl::Kernel& kernel_louvain0,
                              cl::CommandQueue& q,
                              int& eachItrs,
                              double& currMod,
@@ -1720,12 +1721,16 @@ void ConsumingOnePhase_prune(GLV* pglv_iter,
     std::vector<std::vector<cl::Event> > kernel_evt1(1);
     kernel_evt0[0].resize(1);
     kernel_evt1[0].resize(1);
+    cl_uint cntq = 0;
+    cl_uint  sizeq = 0;
+    cl_int error_number;
 
-    bool isLargeEdge = pglv_iter->G->numEdges > ((MAXNV) / 2);
+    bool isLargeEdge = pglv_iter->G->numEdges > ((1<<27) / 2);
     eachTimeInitBuff = PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune(
         pglv_iter->numColors, pglv_iter->G, pglv_iter->M, opts_C_thresh, currMod, pglv_iter->colors, buff_host);
     //getchar();
-    PhaseLoop_UsingFPGA_1_KernelSetup_prune(isLargeEdge, kernel_louvain, ob_in, ob_out, buff_cl);
+    #if 1
+    PhaseLoop_UsingFPGA_1_KernelSetup_prune(isLargeEdge, kernel_louvain0, ob_in, ob_out, buff_cl);
     std::cout << "\t\PhaseLoop_UsingFPGA_1_KernelSetup Device Available: "
               << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 
@@ -1734,7 +1739,7 @@ void ConsumingOnePhase_prune(GLV* pglv_iter,
               << std::endl; //  << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
     //getchar();
 
-    PhaseLoop_UsingFPGA_3_KernelRun(q, kernel_evt0, kernel_evt1, kernel_louvain);
+    PhaseLoop_UsingFPGA_3_KernelRun(q, kernel_evt0, kernel_evt1, kernel_louvain0);
     std::cout << "\t\PhaseLoop_UsingFPGA_3_KernelRun Device Available: "
               << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
 
@@ -1745,6 +1750,18 @@ void ConsumingOnePhase_prune(GLV* pglv_iter,
     PhaseLoop_UsingFPGA_5_KernelFinish(q);
     std::cout << "\t\PhaseLoop_UsingFPGA_5_KernelFinish Device Available: "
               << std::endl; // << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
+    #else
+    kernel_louvain(buff_host.config0, buff_host.config1, (ap_uint<DWIDTHS>*)buff_host.offsets, (ap_uint<DWIDTHS>*)buff_host.indices,
+    (ap_uint<DWIDTHS>*)buff_host.weights, 
+    (ap_uint<32>*)buff_host.colorAxi, (ap_uint<32>*)buff_host.colorInx,
+     (ap_uint<DWIDTHS>*)buff_host.cidPrev, 
+    (ap_uint<DWIDTHS>*)buff_host.cidSizePrev, (ap_uint<DWIDTHS>*)buff_host.totPrev, 
+    (ap_uint<DWIDTHS>*)buff_host.cidCurr, (ap_uint<DWIDTHS>*)buff_host.cidSizeCurr, 
+    (ap_uint<DWIDTHS>*)buff_host.totCurr, (ap_uint<DWIDTHS>*)buff_host.cidSizeUpdate, 
+    (ap_uint<DWIDTHS>*)buff_host.totUpdate, (ap_uint<DWIDTHS>*)buff_host.cWeight,
+    (ap_uint<DWIDTHS>*)buff_host.offsetsdup, (ap_uint<DWIDTHS>*)buff_host.indicesdup, 
+    buff_host.flag, buff_host.flagUpdate);   
+    #endif
 
 
     eachTimeReadBuff = PhaseLoop_UsingFPGA_Prep_Read_buff_host_prune(pglv_iter->NV, buff_host, eachItrs, pglv_iter->C,
@@ -1771,7 +1788,7 @@ void runLouvainWithFPGA_demo_par_core_prune(bool hasGhost,
     long NE_orig = pglv_orig->G->numEdges;
     long numClusters;
 
-    assert(NV_orig < (MAXNV));
+    assert(NV_orig < (1<<27));
     assert(NE_orig < MAXNE);
 
     timePrePre_dev = omp_get_wtime();
@@ -1811,7 +1828,7 @@ void runLouvainWithFPGA_demo_par_core_prune(bool hasGhost,
     KMemorys_clBuff_prune buff_cl;
     long NE_max = NE_orig;    // hasGhost?(1.4 * NE_orig):NE_orig;//Experience value, make clbuffer enough space
     long NE_mem = NE_max * 2; // number for real edge to be stored in memory
-    long NE_mem_1 = NE_mem < ((MAXNV)) ? NE_mem : ((MAXNV));
+    long NE_mem_1 = NE_mem < ((1<<27)) ? NE_mem : ((1<<27));
     long NE_mem_2 = NE_mem - NE_mem_1;
 
     timePrePre_buff = omp_get_wtime();
@@ -1916,7 +1933,7 @@ void runLouvainWithFPGA_demo_par_core_prune(bool hasGhost,
             printf("WARNING: ReMapBuff as %d < %d \n", NE_max, pglv_iter->G->numEdges);
             NE_max = pglv_iter->G->numEdges;
             long NE_mem = NE_max * 2; // number for real edge to be stored in memory
-            long NE_mem_1 = NE_mem < ((MAXNV)) ? NE_mem : ((MAXNV));
+            long NE_mem_1 = NE_mem < ((1<<27)) ? NE_mem : ((1<<27));
             long NE_mem_2 = NE_mem - NE_mem_1;
             double tm = omp_get_wtime();
             buff_host.freeMem();
@@ -1965,7 +1982,7 @@ GLV* LouvainGLV_general(bool hasGhost,
                         int numPhase) {
     double time1 = omp_get_wtime();
     assert(glv_src);
-
+    printf("warning: the ghost flag is %d !\n", (int)hasGhost);
     GLV* glv = glv_src->CloneSelf(id_glv);
     assert(glv);
     glv->SetName_lv(glv->ID, glv_src->ID);

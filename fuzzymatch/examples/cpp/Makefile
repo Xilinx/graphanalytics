@@ -58,7 +58,7 @@ CXXFLAGS = -std=c++11 -D_GLIBCXX_USE_CXX11_ABI=0 -fPIC -pthread -I$(INCLUDE_PATH
 ifdef U50
     deviceNames ?= xilinx_u50_gen3x16_xdma_201920_3
 else
-    deviceNames ?= xilinx_aws-vu9p-f1_dynamic_5_0
+    deviceNames ?= xilinx_aws-vu9p-f1_shell-v04261818_201920_2
 endif
 XDEVICE = $(basename $(notdir $(deviceNames)))
 
@@ -94,9 +94,9 @@ CXXFLAGS += -O3 -DNDEBUG
 #CXXFLAGS += -O3 -g
 endif
 
-ifneq ($(shell expr $(shell g++ -dumpversion) \>= 5), 1)
-$(error [ERROR]: g++ version too old. Please use 5.0 or above)
-endif
+#ifneq ($(shell expr $(shell g++ -dumpversion) \>= 5), 1)
+#$(error [ERROR]: g++ version too old. Please use 5.0 or above)
+#endif
 $(EXE_FILE): fuzzymatch_test.cpp
 	$(CXX) $(CXXFLAGS) $^ -o $@ \
 		-I$(XILINX_XRT)/include \
@@ -112,8 +112,8 @@ run: $(EXE_FILE)
 	set -e; \
 	. $(XILINX_XRT)/setup.sh; \
 	LD_LIBRARY_PATH=$(LIB_PATH):$$LD_LIBRARY_PATH; \
-	$(abspath $^)  -xclbin $(XCLBIN_FILE) -d ../data -c $(runMode) --devices $(deviceNames) \
-		--total_entities $(totalEntities) --num_entities $(numEntities) 
+	$(abspath $^)  -xclbin $(XCLBIN_FILE) -d ../data -c $(runMode) -devices $(deviceNames) \
+		-total_entities $(totalEntities) -num_entities $(numEntities) 
 
 clean:
 	rm -f $(EXE_FILE)

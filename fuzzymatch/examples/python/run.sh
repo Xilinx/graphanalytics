@@ -23,12 +23,12 @@
 test -d "$PRODUCT_VER" || export PRODUCT_VER=0.1
 
 # Location of cosine similarity Alveo product
-export XF_PROJ_ROOT=$PWD/../../staging
+export XF_PROJ_ROOT=$PWD/../../
 test -d "$XILINX_FUZZYMATCH" || $XILINX_FUZZYMATCH=/opt/xilinx/apps/graphanalytics/fuzzymatch
 
 # Location of XRT and XRM
 test -d "$XILINX_XRT" || export XILINX_XRT=/opt/xilinx/xrt
-test -d "$XILINX_XRM" || export XILINX_XRM=/opt/xilinx/xrm
+#$test -d "$XILINX_XRM" || export XILINX_XRM=/opt/xilinx/xrm
 
 # Location of the Python wrappers
 export LIB_PATH=$XF_PROJ_ROOT/lib
@@ -37,11 +37,23 @@ export PYTHONPATH=$LIB_PATH:$PYTHONPATH
 
 # Setup Xilinx Tools
 . $XILINX_XRT/setup.sh
-. $XILINX_XRM/setup.sh
+#. $XILINX_XRM/setup.sh
 
 # Location of the C++ library
 export LD_LIBRARY_PATH=$LIB_PATH:$LD_LIBRARY_PATH
 
-# Run the command
+if [ $# -eq 0 ]; then
+    DEVICE="AWS"
+else
+    DEVICE=$1
+fi
 
-python3 pythondemo.py  --deviceNames xilinx_u50_gen3x16_xdma_201920_3  --xclbin $XF_PROJ_ROOT/xclbin/fuzzy_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+# Run the command
+if [[ "${DEVICE}" == "U50" ]] ; then
+    deviceNames="xilinx_u50_gen3x16_xdma_201920_3"
+    xclbinFile="fuzzy_xilinx_u50_gen3x16_xdma_201920_3.xclbin"
+elif [[ "${DEVICE}" == "AWS" ]]; then
+    deviceNames="xilinx_aws-vu9p-f1_shell-v04261818_201920_2"
+    xclbinFile="fuzzy_xilinx_aws-vu9p-f1_shell-v04261818_201920_2.awsxclbin"
+fi
+python3 pythondemo.py  --deviceNames ${deviceNames}  --xclbin $XF_PROJ_ROOT/xclbin/${xclbinFile}

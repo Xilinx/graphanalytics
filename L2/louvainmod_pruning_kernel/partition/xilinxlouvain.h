@@ -23,12 +23,12 @@ using namespace std;
 #define CSRWIDTHS (256)
 #define COLORWIDTHS (32)
 #define NUM (DWIDTHS / 32)
-#ifndef USE_U55C
+#ifndef USE_U55C	
 #define MAXNV (1 << 26)
 #define MAXNE (1 << 27)
-#else
-#define MAXNV (1 << 27)
-#define MAXNE (1 << 28)
+#else	
+#define MAXNV (1 << 27)	
+#define MAXNE (1 << 28)	
 #endif
 #define VERTEXS (MAXNV / NUM)
 #define EDGES (MAXNE / NUM)

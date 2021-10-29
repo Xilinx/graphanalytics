@@ -163,8 +163,8 @@ VPP_FLAGS += -I$(XFLIB_DIR)/L2/louvainmod_2cu_u55c_kernel
 VPP_FLAGS += --advanced.param compiler.userPostSysLinkOverlayTcl=$(CUR_DIR)/postSysLink.tcl
 
 kernel_louvain_VPP_FLAGS +=  -D KERNEL_NAME=kernel_louvain
-kernel_louvain_VPP_FLAGS += --hls.clock 200000000:kernel_louvain
-VPP_LDFLAGS_kernel_louvain += --kernel_frequency 200
+kernel_louvain_VPP_FLAGS += --hls.clock 250000000:kernel_louvain
+VPP_LDFLAGS_kernel_louvain += --kernel_frequency 250
 
 
 # ############################ Declaring Binary Containers ##########################

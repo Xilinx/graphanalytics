@@ -109,6 +109,7 @@ public:
         parlv_.num_par = partOpts.numPars;
         parlv_.th_prun = partOpts.par_prune;
         parlv_.num_server = settings_.numServers;
+        parlv_.use_bfs = partOpts.LBW_partition;
 
         if (globalOpts.nameProj.empty()) {
             std::ostringstream oss1;
@@ -208,17 +209,32 @@ public:
              std::cout << "INFO: NV_par_requested is set to " << NV_par_requested << std::endl;           
         }
 
-        int numPartitionsCreated = xai_save_partition(
-            const_cast<long *>(partitionData.offsets_tg),
-            const_cast<Edge *>(partitionData.edgelist_tg),
-            const_cast<long *>(partitionData.drglist_tg),
-            partitionData.start_vertex,
-            partitionData.end_vertex,
-            pathName_proj_svr,    // num_server==1? <dir>/louvain_partitions_ : louvain_partitions_svr<num_server>
-            partOpts_.par_prune,  // always be '1'
-            NV_par_requested,     // Allow to partition small graphs not bigger than FPGA limitation
-            NV_par_max
-        );
+        int numPartitionsCreated = 0;
+        if(!partOpts_.LBW_partition){
+            numPartitionsCreated = xai_save_partition(
+                const_cast<long *>(partitionData.offsets_tg),
+                const_cast<Edge *>(partitionData.edgelist_tg),
+                const_cast<long *>(partitionData.drglist_tg),
+                partitionData.start_vertex,
+                partitionData.end_vertex,
+                pathName_proj_svr,    // num_server==1? <dir>/louvain_partitions_ : louvain_partitions_svr<num_server>
+                partOpts_.par_prune,  // always be '1'
+                NV_par_requested,     // Allow to partition small graphs not bigger than FPGA limitation
+                NV_par_max
+            );
+        } else {
+            numPartitionsCreated = xai_save_partition_bfs(
+                const_cast<long *>(partitionData.offsets_tg),
+                const_cast<Edge *>(partitionData.edgelist_tg),
+                const_cast<long *>(partitionData.drglist_tg),
+                partitionData.start_vertex,
+                partitionData.end_vertex,
+                pathName_proj_svr,    // num_server==1? <dir>/louvain_partitions_ : louvain_partitions_svr<num_server>
+                partOpts_.par_prune,  // always be '1'
+                NV_par_requested,     // Allow to partition small graphs not bigger than FPGA limitation
+                NV_par_max
+            );
+        }
 
         if (numPartitionsCreated < 0) {
             std::ostringstream oss;
@@ -244,7 +260,12 @@ public:
             numPartitions += numAlveoPartitions[i];
 
         std::sprintf(pathName_tmp, "%s%s.par.proj", projPath_.c_str(), projName_.c_str());
-        std::sprintf(meta, "-create_alveo_partitions %s -num_pars %d -par_prune %d -name %s -time_par %f -time_save %f ",
+        if (parlv_.use_bfs)  
+            std::sprintf(meta, "-create_alveo_LBW_partitions %s -num_pars %d -par_prune %d -name %s -time_par %f -time_save %f ",
+                inputFileName_.c_str(), numPartitions, partOpts_.par_prune,
+                globalOpts_.nameProj.c_str(), parlv_.timesPar.timePar_all, parlv_.timesPar.timePar_save);
+        else
+            std::sprintf(meta, "-create_alveo_partitions %s -num_pars %d -par_prune %d -name %s -time_par %f -time_save %f ",
                 inputFileName_.c_str(), numPartitions, partOpts_.par_prune,
                 globalOpts_.nameProj.c_str(), parlv_.timesPar.timePar_all, parlv_.timesPar.timePar_save);
         parlv_.num_par = numPartitions;
@@ -461,7 +482,8 @@ float LouvainMod::loadAlveoAndComputeLouvain(const ComputeOptions &computeOpts)
                 (char *)(computeOpts.outputFile.c_str()), 
                 computeOpts.max_iter, computeOpts.max_level, 
                 computeOpts.tolerance, computeOpts.intermediateResult, 
-                pImpl_->options_.verbose, computeOpts.final_Q, computeOpts.all_Q); 
+                pImpl_->options_.verbose, computeOpts.final_Q, computeOpts.all_Q);
+                //,computeOpts.LBW_partition); 
 
 #ifndef NDEBUG  
     std::cout << "DEBUG: " << __FUNCTION__ << " finalQ=" << finalQ << std::endl;

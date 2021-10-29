@@ -939,6 +939,7 @@ int host_ParserParameters(int argc,
                           std::string& deviceNames,    // Target device names
                           int& numThread,
                           int& numPars,
+                          //bool& LBW_partition,
                           int& gh_par,
                           int& kernelMode,
                           int& numDevices,
@@ -986,6 +987,12 @@ int host_ParserParameters(int argc,
 
     if (general_findPara(argc, argv, "-create_alveo_partitions") != -1) {
         mode_alveo = ALVEOAPI_PARTITION;
+        //LBW_partition = false;
+        int indx = general_findPara(argc, argv, "-name");
+        if (argc > indx && indx != -1) strcpy(nameProj, argv[indx + 1]);
+    } else if (general_findPara(argc, argv, "-create_alveo_LBW_partitions") != -1) {
+        mode_alveo = ALVEOAPI_PARTITION_LBW;
+        //LBW_partition = true;
         int indx = general_findPara(argc, argv, "-name");
         if (argc > indx && indx != -1) strcpy(nameProj, argv[indx + 1]);
     } else if (general_findPara(argc, argv, "-load_alveo_partitions") != -1) {
@@ -1961,7 +1968,11 @@ long ParLV::CheckGhost()
         assert(p_v_new[p]);
         for (int v = G_lved->NVl; v < G_lved->NV; v++) {
             long mv = G_lved->M[v];
-            long v_new = FindC_nhop(mv);
+            long v_new=0;
+            if(use_bfs)
+                v_new = FindC_nhop_bfs(mv);//find the bfs-hop subgraph //LBW
+            else
+                v_new = FindC_nhop(mv);//find the directly cat subgraph
             if (v_new == mv) {
                 p_v_new[p][v] = FindOldOrAddNew(m_v_gh, NV_gh_new, v_new) + this->NVl;
 #ifdef DBG_PAR_PRINT
@@ -3029,6 +3040,828 @@ void sim_getServerPar(
     }
 }
 
+//start bfs partition method 
+#define bfs 
+
+#ifdef bfs
+
+struct HopV{
+	long v;
+	int hop;
+};
+typedef int t_sel;
+long FindStartVertexlastround(graphNew* G, t_sel V_selected[]){
+    long NV = G->numVertices;
+    long* offsets = G->edgeListPtrs;
+    edge* indices = G->edgeList;
+    long v_start=-1;
+    int degree_max = 1;
+    for(int v = 0; v<NV; v++){
+        if(V_selected[v])
+            continue;
+        v_start = v;
+        break;
+    }
+        return  v_start;
+}
+
+long FindStartVertex(graphNew* G, t_sel V_selected[]){
+    long NV = G->numVertices;
+	long* offsets = G->edgeListPtrs;
+    edge* indices = G->edgeList;
+    long v_start=-1;
+    int degree_max = 1;
+    for(int v = 0; v<NV; v++){
+    	if(V_selected[v])
+    		continue;
+        long adj1 = offsets[v];
+        long adj2 = offsets[v + 1];
+        int degree = adj2 - adj1;
+        if(degree < degree_max )
+        	continue;
+        v_start = v;
+        degree_max = degree;
+    }
+    return v_start;
+}
+
+long BFSPar_AddNeighbors(
+		graphNew* G,
+		int p,//
+		t_sel V_selected[], //inout, for recording whether a vertex is selected
+		long v,
+		int hop,
+		//output
+        edge* elist_par[],
+		long num_e_dir[],
+		long num_e_dir_lg[],
+		long num_v_l[],
+		long num_v_g[],
+		map<long, long> map_v_l[],//std:map for local vertices, will be used for renumbering and creating M
+		map<long, long> map_v_g[],//std:map for ghost vertices, will be used for renumbering and creating M
+		std::queue<HopV> q_par[],
+		map<long, long> map_v_l_scaned[],
+		int max_hop[]
+){
+    long* offsets = G->edgeListPtrs;
+    edge* indices = G->edgeList;
+#ifdef DEBUGPAR
+    printf("BFS, v=%ld\n", v);
+#endif
+	long adj1 = offsets[v];
+	long adj2 = offsets[v + 1];
+	int degree = adj2 - adj1;
+
+	for (int d = 0; d < degree; d++) {
+		map<long, long>::iterator itr;
+		bool notSelected = false;
+		bool isTailLocal = false;
+		bool isTailGhost = false;
+		bool BeenScaned  = false;
+		long e = indices[adj1 + d].tail;
+
+		if(V_selected[e]==0){
+			notSelected = true;
+			V_selected[e] = p+1;
+		} //atom action done
+
+		itr = map_v_l[p].find(e);
+		if( itr != map_v_l[p].end() )
+			isTailLocal=true;
+		itr = map_v_l_scaned[p].find(e);
+		if( itr != map_v_l_scaned[p].end() )
+			BeenScaned=true;
+		itr = map_v_g[p].find(e);
+		if( itr != map_v_g[p].end() )
+			isTailGhost=true;
+		if( notSelected){
+			map_v_l[p][e] = num_v_l[p];
+			num_v_l[p]++;
+			HopV he;
+			he.hop=hop+1;
+			he.v = e;
+			q_par[p].push(he);
+#ifdef DEBUGPAR
+            printf("push vertex'e %ld\n", e);
+#endif
+			//if(he.hop>max_hop[p])
+			//	max_hop[p] = he.hop;
+		}
+		//add to edge ghost;
+		if(BeenScaned)// && v!=e)
+			continue;
+		else
+		{
+			double w = indices[adj1 + d].weight;
+			elist_par[p][num_e_dir[p]].head = v<=e?v:e;
+			elist_par[p][num_e_dir[p]].tail = v<=e?e:v;
+			elist_par[p][num_e_dir[p]].weight = w;
+#ifdef DEBUGPAR
+            printf("edge (%ld %ld)\n", elist_par[p][num_e_dir[p]].head, elist_par[p][num_e_dir[p]].tail);
+#endif
+			num_e_dir[p]++;
+			if(!notSelected && !isTailLocal){
+				if( !isTailGhost){//new found ghost
+					map_v_g[p][e] = num_v_g[p];
+					num_v_g[p]++;
+					num_e_dir_lg[p]++;
+				}else{
+					num_e_dir_lg[p]++;
+				}
+			}
+		}//add to edge ghost;
+	}// for eatch e
+	map_v_l_scaned[p][v] = v;
+}
+
+
+long addGhostAfterPartition(
+		graphNew* G,
+		int p,//
+		t_sel V_selected[], //inout, for recording whether a vertex is selected
+		long v,
+		int hop,
+		//output
+        edge* elist_par[],
+		long num_e_dir[],
+		long num_e_dir_lg[],
+		long num_v_l[],
+		long num_v_g[],
+		map<long, long> map_v_l[],//std:map for local vertices, will be used for renumbering and creating M
+		map<long, long> map_v_g[],//std:map for ghost vertices, will be used for renumbering and creating M
+		std::queue<HopV> q_par[],
+		map<long, long> map_v_l_scaned[],
+		int max_hop[]
+){
+    long* offsets = G->edgeListPtrs;
+    edge* indices = G->edgeList;
+#ifdef DEBUGPAR
+    printf(" addghost BFS, v=%ld\n", v);
+#endif
+	long adj1 = offsets[v];
+	long adj2 = offsets[v + 1];
+	int degree = adj2 - adj1;
+
+	for (int d = 0; d < degree; d++) {
+		map<long, long>::iterator itr;
+		bool notSelected = false;
+		bool isTailLocal = false;
+		bool isTailGhost = false;
+		bool BeenScaned  = false;
+		long e = indices[adj1 + d].tail;
+
+		//assert(V_selected[e]==0);
+
+		// if(V_selected[e]==0){
+		// 	notSelected = true;
+		// 	//V_selected[e] = p+1;
+		// } //atom action done
+
+		itr = map_v_l[p].find(e);
+		if( itr != map_v_l[p].end() )
+			isTailLocal=true;
+		itr = map_v_l_scaned[p].find(e);
+		if( itr != map_v_l_scaned[p].end() )
+			BeenScaned=true;
+		itr = map_v_g[p].find(e);
+		if( itr != map_v_g[p].end() )
+			isTailGhost=true;
+		// if( notSelected){
+		// 	map_v_l[p][e] = num_v_l[p];
+		// 	num_v_l[p]++;
+		// 	HopV he;
+		// 	he.hop=hop+1;
+		// 	he.v = e;
+		// 	q_par[p].push(he);
+        // }
+		//add to edge ghost;
+		if(BeenScaned)// && v!=e)
+			continue;
+		else
+		{
+			double w = indices[adj1 + d].weight;
+			elist_par[p][num_e_dir[p]].head = v<=e?v:e;
+			elist_par[p][num_e_dir[p]].tail = v<=e?e:v;
+			elist_par[p][num_e_dir[p]].weight = w;
+#ifdef DEBUGPAR
+            printf("edge (%ld %ld)\n", elist_par[p][num_e_dir[p]].head, elist_par[p][num_e_dir[p]].tail);
+#endif
+			num_e_dir[p]++;
+			if(!isTailLocal){
+				if( !isTailGhost){//new found ghost
+					map_v_g[p][e] = num_v_g[p];
+					num_v_g[p]++;
+					num_e_dir_lg[p]++;
+				}else{
+					num_e_dir_lg[p]++;
+				}
+			}
+		}//add to edge ghost;
+	}// for eatch e
+	map_v_l_scaned[p][v] = v;
+}
+
+bool isHopDone(
+		std::queue<HopV> &q_par_p,
+		int num_hop_p)
+{
+	bool hop_done;
+	if(!q_par_p.empty()){
+		HopV hv = q_par_p.front();
+		if(hv.hop==num_hop_p)
+			hop_done=false;
+		else
+			hop_done=true;
+	}else
+		hop_done=true;
+	return hop_done;
+}
+
+void BFSPar_creatingEdgeLists_fixed_prune(
+		int mode_start,//0: find vertices with max degrees, 1: vertices at average partition -m 1
+		int mode_hop, //"-h 0": just one vertex will be scanned; "-h 1": full hop; "-h 2"(default): full hop with limited MAX_PAR_VERTEX
+		graphNew* G,
+		int num_par,// which is fixed for convenience, in future num_par maybe modified
+		t_sel V_selected[], //inout, for recording whether a vertex is selected
+		//output
+        edge* elist_par[],
+		long num_e_dir[],
+		long num_e_dir_lg[],
+		long num_v_l[],
+		long num_v_g[],
+		map<long, long> map_v_l[],//std:map for local vertices, will be used for renumbering and creating M
+		map<long, long> map_v_g[]//std:map for ghost vertices, will be used for renumbering and creating M
+){
+	const int MAX_PAR = num_par;
+	std::queue<HopV> q_par[MAX_PAR];
+	int num_hop[MAX_PAR];
+	//long v_start[MAX_PAR];
+	map<long, long> map_v_l_scaned[MAX_PAR];
+
+    long NV_all = G->numVertices;
+    long* offsets = G->edgeListPtrs;
+    edge* indices = G->edgeList;
+	int idx_par=0;
+
+    // find the max vertices of the partition graph by NV/max_par
+    const long MAX_PAR_VERTEX = (NV_all + MAX_PAR - 1) / MAX_PAR;
+
+    long NE_all = G->numEdges;
+	/************************************/
+	//Step-1: finding num_par start vertices from global G,
+	//and initializing queues for each partition: q_par[p].push(v_start[p]);
+	/************************************/
+    //FindStartVertex_lowBW(G, num_par, q_par, V_selected);
+
+    //find the first startvertex for partition0
+	for(int p = 0 ; p < 1; p++ ){
+		num_v_l[p] = 0;
+
+		long v_start;
+		if(mode_start==0)
+			v_start = FindStartVertex(G, V_selected);
+		else
+			v_start = p*(NV_all/num_par);
+		V_selected[v_start] = p+1;//true;
+		HopV hv_start;
+		hv_start.hop=0;
+		hv_start.v = v_start;
+		q_par[p].push(hv_start);
+		map_v_l[p][v_start] = num_v_l[p];
+		num_v_l[p]++;
+		printf("par=%d_push_v_start=%ld, num_v_l[%d]=%ld\n", p, v_start, p, num_v_l[p]);
+
+		num_v_g[p] = 0;
+		num_e_dir[p] = 0;
+		num_e_dir_lg[p] = 0;
+		num_hop[p] = 0;
+	}
+
+	bool notAllQueuesEmpty = true;
+	map<long, long>::iterator itr;
+	/************************************/
+	/*
+	Step-2: based on start vertices, doing hop-search:
+	/************************************/
+	int cnt_hop_round=0;
+	long num_v_all_l =0;
+    for( int p = 0; p < num_par; p++){// loop for each partition
+        bool notQueueEmpty = false;
+
+        //2-1 growing until MAX_PAR_VERTEX
+        while( num_v_l[p]<MAX_PAR_VERTEX && notAllQueuesEmpty)
+        { //for hop
+            notAllQueuesEmpty = (num_v_all_l<NV_all);
+		
+			bool hop_done=true;
+            //2-1-1. growing many hops
+            //2-1-2. if empty, add a new start vertex then continue growing
+			do{
+
+				if(q_par[p].empty()){
+					printf("empty_par=%d num_v_all_l=%ld  %ld\n", p, num_v_all_l, NV_all);
+					hop_done=true;
+					continue;
+
+				}
+				HopV hv = q_par[p].front();
+				q_par[p].pop();
+
+				if(hv.hop>num_hop[p])
+					num_hop[p] = hv.hop;
+
+				BFSPar_AddNeighbors(
+					G,
+					p,//
+					V_selected, //inout, for recording whether a vertex is selected
+					hv.v,
+					hv.hop,
+					//output
+					elist_par,
+					num_e_dir,
+					num_e_dir_lg,
+					num_v_l,
+					num_v_g,
+					map_v_l,//std:map for local vertices, will be used for renumbering and creating M
+					map_v_g,//std:map for ghost vertices, will be used for renumbering and creating M
+					q_par,
+					map_v_l_scaned,
+					num_hop);
+                    notQueueEmpty = !q_par[p].empty();
+                    //notAllQueuesEmpty|= notQueueEmpty;
+                
+                 if(num_v_l[p]>=MAX_PAR_VERTEX){
+                     printf("!!!! break on the max vertex!!!\n");
+                     break;
+                 }
+                if(mode_hop==1 || mode_hop==2)
+                    hop_done=isHopDone(	q_par[p], num_hop[p]);
+                else
+                    hop_done=true;// Always true if checking one vertext
+            }while(!hop_done);
+
+           // printf("limit_v=%d, num_v_all_l=%d, num_v_l[%d] = %d\n", MAX_PAR_VERTEX, num_v_all_l, p , num_v_l[p]);
+           // printf("queueEMP=%d, notall=%d\n", !notQueueEmpty , notAllQueuesEmpty );
+
+            if(!notQueueEmpty && notAllQueuesEmpty && (num_v_l[p]<MAX_PAR_VERTEX) ){
+             //   printf("2-1-2. add a new start for the empty par-queue to continue growing the partition graph\n ");
+                    long v_start;
+                    if(mode_start==0)
+                       
+                        if(p < num_par - 1)
+                            v_start = FindStartVertex(G, V_selected);
+                        else{
+                            v_start = FindStartVertexlastround(G, V_selected);                      
+                        }
+                    else
+                        v_start = p*(NV_all/num_par);
+                    if(v_start<0){      
+                        printf(" ----all vertex selected, go to add ghost\n");                      
+                        break;
+                    } 
+                    V_selected[v_start] = p+1;//true;
+                    HopV hv_start;
+                    hv_start.hop=0;
+                    hv_start.v = v_start;
+                    q_par[p].push(hv_start);
+                    map_v_l[p][v_start] = num_v_l[p];
+                    num_v_l[p]++;
+                    notQueueEmpty = true;
+                    printf(" ==== Empty case par=%d_push_v_start=%d, num_v_l[%d]=%d\n", p, v_start, p, num_v_l[p]);
+                                  
+                
+            }
+
+#ifdef DEBUGPAR
+			printf("cnt_hop_round=%d, notAllQueuesEmpty = %d\n", cnt_hop_round++, notAllQueuesEmpty);
+#endif
+		}//while one partition
+
+        //2-2. add all queue vertex to the partition and ghost
+        while(!q_par[p].empty() ){
+            HopV hv = q_par[p].front();
+			q_par[p].pop();
+
+            addGhostAfterPartition(
+                        G,
+                        p,//
+                        V_selected, //inout, for recording whether a vertex is selected
+                        hv.v,
+                        hv.hop,
+                        //output
+                        elist_par,
+                        num_e_dir,
+                        num_e_dir_lg,
+                        num_v_l,
+                        num_v_g,
+                        map_v_l,//std:map for local vertices, will be used for renumbering and creating M
+                        map_v_g,//std:map for ghost vertices, will be used for renumbering and creating M
+                        q_par,
+                        map_v_l_scaned,
+                        num_hop);
+        }
+        num_v_all_l += num_v_l[p];
+		//printf("add ghost: limit_v=%d, num_v_all_l=%d, num_v_l[%d] = %d, num_hop[p]=%d\n", limit_v, num_v_all_l, p , num_v_l[p],  num_hop[p] );
+
+        //2-3.find the next partition's start vertex
+        if(p < num_par - 1)
+        {
+            num_v_l[p+1] = 0;
+            long v_start;
+            
+            if(mode_start==0)
+                v_start = FindStartVertex(G, V_selected);
+            else
+                v_start = (p+1)*(NV_all/num_par);
+            //assert(v_start>0);
+            if(v_start<0){ 
+                // all vertex selected, but not edges
+                break;
+            }
+            V_selected[v_start] = p+1+1;//true;
+            HopV hv_start;
+            hv_start.hop=0;
+            hv_start.v = v_start;
+            q_par[p+1].push(hv_start);
+            map_v_l[p+1][v_start] = num_v_l[p+1];
+            num_v_l[p+1]++;
+            printf("par=%d, _push_v_start=%ld, num_v_l[%d]=%ld ------------\n", p+1, v_start, p+1, num_v_l[p+1]);
+
+            num_v_g[p+1] = 0;
+            num_e_dir[p+1] = 0;
+            num_e_dir_lg[p+1] = 0;
+            num_hop[p+1] = 0;
+        }
+	}//for all partition
+}
+
+//find the v in the map and renum use the second value of map
+bool MapRenumber(map<long, long> &map_v, long v, long& renum)
+{
+	map<long, long>::iterator storedAlready = map_v.find(v);
+	if(storedAlready != map_v.end()){
+		renum = storedAlready->second;
+        //printf("renum %ld to %ld\n", v, renum);
+        return true;
+    }else{
+		return false;
+    }
+}
+
+//step-3: renumbering the head and tail in edge lists
+void BFSPar_renumberingEdgeLists(//return: real number of partition
+		int num_par,
+        edge* elist_par[],
+		long num_e_dir[],
+		long num_e_dir_lg[],
+		long num_v_l[],
+		long num_v_g[],
+		map<long, long> map_v_l[],//std:map for local vertices, will be used for renumbering and creating M
+		map<long, long> map_v_g[],//std:map for ghost vertices, will be used for renumbering and creating M
+		long* M[]
+
+){
+    //map_v_l first value is v_global(key), second value is renum (value++)
+    for( int p = 0; p < num_par; p++){
+        for(int i = 0; i < num_e_dir[p]; i++){
+            edge e = elist_par[p][i];
+            long head = e.head;
+    	    long tail = e.tail;
+            long renum_h_l = 0;
+            long renum_t_l = 0;
+            long renum_h_g = 0;
+            long renum_t_g = 0;
+    	    bool isIn_h_l = MapRenumber(map_v_l[p],  head, renum_h_l);
+    	    bool isIn_t_l = MapRenumber(map_v_l[p],  tail, renum_t_l);
+    	    // bool isIn_h_g = isInMap(map_v_g,  head);
+    	    // bool isIn_t_g = isInMap(map_v_g,  tail);
+            if(isIn_h_l && isIn_t_l){// is local
+                elist_par[p][i].head = renum_h_l;
+                elist_par[p][i].tail = renum_t_l;
+                M[p][renum_h_l] = head;
+                M[p][renum_t_l] = tail;
+            }else if (isIn_h_l && (!isIn_t_l)){// tail is ghost            
+                MapRenumber(map_v_g[p], tail, renum_t_g);
+                //printf("tail %ld, %ld \n",tail, renum_t_g+num_v_l[p]);
+                elist_par[p][i].head = renum_h_l;
+                elist_par[p][i].tail = renum_t_g+num_v_l[p];
+                M[p][ renum_h_l ] = head;
+                M[p][ renum_t_g+num_v_l[p] ] = (-1)*tail-1;
+            }else if (!isIn_h_l && isIn_t_l){// head is ghost and swap
+                MapRenumber(map_v_g[p], head, renum_h_g);
+                //printf("h  %ld, %ld \n",head, renum_h_g+num_v_l[p]);
+                elist_par[p][i].head = renum_h_g+num_v_l[p];       
+                elist_par[p][i].tail = renum_t_l;
+                M[p][ renum_h_g+num_v_l[p] ] = (-1)*head-1;
+                M[p][ renum_t_l ] = tail;
+            }else{
+                printf("ERROR: in %s\n",__FUNCTION__);
+            }
+
+        }// end edgelist per partition
+
+        printf("check edgelist: \n");
+        //for(int i = 0; i < num_e_dir[p]; i++){
+            //printf("check_par:%3d, \t edge_%d_%d\n", p, elist_par[p][i].head, elist_par[p][i].tail);
+        //}
+        
+        //convert to M
+        // for(int i=0; i < num_v_l[p]; i++){
+        //     M[p][map_v_l[p][i]] = i;
+        // }
+
+        printf("check M: \n");
+        //for(int i = 0; i < num_v_l[p]+num_v_g[p]; i++){
+            //printf("check_M:%3d, \t M[%d]=%lld\n", p, i, M[p][i]);
+        //}
+
+    }//end all partition
+
+}
+
+void BFS_par_general_4TG(
+		//Input data from TG
+        long numVertices,
+        long numEdges,
+        long* offsets_tg, 
+        edge* edgelist_tg, 
+        long* drglist_tg, 
+        char* path_prefix,
+        //no use new
+        long start_parInGlb, // Start vertex for each partition
+        long stride_par,     // Total local vertex. Number of ghost vertex is not available until partition finish
+        //
+        int& id_glv, // ID counter's reference for GLV obejects created. Any integer with any value is OK here;
+        int th_maxGhost,// Ghost prunning parameter, always be '1'. It can be set by command-lin
+		int num_par,
+        GLV*  parlv_par_src[MAX_PARTITION]
+){
+	//input
+    const int mode_start=0;
+	const int mode_hop=2;
+    graphNew* G = (graphNew*)malloc(sizeof(graphNew));
+    G->edgeListPtrs = offsets_tg;
+    G->edgeList = edgelist_tg;
+    G->numVertices = numVertices;
+    G->numEdges = numEdges;
+	t_sel* V_selected;//, //inout, for recording whether a vertex is selected
+	//output
+    edge* elist_par[num_par];//,
+    long* tmp_M_v[num_par];
+	long num_e_dir[num_par];//
+	long num_e_dir_lg[num_par];//,
+	long num_v_l[num_par];//,
+	long num_v_g[num_par];//,
+	map<long, long> map_v_l[num_par];//,//std:map for local vertices, will be used for renumbering and creating M
+	map<long, long> map_v_g[num_par];////std:map for ghost vertices, will be used for renumbering and creating M
+	for(int p = 0 ; p < num_par; p++ ){
+		elist_par[p] = (edge*)malloc(sizeof(edge) * (G->numEdges));
+        tmp_M_v[p] = (long*)malloc(sizeof(long) * (G->numVertices));
+	}
+	V_selected = (t_sel*)malloc(sizeof(t_sel) * (G->numVertices));
+    memset(V_selected, 0, sizeof(t_sel) * (G->numVertices));
+	// for(int i=0; i<G->numVertices; i++)
+	// 	V_selected[i] = 0;//false;
+
+    BFSPar_creatingEdgeLists_fixed_prune(
+        mode_start,
+        mode_hop,
+        G,
+        num_par,
+        V_selected, //[], //,inout, for recording whether a vertex is selected
+        //output
+        elist_par, //[],
+        num_e_dir, //[],
+        num_e_dir_lg, //[],
+        num_v_l, //[],
+        num_v_g, //[],
+        map_v_l, //[],//std:map for local vertices, will be used for renumbering and creating M
+        map_v_g //[]//std:map for ghost vertices, will be used for renumbering and creating M
+    );
+
+    BFSPar_renumberingEdgeLists(num_par, elist_par, num_e_dir, num_e_dir_lg,
+    num_v_l, num_v_g, map_v_l, map_v_g, tmp_M_v);
+
+    //2-3. generate GLV
+    //ParLV* parlv;
+    //parlv->Init(parlv->flowMode, src, num_par, 1);
+    for (int p = 0; p < num_par; p++)
+    {
+        //int id_glv = p+1;
+        graphNew *Gnew = (graphNew *)malloc(sizeof(graphNew));
+        GLV *glv = new GLV(id_glv);
+        printf("par%d num_v = %ld,num_e_dir = %ld  \n",p, (num_v_l[p] + num_v_g[p]), num_e_dir[p]);
+        GetGFromEdge(Gnew, elist_par[p], (num_v_l[p] + num_v_g[p]), num_e_dir[p]);
+        glv->SetByOhterG(Gnew);
+        glv->SetM(tmp_M_v[p]);
+        glv->SetName_par(glv->ID, p, p, p, 0);
+
+        //parlv->par_src[p] = glv;
+        parlv_par_src[p] = glv;
+    }
+    
+    //check
+    // for(int i=0; i<G->numVertices; i++){
+	// 	printf(" V_selected[%d] = %d \t\n", i, V_selected[i]);
+    // }
+
+    //connect V_selected with map_v_l+map_v_l to bfs_adjacent
+    
+    bfs_selected* bfs_adjacent = (bfs_selected*)malloc(sizeof(bfs_selected) * (G->numVertices));
+    for(int p=0; p<num_par; p++){
+        for(map<long, long>::iterator itr = map_v_l[p].begin(); itr != map_v_l[p].end(); ++itr){
+            int v = itr->first;
+            bfs_adjacent[v].par_idx = V_selected[v]-1;
+            bfs_adjacent[v].renum_in_par = itr->second;
+        }
+    }
+
+    //check
+    // for(int v=0; v<G->numVertices; v++)
+    //     printf(" v= %d, par= %d, renum= %d\n", v, bfs_adjacent[v].par_idx, bfs_adjacent[v].renum_in_par);
+    //save adjacent
+
+    char tailName[125]=".bfs.adj";
+    char pathName[1024];
+    strcpy(pathName, path_prefix);
+    strcat(pathName, tailName);
+    //sprintf(fullName, "_proj.bfs.adj\0", wfileName.c_str());
+    string fn = pathName;
+    FILE* f = fopen(fn.c_str(), "wb");
+    std::cout << "WARNING: " << fn << " will be opened for binary write." << std::endl;
+    if (!f) {
+        std::cerr << "ERROR: " << fn << " cannot be opened for binary write." << std::endl;
+    }
+    long nv = G->numVertices;
+    // fprintf(f, "*Vertices %ld\n", G->numVertices);
+    // fprintf(f, "v\t par\t renum\t\n");
+    // for(int v=0; v<G->numVertices; v++)
+    //     fprintf(f, " %d\t %d\t %d\t\n", v, bfs_adjacent[v].par_idx, bfs_adjacent[v].renum_in_par);
+    fwrite(&nv, sizeof(long), 1, f);
+    fwrite(bfs_adjacent, sizeof(bfs_adjacent), nv, f);
+    fclose(f);
+
+	free(V_selected);
+	for(int p = 0 ; p < num_par; p++ ){
+		free(elist_par[p]);
+        free(tmp_M_v[p]);
+    }
+}
+
+pair<long, long> ParLV::FindCM_1hop_bfs(int idx, long e_org, long addr_v) {
+    // 2.
+    pair<long, long> ret;
+    //long addr_v = e_org - off_src[idx];
+    long c_src_sync = par_src[idx]->C[addr_v];
+    long c_lved_new = c_src_sync; // key logic
+    long m_lved_new = par_lved[idx]->M[c_lved_new];
+    ret.first = c_lved_new;
+    ret.second = m_lved_new;
+    return ret;
+}
+
+long ParLV::FindC_nhop_bfs(long m_g) {
+    assert(m_g < 0);
+    long m_next = m_g;
+    int cnt = 0;
+
+    do {
+        long e_org = -m_next - 1;
+        int idx = bfs_adjacent[e_org].par_idx;//FindParIdx(e_org);
+        long addr_v = bfs_adjacent[e_org].renum_in_par;
+            //dbg
+            //long v_src = e_org - off_src[idx]; // dbg
+            //dbg
+        pair<long, long> cm = FindCM_1hop_bfs(idx, e_org, addr_v);
+        long c_lved_new = cm.first;
+        long m_lved_new = cm.second;
+        
+                //debug begin
+                // printf("DBG:FindC:cnt=%d, m:%-4d --> e_org:%-4d, idx:%-2d, --> v_src:%-4d, c_src&lved:%-4d, m_lved:%-4d --> c_new:%d",
+                //                   cnt,     m_next,   e_org,      idx,          addr_v,     c_lved_new,    m_lved_new, c_lved_new + off_lved[idx]);
+                // if(m_lved_new>=0)
+                //         printf("-> c_new:%d\n",c_lved_new + off_lved[idx]);
+                // else
+                //         printf("\n");
+                //debug end
+
+        cnt++;
+
+        if (m_lved_new >= 0)
+            return c_lved_new + off_lved[idx];
+        else if (m_lved_new == m_g) {
+            return m_g;
+        } else { // m_lved_new<0;
+            m_next = m_lved_new;
+        }
+
+    } while (cnt < 2 * num_par);
+    return m_g; // no local community for the ghost which should be add as a new community
+}
+
+#endif
+
+//end bfs partition method to get LBW subgraph
+
+int xai_save_partition_bfs(
+    //long numVertices,
+    //long numEdges,
+    long* offsets_tg, edge* edgelist_tg, long* drglist_tg,
+	long  start_vertex,     // If a vertex is smaller than star_vertex, it is a ghost
+	long  end_vertex,	    // If a vertex is larger than end_vertex-1, it is a ghost
+	char* path_prefix,      // For saving the partition files like <path_prefix>_xxx.par
+						    // Different server can have different path_prefix
+	int par_prune,          // Can always be set with value '1'
+	long NV_par_requested,  // NV requested per partition
+	long NV_par_max		    //  64*1000*1000;
+	) 
+{
+    long NV_server = end_vertex - start_vertex;
+    long NV_par = (NV_par_requested <= NV_par_max) ? NV_par_requested : NV_par_max;
+    int num_par = NV_server / (NV_par-1);
+    long numEdges = offsets_tg[NV_server];
+#ifndef NDEBUG
+    std::cout << "DEBUG: " << __FUNCTION__ 
+              << "\n    start_vertex=" << start_vertex
+              << "\n    end_vertex=" << end_vertex
+              << "\n    path_prefix=" << path_prefix
+              << "\n    NV_par_requested=" << NV_par_requested
+              << "\n    NV_par_max=" << NV_par_max
+              << "\n    NV_server=" << NV_server
+              << "\n    numEdges=" << numEdges
+              << "\n    NV_par=" << NV_par
+              << "\n    num_par=" << num_par
+              << std::endl;
+#endif
+    int status = 0;
+
+	GLV*  parlv_par_src[MAX_PARTITION];
+	int id_glv = 0;
+	long average_stride = 0;//NV_par_requested;
+    long start_vertext_par = 0;//start_vertex;
+    int p=0;
+    //while (start_vertext_par != end_vertex) {
+		//long NV_par = 0;//(end_vertex - start_vertext_par ) > average_stride ? average_stride: end_vertex - start_vertext_par;
+        
+		do {
+		    BFS_par_general_4TG(
+				//Input data from TG
+				NV_server,//numVertices,
+                numEdges,
+				offsets_tg,
+				edgelist_tg,
+				drglist_tg,
+                path_prefix,
+				//Partition parameters
+				start_vertext_par,    // Start vertex for each partition
+				NV_par,               // Total local vertex. Number of ghost vertex is not available until partition finish
+				id_glv,               // ID counter's reference for GLV obejects created. Any integer with any value is OK here;
+				par_prune,             // Ghost prunning parameter, always be '1'. It can be set by command-lin
+                num_par,
+                //output
+                parlv_par_src
+			);
+            bool deletePar=false;
+            for(int p = 0; p < num_par; p++){
+                long diff_NV = NV_par_max - parlv_par_src[p]->NV;
+                //std::cout << "DEBUG: after par_general_4TG " 
+                //          << "\n    NV_par=" << NV_par 
+                //          << "\n    diff_NV=" << diff_NV 
+                //          << "\n    parlv_par_src[p]->NV=" << parlv_par_src[p]->NV 
+                //          << std::endl;            
+                if (diff_NV < 0){
+                    deletePar=true;
+                    break;
+                }
+            }
+            for(int p = 0; p < num_par; p++){
+                if(deletePar){
+                    delete(parlv_par_src[p]);
+                    parlv_par_src[p] = NULL;
+                    std::cout << "WARNING: partition NV_par > NV_par_MAX caused num_par++ " << std::endl;
+                    num_par++;
+                }
+            }
+		} while(parlv_par_src[0] == NULL); //If the partition is too big to load on FPGA, reduce the NV_par until partition is small enough
+
+        for(int p = 0; p < num_par; p++){
+            char nm[1024];
+            sprintf(nm, "_%03d.par", p);
+            parlv_par_src[p]->SetName(nm);
+            char pathName[1024];
+            strcpy(pathName, path_prefix);
+            strcat(pathName, nm);
+            status = SaveGLVBin(pathName, parlv_par_src[p], false);
+            if (status < 0) 
+                return status;
+        }
+		//start_vertext_par += NV_par;
+		//p++;
+	//}
+    std::cout << "INFO: Total number of partitions created: " << num_par << std::endl;
+	return num_par;
+}
+
 GLV* par_general_4TG(long start_vertexInGlb, long* offsets_tg, edge* edgelist_tg, long* drglist_tg, 
                      long start_parInGlb, long stride_par, int& id_glv, int th_maxGhost)
 {
@@ -3080,8 +3913,8 @@ int xai_save_partition(
 				//Partition parameters
 				start_vertext_par,    // Start vertex for each partition
 				NV_par,               // Total local vertex. Number of ghost vertex is not available until partition finish
-				id_glv,               // ID counter's reference for GLV objects created. Any integer with any value is OK here;
-				par_prune             // Ghost prunning parameter, always be '1'. It can be set by command-line
+				id_glv,               // ID counter's reference for GLV obejects created. Any integer with any value is OK here;
+				par_prune             // Ghost prunning parameter, always be '1'. It can be set by command-lin
 			);
 			long diff_NV = NV_par_max - parlv_par_src[p]->NV;
             //std::cout << "DEBUG: after par_general_4TG " 
@@ -3145,7 +3978,11 @@ int Parser_ParProjFile(std::string projFile, ParLV& parlv, char* path, char* nam
         return -1;
     }
 
-    if (strcmp("-create_alveo_partitions", ps.argv[0]) != 0) {
+    if (strcmp("-create_alveo_partitions", ps.argv[0]) == 0 && (strcmp("-create_alveo_LBW_partitions", ps.argv[0]) != 0) ) {
+        parlv.use_bfs = false;
+    }else if (strcmp("-create_alveo_partitions", ps.argv[0]) != 0 && (strcmp("-create_alveo_LBW_partitions", ps.argv[0]) == 0) ) {
+        parlv.use_bfs = true;
+    }else{
         printf("\033[1;31;40mERROR\033[0m: MessageParser_D2W: Unknow head%s. -create_alveo_partitions is required\n",
                ps.argv[0]);
         free(fdata);
@@ -3186,7 +4023,7 @@ int Parser_ParProjFile(std::string projFile, ParLV& parlv, char* path, char* nam
     char namePath_tmp[1024];
     sprintf(namePath_tmp, "%s/%s.par.parlv", path, name);
 #ifndef NDEBUG
-    printf("DEBUG: start LoadParLV\n");
+    printf("DEBUG: start LoadParLV, use_bfs=%d\n", parlv.use_bfs);
 #endif
     if (LoadParLV(namePath_tmp, &parlv) < 0)
         return -2;
@@ -3201,6 +4038,16 @@ int Parser_ParProjFile(std::string projFile, ParLV& parlv, char* path, char* nam
         parlv.plv_src->NC, parlv.plv_src->Q, parlv.plv_src->numColors, parlv.plv_src->numThreads, 
         parlv.plv_src->name, parlv.plv_src->ID);
 #endif
+
+    //add to parser LBW partition's global ID
+    if(parlv.use_bfs){
+        sprintf(namePath_tmp, "%s/%s.bfs.adj", path, name);
+        //std::cout << "------------" << __FUNCTION__ << " id_glv=" << id_glv << std::endl;
+        Loadselected<bfs_selected>(namePath_tmp, &(parlv.bfs_adjacent));
+#ifndef NDEBUG
+        printf("DEBUG: Loadselected results\n %d--> %d--> %d\t\n", 0, parlv.bfs_adjacent[0].par_idx, parlv.bfs_adjacent[0].renum_in_par);
+#endif
+    }
 
 #ifdef PRINTINFO
     printf("\033[1;37;40mINFO\033[0m:Partition Project: path = %s name = %s\n", path, name);
