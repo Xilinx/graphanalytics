@@ -103,4 +103,5 @@ help:
 
 clean:
 	cd ../../../../../$(STANDALONE_NAME) && make clean
+	cd ../../ && make clean
 	rm -f .install-plugin-done .install-udf-done .install-query-done

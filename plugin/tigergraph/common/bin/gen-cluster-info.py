@@ -47,7 +47,7 @@ for h in config_dict['System']['HostList']:
 # A host can have multiple IPs depends network configuation
 # Get all IPs assigned to the current node and pick the one used by TigerGraph
 re_inet = re.compile('inet (\S+)')
-command = 'ifconfig'
+command = '/usr/sbin/ifconfig'
 p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
 p_out = p.stdout.readlines()
 p_returncode = p.wait()

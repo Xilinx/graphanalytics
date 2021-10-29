@@ -388,7 +388,7 @@ runMode=0
 totalEntities=10000000
 numEntities=100
 run: cppTest stage
-	@set -e; \
+	set -e; \
 	. $(XILINX_XRT)/setup.sh && \
 	. $(XILINX_XRM)/setup.sh && \
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH $(CPP_BUILD_DIR)/fuzzymatch_test \
