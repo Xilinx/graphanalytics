@@ -25,11 +25,11 @@ help:
 	@echo "  make run [runMode=0] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3] [totalEntities=10000000]"
 	@echo "    Run standalone test with statically linked executable"
 	@echo ""
-	@echo "  Options:"
+	@echo "  Run options:"
 	@echo "  deviceNames  : Specify Alveo devices to use for computation"
 	@echo "                 Supported devices:"
 	@echo "                 xilinx_u50_gen3x16_xdma_201920_3 (default)"
-	@echo "                 xilinx_aws-vu9p-f1_dynamic_5_0"
+	@echo "                 xilinx_aws-vu9p-f1_shell-v04261818_201920_2"
 	@echo "  numEntities  : Number of entities to match (default=100)"
 	@echo "  runMode      : 0: Run on Alveo Only (default)"
 	@echo "                 1: Run on CPU Only"
@@ -44,17 +44,17 @@ help:
 	@echo "" 
 	@echo "  make run-staging-cpp"
 	@echo "  Run the CPP example from the staging area"
+	@echo ""
+	@echo "  Common options"
+	@echo "  INC_ALL_XCLBINS: 1: Include all supported XCLBINs for staging (default). 0: Only incude target XCLBIN"
 
 SHELL := /bin/bash
+
+INC_ALL_XCLBINS=1
 
 ifndef XILINX_XRT
     XILINX_XRT = /opt/xilinx/xrt
     export XILINX_XRT
-endif
-
-ifndef XILINX_XRM
-    XILINX_XRM=/opt/xilinx/xrm
-    export XILINX_XRM
 endif
 
 ifndef XILINX_PLATFORMS
@@ -107,7 +107,6 @@ INCLUDES_libFuzzyMatch = \
 	-Iinclude \
 	-I$(GRAPH_ANALYTICS_DIR)/fuzzysearch/include \
 	-I$(XILINX_XRT)/include \
-	-I$(XILINX_XRM)/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L2/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L3/include \
 	-isystem $(GRAPH_ANALYTICS_DIR)/ext/HLS_arbitrary_Precision_Types/include \
@@ -159,7 +158,7 @@ $(CPP_BUILD_DIR):
 
 # .so
 
-LIB_DEPS = -L$(XILINX_XRT)/lib -lOpenCL -lpthread -lrt -Wno-unused-label -Wno-narrowing -DVERBOSE -L$(XILINX_XRM)/lib 
+LIB_DEPS = -L$(XILINX_XRT)/lib -lOpenCL -lpthread -lrt -Wno-unused-label -Wno-narrowing -DVERBOSE
 
 ifeq ($(MEMALLOC),tcmalloc)
     LIB_DEPS += -ltcmalloc
@@ -230,7 +229,7 @@ XCLBIN_INSTALLED_NAME_F1 = $(XCLBIN_NAME_F1)
 XCLBIN_INSTALLED_F1 =/opt/xilinx/apps/graphanalytics/fuzzymatch/1.0/xclbin/$(XCLBIN_INSTALLED_NAME_F1)
 
 .PHONY: xclbin
-#todo migrate kernel src files from aml design 
+
 xclbin:
 	cd $(XCLBIN_BUILD_DIR); \
 	source $(XILINX_XRT)/setup.sh; \
@@ -242,11 +241,11 @@ $(XCLBIN_FILE_U50):
 	    echo "INFO: The XCLBIN file $(XCLBIN_FILE_U50) is missing.  Copying from installed area."; \
 	    cp -r $(XCLBIN_INSTALLED_U50) $@; \
 	else \
-	    echo "ERROR: The XCLBIN file $(XCLBIN_FILE_U50) is missing."; \
+	    echo "INFO: The XCLBIN file $(XCLBIN_FILE_U50) is missing."; \
 	    echo "Because building an XCLBIN file can be an all-day proposition, you have two choices for completing this build:"; \
 	    echo "1. Copy a pre-built XCLBIN to the target location above.  (Recommended for developers)"; \
 	    echo "2. Do 'make xclbin' and go for a very long coffee break.  (Recommended for build automation)"; \
-	    false; \
+    	false; \
 	fi
 
 $(XCLBIN_FILE_F1):
@@ -341,7 +340,6 @@ TEST_DIR = tests
 INCLUDES_test = \
     -Iinclude \
 	-I$(XILINX_XRT)/include \
-	-I$(XILINX_XRM)/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L2/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L3/include \
 	-I$(GRAPH_ANALYTICS_DIR)/ext \
@@ -381,7 +379,9 @@ $(CPP_BUILD_DIR)/fuzzymatch_test: $(CPP_BUILD_DIR)/fuzzymatch_test.o $(CPP_BUILD
 
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3
 ifeq ($(deviceNames),xilinx_u50_gen3x16_xdma_201920_3)
-    XCLBIN_RUN = $(CURDIR)/staging/xclbin/fuzzy_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+    XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U50)
+else ifeq ($(deviceNames),xilinx_aws-vu9p-f1_shell-v04261818_201920_2)
+    XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_F1)	
 endif
 
 runMode=0
@@ -390,7 +390,6 @@ numEntities=100
 run: cppTest stage
 	set -e; \
 	. $(XILINX_XRT)/setup.sh && \
-	. $(XILINX_XRM)/setup.sh && \
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH $(CPP_BUILD_DIR)/fuzzymatch_test \
 	    -xclbin $(XCLBIN_RUN) -d ./examples/data -c $(runMode) --devices $(deviceNames) \
 		--total_entities $(totalEntities) --num_entities $(numEntities)
@@ -519,15 +518,24 @@ STAGE_SUBDIRS = $(addprefix $(STAGE_DIR)/,$(STAGE_SUBDIR_NAMES))
 STAGE_ALL_FILES = \
     $(addprefix $(STAGE_DIR)/,$(STAGE_COPY_FILES)) \
     $(addprefix $(STAGE_DIR)/lib/,$(STAGE_LIB_FILES)) \
-    $(STAGE_XCLBIN_FILE_U50) \
-	$(STAGE_XCLBIN_FILE_F1) \
     $(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP) \
 	$(STAGE_XILINX_APPS_COMMON) \
+
+# Conditionally add XCLBIN files
+ifeq ($(INC_ALL_XCLBINS),1) 
+	STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U50) $(STAGE_XCLBIN_FILE_F1)
+else ifeq ($(deviceNames),xilinx_u50_gen3x16_xdma_201920_3)
+    STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U50)
+else ifeq ($(deviceNames),xilinx_aws-vu9p-f1_shell-v04261818_201920_2)
+    STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_F1)
+endif
+
+
 
 # make staging areaing in two steps so intermediate outputs can be included in the 
 # staging output as well.
 stage: pythonApi
-	make stage2
+	make stage2 INC_ALL_XCLBINS=$(INC_ALL_XCLBINS) deviceNames=$(deviceNames)
 
 stage2: $(STAGE_SUBDIRS) stage-examples $(STAGE_ALL_FILES)
 
