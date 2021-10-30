@@ -50,8 +50,6 @@ help:
 
 SHELL := /bin/bash
 
-INC_ALL_XCLBINS=1
-
 ifndef XILINX_XRT
     XILINX_XRT = /opt/xilinx/xrt
     export XILINX_XRT
@@ -207,6 +205,8 @@ endif
 #
 # XCLBIN
 #
+INC_ALL_XCLBINS=1
+
 # U50 XCLBIN 
 L2_TOP_DIR_U50 = $(GRAPH_ANALYTICS_DIR)/L2/fuzzy_kernel
 L2_XDEVICE_U50 = xilinx_u50_gen3x16_xdma_201920_3

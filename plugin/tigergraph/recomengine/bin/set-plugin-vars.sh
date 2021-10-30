@@ -33,7 +33,7 @@ pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/cosinesim/1.4
 pluginLocalAlveoProductPath=$SCRIPTPATH/../../../../../cosinesim/staging
 
 # The name of the Alveo Product's XCLBIN file
-pluginXclbinName=cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+pluginXclbinNameU50=cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin
 pluginXclbinNameU55C=cosinesim_32bit_4pu_xilinx_u55c_gen3x16_xdma_base_2.xclbin
 
 # The name of the Alveo Product's .so file

@@ -147,7 +147,7 @@ public:
         config_json.close();
 
         if (deviceNames_ == "xilinx_u50_gen3x16_xdma_201920_3")
-            xclbinPath_ = PLUGIN_XCLBIN_PATH;
+            xclbinPath_ = PLUGIN_XCLBIN_PATH_U50;
         else if (deviceNames_ == "xilinx_u55c_gen3x16_xdma_base_2")
             xclbinPath_ = PLUGIN_XCLBIN_PATH_U55C;
     }

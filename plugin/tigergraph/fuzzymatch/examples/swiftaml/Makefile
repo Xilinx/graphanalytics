@@ -22,6 +22,7 @@ graphName=swift_$(USER)
 
 compileMode=1
 runMode=2
+INC_ALL_XCLBINS=1
 
 ifdef sshKey
     SSH_KEY_OPT=-i $(sshKey)
@@ -33,40 +34,40 @@ PLUGIN_DEPS = ../../../../../$(STANDALONE_NAME)/src/fuzzymatch.cpp \
               ../../../../../$(STANDALONE_NAME)/include/fuzzymatch.hpp \
               ../../udf/xilinxFuzzyMatch.hpp \
 			  ../../udf/xilinxFuzzyMatchImpl.hpp
-			  
-UDF_DEPS = udf/swiftAmlDemo.hpp udf/swiftAmlDemoImpl.hpp
+PLUGIN_TARGET = $(TG_DATA_ROOT)/gsql/udf/ExprFunctions.hpp
+TG_DATA_ROOT = $(shell cat ~tigergraph/.tg.cfg | jq .System.DataRoot | tr -d \")
+EXAMPLE_UDF_DEPS = udf/swiftAmlDemo.hpp udf/swiftAmlDemoImpl.hpp
+EXAMPLE_UDF_TARGET = $(TG_DATA_ROOT)/gsql/udf/swiftAmlDemo.hpp
 
 all: run
 
-.install-plugin-done: $(PLUGIN_DEPS)
+$(PLUGIN_TARGET): $(PLUGIN_DEPS)
 	cd ../../../../../$(STANDALONE_NAME) && make DEBUG=$(DEBUG)
 	@echo "-------------------------------------------------------"
-	@echo "Installing plugin files into TigerGraph software"
+	@echo "Installing plugin files into TigerGraph $(TG_DATA_ROOT)"
 	@echo "-------------------------------------------------------"
 	cd ../../ && \
-	    make DEBUG=$(DEBUG) stage && \
-		./staging/install.sh -v -f $(SSH_KEY_OPT) -d $(deviceNames) && \
-	cd - && touch .install-plugin-done
+	    make DEBUG=$(DEBUG) stage INC_ALL_XCLBINS=$(INC_ALL_XCLBINS) deviceNames=$(deviceNames) && \
+		./staging/install.sh -v -f $(SSH_KEY_OPT) -d $(deviceNames) 
 
-.install-udf-done: .install-plugin-done $(UDF_DEPS)
+$(EXAMPLE_UDF_TARGET): $(PLUGIN_TARGET) $(EXAMPLE_UDF_DEPS)
 	@echo "--------------------------------------------------------------"
 	@echo "Installing application specific UDFs into TigerGraph software"
 	@echo "--------------------------------------------------------------"
 	cd ../../ && make DEBUG=$(DEBUG) stage && \
-	./staging/examples/$(EXAMPLE)/bin/install-udf.sh -v -f $(SSH_KEY_OPT) && \
-	cd - && touch .install-udf-done
+	./staging/examples/$(EXAMPLE)/bin/install-udf.sh -v -f $(SSH_KEY_OPT)
 
-test: .install-udf-done
+test: $(EXAMPLE_UDF_TARGET)
 	@echo "-------------------------------------------------------"
 	@echo "Running quick gsql test"
 	@echo "-------------------------------------------------------"
 	gsql -g $(graphName) test.gsql
 	time gsql -g $(graphName) "run query test()"
 
-install-plugin: .install-plugin-done
+install-plugin: $(PLUGIN_TARGET)
 
 .PHONY: run
-run: .install-udf-done
+run: $(EXAMPLE_UDF_TARGET)
 	@echo "-------------------------------------------------------"
 	@echo "Running run.sh from staging "
 	@echo "-------------------------------------------------------"
@@ -86,7 +87,8 @@ help:
 	@echo ""
 	@echo "Parameter descriptions:"
 	@echo "deviceNames : Target device name. Supported devices: "
-	@echo "              xilinx_u50_gen3x16_xdma_201920_3"
+	@echo "              xilinx_u50_gen3x16_xdma_201920_3 (default)"
+	@echo "              xilinx_aws-vu9p-f1_shell-v04261818_201920_2"
 	@echo "blacklist   : A csv file with people on the blacklist. default=../data/people1k.csv"
 	@echo "txdata      : A csv file with transactions records. default=../data/txdata.csv"
 	@echo "graphName   : graph name (default=swift_<username>"
@@ -99,6 +101,8 @@ help:
 	@echo "              3: Run on both CPU and Alveo"
 	@echo ""
 	@echo "sshKey      : SSH key for user tigergraph"	
+	@echo "INC_ALL_XCLBINS : 1: Include all supported XCLBINs for staging"
+	@echo "                  0: Include target XCLBIN only"
 	@echo ""
 
 clean:

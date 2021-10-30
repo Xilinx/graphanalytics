@@ -72,12 +72,14 @@ fi
 
 # Assume that the Alveo Product XCLBIN and .so will be used directly from their directories
 
-pluginAlveoProductXclbinPath=$pluginAlveoProductPath/xclbin/$pluginXclbinName
+pluginAlveoProductXclbinPathU50=$pluginAlveoProductPath/xclbin/$pluginXclbinNameU50
 pluginAlveoProductXclbinPathU55C=$pluginAlveoProductPath/xclbin/$pluginXclbinNameU55C
+pluginAlveoProductXclbinPathAwsF1=$pluginAlveoProductPath/xclbin/$pluginXclbinNameAwsF1
 pluginAlveoProductLibDir=$pluginAlveoProductPath/lib
 
-runtimeXclbinPath=$pluginAlveoProductXclbinPath
+runtimeXclbinPathU50=$pluginAlveoProductXclbinPathU50
 runtimeXclbinPathU55C=$pluginAlveoProductXclbinPathU55C
+runtimeXclbinPathAwsF1=$pluginAlveoProductXclbinPathAwsF1
 runtimeLibDir=$pluginAlveoProductLibDir
 
 # if the Alveo Product artifacts need installing (because the local repo may not be
@@ -85,14 +87,15 @@ runtimeLibDir=$pluginAlveoProductLibDir
 
 if [ $pluginAlveoProductNeedsInstall -eq 1 ]; then
     pluginAlveoProductLibPath=$tg_udf_dir
-    runtimeXclbinPath=$tg_udf_xclbin_dir/$pluginXclbinName
+    runtimeXclbinPathU50=$tg_udf_xclbin_dir/$pluginXclbinNameU50
     runtimeXclbinPathU55C=$tg_udf_xclbin_dir/$pluginXclbinNameU55C
+    runtimeXclbinPathAwsF1=$tg_udf_xclbin_dir/$pluginXclbinNameAwsF1
     runtimeLibDir=$tg_udf_dir
 fi
 
 # Make sure the XCLBIN exists (unless we're uninstalling)
 
-if [ $uninstall -eq 0 ] && [ ! -f $pluginAlveoProductXclbinPath ]; then
+if [ $uninstall -eq 0 ] && [ ! -f $pluginAlveoProductXclbinPathU50 ] && [ "$device_name" == "xilinx_u50_gen3x16_xdma_201920_3" ]; then
     printf "${RED}ERROR: $standaloneAlveoProductName Alveo U50 product not found.${NC}\n"
     printf "INFO: Please download $standaloneAlveoProductName Alveo product installation package "
     printf "from Xilinx Database PoC site: https://www.xilinx.com/member/dba_poc.html\n"
@@ -102,6 +105,13 @@ fi
 if [ $uninstall -eq 0 ] && [ ! -z "$pluginXclbinNameU55C" ] && [ ! -f $pluginAlveoProductXclbinPathU55C ]; then
     printf "${RED}ERROR: $standaloneAlveoProductName Alveo U55C product not found.${NC}\n"
     printf "INFO: Please download $standaloneAlveoProductName Alveo product installation package "
+    printf "from Xilinx Database PoC site: https://www.xilinx.com/member/dba_poc.html\n"
+    exit 1
+fi
+
+if [ $uninstall -eq 0 ] && [ ! -z "$pluginXclbinNameAwsF1" ] && [ ! -f $pluginAlveoProductXclbinPathAwsF1 ]; then
+    printf "${RED}ERROR: $standaloneAlveoProductName product not found.${NC}\n"
+    printf "INFO: Please download $standaloneAlveoProductName product installation package "
     printf "from Xilinx Database PoC site: https://www.xilinx.com/member/dba_poc.html\n"
     exit 1
 fi

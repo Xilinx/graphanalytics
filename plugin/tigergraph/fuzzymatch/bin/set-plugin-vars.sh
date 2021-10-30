@@ -32,8 +32,9 @@ pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/fuzzymatch/0.1
 # Where to find the git repo for the Alveo Product if it exists
 pluginLocalAlveoProductPath=$SCRIPTPATH/../../../../../fuzzymatch/staging
 
-# The name of the Alveo Product's XCLBIN file
-pluginXclbinName=fuzzy_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+# The name of supported XCLBIN files
+pluginXclbinNameU50=fuzzy_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+pluginXclbinNameAwsF1=fuzzy_xilinx_aws-vu9p-f1_shell-v04261818_201920_2.awsxclbin
 pluginXclbinNameU55C=
 
 # The name of the Alveo Product's .so file
@@ -71,7 +72,7 @@ pluginHeaders=udf/xilinxFuzzyMatchImpl.hpp
 # The paths are relative to the plugin top directory (parent of this script's directory).
 pluginExtraFiles=
 
-# List of files (name only, no path) that need to have the identifier PLUGIN_XCLBIN_PATH
+# List of files (name only, no path) that need to have the identifier PLUGIN_XCLBIN_PATH_[FPGA]
 # replaced with the XCLBIN path.
 pluginXclbinPathFiles="xilinxFuzzyMatch.hpp xilinxFuzzyMatchImpl.hpp"
 

@@ -137,10 +137,19 @@ if [ $pluginAlveoProductNeedsInstall -eq 1 ]; then
         echo "INFO: Installing local Alveo Product from $pluginAlveoProductPath into TigerGraph"
     fi
     mkdir -p $tg_udf_xclbin_dir
-    cp -f $pluginAlveoProductXclbinPath $tg_udf_xclbin_dir
+    
+    if [ ! -z "$pluginXclbinNameU50" && "$device_name" == "xilinx_u50_gen3x16_xdma_201920_3" ]; then
+        cp -f $pluginAlveoProductXclbinPathU50 $tg_udf_xclbin_dir
+    fi
+
     if [ ! -z "$pluginXclbinNameU55C" ]; then
         cp -f $pluginAlveoProductXclbinPathU55C $tg_udf_xclbin_dir
     fi
+    
+    if [ ! -z "$pluginXclbinNameAwsF1" ]; then
+        cp -f $pluginAlveoProductXclbinPathAwsF1 $tg_udf_xclbin_dir
+    fi
+
     cp -f $pluginAlveoProductLibDir/$pluginLibName $tg_udf_dir
 fi
 
@@ -182,12 +191,13 @@ mkdir -p $tg_data_root/xgstore
 echo "INFO: Generate plugin configration file $tg_udf_dir/xilinx-plugin-config.json for $device_name"
 python3 $SCRIPTPATH/gen-cluster-info.py $tg_udf_dir/xilinx-plugin-config.json $tg_data_root $device_name
 
-# Substitute the XCLBIN path for PLUGIN_XCLBIN_PATH in all files that need the substitution
+# Substitute the XCLBIN path for PLUGIN_XCLBIN_PATH_[FPGA] in all files that need the substitution
 
 for i in $pluginXclbinPathFiles; do
     # replace the longest string first
     sed -i "s|PLUGIN_XCLBIN_PATH_U55C|\"$runtimeXclbinPathU55C\"|" $tg_udf_dir/${i##*/}
-    sed -i "s|PLUGIN_XCLBIN_PATH|\"$runtimeXclbinPath\"|" $tg_udf_dir/${i##*/}
+    sed -i "s|PLUGIN_XCLBIN_PATH_AWSF1|\"$runtimeXclbinPathAwsF1\"|" $tg_udf_dir/${i##*/}
+    sed -i "s|PLUGIN_XCLBIN_PATH_U50|\"$runtimeXclbinPath\"|" $tg_udf_dir/${i##*/}
 done
 
 # Substitute the config path for PLUGIN_CONFIG_PATH in all files that need the substituion

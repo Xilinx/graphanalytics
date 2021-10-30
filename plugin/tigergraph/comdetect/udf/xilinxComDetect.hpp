@@ -313,7 +313,7 @@ inline int udf_create_and_load_alveo_partitions(bool use_saved_partition,
     xilComDetect::Context *pContext = xilComDetect::Context::getInstance();
 
     xilinx_apps::louvainmod::Options options;
-          options.xclbinPath = PLUGIN_XCLBIN_PATH;
+          options.xclbinPath = PLUGIN_XCLBIN_PATH_U50;
           options.nameProj = alveo_project;
           options.numDevices = pContext->getNumDevices();
           options.deviceNames = pContext->deviceNames_;
