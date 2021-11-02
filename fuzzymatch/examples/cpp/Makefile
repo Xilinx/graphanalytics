@@ -32,7 +32,7 @@ help:
 	@echo "  totalEntities: total number of entities to match against(default=10000000)"
 	@echo ""
 	@echo "  make test"
-	@echo "  Compile fuzzyMatch test exe"
+	@echo "    Compile fuzzyMatch test exe"
 
 # Run make using "make DEBUG=1" to build debuggable executables
 
