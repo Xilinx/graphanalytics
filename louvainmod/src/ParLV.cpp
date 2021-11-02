@@ -3172,6 +3172,7 @@ long BFSPar_AddNeighbors(
 		}//add to edge ghost;
 	}// for eatch e
 	map_v_l_scaned[p][v] = v;
+    return 0;
 }
 
 
@@ -3259,6 +3260,7 @@ long addGhostAfterPartition(
 		}//add to edge ghost;
 	}// for eatch e
 	map_v_l_scaned[p][v] = v;
+    return 0;
 }
 
 bool isHopDone(
