@@ -24,9 +24,9 @@ This product provides fuzzymatch acceleration solution capable of calculating si
 ## Folder Layout
 
 * `xclbin`: FPGA binary
-* `example/cpp`:  C++ API example test code
-* `example/python`: python example test code  
-* `example/data`: Input data for example
+* `examples/cpp`:  C++ API example test code
+* `examples/python`: python example test code  
+* `examples/data`: Input data for example
 * `lib`: The host code library that allows communication with FPGA
 * `include`: C++ header for using the host code library
 
@@ -42,9 +42,9 @@ source /opt/xilinx/xrt/setup.sh
 
 * C++ API example code. Run `make help` for instructions
 ```
-cd example/cpp
+cd examples/cpp
 ```
-* Python API example code. Check example/python/README.md for instructions
+* Python API example code. Check examples/python/README.md for instructions
 ```
-cd example/python
+cd examples/python
 ```
