@@ -145,8 +145,10 @@ install: stage
 #### Clean target deletes all generated files ####
 .PHONY: clean-common cleanall-common
 
-clean-common:
+clean-dist:
 	@cd package; make clean
+
+clean-common: clean-dist
 	rm -rf $(STAGE_DIR)
 
 cleanall-common: clean-common
@@ -163,6 +165,9 @@ help-common:
 	@echo ""
 	@echo "  make dist"
 	@echo "  Build installation package (RPM or DEB) for the current OS and architecture"
+	@echo ""
+	@echo "  make clean-dist"
+	@echo "  Clean distribution package files"
 	@echo ""
 	@echo "Options"
 	@echo "sshKey: run make with an ssh key for the user tigergraph"

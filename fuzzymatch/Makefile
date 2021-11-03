@@ -42,6 +42,9 @@ help:
 	@echo "  make dist"
 	@echo "  Generate product installation package (RPM or DEB) for the current OS and architecture"
 	@echo "" 
+	@echo "  make clean-dist"
+	@echo "  Clean build area for distribution packages"
+	@echo "" 
 	@echo "  make run-staging-cpp"
 	@echo "  Run the CPP example from the staging area"
 	@echo ""
@@ -582,7 +585,7 @@ javaTest:
 #
 
 #### Clean target deletes all generated files ####
-.PHONY: clean clean-xclbin
+.PHONY: clean clean-xclbin clean-dist
 
 run: 
 
@@ -594,6 +597,9 @@ clean:
 clean-xclbin:
 	rm -f $(XCLBIN_FILE_U50)
 
+clean-dist:
+	@cd package; \
+	make clean
 
 cleanpy:
 	rm -rf $(PYTHONENV_NAME)
