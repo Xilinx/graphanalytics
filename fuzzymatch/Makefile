@@ -439,10 +439,7 @@ STAGE_DIR = staging
 
 STAGE_COPY_FILES = \
     VERSION \
-    include/fuzzymatch.hpp \
-    src/fuzzymatch_loader.cpp \
-	src/fuzzymatch_utils.cpp \
-	src/fuzzymatch.cpp
+    include/fuzzymatch.hpp 
 
 define STAGE_COPY_RULE
 $(STAGE_DIR)/$(1): $(1)
@@ -492,6 +489,8 @@ stage-examples: $(STAGE_EXAMPLE_FILES)
 
 fill-example-stage: $(STAGE_STAGED_EXAMPLE_FILES)
 	cp VERSION $(STAGE_DIR)/examples/
+	cp examples/README_AMI.md $(STAGE_DIR)/README.md
+
 	
 $(STAGE_STAGED_EXAMPLE_FILES):
 	cp -f $(patsubst $(STAGE_DIR)/%,%,$@) $@
