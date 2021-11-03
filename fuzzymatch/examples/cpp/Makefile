@@ -15,6 +15,24 @@
 #
 
 SHELL := /bin/bash
+help:
+	@echo "Makefile usages:"
+	@echo "  make run [runMode=0] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3] [totalEntities=10000000]"
+	@echo "    Run standalone test with statically linked executable"
+	@echo ""
+	@echo "  Run options:"
+	@echo "  deviceNames  : Specify Alveo devices to use for computation"
+	@echo "                 Supported devices:"
+	@echo "                 xilinx_u50_gen3x16_xdma_201920_3 "
+	@echo "                 xilinx_aws-vu9p-f1_shell-v04261818_201920_2(default)"
+	@echo "  numEntities  : Number of entities to match (default=100)"
+	@echo "  runMode      : 0: Run on Alveo Only (default)"
+	@echo "                 1: Run on CPU Only"
+	@echo "                 2: Run on both Alveo and CPU"
+	@echo "  totalEntities: total number of entities to match against(default=10000000)"
+	@echo ""
+	@echo "  make test"
+	@echo "    Compile fuzzyMatch test exe"
 
 # Run make using "make DEBUG=1" to build debuggable executables
 
@@ -46,10 +64,12 @@ XF_PROJ_ROOT ?= $(shell bash -c 'export MK_PATH=$(MK_PATH); echo $${MK_PATH%/exa
 
 LIB_PATH = $(XF_PROJ_ROOT)/lib
 INCLUDE_PATH = $(XF_PROJ_ROOT)/include
+XCLBIN_PATH = $(XF_PROJ_ROOT)/xclbin
 
 ifeq ($(wildcard $(LIB_PATH)/*.so),)
     LIB_PATH = $(XILINX_FUZZYMATCH)/${PRODUCT_VER}/lib
     INCLUDE_PATH = $(XILINX_FUZZYMATCH)/${PRODUCT_VER}/include
+    XCLBIN_PATH = $(XILINX_FUZZYMATCH)/${PRODUCT_VER}/xclbin
 endif
 
 CXXFLAGS = -std=c++11 -D_GLIBCXX_USE_CXX11_ABI=0 -fPIC -pthread -I$(INCLUDE_PATH) -Wall -Wextra -Wno-unknown-pragmas -Wno-unused-label \
@@ -66,20 +86,13 @@ XDEVICE = $(basename $(notdir $(deviceNames)))
 XF_LIB_DIR := $(abspath $(XF_PROJ_ROOT))/examples
 
 ifneq (,$(shell echo $(XDEVICE) | awk '/u50/'))
-XCLBIN_FILE := $(XF_PROJ_ROOT)/xclbin/fuzzy_xilinx_u50_gen3x16_xdma_201920_3.xclbin
-else ifneq (,$(shell echo $(XDEVICE) | awk '/u200/'))
-XCLBIN_FILE := $(XF_PROJ_ROOT)/xclbin/fuzzy_xilinx_u200_xdma_201830_2.xclbin
-else ifneq (,$(shell echo $(XDEVICE) | awk '/u250_xdma/'))
-XCLBIN_FILE := $(XF_PROJ_ROOT)/xclbin/fuzzy_xilinx_u250_xdma_201830_2.xclbin
-else ifneq (,$(shell echo $(XDEVICE) | awk '/u250_gen3x16/'))
-XCLBIN_FILE := $(XF_PROJ_ROOT)/xclbin/fuzzy_xilinx_u250_gen3x16_xdma_2_1_202010_1.azure.xclbin
+XCLBIN_FILE := $(XCLBIN_PATH)/fuzzy_xilinx_u50_gen3x16_xdma_201920_3.xclbin
 else ifneq (,$(shell echo $(XDEVICE) | awk '/aws-vu9p-f1/'))
-XCLBIN_FILE := $(XF_PROJ_ROOT)/xclbin/fuzzy_xilinx_aws-vu9p-f1_shell-v04261818_201920_2.awsxclbin 
+XCLBIN_FILE := $(XCLBIN_PATH)/fuzzy_xilinx_aws-vu9p-f1_shell-v04261818_201920_2.awsxclbin 
 else
 $(warning [WARNING]: This project has not been tested for $(deviceNames). It may or may not work.)
 endif
 
-#LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):$(LIB_PATH)
 
 EXE_FILE := fmtest
 
@@ -94,9 +107,7 @@ CXXFLAGS += -O3 -DNDEBUG
 #CXXFLAGS += -O3 -g
 endif
 
-#ifneq ($(shell expr $(shell g++ -dumpversion) \>= 5), 1)
-#$(error [ERROR]: g++ version too old. Please use 5.0 or above)
-#endif
+test: $(EXE_FILE)
 $(EXE_FILE): fuzzymatch_test.cpp
 	$(CXX) $(CXXFLAGS) $^ -o $@ \
 		-I$(XILINX_XRT)/include \
