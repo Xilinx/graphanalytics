@@ -40,11 +40,10 @@ source /opt/xilinx/xrt/setup.sh
 ```
  check out the C++ and Python API examples
 
-```
 * C++ API example code. Run `make help` for instructions
 ```
 cd example/cpp
-````
+```
 * Python API example code. Check example/python/README.md for instructions
 ```
 cd example/python
