@@ -1568,6 +1568,7 @@ long BFSPar_AddNeighbors(
 		t_sel V_selected[], //inout, for recording whether a vertex is selected
 		long v,
 		int hop,
+        long* drglist_tg,
 		//output
         edge* elist_par[],
 		long num_e_dir[],
@@ -1588,6 +1589,9 @@ long BFSPar_AddNeighbors(
 	long adj1 = offsets[v];
 	long adj2 = offsets[v + 1];
 	int degree = adj2 - adj1;
+    bool hasAGhost = false;
+    int e_mindgr = 0;//the min degree of the edge
+    int e_min = 0;//the min degree of the edge's ID
 
 	for (int d = 0; d < degree; d++) {
 		map<long, long>::iterator itr;
@@ -1630,22 +1634,57 @@ long BFSPar_AddNeighbors(
 		else
 		{
 			double w = indices[adj1 + d].weight;
-			elist_par[p][num_e_dir[p]].head = v<=e?v:e;
-			elist_par[p][num_e_dir[p]].tail = v<=e?e:v;
-			elist_par[p][num_e_dir[p]].weight = w;
-#ifdef DEBUGPAR
-            printf("edge (%ld %ld)\n", elist_par[p][num_e_dir[p]].head, elist_par[p][num_e_dir[p]].tail);
-#endif
-			num_e_dir[p]++;
+
 			if(!notSelected && !isTailLocal){
 				if( !isTailGhost){//new found ghost
-					map_v_g[p][e] = num_v_g[p];
-					num_v_g[p]++;
-					num_e_dir_lg[p]++;
-				}else{
-					num_e_dir_lg[p]++;
+                    if(!hasAGhost){// add new edge
+                        elist_par[p][num_e_dir[p]].head = v<=e?v:e;
+                        elist_par[p][num_e_dir[p]].tail = v<=e?e:v;
+                        elist_par[p][num_e_dir[p]].weight = w;
+                        num_e_min = num_e_dir[p];
+    #ifdef DEBUGPAR
+                        printf("edge (%ld %ld)\n", elist_par[p][num_e_dir[p]].head, elist_par[p][num_e_dir[p]].tail);
+    #endif
+                        num_e_dir[p]++;
+
+    					map_v_g[p][e] = num_v_g[p];
+                        e_mindgr = drglist_tg[e];
+                        e_min = e;
+    					num_v_g[p]++;
+    					num_e_dir_lg[p]++;
+                        hasAGhost = true;
+                        printf("b ghost e=%ld, num_v_g[p]=%d \n",e,num_v_g[p]);
+                    }else{// switch the min
+                        printf("b hasghost e=%ld, num_v_g[p]=%d \n",e,num_v_g[p]);
+                        if(drglist_tg[e] < e_mindgr || (drglist_tg[e] == e_mindgr && e < e_min)){
+                            map_v_g[p].erase(e_min);
+                            map_v_g[p][e] = num_v_g[p] - 1;
+                            e_mindgr = drglist_tg[e];
+                            e_min = e;
+
+                            elist_par[p][num_e_min].head = v<=e?v:e;
+                            elist_par[p][num_e_min].tail = v<=e?e:v;
+                            elist_par[p][num_e_min].weight = w;
+                        }
+                    }
+				}else{// add new edge
+					elist_par[p][num_e_dir[p]].head = v<=e?v:e;
+                    elist_par[p][num_e_dir[p]].tail = v<=e?e:v;
+                    elist_par[p][num_e_dir[p]].weight = w;
+#ifdef DEBUGPAR
+                    printf("edge (%ld %ld)\n", elist_par[p][num_e_dir[p]].head, elist_par[p][num_e_dir[p]].tail);
+#endif
+                    num_e_dir[p]++;
 				}
-			}
+			}else{// add new edge
+                elist_par[p][num_e_dir[p]].head = v<=e?v:e;
+                elist_par[p][num_e_dir[p]].tail = v<=e?e:v;
+                elist_par[p][num_e_dir[p]].weight = w;
+#ifdef DEBUGPAR
+                printf("edge (%ld %ld)\n", elist_par[p][num_e_dir[p]].head, elist_par[p][num_e_dir[p]].tail);
+#endif
+                num_e_dir[p]++;
+            }
 		}//add to edge ghost;
 	}// for eatch e
 	map_v_l_scaned[p][v] = v;
@@ -1658,6 +1697,7 @@ long addGhostAfterPartition(
 		t_sel V_selected[], //inout, for recording whether a vertex is selected
 		long v,
 		int hop,
+        long* drglist_tg,
 		//output
         edge* elist_par[],
 		long num_e_dir[],
@@ -1678,6 +1718,9 @@ long addGhostAfterPartition(
 	long adj1 = offsets[v];
 	long adj2 = offsets[v + 1];
 	int degree = adj2 - adj1;
+    bool hasAGhost = false;
+    int e_mindgr = 0;//the min degree of the edge
+    int e_min = 0;//the min degree of the edge's ID
 
 	for (int d = 0; d < degree; d++) {
 		map<long, long>::iterator itr;
@@ -1724,14 +1767,40 @@ long addGhostAfterPartition(
             printf("edge (%ld %ld)\n", elist_par[p][num_e_dir[p]].head, elist_par[p][num_e_dir[p]].tail);
 #endif
 			num_e_dir[p]++;
+            // if(!prun){
+            //     if(!isTailLocal){
+            //         if( !isTailGhost){//new found ghost
+            //             map_v_g[p][e] = num_v_g[p];
+            //             num_v_g[p]++;
+            //             num_e_dir_lg[p]++;
+            //         }else{
+            //             num_e_dir_lg[p]++;
+            //         }
+            //     }
+            // }else{
 			if(!isTailLocal){
 				if( !isTailGhost){//new found ghost
-					map_v_g[p][e] = num_v_g[p];
-					num_v_g[p]++;
-					num_e_dir_lg[p]++;
-				}else{
-					num_e_dir_lg[p]++;
+                    if(!hasAGhost){
+    					map_v_g[p][e] = num_v_g[p];
+                        e_mindgr = drglist_tg[e];
+                        e_min = e;
+    					num_v_g[p]++;
+    					num_e_dir_lg[p]++;
+                        hasAGhost = true;
+                        printf("ghost e=%ld, num_v_g[p]=%d \n",e,num_v_g[p]);
+                    }else{
+                        printf("hasghost e=%ld, num_v_g[p]=%d \n",e,num_v_g[p]);
+                        if(drglist_tg[e] < e_mindgr || (drglist_tg[e] == e_mindgr && e < e_min)){
+                            map_v_g[p].erase(e_min);
+                            map_v_g[p][e] = num_v_g[p] - 1;
+                            e_mindgr = drglist_tg[e];
+                            e_min = e;
+                        }
+                    }
 				}
+//                else{
+//					num_e_dir_lg[p]++;
+//				}
 			}
 		}//add to edge ghost;
 	}// for eatch e
@@ -1739,7 +1808,7 @@ long addGhostAfterPartition(
 }
 
 
-
+#if 0
 bool BFSPar_creatingEdgeLists_fixed_par(
 		graphNew* G,
 		int p,//
@@ -1785,6 +1854,8 @@ bool BFSPar_creatingEdgeLists_fixed_par(
 
 	return !q_par[p].empty();
 }
+#endif
+
 bool isHopDone(
 		std::queue<HopV> &q_par_p,
 		int num_hop_p)
@@ -1857,6 +1928,11 @@ void BFSPar_creatingEdgeLists_fixed_prune(
 	/************************************/
     //FindStartVertex_lowBW(G, num_par, q_par, V_selected);
 
+    // get drglist_tg
+    long* drglist_tg=(long*)malloc(sizeof(long) * (NV_all));
+    for(int v = 0 ; v < NV_all; v++ ){
+        drglist_tg[v] = offsets[v+1] - offsets[v];
+    }
     //find the first startvertex for partition0
 	for(int p = 0 ; p < 1; p++ ){
 		num_v_l[p] = 0;
@@ -1920,6 +1996,7 @@ void BFSPar_creatingEdgeLists_fixed_prune(
 					V_selected, //inout, for recording whether a vertex is selected
 					hv.v,
 					hv.hop,
+                    drglist_tg,
 					//output
 					elist_par,
 					num_e_dir,
@@ -1972,7 +2049,7 @@ void BFSPar_creatingEdgeLists_fixed_prune(
                     map_v_l[p][v_start] = num_v_l[p];
                     num_v_l[p]++;
                     notQueueEmpty = true;
-                    printf(" ==== Empty case par=%d_push_v_start=%d, num_v_l[%d]=%d\n", p, v_start, p, num_v_l[p]);
+                    //printf(" ==== Empty case par=%d_push_v_start=%d, num_v_l[%d]=%d\n", p, v_start, p, num_v_l[p]);
                                   
                 
             }
@@ -1993,6 +2070,7 @@ void BFSPar_creatingEdgeLists_fixed_prune(
                         V_selected, //inout, for recording whether a vertex is selected
                         hv.v,
                         hv.hop,
+                        drglist_tg,
                         //output
                         elist_par,
                         num_e_dir,
@@ -2096,7 +2174,7 @@ void BFSPar_creatingEdgeLists_fixed_prune(
 
 #endif
 }
-
+#if 0
 void BFSPar_creatingEdgeLists_fixed(
 		int mode_start,//0: find vertices with max degrees, 1: vertices at average partition -m 1
 		int mode_hop, //"-h 0": just one vertex will be scanned; "-h 1"(default): full hop
@@ -2456,7 +2534,7 @@ void BFSPar_creatingEdgeLists_fixed_org(
 		checkParEdges(p,  elist_par[p], num_e_dir[p], num_e_dir_lg[p], map_v_l[p], map_v_g[p]);
 	}
 }
-
+#endif
 void test_BFSPar_creatingEdgeLists_fixed(//return: real number of partition
 		int mode_start,
 		int mode_hop,
@@ -2482,23 +2560,23 @@ void test_BFSPar_creatingEdgeLists_fixed(//return: real number of partition
 	for(int i=0; i<G->numVertices; i++)
 		V_selected[i] = 0;//false;
     if(mode_hop<2){
-        BFSPar_creatingEdgeLists_fixed(//return: real number of partition
-                mode_start,
-                mode_hop,
-                G,
-                num_par,
-                limit_v,
-                limit_e,
-                V_selected, //[], //,inout, for recording whether a vertex is selected
-                //output
-                elist_par, //[],
-                num_e_dir, //[],
-                num_e_dir_lg, //[],
-                num_v_l, //[],
-                num_v_g, //[],
-                map_v_l, //[],//std:map for local vertices, will be used for renumbering and creating M
-                map_v_g //[]//std:map for ghost vertices, will be used for renumbering and creating M
-        );
+        // BFSPar_creatingEdgeLists_fixed(//return: real number of partition
+        //         mode_start,
+        //         mode_hop,
+        //         G,
+        //         num_par,
+        //         limit_v,
+        //         limit_e,
+        //         V_selected, //[], //,inout, for recording whether a vertex is selected
+        //         //output
+        //         elist_par, //[],
+        //         num_e_dir, //[],
+        //         num_e_dir_lg, //[],
+        //         num_v_l, //[],
+        //         num_v_g, //[],
+        //         map_v_l, //[],//std:map for local vertices, will be used for renumbering and creating M
+        //         map_v_g //[]//std:map for ghost vertices, will be used for renumbering and creating M
+        // );
     }else{
         BFSPar_creatingEdgeLists_fixed_prune(
 			mode_start,
@@ -2659,23 +2737,23 @@ void test_BFSPar_creatingEdgeLists_fixed_prune(//return: real number of partitio
 	for(int i=0; i<G->numVertices; i++)
 		V_selected[i] = 0;//false;
     if(mode_hop<2){
-        BFSPar_creatingEdgeLists_fixed(//return: real number of partition
-                mode_start,
-                mode_hop,
-                G,
-                num_par,
-                limit_v,
-                limit_e,
-                V_selected, //[], //,inout, for recording whether a vertex is selected
-                //output
-                elist_par, //[],
-                num_e_dir, //[],
-                num_e_dir_lg, //[],
-                num_v_l, //[],
-                num_v_g, //[],
-                map_v_l, //[],//std:map for local vertices, will be used for renumbering and creating M
-                map_v_g //[]//std:map for ghost vertices, will be used for renumbering and creating M
-        );
+        // BFSPar_creatingEdgeLists_fixed(//return: real number of partition
+        //         mode_start,
+        //         mode_hop,
+        //         G,
+        //         num_par,
+        //         limit_v,
+        //         limit_e,
+        //         V_selected, //[], //,inout, for recording whether a vertex is selected
+        //         //output
+        //         elist_par, //[],
+        //         num_e_dir, //[],
+        //         num_e_dir_lg, //[],
+        //         num_v_l, //[],
+        //         num_v_g, //[],
+        //         map_v_l, //[],//std:map for local vertices, will be used for renumbering and creating M
+        //         map_v_g //[]//std:map for ghost vertices, will be used for renumbering and creating M
+        // );
     }else{
         BFSPar_creatingEdgeLists_fixed_prune(
 			mode_start,
