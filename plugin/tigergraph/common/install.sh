@@ -31,6 +31,7 @@ function usage() {
     echo "  -d device-name   : Specify Alveo device name. Valid values: "
     echo "                     xilinx_u50_gen3x16_xdma_201920_3"
 	echo "                     xilinx_u55c_gen3x16_xdma_base_2"
+    echo "                     xilinx_aws-vu9p-f1_shell-v04261818_201920_2"
     echo "  -f               : Force installation"
     echo "  -g               : Build plugin libraries with __DEBUG__"
     echo "  -m xrm-lib-path  : Path to XRM libraries. default=/opt/xilinx/xrm"

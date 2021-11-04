@@ -96,7 +96,7 @@ fi
 # Make sure the XCLBIN exists (unless we're uninstalling)
 
 if [ $uninstall -eq 0 ] && [ ! -f $pluginAlveoProductXclbinPathU50 ] && [ "$device_name" == "xilinx_u50_gen3x16_xdma_201920_3" ]; then
-    printf "${RED}ERROR: $standaloneAlveoProductName Alveo U50 product not found.${NC}\n"
+    printf "${RED}ERROR: $standaloneAlveoProductName Alveo U50 product not found. $pluginAlveoProductXclbinPathU50 is missing. ${NC}\n"
     printf "INFO: Please download $standaloneAlveoProductName Alveo product installation package "
     printf "from Xilinx Database PoC site: https://www.xilinx.com/member/dba_poc.html\n"
     exit 1

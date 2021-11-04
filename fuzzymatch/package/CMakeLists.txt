@@ -24,6 +24,7 @@ set(CMAKE_INSTALL_PATH "${CMAKE_INSTALL_PREFIX}/fuzzymatch/${PROD_VERSION}")
 install(DIRECTORY "${CS_FILE_PATH}/lib/" DESTINATION ${CMAKE_INSTALL_PATH}/lib USE_SOURCE_PERMISSIONS)
 
 install(FILES "${CS_FILE_PATH}/xclbin/fuzzy_xilinx_u50_gen3x16_xdma_201920_3.xclbin" DESTINATION ${CMAKE_INSTALL_PATH}/xclbin)
+install(FILES "${CS_FILE_PATH}/xclbin/fuzzy_xilinx_aws-vu9p-f1_shell-v04261818_201920_2.awsxclbin" DESTINATION ${CMAKE_INSTALL_PATH}/xclbin)
 install(FILES "${CS_FILE_PATH}/include/fuzzymatch.hpp" DESTINATION ${CMAKE_INSTALL_PATH}/include)
 install(FILES "${CS_FILE_PATH}/include/xilinx_apps_common.hpp" DESTINATION ${CMAKE_INSTALL_PATH}/include)
 

@@ -42,6 +42,9 @@ help:
 	@echo "  make dist"
 	@echo "  Generate product installation package (RPM or DEB) for the current OS and architecture"
 	@echo "" 
+	@echo "  make clean-dist"
+	@echo "  Clean build area for distribution packages"
+	@echo "" 
 	@echo "  make run-staging-cpp"
 	@echo "  Run the CPP example from the staging area"
 	@echo ""
@@ -436,10 +439,7 @@ STAGE_DIR = staging
 
 STAGE_COPY_FILES = \
     VERSION \
-    include/fuzzymatch.hpp \
-    src/fuzzymatch_loader.cpp \
-	src/fuzzymatch_utils.cpp \
-	src/fuzzymatch.cpp
+    include/fuzzymatch.hpp 
 
 define STAGE_COPY_RULE
 $(STAGE_DIR)/$(1): $(1)
@@ -467,9 +467,9 @@ $(foreach f,$(STAGE_LIB_FILES),$(eval $(call STAGE_LIB_RULE,$(f))))
 
 #STAGE_EXAMPLE_ZIP = examples.zip
 STAGE_EXAMPLE_FILE_NAMES = \
-	cpp/fuzzymatch_test.cpp cpp/Makefile cpp/README.md \
-	data/people.csv data/README.md data/txdata.csv \
-	python/pythondemo.py python/run.sh
+	cpp/fuzzymatch_test.cpp cpp/Makefile \
+	data/people.csv data/txdata.csv \
+	python/pythondemo.py python/run.sh python/README.md
 
 STAGE_EXAMPLE_FILES = $(addprefix examples/,$(STAGE_EXAMPLE_FILE_NAMES))
 STAGE_STAGED_EXAMPLE_FILES = $(addprefix $(STAGE_DIR)/,$(STAGE_EXAMPLE_FILES))
@@ -489,6 +489,8 @@ stage-examples: $(STAGE_EXAMPLE_FILES)
 
 fill-example-stage: $(STAGE_STAGED_EXAMPLE_FILES)
 	cp VERSION $(STAGE_DIR)/examples/
+	cp examples/README_AMI.md $(STAGE_DIR)/README.md
+
 	
 $(STAGE_STAGED_EXAMPLE_FILES):
 	cp -f $(patsubst $(STAGE_DIR)/%,%,$@) $@
@@ -582,7 +584,7 @@ javaTest:
 #
 
 #### Clean target deletes all generated files ####
-.PHONY: clean clean-xclbin
+.PHONY: clean clean-xclbin clean-dist
 
 run: 
 
@@ -594,6 +596,9 @@ clean:
 clean-xclbin:
 	rm -f $(XCLBIN_FILE_U50)
 
+clean-dist:
+	@cd package; \
+	make clean
 
 cleanpy:
 	rm -rf $(PYTHONENV_NAME)
