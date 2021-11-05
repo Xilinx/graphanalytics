@@ -286,6 +286,7 @@ TEST_DIR = tests
 
 INCLUDES_test = \
 	-Iinclude \
+	-Itests \
 	-I$(XILINX_XRT)/include \
 	-I$(XILINX_XRM)/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L2/include \
@@ -299,7 +300,8 @@ LDLIBS_test = \
 
 SRC_FILE_NAMES_test = \
     cppdemo.cpp \
-    pardump.cpp
+    pardump.cpp \
+    islandsMain.cpp
 
 SRCS_test = $(addprefix $(TEST_DIR)/,$(SRC_FILE_NAMES_test))
 OBJS_test = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_test:.cpp=.o)))
@@ -308,7 +310,8 @@ DEPS_test = $(OBJS_test:.o=.d)
 # List of all test executables to build
 EXEC_FILE_NAMES_test = \
     cppdemo \
-    pardump
+    pardump \
+    islands
 
 EXECS_test = $(addprefix $(CPP_BUILD_DIR)/,$(EXEC_FILE_NAMES_test))
 
@@ -419,6 +422,9 @@ debug-cppdemo: cppTest
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARY_PATH); totalview $(CPP_BUILD_DIR)/cppdemo -a $(CMDLINE_CREATE_PARTITIONS)
 
 $(CPP_BUILD_DIR)/pardump: $(CPP_BUILD_DIR)/pardump.o $(CPP_BUILD_DIR)/$(LIB_NAME)
+	$(LINK.cc) -o $@ $< $(LDFLAGS_test) $(LIB_DEPS)
+
+$(CPP_BUILD_DIR)/islands: $(CPP_BUILD_DIR)/islandsMain.o $(CPP_BUILD_DIR)/$(LIB_NAME)
 	$(LINK.cc) -o $@ $< $(LDFLAGS_test) $(LIB_DEPS)
 
 # Macro to create a .o rule and a .d rule for each .cpp
