@@ -16,13 +16,16 @@
 .DELETE_ON_ERROR:
 .PHONY: all
 
-#all: javaApi cppBuild javaTest stage
-all: stage
+all:
+	@echo "Placeholder"
 
+#all: stage
+
+STANDALONE_NAME = mis
 # Product version
 PRODUCT_VER=$(strip $(shell cat VERSION))
 
-EXAMPLE_DIR = examples/swiftaml
+EXAMPLE_DIR = examples/travelplan
 
 # Files to be direct-copied from plugin source tree to staging area
 
@@ -31,19 +34,19 @@ STAGE_COPY_FILES = \
     \
     bin/set-plugin-vars.sh \
     \
-    udf/xilinxFuzzyMatch.hpp \
-    udf/xilinxFuzzyMatchImpl.hpp \
+    udf/xilinxMis.hpp \
+    udf/xilinxMisImpl.hpp \
     \
     $(wildcard $(EXAMPLE_DIR)/data/*) \
 	$(EXAMPLE_DIR)/README.md \
     $(EXAMPLE_DIR)/bin/common.sh \
     $(EXAMPLE_DIR)/bin/set-plugin-vars.sh \
-    $(EXAMPLE_DIR)/udf/swiftAmlDemo.hpp \
-    $(EXAMPLE_DIR)/udf/swiftAmlDemoImpl.hpp \
-	$(EXAMPLE_DIR)/query/base.gsql \
-    $(EXAMPLE_DIR)/query/load.gsql \
-    $(EXAMPLE_DIR)/query/fuzzymatch.gsql \
+    $(EXAMPLE_DIR)/udf/travelPlanDemo.hpp \
+    $(EXAMPLE_DIR)/udf/travelPlanDemoImpl.hpp \
     $(EXAMPLE_DIR)/query/schema.gsql \
+    $(EXAMPLE_DIR)/query/load.gsql \
+    $(EXAMPLE_DIR)/query/build_edges.gsql \
+	$(EXAMPLE_DIR)/query/tg_maximal_indep_set.gsql \
     \
     $(EXAMPLE_DIR)/bin/run.sh \
 
@@ -53,7 +56,7 @@ STAGE_EXAMPLES_DIRS = $(EXAMPLE_DIR)
 include ../common/Makefile-common.mk
 
 update-version:
-	sed -i 's,/graphanalytics/fuzzymatch/.*,/graphanalytics/fuzzymatch/$(PRODUCT_VER),g' bin/set-plugin-vars.sh
+	sed -i 's,/graphanalytics/STANDALONE_NAME/.*,/graphanalytics/STANDALONE_NAME/$(PRODUCT_VER),g' bin/set-plugin-vars.sh
 
 stage: update-version stage-common
 

@@ -35,8 +35,7 @@ function usage() {
     echo "  -f                   : Force (re)install"
     echo "  -g graphName         : graph name (default=social_<username>"
     echo "  -i sshKey            : SSH key for user tigergraph"    
-    echo "  -n numPartitionsNode : Number of Alveo partitions "    
-    echo "  -t txdata          : A csv file with transactions records. default=../data/txdata.csv"
+    echo "  -t truckData         : A csv file with travlePlan and truck data. default=../data/trucks.csv"
     echo "  -v                   : Print verbose messages"
     echo "  -h                   : Print this help message"
 }
@@ -47,11 +46,11 @@ tg_data_root=$(cat $tg_home/.tg.cfg | jq .System.DataRoot | tr -d \")
 # default values for optional options
 username=$USER
 password=Xilinx123
-blacklist="$script_dir/../data/people1k.csv"
-txdata="$script_dir/../data/txdata.csv"
-num_nodes=$(cat $tg_data_root/gsql/udf/xilinx-plugin-config.json | jq .numNodes | tr -d \")
+truck_data="$script_dir/../data/trucks.csv"
+wo_data="$script_dir/../data/wo.csv"
+#num_nodes=$(cat $tg_data_root/gsql/udf/xilinx-plugin-config.json | jq .numNodes | tr -d \")
 verbose=0
-xgraph="swift_$username"
+xgraph="travelplan_$username"
 force_clean=0
 compile_mode=1
 run_mode=2
@@ -71,7 +70,6 @@ case $opt in
     f) force_clean=1; force_clean_flag=-f;;
     g) xgraph=$OPTARG;;
     i) ssh_key=$OPTARG; ssh_key_flag="-i $ssh_key";;
-    m) num_nodes=$OPTARG;;
     r) run_mode=$OPTARG;;
     p) password=$OPTARG;;
     t) txdata=$OPTARG;;   
@@ -109,10 +107,9 @@ fi
 if [ $verbose -eq 1 ]; then
     echo "INFO: username=$username"
     echo "      password=$password"
-    echo "      blacklist=$blacklist"
-    echo "      txdata=$txdata"
+    echo "      truck_data=$truck_data"
+    echo "      wo_data=$wo_data"
     echo "      xgraph=$xgraph"
-    echo "      numNodes=$num_nodes"
     echo "      compileMode=$compile_mode"
     echo "      runMode=$run_mode"    
     echo "      sshKey=$ssh_key"

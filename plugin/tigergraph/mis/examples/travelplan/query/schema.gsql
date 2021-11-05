@@ -1,0 +1,20 @@
+USE GRAPH @graph
+DROP GRAPH @graph CASCADE
+
+CREATE GRAPH @graph()
+
+BEGIN
+CREATE SCHEMA_CHANGE JOB job_schema_change_local FOR GRAPH @graph {
+
+    ADD VERTEX travel_plan (PRIMARY_ID id STRING, tp_id STRING);
+    ADD VERTEX work_order (PRIMARY_ID wo_id STRING);
+    ADD VERTEX truck (PRIMARY_ID truck_id STRING);
+
+    ADD UNDIRECTED EDGE tp2wo (FROM travel_plan, TO work_order);
+    ADD UNDIRECTED EDGE tp2truck (FROM travel_plan, TO truck);
+    ADD UNDIRECTED EDGE tp2tp (FROM travel_plan, TO travel_plan);
+}
+END
+
+RUN SCHEMA_CHANGE JOB job_schema_change_local
+DROP JOB job_schema_change_local

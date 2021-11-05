@@ -1,7 +1,6 @@
-#!/usr/bin/env bash 
-
+#!/bin/bash
 #
-# Copyright 2021 Xilinx, Inc.
+# Copyright 2020-2021 Xilinx, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,8 +29,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 set -e
+
+# Uncomment below to echo all commands for debug
+#set -x 
 
 SCRIPT=$(readlink -f $0)
 script_dir=`dirname $SCRIPT`
@@ -51,53 +52,20 @@ if [ "$compile_mode" -eq 1 ]; then
     echo "-------------------------------------------------------------------------"
     gsql -u $username -p $password "$(cat $script_dir/../query/load.gsql | sed "s/@graph/$xgraph/")"
 
-    echo "-------------------------------------------------------------------------"
-    echo "Loading $files"
-    echo "gsql -u $username -p $password -g $xgraph \"run loading job load_job USING blacklist_csv = \"$blacklist\", transaction_csv = \"$txdata\""
-    echo "-------------------------------------------------------------------------"
-    gsql -u $username -p $password -g $xgraph "run loading job load_job USING blacklist_csv = \"$blacklist\", transaction_csv = \"$txdata\""
+    # set timeout of loading job to 1 hour
+    time gsql -u $username -p $password -g $xgraph "SET QUERY_TIMEOUT=3600000 RUN LOADING JOB load_xgraph USING wo_infile=\"$wo_data\", truck_infile=\"$truck_data\""
+    gsql -u $username -p $password -g $xgraph "DROP JOB load_xgraph"
+    echo "INFO: -------- $(date) load_xgraph completed. --------"
 
-    echo "-------------------------------------------------------------------------"
-    echo "Install base queries"
-    echo "gsql -u $username -p $password \"\$(cat $script_dir/../query/base.gsql | sed \"s/@graph/$xgraph/\")\""
-    echo "-------------------------------------------------------------------------"
-    gsql -u $username -p $password "$(cat $script_dir/../query/base.gsql | sed "s/@graph/$xgraph/")"
+    gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/build_edges.gsql | sed "s/@graph/$xgraph/")" 
+    echo " "
+    gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/tg_maximal_indep_set.gsql)"
 
-    echo "-------------------------------------------------------------------------"
-    echo "Running insert dummy nodes for distributed alveo computing"
-    gsql -u $username -p $password -g $xgraph "RUN QUERY insert_dummy_nodes($num_nodes)"
+
 fi
 
-if [ "$compile_mode" -eq 1 ] || [ "$compile_mode" -eq 2 ]; then
-    echo "-------------------------------------------------------------------------"
-    echo "Installing Fuzzy Match CPU and FPGA queries"
-    echo "gsql -u $username -p $password -g $xgraph \"\$(cat $script_dir/../query/fuzzymatch.gsql | sed \"s/@graph/$xgraph/\")\""
-    echo "-------------------------------------------------------------------------"
-    gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/fuzzymatch.gsql | sed "s/@graph/$xgraph/")"
+echo "Run query build_edges"
+time gsql -u $username -p $password -g $xgraph "run query build_edges()"
 
-    # IMPORTANT: DO NOT USE A NETWORK DRIVE FOR LOG FILES IN DISTRIBUTED QUERIES.
-    # OTHERWISE EACH NODE WILL OVERWRITE IT
-fi
-
-echo "-------------------------------------------------------------------------"
-echo "Run mode: $run_mode"
-
-if [ "$run_mode" -eq 1 ] || [ "$run_mode" -eq 3 ]; then
-    echo "Running fuzzymatch_cpu"
-    echo gsql -u $username -p $password -g $xgraph \'run query fuzzymatch_cpu\(\)\'
-    echo "-------------------------------------------------------------------------"
-    START=$(date +%s%3N)
-    time gsql -u $username -p $password -g $xgraph "run query fuzzymatch_cpu()"
-    TOTAL_TIME=$(($(date +%s%3N) - START))
-    echo "fuzzy_match_cpu runtime: " $tg_home
-fi
-
-# Run on FPGA
-if [ "$run_mode" -eq 2 ] || [ "$run_mode" -eq 3 ]; then
-    START=$(date +%s%3N)
-    echo "Running fuzzymatch_alveo"
-    echo gsql -u $username -p $password -g $xgraph \'run query fuzzymatch_alveo\(\)\'
-    time gsql -u $username -p $password -g $xgraph "run query fuzzymatch_alveo()"
-    TOTAL_TIME=$(($(date +%s%3N) - START))
-    echo "fuzzy_match_alveo: " $TOTAL_TIME
-fi
+echo "Run query tg_maximal_indep_set"
+time gsql -u $username -p $password -g $xgraph "run query tg_maximal_indep_set(\"travel_plan\", \"tp2tp\", _, _, \"/tmp/mis-$username.out\")"
