@@ -32,7 +32,7 @@
 set -e
 
 # Uncomment below to echo all commands for debug
-#set -x 
+set -x 
 
 SCRIPT=$(readlink -f $0)
 script_dir=`dirname $SCRIPT`
@@ -68,4 +68,4 @@ echo "Run query build_edges"
 time gsql -u $username -p $password -g $xgraph "run query build_edges()"
 
 echo "Run query tg_maximal_indep_set"
-time gsql -u $username -p $password -g $xgraph "run query tg_maximal_indep_set(\"travel_plan\", \"tp2tp\", _, _, \"/tmp/mis-$username.out\")"
+time gsql -u $username -p $password -g $xgraph "run query tg_maximal_indep_set([\"travel_plan\"], [\"tp2tp\"], 100, TRUE, \"/tmp/mis-$username.out\")"
