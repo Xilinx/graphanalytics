@@ -36,7 +36,7 @@ function usage() {
     echo "  -g graphName         : graph name (default=social_<username>"
     echo "  -i sshKey            : SSH key for user tigergraph"    
     echo "  -n numPartitionsNode : Number of Alveo partitions "    
-    echo "  -t txdata          : A csv file with transactions records. default=../data/txdata.csv"
+    echo "  -t txdata            : A csv file with transactions records. default=../data/txdata.csv"
     echo "  -v                   : Print verbose messages"
     echo "  -h                   : Print this help message"
 }
