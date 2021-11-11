@@ -3042,9 +3042,9 @@ void sim_getServerPar(
 }
 
 //start bfs partition (lOW_BANGWIDTH_MOTHED) method 
-#define lOW_BANGWIDTH_MOTHED 
+#define lOW_BANGWIDTH_METHOD 
 
-#ifdef lOW_BANGWIDTH_MOTHED
+#ifdef lOW_BANGWIDTH_METHOD
 
 struct HopV{
 	long v;
