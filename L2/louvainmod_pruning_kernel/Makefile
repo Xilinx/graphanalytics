@@ -132,7 +132,7 @@ CXXFLAGS += -I$(XILINX_XRT)/include -I$(XILINX_VIVADO)/include -std=c++11 -Wall 
 LDFLAGS += -L$(XILINX_XRT)/lib -lOpenCL -lpthread -lrt -Wno-unused-label -Wno-unused-variable -Wno-write-strings -Wno-narrowing -DVERBOSE -Wno-format
 CXXFLAGS += -fmessage-length=0 -DPRAGMA -fopenmp -fPIC -DMULTITHREAD
 CXXFLAGS += -O3 -Ofast
-#CXXFLAGS += -g -O0
+#CXXFLAGS += -g -O0 -D_SINGLE_THREAD_
 #CXXFLAGS += -g -D DEBUGPAR
 CXXFLAGS += -I$(CUR_DIR)/src/ 
 

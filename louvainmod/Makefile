@@ -67,7 +67,7 @@ CXXFLAGS = -std=c++11 -DPRAGMA -fopenmp -fmessage-length=0  -fPIC -Wall -Wno-unk
 #DEBUG = 1
 ifdef DEBUG
 CPP_BUILD_DIR = Debug
-CXXFLAGS += -O0 -g
+CXXFLAGS += -O0 -g -D_SINGLE_THREAD_
 else
 CPP_BUILD_DIR = Release
 CXXFLAGS += -O3 -Ofast -DNDEBUG

@@ -1571,7 +1571,7 @@ long BFSPar_AddNeighbors(
 		t_sel V_selected[], //inout, for recording whether a vertex is selected
 		long v,
 		int hop,
-        long* drglist_tg,
+        //long* drglist_tg,
 		//output
         edge* elist_par[],
 		long num_e_dir[],
@@ -1629,8 +1629,6 @@ long BFSPar_AddNeighbors(
 #ifdef DEBUGPAR
             printf("push vertex'e %ld\n", e);
 #endif
-			//if(he.hop>max_hop[p])
-			//	max_hop[p] = he.hop;
 		}
 		//add to edge ghost;
 		if(BeenScaned)// && v!=e)
@@ -1638,7 +1636,7 @@ long BFSPar_AddNeighbors(
 		else
 		{
 			double w = indices[adj1 + d].weight;
-#ifdef TH_PRUN
+#ifdef NO_PRUNING
             elist_par[p][num_e_dir[p]].head = v<=e?v:e;
             elist_par[p][num_e_dir[p]].tail = v<=e?e:v;
             elist_par[p][num_e_dir[p]].weight = w;
@@ -1658,6 +1656,7 @@ long BFSPar_AddNeighbors(
 #else
 			if(!notSelected && !isTailLocal){
 				if( !isTailGhost){//new found ghost
+                    long drglist_tg = offsets[e+1] - offsets[e];
                     if(!hasAGhost){// add new edge
                         elist_par[p][num_e_dir[p]].head = v<=e?v:e;
                         elist_par[p][num_e_dir[p]].tail = v<=e?e:v;
@@ -1669,17 +1668,17 @@ long BFSPar_AddNeighbors(
                         num_e_dir[p]++;
 
     					map_v_g[p][e] = num_v_g[p];
-                        e_mindgr = drglist_tg[e];
+                        e_mindgr = drglist_tg;
                         e_min = e;
     					num_v_g[p]++;
     					num_e_dir_lg[p]++;
                         hasAGhost = true;
                     }else{// switch the min  // because the bfs, this branch access lightly
                         //printf("b emin=%ld, e=%ld, num_v_g[p]=%d \n",e_min, e,num_v_g[p]);
-                        if(drglist_tg[e] < e_mindgr || (drglist_tg[e] == e_mindgr && e < e_min)){
+                        if(drglist_tg < e_mindgr || (drglist_tg == e_mindgr && e < e_min)){
                             map_v_g[p].erase(e_min);
                             map_v_g[p][e] = num_v_g[p] - 1;
-                            e_mindgr = drglist_tg[e];
+                            e_mindgr = drglist_tg;
                             e_min = e;
 
                             elist_par[p][num_e_min].head = v<=e?v:e;
@@ -1719,7 +1718,7 @@ long addGhostAfterPartition(
 		t_sel V_selected[], //inout, for recording whether a vertex is selected
 		long v,
 		int hop,
-        long* drglist_tg,
+        //long* drglist_tg,
 		//output
         edge* elist_par[],
 		long num_e_dir[],
@@ -1784,7 +1783,7 @@ long addGhostAfterPartition(
 		{
             double w = indices[adj1 + d].weight;
 
-#ifdef TH_PRUN
+#ifdef NO_PRUNING
             elist_par[p][num_e_dir[p]].head = v<=e?v:e;
             elist_par[p][num_e_dir[p]].tail = v<=e?e:v;
             elist_par[p][num_e_dir[p]].weight = w;
@@ -1804,6 +1803,7 @@ long addGhostAfterPartition(
 #else
             if(!isTailLocal){
                 if( !isTailGhost){//new found ghost
+                    long drglist_tg = offsets[e+1] - offsets[e];
                     if(!hasAGhost){// add new edge
                         elist_par[p][num_e_dir[p]].head = v<=e?v:e;
                         elist_par[p][num_e_dir[p]].tail = v<=e?e:v;
@@ -1815,17 +1815,17 @@ long addGhostAfterPartition(
                         num_e_dir[p]++;
 
                         map_v_g[p][e] = num_v_g[p];
-                        e_mindgr = drglist_tg[e];
+                        e_mindgr = drglist_tg;
                         e_min = e;
                         num_v_g[p]++;
                         num_e_dir_lg[p]++;
                         hasAGhost = true;
                     }else{// switch the min // because the bfs, this branch access heavily
                         //printf("b add emin=%ld, e=%ld, num_v_g[p]=%d \n",e_min, e,num_v_g[p]);
-                        if(drglist_tg[e] < e_mindgr || (drglist_tg[e] == e_mindgr && e < e_min)){
+                        if(drglist_tg < e_mindgr || (drglist_tg == e_mindgr && e < e_min)){
                             map_v_g[p].erase(e_min);
                             map_v_g[p][e] = num_v_g[p] - 1;
-                            e_mindgr = drglist_tg[e];
+                            e_mindgr = drglist_tg;
                             e_min = e;
 
                             elist_par[p][num_e_min].head = v<=e?v:e;
@@ -1923,18 +1923,19 @@ void BFSPar_creatingEdgeLists_fixed_prune(
     // find the max vertices of the partition graph by NV/max_par
     const long MAX_PAR_VERTEX = (NV_all + MAX_PAR - 1) / MAX_PAR;
 
-    long NE_all = G->numEdges;
+    long NE_all = G->numEdges;// single edge
     limit_v = NV_all/num_par+1;
 	/************************************/
 	//Step-1: finding num_par start vertices from global G,
 	//and initializing queues for each partition: q_par[p].push(v_start[p]);
-	/************************************/
-    //FindStartVertex_lowBW(G, num_par, q_par, V_selected);
-
-    // get drglist_tg
-    long* drglist_tg=(long*)malloc(sizeof(long) * (NV_all));
-    for(int v = 0 ; v < NV_all; v++ ){
-        drglist_tg[v] = offsets[v+1] - offsets[v];
+	/************************************/ 
+    
+    for( int p = 0; p < num_par; p++){
+        num_v_l[p] = 0;
+        num_v_g[p] = 0;
+		num_e_dir[p] = 0;
+		num_e_dir_lg[p] = 0;
+		num_hop[p] = 0;
     }
     //find the first startvertex for partition0
 	for(int p = 0 ; p < 1; p++ ){
@@ -1999,7 +2000,7 @@ void BFSPar_creatingEdgeLists_fixed_prune(
 					V_selected, //inout, for recording whether a vertex is selected
 					hv.v,
 					hv.hop,
-                    drglist_tg,
+                    //drglist_tg,
 					//output
 					elist_par,
 					num_e_dir,
@@ -2015,7 +2016,7 @@ void BFSPar_creatingEdgeLists_fixed_prune(
                     //notAllQueuesEmpty|= notQueueEmpty;
                 
                  if(num_v_l[p]>=MAX_PAR_VERTEX){
-                     printf("!!!! break on the max vertex!!!\n");
+                     printf("!!!! break on the max vertex!!!%ld\n",MAX_PAR_VERTEX);
                      break;
                  }
                 if(mode_hop==1 || mode_hop==2)
@@ -2073,7 +2074,7 @@ void BFSPar_creatingEdgeLists_fixed_prune(
                         V_selected, //inout, for recording whether a vertex is selected
                         hv.v,
                         hv.hop,
-                        drglist_tg,
+                        //drglist_tg,
                         //output
                         elist_par,
                         num_e_dir,
@@ -2120,7 +2121,7 @@ void BFSPar_creatingEdgeLists_fixed_prune(
         }
 	}//for all partition
 
-    free(drglist_tg);
+    //free(drglist_tg);
 
 #ifdef DEBUGPAR
 
