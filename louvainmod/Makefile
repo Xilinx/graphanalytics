@@ -287,6 +287,7 @@ TEST_DIR = tests
 INCLUDES_test = \
 	-Iinclude \
 	-Itests \
+	-Itests/findcommunities \
 	-I$(XILINX_XRT)/include \
 	-I$(XILINX_XRM)/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L2/include \
@@ -298,10 +299,20 @@ INCLUDES_test = \
 LDLIBS_test = \
 	
 
+FIND_COMMUNITIES_DIR = findcommunities
+FIND_COMMUNITIES_SRC_FILE_NAMES = \
+    community.cpp \
+    graph.cpp \
+    graph_binary.cpp \
+
+FIND_COMMUNITIES_OBJS = $(addprefix $(CPP_BUILD_DIR)/,$(FIND_COMMUNITIES_SRC_FILE_NAMES:.cpp=.o))
+
 SRC_FILE_NAMES_test = \
     cppdemo.cpp \
     pardump.cpp \
-    islandsMain.cpp
+    islandsMain.cpp \
+    louvain_test.cpp \
+    $(addprefix $(FIND_COMMUNITIES_DIR)/,$(FIND_COMMUNITIES_SRC_FILE_NAMES))
 
 SRCS_test = $(addprefix $(TEST_DIR)/,$(SRC_FILE_NAMES_test))
 OBJS_test = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_test:.cpp=.o)))
@@ -311,7 +322,8 @@ DEPS_test = $(OBJS_test:.o=.d)
 EXEC_FILE_NAMES_test = \
     cppdemo \
     pardump \
-    islands
+    islands \
+    louvain_test
 
 EXECS_test = $(addprefix $(CPP_BUILD_DIR)/,$(EXEC_FILE_NAMES_test))
 
@@ -426,6 +438,9 @@ $(CPP_BUILD_DIR)/pardump: $(CPP_BUILD_DIR)/pardump.o $(CPP_BUILD_DIR)/$(LIB_NAME
 
 $(CPP_BUILD_DIR)/islands: $(CPP_BUILD_DIR)/islandsMain.o $(CPP_BUILD_DIR)/$(LIB_NAME)
 	$(LINK.cc) -o $@ $< $(LDFLAGS_test) $(LIB_DEPS)
+
+$(CPP_BUILD_DIR)/louvain_test: $(CPP_BUILD_DIR)/louvain_test.o $(FIND_COMMUNITIES_OBJS) $(CPP_BUILD_DIR)/$(LIB_NAME)
+	$(LINK.cc) -o $@ $^ $(LDFLAGS_test) $(LIB_DEPS)
 
 # Macro to create a .o rule and a .d rule for each .cpp
 

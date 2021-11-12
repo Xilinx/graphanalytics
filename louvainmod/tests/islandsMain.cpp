@@ -120,7 +120,7 @@ int main(int argc, const char *argv[]) {
     }
     
     Islands::VertexId numVertices = 0;
-    std::uint64_t numEdges = 0;
+    Islands::EdgeIndex numEdges = 0;
     islands.getGraphSize(numVertices, numEdges);
     ofs << "*Vertices " << numVertices << std::endl;
     ofs << "*Edges " << numEdges << std::endl;
