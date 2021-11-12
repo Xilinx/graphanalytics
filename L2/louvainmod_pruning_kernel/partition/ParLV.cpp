@@ -195,12 +195,12 @@ long ParLV::FindC_nhop_bfs(long m_g) {
         long m_lved_new = cm.second;
         
                 //debug begin
-                printf("DBG:FindC:cnt=%d, m:%-4d --> e_org:%-4d, idx:%-2d, --> v_src:%-4d, c_src&lved:%-4d, m_lved:%-4d --> c_new:%d",
-                                  cnt,     m_next,   e_org,      idx,          addr_v,     c_lved_new,    m_lved_new, c_lved_new + off_lved[idx]);
-                if(m_lved_new>=0)
-                        printf("-> c_new:%d\n",c_lved_new + off_lved[idx]);
-                else
-                        printf("\n");
+                // printf("DBG:FindC:cnt=%d, m:%-4d --> e_org:%-4d, idx:%-2d, --> v_src:%-4d, c_src&lved:%-4d, m_lved:%-4d --> c_new:%d",
+                //                   cnt,     m_next,   e_org,      idx,          addr_v,     c_lved_new,    m_lved_new, c_lved_new + off_lved[idx]);
+                // if(m_lved_new>=0)
+                //         printf("-> c_new:%d\n",c_lved_new + off_lved[idx]);
+                // else
+                //         printf("\n");
                 //debug end
 
         cnt++;
@@ -402,14 +402,14 @@ long FindOldOrAddNew(map<long, long>& map_v, long& NV, long v) {
     iter = map_v.find(v);
     if (iter == map_v.end()) {
         ret = NV++; // add new
-//#ifdef DBG_PAR_PRINT
+#ifdef DBG_PAR_PRINT
         printf("DBG_PAR_PRINT, new:%d \n", ret);
-//#endif
+#endif
     } else {
         ret = iter->second; // find old
-//#ifdef DBG_PAR_PRINT
+#ifdef DBG_PAR_PRINT
         printf("DBG_PAR_PRINT, old:%d \n", ret);
-//#endif
+#endif
     }
     return ret;
 }

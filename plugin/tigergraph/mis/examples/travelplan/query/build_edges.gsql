@@ -1,0 +1,28 @@
+USE GRAPH @graph
+SET SYNTAX_VERSION = "v2"
+DROP QUERY build_edges
+
+
+CREATE QUERY build_edges() FOR GRAPH @graph
+{
+    
+    SumAccum<INT> @@edge_cnt = 0;
+    Start = {travel_plan.*};
+    
+    TMP = SELECT tp1 FROM Start:tp1 -(tp2wo:e1)- work_order:r -(tp2wo:e2)- travel_plan:tp2
+            WHERE tp1.tp_id != tp2.tp_id
+            ACCUM INSERT INTO tp2tp (FROM, TO) VALUES (tp1.tp_id, tp2.tp_id),
+                  @@edge_cnt += 1;
+    
+    TMP = SELECT tp1 FROM Start:tp1 -(tp2truck:e1)- truck:r -(tp2truck:e2)- travel_plan:tp2
+            WHERE tp1.tp_id != tp2.tp_id
+            ACCUM INSERT INTO tp2tp (FROM, TO) VALUES (tp1.tp_id, tp2.tp_id),
+                  @@edge_cnt += 1;
+
+    PRINT @@edge_cnt;
+    
+}
+
+INSTALL QUERY build_edges
+
+
