@@ -24,6 +24,7 @@ import re
 import os
 import socket
 from pathlib import Path
+import shutil
 
 pluginConfigFile = Path(sys.argv[1])
 tgDataRoot = sys.argv[2]
@@ -48,6 +49,8 @@ for h in config_dict['System']['HostList']:
 # Get all IPs assigned to the current node and pick the one used by TigerGraph
 re_inet = re.compile('inet (\S+)')
 command = '/usr/sbin/ifconfig'
+if not shutil.which(command):
+    command = '/sbin/ifconfig'
 p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
 p_out = p.stdout.readlines()
 p_returncode = p.wait()
