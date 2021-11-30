@@ -55,10 +55,13 @@ namespace mis {
         }
         std::string xclbinPath;
         int device_id=0;
-        xrt::device m_Device;
-        xrt::kernel m_Kernel;
-        //GraphCSR<host_buffer_t<uint32_t> >* mGraph;
-        //host_buffer_t<uint8_t> mStatus;
+        //xrt::device m_Device;
+        //xrt::kernel m_Kernel;
+        cl::Context ctx;
+        cl::Device device;
+        cl::Program prg;
+        cl::CommandQueue queue;
+        cl::Kernel miskernel;
 
         std::vector<uint16_t> mPrior;
         std::unique_ptr<GraphCSR<std::vector<uint32_t> > > mGraph;
@@ -93,7 +96,7 @@ namespace mis {
             if (deviceNames == curDeviceName) {
                 std::cout << "INFO: Found requested device: " << curDeviceName << " ID=" << i << std::endl;
                 // save the matching device
-                //device = devices0[i];
+                device = devices0[i];
                 device_id = i;
                 status = 0; // found a matching device
                 break;
@@ -113,23 +116,38 @@ namespace mis {
         } else 
             std::cout << "INFO: Start MIS on " << deviceNames << std::endl;
     
-        //std::vector<cl::Device> devices;
+        std::vector<cl::Device> devices;
         // Creating Context and Command Queue for selected device from getDevice
-        //ctx = cl::Context(device);
-        //queue = cl::CommandQueue(ctx, device, CL_QUEUE_PROFILING_ENABLE | CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE);
-        //std::string devName = device.getInfo<CL_DEVICE_NAME>();
-        //std::cout << "INFO: found device=" << devName << std::endl; 
+        ctx = cl::Context(device);
+        queue = cl::CommandQueue(ctx, device, CL_QUEUE_PROFILING_ENABLE | CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE);
+        std::string devName = device.getInfo<CL_DEVICE_NAME>();
+        std::cout << "INFO: found device=" << devName << std::endl; 
     
         // Create program with given xclbin file
-        //cl::Program::Binaries xclBins = xcl::import_binary_file(xclbinPath);
-        //devices.resize(1);
-        //devices[0] = device;
-        //prg = cl::Program(ctx, devices, xclBins);
+        cl::Program::Binaries xclBins = xcl::import_binary_file(xclbinPath);
+        devices.resize(1);
+        devices[0] = device;
+        prg = cl::Program(ctx, devices, xclBins);
+    
+        std::string kernelName = "findMIS:{findMIS_0}";
+        miskernel = cl::Kernel(prg, "findMIS:{findMIS_0}");
+    
+        std::size_t u50_found = devName.find("u50");
 
+        if (u50_found == std::string::npos) 
+        {
+            std::cout << "Only U50 is supported so far, please check it "
+                            "and re-run"
+                        << std::endl;
+            exit(1);
+        }
+    
+/*
         m_Device = xrt::device(device_id);
         auto uuid = m_Device.load_xclbin(xclbinPath);
         std::string kernelName = "findMIS:{findMIS_0}";
         m_Kernel = xrt::kernel(m_Device, uuid, kernelName);
+        */
         return 0;
     }
 
@@ -256,23 +274,48 @@ namespace mis {
 
     std::vector<uint16_t> MIS::executeMIS(){ return pImpl_->executeMIS();}
     std::vector<uint16_t> MisImpl::executeMIS() {
+        std::vector<cl::Event> events_write(2);
+        std::vector<cl::Event> events_kernel(1);
+        std::vector<cl::Event> events_read(1);
         timeStamp("Timer initialization");
+        /*
         auto d_rowPtr = xrt::bo(m_Device, (void*)mGraph->rowPtr.data(), mGraph->rowPtr.size() * sizeof(uint32_t),
                                 m_Kernel.group_id(1));
         auto d_colIdx = xrt::bo(m_Device, (void*)mGraph->colIdx.data(), mGraph->colIdx.size() * sizeof(uint32_t),
                                 m_Kernel.group_id(2));
         auto d_prior = xrt::bo(m_Device, (void*)mPrior.data(), mPrior.size() * sizeof(uint16_t), m_Kernel.group_id(3));
- 
+ */
+        cl::Buffer d_rowPtr = cl::Buffer(ctx, CL_MEM_EXT_PTR_XILINX | CL_MEM_READ_ONLY, mGraph->rowPtr.size() * sizeof(uint32_t), NULL,NULL);
+        cl::Buffer d_colIdx = cl::Buffer(ctx, CL_MEM_EXT_PTR_XILINX | CL_MEM_READ_ONLY, mGraph->colIdx.size() * sizeof(uint32_t), NULL,NULL);
+        cl::Buffer d_prior = cl::Buffer(ctx, CL_MEM_EXT_PTR_XILINX | CL_MEM_WRITE_ONLY, mPrior.size() * sizeof(uint16_t), NULL,NULL);
         timeStamp("Buffer created");
+        queue.enqueueWriteBuffer(d_rowPtr, CL_FALSE, 0, mGraph->rowPtr.size() * sizeof(uint32_t), (void*)mGraph->rowPtr.data(), nullptr,
+                                                &events_write[0]);
+        queue.enqueueWriteBuffer(d_colIdx, CL_FALSE, 0, mGraph->colIdx.size() * sizeof(uint32_t), (void*)mGraph->colIdx.data(), nullptr,
+                                                &events_write[1]);
+        /*
         std::vector<xrt::bo> buffers({d_rowPtr, d_colIdx, d_prior});
         for(auto & bo: buffers)
-            bo.sync(XCL_BO_SYNC_BO_TO_DEVICE);
+            bo.sync(XCL_BO_SYNC_BO_TO_DEVICE);*/
         timeStamp("Sync buffer objects");
+
+        /*
 
         auto run = m_Kernel(mGraph->n, d_rowPtr, d_colIdx, d_prior);
         run.wait();
+        */
+        int j = 0;
+        miskernel.setArg(j++, mGraph->n);
+        miskernel.setArg(j++, d_rowPtr);
+        miskernel.setArg(j++, d_colIdx);
+        miskernel.setArg(j++, d_prior);
+        //std::vector<cl::Event> waitEnqueueEvents0{events_write};
+        queue.enqueueTask(miskernel, &events_write, &(events_kernel[0]));
+
         timeStamp("Execution finished");
-        d_prior.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
+        std::vector<cl::Event> waitEnqueueReadEvents0{events_kernel};
+        queue.enqueueReadBuffer(d_prior, CL_FALSE, 0, mPrior.size() * sizeof(uint16_t), (void*)mPrior.data(), &waitEnqueueReadEvents0, &(events_read[0]));
+        //d_prior.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
         timeStamp("Read results");
         return mPrior;
     }
