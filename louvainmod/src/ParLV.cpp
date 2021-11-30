@@ -3051,19 +3051,21 @@ struct HopV{
 	int hop;
 };
 typedef int t_sel;
-long FindStartVertexlastround(graphNew* G, t_sel V_selected[]){
+long FindStartVertexlastround(graphNew* G, t_sel V_selected[], long laststart){
     long NV = G->numVertices;
     long* offsets = G->edgeListPtrs;
     edge* indices = G->edgeList;
     long v_start=-1;
     int degree_max = 1;
-    for(int v = 0; v<NV; v++){
-        if(V_selected[v])
+
+    //omp is not fast than the directly write coding style
+    for(long v = laststart; v<NV; v++){
+        if(V_selected[v]) 
             continue;
         v_start = v;
-        break;
+        break;           
     }
-        return  v_start;
+    return  v_start;
 }
 
 long FindStartVertex(graphNew* G, t_sel V_selected[]){
@@ -3072,7 +3074,8 @@ long FindStartVertex(graphNew* G, t_sel V_selected[]){
     edge* indices = G->edgeList;
     long v_start=-1;
     int degree_max = 1;
-    for(int v = 0; v<NV; v++){
+    
+    for(long v = 0; v<NV; v++){
     	if(V_selected[v])
     		continue;
         long adj1 = offsets[v];
@@ -3477,6 +3480,7 @@ void BFSPar_creatingEdgeLists_fixed_prune(
 	/************************************/
 	int cnt_hop_round=0;
 	long num_v_all_l =0;
+    long laststart = 0;//for the last round fast sourch
     for( int p = 0; p < num_par; p++){// loop for each partition
         bool notQueueEmpty = false;
 
@@ -3539,10 +3543,11 @@ void BFSPar_creatingEdgeLists_fixed_prune(
             //printf("2-1-2. add a new start for the empty par-queue to continue growing the partition graph\n ");
                 long v_start;
                 if(mode_start==0)                
-                    if(p < num_par - 1)
+                    if(p < num_par - 1)// to make the last round
                         v_start = FindStartVertex(G, V_selected);
                     else{
-                        v_start = FindStartVertexlastround(G, V_selected);                      
+                        v_start = FindStartVertexlastround(G, V_selected, laststart); 
+                        laststart = v_start;                     
                     }
                 else
                     v_start = p*(NV_all/num_par);
@@ -3649,6 +3654,7 @@ void BFSPar_renumberingEdgeLists(//return: real number of partition
 		long* M[]
 ){
     //map_v_l first value is v_global(key), second value is renum (value++)
+    #pragma omp parallel for
     for( int p = 0; p < num_par; p++){
         for(int i = 0; i < num_e_dir[p]; i++){
             edge e = elist_par[p][i];
