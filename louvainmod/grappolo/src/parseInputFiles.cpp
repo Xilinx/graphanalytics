@@ -1191,7 +1191,11 @@ void parse_PajekFormat(graphNew* G, char* fileName)
 
     printf("About to build edgeList...\n");
 // Build the edgeList from edgeListTmp:
+//Multi-threading will lead to a very small difference in the results of each sub_graph 
+//when the partition algorithm uses bfs in low bandwidth partition method
+#ifndef _SINGLE_THREAD_
 #pragma omp parallel for
+#endif
     for (long i = 0; i < NE; i++) {
         long head = edgeListTmp[i].head;
         long tail = edgeListTmp[i].tail;

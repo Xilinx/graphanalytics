@@ -89,6 +89,11 @@ partition: .install-udf-done
 	@echo "-------------------------------------------------------"
 	cd ../../ && make DEBUG=$(DEBUG) stage && ./staging/examples/comdetect/partition.sh -v
 
+.PHONY: reset
+reset:
+	@echo "Resetting all Alveo cards in all machines in cluster"
+	../../../utils/resetc.sh
+
 help:
 	@echo "Makefile usage:"
 	@echo "make install-plugin [deviceNames=deviceNames]"
@@ -99,6 +104,9 @@ help:
 	@echo ""
 	@echo "make partition"
 	@echo "    Partition the graph in TigerGraph memory"
+	@echo ""
+	@echo "make reset"
+	@echo "    Resets all the Alveo cards in the xsj-dxgradb cluster:"
 	@echo ""
 	@echo "Parameter descriptions:"
 	@echo "deviceNames       : Target device name. Supported devices: "

@@ -15,12 +15,8 @@
 #
 
 .DELETE_ON_ERROR:
-.PHONY: all
-
-all: 
-	@echo "Placeholder"
-	
-#all: stage
+.PHONY: all	
+all: stage
 #all: stage cppBuild pythonApi  
 help:
 	@echo "Makefile usages:"
@@ -31,15 +27,10 @@ help:
 	@echo "  deviceNames  : Specify Alveo devices to use for computation"
 	@echo "                 Supported devices:"
 	@echo "                 xilinx_u50_gen3x16_xdma_201920_3 (default)"
-	@echo "                 xilinx_aws-vu9p-f1_shell-v04261818_201920_2"
-	@echo "  numEntities  : Number of entities to match (default=100)"
-	@echo "  runMode      : 0: Run on Alveo Only (default)"
-	@echo "                 1: Run on CPU Only"
-	@echo "                 2: Run on both Alveo and CPU"
 	@echo "  totalEntities: total number of entities to match against(default=10000000)"
 	@echo ""
 	@echo "  make all"
-	@echo "  Compile fuzzyMatch lib and generate staging area"
+	@echo "  Compile MIS lib and generate staging area"
 	@echo "" 
 	@echo "  make dist"
 	@echo "  Generate product installation package (RPM or DEB) for the current OS and architecture"
@@ -85,7 +76,7 @@ PRODUCT_VER=$(strip $(shell cat VERSION))
 CCC = g++
 CXX = g++
 # -D PRINTINFO: print additional debug messages
-CXXFLAGS = -std=c++11 -DPRAGMA -D_GLIBCXX_USE_CXX11_ABI=0 -Ofast -fopenmp -fmessage-length=0  -fPIC -Wall -Wno-unknown-pragmas -Wno-unused-label \
+CXXFLAGS = -std=c++14 -DPRAGMA -D_GLIBCXX_USE_CXX11_ABI=0 -Ofast -fopenmp -fmessage-length=0  -fPIC -Wall -Wno-unknown-pragmas -Wno-unused-label \
     -Wno-unused-variable -Wno-sign-compare -Wno-unused-result -Wno-unused-but-set-variable \
     -Wno-narrowing -D USE_HBM -fmessage-length=0 
 
@@ -105,10 +96,10 @@ ifeq ($(USE_F1),1)
     CXXFLAGS += -D USE_F1
 endif
 
-## Target: libFuzzyMatch.so
-INCLUDES_libFuzzyMatch = \
+## Target: libMis.so
+INCLUDES_libMis = \
 	-Iinclude \
-	-I$(GRAPH_ANALYTICS_DIR)/fuzzysearch/include \
+	-I$(GRAPH_ANALYTICS_DIR)/mis/include \
 	-I$(XILINX_XRT)/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L2/include \
 	-I$(GRAPH_ANALYTICS_DIR)/L3/include \
@@ -119,18 +110,18 @@ INCLUDES_libFuzzyMatch = \
 #	-I${JAVA_HOME}/include \
 #	-I${JAVA_HOME}/include/linux
 
-LDLIBS_libFuzzyMatch = \
+LDLIBS_libMis = \
 	
-LIB_SHORT_NAME = XilinxFuzzyMatch
+LIB_SHORT_NAME = XilinxMis
 LIB_NAME = lib$(LIB_SHORT_NAME).so
-LOADER_SHORT_NAME = XilinxFuzzyMatch_loader
+LOADER_SHORT_NAME = XilinxMis_loader
 LOADER_NAME = lib$(LOADER_SHORT_NAME).a
 
 SRCS_L3 = $(GRAPH_ANALYTICS_DIR)/ext/xcl2/xcl2.cpp
 OBJS_L3 = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_L3:.cpp=.o)))
 # louvain dynamic load 
 
-SRCS_loader = src/fuzzymatch_loader.cpp
+SRCS_loader = src/mis_loader.cpp
 OBJS_loader = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_loader:.cpp=.o)))
 DEPS_loader = $(OBJS_loader:.o=.d)
 
@@ -143,7 +134,7 @@ SRCS_all = $(SRCS_L3) $(SRCS_top) $(SRCS_loader)
 OBJS_all = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_all:.cpp=.o)))
 DEPS_all = $(OBJS_all:.o=.d)
 
-OBJS_libFuzzyMatch = $(OBJS_L3) $(OBJS_top) 
+OBJS_libMis = $(OBJS_L3) $(OBJS_top) 
 
 
 .PHONY: cppBuild cppBuild2
@@ -161,17 +152,17 @@ $(CPP_BUILD_DIR):
 
 # .so
 
-LIB_DEPS = -L$(XILINX_XRT)/lib -lOpenCL -lpthread -lrt -Wno-unused-label -Wno-narrowing -DVERBOSE
+LIB_DEPS = -L$(XILINX_XRT)/lib -lOpenCL -lxrt_coreutil  -lpthread -lrt -Wno-unused-label -Wno-narrowing -DVERBOSE -fopenmp
 
 ifeq ($(MEMALLOC),tcmalloc)
     LIB_DEPS += -ltcmalloc
 endif
 
-# SHAREDLIB_FLAGS_libFuzzyMatch = -shared
-SHAREDLIB_FLAGS_libFuzzyMatch = -fPIC -rdynamic -shared -w -Wl,--export-dynamic -Wunused-variable
+# SHAREDLIB_FLAGS_libMis = -shared
+SHAREDLIB_FLAGS_libMis = -fPIC -rdynamic -shared -w -Wl,--export-dynamic -Wunused-variable
 
-$(CPP_BUILD_DIR)/$(LIB_NAME): $(OBJS_libFuzzyMatch) $(DEPLIBS_libFuzzyMatch)
-	$(LINK.cc) -o $@ $(OBJS_libFuzzyMatch) $(SHAREDLIB_FLAGS_libFuzzyMatch) $(LDLIBS_libFuzzyMatch) $(LIB_DEPS)
+$(CPP_BUILD_DIR)/$(LIB_NAME): $(OBJS_libMis) $(DEPLIBS_libMis)
+	$(LINK.cc) -o $@ $(OBJS_libMis) $(SHAREDLIB_FLAGS_libMis) $(LDLIBS_libMis) $(LIB_DEPS)
 
 # loader .a
 
@@ -184,12 +175,12 @@ $(CPP_BUILD_DIR)/$(LOADER_NAME): $(OBJS_loader) $(DEPLIBS_loader)
 define BUILD_CPP_RULE
 
 $(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o): $(1)
-	$(COMPILE.cc) $(INCLUDES_libFuzzyMatch) -o $$@ $$<
+	$(COMPILE.cc) $(INCLUDES_libMis) -o $$@ $$<
 
 $(CPP_BUILD_DIR)/$(notdir $(basename $(1)).d): $(1)
 	@set -e; \
 	rm -f $$@; \
-	$(COMPILE.cc) -MM -MT $(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o) $(INCLUDES_libFuzzyMatch) -MF $$@.$$$$$$$$ $$<; \
+	$(COMPILE.cc) -MM -MT $(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o) $(INCLUDES_libMis) -MF $$@.$$$$$$$$ $$<; \
         sed 's,\($(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o)\)[ :]*,\1 $$@ : ,g' < $$@.$$$$$$$$ > $$@; \
 	rm -f $$@.$$$$$$$$
 
@@ -213,25 +204,16 @@ endif
 INC_ALL_XCLBINS=1
 
 # U50 XCLBIN 
-L2_TOP_DIR_U50 = $(GRAPH_ANALYTICS_DIR)/L2/fuzzy_kernel
+L2_TOP_DIR_U50 = $(GRAPH_ANALYTICS_DIR)/L2/mis_kernel
 L2_XDEVICE_U50 = xilinx_u50_gen3x16_xdma_201920_3
 L2_BUILD_DIR_U50 = $(L2_TOP_DIR_U50)/build_dir.hw.$(L2_XDEVICE_U50)
-XCLBIN_NAME_U50 = fuzzy_xilinx_u50_gen3x16_xdma_201920_3.xclbin 
+XCLBIN_NAME_U50 = findMIS_2810_PE16_URAM_225MHz_NOB.xclbin
 XCLBIN_FILE_U50 = $(L2_BUILD_DIR_U50)/$(XCLBIN_NAME_U50)
-XCLBIN_INSTALLED_NAME_U50 = $(XCLBIN_NAME_U50)
-XCLBIN_INSTALLED_U50 =/opt/xilinx/apps/graphanalytics/fuzzymatch/1.0/xclbin/$(XCLBIN_INSTALLED_NAME_U50)
+XCLBIN_INSTALLED_NAME_U50 = mis_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+XCLBIN_INSTALLED_U50 =/opt/xilinx/apps/graphanalytics/mis/1.0/xclbin/$(XCLBIN_INSTALLED_NAME_U50)
 
 XCLBIN_BUILD_DIR=$(L2_TOP_DIR_U50)
 
-
-# F1 XCLBIN 
-L2_TOP_DIR_F1 = $(GRAPH_ANALYTICS_DIR)/L2/fuzzy_kernel
-L2_XDEVICE_F1 = xilinx_aws-vu9p-f1_shell-v04261818_201920_2
-L2_BUILD_DIR_F1 = $(L2_TOP_DIR_F1)/build_dir.hw.$(L2_XDEVICE_F1)
-XCLBIN_NAME_F1 = fuzzy_xilinx_aws-vu9p-f1_shell-v04261818_201920_2.awsxclbin
-XCLBIN_FILE_F1 = $(L2_BUILD_DIR_F1)/$(XCLBIN_NAME_F1)
-XCLBIN_INSTALLED_NAME_F1 = $(XCLBIN_NAME_F1)
-XCLBIN_INSTALLED_F1 =/opt/xilinx/apps/graphanalytics/fuzzymatch/1.0/xclbin/$(XCLBIN_INSTALLED_NAME_F1)
 
 .PHONY: xclbin
 
@@ -253,87 +235,6 @@ $(XCLBIN_FILE_U50):
     	false; \
 	fi
 
-$(XCLBIN_FILE_F1):
-	@if [ -r $(XCLBIN_INSTALLED_F1) ]; then \
-	    echo "INFO: The XCLBIN file $(XCLBIN_FILE_F1) is missing.  Copying from installed area."; \
-	    cp -r $(XCLBIN_INSTALLED_F1) $@; \
-	else \
-	    echo "ERROR: The XCLBIN file $(XCLBIN_FILE_F1) is missing."; \
-	    echo "Because building an XCLBIN file can be an all-day proposition, you have two choices for completing this build:"; \
-	    echo "1. Copy a pre-built XCLBIN to the target location above.  (Recommended for developers)"; \
-	    echo "2. Do 'make xclbin' and go for a very long coffee break.  (Recommended for build automation)"; \
-	    false; \
-	fi
-#######################################################################################################################
-#
-# python API wrapper
-#
-
-PYTHON = python3
-PYTHON_DIR = /usr/include/$(PYTHON)
-PYTHONENV_NAME = pyvenv
-PYTHONENV = ./$(PYTHONENV_NAME)/bin/$(PYTHON)
-PYTHON_API_DIR = wrappers/python
-PYTHON_LIB_NAME := xilFuzzyMatchPython.so #$(shell python-config --extension-suffix)
-
-SRC_FILE_NAMES_python = pythonapi.cpp
-PYTHON_INC_FLAGS = $(shell python3-config --includes)
-INCLUDES_python = \
-    -I$(PYTHON_DIR) \
-    -Iinclude \
-	-I$(GRAPH_ANALYTICS_DIR)/ext \
-	-I$(PYTHON_INC_FLAGS)
-
-SRCS_python = $(addprefix $(PYTHON_API_DIR)/,$(SRC_FILE_NAMES_python))
-OBJS_python = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_python:.cpp=.o)))
-
-LIB_PATH = $(CPP_BUILD_DIR)
-
-LDFLAGS_python = -L$(LIB_PATH) -l$(LIB_SHORT_NAME)
-
-# Add pybind11 includes and set library name after setting virtual env
-ifeq ($(MAKECMDGOALS),pythonApi2)
-INCLUDES_python += $(shell $(PYTHONENV) -m pybind11 --includes)
-endif
-
-SHAREDLIB_FLAGS_python = -shared
-
-.PHONY: pythonApi pythonApi2
-
-# Make in a child process so that we can isolate the run that includes automatic header dependencies
-pythonApi: cppBuild $(PYTHONENV_NAME)
-	@make pythonApi2
-
-$(PYTHONENV_NAME):
-	$(PYTHON) -m venv $(PYTHONENV_NAME);\
-	$(PYTHONENV) -m pip install wheel; \
-	$(PYTHONENV) -m pip install pybind11; \
-	$(PYTHONENV) -m pip install python-config
-
-pythonApi2: $(CPP_BUILD_DIR) $(CPP_BUILD_DIR)/$(PYTHON_LIB_NAME)
-
-$(CPP_BUILD_DIR)/$(PYTHON_LIB_NAME): $(OBJS_python)
-	$(LINK.cc) $^ -o $@ $(SHAREDLIB_FLAGS_python) $(LDFLAGS_python)
-
-# Macro to create a .o rule and a .d rule for each .cpp
-
-define BUILD_CPP_RULE
-
-$(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o): $(1)
-	$(COMPILE.cc) $(INCLUDES_python) -o $$@ $$<
-
-$(CPP_BUILD_DIR)/$(notdir $(basename $(1)).d): $(1)
-	@set -e; \
-	rm -f $$@; \
-	$(COMPILE.cc) -MM -MT $(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o) $(INCLUDES_python)   -MF $$@.$$$$$$$$ $$<; \
-        sed 's,\($(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o)\)[ :]*,\1 $$@ : ,g' < $$@.$$$$$$$$ > $$@; \
-	rm -f $$@.$$$$$$$$
-
-endef
-
-# Expand the macro for each source file
-
-$(foreach src,$(SRCS_python),$(eval $(call BUILD_CPP_RULE,$(src))))
 
 #######################################################################################################################
 #
@@ -353,7 +254,7 @@ INCLUDES_test = \
 
 
 SRC_FILE_NAMES_test = \
-    fuzzymatch_test.cpp 
+    mis_test.cpp 
 
 SRCS_test = $(addprefix $(TEST_DIR)/,$(SRC_FILE_NAMES_test))
 OBJS_test = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_test:.cpp=.o)))
@@ -361,7 +262,7 @@ DEPS_test = $(OBJS_test:.o=.d)
 
 # List of all test executables to build
 EXEC_FILE_NAMES_test = \
-    fuzzymatch_test \
+    mis_test \
 
 EXECS_test = $(addprefix $(CPP_BUILD_DIR)/,$(EXEC_FILE_NAMES_test))
 
@@ -376,8 +277,8 @@ cppTest2: $(EXECS_test)
 # Test executables
 LDFLAGS_test = -fPIC -w -L $(CPP_BUILD_DIR) -l$(LIB_SHORT_NAME)
 
-$(CPP_BUILD_DIR)/fuzzymatch_test: $(CPP_BUILD_DIR)/fuzzymatch_test.o $(CPP_BUILD_DIR)/$(LIB_NAME)
-	$(LINK.cc) -o $@ $< $(LDFLAGS_test) $(LIB_DEPS)
+$(CPP_BUILD_DIR)/mis_test: $(SRCS_test) $(CPP_BUILD_DIR)/$(LIB_NAME)
+	$(LINK.cc) -o $@ $< $(LDFLAGS_test) $(LIB_DEPS) $(INCLUDES_test)
 
 ###############################################################################
 # Test targets and parameters
@@ -385,19 +286,14 @@ $(CPP_BUILD_DIR)/fuzzymatch_test: $(CPP_BUILD_DIR)/fuzzymatch_test.o $(CPP_BUILD
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3
 ifeq ($(deviceNames),xilinx_u50_gen3x16_xdma_201920_3)
     XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U50)
-else ifeq ($(deviceNames),xilinx_aws-vu9p-f1_shell-v04261818_201920_2)
-    XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_F1)	
 endif
 
-runMode=0
-totalEntities=10000000
-numEntities=100
+
 run: cppTest stage
 	set -e; \
 	. $(XILINX_XRT)/setup.sh && \
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH $(CPP_BUILD_DIR)/fuzzymatch_test \
-	    -xclbin $(XCLBIN_RUN) -d ./examples/data -c $(runMode) --devices $(deviceNames) \
-		--total_entities $(totalEntities) --num_entities $(numEntities)
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH $(CPP_BUILD_DIR)/mis_test \
+	    -xclbin $(XCLBIN_RUN) -d ./examples/data  --devices $(deviceNames) 
 
 run-staging-cpp: cppTest stage
 	cd staging/examples/cpp && make run
@@ -441,7 +337,8 @@ STAGE_DIR = staging
 
 STAGE_COPY_FILES = \
     VERSION \
-    include/fuzzymatch.hpp 
+    include/xilinxmis.hpp \
+	include/utils.hpp 
 
 define STAGE_COPY_RULE
 $(STAGE_DIR)/$(1): $(1)
@@ -469,9 +366,8 @@ $(foreach f,$(STAGE_LIB_FILES),$(eval $(call STAGE_LIB_RULE,$(f))))
 
 #STAGE_EXAMPLE_ZIP = examples.zip
 STAGE_EXAMPLE_FILE_NAMES = \
-	cpp/fuzzymatch_test.cpp cpp/Makefile \
-	data/people.csv data/txdata.csv \
-	python/pythondemo.py python/run.sh python/README.md
+	cpp/mis_test.cpp cpp/Makefile \
+	data/rowPtr.bin data/colIdx.bin data/infos.txt
 
 STAGE_EXAMPLE_FILES = $(addprefix examples/,$(STAGE_EXAMPLE_FILE_NAMES))
 STAGE_STAGED_EXAMPLE_FILES = $(addprefix $(STAGE_DIR)/,$(STAGE_EXAMPLE_FILES))
@@ -491,7 +387,6 @@ stage-examples: $(STAGE_EXAMPLE_FILES)
 
 fill-example-stage: $(STAGE_STAGED_EXAMPLE_FILES)
 	cp VERSION $(STAGE_DIR)/examples/
-	cp examples/README_AMI.md $(STAGE_DIR)/README.md
 
 	
 $(STAGE_STAGED_EXAMPLE_FILES):
@@ -501,14 +396,12 @@ $(STAGE_STAGED_EXAMPLE_FILES):
 # XCLBIN file
 STAGE_XCLBIN_NAME_U50 = $(XCLBIN_INSTALLED_NAME_U50)
 STAGE_XCLBIN_FILE_U50 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U50)
-STAGE_XCLBIN_NAME_F1 = $(XCLBIN_INSTALLED_NAME_F1)
-STAGE_XCLBIN_FILE_F1 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_F1)
+
 
 $(STAGE_XCLBIN_FILE_U50): $(XCLBIN_FILE_U50)
 	cp -f $^ $@
 
-$(STAGE_XCLBIN_FILE_F1): $(XCLBIN_FILE_F1)
-	cp -f $^ $@
+
 
 STAGE_XILINX_APPS_COMMON = $(STAGE_DIR)/include/xilinx_apps_common.hpp
 XILINX_APPS_COMMON = $(GRAPH_ANALYTICS_DIR)/ext/xilinx_apps_common.hpp
@@ -538,7 +431,7 @@ endif
 
 # make staging areaing in two steps so intermediate outputs can be included in the 
 # staging output as well.
-stage: pythonApi
+stage: cppBuild
 	make stage2 INC_ALL_XCLBINS=$(INC_ALL_XCLBINS) deviceNames=$(deviceNames)
 
 stage2: $(STAGE_SUBDIRS) stage-examples $(STAGE_ALL_FILES)
@@ -602,8 +495,6 @@ clean-dist:
 	@cd package; \
 	make clean
 
-cleanpy:
-	rm -rf $(PYTHONENV_NAME)
 
 cleanall: clean cleanpy
 	rm -f ./package/*.deb ./package/*.rpm

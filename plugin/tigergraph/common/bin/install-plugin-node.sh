@@ -138,7 +138,7 @@ if [ $pluginAlveoProductNeedsInstall -eq 1 ]; then
     fi
     mkdir -p $tg_udf_xclbin_dir
     
-    if [ ! -z "$pluginXclbinNameU50" && "$device_name" == "xilinx_u50_gen3x16_xdma_201920_3" ]; then
+    if [ ! -z "$pluginXclbinNameU50" ] && [ "$device_name" == "xilinx_u50_gen3x16_xdma_201920_3" ]; then
         cp -f $pluginAlveoProductXclbinPathU50 $tg_udf_xclbin_dir
     fi
 
@@ -197,7 +197,7 @@ for i in $pluginXclbinPathFiles; do
     # replace the longest string first
     sed -i "s|PLUGIN_XCLBIN_PATH_U55C|\"$runtimeXclbinPathU55C\"|" $tg_udf_dir/${i##*/}
     sed -i "s|PLUGIN_XCLBIN_PATH_AWSF1|\"$runtimeXclbinPathAwsF1\"|" $tg_udf_dir/${i##*/}
-    sed -i "s|PLUGIN_XCLBIN_PATH_U50|\"$runtimeXclbinPath\"|" $tg_udf_dir/${i##*/}
+    sed -i "s|PLUGIN_XCLBIN_PATH_U50|\"$runtimeXclbinPathU50\"|" $tg_udf_dir/${i##*/}
 done
 
 # Substitute the config path for PLUGIN_CONFIG_PATH in all files that need the substituion

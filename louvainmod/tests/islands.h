@@ -19,6 +19,7 @@
 class Islands {
 public:
     using VertexId = std::int64_t;  // integer representing a vertex
+    using EdgeIndex = std::uint64_t;
     
     struct Options {
         unsigned communitySize_ = 10;
@@ -44,7 +45,7 @@ public:
     Islands(const Options &options) : options_(options) {}
     
     // Returns the number of vertices and edges of the graph to be generated, based on Options
-    void getGraphSize(VertexId &numVertices, std::uint64_t &numEdges) const;
+    void getGraphSize(VertexId &numVertices, EdgeIndex &numEdges) const;
 
     // Generate the graph, calling the supplied function for edge edge.  Returns true if graph creation runs to
     // completion, or false if handleEdgeFunc ever returned false.
@@ -84,7 +85,7 @@ private:
             
             // Mark upper triangle of adjacency matrix as unused
             for (unsigned i = 0; i < size - 1; ++i)
-                for (unsigned j = i; j < size; ++j)
+                for (unsigned j = i + 1; j < size; ++j)
                     map_[i * size + j] = false;
         }
         
@@ -188,13 +189,13 @@ private:
 
 //#####################################################################################################################
 
-inline void Islands::getGraphSize(Islands::VertexId &numVertices, std::uint64_t &numEdges) const {
+inline void Islands::getGraphSize(Islands::VertexId &numVertices, EdgeIndex &numEdges) const {
     numVertices = VertexId(std::pow(options_.communitySize_, options_.numLevels_));
     const unsigned numConnectionsPerCom = numConnectionsPerCommunity();
 //    std::cout << "numCommConnections: " << numConnectionsPerCom << std::endl;
     
-    std::uint64_t totalNumCommConnections = 0;
-    std::uint64_t numConnectionsAtLevel = 1;
+    EdgeIndex totalNumCommConnections = 0;
+    EdgeIndex numConnectionsAtLevel = 1;
     for (unsigned i = 0; i < options_.numLevels_ - 1; ++i) {
         totalNumCommConnections += numConnectionsAtLevel;
         numConnectionsAtLevel *= options_.communitySize_;
@@ -202,7 +203,7 @@ inline void Islands::getGraphSize(Islands::VertexId &numVertices, std::uint64_t 
 //    std::cout << "totalNumCommConnections: " << totalNumCommConnections << std::endl;
     
     // Each 0'th-level community has numCommConnections edges, all other levels have that * numEdgesPerConnection
-    numEdges = std::uint64_t(numConnectionsPerCom) * (numVertices/options_.communitySize_
+    numEdges = EdgeIndex(numConnectionsPerCom) * (numVertices/options_.communitySize_
             + options_.numEdgesPerConnection_ * totalNumCommConnections);
 //    std::cout << "numEdges: " << numEdges << std::endl;
 }
