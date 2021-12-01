@@ -21,15 +21,15 @@ SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`
 
 # UDF module name for this plugin.  This value is used by mergeHeaders to identify the plugin in ExprFunctions.hpp
-PLUGIN_NAME=swiftAmlDemo
+PLUGIN_NAME=travelPlanDemo
 
 # Header file containing UDFs for the plugin
-PLUGIN_MAIN_UDF=swiftAmlDemo.hpp
+PLUGIN_MAIN_UDF=travelPlanDemo.hpp
 
 # Header files used by the plugin
-PLUGIN_HEADERS=swiftAmlDemoImpl.hpp
+PLUGIN_HEADERS=travelPlanDemoImpl.hpp
 
 # List of plugins that this plugin depends on.  Install script errors out if one or more dependencies is found
 # not to have been installed.
-PLUGIN_DEPENDENCIES=xilinxFuzzyMatch
+PLUGIN_DEPENDENCIES=xilinxMis
 

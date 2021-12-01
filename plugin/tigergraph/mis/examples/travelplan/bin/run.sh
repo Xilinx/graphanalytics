@@ -32,7 +32,7 @@
 set -e
 
 # Uncomment below to echo all commands for debug
-set -x 
+#set -x
 
 SCRIPT=$(readlink -f $0)
 script_dir=`dirname $SCRIPT`
@@ -57,10 +57,11 @@ if [ "$compile_mode" -eq 1 ]; then
     gsql -u $username -p $password -g $xgraph "DROP JOB load_xgraph"
     echo "INFO: -------- $(date) load_xgraph completed. --------"
 
-    gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/build_edges.gsql | sed "s/@graph/$xgraph/")" 
+    gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/build_edges.gsql | sed "s/@graph/$xgraph/")"
     echo " "
     gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/tg_maximal_indep_set.gsql)"
-
+    echo " "
+    gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/xlnx_maximal_indep_set.gsql | sed "s/@graph/$xgraph/")"
 
 fi
 
@@ -69,3 +70,9 @@ time gsql -u $username -p $password -g $xgraph "run query build_edges()"
 
 echo "Run query tg_maximal_indep_set"
 time gsql -u $username -p $password -g $xgraph "run query tg_maximal_indep_set([\"travel_plan\"], [\"tp2tp\"], 100, TRUE, \"/tmp/mis-$username.out\")"
+
+echo "Run query assign_ids"
+time gsql -u $username -p $password -g $xgraph "run query assign_ids()"
+
+echo "Run query xlnx_maximal_indep_set"
+time gsql -u $username -p $password -g $xgraph "run query xlnx_maximal_indep_set()"

@@ -23,19 +23,19 @@ function gsql () {
 function usage() {
     echo "Usage: $0 -u TG-username -p TG-password [optional options]"
     echo "Optional options:"
-	echo "  -c compileMode       : 0: skip database creation and gsql compilation"
-	echo "                         1: recreate database and compile all (default)"
-	echo "                         2: only compile query gsql"
-	echo "  -r runMode           : 0: Skip both CPU and Alveo run (i.e. only run partition)"
-	echo "                         1: Run only on CPU"
-	echo "                         2: Run only on Alveo (default)"
-	echo "                         3: Run on both CPU and Alveo"    
-    echo "  -b blacklist         : A csv file with people on the blacklist. default=../data/people1k.csv"
+    echo "  -c compileMode       : 0: skip database creation and gsql compilation"
+    echo "                         1: recreate database and compile all (default)"
+    echo "                         2: only compile query gsql"
+    echo "  -r runMode           : 0: Skip both CPU and Alveo run (i.e. only run partition)"
+    echo "                         1: Run only on CPU"
+    echo "                         2: Run only on Alveo (default)"
+    echo "                         3: Run on both CPU and Alveo"
     echo "  -d numDevices        : number of FPGAs needed (default=1)"
     echo "  -f                   : Force (re)install"
-    echo "  -g graphName         : graph name (default=social_<username>"
+    echo "  -g graphName         : graph name (default=travelplan_<username>)"
     echo "  -i sshKey            : SSH key for user tigergraph"    
-    echo "  -t truckData         : A csv file with travlePlan and truck data. default=../data/trucks.csv"
+    echo "  -t truckData         : A csv file with travelPlan and truck data. default=../data/HasTravelPlans.csv"
+    echo "  -w woData            : A csv file with travelPlan and work order data. default=../data/HasWorkOrder.csv"
     echo "  -v                   : Print verbose messages"
     echo "  -h                   : Print this help message"
 }
@@ -48,7 +48,6 @@ username=$USER
 password=Xilinx123
 truck_data="$script_dir/../data/trucks.csv"
 wo_data="$script_dir/../data/wo.csv"
-#num_nodes=$(cat $tg_data_root/gsql/udf/xilinx-plugin-config.json | jq .numNodes | tr -d \")
 verbose=0
 xgraph="travelplan_$username"
 force_clean=0
@@ -62,23 +61,23 @@ if [ -f ~/.ssh/tigergraph_rsa ]; then
     ssh_key_flag="-i ~/.ssh/tigergraph_rsa"
 fi
 
-while getopts "b:c:fg:i:lm:p:r:t:u:vh" opt
-do
-case $opt in
-    b) blacklist=$OPTARG;; 
-    c) compile_mode=$OPTARG;;
-    f) force_clean=1; force_clean_flag=-f;;
-    g) xgraph=$OPTARG;;
-    i) ssh_key=$OPTARG; ssh_key_flag="-i $ssh_key";;
-    r) run_mode=$OPTARG;;
-    p) password=$OPTARG;;
-    t) txdata=$OPTARG;;   
-    u) username=$OPTARG;;
-    v) verbose=1; verbose_flag=-v;;
-    h) usage; exit 0;;
-    ?) echo "ERROR: Unknown option: -$OPTARG"; usage; exit 1;;
-esac
-done
+#while getopts "c:fg:i:m:p:r:t:w:u:vh" opt
+#do
+#case $opt in
+#    c) compile_mode=$OPTARG;;
+#    f) force_clean=1; force_clean_flag=-f;;
+#    g) xgraph=$OPTARG;;
+#    i) ssh_key=$OPTARG; ssh_key_flag="-i $ssh_key";;
+#    r) run_mode=$OPTARG;;
+#    p) password=$OPTARG;;
+#    t) truck_data=$OPTARG;;
+#    w) wo_data=$OPTARG;;
+#    u) username=$OPTARG;;
+#    v) verbose=1; verbose_flag=-v;;
+#    h) usage; exit 0;;
+#    ?) echo "ERROR: Unknown option: -$OPTARG"; usage; exit 1;;
+#esac
+#done
 
 if [ -z "$username" ] || [ -z "$password" ]; then
     echo "ERROR: username and password are required."

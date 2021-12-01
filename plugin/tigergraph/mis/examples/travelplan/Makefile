@@ -14,10 +14,10 @@
 # limitations under the License.
 
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3
-blacklist=$(CURDIR)/data/people1k.csv
-blacklistCSV=$(abspath $(blacklist))
-txdata=$(CURDIR)/data/txdata.csv
-txdataCSV=$(abspath $(txdata))
+trucks=$(CURDIR)/data/HasTravelPlans.csv
+trucksCSV=$(abspath $(trucks))
+wo=$(CURDIR)/data/HasWorkOrder.csv
+woCSV=$(abspath $(wo))
 graphName=travelplan_$(USER)
 
 compileMode=1
@@ -76,7 +76,7 @@ run: $(EXAMPLE_UDF_TARGET)
 	@echo "-------------------------------------------------------"
 	cd ../../ && make DEBUG=$(DEBUG) stage && \
 	    ./staging/examples/$(EXAMPLE)/bin/run.sh -v \
-	    -g $(graphName) -b $(blacklistCSV) -t $(txdataCSV) \
+	    -g $(graphName) -t $(trucksCSV) -w $(woCSV) \
 		-c $(compileMode) -r $(runMode) 
 
 help:
@@ -92,8 +92,8 @@ help:
 	@echo "deviceNames : Target device name. Supported devices: "
 	@echo "              xilinx_u50_gen3x16_xdma_201920_3 (default)"
 	@echo "              xilinx_aws-vu9p-f1_shell-v04261818_201920_2"
-	@echo "blacklist   : A csv file with people on the blacklist. default=../data/people1k.csv"
-	@echo "txdata      : A csv file with transactions records. default=../data/txdata.csv"
+	@echo "truckData   : A csv file with travelPlan and truck data. default=../data/HasTravelPlans.csv"
+	@echo "woData      : A csv file with travelPlan and work order data. default=../data/HasWorkOrder.csv"
 	@echo "graphName   : graph name (default=swift_<username>"
 	@echo "compileMode : 0: skip database creation and gsql compilation"
 	@echo "              1: recreate database and compile all (default)"

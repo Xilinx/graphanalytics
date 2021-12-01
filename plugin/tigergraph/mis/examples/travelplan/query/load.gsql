@@ -1,0 +1,29 @@
+USE GRAPH @graph
+
+BEGIN
+    CREATE LOADING JOB load_xgraph FOR GRAPH @graph
+    {
+        DEFINE FILENAME wo_infile;
+        DEFINE FILENAME truck_infile;
+
+        DEFINE HEADER wo_h = "TravelPlan", "WorkOrder", "Sequence";
+        DEFINE HEADER trucks_h = "TravelPlan", "Truck";
+        
+        LOAD wo_infile
+            TO VERTEX travel_plan VALUES ($"TravelPlan", $"TravelPlan", _)
+            USING USER_DEFINED_HEADER="wo_h", separator=",";
+            
+        LOAD truck_infile
+            TO VERTEX travel_plan VALUES ($"TravelPlan", $"TravelPlan", _)
+            USING USER_DEFINED_HEADER="trucks_h", separator=",";
+
+        LOAD wo_infile
+            TO EDGE tp2wo VALUES ($"TravelPlan", $"WorkOrder")
+            USING USER_DEFINED_HEADER="wo_h", separator=",";
+            
+        LOAD truck_infile
+            TO EDGE tp2truck VALUES ($"TravelPlan", $"Truck")
+            USING USER_DEFINED_HEADER="trucks_h", separator=",";
+           
+    }
+END

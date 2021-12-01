@@ -1,0 +1,54 @@
+USE GRAPH @graph
+SET syntax_version = "v2"
+DROP QUERY assign_ids, xlnx_maximal_indep_set
+
+# Assign nice integer IDs to vertices
+CREATE QUERY assign_ids() FOR GRAPH @graph
+{
+    Start = {travel_plan.*};
+    Start = SELECT tp FROM Start:tp
+                POST-ACCUM tp.v_id = udf_get_next_vid();
+}
+
+CREATE QUERY xlnx_maximal_indep_set() FOR GRAPH @graph
+{
+    FILE f1("/proj/gdba/sachink/ghe/graphanalytics/plugin/tigergraph/mis/examples/travelplan/rowPtr.txt");
+    FILE f2("/proj/gdba/sachink/ghe/graphanalytics/plugin/tigergraph/mis/examples/travelplan/colIdx.txt");
+    ListAccum<INT> @@mis;
+
+    SumAccum<INT> @@global_vertex_count;
+    SumAccum<INT> @edge_count;
+    
+    MapAccum<UINT,UINT> @@row_ptr;
+    MapAccum<UINT, ListAccum<UINT> > @@col_idx;
+
+    @@row_ptr = (0 -> 0);
+
+    Start = {travel_plan.*};
+	
+	# create row pointer and column index arrays for CSR format
+    TMP = SELECT tp1 FROM Start:tp1 -(tp2tp:e1)- travel_plan:tp2
+                ACCUM @@col_idx += (tp1.v_id -> [tp2.v_id]),
+                      tp1.@edge_count += 1
+                POST-ACCUM @@row_ptr += (tp1.v_id -> tp1.@edge_count);
+
+
+
+    # call Xilinx MIS UDF
+    #@@mis = udf_xilinx_mis(@@row_ptr, @@col_idx)
+
+    #PRINT @@row_ptr as ROW_PTR
+    #PRINT @@col_idx as COL_IDX
+
+    # dump csr to files
+    FOREACH i in RANGE[0, @@row_ptr.size()-1] DO
+        f1.println(@@row_ptr.get(i));
+    END;
+    FOREACH i in RANGE[0, @@col_idx.size()-1] DO
+        FOREACH j in RANGE[0, @@col_idx.get(i).size()-1] DO
+            f2.println(@@col_idx.get(i).get(j));
+        END;
+    END;
+}
+
+INSTALL QUERY assign_ids, xlnx_maximal_indep_set
