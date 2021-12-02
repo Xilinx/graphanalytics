@@ -60,15 +60,40 @@ void xilinx_mis_destroyImpl(xilinx_apps::mis::MisImpl *pImpl);
 namespace xilinx_apps {
 namespace mis {
     template <typename T>
+    T* aligned_alloc(std::size_t num) {
+        void* ptr = nullptr;
+        #if _WIN32
+            ptr = (T*)malloc(num * sizeof(T));
+            if (num == 0) {
+        #else
+            if (posix_memalign(&ptr, 4096, num * sizeof(T))) {
+        #endif
+            throw std::bad_alloc();
+            }
+        return reinterpret_cast<T*>(ptr);
+    }
+ 
+    //GraphCSR format class
+    template <typename T>
     class GraphCSR {
     public:
         
         uint32_t n;
-        T rowPtr;
-        T colIdx;
+        T* rowPtr;
+        T* colIdx;
+        uint32_t rowPtrSize;
+        uint32_t colIdxSize;
+
+        
         template <typename G>
-        GraphCSR(G&& rowPtr, G&& colIdx) : rowPtr(rowPtr), colIdx(colIdx) {
-            n = this->rowPtr.size() - 1;
+        GraphCSR(G& rowPtr, G& colIdx) {
+            this->rowPtr = aligned_alloc<T>(rowPtr.size());
+            this->colIdx = aligned_alloc<T>(colIdx.size());
+            rowPtrSize = rowPtr.size();
+            colIdxSize = colIdx.size();
+            memcpy(this->rowPtr, rowPtr.data(),rowPtr.size() * sizeof(T));
+            memcpy(this->colIdx, colIdx.data(),colIdx.size() * sizeof(T));
+            n = rowPtr.size() - 1;
         }
 
         uint32_t bandwidth();
@@ -123,7 +148,8 @@ namespace mis {
         // The intialize process will download FPGA binary to FPGA card
         int startMis();
         // set the graph and internal pre-process the graph 
-        void setGraph(GraphCSR<std::vector<uint32_t> >* graph);
+        //void setGraph(GraphCSR<std::vector<uint32_t> >* graph);
+        void setGraph(GraphCSR<uint32_t>* graph);
         std::vector<uint16_t> executeMIS();
         size_t count() const;
                 

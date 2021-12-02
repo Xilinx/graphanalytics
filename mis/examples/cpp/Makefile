@@ -66,23 +66,23 @@ ifeq ($(wildcard $(LIB_PATH)/*.so),)
     XCLBIN_PATH = $(XILINX_MIS)/${PRODUCT_VER}/xclbin
 endif
 
-CXXFLAGS = -std=c++14 -D_GLIBCXX_USE_CXX11_ABI=0 -fPIC -pthread -I$(INCLUDE_PATH) -Wall -Wextra -Wno-unknown-pragmas -Wno-unused-label \
+CXXFLAGS = -std=c++14 -fPIC -pthread -I$(INCLUDE_PATH) -Wall -Wextra -Wno-unknown-pragmas -Wno-unused-label \
     -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers -Wno-deprecated-declarations
 
-ifdef U50
-    deviceNames ?= xilinx_u50_gen3x16_xdma_201920_3
+ifdef U50C
+    deviceNames ?= xilinx_u50c_gen3x16_xdma_201920_3
 else
-    deviceNames ?= xilinx_aws-vu9p-f1_shell-v04261818_201920_2
+    deviceNames ?= xilinx_u50_gen3x16_xdma_201920_3
 endif
 XDEVICE = $(basename $(notdir $(deviceNames)))
 
 
 XF_LIB_DIR := $(abspath $(XF_PROJ_ROOT))/examples
 
-ifneq (,$(shell echo $(XDEVICE) | awk '/u50/'))
+ifneq (,$(shell echo $(XDEVICE) | awk '/u50c/'))
+XCLBIN_FILE := $(XCLBIN_PATH)/mis_xilinx_u50c_gen3x16_xdma_201920_3.xclbin
+else ifneq (,$(shell echo $(XDEVICE) | awk '/u50/'))
 XCLBIN_FILE := $(XCLBIN_PATH)/mis_xilinx_u50_gen3x16_xdma_201920_3.xclbin
-else ifneq (,$(shell echo $(XDEVICE) | awk '/aws-vu9p-f1/'))
-XCLBIN_FILE := $(XCLBIN_PATH)/mis_xilinx_aws-vu9p-f1_shell-v04261818_201920_2.awsxclbin 
 else
 $(warning [WARNING]: This project has not been tested for $(deviceNames). It may or may not work.)
 endif

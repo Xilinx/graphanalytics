@@ -26,6 +26,45 @@ namespace mis {
 
     const int MIS_PEs=16;
     
+    template <typename T>
+    struct aligned_allocator {
+        using value_type = T;
+
+        aligned_allocator() {}
+
+        aligned_allocator(const aligned_allocator&) {}
+
+        template <typename U>
+        aligned_allocator(const aligned_allocator<U>&) {}
+
+        T* allocate(std::size_t num) {
+            void* ptr = nullptr;
+
+    #if defined(_WINDOWS)
+            {
+                ptr = _aligned_malloc(num * sizeof(T), 4096);
+                if (ptr == nullptr) {
+                    std::cout << "Failed to allocate memory" << std::endl;
+                    exit(EXIT_FAILURE);
+                }
+            }
+    #else
+            {
+                if (posix_memalign(&ptr, 4096, num * sizeof(T))) throw std::bad_alloc();
+            }
+    #endif
+            return reinterpret_cast<T*>(ptr);
+        }
+        void deallocate(T* p, std::size_t num) {
+    #if defined(_WINDOWS)
+            _aligned_free(p);
+    #else
+            free(p);
+    #endif
+        }
+    };
+
+    
     class Graph {
     public:
         //template <typename T>
@@ -68,13 +107,16 @@ namespace mis {
         #endif
 
 
-        std::vector<uint16_t> mPrior;
-        std::unique_ptr<GraphCSR<std::vector<uint32_t> > > mGraph;
-        GraphCSR<std::vector<uint32_t> >* mGraphOrig;
+        std::vector<uint16_t,aligned_allocator<uint16_t>> mPrior;
+        //std::unique_ptr<GraphCSR<std::vector<uint32_t> > > mGraph;
+        //GraphCSR<std::vector<uint32_t> >* mGraphOrig;
+        std::unique_ptr<GraphCSR<uint32_t>> mGraph;
+        GraphCSR<uint32_t>* mGraphOrig;
 
         // The intialize process will download FPGA binary to FPGA card
         int startMis(const std::string& xclbinPath,const std::string& deviceNames);
-        void setGraph(GraphCSR<std::vector<uint32_t> >* graph);
+        //void setGraph(GraphCSR<std::vector<uint32_t> >* graph);
+        void setGraph(GraphCSR<uint32_t>* graph);
         std::vector<uint16_t> executeMIS();
 
         int getDevice(const std::string& deviceNames);
@@ -165,7 +207,8 @@ namespace mis {
     void init(const GraphCSR<T>* graph, G& prior) {
         constexpr int LargeNum = 65535;
         int n = graph->n;
-        int aveDegree = graph->colIdx.size() / n;
+        //int aveDegree = graph->colIdx.size() / n;
+        int aveDegree = graph->colIdxSize / n;
         for (int i = 0; i < n; i++) {
             int degree = graph->rowPtr[i + 1] - graph->rowPtr[i];
             double r = (rand() % LargeNum) / (double)LargeNum;
@@ -225,15 +268,20 @@ namespace mis {
         adjList.reserve(n);
         for (int i = 0; i < graph->n; i++) {
             int start = graph->rowPtr[i], stop = graph->rowPtr[i + 1];
-            adjList.emplace_back(std::vector<uint32_t>(graph->colIdx.begin() + start, graph->colIdx.begin() + stop));
+            //adjList.emplace_back(std::vector<uint32_t>(graph->colIdx.begin() + start, graph->colIdx.begin() + stop));
+            std::vector<uint32_t> tmp;
+            for(int i=start;i< stop; i++){
+                tmp.push_back(graph->colIdx[i]);
+            }
+            adjList.emplace_back(tmp);
         }
         return new Graph(adjList);
     }
 
     template <typename T>
     GraphCSR<T>* createFromGraph(Graph* graph) {
-        T rowPtr(graph->n + 1, 0);
-        T colIdx;
+        std::vector<T> rowPtr(graph->n + 1, 0);
+        std::vector<T> colIdx;
         for (int i = 0; i < graph->n; i++) {
             rowPtr[i + 1] = rowPtr[i] + graph->adjList[i].size();
             colIdx.insert(colIdx.end(), graph->adjList[i].begin(), graph->adjList[i].end());
@@ -242,8 +290,10 @@ namespace mis {
     }
 
 
-    void MIS::setGraph(GraphCSR<std::vector<uint32_t> >* graph) { pImpl_->setGraph(graph);}
-    void MisImpl::setGraph(GraphCSR<std::vector<uint32_t> >* graph) {
+    //void MIS::setGraph(GraphCSR<std::vector<uint32_t> >* graph) { pImpl_->setGraph(graph);}
+    void MIS::setGraph(GraphCSR<uint32_t>* graph) { pImpl_->setGraph(graph);}
+    //void MisImpl::setGraph(GraphCSR<std::vector<uint32_t> >* graph) {
+    void MisImpl::setGraph(GraphCSR<uint32_t>* graph) {
         mGraphOrig = graph;
         int n=mGraphOrig->n;
         //not sure if needed
@@ -277,8 +327,8 @@ namespace mis {
         //assign back
         //mGraph.reset(createFromGraph(graphAdj.get()));
         //mGraph.reset(graphAfter.get());
-        mGraph.reset(createFromGraph<std::vector<uint32_t>>(graphAdj.get()));
-
+        //mGraph.reset(createFromGraph<std::vector<uint32_t>>(graphAdj.get()));
+        mGraph.reset(createFromGraph<uint32_t>(graphAdj.get()));
     }
 
     std::vector<uint16_t> MIS::executeMIS(){ return pImpl_->executeMIS();}
@@ -293,9 +343,15 @@ namespace mis {
         cl::Buffer d_colIdx = cl::Buffer(ctx, CL_MEM_EXT_PTR_XILINX | CL_MEM_READ_ONLY, mGraph->colIdx.size() * sizeof(uint32_t), NULL,NULL);
         cl::Buffer d_prior = cl::Buffer(ctx, CL_MEM_EXT_PTR_XILINX | CL_MEM_WRITE_ONLY, mPrior.size() * sizeof(uint16_t), NULL,NULL);
     #else
+    /*
         auto d_rowPtr = xrt::bo(m_Device, (void*)mGraph->rowPtr.data(), mGraph->rowPtr.size() * sizeof(uint32_t),
                                 m_Kernel.group_id(1));
         auto d_colIdx = xrt::bo(m_Device, (void*)mGraph->colIdx.data(), mGraph->colIdx.size() * sizeof(uint32_t),
+                                m_Kernel.group_id(2));
+        auto d_prior = xrt::bo(m_Device, (void*)mPrior.data(), mPrior.size() * sizeof(uint16_t), m_Kernel.group_id(3));*/
+        auto d_rowPtr = xrt::bo(m_Device, (void*)mGraph->rowPtr, mGraph->rowPtrSize * sizeof(uint32_t),
+                                m_Kernel.group_id(1));
+        auto d_colIdx = xrt::bo(m_Device, (void*)mGraph->colIdx, mGraph->colIdxSize * sizeof(uint32_t),
                                 m_Kernel.group_id(2));
         auto d_prior = xrt::bo(m_Device, (void*)mPrior.data(), mPrior.size() * sizeof(uint16_t), m_Kernel.group_id(3));
     #endif
@@ -335,7 +391,9 @@ namespace mis {
         d_prior.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
     #endif
         timeStamp("Read results");
-        return mPrior;
+
+        std::vector<uint16_t> result(mPrior.begin(), mPrior.end());
+        return result;
     }
 
 //from graph.hpp

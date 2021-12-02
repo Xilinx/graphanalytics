@@ -131,10 +131,10 @@ int main(int argc, const char* argv[]) {
     readBin(in_dir + "/rowPtr.bin", (n + 1) * sizeof(uint32_t), h_rowPtr);
     readBin(in_dir + "/colIdx.bin", nz * sizeof(uint32_t), h_colIdx);
 
-    GraphCSR<std::vector<uint32_t> > graph(h_rowPtr, h_colIdx);
- 
+    //GraphCSR<std::vector<uint32_t> > graph(h_rowPtr, h_colIdx);
+    GraphCSR<uint32_t> graph(h_rowPtr, h_colIdx);
     xmis.setGraph(&graph);
-
+    xmis.startMis();
     auto start = std::chrono::high_resolution_clock::now();
     //xmis.find(&graph, h_prior);
     xmis.executeMIS();
