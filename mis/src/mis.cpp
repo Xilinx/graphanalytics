@@ -17,6 +17,7 @@
 #include <xrt/xrt_bo.h>
 #include "xilinx_runtime_common.hpp"
 #include "xilinxmis.hpp"
+#include "utils.hpp"
 
 namespace xilinx_apps {
 namespace mis {
@@ -92,7 +93,7 @@ namespace mis {
         { 
 
         }
-        std::string xclbinPath;
+        //std::string xclbinPath;
         int device_id=0;
         
         #ifdef OPENCL
@@ -108,14 +109,11 @@ namespace mis {
 
 
         std::vector<uint16_t,aligned_allocator<uint16_t>> mPrior;
-        //std::unique_ptr<GraphCSR<std::vector<uint32_t> > > mGraph;
-        //GraphCSR<std::vector<uint32_t> >* mGraphOrig;
         std::unique_ptr<GraphCSR<uint32_t>> mGraph;
         GraphCSR<uint32_t>* mGraphOrig;
 
         // The intialize process will download FPGA binary to FPGA card
-        int startMis(const std::string& xclbinPath,const std::string& deviceNames);
-        //void setGraph(GraphCSR<std::vector<uint32_t> >* graph);
+        void startMis(const std::string& xclbinPath,const std::string& deviceNames);
         void setGraph(GraphCSR<uint32_t>* graph);
         std::vector<uint16_t> executeMIS();
 
@@ -157,12 +155,17 @@ namespace mis {
     
         return status;
     }
-    int MIS::startMis() {return pImpl_->startMis(pImpl_->options_.xclbinPath, pImpl_->options_.deviceNames); }
+    void MIS::startMis() { pImpl_->startMis(pImpl_->options_.xclbinPath, pImpl_->options_.deviceNames); }
 
-    int MisImpl::startMis(const std::string& xclbinPath,const std::string& deviceNames){
+    void MisImpl::startMis(const std::string& xclbinPath,const std::string& deviceNames){
         if (getDevice(deviceNames) < 0) {
-            std::cout << "ERROR: Unable to find device " << deviceNames << std::endl;
-            return -2;
+            //std::cout << "ERROR: Unable to find device " << deviceNames << std::endl;
+            //return -2;
+            std::ostringstream oss;
+            oss << "Uable to find device" << deviceNames << "; Please ensure the machine has proper card" <<std::endl;
+            throw xilinx_apps::mis::Exception(oss.str());
+            std::cerr << "ERROR: Unable to find device " << deviceNames << std::endl;
+            abort();
         } else 
             std::cout << "INFO: Start MIS on " << deviceNames << std::endl;
     
@@ -199,7 +202,7 @@ namespace mis {
         std::string kernelName = "findMIS:{findMIS_0}";
         m_Kernel = xrt::kernel(m_Device, uuid, kernelName);
     #endif
-        return 0;
+        //return 0;
     }
 
 //from xil_mis.hpp 
@@ -296,14 +299,15 @@ namespace mis {
     void MisImpl::setGraph(GraphCSR<uint32_t>* graph) {
         mGraphOrig = graph;
         int n=mGraphOrig->n;
+        int nz=mGraphOrig->colIdxSize;
         //not sure if needed
         /*
         mStatus.resize((mGraphOrig->n + 4) / 4);
         std::fill(mStatus.begin(), mStatus.end(), 0);
         */
         //process the graph
-        //auto bw = mGraphOrig.bandwidth();
-        //cout << "Processing the graph with " << n << " vertices, " << nz / 2 << " edges and bandwidth " << bw << endl;
+        auto bw = mGraphOrig->bandwidth();
+        std::cout << "Processing the graph with " << n << " vertices, " << nz / 2 << " edges and bandwidth " << bw << std::endl;
 
         //convert it to adjacent list graph
         //Graph graphAdj = createFromGraphCSR(mGraphOrig);
@@ -402,14 +406,13 @@ namespace mis {
         int maxB = 0;
         for (int i = 0; i < n; i++) {
             for (int j = rowPtr[i]; j < rowPtr[i + 1]; i++) {
-                int b = abs(colIdx[j] - i);
+                int b = std::abs((long int)(colIdx[j] - i));
                 if (b > maxB) maxB = b;
             }
         }
         return maxB;
     }
-
-
+ 
 
 } // namespace mis
 } // namespace xilinx_apps

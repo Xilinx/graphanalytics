@@ -26,9 +26,6 @@
 #include <string>
 #include <vector>
 #include <cstring>
-//#include "graph.hpp"
-// TODO:Move to internal
-#include "utils.hpp"
 #include "xilinx_apps_common.hpp"
 
 /**
@@ -97,7 +94,7 @@ namespace mis {
         }
 
         uint32_t bandwidth();
-        //static GraphCSR createFromGraph(Graph* graph);
+
     };
 
 
@@ -129,10 +126,7 @@ namespace mis {
      */
     struct Options {
         XString xclbinPath;
-       
-       // TODO: change to dynamic scan device 
         XString deviceNames;
-       //int devideId;
     
     };
     /*
@@ -146,9 +140,8 @@ namespace mis {
         ~MIS() { xilinx_mis_destroyImpl(pImpl_); }
 
         // The intialize process will download FPGA binary to FPGA card
-        int startMis();
+        void startMis();
         // set the graph and internal pre-process the graph 
-        //void setGraph(GraphCSR<std::vector<uint32_t> >* graph);
         void setGraph(GraphCSR<uint32_t>* graph);
         std::vector<uint16_t> executeMIS();
         size_t count() const;

@@ -20,7 +20,7 @@ all: stage
 #all: stage cppBuild pythonApi  
 help:
 	@echo "Makefile usages:"
-	@echo "  make run [runMode=0] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3] [totalEntities=10000000]"
+	@echo "  make run [deviceNames=xilinx_u50_gen3x16_xdma_201920_3]"
 	@echo "    Run standalone test with statically linked executable"
 	@echo ""
 	@echo "  Run options:"
@@ -337,8 +337,7 @@ STAGE_DIR = staging
 
 STAGE_COPY_FILES = \
     VERSION \
-    include/xilinxmis.hpp \
-	include/utils.hpp 
+    include/xilinxmis.hpp
 
 define STAGE_COPY_RULE
 $(STAGE_DIR)/$(1): $(1)
