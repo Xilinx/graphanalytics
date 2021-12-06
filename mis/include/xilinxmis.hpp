@@ -75,11 +75,11 @@ namespace mis {
     class GraphCSR {
     public:
         
-        uint32_t n;
+        int n;
         T* rowPtr;
         T* colIdx;
-        uint32_t rowPtrSize;
-        uint32_t colIdxSize;
+        int rowPtrSize;
+        int colIdxSize;
 
         
         template <typename G>
@@ -93,7 +93,7 @@ namespace mis {
             n = rowPtr.size() - 1;
         }
 
-        uint32_t bandwidth();
+        int bandwidth();
 
     };
 
@@ -142,8 +142,8 @@ namespace mis {
         // The intialize process will download FPGA binary to FPGA card
         void startMis();
         // set the graph and internal pre-process the graph 
-        void setGraph(GraphCSR<uint32_t>* graph);
-        std::vector<uint16_t> executeMIS();
+        void setGraph(GraphCSR<int>* graph);
+        std::vector<int> executeMIS();
         size_t count() const;
                 
 
