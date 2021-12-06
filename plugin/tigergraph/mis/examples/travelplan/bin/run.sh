@@ -74,5 +74,8 @@ time gsql -u $username -p $password -g $xgraph "run query tg_maximal_indep_set([
 echo "Run query assign_ids"
 time gsql -u $username -p $password -g $xgraph "run query assign_ids()"
 
+echo "Run query assign_ids"
+time gsql -u $username -p $password -g $xgraph "run query build_csr()"
+
 echo "Run query xlnx_maximal_indep_set"
 time gsql -u $username -p $password -g $xgraph "run query xlnx_maximal_indep_set()"

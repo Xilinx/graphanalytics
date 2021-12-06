@@ -1,6 +1,6 @@
 USE GRAPH @graph
 SET syntax_version = "v2"
-DROP QUERY assign_ids, xlnx_maximal_indep_set
+DROP QUERY assign_ids, build_csr, xlnx_maximal_indep_set
 
 # Assign nice integer IDs to vertices
 CREATE QUERY assign_ids() FOR GRAPH @graph
@@ -10,11 +10,10 @@ CREATE QUERY assign_ids() FOR GRAPH @graph
                 POST-ACCUM tp.v_id = udf_get_next_vid();
 }
 
-CREATE QUERY xlnx_maximal_indep_set() FOR GRAPH @graph
+CREATE QUERY build_csr() FOR GRAPH @graph
 {
-    FILE f1("/proj/gdba/sachink/ghe/graphanalytics/plugin/tigergraph/mis/examples/travelplan/rowPtr.txt");
-    FILE f2("/proj/gdba/sachink/ghe/graphanalytics/plugin/tigergraph/mis/examples/travelplan/colIdx.txt");
-    ListAccum<INT> @@mis;
+    #FILE f1("/proj/gdba/sachink/ghe/graphanalytics/plugin/tigergraph/mis/examples/travelplan/rowPtr.txt");
+    #FILE f2("/proj/gdba/sachink/ghe/graphanalytics/plugin/tigergraph/mis/examples/travelplan/colIdx.txt");
 
     SumAccum<INT> @@global_vertex_count;
     SumAccum<INT> @edge_count;
@@ -32,23 +31,30 @@ CREATE QUERY xlnx_maximal_indep_set() FOR GRAPH @graph
                       tp1.@edge_count += 1
                 POST-ACCUM @@row_ptr += (tp1.v_id -> tp1.@edge_count);
 
-
-
-    # call Xilinx MIS UDF
-    #@@mis = udf_xilinx_mis(@@row_ptr, @@col_idx)
-
     #PRINT @@row_ptr as ROW_PTR
     #PRINT @@col_idx as COL_IDX
 
     # dump csr to files
     FOREACH i in RANGE[0, @@row_ptr.size()-1] DO
-        f1.println(@@row_ptr.get(i));
+        #f1.println(@@row_ptr.get(i));
+        udf_build_row_ptr(@@row_ptr.get(i));
     END;
     FOREACH i in RANGE[0, @@col_idx.size()-1] DO
         FOREACH j in RANGE[0, @@col_idx.get(i).size()-1] DO
-            f2.println(@@col_idx.get(i).get(j));
+            #f2.println(@@col_idx.get(i).get(j));
+            udf_build_col_idx(@@col_idx.get(i).get(j));
         END;
     END;
 }
 
-INSTALL QUERY assign_ids, xlnx_maximal_indep_set
+CREATE QUERY xlnx_maximal_indep_set() FOR GRAPH @graph
+{
+    SumAccum<INT> @@mis;
+
+    # call Xilinx MIS UDF
+    @@mis += udf_xilinx_mis();
+
+    PRINT @@mis as MIS_SIZE;
+}
+
+INSTALL QUERY assign_ids, build_csr, xlnx_maximal_indep_set

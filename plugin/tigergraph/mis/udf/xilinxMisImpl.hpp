@@ -19,15 +19,15 @@
 
 // Use inline definitions for dynamic loading functions
 #define XILINX_LOUVAINMOD_INLINE_IMPL
-//#include "xilinxmis.h"
+#include "xilinxmis.hpp"
 
 // Enable this to turn on debug output
 #define XILINX_MIS_DEBUG_ON
 
-// Enable this to dump graph vertices and edges
-//#define XILINX_MIS_DUMP_GRAPH
+// Enable this to dump context vertices and edges
+//#define XILINX_MIS_DUMP_context
 
-// Enable this to dump an .mtx file of the graph
+// Enable this to dump an .mtx file of the context
 //#define XILINX_MIS_DUMP_MTX
 
 #include <vector>
@@ -62,26 +62,51 @@ inline Mutex &getMutex() {
     return *pMutex;
 }
 
-class Graph {
+class Context {
 public:
-    Graph() {
+    Context() {
+        // default values
         vid_ = 0;
+        row_id_ = 0;
+        rowPtr_.push_back(0);
+
+        // set xclbinPath
+        if (deviceNames_ == "xilinx_u50_gen3x16_xdma_201920_3") {
+       
+        } else if (deviceNames_ == "xilinx_aws-vu9p-f1_shell-v04261818_201920_2") {
+            xclbinPath_ = PLUGIN_XCLBIN_PATH_AWSF1;
+        }
     }
 
-    static Graph *getGraph() {
-        static Graph *l_graph = nullptr;
-        if (l_graph == nullptr)
-            l_graph = new Graph();
-        return l_graph;
+    static Context *getContext() {
+        static Context *l_context = nullptr;
+        if (l_context == nullptr)
+            l_context = new Context();
+        return l_context;
     }
 
     int getNextVid() { return vid_++; }
+    void addRowPtrEntry( uint32_t x ) { rowPtr_.push_back( rowPtr_[row_id_++] + x ); }
+    void addColIdxEntry( uint32_t x ) { colIdx_.push_back( x ); }
+    std::string getXclbinPath() { return xclbinPath_; }
+    std::string getDeviceNames() { return deviceNames_; }
+
+    std::vector<uint32_t>& getRowPtr() { return rowPtr_; }
+    std::vector<uint32_t>& getColIdx() { return colIdx_; }
 
 private:
     int vid_;
+    int row_id_;
+    std::vector<uint32_t> rowPtr_;
+    std::vector<uint32_t> colIdx_;
+
+    std::string deviceNames_ = "xilinx_u50_gen3x16_xdma_201920_3";
+    std::string xclbinPath_;
 
 };
 
 } /* namespace xilMis */
+
+#include "mis_loader.cpp"
 
 #endif /* XILINX_MIS_IMPL_HPP */

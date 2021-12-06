@@ -337,7 +337,8 @@ STAGE_DIR = staging
 
 STAGE_COPY_FILES = \
     VERSION \
-    include/xilinxmis.hpp
+    include/xilinxmis.hpp \
+    src/mis_loader.cpp
 
 define STAGE_COPY_RULE
 $(STAGE_DIR)/$(1): $(1)

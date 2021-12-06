@@ -36,14 +36,45 @@ inline int64_t rand_int (int minVal, int maxVal) {
     return (int64_t) dist(e1);
 }
 
-inline void udf_init_graph() {
-    xilMis::Graph *graph = xilMis::Graph::getGraph();
-}
-
 inline int udf_get_next_vid() {
     xilMis::Lock guard(xilMis::getMutex());
-    xilMis::Graph *graph = xilMis::Graph::getGraph();
-    return graph->getNextVid();
+    xilMis::Context *context = xilMis::Context::getContext();
+    return context->getNextVid();
+}
+
+inline void udf_build_row_ptr(int num_edges)
+{
+    xilMis::Context *context = xilMis::Context::getContext();
+    context->addRowPtrEntry(num_edges);
+}
+
+inline void udf_build_col_idx(int vid)
+{
+    xilMis::Context *context = xilMis::Context::getContext();
+    context->addColIdxEntry(vid);
+}
+
+inline int udf_xilinx_mis()
+{
+    xilMis::Context *context = xilMis::Context::getContext();
+
+    // set MIS options
+    xilinx_apps::mis::Options options;
+    options.xclbinPath = context->getXclbinPath();
+    options.deviceNames = context->getDeviceNames();
+
+    xilinx_apps::mis::MIS xmis(options);
+
+    xilinx_apps::mis::GraphCSR<uint32_t> graph(context->getRowPtr(), context->getColIdx());
+
+    xmis.startMis();
+
+
+    xmis.setGraph(&graph);
+
+    xmis.executeMIS();
+
+    return xmis.count();
 }
 
 // mergeHeaders 1 section body end xilinxMis DO NOT REMOVE!
