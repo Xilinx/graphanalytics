@@ -3906,7 +3906,7 @@ int xai_save_partition_bfs(
 {
     long NV_server = end_vertex - start_vertex;
     long NV_par = (NV_par_requested <= NV_par_max) ? NV_par_requested : NV_par_max;
-    int num_par = NV_server / (NV_par-1);
+    int num_par = (NV_server + NV_par -1 ) / NV_par;
     long numEdges = offsets_tg[NV_server];
 #ifndef NDEBUG
     std::cout << "DEBUG: " << __FUNCTION__ 
