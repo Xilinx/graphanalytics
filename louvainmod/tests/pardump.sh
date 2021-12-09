@@ -7,7 +7,7 @@ cmdName=pardump
 if [ -x "$(command -v $script_dir/../Release/$cmdName)" ]; then
     exePath=$script_dir/../Release/$cmdName
     export LD_LIBRARY_PATH=$script_dir/../Release
-elif [ -x "$(command -v $script_dir/../Release/$cmdName)" ]; then
+elif [ -x "$(command -v $script_dir/../Debug/$cmdName)" ]; then
     exePath=$script_dir/../Debug/$cmdName
     export LD_LIBRARY_PATH=$script_dir/../Debug
 else
