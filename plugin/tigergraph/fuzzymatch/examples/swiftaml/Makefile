@@ -34,7 +34,8 @@ PLUGIN_DEPS = ../../../../../$(STANDALONE_NAME)/src/fuzzymatch.cpp \
               ../../../../../$(STANDALONE_NAME)/include/fuzzymatch.hpp \
               ../../udf/xilinxFuzzyMatch.hpp \
 			  ../../udf/xilinxFuzzyMatchImpl.hpp
-PLUGIN_TARGET = $(TG_DATA_ROOT)/gsql/udf/ExprFunctions.hpp
+#PLUGIN_TARGET = $(TG_DATA_ROOT)/gsql/udf/ExprFunctions.hpp
+PLUGIN_TARGET = .install-plugin-done
 TG_DATA_ROOT = $(shell cat ~tigergraph/.tg.cfg | jq .System.DataRoot | tr -d \")
 EXAMPLE_UDF_DEPS = udf/swiftAmlDemo.hpp udf/swiftAmlDemoImpl.hpp
 EXAMPLE_UDF_TARGET = $(TG_DATA_ROOT)/gsql/udf/swiftAmlDemo.hpp
@@ -108,4 +109,4 @@ help:
 clean:
 	cd ../../../../../$(STANDALONE_NAME) && make clean
 	cd ../../ && make clean
-	rm -f .install-plugin-done .install-udf-done .install-query-done
+	rm -f $(PLUGIN_TARGET)

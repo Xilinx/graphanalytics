@@ -61,11 +61,12 @@ inline int udf_xilinx_mis()
     // set MIS options
     xilinx_apps::mis::Options options;
     options.xclbinPath = context->getXclbinPath();
+    std::cout << "DEBUG: XCLBIN=" << options.xclbinPath << std::endl;
     options.deviceNames = context->getDeviceNames();
 
     xilinx_apps::mis::MIS xmis(options);
 
-    xilinx_apps::mis::GraphCSR<uint32_t> graph(context->getRowPtr(), context->getColIdx());
+    xilinx_apps::mis::GraphCSR<int> graph(context->getRowPtr(), context->getColIdx());
 
     xmis.startMis();
 

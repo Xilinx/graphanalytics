@@ -61,23 +61,23 @@ if [ -f ~/.ssh/tigergraph_rsa ]; then
     ssh_key_flag="-i ~/.ssh/tigergraph_rsa"
 fi
 
-#while getopts "c:fg:i:m:p:r:t:w:u:vh" opt
-#do
-#case $opt in
-#    c) compile_mode=$OPTARG;;
-#    f) force_clean=1; force_clean_flag=-f;;
-#    g) xgraph=$OPTARG;;
-#    i) ssh_key=$OPTARG; ssh_key_flag="-i $ssh_key";;
-#    r) run_mode=$OPTARG;;
-#    p) password=$OPTARG;;
-#    t) truck_data=$OPTARG;;
-#    w) wo_data=$OPTARG;;
-#    u) username=$OPTARG;;
-#    v) verbose=1; verbose_flag=-v;;
-#    h) usage; exit 0;;
-#    ?) echo "ERROR: Unknown option: -$OPTARG"; usage; exit 1;;
-#esac
-#done
+while getopts "c:fg:i:m:p:r:t:w:u:vh" opt
+do
+case $opt in
+    c) compile_mode=$OPTARG;;
+    f) force_clean=1; force_clean_flag=-f;;
+    g) xgraph=$OPTARG;;
+    i) ssh_key=$OPTARG; ssh_key_flag="-i $ssh_key";;
+    r) run_mode=$OPTARG;;
+    p) password=$OPTARG;;
+    t) truck_data=$OPTARG;;
+    w) wo_data=$OPTARG;;
+    u) username=$OPTARG;;
+    v) verbose=1; verbose_flag=-v;;
+    h) usage; exit 0;;
+    ?) echo "ERROR: Unknown option: -$OPTARG"; usage; exit 1;;
+esac
+done
 
 if [ -z "$username" ] || [ -z "$password" ]; then
     echo "ERROR: username and password are required."

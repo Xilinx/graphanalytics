@@ -18,7 +18,7 @@
 #define XILINX_MIS_IMPL_HPP
 
 // Use inline definitions for dynamic loading functions
-#define XILINX_LOUVAINMOD_INLINE_IMPL
+#define XILINX_MIS_INLINE_IMPL
 #include "xilinxmis.hpp"
 
 // Enable this to turn on debug output
@@ -72,10 +72,15 @@ public:
 
         // set xclbinPath
         if (deviceNames_ == "xilinx_u50_gen3x16_xdma_201920_3") {
-       
+            xclbinPath_ = PLUGIN_XCLBIN_PATH_U50;
         } else if (deviceNames_ == "xilinx_aws-vu9p-f1_shell-v04261818_201920_2") {
             xclbinPath_ = PLUGIN_XCLBIN_PATH_AWSF1;
         }
+
+        std::cout << "DEBUG: " << __FILE__ << "Context"
+                  << "\n    deviceNames=" << deviceNames_ 
+                  << "\n    xclbinPath_=" << xclbinPath_
+                  << std::endl; 
     }
 
     static Context *getContext() {

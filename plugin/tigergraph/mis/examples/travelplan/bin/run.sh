@@ -63,19 +63,23 @@ if [ "$compile_mode" -eq 1 ]; then
     echo " "
     gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/xlnx_maximal_indep_set.gsql | sed "s/@graph/$xgraph/")"
 
+    echo "Run query build_edges"
+    time gsql -u $username -p $password -g $xgraph "run query build_edges()"
 fi
 
-echo "Run query build_edges"
-time gsql -u $username -p $password -g $xgraph "run query build_edges()"
+if [ "$run_mode" -eq 1 ] || [ "$run_mode" -eq 3 ]; then
+    echo "Run query tg_maximal_indep_set"
+    time gsql -u $username -p $password -g $xgraph "run query tg_maximal_indep_set([\"travel_plan\"], [\"tp2tp\"], 100, TRUE, \"/tmp/mis-$username.out\")"
+fi
 
-echo "Run query tg_maximal_indep_set"
-time gsql -u $username -p $password -g $xgraph "run query tg_maximal_indep_set([\"travel_plan\"], [\"tp2tp\"], 100, TRUE, \"/tmp/mis-$username.out\")"
+# Run on FPGA
+if [ "$run_mode" -eq 2 ] || [ "$run_mode" -eq 3 ]; then
+    echo "Run query assign_ids"
+    time gsql -u $username -p $password -g $xgraph "run query assign_ids()"
 
-echo "Run query assign_ids"
-time gsql -u $username -p $password -g $xgraph "run query assign_ids()"
+    echo "Run query assign_ids"
+    time gsql -u $username -p $password -g $xgraph "run query build_csr()"
 
-echo "Run query assign_ids"
-time gsql -u $username -p $password -g $xgraph "run query build_csr()"
-
-echo "Run query xlnx_maximal_indep_set"
-time gsql -u $username -p $password -g $xgraph "run query xlnx_maximal_indep_set()"
+    echo "Run query maximal_indep_set_alveo"
+    time gsql -u $username -p $password -g $xgraph "run query maximal_indep_set_alveo()"
+fi

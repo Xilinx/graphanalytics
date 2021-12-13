@@ -83,7 +83,8 @@ PRODUCT_VER=$(strip $(shell cat VERSION))
 CCC = g++
 CXX = g++
 # -D PRINTINFO: print additional debug messages
-CXXFLAGS = -std=c++11 -DPRAGMA -D_GLIBCXX_USE_CXX11_ABI=0 -Ofast -fopenmp -fmessage-length=0  -fPIC -Wall -Wno-unknown-pragmas -Wno-unused-label \
+# -D_GLIBCXX_USE_CXX11_ABI=0
+CXXFLAGS = -std=c++11 -DPRAGMA -Ofast -fopenmp -fmessage-length=0  -fPIC -Wall -Wno-unknown-pragmas -Wno-unused-label \
     -Wno-unused-variable -Wno-sign-compare -Wno-unused-result -Wno-unused-but-set-variable \
     -Wno-narrowing -D USE_HBM -fmessage-length=0 
 
@@ -439,7 +440,10 @@ STAGE_DIR = staging
 
 STAGE_COPY_FILES = \
     VERSION \
-    include/fuzzymatch.hpp 
+    include/fuzzymatch.hpp \
+    src/fuzzymatch_loader.cpp \
+	src/fuzzymatch_utils.cpp \
+	src/fuzzymatch.cpp
 
 define STAGE_COPY_RULE
 $(STAGE_DIR)/$(1): $(1)

@@ -14,9 +14,9 @@
 # limitations under the License.
 
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3
-trucks=$(CURDIR)/data/HasTravelPlans.csv
+trucks=$(CURDIR)/data/travelplan2trucks100.csv  
 trucksCSV=$(abspath $(trucks))
-wo=$(CURDIR)/data/HasWorkOrder.csv
+wo=$(CURDIR)/data/travelplan2workorders100.csv
 woCSV=$(abspath $(wo))
 graphName=travelplan_$(USER)
 
@@ -36,11 +36,11 @@ EXAMPLE=travelplan
 #			  ../../udf/xilinxFuzzyMatchImpl.hpp
 PLUGIN_DEPS = ../../udf/xilinxMis.hpp \
 			  ../../udf/xilinxMisImpl.hpp
-PLUGIN_TARGET = $(TG_DATA_ROOT)/gsql/udf/ExprFunctions.hpp
+PLUGIN_TARGET = .install-plugin-done
 TG_DATA_ROOT = $(shell cat ~tigergraph/.tg.cfg | jq .System.DataRoot | tr -d \")
-EXAMPLE_UDF_DEPS = udf/travelplanDemo.hpp udf/travelplanDemoImpl.hpp
+EXAMPLE_UDF_DEPS = udf/travelPlanDemo.hpp udf/travelPlanDemoImpl.hpp
 #EXAMPLE_UDF_TARGET = $(TG_DATA_ROOT)/gsql/udf/travelplanDemo.hpp
-EXAMPLE_UDF_TARGET = 
+EXAMPLE_UDF_TARGET = .install-udf-done
 
 all: run
 
@@ -52,6 +52,7 @@ $(PLUGIN_TARGET): $(PLUGIN_DEPS)
 	cd ../../ && \
 	    make DEBUG=$(DEBUG) stage INC_ALL_XCLBINS=$(INC_ALL_XCLBINS) deviceNames=$(deviceNames) && \
 		./staging/install.sh -v -f $(SSH_KEY_OPT) -d $(deviceNames) 
+	touch $(PLUGIN_TARGET)
 
 $(EXAMPLE_UDF_TARGET): $(PLUGIN_TARGET) $(EXAMPLE_UDF_DEPS)
 	@echo "--------------------------------------------------------------"
@@ -59,6 +60,7 @@ $(EXAMPLE_UDF_TARGET): $(PLUGIN_TARGET) $(EXAMPLE_UDF_DEPS)
 	@echo "--------------------------------------------------------------"
 	cd ../../ && make DEBUG=$(DEBUG) stage && \
 	./staging/examples/$(EXAMPLE)/bin/install-udf.sh -v -f $(SSH_KEY_OPT)
+	touch $(EXAMPLE_UDF_TARGET)
 
 test: $(EXAMPLE_UDF_TARGET)
 	@echo "-------------------------------------------------------"
@@ -92,9 +94,7 @@ help:
 	@echo "deviceNames : Target device name. Supported devices: "
 	@echo "              xilinx_u50_gen3x16_xdma_201920_3 (default)"
 	@echo "              xilinx_aws-vu9p-f1_shell-v04261818_201920_2"
-	@echo "truckData   : A csv file with travelPlan and truck data. default=../data/HasTravelPlans.csv"
-	@echo "woData      : A csv file with travelPlan and work order data. default=../data/HasWorkOrder.csv"
-	@echo "graphName   : graph name (default=swift_<username>"
+	@echo "graphName   : graph name (default=travelplan_<username>"
 	@echo "compileMode : 0: skip database creation and gsql compilation"
 	@echo "              1: recreate database and compile all (default)"
 	@echo "              2: only compile query gsql"
@@ -111,4 +111,4 @@ help:
 clean:
 	cd ../../../../../$(STANDALONE_NAME) && make clean
 	cd ../../ && make clean
-	rm -f .install-plugin-done .install-udf-done .install-query-done
+	rm -f $(PLUGIN_TARGET) $(EXAMPLE_UDF_TARGET) .install-query-done

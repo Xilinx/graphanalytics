@@ -1,6 +1,6 @@
 USE GRAPH @graph
 SET syntax_version = "v2"
-DROP QUERY assign_ids, build_csr, xlnx_maximal_indep_set
+DROP QUERY assign_ids, build_csr, maximal_indep_set_alveo
 
 # Assign nice integer IDs to vertices
 CREATE QUERY assign_ids() FOR GRAPH @graph
@@ -47,7 +47,7 @@ CREATE QUERY build_csr() FOR GRAPH @graph
     END;
 }
 
-CREATE QUERY xlnx_maximal_indep_set() FOR GRAPH @graph
+CREATE QUERY maximal_indep_set_alveo() FOR GRAPH @graph
 {
     SumAccum<INT> @@mis;
 
@@ -57,4 +57,4 @@ CREATE QUERY xlnx_maximal_indep_set() FOR GRAPH @graph
     PRINT @@mis as MIS_SIZE;
 }
 
-INSTALL QUERY assign_ids, build_csr, xlnx_maximal_indep_set
+INSTALL QUERY assign_ids, build_csr, maximal_indep_set_alveo
