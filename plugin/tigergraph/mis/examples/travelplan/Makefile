@@ -14,12 +14,9 @@
 # limitations under the License.
 
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3
-trucks=$(CURDIR)/data/travelplan2trucks100.csv  
-trucksCSV=$(abspath $(trucks))
-wo=$(CURDIR)/data/travelplan2workorders100.csv
-woCSV=$(abspath $(wo))
 graphName=travelplan_$(USER)
-
+tp2tr=$(abspath $(CURDIR)/data/travelplan2trucks100.csv)
+tp2wo=$(abspath $(CURDIR)/data/travelplan2workorders100.csv)
 compileMode=1
 runMode=2
 INC_ALL_XCLBINS=1
@@ -78,7 +75,7 @@ run: $(EXAMPLE_UDF_TARGET)
 	@echo "-------------------------------------------------------"
 	cd ../../ && make DEBUG=$(DEBUG) stage && \
 	    ./staging/examples/$(EXAMPLE)/bin/run.sh -v \
-	    -g $(graphName) -t $(trucksCSV) -w $(woCSV) \
+	    -g $(graphName) -t $(tp2tr) -w $(tp2wo) \
 		-c $(compileMode) -r $(runMode) 
 
 help:
@@ -93,8 +90,9 @@ help:
 	@echo "Parameter descriptions:"
 	@echo "deviceNames : Target device name. Supported devices: "
 	@echo "              xilinx_u50_gen3x16_xdma_201920_3 (default)"
-	@echo "              xilinx_aws-vu9p-f1_shell-v04261818_201920_2"
 	@echo "graphName   : graph name (default=travelplan_<username>"
+	@echo "tp2tr       : CSV file with travel plan to truck mapping"
+	@echo "tp2wo       : CSV file with travel plan to work order mapping"
 	@echo "compileMode : 0: skip database creation and gsql compilation"
 	@echo "              1: recreate database and compile all (default)"
 	@echo "              2: only compile query gsql"

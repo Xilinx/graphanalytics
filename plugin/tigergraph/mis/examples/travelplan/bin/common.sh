@@ -46,8 +46,8 @@ tg_data_root=$(cat $tg_home/.tg.cfg | jq .System.DataRoot | tr -d \")
 # default values for optional options
 username=$USER
 password=Xilinx123
-truck_data="$script_dir/../data/trucks.csv"
-wo_data="$script_dir/../data/wo.csv"
+tp2tr_data="$script_dir/../data/travelplan2trucks100.csv"
+tp2wo_data="$script_dir/../data/travelplan2workorders100.csv"
 verbose=0
 xgraph="travelplan_$username"
 force_clean=0
@@ -70,8 +70,8 @@ case $opt in
     i) ssh_key=$OPTARG; ssh_key_flag="-i $ssh_key";;
     r) run_mode=$OPTARG;;
     p) password=$OPTARG;;
-    t) truck_data=$OPTARG;;
-    w) wo_data=$OPTARG;;
+    t) tp2tr_data=$OPTARG;;
+    w) tp2wo_data=$OPTARG;;
     u) username=$OPTARG;;
     v) verbose=1; verbose_flag=-v;;
     h) usage; exit 0;;
@@ -106,8 +106,8 @@ fi
 if [ $verbose -eq 1 ]; then
     echo "INFO: username=$username"
     echo "      password=$password"
-    echo "      truck_data=$truck_data"
-    echo "      wo_data=$wo_data"
+    echo "      tp2tr_data=$tp2tr_data"
+    echo "      tp2wo_data=$tp2wo_data"
     echo "      xgraph=$xgraph"
     echo "      compileMode=$compile_mode"
     echo "      runMode=$run_mode"    

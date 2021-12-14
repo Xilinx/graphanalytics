@@ -1,4 +1,18 @@
+/*
+   Copyright 2017-2019 TigerGraph Inc.
 
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */  
 DROP QUERY tg_maximal_indep_set
 
 CREATE QUERY tg_maximal_indep_set(STRING v_type, STRING e_type, INT max_iter = 100, BOOL print_accum = TRUE, STRING file_path = "") { 
@@ -6,6 +20,9 @@ CREATE QUERY tg_maximal_indep_set(STRING v_type, STRING e_type, INT max_iter = 1
     Maximal Independent Set query only supports one edge type and works only for undirected graphs at the moment (8/12/20).
     */
   
+    DOUBLE vm_peak, vm_hwm;
+    INT ret;
+
     AndAccum @active;   // default it TRUE
     OrAccum @selected;  // default is FALSE
     SumAccum<INT> @outdegree;
@@ -14,6 +31,8 @@ CREATE QUERY tg_maximal_indep_set(STRING v_type, STRING e_type, INT max_iter = 1
     FILE f(file_path);
     INT iter = 0;
   
+    udf_reset_timer(true);   
+
     Start = {v_type.*};
     Start = SELECT s FROM Start:s-(e_type:e)->v_type:t
                 ACCUM s.@outdegree += 1;
@@ -67,6 +86,12 @@ CREATE QUERY tg_maximal_indep_set(STRING v_type, STRING e_type, INT max_iter = 1
             WHERE s.@selected
             ACCUM IF file_path != "" THEN f.println(s) END;
   
+    PRINT udf_elapsed_time(true) AS ExecTimeInMs;
+    print "TigerGraph CPU" AS ComputationTechnique;
+    ret = udf_peak_memory_usage(vm_peak, vm_hwm);
+    PRINT vm_peak/1000000.0 as PeakVirtualMemoryInGB;
+    PRINT vm_hwm/1000000.0 as PeakResidentMemoryInGB;
+
     IF print_accum THEN
       PRINT Start;
     END;

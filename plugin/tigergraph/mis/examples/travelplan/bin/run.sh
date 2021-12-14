@@ -53,7 +53,7 @@ if [ "$compile_mode" -eq 1 ]; then
     gsql -u $username -p $password "$(cat $script_dir/../query/load.gsql | sed "s/@graph/$xgraph/")"
 
     # set timeout of loading job to 1 hour
-    time gsql -u $username -p $password -g $xgraph "SET QUERY_TIMEOUT=3600000 RUN LOADING JOB load_xgraph USING wo_infile=\"$wo_data\", truck_infile=\"$truck_data\""
+    time gsql -u $username -p $password -g $xgraph "SET QUERY_TIMEOUT=3600000 RUN LOADING JOB load_xgraph USING tp2wo_infile=\"$tp2wo_data\", tp2tr_infile=\"$tp2tr_data\""
     gsql -u $username -p $password -g $xgraph "DROP JOB load_xgraph"
     echo "INFO: -------- $(date) load_xgraph completed. --------"
 
