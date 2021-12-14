@@ -207,13 +207,25 @@ INC_ALL_XCLBINS=1
 L2_TOP_DIR_U50 = $(GRAPH_ANALYTICS_DIR)/L2/mis_kernel
 L2_XDEVICE_U50 = xilinx_u50_gen3x16_xdma_201920_3
 L2_BUILD_DIR_U50 = $(L2_TOP_DIR_U50)/build_dir.hw.$(L2_XDEVICE_U50)
-XCLBIN_NAME_U50 = findMIS_2810_PE16_URAM_225MHz_NOB.xclbin
+XCLBIN_NAME_U50 = findMIS.xclbin
 XCLBIN_FILE_U50 = $(L2_BUILD_DIR_U50)/$(XCLBIN_NAME_U50)
 XCLBIN_INSTALLED_NAME_U50 = mis_xilinx_u50_gen3x16_xdma_201920_3.xclbin
 XCLBIN_INSTALLED_U50 =/opt/xilinx/apps/graphanalytics/mis/1.0/xclbin/$(XCLBIN_INSTALLED_NAME_U50)
 
-XCLBIN_BUILD_DIR=$(L2_TOP_DIR_U50)
+# U55 XCLBIN 
+L2_TOP_DIR_U55 = $(GRAPH_ANALYTICS_DIR)/L2/mis_kernel
+L2_XDEVICE_U55 = xilinx_u55c_gen3x16_xdma_2_202110_1
+L2_BUILD_DIR_U55 = $(L2_TOP_DIR_U55)/build_dir.hw.$(L2_XDEVICE_U55)
+XCLBIN_NAME_U55 = findMIS.xclbin
+XCLBIN_FILE_U55 = $(L2_BUILD_DIR_U55)/$(XCLBIN_NAME_U55)
+XCLBIN_INSTALLED_NAME_U55 = mis_$(L2_XDEVICE_U55).xclbin
+XCLBIN_INSTALLED_U55 =/opt/xilinx/apps/graphanalytics/mis/1.0/xclbin/$(XCLBIN_INSTALLED_NAME_U55)
 
+ifeq ($(USE_U55C),1)
+	XCLBIN_BUILD_DIR=$(L2_TOP_DIR_U55)
+else
+	XCLBIN_BUILD_DIR=$(L2_TOP_DIR_U50)
+endif
 
 .PHONY: xclbin
 
@@ -235,6 +247,17 @@ $(XCLBIN_FILE_U50):
     	false; \
 	fi
 
+$(XCLBIN_FILE_U55):
+	@if [ -r $(XCLBIN_INSTALLED_U55) ]; then \
+	    echo "INFO: The XCLBIN file $(XCLBIN_FILE_U50) is missing.  Copying from installed area."; \
+	    cp -r $(XCLBIN_INSTALLED_U55) $@; \
+	else \
+	    echo "ERROR: The XCLBIN file $(XCLBIN_FILE_U55) is missing."; \
+	    echo "Because building an XCLBIN file can be an all-day proposition, you have two choices for completing this build:"; \
+	    echo "1. Copy a pre-built XCLBIN to the target location above.  (Recommended for developers)"; \
+	    echo "2. Do 'make xclbin' and go for a very long coffee break.  (Recommended for build automation)"; \
+	    false; \
+	fi
 
 #######################################################################################################################
 #
@@ -396,12 +419,14 @@ $(STAGE_STAGED_EXAMPLE_FILES):
 # XCLBIN file
 STAGE_XCLBIN_NAME_U50 = $(XCLBIN_INSTALLED_NAME_U50)
 STAGE_XCLBIN_FILE_U50 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U50)
-
+STAGE_XCLBIN_NAME_U55 = $(XCLBIN_INSTALLED_NAME_U55)
+STAGE_XCLBIN_FILE_U55 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U55)
 
 $(STAGE_XCLBIN_FILE_U50): $(XCLBIN_FILE_U50)
 	cp -f $^ $@
 
-
+$(STAGE_XCLBIN_FILE_U55): $(XCLBIN_FILE_U55)
+	cp -f $^ $@
 
 STAGE_XILINX_APPS_COMMON = $(STAGE_DIR)/include/xilinx_apps_common.hpp
 XILINX_APPS_COMMON = $(GRAPH_ANALYTICS_DIR)/ext/xilinx_apps_common.hpp
@@ -420,11 +445,11 @@ STAGE_ALL_FILES = \
 
 # Conditionally add XCLBIN files
 ifeq ($(INC_ALL_XCLBINS),1) 
-	STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U50) $(STAGE_XCLBIN_FILE_F1)
+	STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U50) $(STAGE_XCLBIN_FILE_U55)
 else ifeq ($(deviceNames),xilinx_u50_gen3x16_xdma_201920_3)
     STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U50)
-else ifeq ($(deviceNames),xilinx_aws-vu9p-f1_shell-v04261818_201920_2)
-    STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_F1)
+else ifeq ($(deviceNames),xilinx_u55c_gen3x16_xdma_2_202110_1)
+    STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U55)
 endif
 
 
