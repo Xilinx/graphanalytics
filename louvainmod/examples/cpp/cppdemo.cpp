@@ -72,12 +72,14 @@ int main(int argc, char **argv) {
 
     switch (toolOptions.mode_alveo) {
     case ALVEOAPI_PARTITION:  // 1
+        std::cout << "ALVEOAPI_PARTITION" << std::endl;
         partOpts.LBW_partition = false;
         partOpts.numPars = toolOptions.numPars;
         partOpts.par_prune = toolOptions.gh_par;
         louvainMod.partitionDataFile(toolOptions.opts_inFile, partOpts);
         break;
     case ALVEOAPI_PARTITION_LBW:  // 2
+        std::cout << "ALVEOAPI_PARTITION_LBW" << std::endl;
         partOpts.LBW_partition = true;
         partOpts.numPars = toolOptions.numPars;
         partOpts.par_prune = toolOptions.gh_par;

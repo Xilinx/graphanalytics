@@ -29,6 +29,7 @@ function usage() {
     echo "  -n numPartitions     : Number of Alveo partitions (default=auto calculate)"    
     echo "  -s dataSource        : A .mtx file containing input graph. Required unless using -x"
     echo "  -o communityFileName : Generate output file containing communities"
+    echo "  -p partitionerType   : Use the specified partitioner: 0=original, 1=low bandwidth (default=0)"
     echo "  -x                   : Use existing partitions from disks"
     echo "  -h                   : Print this help message"
 }
@@ -50,8 +51,9 @@ dataSource=
 numPartitions=9
 numPartitionsOpt="-num_pars ${numPartitions}"
 nOpt="-n ${numPartitions}"
+partitionerType=0
 
-while getopts ":a:bc:d:hln:o:s:w:x" opt
+while getopts ":a:bc:d:hln:o:p:s:w:x" opt
 do
 case $opt in
     a) alveoCard=$OPTARG;;
@@ -62,6 +64,7 @@ case $opt in
     l) clusterIps="127.0.0.1";;
     n) numPartitions=$OPTARG; numPartitionsOpt="-num_pars ${numPartitions}"; nOpt="-n ${numPartitions}";;
     o) communityFileName=$OPTARG;;
+    p) partitionerType=$OPTARG;;
     s) dataSource=$OPTARG;;
     w) workerNum=$OPTARG;;
     x) doPartitioning=0;;
@@ -83,6 +86,11 @@ elif [ $alveoCard == "u55c" ]; then
 else
     echo "ERROR: Unrecognized Alveo card ${alveoCard}.  Must be u50 or u55c."
     exit 2
+fi
+
+partitionerOpt=-create_alveo_partitions
+if [ $partitionerType -eq 1 ]; then
+    partitionerOpt=-create_alveo_LBW_partitions
 fi
 
 buildType=Release
@@ -126,7 +134,7 @@ if [ $workerNum -eq 0 ]; then
         rm -rf $projectDir
         mkdir -p $projectDir
 	$buildDir/cppdemo $dataSource -kernel_mode $kernelMode $numPartitionsOpt \
-            -create_alveo_partitions -name $projectName
+            $partitionerOpt -name $projectName
     fi
 
     # Loop through the number of workers (IP list minus the first), launching each worker in the background via ssh
