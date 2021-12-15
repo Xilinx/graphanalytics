@@ -35,7 +35,7 @@ pluginLocalAlveoProductPath=$SCRIPTPATH/../../../../../mis/staging
 # The name of supported XCLBIN files
 pluginXclbinNameU50=mis_xilinx_u50_gen3x16_xdma_201920_3.xclbin
 pluginXclbinNameAwsF1=
-pluginXclbinNameU55C=
+pluginXclbinNameU55C=mis_xilinx_u55c_gen3x16_xdma_2_202110_1.xclbin
 
 # The name of the Alveo Product's .so file
 pluginLibName=libXilinxMis.so

@@ -218,7 +218,7 @@ L2_BUILD_DIR_U50 = $(L2_TOP_DIR_U50)/build_dir.hw.$(L2_XDEVICE_U50)
 XCLBIN_NAME_U50 = fuzzy_xilinx_u50_gen3x16_xdma_201920_3.xclbin 
 XCLBIN_FILE_U50 = $(L2_BUILD_DIR_U50)/$(XCLBIN_NAME_U50)
 XCLBIN_INSTALLED_NAME_U50 = $(XCLBIN_NAME_U50)
-XCLBIN_INSTALLED_U50 =/opt/xilinx/apps/graphanalytics/fuzzymatch/1.0/xclbin/$(XCLBIN_INSTALLED_NAME_U50)
+XCLBIN_INSTALLED_U50 =/opt/xilinx/apps/graphanalytics/fuzzymatch/$(PRODUCT_VER)/xclbin/$(XCLBIN_INSTALLED_NAME_U50)
 
 XCLBIN_BUILD_DIR=$(L2_TOP_DIR_U50)
 
@@ -230,7 +230,7 @@ L2_BUILD_DIR_F1 = $(L2_TOP_DIR_F1)/build_dir.hw.$(L2_XDEVICE_F1)
 XCLBIN_NAME_F1 = fuzzy_xilinx_aws-vu9p-f1_shell-v04261818_201920_2.awsxclbin
 XCLBIN_FILE_F1 = $(L2_BUILD_DIR_F1)/$(XCLBIN_NAME_F1)
 XCLBIN_INSTALLED_NAME_F1 = $(XCLBIN_NAME_F1)
-XCLBIN_INSTALLED_F1 =/opt/xilinx/apps/graphanalytics/fuzzymatch/1.0/xclbin/$(XCLBIN_INSTALLED_NAME_F1)
+XCLBIN_INSTALLED_F1 =/opt/xilinx/apps/graphanalytics/fuzzymatch/$(PRODUCT_VER)/xclbin/$(XCLBIN_INSTALLED_NAME_F1)
 
 .PHONY: xclbin
 

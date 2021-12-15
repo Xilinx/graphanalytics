@@ -90,6 +90,7 @@ help:
 	@echo "Parameter descriptions:"
 	@echo "deviceNames : Target device name. Supported devices: "
 	@echo "              xilinx_u50_gen3x16_xdma_201920_3 (default)"
+	@echo "              xilinx_u55c_gen3x16_xdma_base_2"
 	@echo "graphName   : graph name (default=travelplan_<username>"
 	@echo "tp2tr       : CSV file with travel plan to truck mapping"
 	@echo "tp2wo       : CSV file with travel plan to work order mapping"

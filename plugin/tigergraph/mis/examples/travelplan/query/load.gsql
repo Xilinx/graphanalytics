@@ -19,8 +19,8 @@ USE GRAPH @graph
 BEGIN
     CREATE LOADING JOB load_xgraph FOR GRAPH @graph
     {
-        DEFINE FILENAME tp2tr_infile = "../data/travelplan2trucks100.csv";
-        DEFINE FILENAME tp2wo_infile = "../data/travelplan2workorders100.csv"
+        DEFINE FILENAME tp2tr_infile;
+        DEFINE FILENAME tp2wo_infile;
        
         DEFINE HEADER tp2tr_header = "TravelPlan", "Truck";
         DEFINE HEADER tp2wo_header = "TravelPlan", "WorkOrder", "Sequence";

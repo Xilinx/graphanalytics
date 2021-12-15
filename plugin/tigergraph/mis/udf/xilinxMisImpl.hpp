@@ -38,7 +38,7 @@ namespace xilMis {
 
 using Mutex = std::mutex;
 
-#define XILINX_MIS_DEBUG_MUTEX
+//#define XILINX_MIS_DEBUG_MUTEX
 
 #ifdef XILINX_MIS_DEBUG_MUTEX
 struct Lock {
@@ -70,11 +70,72 @@ public:
         row_id_ = 0;
         rowPtr_.push_back(0);
 
+        // PLUGIN_CONFIG_PATH will be replaced by the actual config path during plugin installation
+        std::fstream config_json(PLUGIN_CONFIG_PATH, std::ios::in);
+        if (!config_json) {
+            std::cout << "ERROR: config file doesn't exist:" << PLUGIN_CONFIG_PATH << std::endl;
+            return;
+        }
+
+        char line[1024] = {0};
+        char* token;
+        nodeIps_.clear();
+        bool scanNodeIp;
+#ifdef XILINX_MIS_DEBUG_ON
+        std::cout << "DEBUG: Parsing config file " << PLUGIN_CONFIG_PATH << std::endl;
+#endif
+        while (config_json.getline(line, sizeof(line))) {
+            token = strtok(line, "\"\t ,}:{\n");
+            scanNodeIp = false;
+            while (token != NULL) {
+                if (!std::strcmp(token, "curNodeHostname")) {
+                    token = strtok(NULL, "\"\t ,}:{\n");
+                    curNodeHostname_ = token;
+                } else if (!std::strcmp(token, "curNodeIp")) {
+                    token = strtok(NULL, "\"\t ,}:{\n");
+                    curNodeIp_ = token;
+                } else if (!std::strcmp(token, "deviceName")) {
+                    token = strtok(NULL, "\"\t ,}:{\n");
+                    deviceNames_ = token;
+#ifdef XILINX_MIS_DEBUG_ON
+                    std::cout << "    deviceNames_=" << deviceNames_ << std::endl;
+#endif
+                } else if (!std::strcmp(token, "xGraphStore")) {
+                    token = strtok(NULL, "\"\t ,}:{\n");
+                    xGraphStorePath_ = token;
+                } else if (!std::strcmp(token, "numDevices")) {
+                    token = strtok(NULL, "\"\t ,}:{\n");
+                    numDevices_ = atoi(token);
+#ifdef XILINX_MIS_DEBUG_ON
+                    std::cout << "numDevices=" << numDevices_ << std::endl;
+#endif
+                } else if (!std::strcmp(token, "nodeIps")) {
+                    // this field has multipe space separated IPs
+                    scanNodeIp = true;
+                    // read the next token
+                    token = strtok(NULL, "\"\t ,}:{\n");
+                    nodeIps_ += token;
+#ifdef XILINX_MIS_DEBUG_ON
+                    std::cout << "nodeIps_=" << nodeIps_ << std::endl;
+#endif
+                } else if (scanNodeIp) {
+                    // In the middle of nodeIps field
+                    nodeIps_ += " ";
+                    nodeIps_ += token;
+#ifdef XILINX_MIS_DEBUG_ON
+                    std::cout << "nodeIps_=" << nodeIps_ << std::endl;
+#endif
+                }
+                token = strtok(NULL, "\"\t ,}:{\n");
+            }
+        }
+        config_json.close();
+
         // set xclbinPath
         if (deviceNames_ == "xilinx_u50_gen3x16_xdma_201920_3") {
             xclbinPath_ = PLUGIN_XCLBIN_PATH_U50;
-        } else if (deviceNames_ == "xilinx_aws-vu9p-f1_shell-v04261818_201920_2") {
-            xclbinPath_ = PLUGIN_XCLBIN_PATH_AWSF1;
+        } else if (deviceNames_ == "xilinx_u55c_gen3x16_xdma_base_2") {
+            xclbinPath_ = PLUGIN_XCLBIN_PATH_U55C;
         }
 
         std::cout << "DEBUG: " << __FILE__ << "Context"
@@ -107,6 +168,12 @@ private:
 
     std::string deviceNames_ = "xilinx_u50_gen3x16_xdma_201920_3";
     std::string xclbinPath_;
+    uint32_t numDevices_ = 1;
+    std::string nodeIps_;
+    std::string curNodeHostname_;
+    std::string curNodeIp_;
+    std::string xGraphStorePath_;
+
 
 };
 
