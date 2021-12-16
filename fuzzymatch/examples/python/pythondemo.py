@@ -49,13 +49,10 @@ args = parser.parse_args()
 xclbin_path= str(args.xclbin)
 deviceNames= str(args.deviceNames)
 #load csv
-peopleFile = str(args.data_dir) + "people.csv"
+peopleFile = str(args.data_dir) + "all-names.csv"
 trans_num=100
-test_input = str(args.data_dir) + "txdata.csv"
-
-
-stats=pd.read_csv(test_input, delimiter=',',names = ['Id','Company,Channel','OperationType','Contract','Product','ProductSubtype','OperationTypeforAML','Currency','Amount','TransactionDescription','SwiftCode1','Bank1','SwiftCode2','Bank2','NombrePersona1','TipoPersona1','CodigoPersona1','NombrePersona2','TipoPersona2','CodigoPersona2','FechaDeCorte','FechaDeValor'])
-
+test_input = str(args.data_dir) + "new-names.csv"
+stats=pd.read_csv(test_input, delimiter=',', names=['Id','Name'])
 peopleVecs=pd.read_csv(peopleFile, delimiter=',',names = ['Id','Name'])
 
 totalEntities = 10000000
@@ -63,8 +60,7 @@ totalEntities = 10000000
 stats=stats.iloc[1:]
 peopleVecs=peopleVecs.iloc[1:]
 peopleVec=peopleVecs[['Name']]
-#print(peopleVec)
-data_vec=stats[['NombrePersona1','NombrePersona2']]
+data_vec=stats[['Name']]
 
 inputVec=[]
 print(len(peopleVec['Name']))
@@ -84,8 +80,7 @@ test_transaction=[]
 
 
 for idx in range (trans_num):
-    test_transaction.append(data_vec['NombrePersona1'][idx])
-    #test_transaction.append(data_vec['NombrePersona2'][idx])
+    test_transaction.append(data_vec['Name'][idx])
 
 ccnt=0
 result_list=[]
@@ -112,7 +107,7 @@ for idx in range (trans_num):
 #print result
 print('\nTransaction Id, OK/KO, Field of match, Time taken(:ms)')
 for idx in range (trans_num):
-    s=print_result(idx,result_list[idx],performance[idx])
+    s = print_result(idx,result_list[idx],performance[idx])
     print(s)
 #
 print('\nFor FPGA')

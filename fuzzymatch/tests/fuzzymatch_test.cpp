@@ -144,9 +144,7 @@ int main(int argc, const char* argv[]) {
 
     // Add Watch List CSV Files
     std::ifstream f;
-
-
-    const std::string peopleFile = in_dir + "/" + "people.csv";
+    const std::string peopleFile = in_dir + "/" + "all-names.csv";
     f.open(peopleFile);
     if (f.good()) {
         f.close();
@@ -155,33 +153,24 @@ int main(int argc, const char* argv[]) {
         std::cout << "Error: File " << peopleFile << " cannot be found, please check and re-run.\n\n";
         exit(1);
     }
-
-   
-
+ 
     // Read some transactions
-    std::string test_input = in_dir + "/" + "txdata.csv";
+    std::string test_input = in_dir + "/" + "new-names.csv";
     f.open(test_input);
     if (f.good()) {
         f.close();
         f.clear();
     } else {
-        std::cout << "Error: <Input transaction> File " << test_input
+        std::cout << "Error: Test input file " << test_input
                   << " cannot be found, please check and re-run.\n\n";
         exit(1);
     }
 
-    std::vector<std::vector<std::string> > list_trans(2);
- 
-    load_csv(numEntities, -1U, test_input, 15, list_trans[0]); // Load NombrePersona1 column
-    load_csv(numEntities, -1U, test_input, 18, list_trans[1]); // Load NombrePersona2 column
-
-    //std::vector<SwiftMT103> test_transaction(trans_num);
-    std::vector<std::string> test_transaction0(numEntities);
-    std::vector<std::string> test_transaction1(numEntities);
+    std::vector<std::string> list_trans;
+    load_csv(numEntities, -1U, test_input, 1, list_trans); 
+    std::vector<std::string> test_transaction(numEntities);
     for (int i = 0; i < numEntities; i++) {
-     
-        test_transaction0[i] = list_trans[0][i];
-        test_transaction1[i] = list_trans[1][i];
+        test_transaction[i] = list_trans[i];
     }
 
     std::vector<bool> result_set0(numEntities);
@@ -207,8 +196,7 @@ int main(int argc, const char* argv[]) {
         float min = std::numeric_limits<float>::max(), max = 0.0, sum = 0.0;
         for (int i = 0; i < numEntities; i++) {
             auto ts = std::chrono::high_resolution_clock::now();
-            //result_set[i] = checker.check(test_transaction[i]);
-            result_set0[i] = fm.executefuzzyMatch(test_transaction0[i]);
+            result_set0[i] = fm.executefuzzyMatch(test_transaction[i]);
             auto te = std::chrono::high_resolution_clock::now();
             float timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(te - ts).count() / 1000.0f;
             perf0[i] = timeTaken;
@@ -221,7 +209,7 @@ int main(int argc, const char* argv[]) {
         // print the result
         std::cout << "\nTransaction Id, OK/KO, Field of match, Time taken(:ms)" << std::endl;
         for (int i = 0; i < numEntities; i++) {
-            std::string s = print_result(i,result_set0[i],perf0[i]);
+            std::string s = print_result(i, result_set0[i], perf0[i]);
             std::cout << s << std::endl;
         }
 
@@ -245,7 +233,7 @@ int main(int argc, const char* argv[]) {
         float min = std::numeric_limits<float>::max(), max = 0.0, sum = 0.0;
         for (int i = 0; i < numEntities; i++) {
             auto ts = std::chrono::high_resolution_clock::now();
-            bool t = cpu_checker.check(test_transaction0[i]);
+            bool t = cpu_checker.check(test_transaction[i]);
             auto te = std::chrono::high_resolution_clock::now();
             float timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(te - ts).count() / 1000.0f;
             swperf0[i] = timeTaken;

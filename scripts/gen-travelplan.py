@@ -32,7 +32,7 @@ out_fh_tp2tr = open(out_file_tp2tr, 'w')
 out_fh_tp2wo = open(out_file_tp2wo, 'w')
 
 # generate travelplan to truck map
-print("TravelPlan,Truck", file=out_fh_tp2tr)
+print('TravelPlan,Truck', file=out_fh_tp2tr)
 # The travelpaln to trum mapping is N:1
 # The same truck can be mapped to multiple travelplans 
 for i in range(total_travelplans):
@@ -42,7 +42,7 @@ for i in range(total_travelplans):
     print('tp' + str(i) + ',' + 'tr' + str(truck_sel))
 
 # generate travelplan to work order map
-print("TravelPlan,WorkOrder", file=out_fh_tp2wo)
+print('TravelPlan,WorkOrder', file=out_fh_tp2wo)
 # The travelplan and work order mapping is N:M
 # Same travelplan can be mapped to multiple work orders. 
 # Same work order can can be mapped to multiple travelplans. 

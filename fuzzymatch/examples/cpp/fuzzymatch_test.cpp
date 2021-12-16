@@ -146,7 +146,7 @@ int main(int argc, const char* argv[]) {
     std::ifstream f;
 
 
-    const std::string peopleFile = in_dir + "/" + "people.csv";
+    const std::string peopleFile = in_dir + "/" + "all-names.csv";
     f.open(peopleFile);
     if (f.good()) {
         f.close();
@@ -159,29 +159,22 @@ int main(int argc, const char* argv[]) {
    
 
     // Read some transactions
-    std::string test_input = in_dir + "/" + "txdata.csv";
+    std::string test_input = in_dir + "/" + "new-names.csv";
     f.open(test_input);
     if (f.good()) {
         f.close();
         f.clear();
     } else {
-        std::cout << "Error: <Input transaction> File " << test_input
+        std::cout << "Error: Test input file " << test_input
                   << " cannot be found, please check and re-run.\n\n";
         exit(1);
     }
 
-    std::vector<std::vector<std::string> > list_trans(2);
- 
-    load_csv(numEntities, -1U, test_input, 15, list_trans[0]); // Load NombrePersona1 column
-    load_csv(numEntities, -1U, test_input, 18, list_trans[1]); // Load NombrePersona2 column
-
-    //std::vector<SwiftMT103> test_transaction(trans_num);
+    std::vector<std::string> list_trans;
+    load_csv(numEntities, -1U, test_input, 1, list_trans);
     std::vector<std::string> test_transaction0(numEntities);
-    std::vector<std::string> test_transaction1(numEntities);
-    for (int i = 0; i < numEntities; i++) {
-     
-        test_transaction0[i] = list_trans[0][i];
-        test_transaction1[i] = list_trans[1][i];
+    for (int i = 0; i < numEntities; i++) {   
+        test_transaction0[i] = list_trans[i];
     }
 
     std::vector<bool> result_set0(numEntities);
@@ -193,8 +186,8 @@ int main(int argc, const char* argv[]) {
     // Begin to analyze if on mode 0 or 2
     if (work_mode == 0 || work_mode == 2) {
         Options options;
-        options.xclbinPath=xclbin_path;
-        options.deviceNames=deviceNames;
+        options.xclbinPath = xclbin_path;
+        options.deviceNames = deviceNames;
         FuzzyMatch fm(options);
         
         //checker.initialize(xclbin_path, stopKeywordFile, peopleFile, entityFile, BICRefFile, 0); // card 0

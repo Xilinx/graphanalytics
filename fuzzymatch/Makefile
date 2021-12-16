@@ -84,7 +84,7 @@ CCC = g++
 CXX = g++
 # -D PRINTINFO: print additional debug messages
 # -D_GLIBCXX_USE_CXX11_ABI=0
-CXXFLAGS = -std=c++11 -DPRAGMA -Ofast -fopenmp -fmessage-length=0  -fPIC -Wall -Wno-unknown-pragmas -Wno-unused-label \
+CXXFLAGS = -std=c++11 -D_GLIBCXX_USE_CXX11_ABI=0 -DPRAGMA -Ofast -fopenmp -fmessage-length=0  -fPIC -Wall -Wno-unknown-pragmas -Wno-unused-label \
     -Wno-unused-variable -Wno-sign-compare -Wno-unused-result -Wno-unused-but-set-variable \
     -Wno-narrowing -D USE_HBM -fmessage-length=0 
 
@@ -472,7 +472,7 @@ $(foreach f,$(STAGE_LIB_FILES),$(eval $(call STAGE_LIB_RULE,$(f))))
 #STAGE_EXAMPLE_ZIP = examples.zip
 STAGE_EXAMPLE_FILE_NAMES = \
 	cpp/fuzzymatch_test.cpp cpp/Makefile \
-	data/people.csv data/txdata.csv \
+	data/all-names.csv data/new-names.csv \
 	python/pythondemo.py python/run.sh python/README.md
 
 STAGE_EXAMPLE_FILES = $(addprefix examples/,$(STAGE_EXAMPLE_FILE_NAMES))
@@ -608,9 +608,4 @@ cleanpy:
 	rm -rf $(PYTHONENV_NAME)
 
 cleanall: clean cleanpy
-	rm -f ./package/*.deb ./package/*.rpm
-	
-
-
-
-
+	rm -rf ./package/*.deb ./package/*.rpm ./package/_CPack_Packages

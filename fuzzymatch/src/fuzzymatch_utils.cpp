@@ -251,18 +251,18 @@ namespace fuzzymatch {
         std::vector<std::string> vec_pattern;
         // Read Watch List data
         int nerror = 0;
-        std::cout << "Loading people.csv..." << std::flush;
+        std::cout << "INFO: Loading "  << fileName << std::endl;
         nerror = load_csv(max_validated_pattern, -1U, fileName, 1, vec_pattern);
         if (nerror)
         {
-            std::cout << "Failed to load file: people.csv\n";
+            std::cout << "ERROR: Failed to load file " << fileName << std::endl;
             exit(1);
         }
         else
-            std::cout << "completed\n";
+            std::cout << "INFO: completed loading " << fileName << std::endl;
     
         // do pre-sort on pattern LIST
-        preSortbyLength(vec_pattern,this->vec_pattern_grp);
+        preSortbyLength(vec_pattern, this->vec_pattern_grp);
     
         return nerror;
     }
@@ -270,7 +270,7 @@ namespace fuzzymatch {
     XILINX_FUZZYMATCH_IMPL_DECL   
     int FuzzyMatchSW::initialize(std::vector<std::string>& vec_pattern)
     {
-        preSortbyLength(vec_pattern,this->vec_pattern_grp);  
+        preSortbyLength(vec_pattern, this->vec_pattern_grp);  
         return 0;
     }    
     
