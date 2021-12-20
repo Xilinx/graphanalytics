@@ -26,6 +26,7 @@
 #include <string>
 #include <vector>
 #include <cstring>
+#include <unordered_map>
 
 #include "xilinx_apps_common.hpp"
 
@@ -143,10 +144,12 @@ class FuzzyMatch  {
     ~FuzzyMatch() { xilinx_fuzzymatch_destroyImpl(pImpl_); }
     // The intialize process will download FPGA binary to FPGA card, and initialize the HBM/DDR FACTIVA tables.
     int startFuzzyMatch();
-    int fuzzyMatchLoadVec(std::vector<std::string>& patternVec);
+    //int fuzzyMatchLoadVec(std::vector<std::string>& patternVec);
+    int fuzzyMatchLoadVec(std::vector<std::string>& vec_pattern,std::vector<int> vec_id=std::vector<int>());
 
-    // The check method returns whether the transaction is okay, and triggering condition if any.
-    bool executefuzzyMatch(std::string t);
+    // run fuzzymatch in batch mode
+    // return vector of  hit patterns for each input string. 
+    std::vector<std::vector<int>>& executefuzzyMatch(std::vector<std::string> input_patterns, int similarity_level);
 
    private:
      FuzzyMatchImpl *pImpl_ = nullptr;
@@ -162,12 +165,14 @@ class FuzzyMatchSW {
     }
 
     //  initialize the FACTIVA tables and do pre-sort
+    // if vec_id is missing, internally  it will be set as vec_pattern index number
     int initialize(const std::string& fileName);
-    int initialize(std::vector<std::string>& vec_pattern);
+    int initialize(std::vector<std::string>& vec_pattern, std::vector<int> vec_id=std::vector<int>{});
 
 
-    // The check method returns whether the transaction is okay, and triggering condition if any.
-    bool check(const std::string& t);
+    // The check method returns top result id->scores, and triggering condition if any.
+    //bool check(const std::string& t);
+    std::unordered_map<int,int>  check(int threshold, const std::string &ptn_string);
 
    protected:
     size_t max_fuzzy_len;
@@ -177,6 +182,8 @@ class FuzzyMatchSW {
     std::vector<std::vector<std::string> > vec_pattern_grp =
         std::vector<std::vector<std::string> >(max_len_in_char);
 
+    std::vector<std::vector<int> > vec_pattern_id = 
+        std::vector<std::vector<int> >(max_len_in_char);
 
 }; // end class FuzzyMatchSW
 

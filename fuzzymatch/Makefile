@@ -215,9 +215,9 @@ INC_ALL_XCLBINS=1
 L2_TOP_DIR_U50 = $(GRAPH_ANALYTICS_DIR)/L2/fuzzy_kernel
 L2_XDEVICE_U50 = xilinx_u50_gen3x16_xdma_201920_3
 L2_BUILD_DIR_U50 = $(L2_TOP_DIR_U50)/build_dir.hw.$(L2_XDEVICE_U50)
-XCLBIN_NAME_U50 = fuzzy_xilinx_u50_gen3x16_xdma_201920_3.xclbin 
+XCLBIN_NAME_U50 = fuzzy_kernel.xclbin 
 XCLBIN_FILE_U50 = $(L2_BUILD_DIR_U50)/$(XCLBIN_NAME_U50)
-XCLBIN_INSTALLED_NAME_U50 = $(XCLBIN_NAME_U50)
+XCLBIN_INSTALLED_NAME_U50 = fuzzy_xilinx_u50_gen3x16_xdma_201920_3.xclbin
 XCLBIN_INSTALLED_U50 =/opt/xilinx/apps/graphanalytics/fuzzymatch/$(PRODUCT_VER)/xclbin/$(XCLBIN_INSTALLED_NAME_U50)
 
 XCLBIN_BUILD_DIR=$(L2_TOP_DIR_U50)
@@ -365,7 +365,6 @@ EXEC_FILE_NAMES_test = \
 EXECS_test = $(addprefix $(CPP_BUILD_DIR)/,$(EXEC_FILE_NAMES_test))
 
 .PHONY: cppTest cppTest2
-
 # Make in a child process so that we can isolate the run that includes automatic header dependencies
 cppTest: cppBuild
 	@make cppTest2

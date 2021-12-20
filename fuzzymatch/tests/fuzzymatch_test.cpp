@@ -81,6 +81,7 @@ int main(int argc, const char* argv[]) {
     std::string deviceNames;
     unsigned int totalEntities = 10000000;
     unsigned int numEntities = 100;
+    unsigned int similarity_level = 90;
 
     if (parser.getCmdOption("-h")) {
         std::cout << "Usage:\n\ttest.exe -xclbin XCLBIN_PATH -d WATCH_LIST_PATH [-c (0|1|2)]\n" << std::endl;
@@ -130,6 +131,14 @@ int main(int argc, const char* argv[]) {
         }
     }
 
+        if (parser.getCmdOption("--thres", is_check_str)) {
+        try {
+            similarity_level = std::stoi(is_check_str);
+        } catch (...) {
+            similarity_level = 90;
+        }
+    }
+
     if (work_mode == 0)
         std::cout << "Select FPGA-only work mode\n";
     else if (work_mode == 1)
@@ -173,8 +182,9 @@ int main(int argc, const char* argv[]) {
         test_transaction[i] = list_trans[i];
     }
 
-    std::vector<bool> result_set0(numEntities);
-    std::vector<float> perf0(numEntities);
+    //std::vector<bool> result_set0(numEntities);
+    std::vector<std::vector<int>> result_set0(numEntities);
+    float perf0;
 
     std::vector<std::string> peopleVec;
     load_csv(totalEntities, -1U, peopleFile , 1, peopleVec);
@@ -194,25 +204,25 @@ int main(int argc, const char* argv[]) {
 
         fm.fuzzyMatchLoadVec(peopleVec);
         float min = std::numeric_limits<float>::max(), max = 0.0, sum = 0.0;
-        for (int i = 0; i < numEntities; i++) {
+        //for (int i = 0; i < numEntities; i++) {
             auto ts = std::chrono::high_resolution_clock::now();
-            result_set0[i] = fm.executefuzzyMatch(test_transaction[i]);
+            result_set0 = fm.executefuzzyMatch(test_transaction,similarity_level);
             auto te = std::chrono::high_resolution_clock::now();
             float timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(te - ts).count() / 1000.0f;
-            perf0[i] = timeTaken;
+            perf0 = timeTaken;
 
             if (min > timeTaken) min = timeTaken;
             if (max < timeTaken) max = timeTaken;
             sum += timeTaken;
-        }
-
+        //}
+/*
         // print the result
         std::cout << "\nTransaction Id, OK/KO, Field of match, Time taken(:ms)" << std::endl;
         for (int i = 0; i < numEntities; i++) {
             std::string s = print_result(i, result_set0[i], perf0[i]);
             std::cout << s << std::endl;
         }
-
+*/
         std::cout << "\nFor FPGA, ";
         std::cout << numEntities << " transactions were processed.\n";
 
@@ -233,19 +243,35 @@ int main(int argc, const char* argv[]) {
         float min = std::numeric_limits<float>::max(), max = 0.0, sum = 0.0;
         for (int i = 0; i < numEntities; i++) {
             auto ts = std::chrono::high_resolution_clock::now();
-            bool t = cpu_checker.check(test_transaction[i]);
+            std::unordered_map<int,int> swresult = cpu_checker.check(similarity_level,test_transaction[i]);
             auto te = std::chrono::high_resolution_clock::now();
             float timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(te - ts).count() / 1000.0f;
             swperf0[i] = timeTaken;
-            if (work_mode == 2 && t != result_set0[i]) {
-                std::cout << "Trans-" << i << std::endl;
-                std::cout << t << " ";
-                std::cout << result_set0[i] << " ";
-                std::cout << std::endl;
-                nerror++;
+            //if (work_mode == 2 && t != result_set0[i]) {
+            if (work_mode == 2) {
+                if(swresult.size()<100 && swresult.size() != result_set0[i][0]) {
+                    std::cout << "Error: number of matches is NOT matched!!!" << std::endl;
+                    std::cout << swresult.size() << " <-> " << result_set0[i][0] << std::endl;
+                    nerror++;
+                } else {
+                    std::cout << "total number of matched string = " << swresult.size() << std::endl;
+                    for (unsigned int j = 0; j < result_set0[i][0]; i++) {
+                        int hw_id_t = result_set0[i][j+1];
+                        int hw_score_t = result_set0[i][101 + j];
+                        if (swresult.find(hw_id_t) != swresult.end() && swresult[hw_id_t] == hw_score_t) {
+                            std::cout << "Check matched. <" << hw_id_t << ", " << hw_score_t << ">" << std::endl;
+                        } else {
+                            nerror++;
+                            if (swresult.find(hw_id_t) == swresult.end())
+                                std::cout << "ID is not matched!!! " << std::endl;
+                            else
+                                std::cout << "Score is not matched!!! " << swresult[hw_id_t] << " <-> " << hw_score_t
+                                          << std::endl;
+                        }
+                    }
+                }
+
             } else {                
-                std::string s = print_result(i, t, swperf0[i]);
-                std::cout << s << std::endl;                
 
                 if (min > swperf0[i]) min = swperf0[i];
                 if (max < swperf0[i]) max = swperf0[i];
