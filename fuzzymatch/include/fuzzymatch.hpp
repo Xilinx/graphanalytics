@@ -149,7 +149,7 @@ class FuzzyMatch  {
 
     // run fuzzymatch in batch mode
     // return vector of  hit patterns for each input string. 
-    std::vector<std::vector<int>>& executefuzzyMatch(std::vector<std::string> input_patterns, int similarity_level);
+    std::vector<std::vector<std::pair<int,int>>> executefuzzyMatch(std::vector<std::string> input_patterns, int similarity_level);
 
    private:
      FuzzyMatchImpl *pImpl_ = nullptr;

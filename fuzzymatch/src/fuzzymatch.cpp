@@ -75,12 +75,8 @@ namespace fuzzymatch {
         int fuzzyMatchLoadVec(std::vector<std::string>& vec_pattern,std::vector<int> vec_id=std::vector<int>());
         // The check method returns whether the transaction is okay, and triggering condition if any.
         //bool executefuzzyMatch(const std::string& t); 
-        std::vector<std::vector<int>>& executefuzzyMatch(std::vector<std::string> input_patterns, int similarity_level);
-        /*
-        void preCalculateOffsetPerPU(std::vector<std::vector<std::string> >& vec_grp_str,
-                        std::vector<int>& vec_base,
-                        std::vector<int>& vec_offset);
-                        */
+        std::vector<std::vector<std::pair<int,int>>> executefuzzyMatch(std::vector<std::string> input_patterns, int similarity_level);
+
         void preCalculateOffsetPerPU(
                     std::vector<std::vector<std::pair<int, std::string> > >& vec_grp_str,
                     std::vector<int> &vec_base,
@@ -101,27 +97,7 @@ namespace fuzzymatch {
             }
         return reinterpret_cast<T*>(ptr);
     }
-    /*
-    int getRange(const std::string& input, std::vector<int> &vec_base, std::vector<int> &vec_offset, int &base, int &nrow)
-    {
-        int cnt = 0;
-        int len = input.length();
-        if (len == 0)
-        {
-            return -1;
-        }
-        int med = getMaxDistance(len);
-    
-        base = vec_base[len - med] * 3; // as 128-bit data width in AXI
-        for (int i = len - med; i <= len + med; i++)
-        {
-            cnt += vec_offset[i];
-        }
-    
-        nrow = cnt * 3;
-    
-        return 0;
-    }*/
+
     int getRange(int similarity_level,
              std::string& input,
              std::vector<int>& vec_base,
@@ -237,35 +213,7 @@ namespace fuzzymatch {
             std::string krnl_full_name = krnl_name + ":{" + krnl_name + "_" + std::to_string(i + 1) + "}";
             fuzzy[i] = cl::Kernel(prg, krnl_full_name.c_str(), &err);
         }
-    /*
-        fuzzy[0] = cl::Kernel(prg, "fuzzy_kernel_1");
-        fuzzy[1] = cl::Kernel(prg, "fuzzy_kernel_2");
-    
-        std::size_t u50_found = devName.find("u50");
-        std::size_t u200_found = devName.find("u200");
-        std::size_t u250_found = devName.find("u250");
-        std::size_t f1_found = devName.find("aws-vu9p-f1");
-        if (u50_found != std::string::npos || u200_found != std::string::npos || f1_found != std::string::npos)
-        {
-            boost = 0;
-        }
-        else if (u250_found != std::string::npos)
-        {
-            boost = 1;
-        }
-        else
-        {
-            std::cout << "Only U50/U200/U250/AWS-F1 is supported so far, please check it "
-                            "and re-run"
-                        << std::endl;
-            exit(1);
-        }
-    
-        if (boost)
-        {
-            fuzzy[2] = cl::Kernel(prg, "fuzzy_kernel_3");
-            fuzzy[3] = cl::Kernel(prg, "fuzzy_kernel_4");
-        }*/
+
     
         return 0;
     
@@ -384,13 +332,13 @@ namespace fuzzymatch {
     
 
     //bool FuzzyMatch::executefuzzyMatch(std::string t,int similarity_level)
-    std::vector<std::vector<int>>& FuzzyMatch::executefuzzyMatch(std::vector<std::string> input_patterns,int similarity_level)  
+    std::vector<std::vector<std::pair<int,int>>> FuzzyMatch::executefuzzyMatch(std::vector<std::string> input_patterns,int similarity_level)  
     { 
         return pImpl_->executefuzzyMatch(input_patterns, similarity_level);
     }
 
     //bool FuzzyMatchImpl::executefuzzyMatch(const std::string& t, int similarity_level)
-    std::vector<std::vector<int>>& FuzzyMatchImpl::executefuzzyMatch(std::vector<std::string> input_patterns, int similarity_level)
+    std::vector<std::vector<std::pair<int,int>>> FuzzyMatchImpl::executefuzzyMatch(std::vector<std::string> input_patterns, int similarity_level)
     {
         int batch_num = input_patterns.size();
         cl_mem_ext_ptr_t mext_i[2], mext_o[2];
@@ -420,27 +368,38 @@ namespace fuzzymatch {
             //buf_result[i] = (uint32_t*)malloc(sizeof(uint32_t) * batch_num * 201);
         }
         double avg_time = 0.0;
+
+        int batchNumForkernel[2];
+        if(batch_num%2==0) {
+            batchNumForkernel[0]=batch_num/2;
+            batchNumForkernel[1]= batch_num/2;
+        } else {
+            batchNumForkernel[0] = (batch_num+1)/2;
+            batchNumForkernel[1] = batch_num - (batch_num+1)/2;
+        }
         //for (int b = 0; b < (2 / (2 * batch_num)); b++) {
             // Fill this batch processing
             for (int i = 0; i < batch_num; i++) { // each batch
                 //for (int k = 0; k < 2; k++) {     // each kernel
                 // first half of strings run in kernel0; the second half of input strings run in kernel 1
-                int k = i<batch_num/2 ? 0:1;
+                int k = (i < (batch_num+1)/2) ? 0:1;
                 std::string ptn_string = input_patterns[i];
                 std::cout << "Trans-" << i << ", Pattern String: <" << ptn_string
                             << "> being allocated to kernel-" << k << std::endl;
                 getRange(threshold, ptn_string, vec_base, vec_offset, base_trans, nrow_trans);
-                buf_f_i[k][i * (3 + fold_len_per_str)] = base_trans;
-                buf_f_i[k][i * (3 + fold_len_per_str) + 1] = nrow_trans;
-                buf_f_i[k][i * (3 + fold_len_per_str) + 2] = threshold;
+                //int j= (k==1) ? (i-batchNumForkernel[0]) : i ;
+                int localIdx = i % ((batch_num+1)/2);
+                buf_f_i[k][localIdx * (3 + fold_len_per_str)] = base_trans;
+                buf_f_i[k][localIdx * (3 + fold_len_per_str) + 1] = nrow_trans;
+                buf_f_i[k][localIdx * (3 + fold_len_per_str) + 2] = threshold;
                 for (unsigned int j = 0; j < max_fuzzy_len; j++) {
                     if (j < ptn_string.size())
-                        buf_f_i[k][i * (3 + fold_len_per_str) + 3 + (j / 4)]((3 - j % 4) * 8 + 7, (3 - j % 4) * 8) =
+                        buf_f_i[k][localIdx * (3 + fold_len_per_str) + 3 + (j / 4)]((3 - j % 4) * 8 + 7, (3 - j % 4) * 8) =
                             ptn_string.at(j);
                     else
-                        buf_f_i[k][i * (3 + fold_len_per_str) + 3 + (j / 4)]((3 - j % 4) * 8 + 7, (3 - j % 4) * 8) = 0;
+                        buf_f_i[k][localIdx * (3 + fold_len_per_str) + 3 + (j / 4)]((3 - j % 4) * 8 + 7, (3 - j % 4) * 8) = 0;
                 }
-                buf_f_i[k][(i + 1) * (3 + fold_len_per_str) - 1](7, 0) = ptn_string.size();
+                buf_f_i[k][(localIdx + 1) * (3 + fold_len_per_str) - 1](7, 0) = ptn_string.size();
                 //}
             }
 
@@ -451,28 +410,39 @@ namespace fuzzymatch {
         std::vector<std::vector<cl::Event> > events_read =
             std::vector<std::vector<cl::Event> >(2, std::vector<cl::Event>(1));
             // h2d + kernel run + d2h
-        for (int k = 0; k < 2; k++) {
+        //for (int k = 0; k < 2; k++) {
+        //corner case batch num =1 
+        int idx=0;
+  
+        
+
+        while(idx<batch_num && idx<2) {
+            int k = idx%2;
             queue.enqueueWriteBuffer(buf_field_i[k], CL_FALSE, 0, sizeof(uint32_t) * batch_num * (3 + fold_len_per_str),
                                         buf_f_i[k], nullptr, &events_write[k][0]);
             int j = 0;
-            fuzzy[k].setArg(j++, batch_num);
+            
+            fuzzy[k].setArg(j++, batchNumForkernel[k]);
             fuzzy[k].setArg(j++, buf_field_i[k]);
             for (int m = k * PU_NUM; m < (k + 1) * PU_NUM; m++) fuzzy[k].setArg(j++, buf_csv[m]);
             fuzzy[k].setArg(j++, buf_field_o[k]);
             queue.enqueueTask(fuzzy[k], &events_write[k], &events_kernel[k][0]);
             queue.enqueueReadBuffer(buf_field_o[k], CL_FALSE, 0, sizeof(uint32_t) * batch_num * 201, buf_result[k],
                                     &events_kernel[k], &events_read[k][0]);
+            idx++;
         }
+        //}
         queue.flush();
         queue.finish();
-        std::vector<std::vector<int>> results(batch_num); // for each pattern string store top 100 matched patterns. fixed size 201 ints. 0 th is hit number ; 1..100 is match id; 101..200 is score
-        for(int i = 0;i < batch_num; i++){
-            for(int j=0; j< 201; j++) {
-                int k = i<batch_num/2 ? 0:1;
-                results[i].push_back(buf_result[k][j]);
-            }
-                //results[i].push_back(buf_result[i][j].to_int());
-               
+        //std::vector<std::vector<int>> results(batch_num); // for each pattern string store top 100 matched patterns. fixed size 201 ints. 0 th is hit number ; 1..100 is match id; 101..200 is score
+        std::vector<std::vector<std::pair<int,int>>> results(batch_num);
+        for(int bi = 0;bi < batch_num; bi++){
+            int i = bi % ((batch_num+1)/2);
+            int k = (bi<(batch_num+1)/2) ? 0 :1;
+            int cnt = buf_result[k][i*201]; 
+            for(int j=0; j<cnt; j++){
+                results[bi].push_back(std::make_pair(buf_result[k][i*201 + 1+j],buf_result[k][i*201+101+j]));
+            }               
         }
         
         return results;

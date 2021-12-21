@@ -53,7 +53,7 @@ namespace fuzzymatch {
     int load_csv(const size_t max_entry_num, const size_t max_field_len, const std::string &file_path,
                     const unsigned col, std::vector<std::string> &vec)
     {
-        std::cout << "INFO: Loading " << max_entry_num << " entities from CSV file " << file_path << std::endl;
+        //std::cout << "INFO: Loading " << max_entry_num << " entities from CSV file " << file_path << std::endl;
     
         std::ifstream file(file_path.c_str());
         if (!file.is_open())
