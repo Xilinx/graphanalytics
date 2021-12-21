@@ -81,6 +81,7 @@ int main(int argc, const char* argv[]) {
     std::string deviceNames;
     unsigned int totalEntities = 10000000;
     unsigned int numEntities = 100;
+    unsigned int similarity_level = 90;
 
     if (parser.getCmdOption("-h")) {
         std::cout << "Usage:\n\ttest.exe -xclbin XCLBIN_PATH -d WATCH_LIST_PATH [-c (0|1|2)]\n" << std::endl;
@@ -107,14 +108,14 @@ int main(int argc, const char* argv[]) {
             work_mode = 0;
         }
     }
-    if (parser.getCmdOption("-devices", deviceNames)) {
+    if (parser.getCmdOption("--devices", deviceNames)) {
         std::cout << "INFO: Set deviceNames to " << deviceNames << std::endl;
     } else {
     	deviceNames = "xilinx_u50_gen3x16_xdma_201920_3";
         std::cout << "INFO: Use default deviceNames " << deviceNames << std::endl;
     }
     
-    if (parser.getCmdOption("-total_entities", is_check_str)) {
+    if (parser.getCmdOption("--total_entities", is_check_str)) {
         try {
             totalEntities = std::stoi(is_check_str);
         } catch (...) {
@@ -122,11 +123,19 @@ int main(int argc, const char* argv[]) {
         }
     }
 
-    if (parser.getCmdOption("-num_entities", is_check_str)) {
+    if (parser.getCmdOption("--num_entities", is_check_str)) {
         try {
             numEntities = std::stoi(is_check_str);
         } catch (...) {
             numEntities = 100;
+        }
+    }
+
+        if (parser.getCmdOption("--thres", is_check_str)) {
+        try {
+            similarity_level = std::stoi(is_check_str);
+        } catch (...) {
+            similarity_level = 90;
         }
     }
 
@@ -144,8 +153,6 @@ int main(int argc, const char* argv[]) {
 
     // Add Watch List CSV Files
     std::ifstream f;
-
-
     const std::string peopleFile = in_dir + "/" + "all-names.csv";
     f.open(peopleFile);
     if (f.good()) {
@@ -155,9 +162,7 @@ int main(int argc, const char* argv[]) {
         std::cout << "Error: File " << peopleFile << " cannot be found, please check and re-run.\n\n";
         exit(1);
     }
-
-   
-
+ 
     // Read some transactions
     std::string test_input = in_dir + "/" + "new-names.csv";
     f.open(test_input);
@@ -171,14 +176,15 @@ int main(int argc, const char* argv[]) {
     }
 
     std::vector<std::string> list_trans;
-    load_csv(numEntities, -1U, test_input, 1, list_trans);
-    std::vector<std::string> test_transaction0(numEntities);
-    for (int i = 0; i < numEntities; i++) {   
-        test_transaction0[i] = list_trans[i];
+    load_csv(numEntities, -1U, test_input, 1, list_trans); 
+    std::vector<std::string> test_transaction(numEntities);
+    for (int i = 0; i < numEntities; i++) {
+        test_transaction[i] = list_trans[i];
     }
 
-    std::vector<bool> result_set0(numEntities);
-    std::vector<float> perf0(numEntities);
+    //std::vector<bool> result_set0(numEntities);
+    std::vector<std::vector<std::pair<int,int>>> result_set0(numEntities);
+    float perf0;
 
     std::vector<std::string> peopleVec;
     load_csv(totalEntities, -1U, peopleFile , 1, peopleVec);
@@ -186,8 +192,8 @@ int main(int argc, const char* argv[]) {
     // Begin to analyze if on mode 0 or 2
     if (work_mode == 0 || work_mode == 2) {
         Options options;
-        options.xclbinPath = xclbin_path;
-        options.deviceNames = deviceNames;
+        options.xclbinPath=xclbin_path;
+        options.deviceNames=deviceNames;
         FuzzyMatch fm(options);
         
         //checker.initialize(xclbin_path, stopKeywordFile, peopleFile, entityFile, BICRefFile, 0); // card 0
@@ -198,25 +204,16 @@ int main(int argc, const char* argv[]) {
 
         fm.fuzzyMatchLoadVec(peopleVec);
         float min = std::numeric_limits<float>::max(), max = 0.0, sum = 0.0;
-        for (int i = 0; i < numEntities; i++) {
-            auto ts = std::chrono::high_resolution_clock::now();
-            //result_set[i] = checker.check(test_transaction[i]);
-            result_set0[i] = fm.executefuzzyMatch(test_transaction0[i]);
-            auto te = std::chrono::high_resolution_clock::now();
-            float timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(te - ts).count() / 1000.0f;
-            perf0[i] = timeTaken;
+   
+        auto ts = std::chrono::high_resolution_clock::now();
+        result_set0 = fm.executefuzzyMatch(test_transaction,similarity_level);
+        auto te = std::chrono::high_resolution_clock::now();
+        float timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(te - ts).count() / 1000.0f;
+        perf0 = timeTaken;
 
-            if (min > timeTaken) min = timeTaken;
-            if (max < timeTaken) max = timeTaken;
-            sum += timeTaken;
-        }
-
-        // print the result
-        std::cout << "\nTransaction Id, OK/KO, Field of match, Time taken(:ms)" << std::endl;
-        for (int i = 0; i < numEntities; i++) {
-            std::string s = print_result(i,result_set0[i],perf0[i]);
-            std::cout << s << std::endl;
-        }
+        if (min > timeTaken) min = timeTaken;
+        if (max < timeTaken) max = timeTaken;
+        sum += timeTaken;
 
         std::cout << "\nFor FPGA, ";
         std::cout << numEntities << " transactions were processed.\n";
@@ -238,19 +235,33 @@ int main(int argc, const char* argv[]) {
         float min = std::numeric_limits<float>::max(), max = 0.0, sum = 0.0;
         for (int i = 0; i < numEntities; i++) {
             auto ts = std::chrono::high_resolution_clock::now();
-            bool t = cpu_checker.check(test_transaction0[i]);
+            std::unordered_map<int,int> swresult = cpu_checker.check(similarity_level,test_transaction[i]);
             auto te = std::chrono::high_resolution_clock::now();
             float timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(te - ts).count() / 1000.0f;
             swperf0[i] = timeTaken;
-            if (work_mode == 2 && t != result_set0[i]) {
-                std::cout << "Trans-" << i << std::endl;
-                std::cout << t << " ";
-                std::cout << result_set0[i] << " ";
-                std::cout << std::endl;
-                nerror++;
-            } else {                
-                std::string s = print_result(i, t, swperf0[i]);
-                std::cout << s << std::endl;                
+            //if (work_mode == 2 && t != result_set0[i]) {
+            if (work_mode == 2) {
+                if(swresult.size()<100 && swresult.size() != result_set0[i].size()) {
+                    std::cout << "Error: Trans-"<< i << " number of matches is NOT matched!!!" << std::endl;
+                    std::cout << swresult.size() << " <-> " << result_set0[i].size() << std::endl;
+                    nerror++;
+                } else {
+                    std::cout << "total number of matched string = " << swresult.size() << std::endl;
+                    for (unsigned int j = 0; j < result_set0[i].size(); j++) {
+                        int hw_id_t = result_set0[i][j].first;
+                        int hw_score_t = result_set0[i][j].second;
+                        if (swresult.find(hw_id_t) != swresult.end() && swresult[hw_id_t] == hw_score_t) {
+                            std::cout << "Check matched. <" << hw_id_t << ", " << hw_score_t << ">" << std::endl;
+                        } else {
+                            nerror++;
+                            if (swresult.find(hw_id_t) == swresult.end())
+                                std::cout << "ID is not matched!!! " << std::endl;
+                            else
+                                std::cout << "Score is not matched!!! " << swresult[hw_id_t] << " <-> " << hw_score_t
+                                          << std::endl;
+                        }
+                    }
+                }              
 
                 if (min > swperf0[i]) min = swperf0[i];
                 if (max < swperf0[i]) max = swperf0[i];
@@ -263,7 +274,7 @@ int main(int argc, const char* argv[]) {
         std::cout << "----------------------------------------" << std::endl;
         std::cout << min << "\t\t" << max << "\t\t" << sum / (numEntities - nerror) << std::endl;
         std::cout << "----------------------------------------" << std::endl;
-
+    
         if (work_mode == 2) {
             if (nerror != 0) {
                 std::cout << "Error: faild to check " << nerror << " transactions!\n";
