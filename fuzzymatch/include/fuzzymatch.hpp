@@ -148,7 +148,8 @@ class FuzzyMatch  {
     int fuzzyMatchLoadVec(std::vector<std::string>& vec_pattern,std::vector<int> vec_id=std::vector<int>());
 
     // run fuzzymatch in batch mode
-    // return vector of  hit patterns for each input string. 
+    // return vector of  hit patterns in pairs {id,score} for each input string. 
+    // for each string , return maximum top 100 of hit patterns.
     std::vector<std::vector<std::pair<int,int>>> executefuzzyMatch(std::vector<std::string> input_patterns, int similarity_level);
 
    private:

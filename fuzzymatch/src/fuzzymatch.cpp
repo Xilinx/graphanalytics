@@ -24,10 +24,16 @@
 
 namespace xilinx_apps {
 namespace fuzzymatch {
-    //extern const int max_validated_pattern;
-    //extern const size_t max_len_in_char;
-    //extern unsigned int totalThreadNum;
-    //extern const size_t max_pattern_len_in_char; // in char
+    #ifdef AWSF1
+    const int max_num_of_entries_for_big_tbl = 100*1024*1024;
+    //For DDR-based AWS F1/U200/U250 cards, the maximum batch_num should be 4096*1024
+    const int max_batch_num = 4096*1024;
+    #else
+    const int max_num_of_entries_for_big_tbl = 25*1024*1024;
+    //For U50, each HBM bank is 256MB, the batch_num could be set up to 256*1024.
+    const int max_batch_num = 256*1024;
+    #endif
+
     const int max_fuzzy_len=64;
     class FuzzyMatchImpl {
     public:
@@ -53,28 +59,21 @@ namespace fuzzymatch {
             std::vector<std::vector<std::string> >(max_len_in_char);
         std::vector<std::vector<int> > vec_pattern_id = 
             std::vector<std::vector<int> > (max_len_in_char);
-        //std::vector<int> vec_base = std::vector<std::vector<int> >;
-        //std::vector<int> vec_offset = std::vector<std::vector<int> >;
+      
         std::vector<int> vec_base ;
         std::vector<int> vec_offset ;
-    
-        //cl::Buffer buf_field_i1;
-        //cl::Buffer buf_field_i2;
         cl::Buffer buf_csv[2 * PU_NUM];
-        //cl::Buffer buf_field_o1;
-        //cl::Buffer buf_field_o2;
         cl::Buffer buf_field_i[2];
         cl::Buffer buf_field_o[2];
 
-      //  std::vector<cl::Event> events_kernel;
-      //  std::vector<cl::Event> events_read;
     
         int getDevice(const std::string& deviceNames);
         int startFuzzyMatch(const std::string& xclbinPath, const std::string& deviceNames);
-        //int fuzzyMatchLoadVec(std::vector<std::string>& patternVec);
+
         int fuzzyMatchLoadVec(std::vector<std::string>& vec_pattern,std::vector<int> vec_id=std::vector<int>());
-        // The check method returns whether the transaction is okay, and triggering condition if any.
-        //bool executefuzzyMatch(const std::string& t); 
+        
+        // batch mode
+        // for each string in input_patterns vectors, run fuzzymatch, return maximum top 100 matched results in pair format {id,score} 
         std::vector<std::vector<std::pair<int,int>>> executefuzzyMatch(std::vector<std::string> input_patterns, int similarity_level);
 
         void preCalculateOffsetPerPU(
@@ -227,12 +226,26 @@ namespace fuzzymatch {
     int FuzzyMatchImpl::fuzzyMatchLoadVec(std::vector<std::string>& vec_pattern,std::vector<int> vec_id)
     {
         std::cout << "INFO: FuzzyMatchImpl::fuzzyMatchLoadVec vec_pattern size=" << vec_pattern.size() << std::endl;
-        
+        // check big table size should ot larger than max_num_of_entries_for_big_tbl
+        if (vec_pattern.size() > max_num_of_entries_for_big_tbl) {
+            std::ostringstream oss;
+            oss << "Input Pattern vector size should not larger than" << max_num_of_entries_for_big_tbl << "; Please split pattern vector properly and run again" <<std::endl;
+            throw xilinx_apps::fuzzymatch::Exception(oss.str());
+            std::cerr << "Input Pattern vector size should not larger than" << max_num_of_entries_for_big_tbl << "; Please split pattern vector properly and run again" <<std::endl;
+            abort();
+        }
         //group the pattern id
         if(!vec_id.empty()){    
             for (int idx=0; idx < vec_pattern.size(); idx++) {
                 size_t len = vec_pattern[idx].length();
-                assert(len < max_pattern_len_in_char && "Defined <max_people_len_in_char> is not enough!");
+                //assert(len < max_pattern_len_in_char && "Defined <max_people_len_in_char> is not enough!");
+                 if (len > max_fuzzy_len) {
+                    std::ostringstream oss;
+                    oss << "the string " << vec_pattern[idx] << " length should not larger than" << max_fuzzy_len <<std::endl;
+                    throw xilinx_apps::fuzzymatch::Exception(oss.str());
+                    std::cerr << "ERROR: the string " << vec_pattern[idx] << " length should not larger than" << max_fuzzy_len <<std::endl;
+                    abort();
+                }
                 vec_pattern_id[len].push_back(vec_id[idx]);
             }
         } else {
@@ -240,7 +253,14 @@ namespace fuzzymatch {
             int id_cnt = 0;
             for (std::vector<std::string>::iterator it = vec_pattern.begin(); it != vec_pattern.end(); ++it) {
                 size_t len = it->length();
-                assert(len < max_pattern_len_in_char && "Defined <max_people_len_in_char> is not enough!");
+                //assert(len < max_pattern_len_in_char && "Defined <max_people_len_in_char> is not enough!");
+                if (len > max_fuzzy_len) {
+                    std::ostringstream oss;
+                    oss << "the string " << *it << " length should not larger than" << max_fuzzy_len <<std::endl;
+                    throw xilinx_apps::fuzzymatch::Exception(oss.str());
+                    std::cerr << "ERROR: the string " << *it << " length should not larger than" << max_fuzzy_len <<std::endl;
+                    abort();
+                }
                 vec_pattern_id[len].push_back(++id_cnt);
             }
         }
@@ -341,6 +361,14 @@ namespace fuzzymatch {
     std::vector<std::vector<std::pair<int,int>>> FuzzyMatchImpl::executefuzzyMatch(std::vector<std::string> input_patterns, int similarity_level)
     {
         int batch_num = input_patterns.size();
+        //check batch_num should not larger than max_batch_num due to memroy size
+        if (batch_num > max_batch_num) {
+            std::ostringstream oss;
+            oss << "Input patterns size should not larger than " << max_batch_num << "; Please split the input_patterns vector into smaller vectors and run again" <<std::endl;
+            throw xilinx_apps::fuzzymatch::Exception(oss.str());
+            std::cerr << "ERROR: Input patterns size should not larger than " << max_batch_num << "; Please split the input_patterns vector into smaller vectors and run again" <<std::endl;
+            abort();
+        } 
         cl_mem_ext_ptr_t mext_i[2], mext_o[2];
        // cl::Buffer buf_field_i[2], buf_csv[2 * PU_NUM], buf_field_o[2];
 
