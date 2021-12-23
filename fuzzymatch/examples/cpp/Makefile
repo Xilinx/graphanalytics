@@ -23,8 +23,8 @@ help:
 	@echo "  Run options:"
 	@echo "  deviceNames  : Specify Alveo devices to use for computation"
 	@echo "                 Supported devices:"
-	@echo "                 xilinx_u50_gen3x16_xdma_201920_3 "
-	@echo "                 xilinx_aws-vu9p-f1_shell-v04261818_201920_2(default)"
+	@echo "                 xilinx_u50_gen3x16_xdma_201920_3(default) "
+	@echo "                 xilinx_aws-vu9p-f1_shell-v04261818_201920_2"
 	@echo "  numEntities  : Number of entities to match (default=100)"
 	@echo "  runMode      : 0: Run on Alveo Only (default)"
 	@echo "                 1: Run on CPU Only"
@@ -75,11 +75,12 @@ endif
 CXXFLAGS = -std=c++11 -D_GLIBCXX_USE_CXX11_ABI=0 -fPIC -pthread -I$(INCLUDE_PATH) -Wall -Wextra -Wno-unknown-pragmas -Wno-unused-label \
     -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers -Wno-deprecated-declarations
 
-ifdef U50
-    deviceNames ?= xilinx_u50_gen3x16_xdma_201920_3
-else
-    deviceNames ?= xilinx_aws-vu9p-f1_shell-v04261818_201920_2
-endif
+#ifdef U50
+#    deviceNames ?= xilinx_u50_gen3x16_xdma_201920_3
+#else
+#    deviceNames ?= xilinx_aws-vu9p-f1_shell-v04261818_201920_2
+#endif
+deviceNames=xilinx_u50_gen3x16_xdma_201920_3
 XDEVICE = $(basename $(notdir $(deviceNames)))
 
 
@@ -123,8 +124,9 @@ run: $(EXE_FILE)
 	set -e; \
 	. $(XILINX_XRT)/setup.sh; \
 	LD_LIBRARY_PATH=$(LIB_PATH):$$LD_LIBRARY_PATH; \
-	$(abspath $^)  -xclbin $(XCLBIN_FILE) -d ../data -c $(runMode) -devices $(deviceNames) \
-		-total_entities $(totalEntities) -num_entities $(numEntities) 
+	$(abspath $^)  -xclbin $(XCLBIN_FILE) -d ../data -c $(runMode) --devices $(deviceNames) \
+		--total_entities $(totalEntities) --num_entities $(numEntities)
+ 
 
 clean:
 	rm -f $(EXE_FILE)
