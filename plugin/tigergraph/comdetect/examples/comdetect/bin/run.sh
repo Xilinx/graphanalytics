@@ -148,6 +148,15 @@ elif [ "$partition_mode" -eq 3 ]; then
     TOTAL_TIME=$(($(date +%s%3N) - START))
     echo "tg_prenumbered_partition: " $TOTAL_TIME
 
+elif [ "$partition_mode" -eq 4 ]; then
+    echo "Running tg_low_bandwidth_partition"
+    START=$(date +%s%3N)
+    echo gsql -u $username -p $password -g $xgraph \'run query tg_low_bandwidth_partition\([\"Person\"], [\"Coworker\"], \"weight\", \"$alveo_prj\", $num_partitions_node\)\'
+    time gsql -u $username -p $password -g $xgraph "run query tg_low_bandwidth_partition([\"Person\"], [\"Coworker\"], \
+         \"weight\", \"$alveo_prj\", $num_partitions_node)"
+    TOTAL_TIME=$(($(date +%s%3N) - START))
+    echo "tg_prenumbered_partition: " $TOTAL_TIME
+
 else
     echo "Skip partitioning and use existing partitions from xgstore"
 fi

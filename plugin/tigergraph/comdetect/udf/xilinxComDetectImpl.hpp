@@ -30,6 +30,9 @@
 // Enable this to dump an .mtx file of the graph, as seen by the partitioning logic
 //#define XILINX_COM_DETECT_DUMP_MTX
 
+// Enable this macro to disable the bodies of graph extracting UDFs, leaving them as stubs
+//#define XILINX_COM_DETECT_STUBS_ONLY
+
 #include <vector>
 #include <map>
 #include <fstream>
@@ -82,8 +85,10 @@ public:
       std::vector<long> mDgrVec;
       std::vector<long> addedOffset; //store each vertex edgelist offset
       std::map<uint64_t, LouvainVertex> vertexMap;  // maps from original (.mtx) vertex ID to properties of the vertex
+      long edgeCount = 0;
+      
       void clearPartitionData(){
-
+          edgeCount = 0;
           degree_list.clear();
           mEdgeVec.clear();
           mEdgePtrVec.clear();

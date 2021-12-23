@@ -166,7 +166,7 @@ public:
     using VertexIndex = std::uint64_t;
     
     struct PartitionOptions {
-        bool LBW_partition = true; // use bfs partition mothed to get low-bandwidth subgraph
+        bool LBW_partition = true; // use bfs partition method to get low-bandwidth subgraph
         int numPars = 1;    // total desired number of partitions across all servers
         int par_prune = 1;  // ghost pruning technique (1 means single ghost node of smallest degree per local node)
                 // >1 means keep that many ghost nodes per local node (TODO: verify description for >1)

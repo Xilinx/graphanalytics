@@ -17,7 +17,7 @@
 
 USE GRAPH @graph
 DROP QUERY louvain_alveo, close_alveo, tg_partition_phase_1, 
-           tg_partition_phase_2, tg_partition_phase_3, tg_prenumbered_partition, load_alveo
+           tg_partition_phase_2, tg_partition_phase_3, tg_prenumbered_partition, tg_low_bandwidth_partition, load_alveo
 
 
 
@@ -113,7 +113,7 @@ CREATE DISTRIBUTED QUERY tg_partition_phase_3(
     
     udf_reset_timer(true);
     nodeList = SELECT n FROM nodes:n 
-        ACCUM udf_start_partition("", gName, Start.size());
+        ACCUM udf_start_partition("", gName, Start.size(), FALSE);
     PRINT udf_elapsed_time(true) AS StartPartitionTime;
        
     udf_reset_timer(true);
@@ -144,6 +144,7 @@ CREATE QUERY tg_prenumbered_partition(
     
     print gName;
 
+    udf_com_detect_print_version();
     udf_reset_timer(true);
     Start = {v_types};
     nodes = {dummy_nodes.*}; 
@@ -165,7 +166,55 @@ CREATE QUERY tg_prenumbered_partition(
     PRINT udf_elapsed_time(true) AS SetLouvainEdgeListTime;
     
     udf_reset_timer(true);
-    udf_start_partition(louvain_project, gName, Start.size());
+    udf_start_partition(louvain_project, gName, Start.size(), FALSE);
+    PRINT udf_elapsed_time(true) AS StartPartitionTime;
+       
+    udf_reset_timer(true);
+    @@nodeAccum += (0 -> udf_save_alveo_partition(numPar, TRUE));
+    PRINT udf_elapsed_time(true) AS SaveAlveoPartitionTime;
+
+    udf_reset_timer(true);
+    udf_finish_partition(@@nodeAccum);
+    PRINT udf_elapsed_time(true) AS FinishPartitionTime;
+}
+
+
+CREATE QUERY tg_low_bandwidth_partition(
+    SET<STRING> v_types,            // List of vertex types that would participate in Louvain Modularity
+    SET<STRING> e_types,            // List of edge types that would participate in Louvain Modularity
+    STRING weight_attr,             // Name of the edge attribute that has weight of the edge
+    STRING louvain_project = "",    // Provide a project name for saving partitions, used for loading from disk too
+    UINT numPar = 1
+) FOR GRAPH @graph 
+{
+    STRING gName = "@graph" ;
+    MapAccum<UINT,INT> @@nodeAccum;
+    
+    print gName;
+
+    udf_com_detect_print_version();
+    udf_reset_timer(true);
+    Start = {v_types};
+    nodes = {dummy_nodes.*}; 
+ 
+    udf_reset_timer(true);
+    udf_start_whole_graph_collection();
+    vertexList = SELECT n FROM Start:n
+        ACCUM udf_add_whole_graph_vertex(getvid(n), n.outdegree());
+    PRINT udf_elapsed_time(true) AS CollectVerticesTime;
+
+    udf_reset_timer(true);
+    udf_process_whole_graph_vertices();
+    udf_save_EdgePtr();
+    PRINT udf_elapsed_time(true) AS ProcessVerticesTime;
+
+    vertexList = SELECT s FROM Start:s-(e_types:e)->:t
+        ACCUM udf_set_louvain_edge_list(udf_get_compressed_id(getvid(s)),
+            udf_get_compressed_id(getvid(t)), e.getAttr(weight_attr,"FLOAT"), t.outdegree());
+    PRINT udf_elapsed_time(true) AS SetLouvainEdgeListTime;
+    
+    udf_reset_timer(true);
+    udf_start_partition(louvain_project, gName, Start.size(), TRUE);
     PRINT udf_elapsed_time(true) AS StartPartitionTime;
        
     udf_reset_timer(true);
@@ -284,4 +333,4 @@ CREATE DISTRIBUTED QUERY close_alveo() for GRAPH @graph {
 }
 
 install query close_alveo, louvain_alveo, tg_partition_phase_1, tg_partition_phase_2,tg_partition_phase_3,
-    tg_prenumbered_partition, load_alveo
+    tg_prenumbered_partition, tg_low_bandwidth_partition, load_alveo
