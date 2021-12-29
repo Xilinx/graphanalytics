@@ -1,0 +1,14 @@
+
+****** Vitis HLS - High-Level Synthesis from C, C++ and OpenCL v2021.2 (64-bit)
+  **** SW Build 3367213 on Tue Oct 19 02:47:39 MDT 2021
+  **** IP Build 3369179 on Thu Oct 21 08:25:16 MDT 2021
+    ** Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.
+
+source /proj/xbuilds/SWIP/2021.2_1021_0703/installs/lin64/Vitis_HLS/2021.2/scripts/vitis_hls/hls.tcl -notrace
+INFO: [HLS 200-10] Running '/proj/xbuilds/SWIP/2021.2_1021_0703/installs/lin64/Vitis_HLS/2021.2/bin/unwrapped/lnx64.o/vitis_hls'
+INFO: [HLS 200-10] For user 'ryanw' on host 'xsjrdevl153' (Linux_x86_64 version 3.10.0-862.el7.x86_64) on Wed Nov 24 01:18:13 PST 2021
+INFO: [HLS 200-10] On os "CentOS Linux release 7.5.1804 (Core) "
+INFO: [HLS 200-10] In directory '/wrk/xsjhdnobkup1/ryanw/nHop/xf_graph/L2/tests/nHop/data'
+ERROR [AP-1] Could not read script 'run_hls.tcl'.
+INFO: [HLS 200-112] Total CPU user time: 0.22 seconds. Total CPU system time: 0.12 seconds. Total elapsed time: 0.82 seconds; peak allocated memory: 0.000 MB.
+INFO: [Common 17-206] Exiting vitis_hls at Wed Nov 24 01:18:13 2021...
