@@ -660,7 +660,7 @@ int PartitionHop<T>::CreatePartitionForKernel( // Created
 }
 
 template <class T>
-int PartitionHop<T>::LoadPair2Buffs(ap_uint<64>* pairs, int num_pair, long NV, long NE, int numHop, xclbinInfo xclbinInfo) {
+int PartitionHop<T>::LoadPair2Buffs(ap_uint<64>* pairs, int num_pair, T NV, T NE, int numHop, commendInfo commendInfo) {
     // 1) initialize each kernels' buffs according to the size of pair, NV ,NE and numHop
     printf("\n");
     printf("Initialize each kernels' buffs according to the size of pair, NV ,NE and numHop\n");
@@ -696,7 +696,7 @@ int PartitionHop<T>::LoadPair2Buffs(ap_uint<64>* pairs, int num_pair, long NV, l
     // buff full
     // 4) SW switching: a)check each buff_out and pop the package then push into proper kernel's buff_in;
     // 5) aggregation: pop package and send it into aggregator
-    long sz_bat = 4096; // GetSuggestedBatch(sz_pp, numHop, NE/NV);
+    long sz_bat = 32768; // GetSuggestedBatch(sz_pp, numHop, NE/NV);
     long rnd = 0;
     bool allEmpty = true;
     do {
@@ -711,7 +711,7 @@ int PartitionHop<T>::LoadPair2Buffs(ap_uint<64>* pairs, int num_pair, long NV, l
         for (int i = 0; i < this->num_knl_used; i++) {
             if (this->hopKnl[i]->p_buff_in->isEmpty())
                 continue;
-            else if (this->hopKnl[i]->ConsumeBatch(NV, NE, rnd, sz_bat, numHop, xclbinInfo) != 0) {
+            else if (this->hopKnl[i]->ConsumeBatch(NV, NE, rnd, num_pair, sz_bat, numHop, commendInfo) != 0) {
                 return -1;
             }
             allEmpty = false;
@@ -744,7 +744,7 @@ long HopKernel<T>::estimateBatchSize(int cnt_hop, long sz_suggest, PackBuff<T>* 
 }
 
 template <class T>
-int HopKernel<T>::ConsumeBatch(T NV, T NE, int rnd, long sz_bat, int numHop, xclbinInfo xclbinInfo) {
+int HopKernel<T>::ConsumeBatch(T NV, T NE, int rnd, T numSubpair, long sz_bat, int numHop, commendInfo commendInfo) {
     int cnt_hop = 0;
     long num_idxs = 0;
     // IndexStatistic* p_stts[MAX_NUM_HOP];
@@ -763,7 +763,8 @@ int HopKernel<T>::ConsumeBatch(T NV, T NE, int rnd, long sz_bat, int numHop, xcl
                sz_bat2, numHop, size_pop);
         // if( -1==BatchOneHop(p_buff_pop, p_buff_send, p_buff_local, sz_bat2, numHop, &stt)){
         if (-1 ==
-            BatchOneHopOnFPGA(p_buff_pop, p_buff_send, p_buff_local, p_buff_agg, NV, NE, sz_bat2, numHop, 4096, 0, 1, xclbinInfo, &stt)) {
+            BatchOneHopOnFPGA(p_buff_pop, p_buff_send, p_buff_local, p_buff_agg, 
+            NV, NE, numSubpair, numHop, sz_bat2, commendInfo, &stt)) {
             printf("Error: batch size(%ld) can't be consumed out, created %ld at hop(%d)\n", sz_bat2, stt.num_all,
                    cnt_hop);
             printf("Please try small size of batch\n");
@@ -839,23 +840,23 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
                                     PackBuff<T>* p_buff_agg,
                                     T NV,
                                     T NE,
-                                    int numPairs,
+                                    T numSubPairs,
                                     int numHop,
-                                    int batchSize,
-                                    int byPass,
-                                    int duplicate,
-                                    xclbinInfo xclbinInfo,
-                                    /*pair, int* offsetTable, int* indexTable, long*cardTable,*/
-
+                                    T estimateBatchSize,
+                                    commendInfo commendInfo,
                                     IndexStatistic* p_stt) {
     // PackBuff<T>* p_buff_pp_w = this->p_buff_pp[cnt_bat&1];
-    long sz_idx = 0;
-    long sz_pop = 0;
-    const int num_chnl = xclbinInfo.num_chnl;
+    T sz_idx = 0;
+    T sz_pop = 0;
+    const int num_chnl = commendInfo.num_chnl;
     const int PU = num_chnl;
-    long numVertices = NV;
-    long numEdges = NE;
-    std::string xclbin_path = xclbinInfo.xclbin_path;
+    T numVertices = NV;
+    T numEdges = NE;
+    T numPairs = numSubPairs;//rename the numSubPairs for the host work
+    T batchSize = estimateBatchSize;//commendInfo.sz_bat;
+    int byPass = commendInfo.byPass;
+    int duplicate = commendInfo.duplicate;
+    std::string xclbin_path = commendInfo.xclbin_path;
     
 
     // dispatch offset and index

@@ -159,9 +159,12 @@ struct IndexStatistic { // for index statistic
     }
 };
 
-struct xclbinInfo{
-    int num_chnl;
+struct commendInfo{
+    int num_chnl=4;
     std::string xclbin_path;
+    int sz_bat=4096;
+    int byPass=0; 
+    int duplicate=1;
 };
 
 template <class T>
@@ -200,12 +203,11 @@ class HopKernel { // warpper the hop kernel
 
     // hop processing 1 batch of vertex on FPGA
     int BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop, PackBuff<T>* p_buff_send, PackBuff<T>* p_buff_local, PackBuff<T>* p_buff_agg,
-                          T NV, T NE, int numPairs, int num_hop, int batchSize, int byPass, int duplicate, xclbinInfo xclbinInfo,
-                          /*pair, int* offsetTable, int* indexTable, long*cardTable,*/ IndexStatistic* p_stt);
+                          T NV, T NE, T numSubPairs, int num_hop, T estimateBatchSize, commendInfo commendInfo, IndexStatistic* p_stt);
 // clang-format on
     long estimateBatchSize(int cnt_hop, long sz_suggest, PackBuff<T>* p_buff_pop);
 
-    int ConsumeBatch(T NV, T NE, int rnd, long sz_bat, int num_hop, xclbinInfo xclbinInfo); // call BatchOneHopOnFPGA()
+    int ConsumeBatch(T NV, T NE, int rnd, T numSubpair, long sz_bat, int num_hop, commendInfo commendInfo); // call BatchOneHopOnFPGA()
 
     void InitBuffs(long sz_in, long sz_out, long sz_pp, long sz_agg);
     void InitCore(CSR<T>* par_chnl_csr[], int start, int num_ch_knl, int num_ch_par);
@@ -295,7 +297,7 @@ class PartitionHop { // the class for partition graph, generate all pointer of c
     ~PartitionHop();
 
     int CreatePartitionForKernel(int num_knl_in, int num_chnl_knl_in, T limit_nv_byte, T limit_ne_byte);
-    int LoadPair2Buffs(ap_uint<64>* pairs, int num_pair, long NV, long NE, int num_hop, xclbinInfo xclbinInfo);
+    int LoadPair2Buffs(ap_uint<64>* pairs, int num_pair, T NV, T NE, int num_hop, commendInfo commendInfo);
 
     // ParID_ch to ParID_knl
     int ParID_knl(int ParID_ch) { return ParID_ch / num_chnl_knl; }

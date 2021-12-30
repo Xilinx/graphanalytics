@@ -41,14 +41,6 @@ void nHopKernelWrapper(unsigned numHop,
                        ap_uint<128>* index2,
                        unsigned* offset3,
                        ap_uint<128>* index3,
-                       unsigned* offset4,
-                       ap_uint<128>* index4,
-                       unsigned* offset5,
-                       ap_uint<128>* index5,
-                       unsigned* offset6,
-                       ap_uint<128>* index6,
-                       unsigned* offset7,
-                       ap_uint<128>* index7,
 
                        ap_uint<512>* bufferPing,
                        ap_uint<512>* bufferPong,
@@ -76,7 +68,7 @@ void nHopKernelWrapper(unsigned numHop,
 
     xf::graph::nHop(numHop, intermediate, numPairs, batchSize, hashSize, byPass, duplicate, pairStream, pairStreamEnd,
                     offsetTable, indexTable, cardTable, offset0, index0, offset1, index1, offset2, index2, offset3,
-                    index3, offset4, index4, offset5, index5, offset6, index6, offset7, index7, bufferPing, bufferPong,
+                    index3,  bufferPing, bufferPong,
                     numOut, bufferLocal, switchStream, switchStreamEnd);
 
     xf::graph::internal::Hop::writeOut(switchStream, switchStreamEnd, bufferSwitch);
@@ -102,14 +94,6 @@ extern "C" void nHop_kernel(unsigned numHop,
                             ap_uint<128>* index2,
                             unsigned* offset3,
                             ap_uint<128>* index3,
-                            unsigned* offset4,
-                            ap_uint<128>* index4,
-                            unsigned* offset5,
-                            ap_uint<128>* index5,
-                            unsigned* offset6,
-                            ap_uint<128>* index6,
-                            unsigned* offset7,
-                            ap_uint<128>* index7,
 
                             ap_uint<512>* bufferPing,
                             ap_uint<512>* bufferPong,
@@ -123,11 +107,11 @@ extern "C" void nHop_kernel(unsigned numHop,
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 2 num_read_outstanding = \
     64 max_write_burst_length = 1 max_read_burst_length = 32 bundle = gmem0 port = pair depth = ext_mem_size 
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 64 num_read_outstanding = \
-    2 max_write_burst_length = 32 max_read_burst_length = 8 bundle = gmem19 port = offsetTable depth = 4096
+    2 max_write_burst_length = 32 max_read_burst_length = 8 bundle = gmem11 port = offsetTable depth = 4096
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 64 num_read_outstanding = \
-    2 max_write_burst_length = 32 max_read_burst_length = 8 bundle = gmem19 port = indexTable depth = 4096
+    2 max_write_burst_length = 32 max_read_burst_length = 8 bundle = gmem11 port = indexTable depth = 4096
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 64 num_read_outstanding = \
-    2 max_write_burst_length = 32 max_read_burst_length = 8 bundle = gmem19 port = cardTable depth = 4096
+    2 max_write_burst_length = 32 max_read_burst_length = 8 bundle = gmem11 port = cardTable depth = 4096
 
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 2 num_read_outstanding = \
     64 max_write_burst_length = 1 max_read_burst_length = 32 bundle = gmem1 port = offset0 depth = ext_mem_size
@@ -145,34 +129,18 @@ extern "C" void nHop_kernel(unsigned numHop,
     64 max_write_burst_length = 1 max_read_burst_length = 32 bundle = gmem7 port = offset3 depth = ext_mem_size
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 2 num_read_outstanding = \
     64 max_write_burst_length = 1 max_read_burst_length = 32 bundle = gmem8 port = index3 depth = ext_mem_size
-#pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 2 num_read_outstanding = \
-    64 max_write_burst_length = 1 max_read_burst_length = 32 bundle = gmem9 port = offset4 depth = ext_mem_size
-#pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 2 num_read_outstanding = \
-    64 max_write_burst_length = 1 max_read_burst_length = 32 bundle = gmem10 port = index4 depth = ext_mem_size
-#pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 2 num_read_outstanding = \
-    64 max_write_burst_length = 1 max_read_burst_length = 32 bundle = gmem11 port = offset5 depth = ext_mem_size
-#pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 2 num_read_outstanding = \
-    64 max_write_burst_length = 1 max_read_burst_length = 32 bundle = gmem12 port = index5 depth = ext_mem_size
-#pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 2 num_read_outstanding = \
-    64 max_write_burst_length = 1 max_read_burst_length = 32 bundle = gmem13 port = offset6 depth = ext_mem_size
-#pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 2 num_read_outstanding = \
-    64 max_write_burst_length = 1 max_read_burst_length = 32 bundle = gmem14 port = index6 depth = ext_mem_size
-#pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 2 num_read_outstanding = \
-    64 max_write_burst_length = 1 max_read_burst_length = 32 bundle = gmem15 port = offset7 depth = ext_mem_size
-#pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 2 num_read_outstanding = \
-    64 max_write_burst_length = 1 max_read_burst_length = 32 bundle = gmem16 port = index7 depth = ext_mem_size
 
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 64 num_read_outstanding = \
-    64 max_write_burst_length = 32 max_read_burst_length = 32 bundle = gmem17 port = bufferPing depth = ext_mem_size
+    64 max_write_burst_length = 32 max_read_burst_length = 32 bundle = gmem9 port = bufferPing depth = ext_mem_size
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 64 num_read_outstanding = \
-    64 max_write_burst_length = 32 max_read_burst_length = 32 bundle = gmem18 port = bufferPong depth = ext_mem_size
+    64 max_write_burst_length = 32 max_read_burst_length = 32 bundle = gmem10 port = bufferPong depth = ext_mem_size
 
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 64 num_read_outstanding = \
-    2 max_write_burst_length = 32 max_read_burst_length = 8 bundle = gmem19 port = numOut depth = ext_mem_size
+    2 max_write_burst_length = 32 max_read_burst_length = 8 bundle = gmem11 port = numOut depth = ext_mem_size
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 64 num_read_outstanding = \
-    2 max_write_burst_length = 32 max_read_burst_length = 8 bundle = gmem19 port = bufferLocal depth = ext_mem_size
+    2 max_write_burst_length = 32 max_read_burst_length = 8 bundle = gmem11 port = bufferLocal depth = ext_mem_size
 #pragma HLS INTERFACE m_axi offset = slave latency = 32 num_write_outstanding = 64 num_read_outstanding = \
-    64 max_write_burst_length = 32 max_read_burst_length = 32 bundle = gmem20 port = bufferSwitch depth = ext_mem_size
+    64 max_write_burst_length = 32 max_read_burst_length = 32 bundle = gmem12 port = bufferSwitch depth = ext_mem_size
 
 
 #pragma HLS INTERFACE s_axilite port = numHop bundle = control
@@ -196,14 +164,6 @@ extern "C" void nHop_kernel(unsigned numHop,
 #pragma HLS INTERFACE s_axilite port = index2 bundle = control
 #pragma HLS INTERFACE s_axilite port = offset3 bundle = control
 #pragma HLS INTERFACE s_axilite port = index3 bundle = control
-#pragma HLS INTERFACE s_axilite port = offset4 bundle = control
-#pragma HLS INTERFACE s_axilite port = index4 bundle = control
-#pragma HLS INTERFACE s_axilite port = offset5 bundle = control
-#pragma HLS INTERFACE s_axilite port = index5 bundle = control
-#pragma HLS INTERFACE s_axilite port = offset6 bundle = control
-#pragma HLS INTERFACE s_axilite port = index6 bundle = control
-#pragma HLS INTERFACE s_axilite port = offset7 bundle = control
-#pragma HLS INTERFACE s_axilite port = index7 bundle = control
 
 #pragma HLS INTERFACE s_axilite port = bufferPing bundle = control
 #pragma HLS INTERFACE s_axilite port = bufferPong bundle = control
@@ -216,19 +176,12 @@ extern "C" void nHop_kernel(unsigned numHop,
 // clang-format on
 
 #ifndef __SYNTHESIS__
-    printf("numHop=%d\n",(int)numHop);
-    printf("numPairs=%d\n",numPairs);
-    printf("batchSize=%d\n",(int)batchSize);
-    printf("byPass=%d\n",(int)byPass);
-    printf("duplicate=%d\n",(int)duplicate);
-    printf("offsetTable=%d\n",*offsetTable);
-    printf("indexTable=%d\n",*indexTable);
     std::cout << "kernel call success" << std::endl;
 #endif
 
     nHopKernelWrapper(numHop, intermediate, numPairs, batchSize, hashSize, byPass, duplicate, pair, offsetTable,
                       indexTable, cardTable, offset0, index0, offset1, index1, offset2, index2, offset3, index3,
-                      offset4, index4, offset5, index5, offset6, index6, offset7, index7, bufferPing, bufferPong,
+                       bufferPing, bufferPong,
                       numOut, bufferLocal, bufferSwitch);
 
 #ifndef __SYNTHESIS__
