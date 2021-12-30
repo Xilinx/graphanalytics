@@ -160,7 +160,8 @@ struct IndexStatistic { // for index statistic
 };
 
 struct commendInfo{
-    int num_chnl=4;
+    int numKernel=1;
+    int numPuPerKernel=4;
     std::string xclbin_path;
     int sz_bat=4096;
     int byPass=0; 

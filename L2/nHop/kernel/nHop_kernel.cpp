@@ -15,7 +15,8 @@
  */
 
 #include "nHop_kernel.hpp"
-#include "xf_graph_L2.hpp"
+#include "nHop.hpp"
+//#include "xf_graph_L2.hpp"
 
 #ifndef __SYNTHESIS__
 #include <iostream>

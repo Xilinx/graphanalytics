@@ -105,8 +105,8 @@ CXXFLAGS += -D HW_EMU_TEST
 endif
 
 #Inclue Required Host Source Files
-HOST_SRCS += $(XFLIB_DIR)/L2/tests/pocnHop/host/main.cpp $(XFLIB_DIR)/ext/xcl2/xcl2.cpp 
-CXXFLAGS +=  -I $(XFLIB_DIR)/L2/tests/pocnHop/host -I $(XFLIB_DIR)/ext/xcl2 -I $(XFLIB_DIR)/../database/L1/include -I $(XFLIB_DIR)/L2/include -I $(XFLIB_DIR)/../database/L1/include/hw -I $(XFLIB_DIR)/../quantitative_finance/L1/include -I $(XFLIB_DIR)/../utils/L1/include -I $(XFLIB_DIR)/ext/xcl2
+HOST_SRCS += $(XFLIB_DIR)/L2/nHop/host/main.cpp $(XFLIB_DIR)/ext/xcl2/xcl2.cpp 
+CXXFLAGS +=  -I $(XFLIB_DIR)/L2/nHop/host -I $(XFLIB_DIR)/ext/xcl2 -I $(XFLIB_DIR)/../database/L1/include -I $(XFLIB_DIR)/nHop -I $(XFLIB_DIR)/../database/L1/include/hw -I $(XFLIB_DIR)/../quantitative_finance/L1/include -I $(XFLIB_DIR)/../utils/L1/include -I $(XFLIB_DIR)/ext/xcl2
 #CXXFLAGS += -O3 
 CXXFLAGS += -g 
 
@@ -114,7 +114,8 @@ EXE_NAME := host.exe
 EXE_FILE := $(BUILD_DIR)/$(EXE_NAME)
 EXE_FILE_DEPS := $(HOST_SRCS) $(EXE_FILE_DEPS)
 
-HOST_ARGS :=  -xclbin $(BUILD_DIR)/nHop_kernel.xclbin --offset $(CUR_DIR)/data/data-csr-offset.mtx --index $(CUR_DIR)/data/data-csr-indicesweights.mtx --pair $(CUR_DIR)/data/data-pair.mtx --golden $(CUR_DIR)/data/data-golden.nHop.mtx
+HOST_ARGS :=  -xclbin $(BUILD_DIR)/nHop_kernel.xclbin --offset $(CUR_DIR)/csr/as-Skitter-csr-offset.mtx --index $(CUR_DIR)/csr/as-Skitter-csr-indicesweights.mtx --pair $(CUR_DIR)/pair_small/as-Skitter-twoHopPair.mtx --hop 1 --batch 1024
+#HOST_ARGS :=  -xclbin $(BUILD_DIR)/nHop_kernel.xclbin --offset $(CUR_DIR)/data/data-csr-offset.mtx --index $(CUR_DIR)/data/data-csr-indicesweights.mtx --pair $(CUR_DIR)/data/data-pair.mtx --hop 2 --batch 1024
 ifneq ($(HOST_ARCH), x86)
 PKG_HOST_ARGS = $(foreach args,$(HOST_ARGS),$(subst $(dir $(patsubst %/,%,$(args))),,$(args)))
 endif
@@ -122,10 +123,10 @@ endif
 ########################## Kernel compiler global settings ##########################
 ifneq (,$(shell echo $(XPLATFORM) | awk '/u50/'))
 VPP_FLAGS +=   --config $(CUR_DIR)/conn_u50.cfg
-VPP_FLAGS +=  -I $(XFLIB_DIR)/L2/include -I $(XFLIB_DIR)/L2/tests/pocnHop/kernel -I $(XFLIB_DIR)/L2/include -I $(XFLIB_DIR)/../database/L1/include/hw -I $(XFLIB_DIR)/../quantitative_finance/L1/include -I $(XFLIB_DIR)/../utils/L1/include
+VPP_FLAGS +=  -I $(XFLIB_DIR)/L2/nHop -I $(XFLIB_DIR)/L2/nHop/kernel -I $(XFLIB_DIR)/../database/L1/include/hw -I $(XFLIB_DIR)/../quantitative_finance/L1/include -I $(XFLIB_DIR)/../utils/L1/include
 
 else 
-VPP_FLAGS +=  -I $(XFLIB_DIR)/L2/include -I $(XFLIB_DIR)/L2/tests/pocnHop/kernel -I $(XFLIB_DIR)/L2/include -I $(XFLIB_DIR)/../database/L1/include/hw -I $(XFLIB_DIR)/../quantitative_finance/L1/include -I $(XFLIB_DIR)/../utils/L1/include
+VPP_FLAGS +=  -I $(XFLIB_DIR)/L2/nHop -I $(XFLIB_DIR)/L2/nHop/kernel -I $(XFLIB_DIR)/../database/L1/include/hw -I $(XFLIB_DIR)/../quantitative_finance/L1/include -I $(XFLIB_DIR)/../utils/L1/include
 
 endif
 
@@ -146,7 +147,7 @@ BINARY_CONTAINERS_PKG += $(BUILD_DIR)/nHop_kernel.xclbin
 endif
 
 # ################ Setting Rules for Binary Containers (Building Kernels) ################
-$(TEMP_DIR)/nHop_kernel.xo: $(XFLIB_DIR)/L2/tests/pocnHop/kernel/nHop_kernel.cpp 
+$(TEMP_DIR)/nHop_kernel.xo: $(XFLIB_DIR)/L2/nHop/kernel/nHop_kernel.cpp 
 	$(ECHO) "Compiling Kernel: nHop_kernel"
 	mkdir -p $(TEMP_DIR)
 	$(VPP) -c $(VPP_FLAGS_nHop_kernel) $(VPP_FLAGS) -k nHop_kernel -I'$(<D)' --temp_dir $(TEMP_DIR) --report_dir $(TEMP_REPORT_DIR) -o'$@' '$<'

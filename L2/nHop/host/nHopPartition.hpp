@@ -848,7 +848,7 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
     // PackBuff<T>* p_buff_pp_w = this->p_buff_pp[cnt_bat&1];
     T sz_idx = 0;
     T sz_pop = 0;
-    const int num_chnl = commendInfo.num_chnl;
+    const int num_chnl = commendInfo.numPuPerKernel;
     const int PU = num_chnl;
     T numVertices = NV;
     T numEdges = NE;

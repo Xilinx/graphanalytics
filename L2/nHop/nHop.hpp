@@ -334,7 +334,7 @@ void loadBuffer(ap_uint<32> start,
                 hop = pair_in(111, 96);
                 card = pair_in(127, 112);
 
-                if ((src == 124311) && (des == 721))
+                //if ((src == 124311) && (des == 721))
                     std::cout << "loadBase: i=" << i << " j=" << j << " k=" << k << " src=" << src << " des=" << des
                               << " idx=" << idx << " hop=" << hop << " card=" << card << std::endl;
             }
@@ -361,7 +361,7 @@ void loadBuffer(ap_uint<32> start,
             hop = pair_in(111, 96);
             card = pair_in(127, 112);
 
-            if ((src == 124311) && (des == 721))
+            //if ((src == 124311) && (des == 721))
                 std::cout << "loadResidual: i=" << i << " k=" << k << " src=" << src << " des=" << des << " idx=" << idx
                           << " hop=" << hop << " card=" << card << std::endl;
         }
@@ -409,7 +409,7 @@ void loadStrm(ap_uint<32> numPairs,
             hop = pair_in(111, 96);
             card = pair_in(127, 112);
 
-            if ((src == 124311) && (des == 721))
+            //if ((src == 124311) && (des == 721))
                 std::cout << "loadStrm: k=" << k << " src=" << src << " des=" << des << " idx=" << idx << " hop=" << hop
                           << " card=" << card << std::endl;
         }
@@ -461,7 +461,7 @@ void splitPair(bool loadBatch,
             if (tmp != 0) {
 #ifndef __SYNTHESIS__
 #ifdef DEBUG_LOAD
-                if ((src == 124311) && (des == 721))
+                //if ((src == 124311) && (des == 721))
                     std::cout << "src=" << src << " des=" << des << " idx=" << tmp(95, 64) << " hop=" << tmp(111, 96)
                               << " card=" << tmp(127, 112) << std::endl;
 #endif
@@ -555,7 +555,7 @@ void dispatchSplitCSR(hls::stream<ap_uint<128> >& pairStream,
 
 #ifndef __SYNTHESIS__
 #ifdef DEBUG_LOAD
-                if ((src == 124311) && (des == 721))
+                //if ((src == 124311) && (des == 721))
                     std::cout << "dispatchID=" << j << " src=" << src << " des=" << des
                               << " idx=" << idx - offsetTable[j] << " offsetTable=" << offsetTable[j] << " hop=" << hop
                               << std::endl;
@@ -600,19 +600,19 @@ void dispatchDuplicateCSR(hls::stream<ap_uint<128> >& pairStream,
     }
 }
 
-template <int dispatchNum>
+template <int PU>
 void switchDispatch(ap_uint<32> duplicate,
-                    ap_uint<32> offsetTable[dispatchNum + 1],
+                    ap_uint<32> offsetTable[PU + 1],
                     hls::stream<ap_uint<128> >& pairStream,
                     hls::stream<bool>& pairStreamEnd,
-                    hls::stream<ap_uint<128> > dispatchStream[dispatchNum],
-                    hls::stream<bool> dispatchStreamEnd[dispatchNum]) {
+                    hls::stream<ap_uint<128> > dispatchStream[PU],
+                    hls::stream<bool> dispatchStreamEnd[PU]) {
 #pragma HLS INLINE off
 
     if (duplicate == 0) {
-        dispatchSplitCSR<8>(pairStream, pairStreamEnd, offsetTable, dispatchStream, dispatchStreamEnd);
+        dispatchSplitCSR<PU>(pairStream, pairStreamEnd, offsetTable, dispatchStream, dispatchStreamEnd);
     } else {
-        dispatchDuplicateCSR<8>(pairStream, pairStreamEnd, dispatchStream, dispatchStreamEnd);
+        dispatchDuplicateCSR<PU>(pairStream, pairStreamEnd, dispatchStream, dispatchStreamEnd);
     }
 }
 
@@ -627,10 +627,10 @@ void switchPairs(ap_uint<32> duplicate,
 #pragma HLS INLINE off
 #pragma HLS DATAFLOW
 
-    hls::stream<ap_uint<128> > switchStrm[4][8];
+    hls::stream<ap_uint<128> > switchStrm[4][PU];
 #pragma HLS stream variable = switchStrm depth = 8
 #pragma HLS resource variable = switchStrm core = FIFO_SRL
-    hls::stream<bool> switchStrmEnd[4][8];
+    hls::stream<bool> switchStrmEnd[4][PU];
 #pragma HLS stream variable = switchStrmEnd depth = 8
 #pragma HLS resource variable = switchStrmEnd core = FIFO_SRL
 
@@ -660,24 +660,6 @@ void switchPairs(ap_uint<32> duplicate,
         merge4to1<128, false>(switchStrm[0][3], switchStrmEnd[0][3], switchStrm[1][3], switchStrmEnd[1][3],
                               switchStrm[2][3], switchStrmEnd[2][3], switchStrm[3][3], switchStrmEnd[3][3], cnt[3],
                               strmOut[3], strmOutEnd[3]);
-    }
-
-    if (PU >= 8) {
-        merge4to1<128, false>(switchStrm[0][4], switchStrmEnd[0][4], switchStrm[1][4], switchStrmEnd[1][4],
-                              switchStrm[2][4], switchStrmEnd[2][4], switchStrm[3][4], switchStrmEnd[3][4], cnt[4],
-                              strmOut[4], strmOutEnd[4]);
-
-        merge4to1<128, false>(switchStrm[0][5], switchStrmEnd[0][5], switchStrm[1][5], switchStrmEnd[1][5],
-                              switchStrm[2][5], switchStrmEnd[2][5], switchStrm[3][5], switchStrmEnd[3][5], cnt[5],
-                              strmOut[5], strmOutEnd[5]);
-
-        merge4to1<128, false>(switchStrm[0][6], switchStrmEnd[0][6], switchStrm[1][6], switchStrmEnd[1][6],
-                              switchStrm[2][6], switchStrmEnd[2][6], switchStrm[3][6], switchStrmEnd[3][6], cnt[6],
-                              strmOut[6], strmOutEnd[6]);
-
-        merge4to1<128, false>(switchStrm[0][7], switchStrmEnd[0][7], switchStrm[1][7], switchStrmEnd[1][7],
-                              switchStrm[2][7], switchStrmEnd[2][7], switchStrm[3][7], switchStrmEnd[3][7], cnt[7],
-                              strmOut[7], strmOutEnd[7]);
     }
 }
 
@@ -725,7 +707,7 @@ void loadHopOffset(ap_uint<32> numHop,
 
 #ifndef __SYNTHESIS__
 #ifdef DEBUG_HOP
-        if ((src == 124311) && (des == 721))
+        //if ((src == 124311) && (des == 721))
             std::cout << "src=" << src << " des=" << des << " idx=" << idx << " hop=" << hop
                       << " offset_start=" << offset[idx] << " offset_end=" << offset[idx + 1]
                       << " offset=" << tmp1(95, 64) << " nm=" << tmp1(119, 96) << std::endl;
@@ -813,7 +795,7 @@ void generateIndexAddr(hls::stream<ap_uint<128> >& offsetStream,
 
 #ifndef __SYNTHESIS__
 #ifdef DEBUG_HOP
-            if ((src == 124311) && (des == 721))
+            //if ((src == 124311) && (des == 721))
                 std::cout << "IndexAddr src=" << src << " des=" << des << " offset=" << offset << " idx=" << idx
                           << " addr=" << addr << " enable=" << enable << " hop=" << hop << std::endl;
 #endif
@@ -891,7 +873,7 @@ void loadIndex(ap_uint<32> numHop,
 
 #ifndef __SYNTHESIS__
 #ifdef DEBUG_HOP
-                    if ((src == 124311) && (des == 721))
+                    //if ((src == 124311) && (des == 721))
                         std::cout << "localResidual src=" << src << " des=" << des << " idx=" << idx[i]
                                   << " hop=" << hop << std::endl;
 #endif
@@ -906,7 +888,7 @@ void loadIndex(ap_uint<32> numHop,
 
 #ifndef __SYNTHESIS__
 #ifdef DEBUG_HOP
-                        if ((src == 124311) && (des == 721))
+                        //if ((src == 124311) && (des == 721))
                             std::cout << "netSwitch src=" << src << " des=" << des << " idx=" << idx[i]
                                       << " hop=" << hop << std::endl;
 #endif
@@ -921,7 +903,7 @@ void loadIndex(ap_uint<32> numHop,
 
 #ifndef __SYNTHESIS__
 #ifdef DEBUG_HOP
-                    if ((src == 124311) && (des == 721))
+                    //if ((src == 124311) && (des == 721))
                         std::cout << "internalAggr src=" << src << " des=" << des << " idx=" << idx[i] << " hop=" << hop
                                   << std::endl;
 #endif
@@ -946,7 +928,7 @@ void loadIndex(ap_uint<32> numHop,
 
 #ifndef __SYNTHESIS__
 #ifdef DEBUG_HOP
-                    if ((src == 124311) && (des == 721))
+                    //if ((src == 124311) && (des == 721))
                         std::cout << "localResult src=" << src << " des=" << des << " idx=" << tmp3(85, 64)
                                   << " hop=" << tmp3(127, 96) << std::endl;
 #endif
@@ -1270,7 +1252,7 @@ void hashProcess(ap_uint<32> byPass,
 
 #ifndef __SYNTHESIS__
 #ifdef DEBUG_AGGR
-        if ((src == 124311) && (des == 721))
+        //if ((src == 124311) && (des == 721))
             std::cout << "aggrStream: src=" << src << " des=" << des << " hash=" << tmp1(95, 64) << std::endl;
 #endif
 #endif
@@ -1357,7 +1339,7 @@ aggrCountLoop:
 
 #ifndef __SYNTHESIS__
 #ifdef DEBUG_AGGR
-        if ((src == 124311) && (des == 721))
+        //if ((src == 124311) && (des == 721))
             std::cout << "base: src=" << src << " des=" << des << " chip_idx=" << arry_idx(PU - 1, 0)
                       << " arry_idx=" << arry_idx(depth + PU - 1, PU) << " (des, src)=" << (des, src) << " key=" << key
                       << " pld=" << pld << std::endl;
@@ -1468,7 +1450,7 @@ overflowCountLoop:
         src = key_in(31, 0);
         des = key_in(63, 32);
 
-        if ((src == 124311) && (des == 721))
+        //if ((src == 124311) && (des == 721))
             std::cout << "overflow: src=" << src << " des=" << des << " chip_idx=" << chip << " arry_idx=" << idx
                       << " (des, src)=" << key_in << " key=" << key << " pld=" << pld << std::endl;
 #endif
@@ -1846,7 +1828,7 @@ void readURAM(ap_uint<32> maxUpdateSize,
             src = tmp(31, 0);
             des = tmp(63, 32);
             count = tmp(95, 64);
-            if ((src == 124311) && (des == 721))
+            //if ((src == 124311) && (des == 721))
                 std::cout << "j=" << j << " src=" << src << " des=" << des << " count=" << count << std::endl;
 #endif
 #endif
@@ -1875,7 +1857,7 @@ void readURAM(ap_uint<32> maxUpdateSize,
             src = tmp(31, 0);
             des = tmp(63, 32);
             count = tmp(95, 64);
-            if ((src == 124311) && (des == 721))
+            //if ((src == 124311) && (des == 721))
                 std::cout << "j=" << j + 1 << " src=" << src << " des=" << des << " count=" << count << std::endl;
 #endif
 #endif
@@ -1969,14 +1951,7 @@ void nHopCore(bool loadBatch,
               ap_uint<128>* index2,
               unsigned* offset3,
               ap_uint<128>* index3,
-              unsigned* offset4,
-              ap_uint<128>* index4,
-              unsigned* offset5,
-              ap_uint<128>* index5,
-              unsigned* offset6,
-              ap_uint<128>* index6,
-              unsigned* offset7,
-              ap_uint<128>* index7,
+              
 #ifndef __SYNTHESIS__
               ap_uint<96>* aggrURAM[PU],
               ap_uint<96>* overflowURAM[PU],
@@ -2051,28 +2026,6 @@ void nHopCore(bool loadBatch,
                                      aggrStreamEnd[3], outStream[3], outStreamEnd[3]);
     }
 
-    if (PU >= 8) {
-        hopProcessingUnit<maxDevice>(numHop, intermediate, byPass, duplicate, switchStream[4], switchStreamEnd[4],
-                                     offsetStart, offsetEnd, indexTable[4], cardTable[4], offset4, index4,
-                                     indexStream[4], indexStreamEnd[4], netStream[4], netStreamEnd[4], aggrStream[4],
-                                     aggrStreamEnd[4], outStream[4], outStreamEnd[4]);
-
-        hopProcessingUnit<maxDevice>(numHop, intermediate, byPass, duplicate, switchStream[5], switchStreamEnd[5],
-                                     offsetStart, offsetEnd, indexTable[5], cardTable[5], offset5, index5,
-                                     indexStream[5], indexStreamEnd[5], netStream[5], netStreamEnd[5], aggrStream[5],
-                                     aggrStreamEnd[5], outStream[5], outStreamEnd[5]);
-
-        hopProcessingUnit<maxDevice>(numHop, intermediate, byPass, duplicate, switchStream[6], switchStreamEnd[6],
-                                     offsetStart, offsetEnd, indexTable[6], cardTable[6], offset6, index6,
-                                     indexStream[6], indexStreamEnd[6], netStream[6], netStreamEnd[6], aggrStream[6],
-                                     aggrStreamEnd[6], outStream[6], outStreamEnd[6]);
-
-        hopProcessingUnit<maxDevice>(numHop, intermediate, byPass, duplicate, switchStream[7], switchStreamEnd[7],
-                                     offsetStart, offsetEnd, indexTable[7], cardTable[7], offset7, index7,
-                                     indexStream[7], indexStreamEnd[7], netStream[7], netStreamEnd[7], aggrStream[7],
-                                     aggrStreamEnd[7], outStream[7], outStreamEnd[7]);
-    }
-
     hls::stream<ap_uint<512> > localStream;
 #pragma HLS stream variable = localStream depth = 512
 #pragma HLS resource variable = localStream core = FIFO_BRAM
@@ -2088,20 +2041,7 @@ void nHopCore(bool loadBatch,
 #pragma HLS resource variable = aggrInternalStreamEnd core = FIFO_SRL
     ap_uint<32> tmp;
 
-    if (PU == 8) {
-        merge8to1<512, false>(indexStream[0], indexStreamEnd[0], indexStream[1], indexStreamEnd[1], indexStream[2],
-                              indexStreamEnd[2], indexStream[3], indexStreamEnd[3], indexStream[4], indexStreamEnd[4],
-                              indexStream[5], indexStreamEnd[5], indexStream[6], indexStreamEnd[6], indexStream[7],
-                              indexStreamEnd[7], numResidual, localStream, localStreamEnd);
-
-        merge8to1<64, false>(aggrStream[0], aggrStreamEnd[0], aggrStream[1], aggrStreamEnd[1], aggrStream[2],
-                             aggrStreamEnd[2], aggrStream[3], aggrStreamEnd[3], aggrStream[4], aggrStreamEnd[4],
-                             aggrStream[5], aggrStreamEnd[5], aggrStream[6], aggrStreamEnd[6], aggrStream[7],
-                             aggrStreamEnd[7], tmp, aggrInternalStream, aggrInternalStreamEnd);
-
-        hashAggrCounter<depth, 3>(byPass, hashSize, aggrInternalStream, aggrInternalStreamEnd, numAggr, aggrURAM,
-                                  overflowURAM);
-    } else if (PU == 4) {
+     if (PU == 4) {
         merge4to1<512, false>(indexStream[0], indexStreamEnd[0], indexStream[1], indexStreamEnd[1], indexStream[2],
                               indexStreamEnd[2], indexStream[3], indexStreamEnd[3], numResidual, localStream,
                               localStreamEnd);
@@ -2155,14 +2095,6 @@ void nHopPingPong(ap_uint<32> numHop,
                   ap_uint<128>* index2,
                   unsigned* offset3,
                   ap_uint<128>* index3,
-                  unsigned* offset4,
-                  ap_uint<128>* index4,
-                  unsigned* offset5,
-                  ap_uint<128>* index5,
-                  unsigned* offset6,
-                  ap_uint<128>* index6,
-                  unsigned* offset7,
-                  ap_uint<128>* index7,
 
                   ap_uint<512>* bufferPing,
                   ap_uint<512>* bufferPong,
@@ -2201,8 +2133,8 @@ void nHopPingPong(ap_uint<32> numHop,
     ap_uint<32> numAggr = 0;
     bool ping_pong_flag = true;
     bool batchEnd = false;
-    ap_uint<32> offsetStart = offsetTable[9];
-    ap_uint<32> offsetEnd = offsetTable[10];
+    ap_uint<32> offsetStart = offsetTable[PU+1];
+    ap_uint<32> offsetEnd = offsetTable[PU+2];
     ap_uint<32> numResidual = 0;
 
 HopLoop:
@@ -2221,14 +2153,14 @@ HopLoop:
             nHopCore<depth, maxDevice, PU>(loadBatch, batchEnd, numHop, intermediate, byPass, duplicate, hashSize,
                                            numPair, pair, pairEnd, offsetStart, offsetEnd, offsetTable, indexTable,
                                            cardTable, offset0, index0, offset1, index1, offset2, index2, offset3,
-                                           index3, offset4, index4, offset5, index5, offset6, index6, offset7, index7,
+                                           index3, 
                                            aggrURAM, overflowURAM, numAggr, numResidual, bufferPing, bufferPong,
                                            switchStream, switchStreamEnd, outStream, outStreamEnd);
         } else {
             nHopCore<depth, maxDevice, PU>(loadBatch, batchEnd, numHop, intermediate, byPass, duplicate, hashSize,
                                            numPair, pair, pairEnd, offsetStart, offsetEnd, offsetTable, indexTable,
                                            cardTable, offset0, index0, offset1, index1, offset2, index2, offset3,
-                                           index3, offset4, index4, offset5, index5, offset6, index6, offset7, index7,
+                                           index3, 
                                            aggrURAM, overflowURAM, numAggr, numResidual, bufferPong, bufferPing,
                                            switchStream, switchStreamEnd, outStream, outStreamEnd);
         }
@@ -2285,14 +2217,6 @@ void nHopTop(ap_uint<32> numHop,
              ap_uint<128>* index2,
              unsigned* offset3,
              ap_uint<128>* index3,
-             unsigned* offset4,
-             ap_uint<128>* index4,
-             unsigned* offset5,
-             ap_uint<128>* index5,
-             unsigned* offset6,
-             ap_uint<128>* index6,
-             unsigned* offset7,
-             ap_uint<128>* index7,
 
              ap_uint<512>* bufferPing,
              ap_uint<512>* bufferPong,
@@ -2324,7 +2248,7 @@ void nHopTop(ap_uint<32> numHop,
 
     nHopPingPong<maxDevice, PU>(numHop, intermediate, batchSize, hashSize, byPass, duplicate, pair, pairEnd,
                                 offsetTable, indexTable, cardTable, offset0, index0, offset1, index1, offset2, index2,
-                                offset3, index3, offset4, index4, offset5, index5, offset6, index6, offset7, index7,
+                                offset3, index3, 
                                 bufferPing, bufferPong, switchStream, switchStreamEnd, outStream, outStreamEnd);
 #ifndef __SYNTHESIS__
     std::cout << "========================Ping-Pong End===================" << std::endl;
@@ -2347,20 +2271,7 @@ void nHopTop(ap_uint<32> numHop,
     std::cout << "====================Output Result to Local=============" << std::endl;
 #endif
 
-    if (PU == 8) {
-        merge8to1<512, false>(switchStream[0], switchStreamEnd[0], switchStream[1], switchStreamEnd[1], switchStream[2],
-                              switchStreamEnd[2], switchStream[3], switchStreamEnd[3], switchStream[4],
-                              switchStreamEnd[4], switchStream[5], switchStreamEnd[5], switchStream[6],
-                              switchStreamEnd[6], switchStream[7], switchStreamEnd[7], numSwitch, switchOut,
-                              switchOutEnd);
-
-        merge8to1<512, false>(outStream[0], outStreamEnd[0], outStream[1], outStreamEnd[1], outStream[2],
-                              outStreamEnd[2], outStream[3], outStreamEnd[3], outStream[4], outStreamEnd[4],
-                              outStream[5], outStreamEnd[5], outStream[6], outStreamEnd[6], outStream[7],
-                              outStreamEnd[7], numLocal, outMergeStream, outMergeStreamEnd);
-
-        writeOut(outMergeStream, outMergeStreamEnd, bufferLocal);
-    } else if (PU == 4) {
+    if (PU == 4) {
         merge4to1<512, false>(switchStream[0], switchStreamEnd[0], switchStream[1], switchStreamEnd[1], switchStream[2],
                               switchStreamEnd[2], switchStream[3], switchStreamEnd[3], numSwitch, switchOut,
                               switchOutEnd);
@@ -2431,14 +2342,6 @@ void nHop(unsigned numHop,
           ap_uint<128>* index2,
           unsigned* offset3,
           ap_uint<128>* index3,
-          unsigned* offset4,
-          ap_uint<128>* index4,
-          unsigned* offset5,
-          ap_uint<128>* index5,
-          unsigned* offset6,
-          ap_uint<128>* index6,
-          unsigned* offset7,
-          ap_uint<128>* index7,
 
           ap_uint<512>* bufferPing,
           ap_uint<512>* bufferPong,
@@ -2450,7 +2353,7 @@ void nHop(unsigned numHop,
           hls::stream<bool>& switchOutEnd) {
 #pragma HLS INLINE off
 
-    const int puNum = 8;
+    const int puNum = 4;
     const int maxDevice = 32;
     ap_uint<32> table0[16];
 #pragma HLS ARRAY_PARTITION variable = table0 complete
@@ -2496,8 +2399,7 @@ LoadCardTable:
 
     xf::graph::internal::Hop::nHopTop<maxDevice, puNum>(
         numHop, intermediate, batchSize, hashSize, byPass, duplicate, switchIn, switchInEnd, table0, table1, table2,
-        offset0, index0, offset1, index1, offset2, index2, offset3, index3, offset4, index4, offset5, index5, offset6,
-        index6, offset7, index7, bufferPing, bufferPong, localBufferSize, switchBufferSize, bufferLocal, switchOut,
+        offset0, index0, offset1, index1, offset2, index2, offset3, index3, bufferPing, bufferPong, localBufferSize, switchBufferSize, bufferLocal, switchOut,
         switchOutEnd);
 
     numOut[0] = localBufferSize;

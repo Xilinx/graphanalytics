@@ -20,7 +20,6 @@
 #include "nHop_kernel.hpp"
 #endif
 
-#include "xf_utils_sw/logger.hpp"
 #include "ap_int.h"
 #include "utils.hpp"
 #include "utils2.hpp"
@@ -123,8 +122,19 @@ int Demo_1(ArgParser& parser){
     }
 
     if (!parser.getCmdOption("--golden", goldenfile)) {
-        std::cout << "ERROR: golden file path is not set!\n";
-        return -1;
+        //std::cout << "WARNING: golden file path is not set!, but only use in hls flow\n";
+    }
+
+    if (!parser.getCmdOption("--numKernel", args)) {
+        std::cout << "Using default number of kernel: "<<commendInfo.numKernel<<std::endl;
+    }else{
+        commendInfo.numKernel = stoi(args);
+    }
+
+    if (!parser.getCmdOption("--numPuPerKernel", args)) {
+        std::cout << "Using default number of PU: "<<commendInfo.numPuPerKernel<<std::endl;
+    }else{
+        commendInfo.numPuPerKernel = stoi(args);
     }
 
     ap_uint<32> num_hop = 3;
@@ -152,8 +162,6 @@ int Demo_1(ArgParser& parser){
         commendInfo.duplicate = stoi(args);
     }
 
-    int num_knl =1;// small graph can be 8
-    commendInfo.num_chnl = 4;
     commendInfo.xclbin_path = xclbin_path;
 
     //2. get graph and start partition
@@ -164,7 +172,7 @@ int Demo_1(ArgParser& parser){
     PartitionHop<unsigned> par1(&csr0);
     int Limit_MB_v = 64;
     int Limit_MB_e = 64;//128;
-    par1.CreatePartitionForKernel(num_knl, commendInfo.num_chnl, Limit_MB_v*4*(1<<20), Limit_MB_e*4*(1<<20));
+    par1.CreatePartitionForKernel(commendInfo.numKernel, commendInfo.numPuPerKernel, Limit_MB_v*4*(1<<20), Limit_MB_e*4*(1<<20));
 
     //3. dispatch subgraph to multi kernels
     long num_pair;
@@ -179,9 +187,9 @@ int Demo_1(ArgParser& parser){
     free(pair);
     return 0;
 }
+
 int main(int argc, const char* argv[]) {
     std::cout << "\n---------------------N Hop-------------------\n";
-    xf::common::utils_sw::Logger logger(std::cout, std::cerr);
     cl_int fail;
 
     // cmd parser
