@@ -114,7 +114,7 @@ EXE_NAME := host.exe
 EXE_FILE := $(BUILD_DIR)/$(EXE_NAME)
 EXE_FILE_DEPS := $(HOST_SRCS) $(EXE_FILE_DEPS)
 
-HOST_ARGS :=  -xclbin $(BUILD_DIR)/nHop_kernel.xclbin --offset $(CUR_DIR)/csr/as-Skitter-csr-offset.mtx --index $(CUR_DIR)/csr/as-Skitter-csr-indicesweights.mtx --pair $(CUR_DIR)/pair_small/as-Skitter-twoHopPair.mtx --hop 1 --batch 1024
+HOST_ARGS :=  -xclbin $(BUILD_DIR)/nHop_kernel.xclbin --graph $(CUR_DIR)/data/example-wt.txt --pair $(CUR_DIR)/data/data-pair-example.mtx --hop 2 --batch 1024
 #HOST_ARGS :=  -xclbin $(BUILD_DIR)/nHop_kernel.xclbin --offset $(CUR_DIR)/data/data-csr-offset.mtx --index $(CUR_DIR)/data/data-csr-indicesweights.mtx --pair $(CUR_DIR)/data/data-pair.mtx --hop 2 --batch 1024
 ifneq ($(HOST_ARCH), x86)
 PKG_HOST_ARGS = $(foreach args,$(HOST_ARGS),$(subst $(dir $(patsubst %/,%,$(args))),,$(args)))

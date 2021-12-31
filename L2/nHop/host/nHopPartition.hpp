@@ -573,6 +573,54 @@ int PartitionHop<T>::DoAggregation() {
     return 0;
 }
 
+template<class T>
+void PartitionHop<T>::PrintRpt(
+    int numHop, int numPair, commendInfo commendInfo, timeInfo timeInfo, IndexStatistic stt
+){
+    T nv = this->hop_src->NV;
+    T ne = this->hop_src->NE;
+    printf("\n");
+    printf("************************************************************************************************\n");
+    printf("**************************************  nHop Summary   *****************************************\n");
+    printf("************************************************************************************************\n");
+    printf("INFO : disturbute nHop compute time all : %lf\n", timeInfo.timeWrkCompute);
+    printf("************************************************************************************************\n");
+    printf("*********************************************************\n");
+    printf("************* Hardware resources for hopping ************\n");
+    printf("*********************************************************\n");
+    printf("Number of kernels                         : %9d\n", commendInfo.numKernel);
+    printf("Number of channel in kernel               : %9d\n", commendInfo.numPuPerKernel);
+    printf("Number of total channel in kernel         : %9d\n", commendInfo.numKernel * commendInfo.numPuPerKernel);
+    printf("Size limitation for storing offsets(Byte) : %9d\n", limit_v_b);
+    printf("Size limitation for storing indices(Byte) : %9d\n", limit_e_b);
+    printf("*********************************************************\n");
+    printf("************* The graph features for hopping ************\n");
+    printf("*********************************************************\n");
+    printf("Total number of vertex in graph           : %9d\n", nv);
+    printf("Total number of edge in graph             : %9d\n", ne);
+    printf("Bytes for storing graph data              : %9d\n", sizeof(T));
+    printf("Total number of bytes for storing offsets : %9d\n", (nv + 1) * sizeof(T));
+    printf("Total number of bytes for storing indices : %9d\n", ne * sizeof(T));
+    printf("*********************************************************\n");
+    printf("************* Commend line and input ********************\n");
+    printf("*********************************************************\n");
+    printf("Number of hop                             : %9d\n", numHop);
+    printf("Number of kernels                         : %9d\n", commendInfo.numKernel);
+    printf("Number of channel in kernel               : %9d\n", commendInfo.numPuPerKernel);
+    printf("Batch size in kernel                      : %9d\n", commendInfo.sz_bat);
+    printf("Duplicate graph Mode                      : %9d\n", commendInfo.duplicate);
+    printf("Number of input pair                      : %9d\n", numPair);
+    printf("************************************************************************************************\n");
+    printf("***************************** Hopping aggregation result per kernel ****************************\n");
+    printf("************************************************************************************************\n");
+    for(int i = 0; i < commendInfo.numKernel; i++){
+    printf("kernel[%d] aggregation result             : %9d\n", i, stt.num_local);
+    }
+    // printf("****************************************************************************************************\n");
+    // printf("******* To find proper number of channel covering the entire graph and supporting intra-copy********\n");
+    // printf("****************************************************************************************************\n");
+}
+
 template <class T>
 int PartitionHop<T>::CreatePartitionForKernel( // Created
     int num_knl_in,
@@ -590,7 +638,6 @@ int PartitionHop<T>::CreatePartitionForKernel( // Created
     printf("*********************************************************\n");
     printf("************* Hardware resources for hopping ************\n");
     printf("*********************************************************\n");
-
     printf("Number of kernels                         : %9d\n", num_knl_in);
     printf("Number of channel in kernel               : %9d\n", num_chnl_knl);
     printf("Number of total channel in kernel         : %9d\n", num_knl_in * num_chnl_knl);
@@ -660,7 +707,7 @@ int PartitionHop<T>::CreatePartitionForKernel( // Created
 }
 
 template <class T>
-int PartitionHop<T>::LoadPair2Buffs(ap_uint<64>* pairs, int num_pair, T NV, T NE, int numHop, commendInfo commendInfo) {
+int PartitionHop<T>::LoadPair2Buffs(ap_uint<64>* pairs, int num_pair, T NV, T NE, int numHop, commendInfo commendInfo, timeInfo* p_timeInfo, IndexStatistic* p_stt) {
     // 1) initialize each kernels' buffs according to the size of pair, NV ,NE and numHop
     printf("\n");
     printf("Initialize each kernels' buffs according to the size of pair, NV ,NE and numHop\n");
@@ -711,7 +758,7 @@ int PartitionHop<T>::LoadPair2Buffs(ap_uint<64>* pairs, int num_pair, T NV, T NE
         for (int i = 0; i < this->num_knl_used; i++) {
             if (this->hopKnl[i]->p_buff_in->isEmpty())
                 continue;
-            else if (this->hopKnl[i]->ConsumeBatch(NV, NE, rnd, num_pair, sz_bat, numHop, commendInfo) != 0) {
+            else if (this->hopKnl[i]->ConsumeBatch(NV, NE, rnd, num_pair, sz_bat, numHop, commendInfo, p_timeInfo, p_stt) != 0) {
                 return -1;
             }
             allEmpty = false;
@@ -744,7 +791,9 @@ long HopKernel<T>::estimateBatchSize(int cnt_hop, long sz_suggest, PackBuff<T>* 
 }
 
 template <class T>
-int HopKernel<T>::ConsumeBatch(T NV, T NE, int rnd, T numSubpair, long sz_bat, int numHop, commendInfo commendInfo) {
+int HopKernel<T>::ConsumeBatch(T NV, T NE, int rnd, T numSubpair, long sz_bat, int numHop,
+     commendInfo commendInfo, timeInfo* p_timeInfo, IndexStatistic* p_stt
+) {
     int cnt_hop = 0;
     long num_idxs = 0;
     // IndexStatistic* p_stts[MAX_NUM_HOP];
@@ -752,20 +801,20 @@ int HopKernel<T>::ConsumeBatch(T NV, T NE, int rnd, T numSubpair, long sz_bat, i
            sz_bat, numHop);
     do {
         // p_stts[cnt_hop] = new(IndexStatistic);
-        IndexStatistic stt;
+        // IndexStatistic stt;
         PackBuff<T>* p_buff_pop = (cnt_hop == 0) ? this->p_buff_in : this->p_buff_pp[cnt_hop & 1];
         PackBuff<T>* p_buff_send = this->p_buff_out;
         PackBuff<T>* p_buff_local = this->p_buff_pp[(cnt_hop + 1) & 1];
         PackBuff<T>* p_buff_agg = this->p_buff_agg;
-        long sz_bat2 = estimateBatchSize(cnt_hop, sz_bat, p_buff_pop);
+        long sz_bat2 = estimateBatchSize(cnt_hop, sz_bat, p_buff_pop);//TODO
         long size_pop = p_buff_pop->getSize();
         printf("%s : cnt_hop=%d, sz_bat=%ld, sz_bat2=%ld, numHop=%d, size_in_pop=%d\n", __FUNCTION__, cnt_hop, sz_bat,
                sz_bat2, numHop, size_pop);
         // if( -1==BatchOneHop(p_buff_pop, p_buff_send, p_buff_local, sz_bat2, numHop, &stt)){
         if (-1 ==
             BatchOneHopOnFPGA(p_buff_pop, p_buff_send, p_buff_local, p_buff_agg, 
-            NV, NE, numSubpair, numHop, sz_bat2, commendInfo, &stt)) {
-            printf("Error: batch size(%ld) can't be consumed out, created %ld at hop(%d)\n", sz_bat2, stt.num_all,
+            NV, NE, numSubpair, numHop, sz_bat2, commendInfo, p_timeInfo, p_stt)) {
+            printf("Error: batch size(%ld) can't be consumed out, created %ld at hop(%d)\n", sz_bat2, p_stt->num_all,
                    cnt_hop);
             printf("Please try small size of batch\n");
             return -1;
@@ -773,7 +822,7 @@ int HopKernel<T>::ConsumeBatch(T NV, T NE, int rnd, T numSubpair, long sz_bat, i
         cnt_hop+= numHop;
         //cnt_hop++;
         printf("  [Hop(%d):", cnt_hop);
-        stt.print();
+        p_stt->print();
         printf("]\n");
         printf("Judge: cnt_hop=%d, numHop=%d\n",cnt_hop, numHop);
     } while (cnt_hop < numHop);
@@ -844,6 +893,7 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
                                     int numHop,
                                     T estimateBatchSize,
                                     commendInfo commendInfo,
+                                    timeInfo* p_timeInfo,
                                     IndexStatistic* p_stt) {
     // PackBuff<T>* p_buff_pp_w = this->p_buff_pp[cnt_bat&1];
     T sz_idx = 0;
@@ -1180,8 +1230,8 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
     q.finish();
 
     //gettimeofday(&end_time, 0);
-    double timeWrkCompute;
-    getDiffTime(h_compute_start, h_compute_end, timeWrkCompute);
+    //double timeWrkCompute;
+    getDiffTime(h_compute_start, h_compute_end, p_timeInfo->timeWrkCompute);
     std::cout << "kernel end------" << std::endl;
 
 #else
@@ -1311,12 +1361,6 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
             }
         }
     }
-
-    printf("************************************************************************************************\n");
-    printf("***********************************  nHop Summary   *****************************************\n");
-    printf("************************************************************************************************\n");
-    printf("INFO : disturbute nHop compute time all : %lf\n", timeWrkCompute);
-    printf("************************************************************************************************\n");
 
     return 0;
 }

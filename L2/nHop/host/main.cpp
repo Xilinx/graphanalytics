@@ -88,7 +88,6 @@ void SavePair(ap_uint<64>* pair, long num, const char* name){
     fclose(fp);
 }
 
-
 int Demo_1(ArgParser& parser){
     //1. get commendInfo
     commendInfo commendInfo;
@@ -100,25 +99,24 @@ int Demo_1(ArgParser& parser){
     }
 #endif
 
+    std::string graphfile;
     std::string offsetfile;
     std::string indexfile;
     std::string pairfile;
     std::string goldenfile;
     std::string args;
 
-    if (!parser.getCmdOption("--offset", offsetfile)) {
-        std::cout << "ERROR: offset file path is not set!\n";
-        return -1;
-    }
-
-    if (!parser.getCmdOption("--index", indexfile)) {
-        std::cout << "ERROR: index file path is not set!\n";
-        return -1;
+    if (!parser.getCmdOption("--graph", graphfile)) {
+        parser.getCmdOption("--offset", offsetfile);
+        parser.getCmdOption("--index", indexfile);
+        if(offsetfile.empty() && indexfile.empty() ){
+            std::cout << "ERROR: graph file path is not set!\n";
+            return -1;   
+        }   
     }
 
     if (!parser.getCmdOption("--pair", pairfile)) {
-        std::cout << "ERROR: pair file path is not set!\n";
-        return -1;
+        std::cout << "WARNING: pair file path is not set!\n";
     }
 
     if (!parser.getCmdOption("--golden", goldenfile)) {
@@ -166,7 +164,11 @@ int Demo_1(ArgParser& parser){
 
     //2. get graph and start partition
     CSR<unsigned> csr0;
-    csr0.Init( offsetfile.c_str(), indexfile.c_str());
+    if(!graphfile.empty()){
+        csr0.Init( graphfile.c_str(), true);
+    }else{
+        csr0.Init( offsetfile.c_str(), indexfile.c_str());
+    }
     csr0.ShowInfo("csr0 Graph");
 
     PartitionHop<unsigned> par1(&csr0);
@@ -175,10 +177,13 @@ int Demo_1(ArgParser& parser){
     par1.CreatePartitionForKernel(commendInfo.numKernel, commendInfo.numPuPerKernel, Limit_MB_v*4*(1<<20), Limit_MB_e*4*(1<<20));
 
     //3. dispatch subgraph to multi kernels
+    IndexStatistic stt;
+    timeInfo timeInfo;
     long num_pair;
     ap_uint<64>* pair = GetPair(pairfile.c_str(), &num_pair);
-    par1.LoadPair2Buffs(pair, num_pair, csr0.NV, csr0.NE, num_hop, commendInfo);
+    par1.LoadPair2Buffs(pair, num_pair, csr0.NV, csr0.NE, num_hop, commendInfo, &timeInfo, &stt);
 
+    par1.PrintRpt( num_hop, num_pair, commendInfo, timeInfo, stt);
     //long num = 1000; 
     //ap_uint<64>* pair = GenPair(csr0.NV, num);
     //par1.LoadPair2Buffs(pair, num, csr0.NV, csr0.NE, 2);

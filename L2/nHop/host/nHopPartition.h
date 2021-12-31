@@ -159,6 +159,9 @@ struct IndexStatistic { // for index statistic
     }
 };
 
+struct timeInfo{
+    double timeWrkCompute;
+};
 struct commendInfo{
     int numKernel=1;
     int numPuPerKernel=4;
@@ -204,11 +207,13 @@ class HopKernel { // warpper the hop kernel
 
     // hop processing 1 batch of vertex on FPGA
     int BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop, PackBuff<T>* p_buff_send, PackBuff<T>* p_buff_local, PackBuff<T>* p_buff_agg,
-                          T NV, T NE, T numSubPairs, int num_hop, T estimateBatchSize, commendInfo commendInfo, IndexStatistic* p_stt);
+                          T NV, T NE, T numSubPairs, int num_hop, T estimateBatchSize, commendInfo commendInfo, timeInfo* p_timeInfo,
+                          IndexStatistic* p_stt);
 // clang-format on
     long estimateBatchSize(int cnt_hop, long sz_suggest, PackBuff<T>* p_buff_pop);
 
-    int ConsumeBatch(T NV, T NE, int rnd, T numSubpair, long sz_bat, int num_hop, commendInfo commendInfo); // call BatchOneHopOnFPGA()
+    int ConsumeBatch(T NV, T NE, int rnd, T numSubpair, long sz_bat, int num_hop, 
+    commendInfo commendInfo, timeInfo* p_timeInfo, IndexStatistic* p_stt); // call BatchOneHopOnFPGA()
 
     void InitBuffs(long sz_in, long sz_out, long sz_pp, long sz_agg);
     void InitCore(CSR<T>* par_chnl_csr[], int start, int num_ch_knl, int num_ch_par);
@@ -298,7 +303,9 @@ class PartitionHop { // the class for partition graph, generate all pointer of c
     ~PartitionHop();
 
     int CreatePartitionForKernel(int num_knl_in, int num_chnl_knl_in, T limit_nv_byte, T limit_ne_byte);
-    int LoadPair2Buffs(ap_uint<64>* pairs, int num_pair, T NV, T NE, int num_hop, commendInfo commendInfo);
+    int LoadPair2Buffs(ap_uint<64>* pairs, int num_pair, T NV, T NE, int num_hop, 
+    commendInfo commendInfo, timeInfo* p_timeInfo, IndexStatistic* p_stt);
+    void PrintRpt(int numHop, int numPair, commendInfo commendInfo, timeInfo timeInfo, IndexStatistic stt);
 
     // ParID_ch to ParID_knl
     int ParID_knl(int ParID_ch) { return ParID_ch / num_chnl_knl; }
