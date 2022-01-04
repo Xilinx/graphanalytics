@@ -583,7 +583,10 @@ void PartitionHop<T>::PrintRpt(
     printf("************************************************************************************************\n");
     printf("**************************************  nHop Summary   *****************************************\n");
     printf("************************************************************************************************\n");
-    printf("INFO : disturbute nHop compute time all : %lf\n", timeInfo.timeWrkCompute);
+    printf("INFO : disturbute nHop compute time all   : %lf\n", timeInfo.timeWrkCompute);
+    printf("INFO : disturbute nHop compute kernel time: %lf\n", timeInfo.timeKernel);
+    printf("INFO : disturbute nHop compute memcy time : %lf\n", timeInfo.timeWrkCompute - timeInfo.timeKernel);
+    printf("INFO : Estimated MTEPS                    : %lf\n", numPair/1000000/timeInfo.timeKernel*ne/nv);
     printf("************************************************************************************************\n");
     printf("*********************************************************\n");
     printf("************* Hardware resources for hopping ************\n");
@@ -614,9 +617,12 @@ void PartitionHop<T>::PrintRpt(
     printf("***************************** Hopping aggregation result per kernel ****************************\n");
     printf("************************************************************************************************\n");
     for(int i = 0; i < commendInfo.numKernel; i++){
-    printf("kernel[%d] aggregation result             : %9d\n", i, stt.num_local);
+    if(commendInfo.byPass)
+    printf("kernel[%d] not aggregation result          : %9d\n", i, stt.num_local);
+    else
+    printf("kernel[%d] aggregation result              : %9d\n", i, stt.num_local);
     }
-    // printf("****************************************************************************************************\n");
+    printf("****************************************************************************************************\n");
     // printf("******* To find proper number of channel covering the entire graph and supporting intra-copy********\n");
     // printf("****************************************************************************************************\n");
 }
@@ -1233,6 +1239,25 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
     //double timeWrkCompute;
     getDiffTime(h_compute_start, h_compute_end, p_timeInfo->timeWrkCompute);
     std::cout << "kernel end------" << std::endl;
+    // get related times
+    unsigned long timeStart, timeEnd, exec_time, write_time, read_time;
+    std::cout << "-------------------------------------------------------" << std::endl;
+    events_write[0].getProfilingInfo(CL_PROFILING_COMMAND_START, &timeStart);
+    events_write[0].getProfilingInfo(CL_PROFILING_COMMAND_END, &timeEnd);
+    write_time = (timeEnd - timeStart) / 1000.0;
+    std::cout << "INFO: Data transfer from host to device: " << write_time << " us\n";
+    std::cout << "-------------------------------------------------------" << std::endl;
+    events_read[0].getProfilingInfo(CL_PROFILING_COMMAND_START, &timeStart);
+    events_read[0].getProfilingInfo(CL_PROFILING_COMMAND_END, &timeEnd);
+    read_time = (timeEnd - timeStart) / 1000.0;
+    std::cout << "INFO: Data transfer from device to host: " << read_time << " us\n";
+    std::cout << "-------------------------------------------------------" << std::endl;
+    events_kernel[0].getProfilingInfo(CL_PROFILING_COMMAND_START, &timeStart);
+    events_kernel[0].getProfilingInfo(CL_PROFILING_COMMAND_END, &timeEnd);
+    exec_time = (timeEnd - timeStart) / 1000.0;
+    std::cout << "INFO: Average kernel execution per run: " << exec_time << " us\n";
+    p_timeInfo->timeKernel = exec_time / 1000000.0;
+    std::cout << "-------------------------------------------------------" << std::endl;
 
 #else
 

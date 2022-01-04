@@ -89,7 +89,7 @@ void SavePair(ap_uint<64>* pair, long num, const char* name){
 }
 
 int Demo_1(ArgParser& parser){
-    //1. get commendInfo
+    //1. get commendInfo, include the default value of the input commend
     commendInfo commendInfo;
     std::string xclbin_path;
 #ifndef HLS_TEST

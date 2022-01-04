@@ -582,7 +582,7 @@ void dispatchDuplicateCSR(hls::stream<ap_uint<128> >& pairStream,
     std::cout << "========================dispatchOffset1===================" << std::endl;
 #endif
 
-    ap_uint<3> j = 0;
+    ap_uint<2> j = 0;
     bool end = pairStreamEnd.read();
     while (!end) {
 #pragma HLS PIPELINE II = 1

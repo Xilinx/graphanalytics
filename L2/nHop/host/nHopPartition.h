@@ -161,6 +161,7 @@ struct IndexStatistic { // for index statistic
 
 struct timeInfo{
     double timeWrkCompute;
+    double timeKernel;
 };
 struct commendInfo{
     int numKernel=1;
