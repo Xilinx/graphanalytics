@@ -71,30 +71,44 @@ for idx in range(1,len(peopleVec['Name'])):
     #print(peopleVec['Name'][idx])
     inputVec.append(peopleVec['Name'][idx])
 
-#peopleFile
+#create options
 opt = xfm.options()
 opt.xclbinPath=xfm.xString(xclbin_path)
 opt.deviceNames=xfm.xString(deviceNames)
+#create fuzzymatch object
 mchecker = xfm.FuzzyMatch(opt)
+#start fuzzymatch 
 stat_check=mchecker.startFuzzyMatch()
+#load big table
 stat_check=mchecker.fuzzyMatchLoadVec(inputVec,inputId)
 
+# create input patterns 
 test_transaction=[]
-
 print('the size of data_vec',len(data_vec))
 
-for idx in range (len(data_vec)):
-    test_transaction.append(data_vec['Name'][idx+1])
+for idx in range (1,len(data_vec)):
+    test_transaction.append(data_vec['Name'][idx])
 
-ccnt=0
 result_list={}
 
+# run fuzzymatch on input patterns in batch mode 
 start=timer()
 result_list = mchecker.executefuzzyMatch(test_transaction, threshold)
 end = timer()
 timeTaken = (end - start)*1000
 
-print(result_list)
+#print(result_list)
+
+for idx in range (0,len(data_vec)-1):
+    print(test_transaction[idx],"---> ", end=' ')
+    if not result_list[idx]:
+        print("no match")
+    else :
+        for item in result_list[idx]:
+            print('{',inputVec[item[0]-1],':', item[1], '}', end=';  ')
+        print()
+
+    
 
 print('Average time taken per string', '{:.3f}'.format(timeTaken/len(test_transaction)) , '\n')
 
