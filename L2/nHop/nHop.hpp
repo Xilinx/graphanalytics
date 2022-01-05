@@ -334,7 +334,7 @@ void loadBuffer(ap_uint<32> start,
                 hop = pair_in(111, 96);
                 card = pair_in(127, 112);
 
-                //if ((src == 124311) && (des == 721))
+                if ((src == 124311) && (des == 721))
                     std::cout << "loadBase: i=" << i << " j=" << j << " k=" << k << " src=" << src << " des=" << des
                               << " idx=" << idx << " hop=" << hop << " card=" << card << std::endl;
             }
@@ -361,7 +361,7 @@ void loadBuffer(ap_uint<32> start,
             hop = pair_in(111, 96);
             card = pair_in(127, 112);
 
-            //if ((src == 124311) && (des == 721))
+            if ((src == 124311) && (des == 721))
                 std::cout << "loadResidual: i=" << i << " k=" << k << " src=" << src << " des=" << des << " idx=" << idx
                           << " hop=" << hop << " card=" << card << std::endl;
         }
@@ -409,7 +409,7 @@ void loadStrm(ap_uint<32> numPairs,
             hop = pair_in(111, 96);
             card = pair_in(127, 112);
 
-            //if ((src == 124311) && (des == 721))
+            if ((src == 124311) && (des == 721))
                 std::cout << "loadStrm: k=" << k << " src=" << src << " des=" << des << " idx=" << idx << " hop=" << hop
                           << " card=" << card << std::endl;
         }
@@ -461,7 +461,7 @@ void splitPair(bool loadBatch,
             if (tmp != 0) {
 #ifndef __SYNTHESIS__
 #ifdef DEBUG_LOAD
-                //if ((src == 124311) && (des == 721))
+                if ((src == 124311) && (des == 721))
                     std::cout << "src=" << src << " des=" << des << " idx=" << tmp(95, 64) << " hop=" << tmp(111, 96)
                               << " card=" << tmp(127, 112) << std::endl;
 #endif
@@ -555,7 +555,7 @@ void dispatchSplitCSR(hls::stream<ap_uint<128> >& pairStream,
 
 #ifndef __SYNTHESIS__
 #ifdef DEBUG_LOAD
-                //if ((src == 124311) && (des == 721))
+                if ((src == 124311) && (des == 721))
                     std::cout << "dispatchID=" << j << " src=" << src << " des=" << des
                               << " idx=" << idx - offsetTable[j] << " offsetTable=" << offsetTable[j] << " hop=" << hop
                               << std::endl;
@@ -707,7 +707,7 @@ void loadHopOffset(ap_uint<32> numHop,
 
 #ifndef __SYNTHESIS__
 #ifdef DEBUG_HOP
-        //if ((src == 124311) && (des == 721))
+        if ((src == 124311) && (des == 721))
             std::cout << "src=" << src << " des=" << des << " idx=" << idx << " hop=" << hop
                       << " offset_start=" << offset[idx] << " offset_end=" << offset[idx + 1]
                       << " offset=" << tmp1(95, 64) << " nm=" << tmp1(119, 96) << std::endl;
@@ -795,7 +795,7 @@ void generateIndexAddr(hls::stream<ap_uint<128> >& offsetStream,
 
 #ifndef __SYNTHESIS__
 #ifdef DEBUG_HOP
-            //if ((src == 124311) && (des == 721))
+            if ((src == 124311) && (des == 721))
                 std::cout << "IndexAddr src=" << src << " des=" << des << " offset=" << offset << " idx=" << idx
                           << " addr=" << addr << " enable=" << enable << " hop=" << hop << std::endl;
 #endif
@@ -873,7 +873,7 @@ void loadIndex(ap_uint<32> numHop,
 
 #ifndef __SYNTHESIS__
 #ifdef DEBUG_HOP
-                    //if ((src == 124311) && (des == 721))
+                    if ((src == 124311) && (des == 721))
                         std::cout << "localResidual src=" << src << " des=" << des << " idx=" << idx[i]
                                   << " hop=" << hop << std::endl;
 #endif
@@ -888,7 +888,7 @@ void loadIndex(ap_uint<32> numHop,
 
 #ifndef __SYNTHESIS__
 #ifdef DEBUG_HOP
-                        //if ((src == 124311) && (des == 721))
+                        if ((src == 124311) && (des == 721))
                             std::cout << "netSwitch src=" << src << " des=" << des << " idx=" << idx[i]
                                       << " hop=" << hop << std::endl;
 #endif
@@ -903,7 +903,7 @@ void loadIndex(ap_uint<32> numHop,
 
 #ifndef __SYNTHESIS__
 #ifdef DEBUG_HOP
-                    //if ((src == 124311) && (des == 721))
+                    if ((src == 124311) && (des == 721))
                         std::cout << "internalAggr src=" << src << " des=" << des << " idx=" << idx[i] << " hop=" << hop
                                   << std::endl;
 #endif
@@ -928,7 +928,7 @@ void loadIndex(ap_uint<32> numHop,
 
 #ifndef __SYNTHESIS__
 #ifdef DEBUG_HOP
-                    //if ((src == 124311) && (des == 721))
+                    if ((src == 124311) && (des == 721))
                         std::cout << "localResult src=" << src << " des=" << des << " idx=" << tmp3(85, 64)
                                   << " hop=" << tmp3(127, 96) << std::endl;
 #endif
@@ -1252,7 +1252,7 @@ void hashProcess(ap_uint<32> byPass,
 
 #ifndef __SYNTHESIS__
 #ifdef DEBUG_AGGR
-        //if ((src == 124311) && (des == 721))
+        if ((src == 124311) && (des == 721))
             std::cout << "aggrStream: src=" << src << " des=" << des << " hash=" << tmp1(95, 64) << std::endl;
 #endif
 #endif
@@ -1339,7 +1339,7 @@ aggrCountLoop:
 
 #ifndef __SYNTHESIS__
 #ifdef DEBUG_AGGR
-        //if ((src == 124311) && (des == 721))
+        if ((src == 124311) && (des == 721))
             std::cout << "base: src=" << src << " des=" << des << " chip_idx=" << arry_idx(PU - 1, 0)
                       << " arry_idx=" << arry_idx(depth + PU - 1, PU) << " (des, src)=" << (des, src) << " key=" << key
                       << " pld=" << pld << std::endl;
@@ -1450,7 +1450,7 @@ overflowCountLoop:
         src = key_in(31, 0);
         des = key_in(63, 32);
 
-        //if ((src == 124311) && (des == 721))
+        if ((src == 124311) && (des == 721))
             std::cout << "overflow: src=" << src << " des=" << des << " chip_idx=" << chip << " arry_idx=" << idx
                       << " (des, src)=" << key_in << " key=" << key << " pld=" << pld << std::endl;
 #endif
@@ -1731,6 +1731,7 @@ doing_burst:
                 idx = tmp(128 * j + 95, 128 * j + 64);
                 hop = tmp(128 * j + 127, 128 * j + 96);
 
+                if ((src == 38) && (des == 45))
                 std::cout << "writeOut: addr=" << total * _BurstLen + i << " src=" << src << " des=" << des
                           << " idx=" << idx << " hop=" << hop << std::endl;
             }
@@ -1828,7 +1829,7 @@ void readURAM(ap_uint<32> maxUpdateSize,
             src = tmp(31, 0);
             des = tmp(63, 32);
             count = tmp(95, 64);
-            //if ((src == 124311) && (des == 721))
+            if ((src == 124311) && (des == 721))
                 std::cout << "j=" << j << " src=" << src << " des=" << des << " count=" << count << std::endl;
 #endif
 #endif
@@ -1857,7 +1858,7 @@ void readURAM(ap_uint<32> maxUpdateSize,
             src = tmp(31, 0);
             des = tmp(63, 32);
             count = tmp(95, 64);
-            //if ((src == 124311) && (des == 721))
+            if ((src == 124311) && (des == 721))
                 std::cout << "j=" << j + 1 << " src=" << src << " des=" << des << " count=" << count << std::endl;
 #endif
 #endif

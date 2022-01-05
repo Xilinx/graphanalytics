@@ -3,7 +3,8 @@
 
 //#include "nHop_kernel.hpp"
 #include "nHopPartition.h"
-extern CTimeModule<unsigned long> gtimer;
+#include "host.hpp"
+//extern CTimeModule<unsigned long> gtimer;
 
 template <class T>
 int FindSegmentPoint( // return nv_end_start
@@ -18,7 +19,7 @@ int FindSegmentPoint( // return nv_end_start
     T nv_ref = (src.NV + num_chnl_par - 1) / num_chnl_par;
     T ne_ref = (src.NE + num_chnl_par - 1) / num_chnl_par;
     if (nv_ref > limit_nv) nv_ref = limit_nv;
-    if (ne_ref > limit_nv) ne_ref = limit_ne;
+    if (ne_ref > limit_ne) ne_ref = limit_ne;//fixed limit_nv to limit_ne
 
     nv_end_start = nv_start + nv_ref;
     if (nv_end_start > src.NV) nv_end_start = src.NV;
@@ -221,6 +222,16 @@ int PackBuff<T>::pop(HopPack<T>* p_hpk) {
     if (p_read == size) p_read = 0;
     if (p_read == p_write) Empty = true;
     return 1;
+}
+
+template <class T>
+void PackBuff<T>::SavePackBuff(long num, const char* name){
+    FILE* fp=fopen(name, "w");
+    fprintf(fp,"%ld\n", num);
+    for(int i=0; i<num; i++){
+        fprintf(fp, "%ld %ld %ld \n", pBuff[i].src, pBuff[i].des, pBuff[i].idx);
+    }
+    fclose(fp);
 }
 
 /***********************************/
@@ -579,6 +590,12 @@ void PartitionHop<T>::PrintRpt(
 ){
     T nv = this->hop_src->NV;
     T ne = this->hop_src->NE;
+    double degree = (double)ne/nv;
+    double allPair = 0;
+    for(int i=0; i<numHop; i++){
+        allPair += numPair*std::pow(degree, i+1);
+        printf("INFO : allPair = %lf\n", allPair);
+    }
     printf("\n");
     printf("************************************************************************************************\n");
     printf("**************************************  nHop Summary   *****************************************\n");
@@ -586,7 +603,8 @@ void PartitionHop<T>::PrintRpt(
     printf("INFO : disturbute nHop compute time all   : %lf\n", timeInfo.timeWrkCompute);
     printf("INFO : disturbute nHop compute kernel time: %lf\n", timeInfo.timeKernel);
     printf("INFO : disturbute nHop compute memcy time : %lf\n", timeInfo.timeWrkCompute - timeInfo.timeKernel);
-    printf("INFO : Estimated MTEPS                    : %lf\n", numPair/1000000/timeInfo.timeKernel*ne/nv);
+    printf("INFO : Estimated MTEPS for final hop      : %lf\n", numPair*degree/timeInfo.timeKernel/1000000);//numPair/1000000/timeInfo.timeKernel*ne/nv
+    printf("INFO : Estimated MTEPS for nhop           : %lf\n", allPair/timeInfo.timeKernel/1000000);//allPair/1000000/timeInfo.timeKernel*ne/nv
     printf("************************************************************************************************\n");
     printf("*********************************************************\n");
     printf("************* Hardware resources for hopping ************\n");
@@ -604,6 +622,7 @@ void PartitionHop<T>::PrintRpt(
     printf("Bytes for storing graph data              : %9d\n", sizeof(T));
     printf("Total number of bytes for storing offsets : %9d\n", (nv + 1) * sizeof(T));
     printf("Total number of bytes for storing indices : %9d\n", ne * sizeof(T));
+    printf("Degree of graph                           : %9.1lf\n", degree);
     printf("*********************************************************\n");
     printf("************* Commend line and input ********************\n");
     printf("*********************************************************\n");
@@ -622,6 +641,7 @@ void PartitionHop<T>::PrintRpt(
     else
     printf("kernel[%d] aggregation result              : %9d\n", i, stt.num_local);
     }
+    printf("hop result file had saved                 :  %s\n", commendInfo.filename.c_str());
     printf("****************************************************************************************************\n");
     // printf("******* To find proper number of channel covering the entire graph and supporting intra-copy********\n");
     // printf("****************************************************************************************************\n");
@@ -631,12 +651,12 @@ template <class T>
 int PartitionHop<T>::CreatePartitionForKernel( // Created
     int num_knl_in,
     int num_chnl_knl_in,
-    T limit_nv_byte,
-    T limit_ne_byte) {
+    T limit_nv_bit,
+    T limit_ne_bit) {
     this->num_knl_used = num_knl_in;
     this->num_chnl_knl = num_chnl_knl_in;
-    this->limit_v_b = limit_nv_byte;
-    this->limit_e_b = limit_ne_byte;
+    this->limit_v_b = limit_nv_bit;
+    this->limit_e_b = limit_ne_bit;
     T nv = this->hop_src->NV;
     T ne = this->hop_src->NE;
 
@@ -647,8 +667,8 @@ int PartitionHop<T>::CreatePartitionForKernel( // Created
     printf("Number of kernels                         : %9d\n", num_knl_in);
     printf("Number of channel in kernel               : %9d\n", num_chnl_knl);
     printf("Number of total channel in kernel         : %9d\n", num_knl_in * num_chnl_knl);
-    printf("Size limitation for storing offsets(Byte) : %9d\n", limit_v_b);
-    printf("Size limitation for storing indices(Byte) : %9d\n", limit_e_b);
+    printf("Size limitation for storing offsets(Byte) : %9d\n", limit_v_b/4);
+    printf("Size limitation for storing indices(Byte) : %9d\n", limit_e_b/4);
     printf("*********************************************************\n");
     printf("************* The graph features for hopping ************\n");
     printf("*********************************************************\n");
@@ -904,8 +924,8 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
     // PackBuff<T>* p_buff_pp_w = this->p_buff_pp[cnt_bat&1];
     T sz_idx = 0;
     T sz_pop = 0;
-    const int num_chnl = commendInfo.numPuPerKernel;
-    const int PU = num_chnl;
+    int num_chnl = commendInfo.numPuPerKernel;
+    int pu = num_chnl;
     T numVertices = NV;
     T numEdges = NE;
     T numPairs = numSubPairs;//rename the numSubPairs for the host work
@@ -935,29 +955,29 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
     T* offsetBuffer[num_chnl];
     T* indexBuffer[num_chnl];
     if (duplicate == 0) {
-        ap_uint<32> numVerticesPU = numVertices / PU;
-        offsetTable[PU] = numVertices;
-        for (int i = 0; i < PU; i++) {
+        ap_uint<32> numVerticesPU = numVertices / pu;
+        offsetTable[pu] = numVertices;
+        for (int i = 0; i < pu; i++) {
             offsetTable[i] = numVerticesPU * i;
         }
-        for (int i = 0; i < PU; i++) {
+        for (int i = 0; i < pu; i++) {
             offsetBuffer[i] = aligned_alloc<unsigned>(offsetTable[i + 1] - offsetTable[i] + 4096);
         }
-        for (int i = 0; i < PU; i++) {
+        for (int i = 0; i < pu; i++) {
             for (int j = offsetTable[i]; j < offsetTable[i + 1] + 1; j++) {
                 offsetBuffer[i][j - offsetTable[i]] = channels->pCSR->offset[j];
                 // std::cout << "i=" << i << " j=" << j - offsetTable[i] << " offset=" << channels->pCSR->offset[j] << std::endl;
             }
         }
 
-        for (int i = 0; i < PU+1; i++) {
+        for (int i = 0; i < pu+1; i++) {
             indexTable[i] = channels->pCSR->offset[offsetTable[i]];
         }
-        for (int i = 0; i < PU+1; i++) {
+        for (int i = 0; i < pu+1; i++) {
             std::cout << "id=" << i << " offsetTable=" << offsetTable[i] << " indexTable=" << indexTable[i]
                       << std::endl;
         }
-        for (int i = 0; i < PU; i++) {
+        for (int i = 0; i < pu; i++) {
             ap_uint<32> numEdgesPU = indexTable[i + 1] - indexTable[i];
             std::cout << "numEgdesPU=" << numEdgesPU << std::endl;
             indexBuffer[i] = aligned_alloc<unsigned>(numEdgesPU + 4096);
@@ -967,25 +987,25 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
             }
         }
     } else {
-        offsetTable[PU] = numVertices;
-        for (int i = 0; i < PU; i++) {
+        offsetTable[pu] = numVertices;
+        for (int i = 0; i < pu; i++) {
             offsetTable[i] = numVertices;
             offsetBuffer[i] = aligned_alloc<unsigned>(numVertices + 4096);
         }
-        for (int i = 0; i < PU; i++) {
+        for (int i = 0; i < pu; i++) {
             for (int j = 0; j < numVertices + 1; j++) {
                 offsetBuffer[i][j] = channels->pCSR->offset[j];
             }
         }
 
-        for (int i = 0; i < PU+1; i++) {
+        for (int i = 0; i < pu+1; i++) {
             indexTable[i] = channels->pCSR->offset[offsetTable[i]];
         }
-        for (int i = 0; i < PU+1; i++) {
+        for (int i = 0; i < pu+1; i++) {
             std::cout << "id=" << i << " offsetTable=" << offsetTable[i] << " indexTable=" << indexTable[i]
                       << std::endl;
         }
-        for (int i = 0; i < PU; i++) {
+        for (int i = 0; i < pu; i++) {
             indexBuffer[i] = aligned_alloc<unsigned>(numEdges + 4096);
             for (int j = 0; j < numEdges; j++) {
                 indexBuffer[i][j] = channels->pCSR->index[j];
@@ -993,8 +1013,8 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
             }
         }
     }
-    offsetTable[PU+1] = 0;
-    offsetTable[PU+2] = numVertices;
+    offsetTable[pu+1] = 0;
+    offsetTable[pu+2] = numVertices;
 
     for (int i = 0; i < 32; i++) {
         ap_uint<32> id = i;
@@ -1019,260 +1039,49 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
     // initilaize buffer and config
     unsigned* numOut = aligned_alloc<unsigned>(1024);
     ap_uint<512>* local = aligned_alloc<ap_uint<512> >(3 << 20);
-    memset(local, 0, sizeof(ap_uint<512>) * (3 << 20));
     ap_uint<512>* netSwitch = aligned_alloc<ap_uint<512> >(3 << 20);
-    memset(netSwitch, 0, sizeof(ap_uint<512>) * (3 << 20));
     ap_uint<512>* zeroBuffer0 = aligned_alloc<ap_uint<512> >(4 << 20);
-    memset(zeroBuffer0, 0, sizeof(ap_uint<512>) * (4 << 20));
     ap_uint<512>* zeroBuffer1 = aligned_alloc<ap_uint<512> >(4 << 20);
-    memset(zeroBuffer1, 0, sizeof(ap_uint<512>) * (4 << 20));
+    for(int i=0; i<(4 << 20); i++ ){
+        if(i<(3 << 20)){
+            local[i] = 0;
+            netSwitch[i] = 0;
+        }
+        zeroBuffer0[i] = 0;
+        zeroBuffer1[i] = 0;
+    }
 
     // do pre-process on CPU
     //struct timeval start_time, end_time;
 
 #ifndef HLS_TEST
-    cl_int fail;
-    // platform related operations
-    std::vector<cl::Device> devices = xcl::get_xil_devices();
-    cl::Device device = devices[0];
 
-    // Creating Context and Command Queue for selected Device
-    cl::Context context(device, NULL, NULL, NULL, &fail);
-    cl::CommandQueue q(context, device, CL_QUEUE_PROFILING_ENABLE | CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, &fail);
-    std::string devName = device.getInfo<CL_DEVICE_NAME>();
-    printf("Found Device=%s\n", devName.c_str());
-
-    cl::Program::Binaries xclBins = xcl::import_binary_file(xclbin_path);
-    devices.resize(1);
-    devices[0] = device;
-    cl::Program program(context, devices, xclBins, NULL, &fail);
-    cl::Kernel nHop;
-    nHop = cl::Kernel(program, "nHop_kernel", &fail);
-    std::cout << "kernel has been created" << std::endl;
-
-    std::vector<cl_mem_ext_ptr_t> mext_o(25);
-
-    mext_o[0] = {(unsigned int)(0) | XCL_MEM_TOPOLOGY, pair, 0};
-#if (PU==8)
-    mext_o[1] = {(unsigned int)(2) | XCL_MEM_TOPOLOGY, offsetBuffer[0], 0};
-    mext_o[2] = {(unsigned int)(4) | XCL_MEM_TOPOLOGY, indexBuffer[0], 0};
-    mext_o[3] = {(unsigned int)(3) | XCL_MEM_TOPOLOGY, offsetBuffer[1], 0};
-    mext_o[4] = {(unsigned int)(6) | XCL_MEM_TOPOLOGY, indexBuffer[1], 0};
-    mext_o[5] = {(unsigned int)(8) | XCL_MEM_TOPOLOGY, offsetBuffer[2], 0};
-    mext_o[6] = {(unsigned int)(10) | XCL_MEM_TOPOLOGY, indexBuffer[2], 0};
-    mext_o[7] = {(unsigned int)(9) | XCL_MEM_TOPOLOGY, offsetBuffer[3], 0};
-    mext_o[8] = {(unsigned int)(12) | XCL_MEM_TOPOLOGY, indexBuffer[3], 0};
-    mext_o[9] = {(unsigned int)(14) | XCL_MEM_TOPOLOGY, offsetBuffer[4], 0};
-    mext_o[10] = {(unsigned int)(16) | XCL_MEM_TOPOLOGY, indexBuffer[4], 0};
-    mext_o[11] = {(unsigned int)(15) | XCL_MEM_TOPOLOGY, offsetBuffer[5], 0};
-    mext_o[12] = {(unsigned int)(18) | XCL_MEM_TOPOLOGY, indexBuffer[5], 0};
-    mext_o[13] = {(unsigned int)(20) | XCL_MEM_TOPOLOGY, offsetBuffer[6], 0};
-    mext_o[14] = {(unsigned int)(22) | XCL_MEM_TOPOLOGY, indexBuffer[6], 0};
-    mext_o[15] = {(unsigned int)(21) | XCL_MEM_TOPOLOGY, offsetBuffer[7], 0};
-    mext_o[16] = {(unsigned int)(24) | XCL_MEM_TOPOLOGY, indexBuffer[7], 0};
-
-    mext_o[17] = {(unsigned int)(26) | XCL_MEM_TOPOLOGY, zeroBuffer0, 0};
-    mext_o[18] = {(unsigned int)(27) | XCL_MEM_TOPOLOGY, zeroBuffer1, 0};
-
-    mext_o[19] = {(unsigned int)(28) | XCL_MEM_TOPOLOGY, offsetTable, 0};
-    mext_o[20] = {(unsigned int)(28) | XCL_MEM_TOPOLOGY, indexTable, 0};
-    mext_o[21] = {(unsigned int)(28) | XCL_MEM_TOPOLOGY, cardTable, 0};
-    mext_o[22] = {(unsigned int)(28) | XCL_MEM_TOPOLOGY, local, 0};
-    mext_o[23] = {(unsigned int)(29) | XCL_MEM_TOPOLOGY, netSwitch, 0};
-    mext_o[24] = {(unsigned int)(28) | XCL_MEM_TOPOLOGY, numOut, 0};
-#else
-    mext_o[1] = {(unsigned int)(2) | XCL_MEM_TOPOLOGY, offsetBuffer[0], 0};
-    mext_o[2] = {(unsigned int)(4) | XCL_MEM_TOPOLOGY, indexBuffer[0], 0};
-    mext_o[3] = {(unsigned int)(3) | XCL_MEM_TOPOLOGY, offsetBuffer[1], 0};
-    mext_o[4] = {(unsigned int)(6) | XCL_MEM_TOPOLOGY, indexBuffer[1], 0};
-    mext_o[5] = {(unsigned int)(8) | XCL_MEM_TOPOLOGY, offsetBuffer[2], 0};
-    mext_o[6] = {(unsigned int)(10) | XCL_MEM_TOPOLOGY, indexBuffer[2], 0};
-    mext_o[7] = {(unsigned int)(9) | XCL_MEM_TOPOLOGY, offsetBuffer[3], 0};
-    mext_o[8] = {(unsigned int)(12) | XCL_MEM_TOPOLOGY, indexBuffer[3], 0};
-
-    mext_o[9] = {(unsigned int)(26) | XCL_MEM_TOPOLOGY, zeroBuffer0, 0};
-    mext_o[10] = {(unsigned int)(27) | XCL_MEM_TOPOLOGY, zeroBuffer1, 0};
-
-    mext_o[11] = {(unsigned int)(28) | XCL_MEM_TOPOLOGY, offsetTable, 0};
-    mext_o[12] = {(unsigned int)(28) | XCL_MEM_TOPOLOGY, indexTable, 0};
-    mext_o[13] = {(unsigned int)(28) | XCL_MEM_TOPOLOGY, cardTable, 0};
-    mext_o[14] = {(unsigned int)(28) | XCL_MEM_TOPOLOGY, local, 0};
-    mext_o[15] = {(unsigned int)(29) | XCL_MEM_TOPOLOGY, netSwitch, 0};
-    mext_o[16] = {(unsigned int)(28) | XCL_MEM_TOPOLOGY, numOut, 0};
-#endif
-    // create device buffer and map dev buf to host buf
-    cl::Buffer pair_buf, local_buf, switch_buf, ping_buf, pong_buf, offset_table, index_table, card_table, num_out;
-    cl::Buffer offset_buf[num_chnl];
-    cl::Buffer index_buf[num_chnl];
-#if (PU==8)
-    pair_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                          sizeof(ap_uint<128>) * (numPairs + 4096), &mext_o[0]);
-    ping_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                          sizeof(ap_uint<512>) * (4 << 20), &mext_o[17]);
-    pong_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                          sizeof(ap_uint<512>) * (4 << 20), &mext_o[18]);
-    offset_table = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                              sizeof(unsigned) * (1024), &mext_o[19]);
-    index_table = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                             sizeof(unsigned) * (1024), &mext_o[20]);
-    card_table = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                            sizeof(ap_uint<64>) * (1024), &mext_o[21]);
-    local_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                           sizeof(ap_uint<512>) * (3 << 20), &mext_o[22]);
-    switch_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                            sizeof(ap_uint<512>) * (3 << 20), &mext_o[23]);
-    num_out = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                         sizeof(unsigned) * (1024), &mext_o[24]);
-#else
-    pair_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                          sizeof(ap_uint<128>) * (numPairs + 4096), &mext_o[0]);
-    ping_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                        sizeof(ap_uint<512>) * (4 << 20), &mext_o[9]);
-    pong_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                        sizeof(ap_uint<512>) * (4 << 20), &mext_o[10]);
-    offset_table = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                            sizeof(unsigned) * (1024), &mext_o[11]);
-    index_table = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                            sizeof(unsigned) * (1024), &mext_o[12]);
-    card_table = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                            sizeof(ap_uint<64>) * (1024), &mext_o[13]);
-    local_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                        sizeof(ap_uint<512>) * (3 << 20), &mext_o[14]);
-    switch_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                            sizeof(ap_uint<512>) * (3 << 20), &mext_o[15]);
-    num_out = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                        sizeof(unsigned) * (1024), &mext_o[16]);
-#endif
-
-    if (duplicate == 0) {
-        for (int i = 0; i < PU; i++) {
-            offset_buf[i] =
-                cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                           sizeof(unsigned) * (offsetTable[i + 1] - offsetTable[i] + 4096), &mext_o[1 + 2 * i]);
-            index_buf[i] =
-                cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                           sizeof(unsigned) * (indexTable[i + 1] - indexTable[i] + 4096), &mext_o[2 + 2 * i]);
-        }
-    } else {
-        for (int i = 0; i < PU; i++) {
-            offset_buf[i] = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                       sizeof(unsigned) * (numVertices + 4096), &mext_o[1 + 2 * i]);
-            index_buf[i] = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                                      sizeof(unsigned) * (numEdges + 4096), &mext_o[2 + 2 * i]);
-        }
-    }
-
-    std::vector<cl::Memory> init;
-    init.push_back(pair_buf);
-    init.push_back(local_buf);
-    init.push_back(switch_buf);
-    init.push_back(num_out);
-    init.push_back(offset_table);
-    init.push_back(index_table);
-    init.push_back(card_table);
-    init.push_back(ping_buf);
-    init.push_back(pong_buf);
-    for (int i = 0; i < PU; i++) {
-        init.push_back(offset_buf[i]);
-        init.push_back(index_buf[i]);
-    }
-    q.enqueueMigrateMemObjects(init, CL_MIGRATE_MEM_OBJECT_CONTENT_UNDEFINED, nullptr, nullptr);
-    q.finish();
-
-    std::vector<cl::Memory> ob_in;
-    std::vector<cl::Memory> ob_out;
-    std::vector<cl::Event> events_write(1);
-    std::vector<cl::Event> events_kernel(1);
-    std::vector<cl::Event> events_read(1);
-
-    ob_in.push_back(pair_buf);
-    ob_in.push_back(offset_table);
-    ob_in.push_back(index_table);
-    ob_in.push_back(card_table);
-    for (int i = 0; i < PU; i++) {
-        ob_in.push_back(offset_buf[i]);
-        ob_in.push_back(index_buf[i]);
-    }
-    q.enqueueMigrateMemObjects(ob_in, 0, nullptr, &events_write[0]);
-
-    ob_out.push_back(num_out);
-    ob_out.push_back(local_buf);
-    ob_out.push_back(switch_buf);
-    // launch kernel and calculate kernel execution time
-    std::cout << "kernel start------" << std::endl;
-    //gettimeofday(&start_time, 0);
-    TimePointType h_compute_start = chrono::high_resolution_clock::now();
-    TimePointType h_compute_end;
-
-    int j = 0;
-
-    nHop.setArg(j++, numHop);
-    nHop.setArg(j++, 0);
-    nHop.setArg(j++, numPairs);
-    nHop.setArg(j++, batchSize);
-    nHop.setArg(j++, 65536);
-    nHop.setArg(j++, byPass);
-    nHop.setArg(j++, duplicate);
-    nHop.setArg(j++, pair_buf);
-
-    nHop.setArg(j++, offset_table);
-    nHop.setArg(j++, index_table);
-    nHop.setArg(j++, card_table);
-    for (int i = 0; i < PU; i++) {
-        nHop.setArg(j++, offset_buf[i]);
-        nHop.setArg(j++, index_buf[i]);
-    }
-
-    nHop.setArg(j++, ping_buf);
-    nHop.setArg(j++, pong_buf);
-
-    nHop.setArg(j++, num_out);
-    nHop.setArg(j++, local_buf);
-    nHop.setArg(j++, switch_buf);
-
-    q.enqueueTask(nHop, &events_write, &events_kernel[0]);
-
-    q.enqueueMigrateMemObjects(ob_out, 1, &events_kernel, &events_read[0]);
-    q.finish();
-
-    //gettimeofday(&end_time, 0);
-    //double timeWrkCompute;
-    getDiffTime(h_compute_start, h_compute_end, p_timeInfo->timeWrkCompute);
-    std::cout << "kernel end------" << std::endl;
-    // get related times
-    unsigned long timeStart, timeEnd, exec_time, write_time, read_time;
-    std::cout << "-------------------------------------------------------" << std::endl;
-    events_write[0].getProfilingInfo(CL_PROFILING_COMMAND_START, &timeStart);
-    events_write[0].getProfilingInfo(CL_PROFILING_COMMAND_END, &timeEnd);
-    write_time = (timeEnd - timeStart) / 1000.0;
-    std::cout << "INFO: Data transfer from host to device: " << write_time << " us\n";
-    std::cout << "-------------------------------------------------------" << std::endl;
-    events_read[0].getProfilingInfo(CL_PROFILING_COMMAND_START, &timeStart);
-    events_read[0].getProfilingInfo(CL_PROFILING_COMMAND_END, &timeEnd);
-    read_time = (timeEnd - timeStart) / 1000.0;
-    std::cout << "INFO: Data transfer from device to host: " << read_time << " us\n";
-    std::cout << "-------------------------------------------------------" << std::endl;
-    events_kernel[0].getProfilingInfo(CL_PROFILING_COMMAND_START, &timeStart);
-    events_kernel[0].getProfilingInfo(CL_PROFILING_COMMAND_END, &timeEnd);
-    exec_time = (timeEnd - timeStart) / 1000.0;
-    std::cout << "INFO: Average kernel execution per run: " << exec_time << " us\n";
-    p_timeInfo->timeKernel = exec_time / 1000000.0;
-    std::cout << "-------------------------------------------------------" << std::endl;
+    nHop_L2_host(numHop, 
+                    0,
+                    numPairs,  
+                    batchSize, //--batch 4096
+                    65536,
+                    byPass,    
+                    duplicate, 
+                    (ap_uint<512>*)pair,
+                    offsetTable, indexTable, cardTable, offsetBuffer, (ap_uint<128>**)indexBuffer,
+                    zeroBuffer0, zeroBuffer1, numOut, local, netSwitch,
+                    numVertices, numEdges, pu, p_timeInfo, xclbin_path
+                    );
 
 #else
 
-    nHop_kernel(numHop, // numHop,
+    nHop_kernel(numHop, 
                 0,
-                numPairs,  // numPairs,
+                numPairs,  
                 batchSize, //--batch 4096
                 65536,
-                byPass,    // 0
-                duplicate, // 0
+                byPass,    
+                duplicate,
                 (ap_uint<512>*)pair,
-
                 offsetTable, indexTable, cardTable, offsetBuffer[0], (ap_uint<128>*)indexBuffer[0], offsetBuffer[1], (ap_uint<128>*)indexBuffer[1],
                 offsetBuffer[2], (ap_uint<128>*)indexBuffer[2], offsetBuffer[3], (ap_uint<128>*)indexBuffer[3], 
-    #if (PU==8)             
+    #if (pu==8)             
                 offsetBuffer[4], (ap_uint<128>*)indexBuffer[4],
                 offsetBuffer[5], (ap_uint<128>*)indexBuffer[5], 
                 offsetBuffer[6], (ap_uint<128>*)indexBuffer[6], 
@@ -1281,11 +1090,6 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
                 zeroBuffer0, zeroBuffer1, numOut, local, netSwitch);
 #endif
 
-    // std::fstream goldenfstream(goldenfile.c_str(), std::ios::in);
-    // if (!goldenfstream) {
-    //     std::cout << "Error : " << goldenfile << " file doesn't exist !" << std::endl;
-    //     exit(1);
-    // }
 
     std::cout << "numLocal=" << numOut[0] << " numSwitch=" << numOut[1] << std::endl;
     std::map<unsigned long, float> sortMap;
@@ -1308,24 +1112,7 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
 #endif
     std::cout << "kernel done!" << std::endl;
     std::cout << "numLocal=" << numOut[0] << " numSwitch=" << numOut[1] << std::endl;
-//#ifdef HLS_TEST
-    // std::unordered_map<unsigned long, float> goldenHashMap;
-    // while (goldenfstream.getline(line, sizeof(line))) {
-    //     std::string str(line);
-    //     std::replace(str.begin(), str.end(), ',', ' ');
-    //     std::stringstream data(str.c_str());
-    //     unsigned long golden_src;
-    //     unsigned long golden_des;
-    //     unsigned golden_res;
-    //     data >> golden_src;
-    //     data >> golden_des;
-    //     data >> golden_res;
-    //     unsigned long tmp = 0UL | golden_src << 32UL | golden_des;
-    //     if (golden_res != 0) goldenHashMap.insert(std::pair<unsigned long, unsigned>(tmp, golden_res));
-    // }
-    // goldenfstream.close();
 
-    //td::unordered_map<unsigned long, float> resHashMap;
     for (int i = 0; i < numOut[0]; i++) {
         for (int j = 0; j < 4; j++) {
             //unsigned long tmp = 0UL | (tmp_src + 1) << 32UL | (tmp_des + 1);
@@ -1334,12 +1121,7 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
             out.des = local[i].range(128 * j + 63, 128 * j + 32);
             out.idx = local[i].range(128 * j + 95, 128 * j + 64);
             out.hop = local[i].range(128 * j + 127, 128 * j + 96);
-                //   std::cout << " src=" << out.src 
-                //             << " des=" << out.des
-                //             << " idx=" << out.idx 
-                //             << " hop=" << out.hop
-                //             << std::endl;
-            //if ((tmp_src != 0) && (tmp_des != 0)) resHashMap.insert(std::pair<unsigned long, unsigned>(tmp, tmp_res));
+
             if ((out.src != 0) && (out.des != 0)){
                 p_stt->num_local++;
                 //if (0 == p_buff_local->push(&out)) return -1;
@@ -1349,26 +1131,6 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
         }
     }
 
-    // if (resHashMap.size() != goldenHashMap.size()) std::cout << "miss pairs!" << std::endl;
-    // for (auto it = resHashMap.begin(); it != resHashMap.end(); it++) {
-    //     unsigned long tmp_src = (it->first) / (1UL << 32UL);
-    //     unsigned long tmp_des = (it->first) % (1UL << 32UL);
-    //     unsigned long tmp_res = it->second;
-    //     auto got = goldenHashMap.find(it->first);
-    //     if (got == goldenHashMap.end()) {
-    //         std::cout << "ERROR: pair not found! cnt_src: " << tmp_src << " cnt_des: " << tmp_des
-    //                   << " cnt_res: " << tmp_res << std::endl;
-    //         err++;
-    //     } else if (got->second != it->second) {
-    //         std::cout << "ERROR: incorrect count! golden_src: " << (got->first) / (1UL << 32UL)
-    //                   << " golden_des: " << (got->first) % (1UL << 32UL) << " golden_res: " << (got->second)
-    //                   << " cnt_src: " << tmp_src << " cnt_des: " << tmp_des << " cnt_res: " << tmp_res << std::endl;
-    //         err++;
-    //     }
-    // }
-
-//#endif
-
     std::cout << " numSwitch=" << numOut[1] << std::endl;
     for (int i = 0; i < numOut[1]; i++) {
         for (int j = 0; j < 4; j++) {
@@ -1377,8 +1139,7 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
             out.des = netSwitch[i].range(128 * j + 63, 128 * j + 32);
             out.idx = netSwitch[i].range(128 * j + 95, 128 * j + 64);
             out.hop = netSwitch[i].range(128 * j + 127, 128 * j + 96);
-            // std::cout << "src=" << out.src << " des=" << out.des << " idx=" << out.idx << " hop=" << out.hop
-            //           << std::endl;
+
             if ((out.src != 0) && (out.des != 0)){
                 p_stt->num_send++;
                 if (0 == p_buff_send->push(&out)) return -1;
@@ -1386,6 +1147,9 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
             }
         }
     }
+
+    if(commendInfo.output)
+        p_buff_agg->SavePackBuff(p_stt->num_local, commendInfo.filename.c_str());
 
     return 0;
 }

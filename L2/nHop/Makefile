@@ -109,6 +109,7 @@ HOST_SRCS += $(XFLIB_DIR)/L2/nHop/host/main.cpp $(XFLIB_DIR)/ext/xcl2/xcl2.cpp
 CXXFLAGS +=  -I $(XFLIB_DIR)/L2/nHop/host -I $(XFLIB_DIR)/ext/xcl2 -I $(XFLIB_DIR)/../database/L1/include -I $(XFLIB_DIR)/nHop -I $(XFLIB_DIR)/../database/L1/include/hw -I $(XFLIB_DIR)/../quantitative_finance/L1/include -I $(XFLIB_DIR)/../utils/L1/include -I $(XFLIB_DIR)/ext/xcl2
 #CXXFLAGS += -O3 
 CXXFLAGS += -g 
+CXXFLAGS += -Wno-unused-variable -Wno-format -Wno-sign-compare
 
 EXE_NAME := host.exe
 EXE_FILE := $(BUILD_DIR)/$(EXE_NAME)

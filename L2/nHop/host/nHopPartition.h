@@ -122,6 +122,7 @@ class PackBuff {
     void ShowInfo_buff(bool isReturn);
     void print();
     void ShowInfo_buff(const char* nm, bool isReturn);
+    void SavePackBuff(long num, const char* name);
 };
 
 struct IndexStatistic { // for index statistic
@@ -166,10 +167,12 @@ struct timeInfo{
 struct commendInfo{
     int numKernel=1;
     int numPuPerKernel=4;
-    std::string xclbin_path;
     int sz_bat=4096;
     int byPass=0; 
     int duplicate=1;
+    std::string xclbin_path;
+    std::string filename;
+    bool output=true;
 };
 
 template <class T>

@@ -67,26 +67,6 @@ ap_uint<64>*  GetPair(const char* pairfile, long* num)
     pairfstream.close();
     return pair;
 }
-ap_uint<64>* GenPair(long NV, long num){
-    ap_uint<64>* pair = aligned_alloc<ap_uint<64> >(num);
-    for(int i=0; i<num; i++){
-        ap_uint<32> head= random()%NV+1;
-        ap_uint<32> tail= random()%NV+1;
-        pair[i](31,0) = head;
-        pair[i](63,32) = tail; 
-    }
-    return pair;
-}
-void SavePair(ap_uint<64>* pair, long num, const char* name){
-    FILE* fp=fopen(name, "w");
-    fprintf(fp,"%ld\n", num);
-    for(int i=0; i<num; i++){
-        long head= pair[i](31,0);
-        long tail= pair[i](63,32);
-        fprintf(fp, "%ld %ld \n", head, tail);
-    }
-    fclose(fp);
-}
 
 int Demo_1(ArgParser& parser){
     //1. get commendInfo, include the default value of the input commend
@@ -112,11 +92,18 @@ int Demo_1(ArgParser& parser){
         if(offsetfile.empty() && indexfile.empty() ){
             std::cout << "ERROR: graph file path is not set!\n";
             return -1;   
+        }else{
+            std::cout << "offset file path: "<< offsetfile <<"\n"; 
+            std::cout << "index  file path: "<< indexfile <<"\n"; 
         }   
+    }else{
+        std::cout << "graph file path: "<< graphfile <<"\n";
     }
 
     if (!parser.getCmdOption("--pair", pairfile)) {
         std::cout << "WARNING: pair file path is not set!\n";
+    }else{
+        std::cout << "pair  file path: "<< pairfile <<"\n";
     }
 
     if (!parser.getCmdOption("--golden", goldenfile)) {
@@ -160,9 +147,25 @@ int Demo_1(ArgParser& parser){
         commendInfo.duplicate = stoi(args);
     }
 
+    double tmp = 64.0;
+    if (!parser.getCmdOption("--limit", args)) {
+        std::cout << "Using default limit(MB) for all channel "<<tmp<<std::endl;
+    }else{
+        tmp = stod(args);
+    }
+
+    commendInfo.filename = pairfile.substr(pairfile.find_last_of('/') + 1) + ".hop";   
+    if (!parser.getCmdOption("--test", args)) {
+        std::cout << "Using test mode and will not generate the output *.hop file "<<std::endl;
+    }else{
+        commendInfo.output = false;
+        std::cout << "The results will output to the ./"<< commendInfo.filename <<" file "<<std::endl;
+    }
+
     commendInfo.xclbin_path = xclbin_path;
 
     //2. get graph and start partition
+    std::cout << "INFO: Loading files ... "<<std::endl;
     CSR<unsigned> csr0;
     if(!graphfile.empty()){
         csr0.Init( graphfile.c_str(), true);
@@ -172,8 +175,8 @@ int Demo_1(ArgParser& parser){
     csr0.ShowInfo("csr0 Graph");
 
     PartitionHop<unsigned> par1(&csr0);
-    int Limit_MB_v = 64;
-    int Limit_MB_e = 64;//128;
+    double Limit_MB_v = tmp;//0.0004;//64;
+    double Limit_MB_e = tmp;//0.0004;//64;//128;
     par1.CreatePartitionForKernel(commendInfo.numKernel, commendInfo.numPuPerKernel, Limit_MB_v*4*(1<<20), Limit_MB_e*4*(1<<20));
 
     //3. dispatch subgraph to multi kernels

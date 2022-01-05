@@ -81,7 +81,7 @@ class CSR {
     int Init(const char* offsetfile, const char* indexfile); // LoadGraphFile_Dir from "<head>" and "<tail> [<weight>]"
     int Init(const char* file_name, bool hasWeiht);          // LoadGraphFile_Dir from "<head> <tail> [<weight>]"
 
-    void ShowInfo() { printf("V_start = %8d,\t V_end_plus1 = %d,\t NV = %d,\t NE = %d\n", V_start, V_end_1, NV, NE); }
+    void ShowInfo() { printf("V_start = %d,\t V_end_plus1 = %d,\t NV = %d,\t NE = %d\n", V_start, V_end_1, NV, NE); }
     void ShowInfo(T limit_v_byte, T limit_e_byte) {
         float ratio_v = (float)(100 * NV * sizeof(T)) / limit_v_byte;
         float ratio_e = (float)(100 * NE * sizeof(T)) / limit_e_byte;
