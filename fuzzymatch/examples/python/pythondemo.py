@@ -44,10 +44,12 @@ parser = argparse.ArgumentParser(description="Run fuzzyMatch test")
 parser.add_argument("--xclbin", help="xclbin path", default="./")
 parser.add_argument("--data_dir", help="Directory where data files are", default="../data/", type=str )
 parser.add_argument('--deviceNames', help="device name", default="xilinx_u50_gen3x16_xdma_201920_3", type=str)
+parser.add_argument('--threshold', help="threshold", default=90, type=int)
 args = parser.parse_args()
 
 xclbin_path= str(args.xclbin)
 deviceNames= str(args.deviceNames)
+threshold = int(args.threshold)
 #load csv
 peopleFile = str(args.data_dir) + "all-names.csv"
 trans_num=100
@@ -63,6 +65,7 @@ peopleVec=peopleVecs[['Name']]
 data_vec=stats[['Name']]
 
 inputVec=[]
+inputId=[]
 print(len(peopleVec['Name']))
 for idx in range(1,len(peopleVec['Name'])):
     #print(peopleVec['Name'][idx])
@@ -74,52 +77,24 @@ opt.xclbinPath=xfm.xString(xclbin_path)
 opt.deviceNames=xfm.xString(deviceNames)
 mchecker = xfm.FuzzyMatch(opt)
 stat_check=mchecker.startFuzzyMatch()
-stat_check=mchecker.fuzzyMatchLoadVec(inputVec)
+stat_check=mchecker.fuzzyMatchLoadVec(inputVec,inputId)
 
 test_transaction=[]
 
+print('the size of data_vec',len(data_vec))
 
-for idx in range (trans_num):
-    test_transaction.append(data_vec['Name'][idx])
+for idx in range (len(data_vec)):
+    test_transaction.append(data_vec['Name'][idx+1])
 
 ccnt=0
-result_list=[]
-performance=[]
-min = sys.float_info.max
-max = 0.0
-sum = 0.0
-for idx in range (trans_num):
-    start=timer()
-    #print(test_transaction[idx])
-    resMatch = mchecker.executefuzzyMatch(test_transaction[idx])
-    #print(resMatch)
-    end = timer()
-    timeTaken = (end - start)*1000
-    result_list.append(resMatch)
-    if min > timeTaken:
-        min = timeTaken
-    if max < timeTaken:
-        max = timeTaken
-    sum += timeTaken
-    performance.append(timeTaken)
-    ccnt += 1
+result_list={}
 
-#print result
-print('\nTransaction Id, OK/KO, Field of match, Time taken(:ms)')
-for idx in range (trans_num):
-    s = print_result(idx,result_list[idx],performance[idx])
-    print(s)
-#
-print('\nFor FPGA')
-if ccnt < trans_num :
-    num = trans_num-ccnt
-    print(ccnt,'transactions were processed', num, 'were skipped due to the existence of empty field(s) in these transaction.\n(Details are given above)\n')
-else:
-    print(trans_num,'transactions were processed\n')
-#
-print('Min(ms)\t\tMax(ms)\t\tAvg(ms)\n')
-print('----------------------------------------')
-print('{:.3f}'.format(min) , '\t\t','{:.3f}'.format(max),'\t\t', '{:.3f}'.format(sum / ccnt) , '\n')
-print('----------------------------------------')
+start=timer()
+result_list = mchecker.executefuzzyMatch(test_transaction, threshold)
+end = timer()
+timeTaken = (end - start)*1000
 
+print(result_list)
+
+print('Average time taken per string', '{:.3f}'.format(timeTaken/len(test_transaction)) , '\n')
 
