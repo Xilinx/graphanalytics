@@ -38,6 +38,7 @@ under Apache License, Version 2.0
 
    Cosine Similarity <cosinesim/index.rst>
    Louvain Modularity <louvainmod/index.rst>
+   Maximum Independent Set <mis/index.rst>
 
 
 .. toctree::
@@ -46,6 +47,7 @@ under Apache License, Version 2.0
 
     Recommendation Engine for TigerGraph 3.x <recom-tg3/index.rst>
     Community Detection for TigerGraph 3.x <comdet-tg3/index.rst>
+    Maximal Independent Set TigerGraph 3.x <mis-tg3/index.rst>
 
 .. toctree::
    :caption: Use Cases

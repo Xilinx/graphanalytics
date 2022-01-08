@@ -1,0 +1,11 @@
+Xilinx Maximal Independent Set Alveo Product Demos
+==================================================
+
+After installation, you can try out the Maximal Independent Set Alveo Product, as shown in the sections below.
+
+.. toctree::
+    :maxdepth: 1
+
+    mis-example-jupyter.rst
+    mis-example-python.rst
+    mis-example-makefile.rst

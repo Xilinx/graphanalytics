@@ -15,24 +15,12 @@
 #
 
 SHELL := /bin/bash
-help:
-	@echo "Makefile usages:"
-	@echo "  make run [runMode=0] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3] [totalEntities=10000000]"
-	@echo "    Run standalone test with statically linked executable"
-	@echo ""
-	@echo "  Run options:"
-	@echo "  deviceNames  : Specify Alveo devices to use for computation"
-	@echo "                 Supported devices:"
-	@echo "                 xilinx_u50_gen3x16_xdma_201920_3 "
-	@echo ""
-	@echo "  make test"
-	@echo "    Compile mis test exe"
 
 # Run make using "make DEBUG=1" to build debuggable executables
 
 # Location of cosine similarity Alveo product 
 ifndef XILINX_MIS
-    XILINX_MIS = /opt/xilinx/apps/graphanalytics/fuzzymatch
+    XILINX_MIS = /opt/xilinx/apps/graphanalytics/mis
     export XILINX_MIS
 endif
 
@@ -88,7 +76,7 @@ $(warning [WARNING]: This project has not been tested for $(deviceNames). It may
 endif
 
 
-EXE_FILE := mistest
+EXE_FILE := misdemo
 
 CXX := g++
 
@@ -101,8 +89,10 @@ CXXFLAGS += -O3 -DNDEBUG
 #CXXFLAGS += -O3 -g
 endif
 
-test: $(EXE_FILE)
-$(EXE_FILE): mis_test.cpp
+all: cppdemo
+
+cppdemo: $(EXE_FILE)
+$(EXE_FILE): misdemo.cpp
 	$(CXX) $(CXXFLAGS) $^ -o $@ \
 		-I$(XILINX_XRT)/include \
 		-L$(LIB_PATH) -lXilinxMis \
@@ -114,8 +104,21 @@ run: $(EXE_FILE)
 	set -e; \
 	. $(XILINX_XRT)/setup.sh; \
 	LD_LIBRARY_PATH=$(LIB_PATH):$$LD_LIBRARY_PATH; \
-	$(abspath $^)  -xclbin $(XCLBIN_FILE) -d ../data -devices $(deviceNames) 
+	$(abspath $^) -xclbin $(XCLBIN_FILE) -d ../data -devices $(deviceNames) 
 		
 
 clean:
 	rm -f $(EXE_FILE)
+
+help:
+	@echo "Makefile usages:"
+	@echo "  make run [runMode=0] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3] [totalEntities=10000000]"
+	@echo "    Run standalone test with statically linked executable"
+	@echo ""
+	@echo "  Run options:"
+	@echo "  deviceNames  : Specify Alveo devices to use for computation"
+	@echo "                 Supported devices:"
+	@echo "                 xilinx_u50_gen3x16_xdma_201920_3 "
+	@echo ""
+	@echo "  make test"
+	@echo "    Compile mis test exe"

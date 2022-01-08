@@ -392,7 +392,7 @@ $(foreach f,$(STAGE_LIB_FILES),$(eval $(call STAGE_LIB_RULE,$(f))))
 
 #STAGE_EXAMPLE_ZIP = examples.zip
 STAGE_EXAMPLE_FILE_NAMES = \
-	cpp/mis_test.cpp cpp/Makefile \
+	cpp/misdemo.cpp cpp/Makefile \
 	data/rowPtr.bin data/colIdx.bin data/infos.txt
 
 STAGE_EXAMPLE_FILES = $(addprefix examples/,$(STAGE_EXAMPLE_FILE_NAMES))
