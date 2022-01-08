@@ -335,11 +335,13 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../cosinesim/index.html">Cosine Similarity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/index.html">Louvain Modularity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mis/index.html">Maximum Independent Set</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Software Stack Integration Products</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../recom-tg3/index.html"> Recommendation Engine for TigerGraph 3.x</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../comdet-tg3/index.html"> Community Detection for TigerGraph 3.x</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mis-tg3/index.html"> Maximal Independent Set TigerGraph 3.x</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Use Cases</span></p>
 <ul>
@@ -428,22 +430,22 @@
 <span id="doxid-classxilinx-apps-1-1cosinesim-1-1-impl-base"></span><span id="index-0"></span><h1>class xilinx_apps::cosinesim::ImplBase<a class="headerlink" href="#class-xilinx-apps-cosinesim-implbase" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
-<pre class="highlight doxyrest-overview-code-block literal-block"><span></span><span class="k">class</span> <span class="nc">ImplBase</span>
-<span class="p">{</span>
-<span class="k">public</span><span class="o">:</span>
-    <span class="c1">// methods</span>
+<pre class="highlight doxyrest-overview-code-block literal-block"><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ImplBase</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="k">public</span><span class="o">:</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// methods</span>
 
-    <span class="k">virtual</span> <span class="kt">void</span> <span class="doxyrest-code-target target" id="doxid-classxilinx-apps-1-1cosinesim-1-1-impl-base-1a4dacc3a9ed2a578e63525d4361dc9e8e"><span></span><span class="n">startLoadPopulation</span></span><span></span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">int64_t</span> <span class="n">numVertices</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-    <span class="k">virtual</span> <span class="kt">void</span><span class="o">*</span> <span class="doxyrest-code-target target" id="doxid-classxilinx-apps-1-1cosinesim-1-1-impl-base-1aa2e621d2c9924008a477ac1e490b36a3"><span></span><span class="n">getPopulationVectorBuffer</span></span><span></span><span class="p">(</span><span class="n">RowIndex</span><span class="o">&amp;</span> <span class="n">rowIndex</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-    <span class="k">virtual</span> <span class="kt">void</span> <span class="doxyrest-code-target target" id="doxid-classxilinx-apps-1-1cosinesim-1-1-impl-base-1a58d4403a4615e6e4df52bf223f08ca7f"><span></span><span class="n">finishCurrentPopulationVector</span></span><span></span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">pbuf</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-    <span class="k">virtual</span> <span class="kt">void</span> <span class="doxyrest-code-target target" id="doxid-classxilinx-apps-1-1cosinesim-1-1-impl-base-1a6b806948aa5ca68b6c224135effe5af9"><span></span><span class="n">finishLoadPopulation</span></span><span></span><span class="p">()</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="doxyrest-code-target target" id="doxid-classxilinx-apps-1-1cosinesim-1-1-impl-base-1a4dacc3a9ed2a578e63525d4361dc9e8e"><span></span><span class="n">startLoadPopulation</span></span><span></span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">int64_t</span><span class="w"> </span><span class="n">numVertices</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="doxyrest-code-target target" id="doxid-classxilinx-apps-1-1cosinesim-1-1-impl-base-1aa2e621d2c9924008a477ac1e490b36a3"><span></span><span class="n">getPopulationVectorBuffer</span></span><span></span><span class="p">(</span><span class="n">RowIndex</span><span class="o">&amp;</span><span class="w"> </span><span class="n">rowIndex</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="doxyrest-code-target target" id="doxid-classxilinx-apps-1-1cosinesim-1-1-impl-base-1a58d4403a4615e6e4df52bf223f08ca7f"><span></span><span class="n">finishCurrentPopulationVector</span></span><span></span><span class="p">(</span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">pbuf</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="doxyrest-code-target target" id="doxid-classxilinx-apps-1-1cosinesim-1-1-impl-base-1a6b806948aa5ca68b6c224135effe5af9"><span></span><span class="n">finishLoadPopulation</span></span><span></span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
 
-    <span class="k">virtual</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><a class="reference internal" href="struct_xilinx_apps_cosinesim_Result.html#doxid-structxilinx-apps-1-1cosinesim-1-1-result"><span class="std std-ref">Result</span></a><span></span><span class="o">&gt;</span> <span class="doxyrest-code-target target" id="doxid-classxilinx-apps-1-1cosinesim-1-1-impl-base-1aeee88ac8b97afdd97ab19088da3b1d34"><span></span><span class="n">matchTargetVector</span></span><span></span><span class="p">(</span>
-        <span class="kt">unsigned</span> <span class="n">numResults</span><span class="p">,</span>
-        <span class="kt">void</span><span class="o">*</span> <span class="n">elements</span>
-        <span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="k">virtual</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><a class="reference internal" href="struct_xilinx_apps_cosinesim_Result.html#doxid-structxilinx-apps-1-1cosinesim-1-1-result"><span class="std std-ref">Result</span></a><span></span><span class="o">&gt;</span><span class="w"> </span><span class="doxyrest-code-target target" id="doxid-classxilinx-apps-1-1cosinesim-1-1-impl-base-1aeee88ac8b97afdd97ab19088da3b1d34"><span></span><span class="n">matchTargetVector</span></span><span></span><span class="p">(</span><span class="w"></span>
+<span class="w">        </span><span class="kt">unsigned</span><span class="w"> </span><span class="n">numResults</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">elements</span><span class="w"></span>
+<span class="w">        </span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
 
-    <span class="k">virtual</span> <span class="kt">void</span> <span class="doxyrest-code-target target" id="doxid-classxilinx-apps-1-1cosinesim-1-1-impl-base-1a0bf2851bc58a0e0cbc717f593e6592ea"><span></span><span class="n">cleanGraph</span></span><span></span><span class="p">()</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="doxyrest-code-target target" id="doxid-classxilinx-apps-1-1cosinesim-1-1-impl-base-1a0bf2851bc58a0e0cbc717f593e6592ea"><span></span><span class="n">cleanGraph</span></span><span></span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
 <span class="p">};</span></pre>
 </div>
 
@@ -467,7 +469,7 @@
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on October 10, 2021.
+        Last updated on January 07, 2022.
       </span>
 
     </p>

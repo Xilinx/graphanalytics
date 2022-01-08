@@ -352,11 +352,13 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../louvainmod/index.html">Louvain Modularity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mis/index.html">Maximum Independent Set</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Software Stack Integration Products</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../recom-tg3/index.html"> Recommendation Engine for TigerGraph 3.x</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../comdet-tg3/index.html"> Community Detection for TigerGraph 3.x</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mis-tg3/index.html"> Maximal Independent Set TigerGraph 3.x</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Use Cases</span></p>
 <ul>
@@ -456,25 +458,25 @@
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>Struct containing <a class="reference internal" href="../../rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSim.html#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim"><span class="std std-ref">CosineSim</span></a> configuration options. <a class="reference internal" href="../../rst-cpp-docs/struct_xilinx_apps_cosinesim_Options.html#details-structxilinx-apps-1-1cosinesim-1-1-options"><span class="std std-ref">More…</span></a></p>
-<pre class="highlight doxyrest-overview-code-block literal-block"><span></span><span class="cp">#include</span> <span class="cpf">&lt;cosinesim.hpp&gt;</span><span class="cp"></span>
+<pre class="highlight doxyrest-overview-code-block literal-block"><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cosinesim.hpp&gt;</span><span class="cp"></span>
 
-<span class="k">struct</span> <span class="nc">Options</span>
-<span class="p">{</span>
-    <span class="c1">// fields</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">Options</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// fields</span>
 
-    <span class="n">ColIndex</span> <span class="doxyrest-code-target target" id="doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a6afc35f870a7d8bce2ecddd5c65def58"><span></span><span class="n">vecLength</span></span><span></span><span class="p">;</span>
-    <span class="n">std</span><span class="o">::</span><span class="kt">int32_t</span> <span class="doxyrest-code-target target" id="doxid-structxilinx-apps-1-1cosinesim-1-1-options-1aebdcc42b66255b4861d3b95824c6a30d"><span></span><span class="n">numDevices</span></span><span></span><span class="p">;</span>
-    <span class="n">XString</span> <span class="doxyrest-code-target target" id="doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a7eaaf013d7a59e580bdc64a6ecbd0bca"><span></span><span class="n">deviceNames</span></span><span></span><span class="p">;</span>
-    <span class="n">XString</span> <a class="reference internal" href="#doxid-structxilinx-apps-1-1cosinesim-1-1-options-1aa2f0f4cc49866b1dd385afc739c7a181"><span class="std std-ref">xclbinPath</span></a><span></span><span class="p">;</span>
+<span class="w">    </span><span class="n">ColIndex</span><span class="w"> </span><span class="doxyrest-code-target target" id="doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a6afc35f870a7d8bce2ecddd5c65def58"><span></span><span class="n">vecLength</span></span><span></span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="kt">int32_t</span><span class="w"> </span><span class="doxyrest-code-target target" id="doxid-structxilinx-apps-1-1cosinesim-1-1-options-1aebdcc42b66255b4861d3b95824c6a30d"><span></span><span class="n">numDevices</span></span><span></span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">XString</span><span class="w"> </span><span class="doxyrest-code-target target" id="doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a7eaaf013d7a59e580bdc64a6ecbd0bca"><span></span><span class="n">deviceNames</span></span><span></span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">XString</span><span class="w"> </span><a class="reference internal" href="#doxid-structxilinx-apps-1-1cosinesim-1-1-options-1aa2f0f4cc49866b1dd385afc739c7a181"><span class="std std-ref">xclbinPath</span></a><span></span><span class="p">;</span><span class="w"></span>
 
-    <span class="c1">// construction</span>
+<span class="w">    </span><span class="c1">// construction</span>
 
-    <a class="reference internal" href="../../rst-cpp-docs/struct_xilinx_apps_cosinesim_Options.html#doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a664ea080b203625f179f9db942e56afd"><span class="std std-ref">Options</span></a><span></span><span class="p">();</span>
-    <a class="reference internal" href="../../rst-cpp-docs/struct_xilinx_apps_cosinesim_Options.html#doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a20645f50d1eff280bc971557e17b28ba"><span class="std std-ref">Options</span></a><span></span><span class="p">(</span><span class="k">const</span> <span class="n">Options</span><span class="o">&amp;</span> <span class="n">opt</span><span class="p">);</span>
+<span class="w">    </span><a class="reference internal" href="../../rst-cpp-docs/struct_xilinx_apps_cosinesim_Options.html#doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a664ea080b203625f179f9db942e56afd"><span class="std std-ref">Options</span></a><span></span><span class="p">();</span><span class="w"></span>
+<span class="w">    </span><a class="reference internal" href="../../rst-cpp-docs/struct_xilinx_apps_cosinesim_Options.html#doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a20645f50d1eff280bc971557e17b28ba"><span class="std std-ref">Options</span></a><span></span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">Options</span><span class="o">&amp;</span><span class="w"> </span><span class="n">opt</span><span class="p">);</span><span class="w"></span>
 
-    <span class="c1">// methods</span>
+<span class="w">    </span><span class="c1">// methods</span>
 
-    <span class="n">Options</span><span class="o">&amp;</span> <a class="reference internal" href="../../rst-cpp-docs/struct_xilinx_apps_cosinesim_Options.html#doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a09a8c07480926e07c4b57dc3f22de8cf"><span class="std std-ref">operator =</span></a><span></span> <span class="p">(</span><span class="k">const</span> <span class="n">Options</span><span class="o">&amp;</span> <span class="n">opt</span><span class="p">);</span>
+<span class="w">    </span><span class="n">Options</span><span class="o">&amp;</span><span class="w"> </span><a class="reference internal" href="../../rst-cpp-docs/struct_xilinx_apps_cosinesim_Options.html#doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a09a8c07480926e07c4b57dc3f22de8cf"><span class="std std-ref">operator =</span></a><span></span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">Options</span><span class="o">&amp;</span><span class="w"> </span><span class="n">opt</span><span class="p">);</span><span class="w"></span>
 <span class="p">};</span></pre>
 </div>
 <div class="section" id="detailed-documentation">
@@ -482,14 +484,14 @@
 <p>Struct containing <a class="reference internal" href="../../rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSim.html#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim"><span class="std std-ref">CosineSim</span></a> configuration options.</p>
 <div class="section" id="fields">
 <h3>Fields<a class="headerlink" href="#fields" title="Permalink to this headline">¶</a></h3>
-<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-structxilinx-apps-1-1cosinesim-1-1-options-1aa2f0f4cc49866b1dd385afc739c7a181"><span id="index-1"></span><span></span><span class="n">XString</span> <span class="n">xclbinPath</span></pre>
+<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-structxilinx-apps-1-1cosinesim-1-1-options-1aa2f0f4cc49866b1dd385afc739c7a181"><span id="index-1"></span><span></span><span class="n">XString</span><span class="w"> </span><span class="n">xclbinPath</span></pre>
 <p>FPGA binary file (XCLBIN) path. Default is the package installation path.</p>
 </div>
 <div class="section" id="construction">
 <h3>Construction<a class="headerlink" href="#construction" title="Permalink to this headline">¶</a></h3>
 <pre class="highlight doxyrest-title-code-block literal-block" id="doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a664ea080b203625f179f9db942e56afd"><span id="index-2"></span><span></span><span class="n">Options</span><span class="p">()</span></pre>
 <p>Constructs an <a class="reference internal" href="../../rst-cpp-docs/struct_xilinx_apps_cosinesim_Options.html#doxid-structxilinx-apps-1-1cosinesim-1-1-options"><span class="std std-ref">Options</span></a> object with default values.</p>
-<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a20645f50d1eff280bc971557e17b28ba"><span id="index-3"></span><span></span><span class="n">Options</span><span class="p">(</span><span class="k">const</span> <span class="n">Options</span><span class="o">&amp;</span> <span class="n">opt</span><span class="p">)</span></pre>
+<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a20645f50d1eff280bc971557e17b28ba"><span id="index-3"></span><span></span><span class="n">Options</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">Options</span><span class="o">&amp;</span><span class="w"> </span><span class="n">opt</span><span class="p">)</span></pre>
 <p>Copy constructor, which deep-copies the reference <a class="reference internal" href="../../rst-cpp-docs/struct_xilinx_apps_cosinesim_Options.html#doxid-structxilinx-apps-1-1cosinesim-1-1-options"><span class="std std-ref">Options</span></a> object.</p>
 <p class="rubric">Parameters:</p>
 <table class="colwidths-given docutils align-default">
@@ -506,7 +508,7 @@
 </div>
 <div class="section" id="methods">
 <h3>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h3>
-<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a09a8c07480926e07c4b57dc3f22de8cf"><span id="index-4"></span><span></span><span class="n">Options</span><span class="o">&amp;</span> <span class="k">operator</span> <span class="o">=</span> <span class="p">(</span><span class="k">const</span> <span class="n">Options</span><span class="o">&amp;</span> <span class="n">opt</span><span class="p">)</span></pre>
+<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-structxilinx-apps-1-1cosinesim-1-1-options-1a09a8c07480926e07c4b57dc3f22de8cf"><span id="index-4"></span><span></span><span class="n">Options</span><span class="o">&amp;</span><span class="w"> </span><span class="k">operator</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">Options</span><span class="o">&amp;</span><span class="w"> </span><span class="n">opt</span><span class="p">)</span></pre>
 <p>Deep-copies the reference <a class="reference internal" href="../../rst-cpp-docs/struct_xilinx_apps_cosinesim_Options.html#doxid-structxilinx-apps-1-1cosinesim-1-1-options"><span class="std std-ref">Options</span></a> object into this <a class="reference internal" href="../../rst-cpp-docs/struct_xilinx_apps_cosinesim_Options.html#doxid-structxilinx-apps-1-1cosinesim-1-1-options"><span class="std std-ref">Options</span></a> object.</p>
 <p class="rubric">Parameters:</p>
 <table class="colwidths-given docutils align-default">
@@ -555,7 +557,7 @@
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on October 10, 2021.
+        Last updated on January 07, 2022.
       </span>
 
     </p>

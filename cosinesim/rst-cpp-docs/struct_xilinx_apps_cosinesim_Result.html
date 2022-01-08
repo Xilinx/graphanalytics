@@ -352,11 +352,13 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../louvainmod/index.html">Louvain Modularity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mis/index.html">Maximum Independent Set</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Software Stack Integration Products</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../recom-tg3/index.html"> Recommendation Engine for TigerGraph 3.x</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../comdet-tg3/index.html"> Community Detection for TigerGraph 3.x</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mis-tg3/index.html"> Maximal Independent Set TigerGraph 3.x</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Use Cases</span></p>
 <ul>
@@ -456,18 +458,18 @@
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>Tuple (struct) that holds one cosine similarity match result. <a class="reference internal" href="../../rst-cpp-docs/struct_xilinx_apps_cosinesim_Result.html#details-structxilinx-apps-1-1cosinesim-1-1-result"><span class="std std-ref">More…</span></a></p>
-<pre class="highlight doxyrest-overview-code-block literal-block"><span></span><span class="cp">#include</span> <span class="cpf">&lt;cosinesim.hpp&gt;</span><span class="cp"></span>
+<pre class="highlight doxyrest-overview-code-block literal-block"><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cosinesim.hpp&gt;</span><span class="cp"></span>
 
-<span class="k">struct</span> <span class="nc">Result</span>
-<span class="p">{</span>
-    <span class="c1">// fields</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">Result</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// fields</span>
 
-    <span class="n">RowIndex</span> <a class="reference internal" href="../../rst-cpp-docs/struct_xilinx_apps_cosinesim_Result.html#doxid-structxilinx-apps-1-1cosinesim-1-1-result-1ab76fcdbddd803e93a972ccfb693805b6"><span class="std std-ref">index</span></a><span></span> <span class="o">=</span> <span class="mi">-1L</span><span class="p">;</span>
-    <span class="kt">double</span> <a class="reference internal" href="../../rst-cpp-docs/struct_xilinx_apps_cosinesim_Result.html#doxid-structxilinx-apps-1-1cosinesim-1-1-result-1ab0bcfb946c4612620298e776b3e1980f"><span class="std std-ref">similarity</span></a><span></span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">;</span>
+<span class="w">    </span><span class="n">RowIndex</span><span class="w"> </span><a class="reference internal" href="../../rst-cpp-docs/struct_xilinx_apps_cosinesim_Result.html#doxid-structxilinx-apps-1-1cosinesim-1-1-result-1ab76fcdbddd803e93a972ccfb693805b6"><span class="std std-ref">index</span></a><span></span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">-1L</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><a class="reference internal" href="../../rst-cpp-docs/struct_xilinx_apps_cosinesim_Result.html#doxid-structxilinx-apps-1-1cosinesim-1-1-result-1ab0bcfb946c4612620298e776b3e1980f"><span class="std std-ref">similarity</span></a><span></span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span><span class="w"></span>
 
-    <span class="c1">// construction</span>
+<span class="w">    </span><span class="c1">// construction</span>
 
-    <a class="reference internal" href="../../rst-cpp-docs/struct_xilinx_apps_cosinesim_Result.html#doxid-structxilinx-apps-1-1cosinesim-1-1-result-1ac3caf930608b05386c5f00ecb68e5a2e"><span class="std std-ref">Result</span></a><span></span><span class="p">(</span><span class="n">RowIndex</span> <span class="n">index</span><span class="p">,</span> <span class="kt">double</span> <span class="n">similarity</span><span class="p">);</span>
+<span class="w">    </span><a class="reference internal" href="../../rst-cpp-docs/struct_xilinx_apps_cosinesim_Result.html#doxid-structxilinx-apps-1-1cosinesim-1-1-result-1ac3caf930608b05386c5f00ecb68e5a2e"><span class="std std-ref">Result</span></a><span></span><span class="p">(</span><span class="n">RowIndex</span><span class="w"> </span><span class="n">index</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">similarity</span><span class="p">);</span><span class="w"></span>
 <span class="p">};</span></pre>
 </div>
 <div class="section" id="detailed-documentation">
@@ -475,14 +477,14 @@
 <p>Tuple (struct) that holds one cosine similarity match result.</p>
 <div class="section" id="fields">
 <h3>Fields<a class="headerlink" href="#fields" title="Permalink to this headline">¶</a></h3>
-<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-structxilinx-apps-1-1cosinesim-1-1-result-1ab76fcdbddd803e93a972ccfb693805b6"><span id="index-1"></span><span></span><span class="n">RowIndex</span> <span class="n">index</span> <span class="o">=</span> <span class="mi">-1L</span></pre>
+<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-structxilinx-apps-1-1cosinesim-1-1-result-1ab76fcdbddd803e93a972ccfb693805b6"><span id="index-1"></span><span></span><span class="n">RowIndex</span><span class="w"> </span><span class="n">index</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">-1L</span></pre>
 <p>the row index of the matched population vector</p>
-<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-structxilinx-apps-1-1cosinesim-1-1-result-1ab0bcfb946c4612620298e776b3e1980f"><span id="index-2"></span><span></span><span class="kt">double</span> <span class="n">similarity</span> <span class="o">=</span> <span class="mf">0.0</span></pre>
+<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-structxilinx-apps-1-1cosinesim-1-1-result-1ab0bcfb946c4612620298e776b3e1980f"><span id="index-2"></span><span></span><span class="kt">double</span><span class="w"> </span><span class="n">similarity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span></pre>
 <p>the cosine similarity score for the match</p>
 </div>
 <div class="section" id="construction">
 <h3>Construction<a class="headerlink" href="#construction" title="Permalink to this headline">¶</a></h3>
-<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-structxilinx-apps-1-1cosinesim-1-1-result-1ac3caf930608b05386c5f00ecb68e5a2e"><span id="index-3"></span><span></span><span class="n">Result</span><span class="p">(</span><span class="n">RowIndex</span> <span class="n">index</span><span class="p">,</span> <span class="kt">double</span> <span class="n">similarity</span><span class="p">)</span></pre>
+<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-structxilinx-apps-1-1cosinesim-1-1-result-1ac3caf930608b05386c5f00ecb68e5a2e"><span id="index-3"></span><span></span><span class="n">Result</span><span class="p">(</span><span class="n">RowIndex</span><span class="w"> </span><span class="n">index</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">similarity</span><span class="p">)</span></pre>
 <p>Constructs a <a class="reference internal" href="../../rst-cpp-docs/struct_xilinx_apps_cosinesim_Result.html#doxid-structxilinx-apps-1-1cosinesim-1-1-result"><span class="std std-ref">Result</span></a> tuple given its fields.</p>
 <p class="rubric">Parameters:</p>
 <table class="colwidths-given docutils align-default">
@@ -532,7 +534,7 @@
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on October 10, 2021.
+        Last updated on January 07, 2022.
       </span>
 
     </p>

@@ -335,11 +335,13 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../cosinesim/index.html">Cosine Similarity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/index.html">Louvain Modularity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mis/index.html">Maximum Independent Set</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Software Stack Integration Products</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../recom-tg3/index.html"> Recommendation Engine for TigerGraph 3.x</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../comdet-tg3/index.html"> Community Detection for TigerGraph 3.x</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mis-tg3/index.html"> Maximal Independent Set TigerGraph 3.x</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Use Cases</span></p>
 <ul>
@@ -431,28 +433,28 @@
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>Non-template version of <a class="reference internal" href="class_xilinx_apps_cosinesim_CosineSim.html#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim"><span class="std std-ref">CosineSim</span></a> class. <a class="reference internal" href="#details-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base"><span class="std std-ref">More…</span></a></p>
-<pre class="highlight doxyrest-overview-code-block literal-block"><span></span><span class="cp">#include</span> <span class="cpf">&lt;cosinesim.hpp&gt;</span><span class="cp"></span>
+<pre class="highlight doxyrest-overview-code-block literal-block"><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cosinesim.hpp&gt;</span><span class="cp"></span>
 
-<span class="k">class</span> <span class="nc">CosineSimBase</span>
-<span class="p">{</span>
-<span class="k">public</span><span class="o">:</span>
-    <span class="c1">// construction</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">CosineSimBase</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="k">public</span><span class="o">:</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// construction</span>
 
-    <a class="reference internal" href="#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base-1a957349bc2633fbaa0cbb685d71f6cb76"><span class="std std-ref">CosineSimBase</span></a><span></span><span class="p">(</span><span class="k">const</span> <a class="reference internal" href="struct_xilinx_apps_cosinesim_Options.html#doxid-structxilinx-apps-1-1cosinesim-1-1-options"><span class="std std-ref">Options</span></a><span></span><span class="o">&amp;</span> <span class="n">options</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">valueSize</span><span class="p">);</span>
+<span class="w">    </span><a class="reference internal" href="#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base-1a957349bc2633fbaa0cbb685d71f6cb76"><span class="std std-ref">CosineSimBase</span></a><span></span><span class="p">(</span><span class="k">const</span><span class="w"> </span><a class="reference internal" href="struct_xilinx_apps_cosinesim_Options.html#doxid-structxilinx-apps-1-1cosinesim-1-1-options"><span class="std std-ref">Options</span></a><span></span><span class="o">&amp;</span><span class="w"> </span><span class="n">options</span><span class="p">,</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="n">valueSize</span><span class="p">);</span><span class="w"></span>
 
-    <span class="c1">// methods</span>
+<span class="w">    </span><span class="c1">// methods</span>
 
-    <span class="kt">void</span> <a class="reference internal" href="#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base-1a184ea540f34274337573aa23a1a1531e"><span class="std std-ref">startLoadPopulation</span></a><span></span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">int64_t</span> <span class="n">numVectors</span><span class="p">);</span>
-    <span class="kt">void</span><span class="o">*</span> <a class="reference internal" href="#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base-1a9f249d8afd57d8093e027e5905a1c173"><span class="std std-ref">getPopulationVectorBuffer</span></a><span></span><span class="p">(</span><span class="n">RowIndex</span><span class="o">&amp;</span> <span class="n">rowIndex</span><span class="p">);</span>
-    <span class="kt">void</span> <a class="reference internal" href="#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base-1ad539b8c16cdd3225a7f6664542572298"><span class="std std-ref">finishCurrentPopulationVector</span></a><span></span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">pbuf</span><span class="p">);</span>
-    <span class="kt">void</span> <a class="reference internal" href="#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base-1ae33387b43ace88f1349d7a532fb94a6b"><span class="std std-ref">finishLoadPopulation</span></a><span></span><span class="p">();</span>
-    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><a class="reference internal" href="struct_xilinx_apps_cosinesim_Result.html#doxid-structxilinx-apps-1-1cosinesim-1-1-result"><span class="std std-ref">Result</span></a><span></span><span class="o">&gt;</span> <a class="reference internal" href="#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base-1a7787fda9b6a0c563bcecde06c3000395"><span class="std std-ref">matchTargetVector</span></a><span></span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">numResults</span><span class="p">,</span> <span class="kt">void</span><span class="o">*</span> <span class="n">elements</span><span class="p">);</span>
-<span class="p">};</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><a class="reference internal" href="#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base-1a184ea540f34274337573aa23a1a1531e"><span class="std std-ref">startLoadPopulation</span></a><span></span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">int64_t</span><span class="w"> </span><span class="n">numVectors</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><a class="reference internal" href="#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base-1a9f249d8afd57d8093e027e5905a1c173"><span class="std std-ref">getPopulationVectorBuffer</span></a><span></span><span class="p">(</span><span class="n">RowIndex</span><span class="o">&amp;</span><span class="w"> </span><span class="n">rowIndex</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><a class="reference internal" href="#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base-1ad539b8c16cdd3225a7f6664542572298"><span class="std std-ref">finishCurrentPopulationVector</span></a><span></span><span class="p">(</span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">pbuf</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><a class="reference internal" href="#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base-1ae33387b43ace88f1349d7a532fb94a6b"><span class="std std-ref">finishLoadPopulation</span></a><span></span><span class="p">();</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><a class="reference internal" href="struct_xilinx_apps_cosinesim_Result.html#doxid-structxilinx-apps-1-1cosinesim-1-1-result"><span class="std std-ref">Result</span></a><span></span><span class="o">&gt;</span><span class="w"> </span><a class="reference internal" href="#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base-1a7787fda9b6a0c563bcecde06c3000395"><span class="std std-ref">matchTargetVector</span></a><span></span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="n">numResults</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">elements</span><span class="p">);</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
 
 <span class="c1">// direct descendants</span>
 
-<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">Value</span><span class="o">&gt;</span>
-<span class="k">class</span> <a class="reference internal" href="class_xilinx_apps_cosinesim_CosineSim.html#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim"><span class="std std-ref">CosineSim</span></a><span></span><span class="p">;</span></pre>
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">Value</span><span class="o">&gt;</span><span class="w"></span>
+<span class="k">class</span><span class="w"> </span><a class="reference internal" href="class_xilinx_apps_cosinesim_CosineSim.html#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim"><span class="std std-ref">CosineSim</span></a><span></span><span class="p">;</span></pre>
 </div>
 <div class="section" id="detailed-documentation">
 <span id="details-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base"></span><h2>Detailed Documentation<a class="headerlink" href="#detailed-documentation" title="Permalink to this headline">¶</a></h2>
@@ -460,7 +462,7 @@
 <p>This class provides the same functionality as the template-based <a class="reference internal" href="class_xilinx_apps_cosinesim_CosineSim.html#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim"><span class="std std-ref">CosineSim</span></a> class, except without the type parameter for vector elements. Use this class for situations where a template-based object would be inconvenient, such as when building a wrapper for this API for a language which does not support C++ template implementations.</p>
 <div class="section" id="construction">
 <h3>Construction<a class="headerlink" href="#construction" title="Permalink to this headline">¶</a></h3>
-<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base-1a957349bc2633fbaa0cbb685d71f6cb76"><span id="index-1"></span><span></span><span class="n">CosineSimBase</span><span class="p">(</span><span class="k">const</span> <a class="reference internal" href="struct_xilinx_apps_cosinesim_Options.html#doxid-structxilinx-apps-1-1cosinesim-1-1-options"><span class="std std-ref">Options</span></a><span></span><span class="o">&amp;</span> <span class="n">options</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">valueSize</span><span class="p">)</span></pre>
+<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base-1a957349bc2633fbaa0cbb685d71f6cb76"><span id="index-1"></span><span></span><span class="n">CosineSimBase</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><a class="reference internal" href="struct_xilinx_apps_cosinesim_Options.html#doxid-structxilinx-apps-1-1cosinesim-1-1-options"><span class="std std-ref">Options</span></a><span></span><span class="o">&amp;</span><span class="w"> </span><span class="n">options</span><span class="p">,</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="n">valueSize</span><span class="p">)</span></pre>
 <p>Constructs a <a class="reference internal" href="#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base"><span class="std std-ref">CosineSimBase</span></a> object.</p>
 <p class="rubric">Parameters:</p>
 <table class="colwidths-given docutils align-default">
@@ -480,7 +482,7 @@
 </div>
 <div class="section" id="methods">
 <h3>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h3>
-<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base-1a184ea540f34274337573aa23a1a1531e"><span id="index-2"></span><span></span><span class="kt">void</span> <span class="n">startLoadPopulation</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">int64_t</span> <span class="n">numVectors</span><span class="p">)</span></pre>
+<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base-1a184ea540f34274337573aa23a1a1531e"><span id="index-2"></span><span></span><span class="kt">void</span><span class="w"> </span><span class="n">startLoadPopulation</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">int64_t</span><span class="w"> </span><span class="n">numVectors</span><span class="p">)</span></pre>
 <p>Starts the procedure for loading population vectors to the Alveo accelerator card.</p>
 <p>Call this function at the start of loading or reloading all population vectors to the Alveo accelerator card.</p>
 <p class="rubric">Parameters:</p>
@@ -495,7 +497,7 @@
 </tr>
 </tbody>
 </table>
-<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base-1a9f249d8afd57d8093e027e5905a1c173"><span id="index-3"></span><span></span><span class="kt">void</span><span class="o">*</span> <span class="n">getPopulationVectorBuffer</span><span class="p">(</span><span class="n">RowIndex</span><span class="o">&amp;</span> <span class="n">rowIndex</span><span class="p">)</span></pre>
+<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base-1a9f249d8afd57d8093e027e5905a1c173"><span id="index-3"></span><span></span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">getPopulationVectorBuffer</span><span class="p">(</span><span class="n">RowIndex</span><span class="o">&amp;</span><span class="w"> </span><span class="n">rowIndex</span><span class="p">)</span></pre>
 <p>Allocates a buffer for the caller to fill with population vector element values.</p>
 <p>This function is the same as <a class="reference internal" href="class_xilinx_apps_cosinesim_CosineSim.html#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-1a9714a6a8e055976e49c477ef5f5f362f"><span class="std std-ref">CosineSim::getPopulationVectorBuffer()</span></a>, except that the returned buffer is a type-free <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">*</span></code> instead of an array of a typed element value.</p>
 <p class="rubric">Parameters:</p>
@@ -512,7 +514,7 @@
 </table>
 <p class="rubric">Returns:</p>
 <p>a memory buffer large enough to hold enough integers for one population vector</p>
-<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base-1ad539b8c16cdd3225a7f6664542572298"><span id="index-4"></span><span></span><span class="kt">void</span> <span class="n">finishCurrentPopulationVector</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">pbuf</span><span class="p">)</span></pre>
+<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base-1ad539b8c16cdd3225a7f6664542572298"><span id="index-4"></span><span></span><span class="kt">void</span><span class="w"> </span><span class="n">finishCurrentPopulationVector</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">pbuf</span><span class="p">)</span></pre>
 <p>Processes a population vector buffer after the caller has filled it with population vector values.</p>
 <p>This function is the same as <a class="reference internal" href="class_xilinx_apps_cosinesim_CosineSim.html#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-1ad3fe9ba20f0a327deb15d558e882843e"><span class="std std-ref">CosineSim::finishCurrentPopulationVector()</span></a>, except that the buffer for this function has no element type (that is, the buffer is a <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">*</span></code>).</p>
 <p class="rubric">Parameters:</p>
@@ -527,10 +529,10 @@
 </tr>
 </tbody>
 </table>
-<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base-1ae33387b43ace88f1349d7a532fb94a6b"><span id="index-5"></span><span></span><span class="kt">void</span> <span class="n">finishLoadPopulation</span><span class="p">()</span></pre>
+<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base-1ae33387b43ace88f1349d7a532fb94a6b"><span id="index-5"></span><span></span><span class="kt">void</span><span class="w"> </span><span class="n">finishLoadPopulation</span><span class="p">()</span></pre>
 <p>Ends the procedure for loading population vectors to the Alveo accelerator card.</p>
 <p>Call this function after loading all population vectors to transfer the population vectors to the Alveo acclerator cards.</p>
-<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base-1a7787fda9b6a0c563bcecde06c3000395"><span id="index-6"></span><span></span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><a class="reference internal" href="struct_xilinx_apps_cosinesim_Result.html#doxid-structxilinx-apps-1-1cosinesim-1-1-result"><span class="std std-ref">Result</span></a><span></span><span class="o">&gt;</span> <span class="n">matchTargetVector</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">numResults</span><span class="p">,</span> <span class="kt">void</span><span class="o">*</span> <span class="n">elements</span><span class="p">)</span></pre>
+<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-base-1a7787fda9b6a0c563bcecde06c3000395"><span id="index-6"></span><span></span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><a class="reference internal" href="struct_xilinx_apps_cosinesim_Result.html#doxid-structxilinx-apps-1-1cosinesim-1-1-result"><span class="std std-ref">Result</span></a><span></span><span class="o">&gt;</span><span class="w"> </span><span class="n">matchTargetVector</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="n">numResults</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">elements</span><span class="p">)</span></pre>
 <p>Runs a match of a given target vector against all population vectors.</p>
 <p>This function is the same as <a class="reference internal" href="class_xilinx_apps_cosinesim_CosineSim.html#doxid-classxilinx-apps-1-1cosinesim-1-1-cosine-sim-1a7ce1782322ecdd449a7268e6a8f329fd"><span class="std std-ref">CosineSim::matchTargetVector()</span></a>, except without the type safety of the array type.</p>
 <p class="rubric">Parameters:</p>
@@ -574,7 +576,7 @@
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on October 10, 2021.
+        Last updated on January 07, 2022.
       </span>
 
     </p>

@@ -335,11 +335,13 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../cosinesim/index.html">Cosine Similarity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/index.html">Louvain Modularity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mis/index.html">Maximum Independent Set</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Software Stack Integration Products</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../recom-tg3/index.html"> Recommendation Engine for TigerGraph 3.x</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../comdet-tg3/index.html"> Community Detection for TigerGraph 3.x</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mis-tg3/index.html"> Maximal Independent Set TigerGraph 3.x</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Use Cases</span></p>
 <ul>
@@ -431,18 +433,18 @@
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>Exception class for cosine similarity run-time errors <a class="reference internal" href="#details-classxilinx-apps-1-1cosinesim-1-1-exception"><span class="std std-ref">More…</span></a></p>
-<pre class="highlight doxyrest-overview-code-block literal-block"><span></span><span class="cp">#include</span> <span class="cpf">&lt;cosinesim.hpp&gt;</span><span class="cp"></span>
+<pre class="highlight doxyrest-overview-code-block literal-block"><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cosinesim.hpp&gt;</span><span class="cp"></span>
 
-<span class="k">class</span> <span class="nc">Exception</span><span class="o">:</span> <span class="k">public</span> <span class="n">exception</span>
-<span class="p">{</span>
-<span class="k">public</span><span class="o">:</span>
-    <span class="c1">// construction</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Exception</span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">exception</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="k">public</span><span class="o">:</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// construction</span>
 
-    <a class="reference internal" href="#doxid-classxilinx-apps-1-1cosinesim-1-1-exception-1a5344869ea1aecfec433441a37531be87"><span class="std std-ref">Exception</span></a><span></span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span> <span class="n">msg</span><span class="p">);</span>
+<span class="w">    </span><a class="reference internal" href="#doxid-classxilinx-apps-1-1cosinesim-1-1-exception-1a5344869ea1aecfec433441a37531be87"><span class="std std-ref">Exception</span></a><span></span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">msg</span><span class="p">);</span><span class="w"></span>
 
-    <span class="c1">// methods</span>
+<span class="w">    </span><span class="c1">// methods</span>
 
-    <span class="k">virtual</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <a class="reference internal" href="#doxid-classxilinx-apps-1-1cosinesim-1-1-exception-1aab4a5d2f8c679ee8e963501ee7d9b5f1"><span class="std std-ref">what</span></a><span></span><span class="p">()</span> <span class="k">const</span><span class="p">;</span>
+<span class="w">    </span><span class="k">virtual</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><a class="reference internal" href="#doxid-classxilinx-apps-1-1cosinesim-1-1-exception-1aab4a5d2f8c679ee8e963501ee7d9b5f1"><span class="std std-ref">what</span></a><span></span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
 <span class="p">};</span></pre>
 </div>
 <div class="section" id="detailed-documentation">
@@ -451,7 +453,7 @@
 <p>This exception class is derived from <code class="docutils literal notranslate"><span class="pre">std::exception</span></code> and provides the standard <a class="reference internal" href="#doxid-classxilinx-apps-1-1cosinesim-1-1-exception-1aab4a5d2f8c679ee8e963501ee7d9b5f1"><span class="std std-ref">what()</span></a> member function. An object of this class is constructed with an error message string, which is stored internally and retrieved with the <a class="reference internal" href="#doxid-classxilinx-apps-1-1cosinesim-1-1-exception-1aab4a5d2f8c679ee8e963501ee7d9b5f1"><span class="std std-ref">what()</span></a> member function.</p>
 <div class="section" id="construction">
 <h3>Construction<a class="headerlink" href="#construction" title="Permalink to this headline">¶</a></h3>
-<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-classxilinx-apps-1-1cosinesim-1-1-exception-1a5344869ea1aecfec433441a37531be87"><span id="index-1"></span><span></span><span class="n">Exception</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span> <span class="n">msg</span><span class="p">)</span></pre>
+<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-classxilinx-apps-1-1cosinesim-1-1-exception-1a5344869ea1aecfec433441a37531be87"><span id="index-1"></span><span></span><span class="n">Exception</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">msg</span><span class="p">)</span></pre>
 <p>Constructs an <a class="reference internal" href="#doxid-classxilinx-apps-1-1cosinesim-1-1-exception"><span class="std std-ref">Exception</span></a> object.</p>
 <p class="rubric">Parameters:</p>
 <table class="colwidths-given docutils align-default">
@@ -468,7 +470,7 @@
 </div>
 <div class="section" id="methods">
 <h3>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h3>
-<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-classxilinx-apps-1-1cosinesim-1-1-exception-1aab4a5d2f8c679ee8e963501ee7d9b5f1"><span id="index-2"></span><span></span><span class="k">virtual</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">what</span><span class="p">()</span> <span class="k">const</span></pre>
+<pre class="highlight doxyrest-title-code-block literal-block" id="doxid-classxilinx-apps-1-1cosinesim-1-1-exception-1aab4a5d2f8c679ee8e963501ee7d9b5f1"><span id="index-2"></span><span></span><span class="k">virtual</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">what</span><span class="p">()</span><span class="w"> </span><span class="k">const</span></pre>
 <p>Returns the error message string passed to the constructor.</p>
 <p class="rubric">Returns:</p>
 <p>the error message string</p>
@@ -496,7 +498,7 @@
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on October 10, 2021.
+        Last updated on January 07, 2022.
       </span>
 
     </p>
