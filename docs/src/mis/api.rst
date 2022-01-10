@@ -7,4 +7,4 @@ The Xilinx Cosine Similarity Alveo Product has APIs for the following languages:
     :maxdepth: 1
 
     C++ <cpp-api.rst>
-    Python 3 <python-api.rst>
+

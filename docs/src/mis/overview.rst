@@ -10,5 +10,4 @@ applications that require finding the MIS, including but not limited to the foll
 
 * Massive data sets: military systems, telecommunications, medicine, finance, etc.
 * Coding theory: formulating error correction codes
-* Ad-hoc wireless networks: search and rescue operations, battlefield decisions, 
-addressing battery and security issues, etc. 
+* Ad-hoc wireless networks: search and rescue operations, battlefield decisions, addressing battery and security issues, etc. 

@@ -1,4 +1,4 @@
 Python Example with Fuzzy Match
 ===============================
 
-Coming soon
+Here are instructions for running Python examples

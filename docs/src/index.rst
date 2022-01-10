@@ -38,7 +38,7 @@ under Apache License, Version 2.0
 
    Cosine Similarity <cosinesim/index.rst>
    Louvain Modularity <louvainmod/index.rst>
-   Maximum Independent Set <mis/index.rst>
+   Maximal Independent Set <mis/index.rst>
    Fuzzy Match <fuzzymatch/index.rst>
 
 
@@ -57,6 +57,7 @@ under Apache License, Version 2.0
 
     Cosine Similarity Use Cases <cosinesim/usecases.rst>
     Louvain Modularity Use Cases <louvainmod/usecases.rst>
+    Maximal Independent Set Use Cases <mis/usecases.rst>
 
 .. toctree::
     :caption: Additional Info

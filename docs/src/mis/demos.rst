@@ -6,6 +6,4 @@ After installation, you can try out the Maximal Independent Set Alveo Product, a
 .. toctree::
     :maxdepth: 1
 
-    example-jupyter.rst
-    example-python.rst
     example-makefile.rst

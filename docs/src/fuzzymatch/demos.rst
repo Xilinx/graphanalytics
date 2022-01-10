@@ -7,6 +7,5 @@ the sections below.
 .. toctree::
     :maxdepth: 1
 
-    example-jupyter.rst
     example-python.rst
     example-makefile.rst

@@ -3,12 +3,7 @@ Xilinx Maximal Independent Set Alveo Product Installation
 
 Follow the steps below to install the Maximal Independent Set Alveo Alveo Product.
 
-Installing the Alveo Accelerator Cards
------------------------------------------
-
-* Power off the server
-* Plug the Xilinx U50 or U55C Alveo Data Center Acclerator card into a PCIe Gen3 x16 slot
-* Power on the server
+.. include:: ../install-alveo.rst
 
 Installing Maximal Independent Set Alveo from a Pre-built Package
 ------------------------------------------------------------------
