@@ -182,8 +182,7 @@ int main(int argc, const char* argv[]) {
         test_transaction[i] = list_trans[i];
     }
 
-    //std::vector<bool> result_set0(numEntities);
-    std::vector<std::vector<std::pair<int,int>>> result_set0(numEntities);
+    std::vector<std::vector<std::pair<int,int>>> result_set(numEntities);
     float perf0;
 
     std::vector<std::string> peopleVec;
@@ -206,7 +205,7 @@ int main(int argc, const char* argv[]) {
         float min = std::numeric_limits<float>::max(), max = 0.0, sum = 0.0;
    
         auto ts = std::chrono::high_resolution_clock::now();
-        result_set0 = fm.executefuzzyMatch(test_transaction,similarity_level);
+        result_set = fm.executefuzzyMatch(test_transaction,similarity_level);
         auto te = std::chrono::high_resolution_clock::now();
         float timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(te - ts).count() / 1000.0f;
         perf0 = timeTaken;
@@ -235,21 +234,20 @@ int main(int argc, const char* argv[]) {
         float min = std::numeric_limits<float>::max(), max = 0.0, sum = 0.0;
         for (int i = 0; i < numEntities; i++) {
             auto ts = std::chrono::high_resolution_clock::now();
-            std::unordered_map<int,int> swresult = cpu_checker.check(similarity_level,test_transaction[i]);
+            std::unordered_map<int,int> swresult = cpu_checker.check(similarity_level, test_transaction[i]);
             auto te = std::chrono::high_resolution_clock::now();
             float timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(te - ts).count() / 1000.0f;
             swperf0[i] = timeTaken;
-            //if (work_mode == 2 && t != result_set0[i]) {
             if (work_mode == 2) {
-                if(swresult.size()<100 && swresult.size() != result_set0[i].size()) {
+                if(swresult.size()<100 && swresult.size() != result_set[i].size()) {
                     std::cout << "Error: Trans-"<< i << " number of matches is NOT matched!!!" << std::endl;
-                    std::cout << swresult.size() << " <-> " << result_set0[i].size() << std::endl;
+                    std::cout << swresult.size() << " <-> " << result_set[i].size() << std::endl;
                     nerror++;
                 } else {
                     std::cout << "total number of matched string = " << swresult.size() << std::endl;
-                    for (unsigned int j = 0; j < result_set0[i].size(); j++) {
-                        int hw_id_t = result_set0[i][j].first;
-                        int hw_score_t = result_set0[i][j].second;
+                    for (unsigned int j = 0; j < result_set[i].size(); j++) {
+                        int hw_id_t = result_set[i][j].first;
+                        int hw_score_t = result_set[i][j].second;
                         if (swresult.find(hw_id_t) != swresult.end() && swresult[hw_id_t] == hw_score_t) {
                             std::cout << "Check matched. <" << hw_id_t << ", " << hw_score_t << ">" << std::endl;
                         } else {

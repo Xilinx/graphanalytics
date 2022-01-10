@@ -43,16 +43,16 @@ inline int udf_xilinx_fuzzymatch_set_node_id(uint nodeId)
 // Return value:
 //    Positive number: Match execution time in ms
 //   -1: Failed to initialize Alveo device
-//   
-inline int udf_fuzzymatch_alveo(ListAccum<string> sourceList, ListAccum<string> targetList) 
+//   -2: Target list is empty
+inline int udf_fuzzymatch_alveo(ListAccum<string> sourceList, 
+                                ListAccum<string> targetList, 
+                                int similarity_level) 
 {
 
-    std::cout << "INFO: udf_fuzzymatch_alveo " << std::endl;
-
-    std::vector<std::string> sourceVector;
+    std::vector<std::string> sourceVector, targetVector;
     xilFuzzyMatch::Context *pContext = xilFuzzyMatch::Context::getInstance();
     xilinx_apps::fuzzymatch::FuzzyMatch *pFuzzyMatch = pContext->getFuzzyMatchObj();
-    bool match_result;
+
     int execTime;
 
     if (pFuzzyMatch->startFuzzyMatch() < 0) {
@@ -60,6 +60,7 @@ inline int udf_fuzzymatch_alveo(ListAccum<string> sourceList, ListAccum<string> 
         return -1;
     }
 
+    // load sourceVector
     uint32_t sourceListLen = sourceList.size();
     for (unsigned i = 0 ; i < sourceListLen; ++i)
         sourceVector.push_back(sourceList.get(i));
@@ -67,19 +68,27 @@ inline int udf_fuzzymatch_alveo(ListAccum<string> sourceList, ListAccum<string> 
     std::cout << "sourceVector size=" << sourceVector.size() << std::endl;
     pFuzzyMatch->fuzzyMatchLoadVec(sourceVector);
 
+    // populate target vector
+    uint32_t targetListLen = targetList.size();
+    if (targetListLen == 0) {
+        std::cout << "WARNING: the target list is empty." << std::endl;
+        return -2;
+    }
+
+    for (unsigned i = 0 ; i < targetListLen; ++i) {
+        targetVector.push_back(targetList.get(i));
+    }
+
+    std::cout << "INFO: udf_fuzzymatch_alveo" 
+              << "\n    similarity_level=" << similarity_level 
+              << "\n    sourceListLen=" << sourceListLen
+              << "\n    targetListLen=" << targetListLen << std::endl;
+
+    std::vector<std::vector<std::pair<int,int>>> match_result(targetListLen);
+
     // only measure match time
     auto ts = std::chrono::high_resolution_clock::now();
-    uint32_t targetListLen = targetList.size();
-    for (unsigned i = 0 ; i < targetListLen; ++i) {       
-        // TigerGraph uses gcc 4.8.5 while latest Linux has newer gcc (e.g. 9.3 
-        // on Ubuntu 20.04). This causes incompatibility issue when passing 
-        // std::string between TG UDF and Xilinx libraries. The workaround documented 
-        // in https://stackoverflow.com/questions/33394934/converting-std-cxx11string-to-stdstring
-        // is added to Xilinx standalone library Makefile: -D_GLIBCXX_USE_CXX11_ABI=0
-        match_result = pFuzzyMatch->executefuzzyMatch(targetList.get(i));
-        //std::cout << i << "," << targetList.get(i) << "," << (match_result ? "KO" : "OK") << ","
-        //          << (match_result ? ":Sender" : "") << std::endl;
-    }
+    match_result = pFuzzyMatch->executefuzzyMatch(targetVector, similarity_level);
     auto te = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> l_durationSec = te - ts;
     execTime = l_durationSec.count() * 1e3;

@@ -15,25 +15,6 @@
 #
 
 SHELL := /bin/bash
-help:
-	@echo "Makefile usages:"
-	@echo "  make run [runMode=0] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3] [totalEntities=10000000]"
-	@echo "    Run standalone test with statically linked executable"
-	@echo ""
-	@echo "  Run options:"
-	@echo "  deviceNames  : Specify Alveo devices to use for computation"
-	@echo "                 Supported devices:"
-	@echo "                 xilinx_u50_gen3x16_xdma_201920_3(default) "
-	@echo "                 xilinx_aws-vu9p-f1_shell-v04261818_201920_2"
-	@echo "  numEntities  : Number of entities to match (default=100)"
-	@echo "  runMode      : 0: Run on Alveo Only (default)"
-	@echo "                 1: Run on CPU Only"
-	@echo "                 2: Run on both Alveo and CPU"
-	@echo "  totalEntities: total number of entities to match against(default=10000000)"
-	@echo ""
-	@echo "  make test"
-	@echo "    Compile fuzzyMatch test exe"
-
 # Run make using "make DEBUG=1" to build debuggable executables
 
 # Location of cosine similarity Alveo product 
@@ -95,7 +76,7 @@ $(warning [WARNING]: This project has not been tested for $(deviceNames). It may
 endif
 
 
-EXE_FILE := fmtest
+EXE_FILE := fuzzymatch_demo
 
 CXX := g++
 
@@ -108,8 +89,8 @@ CXXFLAGS += -O3 -DNDEBUG
 #CXXFLAGS += -O3 -g
 endif
 
-test: $(EXE_FILE)
-$(EXE_FILE): fuzzymatch_test.cpp
+demo: $(EXE_FILE)
+$(EXE_FILE): fuzzymatch_demo.cpp
 	$(CXX) $(CXXFLAGS) $^ -o $@ \
 		-I$(XILINX_XRT)/include \
 		-L$(LIB_PATH) -lXilinxFuzzyMatch \
@@ -130,3 +111,22 @@ run: $(EXE_FILE)
 
 clean:
 	rm -f $(EXE_FILE)
+
+help:
+	@echo "Makefile usages:"
+	@echo "  make run [runMode=0] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3] [totalEntities=10000000]"
+	@echo "    Run standalone test with statically linked executable"
+	@echo ""
+	@echo "  Run options:"
+	@echo "  deviceNames  : Specify Alveo devices to use for computation"
+	@echo "                 Supported devices:"
+	@echo "                 xilinx_u50_gen3x16_xdma_201920_3(default) "
+	@echo "                 xilinx_aws-vu9p-f1_shell-v04261818_201920_2"
+	@echo "  numEntities  : Number of entities to match (default=100)"
+	@echo "  runMode      : 0: Run on Alveo Only (default)"
+	@echo "                 1: Run on CPU Only"
+	@echo "                 2: Run on both Alveo and CPU"
+	@echo "  totalEntities: total number of entities to match against(default=10000000)"
+	@echo ""
+	@echo "  make demo"
+	@echo "    Compile Fuzzy Match demo executable"

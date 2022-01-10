@@ -77,8 +77,9 @@ inline int udf_fuzzymatch_cpu(ListAccum<string> sourceList, ListAccum<string> ta
 
     std::vector<std::string> sourceVector;
     xilinx_apps::fuzzymatch::FuzzyMatchSW cpuChecker;
-    bool checkResult;
+    std::unordered_map<int,int> swresult;
     int execTime;
+    int threshold = 90;
 
     uint32_t sourceListLen = sourceList.size();
     for (unsigned i = 0 ; i < sourceListLen; ++i)
@@ -92,7 +93,7 @@ inline int udf_fuzzymatch_cpu(ListAccum<string> sourceList, ListAccum<string> ta
     uint32_t targetListLen = targetList.size();
     for (unsigned i = 0 ; i < targetListLen; ++i) {
         //std::cout << "targetList " << i << "=" << targetList.get(i) << std::endl;
-        checkResult = cpuChecker.check(targetList.get(i));
+        swresult = cpuChecker.check(threshold, targetList.get(i));
         //std::cout << i << "," << targetList.get(i) << "," << (check_result ? "KO" : "OK") << ","
         //          << (check_result ? ":Sender" : "") << std::endl;
     }

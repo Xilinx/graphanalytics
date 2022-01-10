@@ -83,7 +83,11 @@ PRODUCT_VER=$(strip $(shell cat VERSION))
 CCC = g++
 CXX = g++
 # -D PRINTINFO: print additional debug messages
-# -D_GLIBCXX_USE_CXX11_ABI=0
+# TigerGraph uses gcc 4.8.5 while latest Linux has newer gcc (e.g. 9.3 
+# on Ubuntu 20.04). This causes incompatibility issue when passing 
+# std::string between TG UDF and Xilinx libraries. The workaround documented 
+# in https://stackoverflow.com/questions/33394934/converting-std-cxx11string-to-stdstring
+# is added to Xilinx standalone library Makefile: -D_GLIBCXX_USE_CXX11_ABI=0
 CXXFLAGS = -std=c++11 -D_GLIBCXX_USE_CXX11_ABI=0 -DPRAGMA -Ofast -fopenmp -fmessage-length=0  -fPIC -Wall -Wno-unknown-pragmas -Wno-unused-label \
     -Wno-unused-variable -Wno-sign-compare -Wno-unused-result -Wno-unused-but-set-variable \
     -Wno-narrowing -D USE_HBM -fmessage-length=0 
@@ -470,7 +474,7 @@ $(foreach f,$(STAGE_LIB_FILES),$(eval $(call STAGE_LIB_RULE,$(f))))
 
 #STAGE_EXAMPLE_ZIP = examples.zip
 STAGE_EXAMPLE_FILE_NAMES = \
-	cpp/fuzzymatch_test.cpp cpp/Makefile \
+	cpp/fuzzymatch_demo.cpp cpp/Makefile \
 	data/all-names.csv data/new-names.csv \
 	python/pythondemo.py python/run.sh python/README.md
 

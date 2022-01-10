@@ -54,8 +54,8 @@ CREATE QUERY fuzzymatch_alveo( ) for graph @graph
     DOUBLE vm_peak, vm_hwm;
   	INT ret;
     DOUBLE matchExecTime;
-
     ListAccum<string > @@blacklistAccum, @@txPersonsAccum;
+    INT similarity_level = 90;  // threshold for match
 
     blacklistSet = {blacklist.*};
     blacklistSelect = SELECT b FROM blacklistSet:b ACCUM @@blacklistAccum += b.name;
@@ -63,16 +63,21 @@ CREATE QUERY fuzzymatch_alveo( ) for graph @graph
     txPersonsSet = {person_tx.*};
     txPersonsSelect = SELECT t FROM txPersonsSet:t ACCUM @@txPersonsAccum += t.name;
 
-    matchExecTime = udf_fuzzymatch_alveo(@@blacklistAccum, @@txPersonsAccum);
+    matchExecTime = udf_fuzzymatch_alveo(@@blacklistAccum, @@txPersonsAccum, similarity_level);
 
     ret = udf_peak_memory_usage(vm_peak, vm_hwm);
-    print "Xilinx Alveo device" AS ComputationTechnique;
-    print vm_peak/1000000.0 as PeakVirtualMemoryInGB;
-    print vm_hwm/1000000.0 as PeakResidentMemoryInGB;
-    print matchExecTime as MatchExecTimeInMs;
-    print @@blacklistAccum.size() as BlacklistSize;
-    print @@txPersonsAccum.size() as TargetPersonsSize;
-    print matchExecTime/@@txPersonsAccum.size() as AvergeTimePerPersonInMs;   
+    PRINT "Xilinx Alveo device" AS ComputationTechnique;
+    PRINT vm_peak/1000000.0 as PeakVirtualMemoryInGB;
+    PRINT vm_hwm/1000000.0 as PeakResidentMemoryInGB;
+    PRINT @@blacklistAccum.size() as BlacklistSize;
+    PRINT @@txPersonsAccum.size() as TargetPersonsSize;
+    IF matchExecTime < 0 THEN
+        PRINT matchExecTime as MatchErrorCode;   
+    ELSE
+        PRINT matchExecTime as MatchExecTimeInMs;
+        PRINT matchExecTime/@@txPersonsAccum.size() as AvergeTimePerPersonInMs;   
+    END;
+    
 }
 
 

@@ -1,4 +1,4 @@
-.. _cosinesim-overview-label:
+.. _mis-overview-label:
 
 Xilinx Maximal Independent Set Alveo Product Overview
 =====================================================
