@@ -59,8 +59,8 @@
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Python Example" href="mis-example-python.html" />
-    <link rel="prev" title="Xilinx Maximal Independent Set Alveo Product Demos" href="demos.html" /> 
+    <link rel="next" title="Xilinx Fuzzy Match for TigerGraph 3.x Overview" href="overview.html" />
+    <link rel="prev" title="Maximal Independent Set for TigerGraph 3.x Reference Manual" href="../mis-tg3/api.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -334,27 +334,23 @@
             
             
               <p class="caption"><span class="caption-text">Stand-Alone Alveo Products</span></p>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../cosinesim/index.html">Cosine Similarity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/index.html">Louvain Modularity</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">Maximum Independent Set</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="overview.html">Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="demos.html">Demos</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Jupyter Notebook with Maximal Independent Set Python API</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mis-example-python.html">Python Example</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mis-example-makefile.html">C++ Example using Makefile</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="api.html">API Reference</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="../mis/index.html">Maximum Independent Set</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fuzzymatch/index.html">Fuzzy Match</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Software Stack Integration Products</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../recom-tg3/index.html"> Recommendation Engine for TigerGraph 3.x</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../comdet-tg3/index.html"> Community Detection for TigerGraph 3.x</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../mis-tg3/index.html"> Maximal Independent Set TigerGraph 3.x</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mis-tg3/index.html"> Maximal Independent Set for TigerGraph 3.x</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#"> Fuzzy Match for TigerGraph 3.x</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html">Reference Manual</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption"><span class="caption-text">Use Cases</span></p>
 <ul>
@@ -422,11 +418,7 @@
     
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-          <li><a href="index.html">Xilinx Maximal Independent Set Alveo Product</a> &raquo;</li>
-        
-          <li><a href="demos.html">Xilinx Maximal Independent Set Alveo Product Demos</a> &raquo;</li>
-        
-      <li>Jupyter Notebook with Maximal Independent Set Python API</li>
+      <li>Xilinx Fuzzy Match for TigerGraph 3.x</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -443,9 +435,18 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="jupyter-notebook-with-maximal-independent-set-python-api">
-<h1>Jupyter Notebook with Maximal Independent Set Python API<a class="headerlink" href="#jupyter-notebook-with-maximal-independent-set-python-api" title="Permalink to this headline">¶</a></h1>
-<p>Coming soon</p>
+  <div class="section" id="xilinx-fuzzy-match-for-tigergraph-3-x">
+<h1>Xilinx Fuzzy Match for TigerGraph 3.x<a class="headerlink" href="#xilinx-fuzzy-match-for-tigergraph-3-x" title="Permalink to this headline">¶</a></h1>
+<p>Xilinx Fuzzy Match for TigerGraph 3.x is a plug-in for <a class="reference external" href="https://www.tigergraph.com">TigerGraph 3.x</a> that adds user-defined functions that you can use in
+your own GSQL queries to determine if two strings match based on the similarity score
+computed from Levenshtein edit distance using <a class="reference internal" href="../fuzzymatch/index.html#fuzzymatch-label"><span class="std std-ref">Xilinx Fuzzy Match Alveo Product</span></a>.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Reference Manual</a></li>
+</ul>
+</div>
 </div>
 
 
@@ -464,10 +465,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="mis-example-python.html" class="btn btn-neutral float-right" title="Python Example" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="overview.html" class="btn btn-neutral float-right" title="Xilinx Fuzzy Match for TigerGraph 3.x Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="demos.html" class="btn btn-neutral float-left" title="Xilinx Maximal Independent Set Alveo Product Demos" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="../mis-tg3/api.html" class="btn btn-neutral float-left" title="Maximal Independent Set for TigerGraph 3.x Reference Manual" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -477,7 +478,7 @@
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 07, 2022.
+        Last updated on January 10, 2022.
       </span>
 
     </p>
