@@ -43,7 +43,10 @@ Maximal Independent Set C++ API Reference
 ------------------------------------------------------------
 
   | Set the graph and internal pre-process the graph
-  | The argument is GraphCSR graph. 
+  
+  | Parameters:
+  
+    | graph : GraphCSR graph. 
 
    .. code-block:: bash
 
@@ -53,11 +56,13 @@ Maximal Independent Set C++ API Reference
 --------------------------------------------
 
   | Run Maximal Independent Set
-  | Return vector of int
+  | Return:
 
-   .. code-block:: bash
+    | vector of int
 
-     std::vector<int> executeMIS();
+  .. code-block:: bash
+
+    std::vector<int> executeMIS();
 
 **count Interface**
 --------------------------------------------

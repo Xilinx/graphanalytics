@@ -38,7 +38,7 @@ Fuzzy Match Python API Reference
   | Parameters: 
 
     | inputStr        : list of input strings.
-    | similarityLevel : similarity threshold.  value range (0-100). 100 means exact same.  
+    | similarityLevel : similarity threshold.  value range [0-100]. 100 means exact same.  
  
   | Return: 2D array of pairs. Each row represents array of matched result pairs {id,score}. 
         Maximum top 100 of pairs for each input string result.

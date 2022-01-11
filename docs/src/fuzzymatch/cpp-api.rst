@@ -23,9 +23,12 @@ Fuzzy Match C++ API Reference
 ------------------------------
 
   | Initialize and set up FuzzyMatch software and Alveo cards.
-  | Return status: 0: successful; 1: fail.
+  
+  | Return:
+    
+    | status: 0: successful; 1: fail.
 
-   .. code-block:: bash
+  .. code-block:: bash
 
      int startFuzzyMatch()
 
@@ -33,21 +36,35 @@ Fuzzy Match C++ API Reference
 ------------------------------------------------------------
 
   | Load and preprocess the input table. 
-  | The argument is vector of  pattern strings (e.g. black list strings).
-  | Return status; 0: successful; 1: fail.
 
-   .. code-block:: bash
+  | Parameters:
+  
+    | patternVec : vector of  pattern strings (e.g. black list strings).
+  
+  | Return:
+     
+      | status: 0: successful; 1: fail.
+
+  .. code-block:: bash
 
      int fuzzyMatchLoadVec(std::vector<std::string>& patternVec)
 
 **executefuzzyMatch Interface**
 --------------------------------------------
 
-  | Run fuzzymatch in batch mode. 
-  | The arguments take the vector of input strings. For each input string, run fuzzymatch against the pattern strings loaded using fuzzyMatchLoadVec interface.
-  | Return vector of  matched patterns in pairs format {id,score} for each input string. 
-    For each input string , return maximum top 100 of matched patterns.
-
-   .. code-block:: bash
+  | Run fuzzymatch in batch mode. Check each input string in input_patterns vector has fuzzymatch against the pattern strings loaded using fuzzyMatchLoadVec interface.
+  
+  | Parameters:
+  
+    | input_patterns    :   vector of input strings. For each input string in input_patterns, run fuzzymatch against the pattern strings loaded using fuzzyMatchLoadVec interface.
+    
+    | similarity_level  :   similarity threshold.  value range [0-100]. 100 means exact same.
+  
+  | Return:
+    
+    | 2D vectors of pairs. Each row represents array of matched result pairs {id,score}. 
+        Maximum top 100 of pairs for each input string result.
+   
+  .. code-block:: bash
 
      std::vector<std::vector<std::pair<int,int>>> executefuzzyMatch(std::vector<std::string> input_patterns, int similarity_level);
