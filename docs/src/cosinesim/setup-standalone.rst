@@ -1,7 +1,6 @@
 .. _cosinesim-setup-standalone-label:
 
-==============================================
-Setup Cosine Similarity for Stand-Alone runs
+Setup Cosine Similarity for Stand-Alone Runs
 ==============================================
 
 ..  note:: If running Python Example only, directly go to Method 2

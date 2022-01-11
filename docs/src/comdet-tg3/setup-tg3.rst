@@ -1,10 +1,10 @@
 .. _cosinesim-setup-tg3-label:
 
-==================================================
-Setup Recommendation Engine for TigerGraph 3.x run
-==================================================
+=============================================
+Set up Community Detection for TigerGraph 3.x
+=============================================
 
-The Recommendation Engine consists of Cosine Similarity library integrated into 
+The Community Detection consists of Louvain Modularity library integrated into 
 TigerGraph 3.x via plugins and UDFs.
 
 .. include:: ../install-conda-python.rst

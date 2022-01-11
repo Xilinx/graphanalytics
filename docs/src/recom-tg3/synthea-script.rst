@@ -1,6 +1,6 @@
-===========================================
-Bash Script with GSQL
-===========================================
+=========================
+Run Bash Script with GSQL
+=========================
 
 * Open a terminal using your Linux credentials
 * Execute the command below to run the example

@@ -1,13 +1,16 @@
-Installing and Uninstalling the Demo use cases
-=============================================
+.. _install-demo-plugin-label:
 
-As with your own application based on TigerGraph and the Recommendation Engine, the demo use cases
-require separate installation and uninstallation steps.
+Installing and Uninstalling the Demo use cases
+==============================================
+
+As with your own application based on TigerGraph and Xilinx Graph Analytics 
+products, the demo use cases require separate installation and uninstallation 
+steps.
 
 Installing the Demo
 -------------------
 
-The demo applications require that demo plugin be installed first. As of Recommendation version 1.4, the process for installing is manual.
+The demo applications require that demo plugin be installed first manually.
 
 Run the install script located in the ``bin`` subdirectory under the corresponding demo directory
 
@@ -50,4 +53,4 @@ the Synthea demo directory.  The commands below assume you are running from the 
    Password:
    $ bin/install_udf.sh -u
 
-Uninstalling the demo UDFs leaves the Recommendation Engine UDFs in place.
+Uninstalling the demo UDFs leaves main plugin UDFs in place.

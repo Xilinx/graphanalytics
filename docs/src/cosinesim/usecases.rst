@@ -14,7 +14,7 @@ Go through the setup section if running the Notebooks.
 .. toctree::
     :maxdepth: 1
 
-    Setup <setup-standalone.rst>
+    Setup Cosine Similarity for Stand-Alone Runs <setup-standalone.rst>
 
 For details about the usecase or to read the Notebook go to the corresponding usecase link below:
 
@@ -24,14 +24,14 @@ For details about the usecase or to read the Notebook go to the corresponding us
     Wikipedia Search Engine <usecases-wiki-search.rst>
 
 Recommendation Engine Product
----------------------
+-----------------------------
 
-Go through the setup section if running the Notebooks
+Go through the setup section below for your preferred environment:
 
 .. toctree::
     :maxdepth: 1
 
-    Setup <../recom-tg3/setup-tg3.rst>
+    Setup Recommendation Engine for TigerGraph 3.x run <../recom-tg3/setup-tg3.rst>
 
 For details about the usecase or to read the Notebook go to the corresponding usecase link below:
 
@@ -41,6 +41,3 @@ For details about the usecase or to read the Notebook go to the corresponding us
     Patient Similarity using Synthetic Patient Data (Synthea) <../recom-tg3/synthea.rst>
     Error Log Analysis <../recom-tg3/usecases-log.rst>
     Heathcare Concept Similarity with UMLS <../recom-tg3/usecases-healthcare.rst>
-
-
-
