@@ -1,0 +1,1 @@
+../../../../common/examples/bin/install-udf.sh

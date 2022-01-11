@@ -1,20 +1,20 @@
-.. _louvainmod-usecases-label:
+.. _fuzzymatch-usecases-label:
 
-Xilinx Louvain Modularity Use Cases
-===================================
+Xilinx Fuzzy Match Use Cases
+============================
 
-Xilinx Louvain Modularity has demonstrated great performance in accelerating the 
+Xilinx Fuzzy Match has demonstrated great performance in accelerating the 
 applications listed below.
 
-Community Detection Product
-----------------------------
+Fuzzy Match TigerGraph Plugin
+-----------------------------
 
 Go through the setup section below for your preferred environment:
 
 .. toctree::
     :maxdepth: 1
 
-    ../fuzzymatch-tg3/setup-tg3.rst
+    Setup Fuzzy Match Plugin for TigerGraph 3.x run <../comdet-tg3/setup-tg3.rst>
 
 For details about the usecase or to read the Notebook go to the corresponding usecase link below:
 

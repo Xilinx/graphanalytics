@@ -95,7 +95,7 @@ cosinesim-clean:
 
 RECOM_TG3_RST_NAMES = \
     api.rst index.rst install.rst overview.rst \
-    recomengine-example-script.rst recomengine-example-jupyter.rst \
+    synthea-script.rst synthea-jupyter.rst \
     synthea-install.rst synthea-overview.rst synthea-query.rst synthea.rst \
     users-guide.rst
 
