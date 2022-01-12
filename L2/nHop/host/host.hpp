@@ -3,6 +3,8 @@
 
 #include "nHopPartition.h"
 
+#ifndef HLS_TEST
+
 void nHop_L2_host(
                     unsigned numHop,
                     unsigned intermediate,
@@ -263,5 +265,5 @@ void nHop_L2_host(
 
 }
 
-
+#endif
 #endif

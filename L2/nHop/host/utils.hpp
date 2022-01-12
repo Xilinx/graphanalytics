@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef _UTILS_HPP_
+#define _UTILS_HPP_
 #include <sys/time.h>
 #include <algorithm>
 #include <chrono>
+
 
 using namespace std;
 // Compute time difference

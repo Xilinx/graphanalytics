@@ -51,6 +51,12 @@ int CSRPartition_average( // return the real number of partition
         T ne_end = src.offset[nv_end_start];
         des[cnt_par] = new CSR<T>;
         des[cnt_par]->Init(nv_start, nv_end_start, src);
+        // if(!cnt_par){
+        //     std::cout << "id=" << cnt_par << " offsetTable=" << nv_start << " indexTable=" << src.offset[nv_start] << std::endl;
+        //     std::cout << "id=" << cnt_par+1 << " offsetTable=" << nv_end_start << " indexTable=" << src.offset[nv_end_start] << std::endl;
+        // }else{
+        //     std::cout << "id=" << cnt_par+1 << " offsetTable=" << nv_end_start << " indexTable=" << src.offset[nv_end_start] << std::endl;
+        // }
         nv_start = nv_end_start;
         cnt_par++;
     } while (nv_start != src.NV);
@@ -591,10 +597,10 @@ void PartitionHop<T>::PrintRpt(
     T nv = this->hop_src->NV;
     T ne = this->hop_src->NE;
     double degree = (double)ne/nv;
-    double allPair = 0;
+    double allAccsEdge = 0;// the edge is accessed
     for(int i=0; i<numHop; i++){
-        allPair += numPair*std::pow(degree, i+1);
-        printf("INFO : allPair = %lf\n", allPair);
+        allAccsEdge += numPair*std::pow(degree, i+1);
+        printf("INFO : allAccessEdge = %lf\n", allAccsEdge);
     }
     printf("\n");
     printf("************************************************************************************************\n");
@@ -603,8 +609,8 @@ void PartitionHop<T>::PrintRpt(
     printf("INFO : disturbute nHop compute time all   : %lf\n", timeInfo.timeWrkCompute);
     printf("INFO : disturbute nHop compute kernel time: %lf\n", timeInfo.timeKernel);
     printf("INFO : disturbute nHop compute memcy time : %lf\n", timeInfo.timeWrkCompute - timeInfo.timeKernel);
-    printf("INFO : Estimated MTEPS for final hop      : %lf\n", numPair*degree/timeInfo.timeKernel/1000000);//numPair/1000000/timeInfo.timeKernel*ne/nv
-    printf("INFO : Estimated MTEPS for nhop           : %lf\n", allPair/timeInfo.timeKernel/1000000);//allPair/1000000/timeInfo.timeKernel*ne/nv
+    printf("INFO : number Pair per second             : %lf\n", numPair/timeInfo.timeKernel/1000000);//numPair/1000000/timeInfo.timeKernel*ne/nv
+    printf("INFO : Estimated MTEPS for nhop           : %lf\n", allAccsEdge/timeInfo.timeKernel/1000000);//allPair/1000000/timeInfo.timeKernel*ne/nv
     printf("************************************************************************************************\n");
     printf("*********************************************************\n");
     printf("************* Hardware resources for hopping ************\n");
@@ -636,10 +642,11 @@ void PartitionHop<T>::PrintRpt(
     printf("***************************** Hopping aggregation result per kernel ****************************\n");
     printf("************************************************************************************************\n");
     for(int i = 0; i < commendInfo.numKernel; i++){
+    printf("hop result file pf each kernel had saved  :  %s\n", this->hopKnl[i]->filename.c_str());
     if(commendInfo.byPass)
-    printf("kernel[%d] not aggregation result          : %9d\n", i, stt.num_local);
+    printf("kernel[%d] not aggregation result          : %9d\n", i, this->hopKnl[i]->p_buff_agg->GetNum());
     else
-    printf("kernel[%d] aggregation result              : %9d\n", i, stt.num_local);
+    printf("kernel[%d] aggregation result              : %9d\n", i, this->hopKnl[i]->p_buff_agg->GetNum());
     }
     printf("hop result file had saved                 :  %s\n", commendInfo.filename.c_str());
     printf("****************************************************************************************************\n");
@@ -651,12 +658,12 @@ template <class T>
 int PartitionHop<T>::CreatePartitionForKernel( // Created
     int num_knl_in,
     int num_chnl_knl_in,
-    T limit_nv_bit,
-    T limit_ne_bit) {
-    this->num_knl_used = num_knl_in;
+    T limit_nv_byte,
+    T limit_ne_byte) {
+    this->num_knl_used = num_knl_in;// now is the number of board // while num_knl_par is the actually number of kernel to cover the graph
     this->num_chnl_knl = num_chnl_knl_in;
-    this->limit_v_b = limit_nv_bit;
-    this->limit_e_b = limit_ne_bit;
+    this->limit_v_b = limit_nv_byte;
+    this->limit_e_b = limit_ne_byte;
     T nv = this->hop_src->NV;
     T ne = this->hop_src->NE;
 
@@ -667,8 +674,8 @@ int PartitionHop<T>::CreatePartitionForKernel( // Created
     printf("Number of kernels                         : %9d\n", num_knl_in);
     printf("Number of channel in kernel               : %9d\n", num_chnl_knl);
     printf("Number of total channel in kernel         : %9d\n", num_knl_in * num_chnl_knl);
-    printf("Size limitation for storing offsets(Byte) : %9d\n", limit_v_b/4);
-    printf("Size limitation for storing indices(Byte) : %9d\n", limit_e_b/4);
+    printf("Size limitation for storing offsets(Byte) : %9d\n", limit_v_b);
+    printf("Size limitation for storing indices(Byte) : %9d\n", limit_e_b);
     printf("*********************************************************\n");
     printf("************* The graph features for hopping ************\n");
     printf("*********************************************************\n");
@@ -709,7 +716,8 @@ int PartitionHop<T>::CreatePartitionForKernel( // Created
                 num_ch_cover++; // To find proper number of channel of divid factor of num_chnl_knl
             this->num_chnl_par = CSRPartition_average(1 * num_ch_cover, *hop_src, limit_v_b, limit_e_b, par_chnl_csr);
         }
-        printf("Number of kernel to cover graph (Final)     : %5d\n", num_chnl_par);
+        printf("Number of channel to cover graph (Final)    : %5d\n", num_chnl_par);
+        printf("Number of kernel to cover graph (Final)     : %5d\n", num_knl_par);
     }
 
     printf("\n");
@@ -737,8 +745,10 @@ int PartitionHop<T>::LoadPair2Buffs(ap_uint<64>* pairs, int num_pair, T NV, T NE
     // 1) initialize each kernels' buffs according to the size of pair, NV ,NE and numHop
     printf("\n");
     printf("Initialize each kernels' buffs according to the size of pair, NV ,NE and numHop\n");
-    long sz_in = this->limit_e_b / sizeof(T);
-    long sz_pp = this->limit_e_b / sizeof(T);
+    long sz_in = 268435456;
+    long sz_pp = 268435456;
+    // long sz_in = this->limit_e_b / sizeof(T);//todo
+    // long sz_pp = this->limit_e_b / sizeof(T);
     long sz_out = sz_pp;
     long sz_agg = sz_pp;
     for (int i = 0; i < this->num_knl_used; i++) this->hopKnl[i]->InitBuffs(sz_in, sz_out, sz_pp, sz_agg);
@@ -750,14 +760,14 @@ int PartitionHop<T>::LoadPair2Buffs(ap_uint<64>* pairs, int num_pair, T NV, T NE
     // 2) dispatching pairs into kernels' buff_in
     for (int i = 0; i < num_pair; i++) {
         HopPack<T> hpk;
-        hpk.des = (pairs[i])(63, 32);
         hpk.src = (pairs[i])(31, 0);
-        hpk.idx = hpk.des;
+        hpk.des = (pairs[i])(63, 32);
+        hpk.idx = hpk.src;//fixed a bug
         hpk.hop = 0;
         // int idk = FindPar<T>(hpk.idx, this->num_knl_par, this->tab_disp_knl);
         int idk = SelectParID(hpk.idx, this->num_knl_par, this->tab_disp_knl, this->tab_copy_knl, this->tab_state_knl);
         this->hopKnl[idk]->p_buff_in->push(&hpk);
-        // hpk.print(i);
+        //hpk.print(i, idk);
     }
     // printf("=========\n");
     // this->hopKnl[1]->p_buff_in->print();
@@ -784,7 +794,7 @@ int PartitionHop<T>::LoadPair2Buffs(ap_uint<64>* pairs, int num_pair, T NV, T NE
         for (int i = 0; i < this->num_knl_used; i++) {
             if (this->hopKnl[i]->p_buff_in->isEmpty())
                 continue;
-            else if (this->hopKnl[i]->ConsumeBatch(NV, NE, rnd, num_pair, sz_bat, numHop, commendInfo, p_timeInfo, p_stt) != 0) {
+            else if (this->hopKnl[i]->ConsumeTask(NV, NE, rnd, num_pair, sz_bat, numHop, commendInfo, p_timeInfo, p_stt) != 0) {
                 return -1;
             }
             allEmpty = false;
@@ -802,7 +812,43 @@ int PartitionHop<T>::LoadPair2Buffs(ap_uint<64>* pairs, int num_pair, T NV, T NE
     ShowInfo_buff_pp(0);
     ShowInfo_buff_pp(1);*/
     ShowInfo_buffs(rnd);
+    for(int i = 0; i < this->num_knl_used; i++){
+        this->hopKnl[i]->filename = commendInfo.filename + "_" + to_string(i);
+        if(commendInfo.output)
+            this->hopKnl[i]->p_buff_agg->SavePackBuff(this->hopKnl[i]->p_buff_agg->GetNum(), this->hopKnl[i]->filename.c_str());
+    }
     return 0;
+}
+
+template <class T>
+int PartitionHop<T>::MergeResult(commendInfo commendInfo){
+    typedef std::pair<long,long> Key_pair;
+    std::map<Key_pair, int> result;
+    std::map<Key_pair, int>::iterator itr;
+    for(int i = 0; i < this->num_knl_used; i++){
+        int num = this->hopKnl[i]->p_buff_agg->GetNum();
+        for(int j = 0; j < num; j++){
+            T src = this->hopKnl[i]->p_buff_agg[j]->pBuff->src;
+            T des = this->hopKnl[i]->p_buff_agg[j]->pBuff->des;
+            T agg = this->hopKnl[i]->p_buff_agg[j]->pBuff->idx;
+            Key_pair Keypair(src, des);
+            itr = result.find(Keypair);
+            if (itr != result.end()){
+                result.at(Keypair) += agg;
+            }else{
+                result.insert(std::pair<Key_pair, int>(Keypair, agg));
+            }
+        }
+    }
+
+    int num = result.size();
+    FILE* fp=fopen(commendInfo.filename.c_str(), "w");
+    fprintf(fp,"%ld\n", num);
+    for(itr = result.begin(); itr != result.end(); ++itr){
+        Key_pair Keypair= itr->first;
+        fprintf(fp, "%ld %ld %ld \n", Keypair.first, Keypair.second, itr->second);
+    }
+    fclose(fp);
 }
 
 template <class T>
@@ -817,7 +863,7 @@ long HopKernel<T>::estimateBatchSize(int cnt_hop, long sz_suggest, PackBuff<T>* 
 }
 
 template <class T>
-int HopKernel<T>::ConsumeBatch(T NV, T NE, int rnd, T numSubpair, long sz_bat, int numHop,
+int HopKernel<T>::ConsumeTask(T NV, T NE, int rnd, T numSubpair, long sz_bat, int numHop,
      commendInfo commendInfo, timeInfo* p_timeInfo, IndexStatistic* p_stt
 ) {
     int cnt_hop = 0;
@@ -834,8 +880,8 @@ int HopKernel<T>::ConsumeBatch(T NV, T NE, int rnd, T numSubpair, long sz_bat, i
         PackBuff<T>* p_buff_agg = this->p_buff_agg;
         long sz_bat2 = estimateBatchSize(cnt_hop, sz_bat, p_buff_pop);//TODO
         long size_pop = p_buff_pop->getSize();
-        printf("%s : cnt_hop=%d, sz_bat=%ld, sz_bat2=%ld, numHop=%d, size_in_pop=%d\n", __FUNCTION__, cnt_hop, sz_bat,
-               sz_bat2, numHop, size_pop);
+        printf("%s : cnt_hop=%d, sz_bat=%ld, sz_bat2=%ld, numHop=%d, size_in_pop=%d, num_pair=%d\n", __FUNCTION__, cnt_hop, sz_bat,
+               sz_bat2, numHop, size_pop, numSubpair);
         // if( -1==BatchOneHop(p_buff_pop, p_buff_send, p_buff_local, sz_bat2, numHop, &stt)){
         if (-1 ==
             BatchOneHopOnFPGA(p_buff_pop, p_buff_send, p_buff_local, p_buff_agg, 
@@ -928,12 +974,12 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
     int pu = num_chnl;
     T numVertices = NV;
     T numEdges = NE;
-    T numPairs = numSubPairs;//rename the numSubPairs for the host work
-    T batchSize = estimateBatchSize;//commendInfo.sz_bat;
+    T numPairs = p_buff_pop->GetNum();//numSubPairs;//rename the numSubPairs for the host work
+    T batchSize = commendInfo.sz_bat;//todo estimateBatchSize;//commendInfo.sz_bat;
     int byPass = commendInfo.byPass;
     int duplicate = commendInfo.duplicate;
     std::string xclbin_path = commendInfo.xclbin_path;
-    
+    printf("INFO: final batch size : %d\n", batchSize);
 
     // dispatch offset and index
     unsigned* offsetTable;
@@ -954,39 +1000,25 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
 
     T* offsetBuffer[num_chnl];
     T* indexBuffer[num_chnl];
-    if (duplicate == 0) {
-        ap_uint<32> numVerticesPU = numVertices / pu;
-        offsetTable[pu] = numVertices;
+    if (duplicate == 0) {// split the subgraph to n channels avg
         for (int i = 0; i < pu; i++) {
-            offsetTable[i] = numVerticesPU * i;
-        }
-        for (int i = 0; i < pu; i++) {
-            offsetBuffer[i] = aligned_alloc<unsigned>(offsetTable[i + 1] - offsetTable[i] + 4096);
-        }
-        for (int i = 0; i < pu; i++) {
-            for (int j = offsetTable[i]; j < offsetTable[i + 1] + 1; j++) {
-                offsetBuffer[i][j - offsetTable[i]] = channels->pCSR->offset[j];
-                // std::cout << "i=" << i << " j=" << j - offsetTable[i] << " offset=" << channels->pCSR->offset[j] << std::endl;
+            HopChnl<T>* pch = &(channels[i]);
+            if(i == 0){
+                offsetTable[0] = pch->pCSR->V_start;//offsetShift
+                //indexTable[0] = pch->pCSR->offset[offsetTable[0]];//indexShift
             }
-        }
-
-        for (int i = 0; i < pu+1; i++) {
-            indexTable[i] = channels->pCSR->offset[offsetTable[i]];
+            offsetTable[i+1] = pch->pCSR->V_end_1;
+            indexTable[i] = pch->indexShift;//pCSR->E_end;
+            offsetBuffer[i] = aligned_alloc<unsigned>(pch->pCSR->NV + 1 + 4096);
+            indexBuffer[i] = aligned_alloc<unsigned>(pch->pCSR->NE + 4096);
+            memcpy((void*)(offsetBuffer[i]), (void*)pch->pCSR->offset,  (pch->pCSR->NV+1)*sizeof(T));
+            memcpy((void*)(indexBuffer[i]), (void*)pch->pCSR->index,  (pch->pCSR->NE)*sizeof(T));
         }
         for (int i = 0; i < pu+1; i++) {
             std::cout << "id=" << i << " offsetTable=" << offsetTable[i] << " indexTable=" << indexTable[i]
                       << std::endl;
         }
-        for (int i = 0; i < pu; i++) {
-            ap_uint<32> numEdgesPU = indexTable[i + 1] - indexTable[i];
-            std::cout << "numEgdesPU=" << numEdgesPU << std::endl;
-            indexBuffer[i] = aligned_alloc<unsigned>(numEdgesPU + 4096);
-            for (int j = indexTable[i]; j < indexTable[i + 1]; j++) {
-                indexBuffer[i][j - indexTable[i]] = channels->pCSR->index[j];
-                // std::cout << "i=" << i << " j=" << j - indexTable[i] << " index=" << channels->pCSR->index[j] << std::endl;
-            }
-        }
-    } else {
+    } else { // duplicate the subgraph to n channels, because the graph is small < 1 channel capability
         offsetTable[pu] = numVertices;
         for (int i = 0; i < pu; i++) {
             offsetTable[i] = numVertices;
@@ -1013,8 +1045,8 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
             }
         }
     }
-    offsetTable[pu+1] = 0;
-    offsetTable[pu+2] = numVertices;
+    offsetTable[pu+1] = offsetTable[0];
+    offsetTable[pu+2] = offsetTable[pu];
 
     for (int i = 0; i < 32; i++) {
         ap_uint<32> id = i;
@@ -1033,7 +1065,8 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
         tmp128.range(95, 64) = in.idx;
         tmp128.range(127, 96) = in.hop; // hop_cnt
         pair[i] = tmp128;
-        // printf("src: %d, dst: %d\n", in.src, in.des);
+        if(in.src == in.des)
+        printf("selfloop## src: %d, dst: %d\n", in.src, in.des);
     }
 
     // initilaize buffer and config
@@ -1123,13 +1156,14 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
             out.hop = local[i].range(128 * j + 127, 128 * j + 96);
 
             if ((out.src != 0) && (out.des != 0)){
-                p_stt->num_local++;
+                p_stt->num_agg++;
                 //if (0 == p_buff_local->push(&out)) return -1;
                 if (0 == p_buff_agg->push(&out)) return -1;
                 p_stt->num_push++;
             }
         }
     }
+    std::cout << " aggnum=" << p_buff_agg->GetNum() << std::endl;
 
     std::cout << " numSwitch=" << numOut[1] << std::endl;
     for (int i = 0; i < numOut[1]; i++) {
@@ -1148,8 +1182,10 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
         }
     }
 
-    if(commendInfo.output)
-        p_buff_agg->SavePackBuff(p_stt->num_local, commendInfo.filename.c_str());
+    for(int i = 0; i < pu; i++){
+        free(offsetBuffer[i]);
+        free(indexBuffer[i]);
+    }
 
     return 0;
 }
@@ -1175,7 +1211,7 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
 //         for(int i=0; i<this->num_knl_used;  i++){
 //             if(this->hopKnl[i]->p_buff_in->isEmpty())
 //                 continue;
-//             else if(this->hopKnl[i]->ConsumeBatch( rnd, sz_bat,  numHop)!=0){
+//             else if(this->hopKnl[i]->ConsumeTask( rnd, sz_bat,  numHop)!=0){
 //                 return -1;
 //             }
 //             allEmpty =false;

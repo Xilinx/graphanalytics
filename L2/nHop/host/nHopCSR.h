@@ -60,6 +60,7 @@ class CSR {
    public:
     T V_start;
     T V_end_1;
+    T E_end;
     T NV;
     T NE;
     T* offset;

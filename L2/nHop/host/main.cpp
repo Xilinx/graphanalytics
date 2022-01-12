@@ -142,24 +142,27 @@ int Demo_1(ArgParser& parser){
     }
 
     if (!parser.getCmdOption("--duplicate", args)) {
-        std::cout << "Using default duplicate for all channel? 1 means do the duplicate "<<commendInfo.duplicate<<std::endl;
+        std::cout << "Using default not duplicate for all channel? 0 means split the pair package to each channel "<<commendInfo.duplicate<<std::endl;
     }else{
         commendInfo.duplicate = stoi(args);
     }
 
-    double tmp = 64.0;
+    //for debug
+    double tmp = 64.0;//  64 M vertex or edge
     if (!parser.getCmdOption("--limit", args)) {
         std::cout << "Using default limit(MB) for all channel "<<tmp<<std::endl;
     }else{
         tmp = stod(args);
+        std::cout << "Using input limit(MB) for all channel "<<tmp<<std::endl;
     }
 
-    commendInfo.filename = pairfile.substr(pairfile.find_last_of('/') + 1) + ".hop";   
+    std::string fn = pairfile.substr(pairfile.find_last_of('/') + 1);
+    commendInfo.filename = fn.substr(0, fn.rfind(".")) + ".hop";  
     if (!parser.getCmdOption("--test", args)) {
-        std::cout << "Using test mode and will not generate the output *.hop file "<<std::endl;
+        std::cout << "The results will output to the ./"<< commendInfo.filename <<" file "<<std::endl;
     }else{
         commendInfo.output = false;
-        std::cout << "The results will output to the ./"<< commendInfo.filename <<" file "<<std::endl;
+        std::cout << "Using test mode and will not generate the output *.hop file "<<std::endl;   
     }
 
     commendInfo.xclbin_path = xclbin_path;
@@ -198,7 +201,6 @@ int Demo_1(ArgParser& parser){
 
 int main(int argc, const char* argv[]) {
     std::cout << "\n---------------------N Hop-------------------\n";
-    cl_int fail;
 
     // cmd parser
     ArgParser parser(argc, argv);

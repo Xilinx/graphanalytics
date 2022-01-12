@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef UTILS2_H
-#define UTILS2_H
+#ifndef _UTILS2_HPP_
+#define _UTILS2_HPP_
 #include <sys/time.h>
 #include <new>
 #include <algorithm>

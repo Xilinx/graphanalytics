@@ -24,6 +24,7 @@ int CSR<T>::Init(T start, T end, CSR<T>& src) {
     // Prepare Index
     T tmp_start = src.offset[V_start];
     T tmp_end = src.offset[V_end_1];
+    E_end = tmp_end;
     NE = tmp_end - tmp_start;
     index = (T*)malloc(NE * sizeof(T));
     if (index == 0) {

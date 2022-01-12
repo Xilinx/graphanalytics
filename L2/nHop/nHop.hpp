@@ -555,7 +555,8 @@ void dispatchSplitCSR(hls::stream<ap_uint<128> >& pairStream,
 
 #ifndef __SYNTHESIS__
 #ifdef DEBUG_LOAD
-                if ((src == 124311) && (des == 721))
+                //if ((src == 124311) && (des == 721))
+                if ((src == 4) && (des == 11))
                     std::cout << "dispatchID=" << j << " src=" << src << " des=" << des
                               << " idx=" << idx - offsetTable[j] << " offsetTable=" << offsetTable[j] << " hop=" << hop
                               << std::endl;
@@ -880,6 +881,7 @@ void loadIndex(ap_uint<32> numHop,
 #endif
                 }
 
+            //if ((src == 4) && (des == 11))
                 if ((idx[i] < offsetStart) || (idx[i] >= offsetEnd)) {
                     if ((hop < numHop) || ((hop == numHop) && (intermediate != 0))) {
                         // for index need send to network
@@ -888,7 +890,7 @@ void loadIndex(ap_uint<32> numHop,
 
 #ifndef __SYNTHESIS__
 #ifdef DEBUG_HOP
-                        if ((src == 124311) && (des == 721))
+                        //if ((src == 124311) && (des == 721))
                             std::cout << "netSwitch src=" << src << " des=" << des << " idx=" << idx[i]
                                       << " hop=" << hop << std::endl;
 #endif
@@ -903,7 +905,7 @@ void loadIndex(ap_uint<32> numHop,
 
 #ifndef __SYNTHESIS__
 #ifdef DEBUG_HOP
-                    if ((src == 124311) && (des == 721))
+                    //if ((src == 124311) && (des == 721))
                         std::cout << "internalAggr src=" << src << " des=" << des << " idx=" << idx[i] << " hop=" << hop
                                   << std::endl;
 #endif
@@ -928,7 +930,9 @@ void loadIndex(ap_uint<32> numHop,
 
 #ifndef __SYNTHESIS__
 #ifdef DEBUG_HOP
-                    if ((src == 124311) && (des == 721))
+                    /*
+                    //if ((src == 124311) && (des == 721))
+                    */
                         std::cout << "localResult src=" << src << " des=" << des << " idx=" << tmp3(85, 64)
                                   << " hop=" << tmp3(127, 96) << std::endl;
 #endif

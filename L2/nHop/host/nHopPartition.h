@@ -42,7 +42,7 @@ struct HopPack {
     T idx;
     T hop;
     void print() { printf("[s(%ld)d(%ld)i(%ld)h(%ld)]", src, des, idx, hop); }
-    void print(long i) { printf(" PackNO(%d):[s(%ld)d(%ld)i(%ld)h(%ld)]\n", i, src, des, idx, hop); }
+    void print(long i, int idk) { printf("%d PackNO(%d):[s(%ld)d(%ld)i(%ld)h(%ld)]\n",idk, i, src, des, idx, hop); }
 };
 template <class T>
 struct AccessPoint {
@@ -169,7 +169,7 @@ struct commendInfo{
     int numPuPerKernel=4;
     int sz_bat=4096;
     int byPass=0; 
-    int duplicate=1;
+    int duplicate=0;
     std::string xclbin_path;
     std::string filename;
     bool output=true;
@@ -181,8 +181,9 @@ class HopKernel { // warpper the hop kernel
     int start_chnl;
     int num_chnl_knl;
     int num_chnl_par;
-    int num_knl_par;
+    int num_knl_par;// while num_knl_par is the actually number of kernel to cover the graph
     int id_knl_used;
+    std::string filename;//for output test
     HopChnl<T> channels[MAX_NUM_CHNL_KNL];
     T tab_disp_ch[MAX_NUM_CHNL_KNL];
     int tab_copy_ch[MAX_NUM_CHNL_KNL];
@@ -216,7 +217,7 @@ class HopKernel { // warpper the hop kernel
 // clang-format on
     long estimateBatchSize(int cnt_hop, long sz_suggest, PackBuff<T>* p_buff_pop);
 
-    int ConsumeBatch(T NV, T NE, int rnd, T numSubpair, long sz_bat, int num_hop, 
+    int ConsumeTask(T NV, T NE, int rnd, T numSubpair, long sz_bat, int num_hop, 
     commendInfo commendInfo, timeInfo* p_timeInfo, IndexStatistic* p_stt); // call BatchOneHopOnFPGA()
 
     void InitBuffs(long sz_in, long sz_out, long sz_pp, long sz_agg);
@@ -274,8 +275,8 @@ class PartitionHop { // the class for partition graph, generate all pointer of c
     // Usually, for graphs with large degree less channel may already match the bandwidth of network and more HBM space
     // can be saved for buffering
     int num_chnl_knl;
-    T limit_v_b;
-    T limit_e_b;
+    T limit_v_b;// space to load the vettex by Byte
+    T limit_e_b;// space to load the edge by Byte
 
     // Number of kernel(card) used for cover entire graph
     // The ID of partition kernel begins with 0, as 0, 1, 2, 3, .....num_knl_par - 1
@@ -309,6 +310,7 @@ class PartitionHop { // the class for partition graph, generate all pointer of c
     int CreatePartitionForKernel(int num_knl_in, int num_chnl_knl_in, T limit_nv_byte, T limit_ne_byte);
     int LoadPair2Buffs(ap_uint<64>* pairs, int num_pair, T NV, T NE, int num_hop, 
     commendInfo commendInfo, timeInfo* p_timeInfo, IndexStatistic* p_stt);
+    int MergeResult(commendInfo commendInfo);
     void PrintRpt(int numHop, int numPair, commendInfo commendInfo, timeInfo timeInfo, IndexStatistic stt);
 
     // ParID_ch to ParID_knl
