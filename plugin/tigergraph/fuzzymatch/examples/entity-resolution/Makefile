@@ -14,10 +14,10 @@
 # limitations under the License.
 
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3
-blacklist=$(CURDIR)/data/people1k.csv
-blacklistCSV=$(abspath $(blacklist))
-txdata=$(CURDIR)/data/txdata.csv
-txdataCSV=$(abspath $(txdata))
+refNames=$(CURDIR)/data/ref-names.csv
+refNamesCSV=$(abspath $(refNames))
+newNames=$(CURDIR)/data/new-names.csv
+newNamesCSV=$(abspath $(newNames))
 graphName=swift_$(USER)
 
 compileMode=1
@@ -29,7 +29,7 @@ ifdef sshKey
 endif	
 
 STANDALONE_NAME = fuzzymatch
-EXAMPLE=swiftaml
+EXAMPLE=entity-resolution
 PLUGIN_DEPS = ../../../../../$(STANDALONE_NAME)/src/fuzzymatch.cpp \
               ../../../../../$(STANDALONE_NAME)/include/fuzzymatch.hpp \
               ../../udf/xilinxFuzzyMatch.hpp \
@@ -74,7 +74,7 @@ run: $(EXAMPLE_UDF_TARGET)
 	@echo "-------------------------------------------------------"
 	cd ../../ && make DEBUG=$(DEBUG) stage && \
 	    ./staging/examples/$(EXAMPLE)/bin/run.sh -v \
-	    -g $(graphName) -b $(blacklistCSV) -t $(txdataCSV) \
+	    -g $(graphName) -s $(refNamesCSV) -t $(newNamesCSV) \
 		-c $(compileMode) -r $(runMode) 
 
 help:
@@ -90,8 +90,8 @@ help:
 	@echo "deviceNames : Target device name. Supported devices: "
 	@echo "              xilinx_u50_gen3x16_xdma_201920_3 (default)"
 	@echo "              xilinx_aws-vu9p-f1_shell-v04261818_201920_2"
-	@echo "blacklist   : A csv file with people on the blacklist. default=../data/people1k.csv"
-	@echo "txdata      : A csv file with transactions records. default=../data/txdata.csv"
+	@echo "refNames    : A csv file with reference names. default=../data/ref-names.csv"
+	@echo "newNames    : A csv file with new names. default=../data/new-names.csv"
 	@echo "graphName   : graph name (default=swift_<username>"
 	@echo "compileMode : 0: skip database creation and gsql compilation"
 	@echo "              1: recreate database and compile all (default)"

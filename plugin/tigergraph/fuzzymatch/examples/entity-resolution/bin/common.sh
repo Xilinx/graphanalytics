@@ -30,13 +30,12 @@ function usage() {
 	echo "                         1: Run only on CPU"
 	echo "                         2: Run only on Alveo (default)"
 	echo "                         3: Run on both CPU and Alveo"    
-    echo "  -b blacklist         : A csv file with people on the blacklist. default=../data/people1k.csv"
     echo "  -d numDevices        : number of FPGAs needed (default=1)"
     echo "  -f                   : Force (re)install"
     echo "  -g graphName         : graph name (default=social_<username>"
     echo "  -i sshKey            : SSH key for user tigergraph"    
-    echo "  -n numPartitionsNode : Number of Alveo partitions "    
-    echo "  -t txdata            : A csv file with transactions records. default=../data/txdata.csv"
+    echo "  -s refNames          : A csv file with reference names. default=../data/ref-names.csv"    
+    echo "  -t newNames          : A csv file with new names. default=../data/new-names.csv"
     echo "  -v                   : Print verbose messages"
     echo "  -h                   : Print this help message"
 }
@@ -47,8 +46,8 @@ tg_data_root=$(cat $tg_home/.tg.cfg | jq .System.DataRoot | tr -d \")
 # default values for optional options
 username=$USER
 password=Xilinx123
-blacklist="$script_dir/../data/people1k.csv"
-txdata="$script_dir/../data/txdata.csv"
+ref_names="$script_dir/../data/ref-names.csv"
+new_names="$script_dir/../data/new-names.csv"
 num_nodes=$(cat $tg_data_root/gsql/udf/xilinx-plugin-config.json | jq .numNodes | tr -d \")
 verbose=0
 xgraph="swift_$username"
@@ -63,10 +62,9 @@ if [ -f ~/.ssh/tigergraph_rsa ]; then
     ssh_key_flag="-i ~/.ssh/tigergraph_rsa"
 fi
 
-while getopts "b:c:fg:i:lm:p:r:t:u:vh" opt
+while getopts "c:fg:i:lm:p:r:s:t:u:vh" opt
 do
 case $opt in
-    b) blacklist=$OPTARG;; 
     c) compile_mode=$OPTARG;;
     f) force_clean=1; force_clean_flag=-f;;
     g) xgraph=$OPTARG;;
@@ -74,7 +72,8 @@ case $opt in
     m) num_nodes=$OPTARG;;
     r) run_mode=$OPTARG;;
     p) password=$OPTARG;;
-    t) txdata=$OPTARG;;   
+    s) ref_names=$OPTARG;; 
+    t) new_names=$OPTARG;;
     u) username=$OPTARG;;
     v) verbose=1; verbose_flag=-v;;
     h) usage; exit 0;;
@@ -109,8 +108,8 @@ fi
 if [ $verbose -eq 1 ]; then
     echo "INFO: username=$username"
     echo "      password=$password"
-    echo "      blacklist=$blacklist"
-    echo "      txdata=$txdata"
+    echo "      refNames=$ref_names"
+    echo "      newNames=$new_names"
     echo "      xgraph=$xgraph"
     echo "      numNodes=$num_nodes"
     echo "      compileMode=$compile_mode"
