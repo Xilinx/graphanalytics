@@ -64,6 +64,32 @@ int CSRPartition_average( // return the real number of partition
 }
 
 template <class T>
+int CSRPartition_average_onOnekernel( // return the real number of partition
+    int num_chnl_par,
+    CSR<T>& src,
+    T limit_nv,
+    T limit_ne,
+    CSR<T>* des[]) {
+    if (num_chnl_par <= 0 || !src.isInit()) return -1;
+
+    T nv_ref = (src.NV + num_chnl_par - 1) / num_chnl_par;
+
+    T nv_start = 0;
+    T ne_start = 0;
+    int cnt_par = 0;
+    do {
+        T nv_end_start = nv_start + nv_ref;
+        if (nv_end_start > src.NV) nv_end_start = src.NV;
+        des[cnt_par] = new CSR<T>;
+        des[cnt_par]->Init(nv_start, nv_end_start, src);
+
+        nv_start = nv_end_start;
+        cnt_par++;
+    } while (nv_start != src.NV);
+    return cnt_par;
+}
+
+template <class T>
 int FindPar(T v, int num_par, T* tab_startV) {
     for (int i_par = 0; i_par < num_par; i_par++) {
         if (i_par == num_par - 1)
@@ -708,13 +734,13 @@ int PartitionHop<T>::CreatePartitionForKernel( // Created
             num_ch_cover++; // To find proper number of channel of divid factor of num_chnl_knl
         num_knl_par = (num_ch_cover + this->num_chnl_knl - 1) / this->num_chnl_knl;
         printf("Number of kernel to cover graph (Estimated) : %5d\n", num_knl_par);
-        assert(num_knl_par == 1);
-        this->num_chnl_par = CSRPartition_average(1 * num_ch_cover, *hop_src, limit_v_b, limit_e_b, par_chnl_csr);
+        assert(num_knl_par == 1);//const num_chnl_par=4 for kernel now
+        this->num_chnl_par = CSRPartition_average_onOnekernel(/*1 * num_ch_cover*/num_chnl_knl, *hop_src, limit_v_b, limit_e_b, par_chnl_csr);/*1 * num_ch_cover*/ //todo
         while (num_chnl_par > num_knl_par * num_chnl_knl) {
             this->FreePar();
             while ((0 != this->num_chnl_knl % num_ch_cover))
                 num_ch_cover++; // To find proper number of channel of divid factor of num_chnl_knl
-            this->num_chnl_par = CSRPartition_average(1 * num_ch_cover, *hop_src, limit_v_b, limit_e_b, par_chnl_csr);
+            this->num_chnl_par = CSRPartition_average_onOnekernel(1 * num_ch_cover, *hop_src, limit_v_b, limit_e_b, par_chnl_csr);
         }
         printf("Number of channel to cover graph (Final)    : %5d\n", num_chnl_par);
         printf("Number of kernel to cover graph (Final)     : %5d\n", num_knl_par);
@@ -1005,17 +1031,17 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
             HopChnl<T>* pch = &(channels[i]);
             if(i == 0){
                 offsetTable[0] = pch->pCSR->V_start;//offsetShift
-                //indexTable[0] = pch->pCSR->offset[offsetTable[0]];//indexShift
+                indexTable[0] = pch->pCSR->offset[offsetTable[0]];//indexShift
             }
             offsetTable[i+1] = pch->pCSR->V_end_1;
-            indexTable[i] = pch->indexShift;//pCSR->E_end;
+            indexTable[i+1] = pch->pCSR->E_end;//indexShift;//
             offsetBuffer[i] = aligned_alloc<unsigned>(pch->pCSR->NV + 1 + 4096);
             indexBuffer[i] = aligned_alloc<unsigned>(pch->pCSR->NE + 4096);
             memcpy((void*)(offsetBuffer[i]), (void*)pch->pCSR->offset,  (pch->pCSR->NV+1)*sizeof(T));
             memcpy((void*)(indexBuffer[i]), (void*)pch->pCSR->index,  (pch->pCSR->NE)*sizeof(T));
         }
         for (int i = 0; i < pu+1; i++) {
-            std::cout << "id=" << i << " offsetTable=" << offsetTable[i] << " indexTable=" << indexTable[i]
+            std::cout << "INFO: id=" << i << " offsetTable=" << offsetTable[i] << " indexTable=" << indexTable[i]
                       << std::endl;
         }
     } else { // duplicate the subgraph to n channels, because the graph is small < 1 channel capability
