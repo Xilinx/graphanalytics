@@ -609,8 +609,8 @@ void PartitionHop<T>::PrintRpt(
     printf("INFO : disturbute nHop compute time all   : %lf\n", timeInfo.timeWrkCompute);
     printf("INFO : disturbute nHop compute kernel time: %lf\n", timeInfo.timeKernel);
     printf("INFO : disturbute nHop compute memcy time : %lf\n", timeInfo.timeWrkCompute - timeInfo.timeKernel);
-    printf("INFO : number Pair per second             : %lf\n", numPair/timeInfo.timeKernel/1000000);//numPair/1000000/timeInfo.timeKernel*ne/nv
-    printf("INFO : Estimated MTEPS for nhop           : %lf\n", allAccsEdge/timeInfo.timeKernel/1000000);//allPair/1000000/timeInfo.timeKernel*ne/nv
+    printf("INFO : number Pair per second             : %lf\n", (double)numPair/timeInfo.timeKernel/1000000);//numPair/1000000/timeInfo.timeKernel*ne/nv
+    printf("INFO : Estimated MTEPS for nhop           : %lf\n", (double)allAccsEdge/timeInfo.timeKernel/1000000);//allPair/1000000/timeInfo.timeKernel*ne/nv
     printf("************************************************************************************************\n");
     printf("*********************************************************\n");
     printf("************* Hardware resources for hopping ************\n");
@@ -642,13 +642,13 @@ void PartitionHop<T>::PrintRpt(
     printf("***************************** Hopping aggregation result per kernel ****************************\n");
     printf("************************************************************************************************\n");
     for(int i = 0; i < commendInfo.numKernel; i++){
-    printf("hop result file pf each kernel had saved  :  %s\n", this->hopKnl[i]->filename.c_str());
     if(commendInfo.byPass)
     printf("kernel[%d] not aggregation result          : %9d\n", i, this->hopKnl[i]->p_buff_agg->GetNum());
     else
     printf("kernel[%d] aggregation result              : %9d\n", i, this->hopKnl[i]->p_buff_agg->GetNum());
+    printf("hop result for each kernel had saved      :  %s\n", this->hopKnl[i]->filename.c_str());
     }
-    printf("hop result file had saved                 :  %s\n", commendInfo.filename.c_str());
+    //printf("hop result file had saved                 :  %s\n", commendInfo.filename.c_str());
     printf("****************************************************************************************************\n");
     // printf("******* To find proper number of channel covering the entire graph and supporting intra-copy********\n");
     // printf("****************************************************************************************************\n");
@@ -870,7 +870,7 @@ int HopKernel<T>::ConsumeTask(T NV, T NE, int rnd, T numSubpair, long sz_bat, in
     long num_idxs = 0;
     // IndexStatistic* p_stts[MAX_NUM_HOP];
     printf("INFO: ID_KERNEL_USED=%d, in batch-round %d to consume up to %d packages with %d hop(s)\n", this->id_knl_used, rnd,
-           sz_bat, numHop);
+           commendInfo.sz_bat, numHop);
     do {
         // p_stts[cnt_hop] = new(IndexStatistic);
         // IndexStatistic stt;
@@ -979,7 +979,7 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
     int byPass = commendInfo.byPass;
     int duplicate = commendInfo.duplicate;
     std::string xclbin_path = commendInfo.xclbin_path;
-    printf("INFO: final batch size : %d\n", batchSize);
+    printf("INFO: final batch size : %d, numPairs=%ld, numSubPairs=%ld\n", batchSize, numPairs, numSubPairs);
 
     // dispatch offset and index
     unsigned* offsetTable;
@@ -1065,8 +1065,8 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
         tmp128.range(95, 64) = in.idx;
         tmp128.range(127, 96) = in.hop; // hop_cnt
         pair[i] = tmp128;
-        if(in.src == in.des)
-        printf("selfloop## src: %d, dst: %d\n", in.src, in.des);
+        //if(in.src == in.des)
+        //printf("selfloop## src: %d, dst: %d\n", in.src, in.des);
     }
 
     // initilaize buffer and config
@@ -1083,6 +1083,8 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
         zeroBuffer0[i] = 0;
         zeroBuffer1[i] = 0;
     }
+    numOut[0] = 0;
+    numOut[1] = 0;
 
     // do pre-process on CPU
     //struct timeval start_time, end_time;

@@ -136,13 +136,13 @@ int Demo_1(ArgParser& parser){
     }
     
     if (!parser.getCmdOption("--bypass", args)) {
-        std::cout << "Using default bypass the aggration module? 0 means not bypass : "<<commendInfo.byPass<<std::endl;
+        std::cout << "Using default bypass the aggregation module? "<<commendInfo.byPass<<" means bypass the aggregation"<<std::endl;
     }else{
         commendInfo.byPass = stoi(args);
     }
 
     if (!parser.getCmdOption("--duplicate", args)) {
-        std::cout << "Using default not duplicate for all channel? 0 means split the pair package to each channel "<<commendInfo.duplicate<<std::endl;
+        std::cout << "Using default not duplicate for all channel? "<<commendInfo.duplicate<<" means split the pair package to each channel"<<std::endl;
     }else{
         commendInfo.duplicate = stoi(args);
     }
@@ -150,10 +150,10 @@ int Demo_1(ArgParser& parser){
     //for debug
     double tmp = 64.0;//  64 M vertex or edge
     if (!parser.getCmdOption("--limit", args)) {
-        std::cout << "Using default limit(MB) for all channel "<<tmp<<std::endl;
+        std::cout << "Using default limit "<<tmp<<" (M edge) for all channel"<<std::endl;
     }else{
         tmp = stod(args);
-        std::cout << "Using input limit(MB) for all channel "<<tmp<<std::endl;
+        std::cout << "Using input limit "<<tmp<<"(M edge) for all channel "<<std::endl;
     }
 
     std::string fn = pairfile.substr(pairfile.find_last_of('/') + 1);

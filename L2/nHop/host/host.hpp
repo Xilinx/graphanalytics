@@ -240,8 +240,9 @@ void nHop_L2_host(
     q.finish();
 
     //gettimeofday(&end_time, 0);
-    //double timeWrkCompute;
-    getDiffTime(h_compute_start, h_compute_end, p_timeInfo->timeWrkCompute);
+    double timeWrkCompute;
+    getDiffTime(h_compute_start, h_compute_end, timeWrkCompute);
+    p_timeInfo->timeWrkCompute += timeWrkCompute;
     std::cout << "kernel end------" << std::endl;
     // get related times
     unsigned long timeStart, timeEnd, exec_time, write_time, read_time;
@@ -260,7 +261,7 @@ void nHop_L2_host(
     events_kernel[0].getProfilingInfo(CL_PROFILING_COMMAND_END, &timeEnd);
     exec_time = (timeEnd - timeStart) / 1000.0;
     std::cout << "INFO: Average kernel execution per run: " << exec_time << " us\n";
-    p_timeInfo->timeKernel = exec_time / 1000000.0;
+    p_timeInfo->timeKernel += exec_time / 1000000.0;
     std::cout << "-------------------------------------------------------" << std::endl;
 
 }
