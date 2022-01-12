@@ -60,7 +60,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Xilinx Fuzzy Match Alveo Product" href="../fuzzymatch/index.html" />
-    <link rel="prev" title="Xilinx Cosine Similarity API Reference" href="api.html" /> 
+    <link rel="prev" title="Xilinx Maximal Independent Set API Reference" href="api.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -334,10 +334,28 @@
             
             
               <p class="caption"><span class="caption-text">Stand-Alone Alveo Products</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../cosinesim/index.html">Cosine Similarity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/index.html">Louvain Modularity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="index.html">Maximal Independent Set</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Maximal Independent Set</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="demos.html">Demos</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="api.html">API Reference</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">C++</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#overview"><strong>Overview</strong></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#graphcsr-class"><strong>GraphCSR class</strong></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#options"><strong>Options</strong></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#startmis-interface"><strong>startMis Interface</strong></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#setgraph-interface"><strong>setGraph Interface</strong></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#executemis-interface"><strong>executeMIS Interface</strong></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#count-interface"><strong>count Interface</strong></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../fuzzymatch/index.html">Fuzzy Match</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Software Stack Integration Products</span></p>
@@ -415,9 +433,9 @@
         
           <li><a href="index.html">Xilinx Maximal Independent Set Alveo Product</a> &raquo;</li>
         
-          <li><a href="api.html">Xilinx Cosine Similarity API Reference</a> &raquo;</li>
+          <li><a href="api.html">Xilinx Maximal Independent Set API Reference</a> &raquo;</li>
         
-      <li>&lt;no title&gt;</li>
+      <li>Maximal Independent Set C++ API Reference</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -434,7 +452,115 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  
+  <div class="section" id="maximal-independent-set-c-api-reference">
+<h1>Maximal Independent Set C++ API Reference<a class="headerlink" href="#maximal-independent-set-c-api-reference" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2><strong>Overview</strong><a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="line-block">
+<div class="line">Maximal Independent Set provides MIS class which has interfaces to find MIS.</div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="graphcsr-class">
+<h2><strong>GraphCSR class</strong><a class="headerlink" href="#graphcsr-class" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="line-block">
+<div class="line">GraphCSR class constructor takes rowPtr vector and colIdx vector in CSR format.
+User need to create GraphCSR graph and call  setGraph() before execution step.</div>
+</div>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>// GraphCSR class constructor
+template &lt;typename G&gt;
+GraphCSR<span class="o">(</span>G<span class="p">&amp;</span> rowPtr, G<span class="p">&amp;</span> colIdx<span class="o">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div></blockquote>
+</div>
+<div class="section" id="options">
+<h2><strong>Options</strong><a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="line-block">
+<div class="line">MIS constructor takes Options which configure the xclbin and device.</div>
+</div>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>struct Options <span class="o">{</span>
+   XString xclbinPath<span class="p">;</span>
+   XString deviceNames<span class="p">;</span>
+<span class="o">}</span><span class="p">;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div></blockquote>
+</div>
+<div class="section" id="startmis-interface">
+<h2><strong>startMis Interface</strong><a class="headerlink" href="#startmis-interface" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="line-block">
+<div class="line">Initialize and set up MIS software and Alveo cards.</div>
+</div>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>void startMis<span class="o">()</span><span class="p">;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div></blockquote>
+</div>
+<div class="section" id="setgraph-interface">
+<h2><strong>setGraph Interface</strong><a class="headerlink" href="#setgraph-interface" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="line-block">
+<div class="line">Set the graph and internal pre-process the graph</div>
+</div>
+<div class="line-block">
+<div class="line">Parameters:</div>
+</div>
+<blockquote>
+<div><div class="line-block">
+<div class="line">graph : GraphCSR graph.</div>
+</div>
+</div></blockquote>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>void setGraph<span class="o">(</span>GraphCSR&lt;int&gt;* graph<span class="o">)</span><span class="p">;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="executemis-interface">
+<h2><strong>executeMIS Interface</strong><a class="headerlink" href="#executemis-interface" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="line-block">
+<div class="line">Run Maximal Independent Set</div>
+<div class="line">Return:</div>
+</div>
+<blockquote>
+<div><div class="line-block">
+<div class="line">vector of int :  the list of vertex IDs that are part of the MIS set</div>
+</div>
+</div></blockquote>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>std::vector&lt;int&gt; executeMIS<span class="o">()</span><span class="p">;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="count-interface">
+<h2><strong>count Interface</strong><a class="headerlink" href="#count-interface" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="line-block">
+<div class="line">Return:</div>
+</div>
+<blockquote>
+<div><div class="line-block">
+<div class="line">size_t : the number of vertices that are part of the MIS set</div>
+</div>
+</div></blockquote>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>size_t count<span class="o">()</span> const<span class="p">;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+</div>
+
 
            </div>
            
@@ -454,7 +580,7 @@
         <a href="../fuzzymatch/index.html" class="btn btn-neutral float-right" title="Xilinx Fuzzy Match Alveo Product" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="api.html" class="btn btn-neutral float-left" title="Xilinx Cosine Similarity API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="api.html" class="btn btn-neutral float-left" title="Xilinx Maximal Independent Set API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
