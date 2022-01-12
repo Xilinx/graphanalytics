@@ -19,14 +19,7 @@
 
 #include <ap_int.h>
 
-extern "C" void nHop_kernel(unsigned numHop,
-                            unsigned intermediate,
-                            unsigned numPairs,
-                            unsigned batchSize,
-                            unsigned hashSize,
-                            unsigned aggrThreshold,
-                            unsigned byPass,
-                            unsigned duplicate,
+extern "C" void nHop_kernel(unsigned* config,
                             ap_uint<512>* pair,
 
                             unsigned* offsetTable,
@@ -43,6 +36,9 @@ extern "C" void nHop_kernel(unsigned numHop,
                             
                             ap_uint<512>* bufferPing,
                             ap_uint<512>* bufferPong,
+
+                            ap_uint<512>* bufferFIFO0,
+                            ap_uint<512>* bufferFIFO1,
 
                             unsigned* numOut,
                             ap_uint<512>* bufferLocal,

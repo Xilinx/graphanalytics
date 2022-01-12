@@ -131,6 +131,9 @@ VPP_FLAGS +=  -I $(XFLIB_DIR)/L2/nHop_2cu -I $(XFLIB_DIR)/L2/nHop_2cu/kernel -I 
 
 endif
 
+# Kernel args
+#nHop_kernel_ARGS += $(XFLIB_DIR)/L2/nHop_2cu/kernel/hls_memfifo.cpp
+
 ######################### binary container global settings ##########################
 VPP_FLAGS_nHop_kernel +=  -D KERNEL_NAME=nHop_kernel
 VPP_FLAGS_nHop_kernel += --hls.clock 300000000:nHop_kernel
@@ -148,7 +151,7 @@ BINARY_CONTAINERS_PKG += $(BUILD_DIR)/nHop_kernel.xclbin
 endif
 
 # ################ Setting Rules for Binary Containers (Building Kernels) ################
-$(TEMP_DIR)/nHop_kernel.xo: $(XFLIB_DIR)/L2/nHop_2cu/kernel/nHop_kernel.cpp 
+$(TEMP_DIR)/nHop_kernel.xo: $(XFLIB_DIR)/L2/nHop_2cu/kernel/nHop_kernel.cpp $(XFLIB_DIR)/L2/nHop_2cu/kernel/hls_memfifo.cpp
 	$(ECHO) "Compiling Kernel: nHop_kernel"
 	mkdir -p $(TEMP_DIR)
 	$(VPP) -c $(VPP_FLAGS_nHop_kernel) $(VPP_FLAGS) -k nHop_kernel -I'$(<D)' --temp_dir $(TEMP_DIR) --report_dir $(TEMP_REPORT_DIR) -o'$@' '$<'

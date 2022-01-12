@@ -171,6 +171,27 @@ int main(int argc, const char* argv[]) {
     }
     ap_uint<32> duplicate = stoi(args);
 
+    // -------------setup FIFO params-------------
+    long size_golden = 100;
+    long freqMHz = 200;
+    long us_sleep = 100;
+    long us_over = us_sleep;
+
+    long pop_blen_read = 128; // suggested burst reading lenght, it not met, then waiting pop_ii_check cycles and check
+                              // again, it check times met pop_max_check then read anyway
+    long pop_ii_check = 128;  // watint cycles for next checking
+    long pop_max_check = 8;
+
+    long cycle2sleep = us_sleep * freqMHz;
+    long times_over_sleep = ((us_over + us_sleep - 1) / us_sleep);
+    long cycle_over = cycle2sleep * times_over_sleep;
+
+    std::cout << "us_sleep           = " << us_sleep << "us\n";
+    std::cout << "us_over            = " << us_over << "us\n";
+    std::cout << "uscycle2sleep_over = " << cycle2sleep << "\n";
+    std::cout << "times_over_sleep   = " << times_over_sleep << "\n";
+    std::cout << "cycle_over         = " << cycle_over << "\n\n";
+
     // -------------setup k0 params---------------
     int err = 0;
 
@@ -260,8 +281,8 @@ int main(int argc, const char* argv[]) {
     unsigned* indexBuffer[PU];
 
     if (duplicate == 0) {
-        ap_uint<32> numVerticesPU = numVertices / PU;
         offsetTable[PU] = numVertices;
+        ap_uint<32> numVerticesPU = numVertices / PU;
         for (int i = 0; i < PU; i++) {
             offsetTable[i] = numVerticesPU * i;
         }
@@ -318,8 +339,8 @@ int main(int argc, const char* argv[]) {
             }
         }
     }
-    offsetTable[PU + 1] = 0;
-    offsetTable[PU + 2] = numVertices;
+    offsetTable[0] = 0;
+    offsetTable[PU] = numVertices;
 
     for (int i = 0; i < 32; i++) {
         ap_uint<32> id = i;
@@ -328,6 +349,7 @@ int main(int argc, const char* argv[]) {
     }
 
     // initilaize buffer and config
+    unsigned* config = aligned_alloc<unsigned>(1024);
     unsigned* numOut = aligned_alloc<unsigned>(1024);
     ap_uint<512>* local = aligned_alloc<ap_uint<512> >(3 << 20);
     memset(local, 0, sizeof(ap_uint<512>) * (3 << 20));
@@ -337,6 +359,30 @@ int main(int argc, const char* argv[]) {
     memset(zeroBuffer0, 0, sizeof(ap_uint<512>) * (4 << 20));
     ap_uint<512>* zeroBuffer1 = aligned_alloc<ap_uint<512> >(4 << 20);
     memset(zeroBuffer1, 0, sizeof(ap_uint<512>) * (4 << 20));
+    ap_uint<512>* zeroBuffer2 = aligned_alloc<ap_uint<512> >(4 << 20);
+    memset(zeroBuffer2, 0, sizeof(ap_uint<512>) * (4 << 20));
+
+    int j = 0;
+    // hop kernel config
+    config[j++] = numHop;
+    config[j++] = 0;
+    config[j++] = numPairs;
+    config[j++] = batchSize;
+    config[j++] = 4096;
+    config[j++] = 4096;
+    config[j++] = byPass;
+    config[j++] = duplicate;
+
+    // mem fifo config
+    config[j++] = 1 << 20;
+    config[j++] = us_sleep;
+    config[j++] = us_over;
+    config[j++] = pop_blen_read;
+    config[j++] = pop_ii_check;
+    config[j++] = pop_max_check;
+    config[j++] = 1;
+    config[j++] = 0;
+    config[j++] = 64;
 
     // do pre-process on CPU
     struct timeval start_time, end_time;
@@ -344,7 +390,7 @@ int main(int argc, const char* argv[]) {
 #ifndef HLS_TEST
     // platform related operations
     std::vector<cl::Device> devices = xcl::get_xil_devices();
-    cl::Device device = devices[1];
+    cl::Device device = devices[0];
 
     // Creating Context and Command Queue for selected Device
     cl::Context context(device, NULL, NULL, NULL, &fail);
@@ -364,7 +410,7 @@ int main(int argc, const char* argv[]) {
     //logger.logCreateKernel(fail);
     std::cout << "kernel has been created" << std::endl;
 
-    std::vector<cl_mem_ext_ptr_t> mext_o(17);
+    std::vector<cl_mem_ext_ptr_t> mext_o(19);
 
     mext_o[0] = {(unsigned int)(0) | XCL_MEM_TOPOLOGY, pair, 0};
 
@@ -379,37 +425,48 @@ int main(int argc, const char* argv[]) {
 
     mext_o[9] = {(unsigned int)(10) | XCL_MEM_TOPOLOGY, zeroBuffer0, 0};
     mext_o[10] = {(unsigned int)(11) | XCL_MEM_TOPOLOGY, zeroBuffer1, 0};
+    mext_o[11] = {(unsigned int)(12) | XCL_MEM_TOPOLOGY, zeroBuffer2, 0};
 
-    mext_o[11] = {(unsigned int)(12) | XCL_MEM_TOPOLOGY, offsetTable, 0};
-    mext_o[12] = {(unsigned int)(12) | XCL_MEM_TOPOLOGY, indexTable, 0};
-    mext_o[13] = {(unsigned int)(12) | XCL_MEM_TOPOLOGY, cardTable, 0};
-    mext_o[14] = {(unsigned int)(12) | XCL_MEM_TOPOLOGY, local, 0};
-    mext_o[15] = {(unsigned int)(14) | XCL_MEM_TOPOLOGY, netSwitch, 0};
-    mext_o[16] = {(unsigned int)(12) | XCL_MEM_TOPOLOGY, numOut, 0};
+    mext_o[12] = {(unsigned int)(0) | XCL_MEM_TOPOLOGY, config, 0};
+    mext_o[13] = {(unsigned int)(0) | XCL_MEM_TOPOLOGY, offsetTable, 0};
+    mext_o[14] = {(unsigned int)(0) | XCL_MEM_TOPOLOGY, indexTable, 0};
+    mext_o[15] = {(unsigned int)(0) | XCL_MEM_TOPOLOGY, cardTable, 0};
+    mext_o[16] = {(unsigned int)(1) | XCL_MEM_TOPOLOGY, numOut, 0};
+    mext_o[17] = {(unsigned int)(1) | XCL_MEM_TOPOLOGY, local, 0};
+    mext_o[18] = {(unsigned int)(14) | XCL_MEM_TOPOLOGY, netSwitch, 0};
 
     // create device buffer and map dev buf to host buf
-    cl::Buffer pair_buf, local_buf, switch_buf, ping_buf, pong_buf, offset_table, index_table, card_table, num_out;
+    cl::Buffer config_buf, pair_buf, local_buf, switch_buf, ping_buf, pong_buf, fifo_buf, offset_table, index_table,
+        card_table, num_out;
     cl::Buffer offset_buf[PU];
     cl::Buffer index_buf[PU];
 
     pair_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
                           sizeof(ap_uint<128>) * (numPairs + 4096), &mext_o[0]);
+
     ping_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
                           sizeof(ap_uint<512>) * (4 << 20), &mext_o[9]);
     pong_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
                           sizeof(ap_uint<512>) * (4 << 20), &mext_o[10]);
+
+    fifo_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
+                          sizeof(ap_uint<512>) * (4 << 20), &mext_o[11]);
+
+    config_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
+                            sizeof(unsigned) * (1024), &mext_o[12]);
     offset_table = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                              sizeof(unsigned) * (1024), &mext_o[11]);
+                              sizeof(unsigned) * (1024), &mext_o[13]);
     index_table = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                             sizeof(unsigned) * (1024), &mext_o[12]);
+                             sizeof(unsigned) * (1024), &mext_o[14]);
     card_table = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                            sizeof(ap_uint<64>) * (1024), &mext_o[13]);
-    local_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                           sizeof(ap_uint<512>) * (3 << 20), &mext_o[14]);
-    switch_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                            sizeof(ap_uint<512>) * (3 << 20), &mext_o[15]);
+                            sizeof(ap_uint<64>) * (1024), &mext_o[15]);
+
     num_out = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
                          sizeof(unsigned) * (1024), &mext_o[16]);
+    local_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
+                           sizeof(ap_uint<512>) * (3 << 20), &mext_o[17]);
+    switch_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
+                            sizeof(ap_uint<512>) * (3 << 20), &mext_o[18]);
 
     if (duplicate == 0) {
         for (int i = 0; i < PU; i++) {
@@ -430,6 +487,7 @@ int main(int argc, const char* argv[]) {
     }
 
     std::vector<cl::Memory> init;
+    init.push_back(config_buf);
     init.push_back(pair_buf);
     init.push_back(local_buf);
     init.push_back(switch_buf);
@@ -437,6 +495,7 @@ int main(int argc, const char* argv[]) {
     init.push_back(offset_table);
     init.push_back(index_table);
     init.push_back(card_table);
+    init.push_back(fifo_buf);
     init.push_back(ping_buf);
     init.push_back(pong_buf);
     for (int i = 0; i < PU; i++) {
@@ -453,6 +512,7 @@ int main(int argc, const char* argv[]) {
     std::vector<cl::Event> events_read(1);
 
     ob_in.push_back(pair_buf);
+    ob_in.push_back(config_buf);
     ob_in.push_back(offset_table);
     ob_in.push_back(index_table);
     ob_in.push_back(card_table);
@@ -469,18 +529,9 @@ int main(int argc, const char* argv[]) {
     std::cout << "kernel start------" << std::endl;
     gettimeofday(&start_time, 0);
 
-    int j = 0;
-
-    nHop.setArg(j++, numHop);
-    nHop.setArg(j++, 0);
-    nHop.setArg(j++, numPairs);
-    nHop.setArg(j++, batchSize);
-    nHop.setArg(j++, 65536);
-    nHop.setArg(j++, 16384);
-    nHop.setArg(j++, byPass);
-    nHop.setArg(j++, duplicate);
+    j = 0;
+    nHop.setArg(j++, config_buf);
     nHop.setArg(j++, pair_buf);
-
     nHop.setArg(j++, offset_table);
     nHop.setArg(j++, index_table);
     nHop.setArg(j++, card_table);
@@ -488,16 +539,15 @@ int main(int argc, const char* argv[]) {
         nHop.setArg(j++, offset_buf[i]);
         nHop.setArg(j++, index_buf[i]);
     }
-
     nHop.setArg(j++, ping_buf);
     nHop.setArg(j++, pong_buf);
-
+    nHop.setArg(j++, fifo_buf);
+    nHop.setArg(j++, fifo_buf);
     nHop.setArg(j++, num_out);
     nHop.setArg(j++, local_buf);
     nHop.setArg(j++, switch_buf);
 
     q.enqueueTask(nHop, &events_write, &events_kernel[0]);
-
     q.enqueueMigrateMemObjects(ob_out, 1, &events_kernel, &events_read[0]);
     q.finish();
 
@@ -506,13 +556,12 @@ int main(int argc, const char* argv[]) {
 
 #else
 
-    nHop_kernel(numHop, 0, numPairs, batchSize, 65536, 32768, byPass, duplicate, (ap_uint<512>*)pair, offsetTable,
-                indexTable, cardTable,
+    nHop_kernel(config, (ap_uint<512>*)pair, offsetTable, indexTable, cardTable,
 
                 offsetBuffer[0], (ap_uint<128>*)indexBuffer[0], offsetBuffer[1], (ap_uint<128>*)indexBuffer[1],
                 offsetBuffer[2], (ap_uint<128>*)indexBuffer[2], offsetBuffer[3], (ap_uint<128>*)indexBuffer[3],
 
-                zeroBuffer0, zeroBuffer1,
+                zeroBuffer0, zeroBuffer1, zeroBuffer2, zeroBuffer2,
 
                 numOut, local, netSwitch);
 
@@ -538,7 +587,7 @@ int main(int argc, const char* argv[]) {
         }
     */
 
-    if(check != 0) {
+    if (check != 0) {
         std::unordered_map<unsigned long, float> goldenHashMap;
         std::fstream goldenfstream(goldenfile.c_str(), std::ios::in);
         if (!goldenfstream) {
