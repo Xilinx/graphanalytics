@@ -23,9 +23,11 @@ Installing Fuzzy Match Alveo from a Pre-built Package
 Setting up the Alveo Accelerator Card
 -------------------------------------
 
-The Fuzzy Match Alveo Alveo Product requires the following Alveo cards and their 
-correponding firmware versions to be installed on each Alveo card to use.  
+The Fuzzy Match Alveo Alveo Product requires the following Xilix FPGA cards and 
+their correponding firmware versions:  
+
 * U50: xilinx_u50_gen3x16_xdma_201920_3 
+* AWS F1: xilinx_aws-vu9p-f1_shell-v04261818_201920_2
  
 Check and install the firmware by following the steps below:
 

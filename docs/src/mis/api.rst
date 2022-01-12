@@ -1,7 +1,7 @@
-Xilinx Cosine Similarity API Reference
+Xilinx Maximal Independent Set API Reference
 ======================================
 
-The Xilinx Cosine Similarity Alveo Product has APIs for the following languages:
+The Xilinx Maximal Independent Set Alveo Product has APIs for the following languages:
 
 .. toctree::
     :maxdepth: 1

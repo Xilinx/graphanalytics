@@ -1,7 +1,8 @@
-Xilinx Cosine Similarity API Reference
-======================================
+================================
+Xilinx Fuzzy Match API Reference
+================================
 
-The Xilinx Cosine Similarity Alveo Product has APIs for the following languages:
+The Xilinx Fuzzy Match Alveo Product provides APIs for the following languages:
 
 .. toctree::
     :maxdepth: 1

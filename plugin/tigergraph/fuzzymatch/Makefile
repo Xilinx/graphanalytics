@@ -22,7 +22,7 @@ all: stage
 # Product version
 PRODUCT_VER=$(strip $(shell cat VERSION))
 
-EXAMPLE_DIR = examples/swiftaml
+EXAMPLE_DIR = examples
 
 # Files to be direct-copied from plugin source tree to staging area
 
@@ -34,18 +34,18 @@ STAGE_COPY_FILES = \
     udf/xilinxFuzzyMatch.hpp \
     udf/xilinxFuzzyMatchImpl.hpp \
     \
-    $(wildcard $(EXAMPLE_DIR)/data/*) \
-	$(EXAMPLE_DIR)/README.md \
-    $(EXAMPLE_DIR)/bin/common.sh \
-    $(EXAMPLE_DIR)/bin/set-plugin-vars.sh \
-    $(EXAMPLE_DIR)/udf/swiftAmlDemo.hpp \
-    $(EXAMPLE_DIR)/udf/swiftAmlDemoImpl.hpp \
-	$(EXAMPLE_DIR)/query/base.gsql \
-    $(EXAMPLE_DIR)/query/load.gsql \
-    $(EXAMPLE_DIR)/query/fuzzymatch.gsql \
-    $(EXAMPLE_DIR)/query/schema.gsql \
+    $(wildcard $(EXAMPLE_DIR)/swiftaml/data/*) \
+	$(EXAMPLE_DIR)/swiftaml/README.md \
+    $(EXAMPLE_DIR)/swiftaml/bin/common.sh \
+    $(EXAMPLE_DIR)/swiftaml/bin/set-plugin-vars.sh \
+    $(EXAMPLE_DIR)/swiftaml/udf/swiftAmlDemo.hpp \
+    $(EXAMPLE_DIR)/swiftaml/udf/swiftAmlDemoImpl.hpp \
+	$(EXAMPLE_DIR)/swiftaml/query/base.gsql \
+    $(EXAMPLE_DIR)/swiftaml/query/load.gsql \
+    $(EXAMPLE_DIR)/swiftaml/query/fuzzymatch.gsql \
+    $(EXAMPLE_DIR)/swiftaml/query/schema.gsql \
     \
-    $(EXAMPLE_DIR)/bin/run.sh \
+    $(EXAMPLE_DIR)/swiftaml/bin/run.sh \
 
 # Example directories into which to copy example common files
 STAGE_EXAMPLES_DIRS = $(EXAMPLE_DIR)
