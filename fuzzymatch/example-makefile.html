@@ -337,12 +337,11 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../cosinesim/index.html">Cosine Similarity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/index.html">Louvain Modularity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../mis/index.html">Maximum Independent Set</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mis/index.html">Maximal Independent Set</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Fuzzy Match</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="overview.html">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="demos.html">Demos</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="example-jupyter.html">Jupyter Notebook with Fuzzy Match Python API</a></li>
 <li class="toctree-l3"><a class="reference internal" href="example-python.html">Python Example with Fuzzy Match</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">C++ Example of Fuzzy Match using Makefile</a></li>
 </ul>
@@ -453,8 +452,15 @@
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp -r /opt/xilinx/apps/graphanalytics/fuzzymatch/0.1/examples fuzzymatch-examples
 <span class="nb">cd</span> fuzzymatch-examples/cpp
-make
+
+<span class="c1"># Print makefile usage and options</span>
+make <span class="nb">help</span>
+
+<span class="c1"># Run the demo on U50 card</span>
 make run
+
+<span class="c1"># Run the demo on AWS F1</span>
+make run <span class="nv">deviceNames</span><span class="o">=</span>xilinx_aws-vu9p-f1_shell-v04261818_201920_2
 </pre></div>
 </div>
 </div>
@@ -488,7 +494,7 @@ make run
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 10, 2022.
+        Last updated on January 11, 2022.
       </span>
 
     </p>

@@ -60,7 +60,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Xilinx Cosine Similarity API Reference" href="api.html" />
-    <link rel="prev" title="Python Example" href="example-python.html" /> 
+    <link rel="prev" title="Xilinx Maximal Independent Set Alveo Product Demos" href="demos.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -337,12 +337,10 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../cosinesim/index.html">Cosine Similarity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/index.html">Louvain Modularity</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">Maximum Independent Set</a><ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Maximal Independent Set</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="overview.html">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="demos.html">Demos</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="example-jupyter.html">Jupyter Notebook with Maximal Independent Set Python API</a></li>
-<li class="toctree-l3"><a class="reference internal" href="example-python.html">Python Example</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">C++ Example using Makefile</a></li>
 </ul>
 </li>
@@ -447,16 +445,26 @@
             
   <div class="section" id="c-example-using-makefile">
 <h1>C++ Example using Makefile<a class="headerlink" href="#c-example-using-makefile" title="Permalink to this headline">¶</a></h1>
-<ul class="simple">
+<ul>
 <li><p>Open a terminal using your Linux credentials</p></li>
-<li><p>Execute following commands to run the example</p></li>
-</ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp -r /opt/xilinx/apps/graphanalytics/mis/0.1/examples mis-examples
+<li><p>Execute following commands to run the example</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp -r /opt/xilinx/apps/graphanalytics/mis/0.1/examples mis-examples
 <span class="nb">cd</span> mis-examples/cpp
-make
+
+<span class="c1"># Print makefile usage and options</span>
+make <span class="nb">help</span>
+
+<span class="c1"># Run the demo on U50 Alveo card</span>
 make run
+
+<span class="c1"># Run the demo on U55C Alveo card</span>
+make run <span class="nv">deviceNames</span><span class="o">=</span>xilinx_u55c_gen3x16_xdma_base_2
 </pre></div>
 </div>
+</div></blockquote>
+</li>
+</ul>
 </div>
 
 
@@ -478,7 +486,7 @@ make run
         <a href="api.html" class="btn btn-neutral float-right" title="Xilinx Cosine Similarity API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="example-python.html" class="btn btn-neutral float-left" title="Python Example" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="demos.html" class="btn btn-neutral float-left" title="Xilinx Maximal Independent Set Alveo Product Demos" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -488,7 +496,7 @@ make run
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 10, 2022.
+        Last updated on January 11, 2022.
       </span>
 
     </p>

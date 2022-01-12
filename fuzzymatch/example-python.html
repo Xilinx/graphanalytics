@@ -60,7 +60,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="C++ Example of Fuzzy Match using Makefile" href="example-makefile.html" />
-    <link rel="prev" title="Jupyter Notebook with Fuzzy Match Python API" href="example-jupyter.html" /> 
+    <link rel="prev" title="Xilinx Fuzzy Match Set Alveo Product Demos" href="demos.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -337,12 +337,11 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../cosinesim/index.html">Cosine Similarity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/index.html">Louvain Modularity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../mis/index.html">Maximum Independent Set</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mis/index.html">Maximal Independent Set</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Fuzzy Match</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="overview.html">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="demos.html">Demos</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="example-jupyter.html">Jupyter Notebook with Fuzzy Match Python API</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Python Example with Fuzzy Match</a></li>
 <li class="toctree-l3"><a class="reference internal" href="example-makefile.html">C++ Example of Fuzzy Match using Makefile</a></li>
 </ul>
@@ -447,7 +446,23 @@
             
   <div class="section" id="python-example-with-fuzzy-match">
 <h1>Python Example with Fuzzy Match<a class="headerlink" href="#python-example-with-fuzzy-match" title="Permalink to this headline">¶</a></h1>
-<p>Coming soon</p>
+<ul class="simple">
+<li><p>Open a terminal using your Linux credentials</p></li>
+<li><p>Open python virtual environment and install pandas package.</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m venv venv
+. venv/bin/activate
+pip install pandas
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Execute following commands to run the example</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp -r /opt/xilinx/apps/graphanalytics/fuzzymatch/0.1/examples fuzzymatch-examples
+<span class="nb">cd</span> fuzzymatch-examples/python
+./run.sh
+</pre></div>
+</div>
 </div>
 
 
@@ -469,7 +484,7 @@
         <a href="example-makefile.html" class="btn btn-neutral float-right" title="C++ Example of Fuzzy Match using Makefile" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="example-jupyter.html" class="btn btn-neutral float-left" title="Jupyter Notebook with Fuzzy Match Python API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="demos.html" class="btn btn-neutral float-left" title="Xilinx Fuzzy Match Set Alveo Product Demos" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -479,7 +494,7 @@
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 10, 2022.
+        Last updated on January 11, 2022.
       </span>
 
     </p>

@@ -59,8 +59,8 @@
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Xilinx Fuzzy Match Alveo Product Installation" href="installation.html" />
-    <link rel="prev" title="Xilinx Fuzzy Match Alveo Product" href="index.html" /> 
+    <link rel="next" title="Xilinx Recommendation Engine for TigerGraph 3.x" href="../recom-tg3/index.html" />
+    <link rel="prev" title="Fuzzy Match C++ API Reference" href="cpp-api.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -339,14 +339,20 @@
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/index.html">Louvain Modularity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mis/index.html">Maximal Independent Set</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Fuzzy Match</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Overview</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#levenshtein-distances">Levenshtein Distances</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#similarity-of-two-strings">Similarity of Two Strings</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="demos.html">Demos</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api.html">API Reference</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="api.html">API Reference</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="cpp-api.html">C++</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Python 3</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#overview"><strong>Overview</strong></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#startfuzzymatch-interface"><strong>startFuzzyMatch Interface</strong></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#fuzzymatchloadvec-interface"><strong>fuzzyMatchLoadVec Interface</strong></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#executefuzzymatch-interface"><strong>executefuzzyMatch Interface</strong></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -425,7 +431,9 @@
         
           <li><a href="index.html">Xilinx Fuzzy Match Alveo Product</a> &raquo;</li>
         
-      <li>Xilinx Fuzzy Match Alveo Product Overview</li>
+          <li><a href="api.html">Xilinx Cosine Similarity API Reference</a> &raquo;</li>
+        
+      <li>Fuzzy Match Python API Reference</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -442,39 +450,76 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="xilinx-fuzzy-match-alveo-product-overview">
-<span id="fuzzymatch-overview-label"></span><h1>Xilinx Fuzzy Match Alveo Product Overview<a class="headerlink" href="#xilinx-fuzzy-match-alveo-product-overview" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="levenshtein-distances">
-<h2>Levenshtein Distances<a class="headerlink" href="#levenshtein-distances" title="Permalink to this headline">¶</a></h2>
-<p>Levenshtein edit distance between two strings is the minimum number of single-character
-edits (insertions, deletions or substitutions) required to change one word into the other.
-Below is the mathematically definition:</p>
-<img alt="Levenshtein Edit Distance Formula" src="../_images/fuzzymatch-levenshtein-formula.svg" /><div class="line-block">
-<div class="line">where</div>
+  <div class="section" id="fuzzy-match-python-api-reference">
+<h1>Fuzzy Match Python API Reference<a class="headerlink" href="#fuzzy-match-python-api-reference" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2><strong>Overview</strong><a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="line-block">
+<div class="line">FuzzyMatch provides FuzzyMatch class which has interfaces to enable fuzzy match in batch mode.</div>
+<div class="line">Maximum length of blacklist/query string: 64</div>
 </div>
-<ul class="simple">
-<li><p>tail(x) is a string of all but the first character of x, and x[n] is the nth
-character of the string x, starting with character 0.</p></li>
-<li><p>lev(tail(a), b) is deletion (from a to b).</p></li>
-<li><p>lev(a, tail(b) is insertion.</p></li>
-<li><p>lev(tail(a), tail(b)) replacement.</p></li>
-</ul>
-<p>For example, the Levenshtein distance between “kitten” and “sitting” is 3, since
-the following three edits change one into the other, and there is no way to do it
-with fewer than three edits:</p>
-<ol class="arabic simple">
-<li><p>kitten → sitten (substitution of “s” for “k”)</p></li>
-<li><p>sitten → sittin (substitution of “i” for “e”)</p></li>
-<li><p>sittin → sitting (insertion of “g” at the end).</p></li>
-</ol>
+</div></blockquote>
 </div>
-<div class="section" id="similarity-of-two-strings">
-<h2>Similarity of Two Strings<a class="headerlink" href="#similarity-of-two-strings" title="Permalink to this headline">¶</a></h2>
-<p>The similarity of two strings is defined as below, where lev() is the Levenshtein
-edit distance of the strings:</p>
-<a class="reference internal image-reference" href="../_images/fuzzymatch-similarity-formula.png"><img alt="Fuzzy Match Similarity Formula" src="../_images/fuzzymatch-similarity-formula.png" style="width: 400px;" /></a>
-<p>Two strings are considered as a match if the similarity score is graeter than a
-user programmable threshold.</p>
+<div class="section" id="startfuzzymatch-interface">
+<h2><strong>startFuzzyMatch Interface</strong><a class="headerlink" href="#startfuzzymatch-interface" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="line-block">
+<div class="line">Initialize and set up FuzzyMatch software and Alveo cards.</div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>startFuzzyMatch<span class="o">()</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="fuzzymatchloadvec-interface">
+<h2><strong>fuzzyMatchLoadVec Interface</strong><a class="headerlink" href="#fuzzymatchloadvec-interface" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="line-block">
+<div class="line">Load and preprocess the input table.</div>
+<div class="line">Parameters:</div>
+</div>
+<blockquote>
+<div><div class="line-block">
+<div class="line">patternList :  list of strings</div>
+<div class="line">patternId   : list of Int.  the Id for each string in patternList. if null, pass empty list. if pass empty list, internally will be assigned sequential id as default;</div>
+</div>
+</div></blockquote>
+<div class="line-block">
+<div class="line">Return: status: integer.  0: successful; 1: fail</div>
+</div>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>fuzzyMatchLoadVec<span class="o">(</span>patternList,patternId<span class="o">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div></blockquote>
+</div>
+<div class="section" id="executefuzzymatch-interface">
+<h2><strong>executefuzzyMatch Interface</strong><a class="headerlink" href="#executefuzzymatch-interface" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="line-block">
+<div class="line">Run fuzzymatch in batch mode. Check each input string in inputStr list has fuzzymatch against the pattern strings loaded using fuzzyMatchLoadVec interface.</div>
+</div>
+<div class="line-block">
+<div class="line">Parameters:</div>
+</div>
+<blockquote>
+<div><div class="line-block">
+<div class="line">inputStr        : list of input strings.</div>
+<div class="line">similarityLevel : similarity threshold.  value range (0-100). 100 means exact same.</div>
+</div>
+</div></blockquote>
+<div class="line-block">
+<div class="line">Return: 2D array of pairs. Each row represents array of matched result pairs {id,score}.
+Maximum top 100 of pairs for each input string result.</div>
+</div>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>executefuzzyMatch<span class="o">(</span>inputStr,similarityLevel<span class="o">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div></blockquote>
 </div>
 </div>
 
@@ -494,10 +539,10 @@ user programmable threshold.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="installation.html" class="btn btn-neutral float-right" title="Xilinx Fuzzy Match Alveo Product Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../recom-tg3/index.html" class="btn btn-neutral float-right" title="Xilinx Recommendation Engine for TigerGraph 3.x" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral float-left" title="Xilinx Fuzzy Match Alveo Product" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="cpp-api.html" class="btn btn-neutral float-left" title="Fuzzy Match C++ API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

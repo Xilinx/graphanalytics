@@ -59,8 +59,8 @@
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Xilinx Fuzzy Match Alveo Product Installation" href="installation.html" />
-    <link rel="prev" title="Xilinx Fuzzy Match Alveo Product" href="index.html" /> 
+    <link rel="next" title="Fuzzy Match Python API Reference" href="python-api.html" />
+    <link rel="prev" title="Xilinx Cosine Similarity API Reference" href="api.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -339,14 +339,21 @@
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/index.html">Louvain Modularity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mis/index.html">Maximal Independent Set</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Fuzzy Match</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Overview</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#levenshtein-distances">Levenshtein Distances</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#similarity-of-two-strings">Similarity of Two Strings</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="demos.html">Demos</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api.html">API Reference</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="api.html">API Reference</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">C++</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#overview"><strong>Overview</strong></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#options"><strong>Options</strong></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#startfuzzymatch-interface"><strong>startFuzzyMatch Interface</strong></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#fuzzymatchloadvec-interface"><strong>fuzzyMatchLoadVec Interface</strong></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#executefuzzymatch-interface"><strong>executefuzzyMatch Interface</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html">Python 3</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -425,7 +432,9 @@
         
           <li><a href="index.html">Xilinx Fuzzy Match Alveo Product</a> &raquo;</li>
         
-      <li>Xilinx Fuzzy Match Alveo Product Overview</li>
+          <li><a href="api.html">Xilinx Cosine Similarity API Reference</a> &raquo;</li>
+        
+      <li>Fuzzy Match C++ API Reference</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -442,39 +451,77 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="xilinx-fuzzy-match-alveo-product-overview">
-<span id="fuzzymatch-overview-label"></span><h1>Xilinx Fuzzy Match Alveo Product Overview<a class="headerlink" href="#xilinx-fuzzy-match-alveo-product-overview" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="levenshtein-distances">
-<h2>Levenshtein Distances<a class="headerlink" href="#levenshtein-distances" title="Permalink to this headline">¶</a></h2>
-<p>Levenshtein edit distance between two strings is the minimum number of single-character
-edits (insertions, deletions or substitutions) required to change one word into the other.
-Below is the mathematically definition:</p>
-<img alt="Levenshtein Edit Distance Formula" src="../_images/fuzzymatch-levenshtein-formula.svg" /><div class="line-block">
-<div class="line">where</div>
+  <div class="section" id="fuzzy-match-c-api-reference">
+<h1>Fuzzy Match C++ API Reference<a class="headerlink" href="#fuzzy-match-c-api-reference" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2><strong>Overview</strong><a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="line-block">
+<div class="line">FuzzyMatch provides FuzzyMatch class which has interfaces to enable fuzzy match in batch mode.</div>
+<div class="line">Maximum length of blacklist/query string: 64</div>
 </div>
-<ul class="simple">
-<li><p>tail(x) is a string of all but the first character of x, and x[n] is the nth
-character of the string x, starting with character 0.</p></li>
-<li><p>lev(tail(a), b) is deletion (from a to b).</p></li>
-<li><p>lev(a, tail(b) is insertion.</p></li>
-<li><p>lev(tail(a), tail(b)) replacement.</p></li>
-</ul>
-<p>For example, the Levenshtein distance between “kitten” and “sitting” is 3, since
-the following three edits change one into the other, and there is no way to do it
-with fewer than three edits:</p>
-<ol class="arabic simple">
-<li><p>kitten → sitten (substitution of “s” for “k”)</p></li>
-<li><p>sitten → sittin (substitution of “i” for “e”)</p></li>
-<li><p>sittin → sitting (insertion of “g” at the end).</p></li>
-</ol>
+</div></blockquote>
 </div>
-<div class="section" id="similarity-of-two-strings">
-<h2>Similarity of Two Strings<a class="headerlink" href="#similarity-of-two-strings" title="Permalink to this headline">¶</a></h2>
-<p>The similarity of two strings is defined as below, where lev() is the Levenshtein
-edit distance of the strings:</p>
-<a class="reference internal image-reference" href="../_images/fuzzymatch-similarity-formula.png"><img alt="Fuzzy Match Similarity Formula" src="../_images/fuzzymatch-similarity-formula.png" style="width: 400px;" /></a>
-<p>Two strings are considered as a match if the similarity score is graeter than a
-user programmable threshold.</p>
+<div class="section" id="options">
+<h2><strong>Options</strong><a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="line-block">
+<div class="line">FuzyMatch constructor takes Options which configure the xclbin and device.</div>
+</div>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>struct Options <span class="o">{</span>
+   XString xclbinPath<span class="p">;</span>
+   XString deviceNames<span class="p">;</span>
+<span class="o">}</span><span class="p">;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div></blockquote>
+</div>
+<div class="section" id="startfuzzymatch-interface">
+<h2><strong>startFuzzyMatch Interface</strong><a class="headerlink" href="#startfuzzymatch-interface" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="line-block">
+<div class="line">Initialize and set up FuzzyMatch software and Alveo cards.</div>
+<div class="line">Return status: 0: successful; 1: fail.</div>
+</div>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>int startFuzzyMatch<span class="o">()</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div></blockquote>
+</div>
+<div class="section" id="fuzzymatchloadvec-interface">
+<h2><strong>fuzzyMatchLoadVec Interface</strong><a class="headerlink" href="#fuzzymatchloadvec-interface" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="line-block">
+<div class="line">Load and preprocess the input table.</div>
+<div class="line">The argument is vector of  pattern strings (e.g. black list strings).</div>
+<div class="line">Return status; 0: successful; 1: fail.</div>
+</div>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>int fuzzyMatchLoadVec<span class="o">(</span>std::vector&lt;std::string&gt;<span class="p">&amp;</span> patternVec<span class="o">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div></blockquote>
+</div>
+<div class="section" id="executefuzzymatch-interface">
+<h2><strong>executefuzzyMatch Interface</strong><a class="headerlink" href="#executefuzzymatch-interface" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="line-block">
+<div class="line">Run fuzzymatch in batch mode.</div>
+<div class="line">The arguments take the vector of input strings. For each input string, run fuzzymatch against the pattern strings loaded using fuzzyMatchLoadVec interface.</div>
+<div class="line">Return vector of  matched patterns in pairs format {id,score} for each input string.
+For each input string , return maximum top 100 of matched patterns.</div>
+</div>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>std::vector&lt;std::vector&lt;std::pair&lt;int,int&gt;&gt;&gt; executefuzzyMatch<span class="o">(</span>std::vector&lt;std::string&gt; input_patterns, int similarity_level<span class="o">)</span><span class="p">;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div></blockquote>
 </div>
 </div>
 
@@ -494,10 +541,10 @@ user programmable threshold.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="installation.html" class="btn btn-neutral float-right" title="Xilinx Fuzzy Match Alveo Product Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="python-api.html" class="btn btn-neutral float-right" title="Fuzzy Match Python API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral float-left" title="Xilinx Fuzzy Match Alveo Product" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="api.html" class="btn btn-neutral float-left" title="Xilinx Cosine Similarity API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

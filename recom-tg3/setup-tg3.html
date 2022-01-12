@@ -59,7 +59,7 @@
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Installing and Uninstalling the Demo use cases" href="setup-demo-plugin-install.html" />
+    <link rel="next" title="Installing and Uninstalling the Demo use cases" href="../setup-demo-plugin.html" />
     <link rel="prev" title="Wikipedia Search Engine" href="../cosinesim/usecases-wiki-search.html" /> 
 	</head>
 	<body>
@@ -337,7 +337,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../cosinesim/index.html">Cosine Similarity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/index.html">Louvain Modularity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../mis/index.html">Maximum Independent Set</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mis/index.html">Maximal Independent Set</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../fuzzymatch/index.html">Fuzzy Match</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Software Stack Integration Products</span></p>
@@ -352,8 +352,8 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../cosinesim/usecases.html"> Cosine Similarity Use Cases</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../cosinesim/usecases.html#stand-alone-alveo-product">Stand-Alone Alveo Product</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../cosinesim/usecases.html#recommendation-engine-product">Recommendation Engine Product</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Setup</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="setup-demo-plugin-install.html">Demo Plugin Installation</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Setup Recommendation Engine for TigerGraph 3.x run</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#install-conda-or-python-environment">Install Conda or Python Environment</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="synthea.html">Patient Similarity using Synthetic Patient Data (Synthea)</a></li>
@@ -447,17 +447,22 @@
             
   <div class="section" id="setup-recommendation-engine-for-tigergraph-3-x-run">
 <span id="cosinesim-setup-tg3-label"></span><h1>Setup Recommendation Engine for TigerGraph 3.x run<a class="headerlink" href="#setup-recommendation-engine-for-tigergraph-3-x-run" title="Permalink to this headline">¶</a></h1>
-<p>The Recommendation Engine consists of Cosine Similarity library integrated into TigerGraph 3.x via plugins and UDFs.</p>
+<p>The Recommendation Engine consists of Cosine Similarity library integrated into
+TigerGraph 3.x via plugins and UDFs.</p>
+<div class="section" id="install-conda-or-python-environment">
+<h2>Install Conda or Python Environment<a class="headerlink" href="#install-conda-or-python-environment" title="Permalink to this headline">¶</a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The Recommendation Engine Jupyter Notebooks can be run from any machine that is on the same network as the TigerGraph server i.e. can connect via HTTP connections. These Notebooks use <strong>pytigerGraph</strong> module to connect to the TigerGraph server via REST APIs.</p>
+<p>Demo Jupyter Notebooks can be run from any machine that is on the same network
+as the TigerGraph server i.e. can connect via HTTP connections. These Notebooks
+use <strong>pytigerGraph</strong> module to connect to the TigerGraph server via REST APIs.</p>
 </div>
 <ul class="simple">
-<li><p>To run the TigerGraph jupyter notebooks, start by creating a python virtual environment and installing the required packages.</p></li>
+<li><p>To run the TigerGraph jupyter notebooks, start by creating a python virtual
+environment and installing the required packages.</p></li>
 </ul>
-<p><strong>using Conda</strong></p>
-<blockquote>
-<div><ul class="simple">
+<p><strong>Using Conda</strong></p>
+<ul class="simple">
 <li><p>Install conda by following instructions on <a class="reference external" href="https://docs.conda.io/en/latest/miniconda.html">https://docs.conda.io/en/latest/miniconda.html</a></p></li>
 <li><p>Create and activate a new virtual environment and install all required packages</p></li>
 </ul>
@@ -467,10 +472,8 @@ $ conda activate fpga
 <span class="o">(</span>fpga<span class="o">)</span>$ conda install -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.4/requirements.txt
 </pre></div>
 </div>
-</div></blockquote>
-<p><strong>using local python</strong></p>
-<blockquote>
-<div><ul class="simple">
+<p><strong>Using local python</strong></p>
+<ul class="simple">
 <li><p>At least Python version 3.6 is required, install or upgrade python using your package manager</p></li>
 <li><p>Create and activate a new virtual environment and install all required packages</p></li>
 </ul>
@@ -479,7 +482,6 @@ $ <span class="nb">source</span> fpga/bin/activate
 <span class="o">(</span>fpga<span class="o">)</span>$ pip install -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.4/requirements.txt
 </pre></div>
 </div>
-</div></blockquote>
 <ul class="simple">
 <li><p>Now copy examples to user accessible directory</p></li>
 </ul>
@@ -489,17 +491,17 @@ $ <span class="nb">source</span> fpga/bin/activate
 </pre></div>
 </div>
 <ul>
-<li><p>(For info purpose only) To understand the Demo specific plugin, go to the section below:</p>
-<blockquote>
-<div><div class="toctree-wrapper compound">
+<li><p>Install demo specific plugin by following the instructions below. Note
+the demo plugin is only needed to be installed once.</p>
+<div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="setup-demo-plugin-install.html">Demo Plugin Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../setup-demo-plugin.html">Installing and Uninstalling the Demo use cases</a></li>
 </ul>
 </div>
-</div></blockquote>
 </li>
 <li><p>Now follow instructions in the Demo use cases pages to run the corresponding Notebooks</p></li>
 </ul>
+</div>
 </div>
 
 
@@ -518,7 +520,7 @@ $ <span class="nb">source</span> fpga/bin/activate
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="setup-demo-plugin-install.html" class="btn btn-neutral float-right" title="Installing and Uninstalling the Demo use cases" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../setup-demo-plugin.html" class="btn btn-neutral float-right" title="Installing and Uninstalling the Demo use cases" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="../cosinesim/usecases-wiki-search.html" class="btn btn-neutral float-left" title="Wikipedia Search Engine" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -531,7 +533,7 @@ $ <span class="nb">source</span> fpga/bin/activate
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 10, 2022.
+        Last updated on January 11, 2022.
       </span>
 
     </p>
