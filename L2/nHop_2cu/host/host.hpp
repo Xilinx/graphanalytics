@@ -6,13 +6,7 @@
 #ifndef HLS_TEST
 
 void nHop_L2_host(
-                    unsigned numHop,
-                    unsigned intermediate,
-                    unsigned numPairs,
-                    unsigned batchSize,
-                    unsigned hashSize,
-                    unsigned byPass,
-                    unsigned duplicate,
+                    unsigned* config,
                     ap_uint<512>* pair,
 
                     unsigned* offsetTable,
@@ -23,6 +17,7 @@ void nHop_L2_host(
 
                     ap_uint<512>* zeroBuffer0,
                     ap_uint<512>* zeroBuffer1,
+                    ap_uint<512>* zeroBuffer2,
 
                     unsigned* numOut,
                     ap_uint<512>* local,
@@ -34,6 +29,9 @@ void nHop_L2_host(
                     timeInfo* p_timeInfo,
                     std::string xclbin_path
 ) {
+
+    unsigned numPairs = config[2];
+    unsigned duplicate = config[7];
 
     cl_int fail;
     // platform related operations
@@ -54,7 +52,7 @@ void nHop_L2_host(
     nHop = cl::Kernel(program, "nHop_kernel", &fail);
     std::cout << "kernel has been created" << std::endl;
 
-    std::vector<cl_mem_ext_ptr_t> mext_o(25);
+    std::vector<cl_mem_ext_ptr_t> mext_o(19);
 
     mext_o[0] = {(unsigned int)(0) | XCL_MEM_TOPOLOGY, pair, 0};
 #if (pu==8)
@@ -86,26 +84,29 @@ void nHop_L2_host(
     mext_o[24] = {(unsigned int)(28) | XCL_MEM_TOPOLOGY, numOut, 0};
 #else
     mext_o[1] = {(unsigned int)(2) | XCL_MEM_TOPOLOGY, offsetBuffer[0], 0};
-    mext_o[2] = {(unsigned int)(4) | XCL_MEM_TOPOLOGY, indexBuffer[0], 0};
-    mext_o[3] = {(unsigned int)(3) | XCL_MEM_TOPOLOGY, offsetBuffer[1], 0};
-    mext_o[4] = {(unsigned int)(6) | XCL_MEM_TOPOLOGY, indexBuffer[1], 0};
-    mext_o[5] = {(unsigned int)(8) | XCL_MEM_TOPOLOGY, offsetBuffer[2], 0};
-    mext_o[6] = {(unsigned int)(10) | XCL_MEM_TOPOLOGY, indexBuffer[2], 0};
-    mext_o[7] = {(unsigned int)(9) | XCL_MEM_TOPOLOGY, offsetBuffer[3], 0};
-    mext_o[8] = {(unsigned int)(12) | XCL_MEM_TOPOLOGY, indexBuffer[3], 0};
+    mext_o[2] = {(unsigned int)(3) | XCL_MEM_TOPOLOGY, indexBuffer[0], 0};
+    mext_o[3] = {(unsigned int)(4) | XCL_MEM_TOPOLOGY, offsetBuffer[1], 0};
+    mext_o[4] = {(unsigned int)(5) | XCL_MEM_TOPOLOGY, indexBuffer[1], 0};
+    mext_o[5] = {(unsigned int)(6) | XCL_MEM_TOPOLOGY, offsetBuffer[2], 0};
+    mext_o[6] = {(unsigned int)(7) | XCL_MEM_TOPOLOGY, indexBuffer[2], 0};
+    mext_o[7] = {(unsigned int)(8) | XCL_MEM_TOPOLOGY, offsetBuffer[3], 0};
+    mext_o[8] = {(unsigned int)(9) | XCL_MEM_TOPOLOGY, indexBuffer[3], 0};
 
-    mext_o[9] = {(unsigned int)(26) | XCL_MEM_TOPOLOGY, zeroBuffer0, 0};
-    mext_o[10] = {(unsigned int)(27) | XCL_MEM_TOPOLOGY, zeroBuffer1, 0};
+    mext_o[9] = {(unsigned int)(10) | XCL_MEM_TOPOLOGY, zeroBuffer0, 0};
+    mext_o[10] = {(unsigned int)(11) | XCL_MEM_TOPOLOGY, zeroBuffer1, 0};
+    mext_o[11] = {(unsigned int)(12) | XCL_MEM_TOPOLOGY, zeroBuffer2, 0};
 
-    mext_o[11] = {(unsigned int)(28) | XCL_MEM_TOPOLOGY, offsetTable, 0};
-    mext_o[12] = {(unsigned int)(28) | XCL_MEM_TOPOLOGY, indexTable, 0};
-    mext_o[13] = {(unsigned int)(28) | XCL_MEM_TOPOLOGY, cardTable, 0};
-    mext_o[14] = {(unsigned int)(28) | XCL_MEM_TOPOLOGY, local, 0};
-    mext_o[15] = {(unsigned int)(29) | XCL_MEM_TOPOLOGY, netSwitch, 0};
-    mext_o[16] = {(unsigned int)(28) | XCL_MEM_TOPOLOGY, numOut, 0};
+    mext_o[12] = {(unsigned int)(0) | XCL_MEM_TOPOLOGY, config, 0};
+    mext_o[13] = {(unsigned int)(0) | XCL_MEM_TOPOLOGY, offsetTable, 0};
+    mext_o[14] = {(unsigned int)(0) | XCL_MEM_TOPOLOGY, indexTable, 0};
+    mext_o[15] = {(unsigned int)(0) | XCL_MEM_TOPOLOGY, cardTable, 0};
+    mext_o[16] = {(unsigned int)(1) | XCL_MEM_TOPOLOGY, numOut, 0};
+    mext_o[17] = {(unsigned int)(1) | XCL_MEM_TOPOLOGY, local, 0};
+    mext_o[18] = {(unsigned int)(14) | XCL_MEM_TOPOLOGY, netSwitch, 0};
 #endif
     // create device buffer and map dev buf to host buf
-    cl::Buffer pair_buf, local_buf, switch_buf, ping_buf, pong_buf, offset_table, index_table, card_table, num_out;
+    cl::Buffer config_buf, pair_buf, local_buf, switch_buf, ping_buf, pong_buf, fifo_buf, offset_table, index_table,
+        card_table, num_out;
     cl::Buffer offset_buf[pu];
     cl::Buffer index_buf[pu];
 #if (pu==8)
@@ -130,22 +131,30 @@ void nHop_L2_host(
 #else
     pair_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
                           sizeof(ap_uint<128>) * (numPairs + 4096), &mext_o[0]);
+
     ping_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                        sizeof(ap_uint<512>) * (4 << 20), &mext_o[9]);
+                          sizeof(ap_uint<512>) * (4 << 20), &mext_o[9]);
     pong_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                        sizeof(ap_uint<512>) * (4 << 20), &mext_o[10]);
-    offset_table = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                            sizeof(unsigned) * (1024), &mext_o[11]);
-    index_table = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
+                          sizeof(ap_uint<512>) * (4 << 20), &mext_o[10]);
+
+    fifo_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
+                          sizeof(ap_uint<512>) * (4 << 20), &mext_o[11]);
+
+    config_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
                             sizeof(unsigned) * (1024), &mext_o[12]);
+    offset_table = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
+                              sizeof(unsigned) * (1024), &mext_o[13]);
+    index_table = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
+                             sizeof(unsigned) * (1024), &mext_o[14]);
     card_table = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                            sizeof(ap_uint<64>) * (1024), &mext_o[13]);
-    local_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                        sizeof(ap_uint<512>) * (3 << 20), &mext_o[14]);
-    switch_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                            sizeof(ap_uint<512>) * (3 << 20), &mext_o[15]);
+                            sizeof(ap_uint<64>) * (1024), &mext_o[15]);
+
     num_out = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
-                        sizeof(unsigned) * (1024), &mext_o[16]);
+                         sizeof(unsigned) * (1024), &mext_o[16]);
+    local_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
+                           sizeof(ap_uint<512>) * (3 << 20), &mext_o[17]);
+    switch_buf = cl::Buffer(context, CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE,
+                            sizeof(ap_uint<512>) * (3 << 20), &mext_o[18]);
 #endif
 
     if (duplicate == 0) {
@@ -167,6 +176,7 @@ void nHop_L2_host(
     }
 
     std::vector<cl::Memory> init;
+    init.push_back(config_buf);
     init.push_back(pair_buf);
     init.push_back(local_buf);
     init.push_back(switch_buf);
@@ -174,6 +184,7 @@ void nHop_L2_host(
     init.push_back(offset_table);
     init.push_back(index_table);
     init.push_back(card_table);
+    init.push_back(fifo_buf);
     init.push_back(ping_buf);
     init.push_back(pong_buf);
     for (int i = 0; i < pu; i++) {
@@ -190,6 +201,7 @@ void nHop_L2_host(
     std::vector<cl::Event> events_read(1);
 
     ob_in.push_back(pair_buf);
+    ob_in.push_back(config_buf);
     ob_in.push_back(offset_table);
     ob_in.push_back(index_table);
     ob_in.push_back(card_table);
@@ -210,15 +222,8 @@ void nHop_L2_host(
 
     int j = 0;
 
-    nHop.setArg(j++, numHop);
-    nHop.setArg(j++, 0);
-    nHop.setArg(j++, numPairs);
-    nHop.setArg(j++, batchSize);
-    nHop.setArg(j++, 65536);
-    nHop.setArg(j++, byPass);
-    nHop.setArg(j++, duplicate);
+    nHop.setArg(j++, config_buf);
     nHop.setArg(j++, pair_buf);
-
     nHop.setArg(j++, offset_table);
     nHop.setArg(j++, index_table);
     nHop.setArg(j++, card_table);
@@ -226,16 +231,15 @@ void nHop_L2_host(
         nHop.setArg(j++, offset_buf[i]);
         nHop.setArg(j++, index_buf[i]);
     }
-
     nHop.setArg(j++, ping_buf);
     nHop.setArg(j++, pong_buf);
-
+    nHop.setArg(j++, fifo_buf);
+    nHop.setArg(j++, fifo_buf);
     nHop.setArg(j++, num_out);
     nHop.setArg(j++, local_buf);
     nHop.setArg(j++, switch_buf);
 
     q.enqueueTask(nHop, &events_write, &events_kernel[0]);
-
     q.enqueueMigrateMemObjects(ob_out, 1, &events_kernel, &events_read[0]);
     q.finish();
 

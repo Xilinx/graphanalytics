@@ -967,6 +967,29 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
                                     commendInfo commendInfo,
                                     timeInfo* p_timeInfo,
                                     IndexStatistic* p_stt) {
+    // -------------setup FIFO params-------------
+    long size_golden = 100;
+    long freqMHz = 200;
+    long us_sleep = 100;
+    long us_over = us_sleep;
+
+    long pop_blen_read = 128; // suggested burst reading lenght, it not met, then waiting pop_ii_check cycles and check
+                              // again, it check times met pop_max_check then read anyway
+    long pop_ii_check = 128;  // watint cycles for next checking
+    long pop_max_check = 8;
+
+    long cycle2sleep = us_sleep * freqMHz;
+    long times_over_sleep = ((us_over + us_sleep - 1) / us_sleep);
+    long cycle_over = cycle2sleep * times_over_sleep;
+
+    std::cout << "us_sleep           = " << us_sleep << "us\n";
+    std::cout << "us_over            = " << us_over << "us\n";
+    std::cout << "uscycle2sleep_over = " << cycle2sleep << "\n";
+    std::cout << "times_over_sleep   = " << times_over_sleep << "\n";
+    std::cout << "cycle_over         = " << cycle_over << "\n\n";
+
+    // -------------setup k0 params---------------
+
     // PackBuff<T>* p_buff_pp_w = this->p_buff_pp[cnt_bat&1];
     T sz_idx = 0;
     T sz_pop = 0;
@@ -1045,8 +1068,8 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
             }
         }
     }
-    offsetTable[pu+1] = offsetTable[0];
-    offsetTable[pu+2] = offsetTable[pu];
+    // offsetTable[pu+1] = offsetTable[0];
+    // offsetTable[pu+2] = offsetTable[pu];
 
     for (int i = 0; i < 32; i++) {
         ap_uint<32> id = i;
@@ -1070,11 +1093,13 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
     }
 
     // initilaize buffer and config
+    unsigned* config = aligned_alloc<unsigned>(1024);
     unsigned* numOut = aligned_alloc<unsigned>(1024);
     ap_uint<512>* local = aligned_alloc<ap_uint<512> >(3 << 20);
     ap_uint<512>* netSwitch = aligned_alloc<ap_uint<512> >(3 << 20);
     ap_uint<512>* zeroBuffer0 = aligned_alloc<ap_uint<512> >(4 << 20);
     ap_uint<512>* zeroBuffer1 = aligned_alloc<ap_uint<512> >(4 << 20);
+    ap_uint<512>* zeroBuffer2 = aligned_alloc<ap_uint<512> >(4 << 20);
     for(int i=0; i<(4 << 20); i++ ){
         if(i<(3 << 20)){
             local[i] = 0;
@@ -1082,25 +1107,42 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
         }
         zeroBuffer0[i] = 0;
         zeroBuffer1[i] = 0;
+        zeroBuffer2[i] = 0;
     }
     numOut[0] = 0;
     numOut[1] = 0;
+
+        int j = 0;
+    // hop kernel config
+    config[j++] = numHop;
+    config[j++] = 0;
+    config[j++] = numPairs;
+    config[j++] = batchSize;
+    config[j++] = 4096;
+    config[j++] = 4096;
+    config[j++] = byPass;
+    config[j++] = duplicate;
+
+    // mem fifo config
+    config[j++] = 1 << 20;
+    config[j++] = us_sleep;
+    config[j++] = us_over;
+    config[j++] = pop_blen_read;
+    config[j++] = pop_ii_check;
+    config[j++] = pop_max_check;
+    config[j++] = 1;
+    config[j++] = 0;
+    config[j++] = 64;
 
     // do pre-process on CPU
     //struct timeval start_time, end_time;
 
 #ifndef HLS_TEST
 
-    nHop_L2_host(numHop, 
-                    0,
-                    numPairs,  
-                    batchSize, //--batch 4096
-                    65536,
-                    byPass,    
-                    duplicate, 
-                    (ap_uint<512>*)pair,
-                    offsetTable, indexTable, cardTable, offsetBuffer, (ap_uint<128>**)indexBuffer,
-                    zeroBuffer0, zeroBuffer1, numOut, local, netSwitch,
+    nHop_L2_host(config,
+                    (ap_uint<512>*)pair, offsetTable, indexTable, cardTable, 
+                    offsetBuffer, (ap_uint<128>**)indexBuffer,
+                    zeroBuffer0, zeroBuffer1, zeroBuffer2, numOut, local, netSwitch,
                     numVertices, numEdges, pu, p_timeInfo, xclbin_path
                     );
 
