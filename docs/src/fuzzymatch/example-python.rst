@@ -18,5 +18,10 @@ Python Example with Fuzzy Match
 
     cp -r /opt/xilinx/apps/graphanalytics/fuzzymatch/0.1/examples fuzzymatch-examples
     cd fuzzymatch-examples/python
+    // support AWS F1 and U50 device
+    // run on AWS F1:
     ./run.sh
+
+    // run on U50
+    ./run.sh U50
 

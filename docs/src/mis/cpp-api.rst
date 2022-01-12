@@ -48,7 +48,7 @@ Maximal Independent Set C++ API Reference
   
     | graph : GraphCSR graph. 
 
-   .. code-block:: bash
+  .. code-block:: bash
 
      void setGraph(GraphCSR<int>* graph);
 
@@ -58,7 +58,7 @@ Maximal Independent Set C++ API Reference
   | Run Maximal Independent Set
   | Return:
 
-    | vector of int
+    | vector of int :  the list of vertex IDs that are part of the MIS set
 
   .. code-block:: bash
 
@@ -67,7 +67,9 @@ Maximal Independent Set C++ API Reference
 **count Interface**
 --------------------------------------------
 
-  | Return the number of MIS vertices 
+  | Return:  
+
+    | size_t : the number of vertices that are part of the MIS set
 
   .. code-block:: bash
 
