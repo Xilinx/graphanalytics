@@ -642,13 +642,13 @@ void PartitionHop<T>::PrintRpt(
     printf("***************************** Hopping aggregation result per kernel ****************************\n");
     printf("************************************************************************************************\n");
     for(int i = 0; i < commendInfo.numKernel; i++){
-    printf("hop result file pf each kernel had saved  :  %s\n", this->hopKnl[i]->filename.c_str());
+    printf("hop result file for each kernel had save  :  %s\n", this->hopKnl[i]->filename.c_str());
     if(commendInfo.byPass)
     printf("kernel[%d] not aggregation result          : %9d\n", i, this->hopKnl[i]->p_buff_agg->GetNum());
     else
     printf("kernel[%d] aggregation result              : %9d\n", i, this->hopKnl[i]->p_buff_agg->GetNum());
     }
-    printf("hop result file had saved                 :  %s\n", commendInfo.filename.c_str());
+    //printf("hop result file had saved                 :  %s\n", commendInfo.filename.c_str());
     printf("****************************************************************************************************\n");
     // printf("******* To find proper number of channel covering the entire graph and supporting intra-copy********\n");
     // printf("****************************************************************************************************\n");
@@ -1066,7 +1066,7 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
         tmp128.range(127, 96) = in.hop; // hop_cnt
         pair[i] = tmp128;
         if(in.src == in.des)
-        printf("selfloop## src: %d, dst: %d\n", in.src, in.des);
+        //printf("selfloop## src: %d, dst: %d\n", in.src, in.des);
     }
 
     // initilaize buffer and config
