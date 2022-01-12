@@ -161,14 +161,14 @@ struct IndexStatistic { // for index statistic
 };
 
 struct timeInfo{
-    double timeWrkCompute;
-    double timeKernel;
+    double timeWrkCompute = 0;
+    double timeKernel = 0;
 };
 struct commendInfo{
     int numKernel=1;
     int numPuPerKernel=4;
     int sz_bat=4096;
-    int byPass=0; 
+    int byPass=1; 
     int duplicate=0;
     std::string xclbin_path;
     std::string filename;
