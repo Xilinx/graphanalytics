@@ -13,7 +13,7 @@
 # under the License.
 
 cmake_minimum_required(VERSION 2.8.11)
-project(xilinx-fuzzymatch-tigergraph)
+project(xilinx-mis-tigergraph)
 
 set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE INTERNAL "No dev warnings")
 # Linking variables
@@ -28,7 +28,7 @@ install(DIRECTORY "${PROJ_FILE_PATH}/udf" DESTINATION ${CMAKE_INSTALL_PATH}/ USE
 install(PROGRAMS "${PROJ_FILE_PATH}/install.sh" DESTINATION ${CMAKE_INSTALL_PATH}/ )
 install(FILES "${PROJ_FILE_PATH}/VERSION" DESTINATION ${CMAKE_INSTALL_PATH}/ )
 
-set(CPACK_PACKAGE_NAME "xilinx-fuzzymatch-tigergraph-${PROD_VERSION}")
+set(CPACK_PACKAGE_NAME "xilinx-mis-tigergraph-${PROD_VERSION}")
 set(CPACK_PACKAGE_VERSION "1.0.0")
 
 
