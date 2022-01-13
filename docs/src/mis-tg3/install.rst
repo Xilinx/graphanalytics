@@ -104,20 +104,20 @@ Both products reside in one GitHub repository.
 
    git clone https://github.com/Xilinx/graphanalytics.git
 
-* Build and install the Cosine Similarity package. The Ubuntu apt package manager is used as an example.
+* Build and install the Maximum Independent Set package. The Ubuntu apt package manager is used as an example.
 
 .. code-block:: bash
 
-   cd cosinesim
+   cd mis
    make dist
-   sudo apt install --reinstall ./package/xilinx-cosinesim-1.0_18.04-x86_64.deb
+   sudo apt install --reinstall ./package/xilinx-mis-1.0_18.04-x86_64.deb
 
-* Build and install the Maximal Independent Set package. (Replace the package 
+* Build and install the Maximal Independent Set for TigerGraph 3.x package. (Replace the package
   installation command and name for your server's OS.)
 
 .. code-block:: bash
 
-  cd plugin/tigergraph/
+  cd plugin/tigergraph/mis
   make dist
   sudo apt install --reinstall ./package/xilinx-mis-tigergraph-1.0_18.04-x86_64.deb
 

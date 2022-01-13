@@ -1,10 +1,19 @@
-Run with GSQL
+Run Bash Script with GSQL
 =============
 
 * Open a terminal using your Linux credentials
-* Execute the command below to run the example
+* Set up a directory that is readable and writable by the user "tigergraph"
+* Execute the commands below to run the demo
 
 .. code-block:: bash
 
-   $cd /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/examples/travelplan
-   $make run
+   # Copy examples from the installation to your own working directory mis-examples
+   cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/0.1/examples mis-examples
+
+   cd mis-examples/travelplan
+   # Print travelplan demo help messages
+   ./bin/run.sh -h
+
+   # Run travelplan demo with default settings. Settings can be changed via command
+   # line options as shown above
+   ./bin/run.sh
