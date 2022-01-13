@@ -338,7 +338,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../cosinesim/index.html">Cosine Similarity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/index.html">Louvain Modularity</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Maximal Independent Set</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Overview</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#maximum-and-maximal-independent-sets">Maximum and Maximal Independent Sets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#algorithm-overview">Algorithm Overview</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="demos.html">Demos</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api.html">API Reference</a></li>
@@ -357,6 +361,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../cosinesim/usecases.html"> Cosine Similarity Use Cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/usecases.html"> Louvain Modularity Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usecases.html"> Maximal Independent Set Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fuzzymatch/usecases.html"> Fuzzy Match Use Cases</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Additional Info</span></p>
 <ul>
@@ -440,15 +446,43 @@
             
   <div class="section" id="xilinx-maximal-independent-set-alveo-product-overview">
 <span id="mis-overview-label"></span><h1>Xilinx Maximal Independent Set Alveo Product Overview<a class="headerlink" href="#xilinx-maximal-independent-set-alveo-product-overview" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="maximum-and-maximal-independent-sets">
+<h2>Maximum and Maximal Independent Sets<a class="headerlink" href="#maximum-and-maximal-independent-sets" title="Permalink to this headline">¶</a></h2>
 <p>An independent set of a graph is a subset of vertices in which no two vertices
 are adjacent. Given a set of vertices, the maximum independent set problem (MIS)
-calls for finding the independent set of maximum cardinality. There are many
-applications that require finding the MIS, including but not limited to the following:</p>
+calls for finding the independent set of maximum cardinality. Finding such a Maximum set does
+not have a polynomial time solution and is NP-Hard. For most practical purposes, large cardinality
+maximal independent sets are sufficient to accomplish required tasks. This library uses a modified version of
+<a class="reference external" href="http://www.cs.cmu.edu/afs/cs/academic/class/15750-s18/ScribeNotes/lecture32.pdf">Luby’s algorithm</a>
+to find high quality Maximal Independent Sets using Xilinx Alveo accelerator cards.</p>
+<p>There are many applications that require finding the MIS, including but not limited to the following:</p>
 <ul class="simple">
 <li><p>Massive data sets: military systems, telecommunications, medicine, finance, etc.</p></li>
 <li><p>Coding theory: formulating error correction codes</p></li>
-<li><p>Ad-hoc wireless networks: search and rescue operations, battlefield decisions, addressing battery and security issues, etc.</p></li>
+<li><p>Ad-hoc wireless networks: search and rescue operations, battlefield decisions, addressing
+battery and security issues, etc.</p></li>
 </ul>
+</div>
+<div class="section" id="algorithm-overview">
+<h2>Algorithm Overview<a class="headerlink" href="#algorithm-overview" title="Permalink to this headline">¶</a></h2>
+<p>Xilinx Maximal Independent Set Alveo Product is built on the random-permutation variation of Luby’s MIS
+algorithm. The specific variation used was proposed by MARTIN BURTSCHER et al. from the Texas State University.</p>
+<p>The original paper is available <a class="reference external" href="https://userweb.cs.txstate.edu/~mb92/papers/topc18.pdf">here</a></p>
+<p>The algorithm can be summarized as follows:</p>
+<ol class="arabic simple">
+<li><p>Let V be the set of all vertices</p></li>
+<li><p>Initialize a set I as an empty set</p></li>
+<li><p>Generate a random priority number p(v) for each vertex v in V</p></li>
+<li><p>While V is not empty:</p></li>
+</ol>
+<blockquote>
+<div><p>4.1 If p(v) is larger than the priority numbers of all neighbors of v, then remove v from V and insert into I</p>
+<p>4.2 If any neighbors of v was inserted into I, then remove v from V</p>
+</div></blockquote>
+<ol class="arabic simple" start="5">
+<li><p>Return I</p></li>
+</ol>
+</div>
 </div>
 
 
@@ -480,7 +514,7 @@ applications that require finding the MIS, including but not limited to the foll
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 11, 2022.
+        Last updated on January 13, 2022.
       </span>
 
     </p>

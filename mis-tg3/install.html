@@ -367,6 +367,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../cosinesim/usecases.html"> Cosine Similarity Use Cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/usecases.html"> Louvain Modularity Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mis/usecases.html"> Maximal Independent Set Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fuzzymatch/usecases.html"> Fuzzy Match Use Cases</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Additional Info</span></p>
 <ul>
@@ -546,18 +548,18 @@ The package to download is called the “Deployment Target Platform.”</p></li>
 </pre></div>
 </div>
 <ul class="simple">
-<li><p>Build and install the Cosine Similarity package. The Ubuntu apt package manager is used as an example.</p></li>
+<li><p>Build and install the Maximum Independent Set package. The Ubuntu apt package manager is used as an example.</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> cosinesim
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> mis
 make dist
-sudo apt install --reinstall ./package/xilinx-cosinesim-1.0_18.04-x86_64.deb
+sudo apt install --reinstall ./package/xilinx-mis-1.0_18.04-x86_64.deb
 </pre></div>
 </div>
 <ul class="simple">
-<li><p>Build and install the Maximal Independent Set package. (Replace the package
+<li><p>Build and install the Maximal Independent Set for TigerGraph 3.x package. (Replace the package
 installation command and name for your server’s OS.)</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> plugin/tigergraph/
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> plugin/tigergraph/mis
 make dist
 sudo apt install --reinstall ./package/xilinx-mis-tigergraph-1.0_18.04-x86_64.deb
 </pre></div>
@@ -639,7 +641,7 @@ such as the Synthea Demo, before uninstalling the Maximal Independent Set itself
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 11, 2022.
+        Last updated on January 13, 2022.
       </span>
 
     </p>
