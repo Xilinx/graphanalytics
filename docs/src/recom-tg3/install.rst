@@ -112,7 +112,7 @@ and Recommendation Engine for TigerGraph 3.x.  Both products reside in one GitHu
 
 .. code-block:: bash
 
-  cd plugin/tigergraph/
+  cd plugin/tigergraph/recomengine
   make dist
   sudo apt install --reinstall ./package/xilinx-recomengine-tigergraph-1.0_18.04-x86_64.deb
 
