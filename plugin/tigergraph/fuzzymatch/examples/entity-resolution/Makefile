@@ -18,7 +18,7 @@ refNames=$(CURDIR)/data/ref-names.csv
 refNamesCSV=$(abspath $(refNames))
 newNames=$(CURDIR)/data/new-names.csv
 newNamesCSV=$(abspath $(newNames))
-graphName=swift_$(USER)
+graphName=entity_resolution_$(USER)
 
 compileMode=1
 runMode=2
@@ -37,7 +37,7 @@ PLUGIN_DEPS = ../../../../../$(STANDALONE_NAME)/src/fuzzymatch.cpp \
 
 PLUGIN_TARGET = .install-plugin-done
 TG_DATA_ROOT = $(shell cat ~tigergraph/.tg.cfg | jq .System.DataRoot | tr -d \")
-EXAMPLE_UDF_DEPS = udf/entResolution.hpp udf/entResolutionImpl.hpp
+EXAMPLE_UDF_DEPS = udf/entityResolution.hpp udf/entityResolutionImpl.hpp
 EXAMPLE_UDF_TARGET = .install-udf-done
 
 all: run

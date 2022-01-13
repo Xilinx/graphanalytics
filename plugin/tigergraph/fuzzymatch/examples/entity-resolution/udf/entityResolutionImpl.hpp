@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-#ifndef SWIFTAML_DEMO_IMPL_HPP
-#define SWIFTAML_DEMO_IMPL_HPP
+#ifndef ENTITY_RESOLUTION_IMPL_HPP
+#define ENTITY_RESOLUTION_IMPL_HPP
 
 #include <chrono>
 
-namespace swiftAmlDemo {
+namespace entityResolution {
 
 using Mutex = xilFuzzyMatch::Mutex;
 using Lock = xilFuzzyMatch::Lock;
@@ -50,5 +50,5 @@ inline double extract_size_in_kB(std::string& line) {
 
 } // namespace
 
-#endif /* SWIFTAML_DEMO_IMPL_HPP */
+#endif /* ENTITY_RESOLUTION_IMPL_HPP */
 

@@ -22,7 +22,8 @@ all: stage
 # Product version
 PRODUCT_VER=$(strip $(shell cat VERSION))
 
-EXAMPLE_DIR = examples
+SWIFTAML_DIR = examples/swiftaml
+ENTRESOLUTION_DIR = examples/entity-resolution
 
 # Files to be direct-copied from plugin source tree to staging area
 
@@ -34,21 +35,33 @@ STAGE_COPY_FILES = \
     udf/xilinxFuzzyMatch.hpp \
     udf/xilinxFuzzyMatchImpl.hpp \
     \
-    $(wildcard $(EXAMPLE_DIR)/swiftaml/data/*) \
-	$(EXAMPLE_DIR)/swiftaml/README.md \
-    $(EXAMPLE_DIR)/swiftaml/bin/common.sh \
-    $(EXAMPLE_DIR)/swiftaml/bin/set-plugin-vars.sh \
-    $(EXAMPLE_DIR)/swiftaml/udf/swiftAmlDemo.hpp \
-    $(EXAMPLE_DIR)/swiftaml/udf/swiftAmlDemoImpl.hpp \
-	$(EXAMPLE_DIR)/swiftaml/query/base.gsql \
-    $(EXAMPLE_DIR)/swiftaml/query/load.gsql \
-    $(EXAMPLE_DIR)/swiftaml/query/fuzzymatch.gsql \
-    $(EXAMPLE_DIR)/swiftaml/query/schema.gsql \
+    $(wildcard $(SWIFTAML_DIR)/data/*) \
+	$(SWIFTAML_DIR)/README.md \
+    $(SWIFTAML_DIR)/bin/common.sh \
+    $(SWIFTAML_DIR)/bin/set-plugin-vars.sh \
+    $(SWIFTAML_DIR)/bin/run.sh \
+	$(SWIFTAML_DIR)/udf/swiftAmlDemo.hpp \
+    $(SWIFTAML_DIR)/udf/swiftAmlDemoImpl.hpp \
+	$(SWIFTAML_DIR)/query/base.gsql \
+    $(SWIFTAML_DIR)/query/load.gsql \
+    $(SWIFTAML_DIR)/query/fuzzymatch.gsql \
+    $(SWIFTAML_DIR)/query/schema.gsql \
     \
-    $(EXAMPLE_DIR)/swiftaml/bin/run.sh \
+    $(wildcard $(ENTRESOLUTION_DIR)/data/*) \
+	$(ENTRESOLUTION_DIR)/README.md \
+    $(ENTRESOLUTION_DIR)/bin/common.sh \
+    $(ENTRESOLUTION_DIR)/bin/set-plugin-vars.sh \
+    $(ENTRESOLUTION_DIR)/udf/entityResolution.hpp \
+    $(ENTRESOLUTION_DIR)/udf/entityResolutionImpl.hpp \
+	$(ENTRESOLUTION_DIR)/query/base.gsql \
+    $(ENTRESOLUTION_DIR)/query/load.gsql \
+    $(ENTRESOLUTION_DIR)/query/entity_resolution.gsql \
+    $(ENTRESOLUTION_DIR)/query/schema.gsql \
+    $(ENTRESOLUTION_DIR)/bin/run.sh \
+
 
 # Example directories into which to copy example common files
-STAGE_EXAMPLES_DIRS = $(EXAMPLE_DIR)
+STAGE_EXAMPLES_DIRS = $(SWIFTAML_DIR) $(ENTRESOLUTION_DIR)
 
 include ../common/Makefile-common.mk
 

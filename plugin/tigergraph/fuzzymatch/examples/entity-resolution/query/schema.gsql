@@ -19,12 +19,10 @@ DROP GRAPH @graph CASCADE
 CREATE GRAPH @graph()
 
 CREATE SCHEMA_CHANGE JOB job_schema_change_local FOR GRAPH @graph {
-    // person database to match against
-    ADD VERTEX blacklist (PRIMARY_ID id UINT, name STRING);
-    // person extracted from transactions
-    ADD VERTEX person_tx(PRIMARY_ID id STRING, name STRING);
-    // transaction
-    // ADD UNDIRECTED EDGE transaction(FROM person_tx, TO person_tx, weight UINT);
+    // reference names
+    ADD VERTEX ref_names(PRIMARY_ID id UINT, name STRING);
+    // new names
+    ADD VERTEX new_names(PRIMARY_ID id STRING, name STRING);
     // dummy nodes vertex for distributed processing
     ADD VERTEX dummy_nodes(PRIMARY_ID ID UINT, NODE_ID UINT);
 

@@ -53,9 +53,9 @@ if [ "$compile_mode" -eq 1 ]; then
 
     echo "-------------------------------------------------------------------------"
     echo "Loading $files"
-    echo "gsql -u $username -p $password -g $xgraph \"run loading job load_job USING blacklist_csv = \"$blacklist\", transaction_csv = \"$txdata\""
+    echo "gsql -u $username -p $password -g $xgraph \"run loading job load_job USING ref_names_csv = \"$ref_names\", new_names_csv = \"$new_names\""
     echo "-------------------------------------------------------------------------"
-    gsql -u $username -p $password -g $xgraph "run loading job load_job USING blacklist_csv = \"$blacklist\", transaction_csv = \"$txdata\""
+    gsql -u $username -p $password -g $xgraph "run loading job load_job USING ref_names_csv = \"$ref_names\", new_names_csv = \"$new_names\""
 
     echo "-------------------------------------------------------------------------"
     echo "Install base queries"
@@ -70,10 +70,10 @@ fi
 
 if [ "$compile_mode" -eq 1 ] || [ "$compile_mode" -eq 2 ]; then
     echo "-------------------------------------------------------------------------"
-    echo "Installing Fuzzy Match CPU and FPGA queries"
-    echo "gsql -u $username -p $password -g $xgraph \"\$(cat $script_dir/../query/fuzzymatch.gsql | sed \"s/@graph/$xgraph/\")\""
+    echo "Installing Entity Resolution CPU and FPGA queries"
+    echo "gsql -u $username -p $password -g $xgraph \"\$(cat $script_dir/../query/entity_resolution.gsql | sed \"s/@graph/$xgraph/\")\""
     echo "-------------------------------------------------------------------------"
-    gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/fuzzymatch.gsql | sed "s/@graph/$xgraph/")"
+    gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/entity_resolution.gsql | sed "s/@graph/$xgraph/")"
 
     # IMPORTANT: DO NOT USE A NETWORK DRIVE FOR LOG FILES IN DISTRIBUTED QUERIES.
     # OTHERWISE EACH NODE WILL OVERWRITE IT
@@ -83,21 +83,21 @@ echo "-------------------------------------------------------------------------"
 echo "Run mode: $run_mode"
 
 if [ "$run_mode" -eq 1 ] || [ "$run_mode" -eq 3 ]; then
-    echo "Running fuzzymatch_cpu"
-    echo gsql -u $username -p $password -g $xgraph \'run query fuzzymatch_cpu\(\)\'
+    echo "Running entity_resolution_cpu"
+    echo gsql -u $username -p $password -g $xgraph \'run query entity_resolution_cpu\(\)\'
     echo "-------------------------------------------------------------------------"
     START=$(date +%s%3N)
-    time gsql -u $username -p $password -g $xgraph "run query fuzzymatch_cpu()"
+    time gsql -u $username -p $password -g $xgraph "run query entity_resolution_cpu()"
     TOTAL_TIME=$(($(date +%s%3N) - START))
-    echo "fuzzy_match_cpu runtime: " $tg_home
+    echo "entity_resolution_cpu runtime: " $tg_home
 fi
 
 # Run on FPGA
 if [ "$run_mode" -eq 2 ] || [ "$run_mode" -eq 3 ]; then
     START=$(date +%s%3N)
-    echo "Running fuzzymatch_alveo"
-    echo gsql -u $username -p $password -g $xgraph \'run query fuzzymatch_alveo\(\)\'
-    time gsql -u $username -p $password -g $xgraph "run query fuzzymatch_alveo()"
+    echo "Running entity_resolution_alveo"
+    echo gsql -u $username -p $password -g $xgraph \'run query entity_resolution_alveo\(\)\'
+    time gsql -u $username -p $password -g $xgraph "run query entity_resolution_alveo()"
     TOTAL_TIME=$(($(date +%s%3N) - START))
-    echo "fuzzy_match_alveo: " $TOTAL_TIME
+    echo "entity_resolution_alveo: " $TOTAL_TIME
 fi

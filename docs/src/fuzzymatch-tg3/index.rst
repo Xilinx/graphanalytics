@@ -12,6 +12,6 @@ computed from Levenshtein edit distance using :ref:`fuzzymatch-label`.
 
     Overview <overview.rst>
     Installation <install.rst>
-    Reference Manual <api.rst>
+..  Reference Manual <api.rst>
 
 

@@ -18,12 +18,12 @@
 USE GRAPH @graph
 
 CREATE LOADING JOB load_job FOR GRAPH @graph {
-	DEFINE FILENAME blacklist_csv;
-    DEFINE FILENAME transaction_csv;
+	DEFINE FILENAME ref_names_csv;
+    DEFINE FILENAME new_names_csv;
 
     // load person database
-	LOAD blacklist_csv TO VERTEX blacklist VALUES ($0, $1) USING separator=",", Header="true";
+	LOAD ref_names_csv TO VERTEX ref_names VALUES ($0, $1) USING separator=",", Header="true";
     
     // load transactions. Using the name directly as the primary key
-    LOAD transaction_csv TO VERTEX person_tx VALUES ($0, $1) USING separator=",", Header="true";
+    LOAD new_names_csv TO VERTEX new_names VALUES ($0, $1) USING separator=",", Header="true";
 }

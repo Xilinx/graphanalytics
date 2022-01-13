@@ -15,20 +15,20 @@
  * limitations under the License.
  */
 
-#ifndef SWIFTAML_DEMO_HPP
-#define SWIFTAML_DEMO_HPP
+#ifndef ENTITY_RESOLUTION_HPP
+#define ENTITY_RESOLUTION_HPP
 
-// mergeHeaders 1 name swiftAmlDemo
+// mergeHeaders 1 name entityResolution
 
-// mergeHeaders 1 section include start swiftAmlDemo DO NOT REMOVE!
-#include "swiftAmlDemoImpl.hpp"
-// mergeHeaders 1 section include end swiftAmlDemo DO NOT REMOVE!
+// mergeHeaders 1 section include start entityResolution DO NOT REMOVE!
+#include "entityResolutionImpl.hpp"
+// mergeHeaders 1 section include end entityResolution DO NOT REMOVE!
 
 //#####################################################################################################################
 
 namespace UDIMPL {
 
-// mergeHeaders 1 section body start swiftAmlDemo DO NOT REMOVE!
+// mergeHeaders 1 section body start entityResolution DO NOT REMOVE!
 
 inline bool concat_uint64_to_str(string& ret_val, uint64_t val) {
     (ret_val += " ") += std::to_string(val);
@@ -36,13 +36,13 @@ inline bool concat_uint64_to_str(string& ret_val, uint64_t val) {
 }
 
 inline bool udf_reset_timer(bool dummy) {
-    swiftAmlDemo::getTimerStartTime() = std::chrono::high_resolution_clock::now();
+    entityResolution::getTimerStartTime() = std::chrono::high_resolution_clock::now();
     return true;
 }
 
 inline double udf_elapsed_time(bool dummy) {
-    swiftAmlDemo::t_time_point cur_time = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> l_durationSec = cur_time - swiftAmlDemo::getTimerStartTime();
+    entityResolution::t_time_point cur_time = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> l_durationSec = cur_time - entityResolution::getTimerStartTime();
     double l_timeMs = l_durationSec.count() * 1e3;
     return l_timeMs;
 }
@@ -59,11 +59,11 @@ inline int64_t udf_peak_memory_usage(double& VmPeak, double& VmHWM)
     while (std::getline(proc_status, line)) {
         std::size_t pos = line.find("VmPeak");
         if( pos != string::npos) {
-            VmPeak = swiftAmlDemo::extract_size_in_kB(line);
+            VmPeak = entityResolution::extract_size_in_kB(line);
         }
         pos = line.find("VmHWM");
         if( pos != string::npos) {
-            VmHWM = swiftAmlDemo::extract_size_in_kB(line);
+            VmHWM = entityResolution::extract_size_in_kB(line);
         }
     }
     return 0L;
@@ -102,7 +102,7 @@ inline int udf_fuzzymatch_cpu(ListAccum<string> sourceList, ListAccum<string> ta
     return execTime;
 }
 
-// mergeHeaders 1 section body end swiftAmlDemo DO NOT REMOVE!
+// mergeHeaders 1 section body end entityResolution DO NOT REMOVE!
 
 }  // namespace UDIMPL
 #endif
