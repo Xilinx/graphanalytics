@@ -35,6 +35,32 @@ int FindSegmentPoint( // return nv_end_start
 }
 
 template <class T>
+int CSRPartition_average_onOnekernel( // return the real number of partition
+    int num_chnl_par,
+    CSR<T>& src,
+    T limit_nv,
+    T limit_ne,
+    CSR<T>* des[]) {
+    if (num_chnl_par <= 0 || !src.isInit()) return -1;
+
+    T nv_ref = (src.NV + num_chnl_par - 1) / num_chnl_par;
+
+    T nv_start = 0;
+    T ne_start = 0;
+    int cnt_par = 0;
+    do {
+        T nv_end_start = nv_start + nv_ref;
+        if (nv_end_start > src.NV) nv_end_start = src.NV;
+        des[cnt_par] = new CSR<T>;
+        des[cnt_par]->Init(nv_start, nv_end_start, src);
+
+        nv_start = nv_end_start;
+        cnt_par++;
+    } while (nv_start != src.NV);
+    return cnt_par;
+}
+
+template <class T>
 int CSRPartition_average( // return the real number of partition
     int num_chnl_par,
     CSR<T>& src,
@@ -57,32 +83,6 @@ int CSRPartition_average( // return the real number of partition
         // }else{
         //     std::cout << "id=" << cnt_par+1 << " offsetTable=" << nv_end_start << " indexTable=" << src.offset[nv_end_start] << std::endl;
         // }
-        nv_start = nv_end_start;
-        cnt_par++;
-    } while (nv_start != src.NV);
-    return cnt_par;
-}
-
-template <class T>
-int CSRPartition_average_onOnekernel( // return the real number of partition
-    int num_chnl_par,
-    CSR<T>& src,
-    T limit_nv,
-    T limit_ne,
-    CSR<T>* des[]) {
-    if (num_chnl_par <= 0 || !src.isInit()) return -1;
-
-    T nv_ref = (src.NV + num_chnl_par - 1) / num_chnl_par;
-
-    T nv_start = 0;
-    T ne_start = 0;
-    int cnt_par = 0;
-    do {
-        T nv_end_start = nv_start + nv_ref;
-        if (nv_end_start > src.NV) nv_end_start = src.NV;
-        des[cnt_par] = new CSR<T>;
-        des[cnt_par]->Init(nv_start, nv_end_start, src);
-
         nv_start = nv_end_start;
         cnt_par++;
     } while (nv_start != src.NV);
@@ -734,7 +734,7 @@ int PartitionHop<T>::CreatePartitionForKernel( // Created
             num_ch_cover++; // To find proper number of channel of divid factor of num_chnl_knl
         num_knl_par = (num_ch_cover + this->num_chnl_knl - 1) / this->num_chnl_knl;
         printf("Number of kernel to cover graph (Estimated) : %5d\n", num_knl_par);
-        assert(num_knl_par == 1);//const num_chnl_par=4 for kernel now
+        assert(num_knl_par == 1);
         this->num_chnl_par = CSRPartition_average_onOnekernel(/*1 * num_ch_cover*/num_chnl_knl, *hop_src, limit_v_b, limit_e_b, par_chnl_csr);/*1 * num_ch_cover*/ //todo
         while (num_chnl_par > num_knl_par * num_chnl_knl) {
             this->FreePar();
@@ -979,6 +979,54 @@ int HopKernel<T>::BatchOneHop(PackBuff<T>* p_buff_pop,
     return 0;
 }
 
+unsigned oneHop(unsigned hop, unsigned des, unsigned next, unsigned* offset, unsigned* index) {
+    if (hop == 0) {
+        if (next == des)
+            return 1;
+        else
+            return 0;
+    } else {
+        unsigned start = offset[next];
+        unsigned end = offset[next + 1];
+        unsigned cnt = 0;
+        for (int j = start; j < end; j++) {
+            cnt += oneHop(hop - 1, des, index[j], offset, index);
+        }
+        if (next == des)
+            return cnt + 1;
+        else
+            return cnt;
+    }
+}
+void referenceHop(unsigned hop,
+                  unsigned* offset,
+                  unsigned* index,
+                  unsigned numPairs,
+                  ap_uint<128>* pairs,
+                  std::unordered_map<unsigned long, float>& goldenHashMap) {
+    unsigned long golden_src;
+    unsigned long golden_des;
+    unsigned golden_res;
+    for (int i = 0; i < numPairs; i++) {
+        golden_src = pairs[i](31, 0);
+        golden_des = pairs[i](63, 32);
+        golden_res = 0;
+        unsigned start = offset[golden_src];
+        unsigned end = offset[golden_src + 1];
+        for (int j = start; j < end; j++) {
+            golden_res += oneHop(hop - 1, golden_des, index[j], offset, index);
+            // if(golden_src==1261226 && golden_des==477321)
+            //    std::cout<<index[j]<<std::endl;
+        }
+        unsigned long tmp = 0UL | (golden_src + 1) << 32UL | (golden_des + 1);
+        if (golden_res != 0) {
+            goldenHashMap.insert(std::pair<unsigned long, unsigned>(tmp, golden_res));
+            // std::cout << "ref result: src=" << golden_src + 1 << " des=" << golden_des + 1 << " res=" << golden_res
+            //          << std::endl;
+        }
+    }
+}
+
 // hop processing 1 batch of vertex on FPGA
 template <class T>
 int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
@@ -993,6 +1041,29 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
                                     commendInfo commendInfo,
                                     timeInfo* p_timeInfo,
                                     IndexStatistic* p_stt) {
+    // -------------setup FIFO params-------------
+    long size_golden = 100;
+    long freqMHz = 200;
+    long us_sleep = 100;
+    long us_over = us_sleep;
+
+    long pop_blen_read = 128; // suggested burst reading lenght, it not met, then waiting pop_ii_check cycles and check
+                              // again, it check times met pop_max_check then read anyway
+    long pop_ii_check = 128;  // watint cycles for next checking
+    long pop_max_check = 8;
+
+    long cycle2sleep = us_sleep * freqMHz;
+    long times_over_sleep = ((us_over + us_sleep - 1) / us_sleep);
+    long cycle_over = cycle2sleep * times_over_sleep;
+
+    std::cout << "us_sleep           = " << us_sleep << "us\n";
+    std::cout << "us_over            = " << us_over << "us\n";
+    std::cout << "uscycle2sleep_over = " << cycle2sleep << "\n";
+    std::cout << "times_over_sleep   = " << times_over_sleep << "\n";
+    std::cout << "cycle_over         = " << cycle_over << "\n\n";
+
+    // -------------setup k0 params---------------
+
     // PackBuff<T>* p_buff_pp_w = this->p_buff_pp[cnt_bat&1];
     T sz_idx = 0;
     T sz_pop = 0;
@@ -1034,14 +1105,14 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
                 indexTable[0] = pch->pCSR->offset[offsetTable[0]];//indexShift
             }
             offsetTable[i+1] = pch->pCSR->V_end_1;
-            indexTable[i+1] = pch->pCSR->E_end;//indexShift;//
+            indexTable[i+1] = pch->pCSR->E_end;//indexShift;//pCSR->E_end;
             offsetBuffer[i] = aligned_alloc<unsigned>(pch->pCSR->NV + 1 + 4096);
             indexBuffer[i] = aligned_alloc<unsigned>(pch->pCSR->NE + 4096);
             memcpy((void*)(offsetBuffer[i]), (void*)pch->pCSR->offset,  (pch->pCSR->NV+1)*sizeof(T));
             memcpy((void*)(indexBuffer[i]), (void*)pch->pCSR->index,  (pch->pCSR->NE)*sizeof(T));
         }
         for (int i = 0; i < pu+1; i++) {
-            std::cout << "INFO: id=" << i << " offsetTable=" << offsetTable[i] << " indexTable=" << indexTable[i]
+            std::cout << "id=" << i << " offsetTable=" << offsetTable[i] << " indexTable=" << indexTable[i]
                       << std::endl;
         }
     } else { // duplicate the subgraph to n channels, because the graph is small < 1 channel capability
@@ -1071,8 +1142,8 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
             }
         }
     }
-    offsetTable[pu+1] = offsetTable[0];
-    offsetTable[pu+2] = offsetTable[pu];
+    // offsetTable[pu+1] = offsetTable[0];
+    // offsetTable[pu+2] = offsetTable[pu];
 
     for (int i = 0; i < 32; i++) {
         ap_uint<32> id = i;
@@ -1096,11 +1167,13 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
     }
 
     // initilaize buffer and config
+    unsigned* config = aligned_alloc<unsigned>(1024);
     unsigned* numOut = aligned_alloc<unsigned>(1024);
     ap_uint<512>* local = aligned_alloc<ap_uint<512> >(3 << 20);
     ap_uint<512>* netSwitch = aligned_alloc<ap_uint<512> >(3 << 20);
     ap_uint<512>* zeroBuffer0 = aligned_alloc<ap_uint<512> >(4 << 20);
     ap_uint<512>* zeroBuffer1 = aligned_alloc<ap_uint<512> >(4 << 20);
+    ap_uint<512>* zeroBuffer2 = aligned_alloc<ap_uint<512> >(4 << 20);
     for(int i=0; i<(4 << 20); i++ ){
         if(i<(3 << 20)){
             local[i] = 0;
@@ -1108,25 +1181,42 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
         }
         zeroBuffer0[i] = 0;
         zeroBuffer1[i] = 0;
+        zeroBuffer2[i] = 0;
     }
     numOut[0] = 0;
     numOut[1] = 0;
+
+        int j = 0;
+    // hop kernel config
+    config[j++] = numHop;
+    config[j++] = 0;
+    config[j++] = numPairs;
+    config[j++] = batchSize;
+    config[j++] = 4096;
+    config[j++] = 4096;
+    config[j++] = byPass;
+    config[j++] = duplicate;
+
+    // mem fifo config
+    config[j++] = 1 << 20;
+    config[j++] = us_sleep;
+    config[j++] = us_over;
+    config[j++] = pop_blen_read;
+    config[j++] = pop_ii_check;
+    config[j++] = pop_max_check;
+    config[j++] = 1;
+    config[j++] = 0;
+    config[j++] = 64;
 
     // do pre-process on CPU
     //struct timeval start_time, end_time;
 
 #ifndef HLS_TEST
 
-    nHop_L2_host(numHop, 
-                    0,
-                    numPairs,  
-                    batchSize, //--batch 4096
-                    65536,
-                    byPass,    
-                    duplicate, 
-                    (ap_uint<512>*)pair,
-                    offsetTable, indexTable, cardTable, offsetBuffer, (ap_uint<128>**)indexBuffer,
-                    zeroBuffer0, zeroBuffer1, numOut, local, netSwitch,
+    nHop_L2_host(config,
+                    (ap_uint<512>*)pair, offsetTable, indexTable, cardTable, 
+                    offsetBuffer, (ap_uint<128>**)indexBuffer,
+                    zeroBuffer0, zeroBuffer1, zeroBuffer2, numOut, local, netSwitch,
                     numVertices, numEdges, pu, p_timeInfo, xclbin_path
                     );
 
@@ -1214,6 +1304,103 @@ int HopKernel<T>::BatchOneHopOnFPGA(PackBuff<T>* p_buff_pop,
         free(offsetBuffer[i]);
         free(indexBuffer[i]);
     }
+
+    #if 0
+        std::unordered_map<unsigned long, float> goldenHashMap;
+        unsigned *offset32 = aligned_alloc<unsigned>(NV+1);
+        unsigned *index32 = aligned_alloc<unsigned>(NE);
+        for (int i = 0; i < pu; i++) {
+            for (int j = offsetTable[i]; j < offsetTable[i + 1] + 1; j++) {
+                offset32[j] = offsetBuffer[i][j - offsetTable[i]];
+                // std::cout << "i=" << i << " j=" << j - offsetTable[i] << " offset=" << offset32[j] << std::endl;
+            }
+        }
+        for (int i = 0; i < pu; i++) {
+            ap_uint<32> numEdgesPU = indexTable[i + 1] - indexTable[i];
+            std::cout << "numEgdesPU=" << numEdgesPU << std::endl;
+            for (int j = indexTable[i]; j < indexTable[i + 1]; j++) {
+                index32[j] = indexBuffer[i][j - indexTable[i]];
+                // std::cout << "i=" << i << " j=" << j - indexTable[i] << " index=" << index32[j] << std::endl;
+            }
+        }
+        // std::fstream goldenfstream(goldenfile.c_str(), std::ios::in);
+        // if (!goldenfstream) {
+            std::cout << "INFO: generating golden" << std::endl;
+            referenceHop(numHop, offset32, index32, numPairs, pair, goldenHashMap);
+        // } else {
+        //     while (goldenfstream.getline(line, sizeof(line))) {
+        //         std::string str(line);
+        //         std::replace(str.begin(), str.end(), ',', ' ');
+        //         std::stringstream data(str.c_str());
+        //         unsigned long golden_src;
+        //         unsigned long golden_des;
+        //         unsigned golden_res;
+        //         data >> golden_src;
+        //         data >> golden_des;
+        //         data >> golden_res;
+        //         unsigned long tmp = 0UL | golden_src << 32UL | golden_des;
+        //         if (golden_res != 0) goldenHashMap.insert(std::pair<unsigned long, unsigned>(tmp, golden_res));
+        //     }
+        //     goldenfstream.close();
+        // }
+
+        std::unordered_map<unsigned long, float> resHashMap;
+        for (int i = 0; i < numOut[0]; i++) {
+            for (int j = 0; j < 4; j++) {
+                unsigned long tmp_src = local[i].range(128 * j + 31, 128 * j);
+                unsigned long tmp_des = local[i].range(128 * j + 63, 128 * j + 32);
+                unsigned long tmp_res = local[i].range(128 * j + 95, 128 * j + 64);
+                unsigned long tmp = 0UL | (tmp_src + 1) << 32UL | (tmp_des + 1);
+                if (tmp_res != 0) {
+                    resHashMap.insert(std::pair<unsigned long, unsigned>(tmp, tmp_res));
+                }
+
+                // std::cout << "kernel result: src=" << tmp_src << " des=" << tmp_des << " res=" << tmp_res <<
+                // std::endl;
+            }
+        }
+
+        if (resHashMap.size() != goldenHashMap.size()) {
+            std::cout << "miss pairs! number of kernel result=" << resHashMap.size()
+                      << " number of golden=" << goldenHashMap.size() << std::endl;
+
+            for (auto it = goldenHashMap.begin(); it != goldenHashMap.end(); it++) {
+                unsigned long tmp_src = (it->first) / (1UL << 32UL);
+                unsigned long tmp_des = (it->first) % (1UL << 32UL);
+                unsigned long tmp_res = it->second;
+                auto got = resHashMap.find(it->first);
+                if (got == resHashMap.end()) {
+                    std::cout << "ERROR: pair not found! golden_src: " << tmp_src << " golden_des: " << tmp_des
+                              << " golden_res: " << tmp_res << std::endl;
+                    //err++;
+                } else if (got->second != it->second) {
+                    std::cout << "ERROR: incorrect count! tmp_src: " << (got->first) / (1UL << 32UL)
+                              << " tmp_des: " << (got->first) % (1UL << 32UL) << " tmp_res: " << (got->second)
+                              << " golden_src: " << tmp_src << " golden_des: " << tmp_des << " golden_res: " << tmp_res
+                              << std::endl;
+                    //err++;
+                }
+            }
+        } else {
+            for (auto it = resHashMap.begin(); it != resHashMap.end(); it++) {
+                unsigned long tmp_src = (it->first) / (1UL << 32UL);
+                unsigned long tmp_des = (it->first) % (1UL << 32UL);
+                unsigned long tmp_res = it->second;
+                auto got = goldenHashMap.find(it->first);
+                if (got == goldenHashMap.end()) {
+                    std::cout << "ERROR: pair not found! cnt_src: " << tmp_src << " cnt_des: " << tmp_des
+                              << " cnt_res: " << tmp_res << std::endl;
+                    //err++;
+                } else if (got->second != it->second) {
+                    std::cout << "ERROR: incorrect count! golden_src: " << (got->first) / (1UL << 32UL)
+                              << " golden_des: " << (got->first) % (1UL << 32UL) << " golden_res: " << (got->second)
+                              << " cnt_src: " << tmp_src << " cnt_des: " << tmp_des << " cnt_res: " << tmp_res
+                              << std::endl;
+                    //err++;
+                }
+            }
+        }
+    #endif
 
     return 0;
 }
