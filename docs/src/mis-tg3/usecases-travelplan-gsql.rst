@@ -12,7 +12,7 @@ Run Bash Script with GSQL
 
    cd mis-examples/travelplan
 
-   # Inbstall demo specific UDFs. This is ONLY needed to run once.
+   # Install demo specific UDFs. This is needed to run **ONLY ONCE**.
    ./bin/install-udf.sh
 
    # Print travelplan demo help messages

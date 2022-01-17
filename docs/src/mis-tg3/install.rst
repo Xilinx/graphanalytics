@@ -58,33 +58,34 @@ Both products reside in one GitHub repository.
 
 * Clone the Xilinx Graph Analytics repository from GitHub.
 
-.. code-block:: bash
+  .. code-block:: bash
 
-   git clone https://github.com/Xilinx/graphanalytics.git
+    git clone https://github.com/Xilinx/graphanalytics.git
 
 * Build and install the Maximum Independent Set package. The Ubuntu apt package manager is used as an example.
 
-.. code-block:: bash
+  .. code-block:: bash
 
-   cd mis
-   make dist
-   sudo apt install --reinstall ./package/xilinx-mis-1.0_18.04-x86_64.deb
+    cd mis
+    make dist
+    sudo apt install --reinstall ./package/xilinx-mis-1.0_20.04-x86_64.deb
 
 * Build and install the Maximal Independent Set for TigerGraph 3.x package. (Replace the package
   installation command and name for your server's OS.)
 
-.. code-block:: bash
+  .. code-block:: bash
 
-  cd plugin/tigergraph/mis
-  make dist
-  sudo apt install --reinstall ./package/xilinx-mis-tigergraph-1.0_18.04-x86_64.deb
+    cd plugin/tigergraph/mis
+    make dist
+    sudo apt install --reinstall ./package/xilinx-mis-tigergraph-1.0_20.04-x86_64.deb
 
-* Install the Maximal Independent Set plug-in into the TigerGraph installation.  This step makes TigerGraph aware
-  of the Maximal Independent Set features.
+    /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/0.1/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
 
-.. code-block:: bash
+  Supported Alveo devices:
 
-   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/install.sh
+  * U50: xilinx_u50_gen3x16_xdma_201920_3 
+  * U55C: xilinx_u55c_gen3x16_xdma_base_2   
+
 
 Flash the Alveo Cards
 ---------------------

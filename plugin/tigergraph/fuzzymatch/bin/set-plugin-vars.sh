@@ -33,6 +33,7 @@ pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/fuzzymatch/0.1
 pluginLocalAlveoProductPath=$SCRIPTPATH/../../../../../fuzzymatch/staging
 
 # The name of supported XCLBIN files
+pluginSupportedDevices="xilinx_u50_gen3x16_xdma_201920_3 xilinx_aws-vu9p-f1_shell-v04261818_201920_2"
 pluginXclbinNameU50=fuzzy_xilinx_u50_gen3x16_xdma_201920_3.xclbin
 pluginXclbinNameAwsF1=fuzzy_xilinx_aws-vu9p-f1_shell-v04261818_201920_2.awsxclbin
 pluginXclbinNameU55C=

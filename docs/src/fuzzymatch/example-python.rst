@@ -6,7 +6,7 @@ Python Example with Fuzzy Match
 
 * Open python virtual environment and install pandas package.
 
-.. code-block:: bash
+  .. code-block:: bash
 
     python3 -m venv venv
     . venv/bin/activate
@@ -14,7 +14,7 @@ Python Example with Fuzzy Match
 
 * Execute following commands to run the example
 
-.. code-block:: bash
+  .. code-block:: bash
 
     cp -r /opt/xilinx/apps/graphanalytics/fuzzymatch/0.1/examples fuzzymatch-examples
     cd fuzzymatch-examples/python

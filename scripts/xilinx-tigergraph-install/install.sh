@@ -56,7 +56,7 @@ do
 case $opt in
     p) product=$OPTARG;;
     s) install_dep=0;;
-    h) usage; exit 1;;
+    h) usage; exit 0;;
     ?) echo "ERROR: Unknown option: -$OPTARG"; usage; exit 1;;
 esac
 done
@@ -73,13 +73,19 @@ if [[ $OSDIST == "ubuntu" ]]; then
         pkg_dir="./ubuntu-20.04"        
     else
         echo "ERROR: Ubuntu release version must be 18.04 or 20.04."
-        return 1
+        exit 2
     fi
 elif [[ $OSDIST == "centos" ]]; then
     pkg_dir="./centos-7.8"
 else 
     echo "ERROR: only Ubuntu and Centos are supported."
-    return 1
+    exit 3
+fi
+
+if [[ $product == "none" ]] ; then
+    echo "ERROR: Must select a product to install via -p option."
+    usage
+    exit 4
 fi
 
 is_supported=0
@@ -95,7 +101,7 @@ done
 if [[ $is_supported -eq 0 ]] ; then
     echo "ERROR: Unsupported product $product"
     usage
-    exit 2
+    exit 5
 fi
 
 if [[ $OSDIST == "ubuntu" ]]; then
