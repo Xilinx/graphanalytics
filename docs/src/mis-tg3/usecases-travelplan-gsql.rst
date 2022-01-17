@@ -11,6 +11,10 @@ Run Bash Script with GSQL
    cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/0.1/examples mis-examples
 
    cd mis-examples/travelplan
+
+   # Inbstall demo specific UDFs. This is ONLY needed to run once.
+   ./bin/install-udf.sh
+
    # Print travelplan demo help messages
    ./bin/run.sh -h
 

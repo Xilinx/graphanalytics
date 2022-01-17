@@ -7,7 +7,7 @@ Setup Recommendation Engine for TigerGraph 3.x run
 The Recommendation Engine consists of Cosine Similarity library integrated into 
 TigerGraph 3.x via plugins and UDFs.
 
-.. include:: ../install-conda-python.rst
+.. include:: ../common/install-conda-python.rst
 
 * Now copy examples to user accessible directory
 

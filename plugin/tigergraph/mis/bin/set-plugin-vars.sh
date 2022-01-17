@@ -33,6 +33,7 @@ pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/mis/0.1
 pluginLocalAlveoProductPath=$SCRIPTPATH/../../../../../mis/staging
 
 # The name of supported XCLBIN files
+pluginSupportedDevices="xilinx_u50_gen3x16_xdma_201920_3 xilinx_u55c_gen3x16_xdma_base_2"
 pluginXclbinNameU50=mis_xilinx_u50_gen3x16_xdma_201920_3.xclbin
 pluginXclbinNameAwsF1=
 pluginXclbinNameU55C=mis_xilinx_u55c_gen3x16_xdma_2_202110_1.xclbin

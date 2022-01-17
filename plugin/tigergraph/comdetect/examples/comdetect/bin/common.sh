@@ -122,13 +122,6 @@ if [ -z "$alveo_prj" ]; then
     usage
     exit 3
 fi
-# need to download gsql client first before using it to check for other error conditions
-#if [ ! -f "$HOME/gsql-client/gsql_client.jar" ]; then
-#    mkdir -p $HOME/gsql-client
-#    wget -o wget.log -O $HOME/gsql-client/gsql_client.jar \
-#        'https://dl.bintray.com/tigergraphecosys/tgjars/com/tigergraph/client/gsql_client/3.1.0/gsql_client-3.1.0.jar'
-#    echo "INFO: Downloaded the latest gsql client"
-#fi
 
 if [ $(gsql -u $username -p $password "show user" | grep -c $username) -lt 1 ]; then
     echo "ERROR: TigerGraph user $username does not exist."

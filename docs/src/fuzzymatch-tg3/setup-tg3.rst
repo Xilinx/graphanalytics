@@ -7,7 +7,7 @@ Set up Fuzzy Match TigerGraph Plugin
 The Fuzzy Match plugin consists of Fuzzy Match library integrated into TigerGraph 
 via UDFs.
 
-.. include:: ../install-conda-python.rst
+.. include:: ../common/install-conda-python.rst
 
 * Now copy examples to user accessible directory
 

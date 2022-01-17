@@ -19,8 +19,9 @@
 #all: javaApi cppBuild javaTest stage
 all: stage
 
-# Product version
+# Product version/name
 PRODUCT_VER=$(strip $(shell cat VERSION))
+STANDALONE_NAME = fuzzymatch
 
 SWIFTAML_DIR = examples/swiftaml
 ENTRESOLUTION_DIR = examples/entity-resolution

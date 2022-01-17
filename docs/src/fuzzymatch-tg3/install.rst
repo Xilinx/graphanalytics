@@ -1,22 +1,23 @@
-Xilinx Fuzzy Match for TigerGraph 3.x Installation
-==================================================
+==============================================
+Xilinx Fuzzy Match for TigerGraph Installation
+==============================================
 
 Follow the instructions in each of the sections below to install the Fuzzy Match  
 products on your server.
 
-.. include:: ../install-alveo.rst
-.. include:: ../install-tigergraph.rst
+.. include:: ../common/install-alveo.rst
+.. include:: ../common/install-tigergraph.rst
 
-Install the Fuzzy Match Software
---------------------------------------------
+Install Fuzzy Match Software
+----------------------------
 
 To install the Fuzzy Match product, you can either install a DEB/RPM 
 pre-built package, or you can build the Fuzzy Match from sources if 
 you would like to collaborate with Xilinx and contribute to the Fuzzy Match
 product. Follow the steps in *only one* of the two sections below.
 
-Install the Fuzzy Match from a Package
-**************************************
+Install Fuzzy Match from a Package
+**********************************
 
 * Get the installation package xilinx-tigergraph-install-x.y.z.tar.gz from the
   `Database Analytics POC Secure Site <https://www.xilinx.com/member/dba_poc.html>`_.  
@@ -57,8 +58,8 @@ Install the Fuzzy Match from a Package
 
    /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/install.sh
 
-Flash the Alveo Cards
----------------------
+Flash Alveo Cards
+-----------------
 
 The Fuzzy Match requires the xilinx_u50_gen3x16_xdma_201920_3 shell to be installed on each
 Alveo card to use.  Check and install the shell by following the steps below.

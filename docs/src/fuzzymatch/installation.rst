@@ -3,7 +3,7 @@ Xilinx Fuzzy Match Alveo Product Installation
 
 Follow the steps below to install the Fuzzy Match Alveo Alveo Product.
 
-.. include:: ../install-alveo.rst
+.. include:: ../common/install-alveo.rst
 
 Installing Fuzzy Match Alveo from a Pre-built Package
 ------------------------------------------------------------------

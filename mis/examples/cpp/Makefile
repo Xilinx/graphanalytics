@@ -57,23 +57,15 @@ endif
 CXXFLAGS = -std=c++14 -fPIC -pthread -I$(INCLUDE_PATH) -Wall -Wextra -Wno-unknown-pragmas -Wno-unused-label \
     -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers -Wno-deprecated-declarations
 
-ifdef U50C
-    deviceNames ?= xilinx_u50c_gen3x16_xdma_201920_3
-else
-    deviceNames ?= xilinx_u50_gen3x16_xdma_201920_3
+deviceNames=xilinx_u50_gen3x16_xdma_201920_3
+ifeq ($(deviceNames),xilinx_u50_gen3x16_xdma_201920_3)
+	XCLBIN_FILE := $(XCLBIN_PATH)/mis_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+else ifeq ($(deviceNames),xilinx_u55c_gen3x16_xdma_base_2)
+	XCLBIN_FILE := $(XCLBIN_PATH)/mis_xilinx_u55c_gen3x16_xdma_2_202110_1.xclbin
 endif
-XDEVICE = $(basename $(notdir $(deviceNames)))
-
-
-XF_LIB_DIR := $(abspath $(XF_PROJ_ROOT))/examples
-
-ifneq (,$(shell echo $(XDEVICE) | awk '/u50c/'))
-XCLBIN_FILE := $(XCLBIN_PATH)/mis_xilinx_u50c_gen3x16_xdma_201920_3.xclbin
-else ifneq (,$(shell echo $(XDEVICE) | awk '/u50/'))
-XCLBIN_FILE := $(XCLBIN_PATH)/mis_xilinx_u50_gen3x16_xdma_201920_3.xclbin
-else
-$(warning [WARNING]: This project has not been tested for $(deviceNames). It may or may not work.)
-endif
+#else
+#$(warning [WARNING]: This project has not been tested for $(deviceNames). It may or may not work.)
+#endif
 
 
 EXE_FILE := misdemo
@@ -104,7 +96,7 @@ run: $(EXE_FILE)
 	set -e; \
 	. $(XILINX_XRT)/setup.sh; \
 	LD_LIBRARY_PATH=$(LIB_PATH):$$LD_LIBRARY_PATH; \
-	$(abspath $^) -xclbin $(XCLBIN_FILE) -d ../data -devices $(deviceNames) 
+	$(abspath $^) -xclbin $(XCLBIN_FILE) -d ../data --devices $(deviceNames) 
 		
 
 clean:
@@ -116,9 +108,9 @@ help:
 	@echo "    Run standalone test with statically linked executable"
 	@echo ""
 	@echo "  Run options:"
-	@echo "  deviceNames  : Specify Alveo devices to use for computation"
-	@echo "                 Supported devices:"
+	@echo "  deviceNames  : Specify Alveo devices to use for computation. Supported devices:"
 	@echo "                 xilinx_u50_gen3x16_xdma_201920_3 "
+	@echo "                 xilinx_u55c_gen3x16_xdma_base_2"
 	@echo ""
 	@echo "  make test"
 	@echo "    Compile mis test exe"

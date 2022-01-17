@@ -64,8 +64,9 @@ under Apache License, Version 2.0
     :caption: Additional Info
     :maxdepth: 1
 
-    tg3-plugins.rst
     vitis-dev-flow.rst
+    ..tg3-plugins.rst
+    
 
 .. toctree::
    :caption: Notice

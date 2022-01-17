@@ -23,19 +23,25 @@ set -e
 SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`
 
+# Read plugin specific variables
+. $SCRIPTPATH/bin/set-plugin-vars.sh
+
 function usage() {
     echo "Usage: $0 [options]"
     echo "Options:"
     echo "  -i sshKey        : SSH key for user tigergraph"    
     echo "  -a mem_alloc     : Change memory allocator default=jemalloc. " 
-    echo "  -d device-name   : Specify Alveo device name. Valid values: "
-    echo "                     xilinx_u50_gen3x16_xdma_201920_3"
-	echo "                     xilinx_u55c_gen3x16_xdma_base_2"
-    echo "                     xilinx_aws-vu9p-f1_shell-v04261818_201920_2"
+    echo "  -d device-name   : Specify Alveo device name. Supported devices: "
+
+    for dev in $pluginSupportedDevices
+    do
+        echo "                     $dev"
+    done
+
     echo "  -f               : Force installation"
     echo "  -g               : Build plugin libraries with __DEBUG__"
     echo "  -p               : Turn on XRT profiling and timetrace"
-    echo "  -u               : Uninstall Xilinx Recommendation Engine"
+    echo "  -u               : Uninstall $pluginAlveoProductName"
     echo "  -v               : Verbose output"
     echo "  -h               : Print this help message"
 }
@@ -47,24 +53,37 @@ if [ -f ~/.ssh/tigergraph_rsa ]; then
 fi
 
 flags=
+device="notset"
 while getopts ":i:uha:d:fghpuv" opt
 do
 case $opt in
     i) ssh_key=$OPTARG; ssh_key_flag="-i $ssh_key";;
-    a|d) flags="$flags -$opt $OPTARG";;
+    a) flags="$flags -$opt $OPTARG";;
+    d) device=$OPTARG; flags="$flags -$opt $device";;
     f|g|p|u|v) flags="$flags -$opt";;
     h) usage; exit 1;;
     ?) echo "ERROR: Unknown option: -$OPTARG"; usage; exit 1;;
 esac
 done
 
+if [[ "$device" == "notset" ]] ; then
+    echo "ERROR: Alveo device name must be set via -d option."
+    usage
+    exit 2
+else
+    echo "--------------------------------------------------------------------------------"
+    echo "INFO: Install $pluginAlveoProductName plugin targetting $device"
+    echo "--------------------------------------------------------------------------------"
+fi
+
 if [ "$USER" == "tigergraph" ]; then
     ${SCRIPTPATH}/bin/install-plugin-cluster.sh $flags
 else
-    echo "------------------------------------------------------------------------------------------------------------"
-    echo "INFO: Running installation as user \"tigergraph\" with $flags. Enter password for \"tigergraph\" if prompted."
+    echo "--------------------------------------------------------------------------------"
+    echo "INFO: Running installation as user \"tigergraph\" with $flags. "
+    echo "Enter password for \"tigergraph\" if prompted."
     echo "INFO: command=ssh $ssh_key_flag tigergraph@$hostname ${SCRIPTPATH}/bin/install-plugin-cluster.sh $flags"    
-    echo "------------------------------------------------------------------------------------------------------------"
+    echo "--------------------------------------------------------------------------------"
     ssh $ssh_key_flag tigergraph@$hostname ${SCRIPTPATH}/bin/install-plugin-cluster.sh $flags
 fi
 

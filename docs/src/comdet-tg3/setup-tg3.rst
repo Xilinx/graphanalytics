@@ -7,7 +7,7 @@ Set up Community Detection for TigerGraph 3.x
 The Community Detection consists of Louvain Modularity library integrated into 
 TigerGraph 3.x via plugins and UDFs.
 
-.. include:: ../install-conda-python.rst
+.. include:: ../common/install-conda-python.rst
 
 * Now copy examples to user accessible directory
 

@@ -21,8 +21,9 @@ all:
 
 #all: stage
 
+
+# Product name and version
 STANDALONE_NAME = mis
-# Product version
 PRODUCT_VER=$(strip $(shell cat VERSION))
 
 EXAMPLE_DIR = examples/travelplan

@@ -18,32 +18,6 @@
 .PHONY: all	
 all: stage
 #all: stage cppBuild pythonApi  
-help:
-	@echo "Makefile usages:"
-	@echo "  make run [deviceNames=xilinx_u50_gen3x16_xdma_201920_3]"
-	@echo "    Run standalone test with statically linked executable"
-	@echo ""
-	@echo "  Run options:"
-	@echo "  deviceNames  : Specify Alveo devices to use for computation"
-	@echo "                 Supported devices:"
-	@echo "                 xilinx_u50_gen3x16_xdma_201920_3 (default)"
-	@echo "                 xilinx_u55c_gen3x16_xdma_base_2"
-	@echo "  totalEntities: total number of entities to match against(default=10000000)"
-	@echo ""
-	@echo "  make all"
-	@echo "  Compile MIS lib and generate staging area"
-	@echo "" 
-	@echo "  make dist"
-	@echo "  Generate product installation package (RPM or DEB) for the current OS and architecture"
-	@echo "" 
-	@echo "  make clean-dist"
-	@echo "  Clean build area for distribution packages"
-	@echo "" 
-	@echo "  make run-staging-cpp"
-	@echo "  Run the CPP example from the staging area"
-	@echo ""
-	@echo "  Common options"
-	@echo "  INC_ALL_XCLBINS: 1: Include all supported XCLBINs for staging (default). 0: Only incude target XCLBIN"
 
 SHELL := /bin/bash
 
@@ -66,8 +40,9 @@ GRAPH_ANALYTICS_DIR = ..
 
 # General output directory for intermediate build artifacts
 BUILD_DIR = build
-# Product version
+# Product version and name
 PRODUCT_VER=$(strip $(shell cat VERSION))
+STANDALONE_NAME=mis
 
 #######################################################################################################################
 #
@@ -474,23 +449,36 @@ $(STAGE_SUBDIRS):
 #
 
 OSDIST = $(shell lsb_release -si)
+OSVER = $(shell lsb_release -sr)
 DIST_TARGET =
+OSDISTLC =
 ifeq ($(OSDIST),Ubuntu)
-    DIST_TARGET = DEB
+    DIST_TARGET = deb
+	OSDISTLC = ubuntu
 else ifeq ($(OSDIST),CentOS)
-    DIST_TARGET = RPM
+    DIST_TARGET = rpm
+	OSDISTLC = centos
 endif
+
+ARCH = $(shell uname -p)
+CPACK_PACKAGE_FILE_NAME= xilinx-$(STANDALONE_NAME)-$(PRODUCT_VER)_$(OSVER)-$(ARCH).$(DIST_TARGET)
+DIST_INSTALL_DIR = $(GRAPH_ANALYTICS_DIR)/scripts/xilinx-tigergraph-install/$(OSDISTLC)-$(OSVER)/$(STANDALONE_NAME)/
 
 .PHONY: dist
 
 dist: stage
-	@cd package; \
-	if [ "$(DIST_TARGET)" == "" ]; then \
+	@if [ "$(DIST_TARGET)" == "" ]; then \
 	    echo "Packaging is supported for only Ubuntu and CentOS."; \
 	else \
 	    echo "Packaging $(DIST_TARGET) for $(OSDIST)"; \
-	    make ; \
+	    cd package; \
+		make ; \
+		cd - ; \
+		cp ./package/$(CPACK_PACKAGE_FILE_NAME) $(DIST_INSTALL_DIR); \
+		echo "INFO: $(CPACK_PACKAGE_FILE_NAME) saved to $(DIST_INSTALL_DIR)"; \
 	fi
+
+
 
 #######################################################################################################################
 #
@@ -528,6 +516,29 @@ cleanall: clean cleanpy
 	rm -f ./package/*.deb ./package/*.rpm
 	
 
-
-
-
+help:
+	@echo "Makefile usages:"
+	@echo "  make run [deviceNames=xilinx_u50_gen3x16_xdma_201920_3]"
+	@echo "    Run standalone test with statically linked executable"
+	@echo ""
+	@echo "  Run options:"
+	@echo "  deviceNames  : Specify Alveo devices to use for computation"
+	@echo "                 Supported devices:"
+	@echo "                 xilinx_u50_gen3x16_xdma_201920_3 (default)"
+	@echo "                 xilinx_u55c_gen3x16_xdma_base_2"
+	@echo "  totalEntities: total number of entities to match against(default=10000000)"
+	@echo ""
+	@echo "  make all"
+	@echo "  Compile MIS lib and generate staging area"
+	@echo "" 
+	@echo "  make dist"
+	@echo "  Generate product installation package (RPM or DEB) for the current OS and architecture"
+	@echo "" 
+	@echo "  make clean-dist"
+	@echo "  Clean build area for distribution packages"
+	@echo "" 
+	@echo "  make run-staging-cpp"
+	@echo "  Run the CPP example from the staging area"
+	@echo ""
+	@echo "  Common options"
+	@echo "  INC_ALL_XCLBINS: 1: Include all supported XCLBINs for staging (default). 0: Only incude target XCLBIN"

@@ -32,19 +32,30 @@
 SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`
 
+supported_products="cosinesim louvainmod mis fuzzymatch"
+
 function usage() {
     echo "Usage: $0 -p product-name [options]"
     echo "Required options:"
-    echo "  -p product-name  : Product to install: cosinesim, louvainmod. "
+    echo "  -p product-name  : Product to install. Supported products:"
+    for prod in $supported_products
+    do
+        echo "      $prod"
+    done
+    
+    echo ""
     echo "Optional options:"
+    echo "  -s               : Skip installation of dependencies (XRT, XRM, etc)"
     echo "  -h               : Print this help message"
 }
 
 product="none"
-while getopts ":p:h" opt
+install_dep=1
+while getopts ":p:sh" opt
 do
 case $opt in
     p) product=$OPTARG;;
+    s) install_dep=0;;
     h) usage; exit 1;;
     ?) echo "ERROR: Unknown option: -$OPTARG"; usage; exit 1;;
 esac
@@ -71,33 +82,43 @@ else
     return 1
 fi
 
-if [[ $product == "cosinesim" || $product == "louvainmod" ]] ; then
-    echo "INFO: Installing Xilinx $product product and its dependencies on $OSDIST $OSREL..."
-else
-    echo "ERROR: product-name must be set to cosinesim or louvainmod."
+is_supported=0
+for prod in $supported_products
+do
+    if [[ $product == $prod ]] ; then
+        is_supported=1
+        echo "INFO: Installing Xilinx $product product and its dependencies on $OSDIST $OSREL..."
+        break
+    fi
+done
+
+if [[ $is_supported -eq 0 ]] ; then
+    echo "ERROR: Unsupported product $product"
     usage
     exit 2
 fi
 
 if [[ $OSDIST == "ubuntu" ]]; then
-    # install XRT/XRM/Deployment shell
-    printf "\n-------------------------------------------------------------\n"
-    printf "INFO: Install XRT. Enter sudo password if asked."
-    printf "\n-------------------------------------------------------------\n"
-    sudo apt install --reinstall $pkg_dir/xrt/xrt*.deb
+    # install dependencies(XRT/XRM/Deployment shell. etc)
+    if [[ $install_dep -eq 1 ]] ; then
+        printf "\n-------------------------------------------------------------\n"
+        printf "INFO: Install XRT. Enter sudo password if asked."
+        printf "\n-------------------------------------------------------------\n"
+        sudo apt install --reinstall $pkg_dir/xrt/xrt*.deb
 
-    printf "\n-------------------------------------------------------------\n"
-    printf "INFO: Install XRM. Enter sudo password if asked."
-    printf "\n-------------------------------------------------------------\n"
-    sudo apt install --reinstall $pkg_dir/xrm/xrm*.deb
+        printf "\n-------------------------------------------------------------\n"
+        printf "INFO: Install XRM. Enter sudo password if asked."
+        printf "\n-------------------------------------------------------------\n"
+        sudo apt install --reinstall $pkg_dir/xrm/xrm*.deb
 
-    printf "\n-------------------------------------------------------------\n"
-    printf "INFO: Install deployment shell. Enter sudo password if asked."
-    printf "\n-------------------------------------------------------------\n"
-    sudo apt install $pkg_dir/../deployment-shell/xilinx*.deb
+        printf "\n-------------------------------------------------------------\n"
+        printf "INFO: Install deployment shell. Enter sudo password if asked."
+        printf "\n-------------------------------------------------------------\n"
+        sudo apt install $pkg_dir/../deployment-shell/xilinx*.deb
 
-    # install required package
-    sudo apt install jq opencl-headers -y
+        # install required package
+        sudo apt install jq opencl-headers -y
+    fi
 
     if [[ $product == "cosinesim" ]]; then
         # install required package
@@ -121,6 +142,16 @@ if [[ $OSDIST == "ubuntu" ]]; then
         printf "INFO: Install Xilinx ComDetect. Enter sudo password if asked."
         printf "\n-------------------------------------------------------------\n"        
         sudo apt install --reinstall $pkg_dir/louvainmod/xilinx-comdetect*.deb
+    elif [[ $product == "mis" ]]; then
+        printf "\n-------------------------------------------------------------\n"
+        printf "INFO: Install Xilinx MIS. Enter sudo password if asked."
+        printf "\n-------------------------------------------------------------\n"
+        sudo apt install --reinstall $pkg_dir/mis/xilinx-mis*.deb
+    elif [[ $product == "fuzzymatch" ]]; then
+        printf "\n-------------------------------------------------------------\n"
+        printf "INFO: Install Xilinx FuzzyMatch. Enter sudo password if asked."
+        printf "\n-------------------------------------------------------------\n"
+        sudo apt install --reinstall $pkg_dir/fuzzymatch/xilinx-fuzzymatch*.deb
     fi
 fi
 

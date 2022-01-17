@@ -37,7 +37,7 @@ edit distance of the strings:
    :alt: Fuzzy Match Similarity Formula
    :width: 400
 
-Two strings are considered as a match if the similarity score is graeter than a 
+Two strings are considered as a match if the similarity score is greater than a 
 user programmable threshold. 
 
 

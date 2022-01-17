@@ -20,7 +20,7 @@ SHELL=/bin/bash
 #
 
 ## Location of graphanalytics project
-GRAPH_ANALYTICS_DIR = ../..
+GRAPH_ANALYTICS_DIR = ../../..
 
 # Location of TigerGraph Plugin common files
 TG_PLUGIN_COMMON_DIR = ../common
@@ -109,30 +109,39 @@ $(STAGE_SUBDIRS):
 #
 
 OSDIST = $(shell lsb_release -si)
+OSVER = $(shell lsb_release -sr)
 DIST_TARGET =
+OSDISTLC =
 ifeq ($(OSDIST),Ubuntu)
-    DIST_TARGET = DEB
+    DIST_TARGET = deb
+	OSDISTLC = ubuntu
 else ifeq ($(OSDIST),CentOS)
-    DIST_TARGET = RPM
+    DIST_TARGET = rpm
+	OSDISTLC = centos
 endif
 
-all : install
+ARCH = $(shell uname -p)
+CPACK_PACKAGE_FILE_NAME= xilinx-$(STANDALONE_NAME)-tigergraph-$(PRODUCT_VER)_$(OSVER)-$(ARCH).$(DIST_TARGET)
+DIST_INSTALL_DIR = $(GRAPH_ANALYTICS_DIR)/scripts/xilinx-tigergraph-install/$(OSDISTLC)-$(OSVER)/$(STANDALONE_NAME)/
 
 .PHONY: dist
 
 dist: stage
-	@cd package; \
-	if [[ "$(DIST_TARGET)" == "" ]]; then \
+	@if [ "$(DIST_TARGET)" == "" ]; then \
 	    echo "Packaging is supported for only Ubuntu and CentOS."; \
 	else \
 	    echo "Packaging $(DIST_TARGET) for $(OSDIST)"; \
-	    make ; \
+	    cd package; \
+		make ; \
+		cd - ; \
+		cp ./package/$(CPACK_PACKAGE_FILE_NAME) $(DIST_INSTALL_DIR); \
+		echo "INFO: $(CPACK_PACKAGE_FILE_NAME) saved to $(DIST_INSTALL_DIR)"; \
 	fi
+###############################################################################
 
 ifdef sshKey
     SSH_KEY_OPT=-i $(sshKey)
 endif
-
 .PHONY: install
 install: stage
 	./staging/install.sh $(SSH_KEY_OPT)
