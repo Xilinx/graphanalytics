@@ -368,7 +368,6 @@
 </ul>
 <p class="caption"><span class="caption-text">Additional Info</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../tg3-plugins.html">TigerGraph 3.x Plugin Methodology</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../vitis-dev-flow.html">Vitis Development Flow</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Notice</span></p>
@@ -462,12 +461,13 @@ to be installed on your server. Follow the steps below to install the card(s).</
 <div class="section" id="installing-maximal-independent-set-alveo-from-a-pre-built-package">
 <h2>Installing Maximal Independent Set Alveo from a Pre-built Package<a class="headerlink" href="#installing-maximal-independent-set-alveo-from-a-pre-built-package" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p>Get the installation package <a class="reference external" href="https://www.xilinx.com/member/forms/download/design-license-xef.html?filename=xilinx-tigergraph-install-1.4.tar.gz">xilinx-tigergraph-install-1.4.tar.gz from
-Xilinx website</a></p></li>
+<li><p>Get the installation package xilinx-tigergraph-install-x.y.z.tar.gz from the
+<a class="reference external" href="https://www.xilinx.com/member/dba_poc.html">Database Analytics POC Secure Site</a>.
+This package contains the MIS as well as its dependencies.</p></li>
 <li><p>Install Xilinx MIS and MIS TigerGraph Plugin Alveo Products and dependencies
 (XRT, XRM, and Alveo firmware packages)</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf xilinx-tigergraph-install-1.4.tar.gz
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf xilinx-tigergraph-install-x.y.z.tar.gz
 <span class="nb">cd</span> xilinx-tigergraph-install <span class="o">&amp;&amp;</span> ./install.sh -p mis
 </pre></div>
 </div>
@@ -475,28 +475,28 @@ Xilinx website</a></p></li>
 <div class="section" id="setting-up-the-alveo-accelerator-card">
 <h2>Setting up the Alveo Accelerator Card<a class="headerlink" href="#setting-up-the-alveo-accelerator-card" title="Permalink to this headline">¶</a></h2>
 <p>The Maximal Independent Set Alveo Alveo Product requires the following Alveo cards
-and their correponding firmware versions to be installed on each Alveo card to use.
-* U50: xilinx_u50_gen3x16_xdma_201920_3
-* U55C: xilinx_u55c_gen3x16_xdma_base_2</p>
-<p>Check and install the firmware by following the steps below:</p>
+and their correponding firmware versions to be installed on each Alveo card to use.</p>
 <ul class="simple">
-<li><p>Run <code class="docutils literal notranslate"><span class="pre">xbutil</span> <span class="pre">scan</span></code> command to check the status of all Alveo cards on the server.</p></li>
+<li><p>U50: xilinx_u50_gen3x16_xdma_201920_3</p></li>
+<li><p>U55C: xilinx_u55c_gen3x16_xdma_base_2</p></li>
 </ul>
+<p>Check and install the firmware by following the steps below:</p>
+<ul>
+<li><p>Run <code class="docutils literal notranslate"><span class="pre">xbutil</span> <span class="pre">scan</span></code> command to check the status of all Alveo cards on the server.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/xrt/bin/xbutil scan
 </pre></div>
 </div>
-<ul class="simple">
-<li><p>Look at the final rows of the output to see what firmware is installed on each card.  The example below shows the
-end of the output for a server with both Alveo U50 and U55C cards, all containing the correct shell.</p></li>
-</ul>
+</li>
+<li><p>Look at the final rows of the output to see what firmware is installed on each
+card.  The example below shows the end of the output for a server with both
+Alveo U50 and U55C cards, all containing the correct shell.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="mi">0000</span><span class="p">:</span><span class="mi">81</span><span class="p">:</span><span class="mf">00.1</span> <span class="n">xilinx_u50_gen3x16_xdma_201920_3</span> <span class="n">user</span><span class="p">(</span><span class="n">inst</span><span class="o">=</span><span class="mi">131</span><span class="p">)</span>
 <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="mi">0000</span><span class="p">:</span><span class="mi">04</span><span class="p">:</span><span class="mf">00.1</span> <span class="n">xilinx_u55c_gen3x16_xdma_base_2</span> <span class="n">user</span><span class="p">(</span><span class="n">inst</span><span class="o">=</span><span class="mi">130</span><span class="p">)</span>
 </pre></div>
 </div>
-<ul class="simple">
+</li>
 <li><p>If all cards to use contain the right shell, skip the remainder of this section.</p></li>
-<li><p>Issue the following command to flash the cards with required firmware version:</p></li>
-</ul>
+<li><p>Issue the following command to flash the cards with required firmware version:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>U50
 sudo /opt/xilinx/xrt/bin/xbmgmt flash --update --shell xilinx_u50_gen3x16_xdma_201920_3
 
@@ -504,36 +504,36 @@ U55C
 sudo /opt/xilinx/xrt/bin/xbmgmt flash --update --shell xilinx_u55c_gen3x16_xdma_base_2
 </pre></div>
 </div>
-<ul class="simple">
+</li>
+<li><p>Cold reboot the server after flashing is done.</p></li>
 <li><p>Cold reboot the server after flashing is done.</p></li>
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>If you only need to build applications utilizing Xilinx GraphAnalytics
-products, you can skip the section “Collaborating on Maximal Independent Set
-Product” below.</p>
+products, you can skip the section below.</p>
 </div>
 </div>
 <div class="section" id="collaborating-on-maximal-independent-set-product">
 <h2>Collaborating on Maximal Independent Set Product<a class="headerlink" href="#collaborating-on-maximal-independent-set-product" title="Permalink to this headline">¶</a></h2>
 <p>The Maximal Independent Set product is an open-source project hosted on github, you can
 collaborate with Xilinx and contribute to the development of the product.</p>
-<ul class="simple">
-<li><p>Clone the <code class="docutils literal notranslate"><span class="pre">graphanalytics</span></code> repository using <code class="docutils literal notranslate"><span class="pre">git</span></code></p></li>
-</ul>
+<ul>
+<li><p>Clone the <code class="docutils literal notranslate"><span class="pre">graphanalytics</span></code> repository using <code class="docutils literal notranslate"><span class="pre">git</span></code></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/Xilinx/graphanalytics.git
 <span class="nb">cd</span> graphanalytics
 git submodule update --init --recursive
 </pre></div>
 </div>
-<p>All commands below are executed from the root direcotry of the repository.</p>
-<ul class="simple">
-<li><p>Install required devlopment packages.</p></li>
+</li>
 </ul>
+<p>All commands below are executed from the root direcotry of the repository.</p>
+<ul>
+<li><p>Install required devlopment packages.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo scripts/devdeps.sh
 </pre></div>
 </div>
-<ul class="simple">
+</li>
 <li><p>Build and install the Maximal Independent Set package. The example below shows
 installation using the Ubuntu <code class="docutils literal notranslate"><span class="pre">apt</span></code> package manager on a Ubuntu 20.04 machine.</p></li>
 </ul>
@@ -574,7 +574,7 @@ sudo apt install --reinstall ./package/xilinx-mis-0.1_20.04-x86_64.deb
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 13, 2022.
+        Last updated on January 17, 2022.
       </span>
 
     </p>

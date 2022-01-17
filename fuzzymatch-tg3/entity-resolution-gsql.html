@@ -59,7 +59,7 @@
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="TigerGraph 3.x Plugin Methodology" href="../tg3-plugins.html" />
+    <link rel="next" title="Vitis Development Flow" href="../vitis-dev-flow.html" />
     <link rel="prev" title="Entity Resolution Overview" href="entity-resolution-overview.html" /> 
 	</head>
 	<body>
@@ -366,7 +366,6 @@
 </ul>
 <p class="caption"><span class="caption-text">Additional Info</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../tg3-plugins.html">TigerGraph 3.x Plugin Methodology</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../vitis-dev-flow.html">Vitis Development Flow</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Notice</span></p>
@@ -448,23 +447,28 @@
             
   <div class="section" id="run-bash-script-with-gsql">
 <h1>Run Bash Script with GSQL<a class="headerlink" href="#run-bash-script-with-gsql" title="Permalink to this headline">¶</a></h1>
-<ul class="simple">
+<ul>
 <li><p>Open a terminal using your Linux credentials</p></li>
 <li><p>Set up a directory that is readable and writable by the user “tigergraph”</p></li>
-<li><p>Execute the commands below to run the demo</p></li>
-</ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Copy examples from the installation to your own working directory mis-examples</span>
-cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/0.1/examples fuzzymatch-examples
+<li><p>Execute the commands below to run the demo</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span> <span class="c1"># Copy examples from the installation to your own working directory mis-examples</span>
+ cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/0.1/examples fuzzymatch-examples
 
-<span class="nb">cd</span> fuzzymatch-examples/entity-resolution
-<span class="c1"># Print entity resolution demo help messages</span>
-./bin/run.sh -h
+ <span class="nb">cd</span> fuzzymatch-examples/entity-resolution
+
+ <span class="c1"># Install demo specific UDFs. This is needed to run **ONLY ONCE**.</span>
+./bin/install-udf.sh
+
+ <span class="c1"># Print entity resolution demo help messages</span>
+ ./bin/run.sh -h
 
 <span class="c1"># Run entity resolution demo with default settings. Settings can be changed via command</span>
 <span class="c1"># line options as shown above</span>
 ./bin/run.sh
 </pre></div>
 </div>
+</li>
+</ul>
 </div>
 
 
@@ -483,7 +487,7 @@ cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/0.1/
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../tg3-plugins.html" class="btn btn-neutral float-right" title="TigerGraph 3.x Plugin Methodology" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../vitis-dev-flow.html" class="btn btn-neutral float-right" title="Vitis Development Flow" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="entity-resolution-overview.html" class="btn btn-neutral float-left" title="Entity Resolution Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -496,7 +500,7 @@ cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/0.1/
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 13, 2022.
+        Last updated on January 17, 2022.
       </span>
 
     </p>

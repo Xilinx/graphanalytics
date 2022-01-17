@@ -58,9 +58,7 @@
   <link rel="stylesheet" href="../_static/css/pro.min.css" media="all" />
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="template class xilinx_apps::cosinesim::CosineSim" href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSim.html" />
-    <link rel="prev" title="API User’s Guide" href="rst-cpp-docs/page_index.html" /> 
+    <link rel="search" title="Search" href="../search.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -334,23 +332,8 @@
             
             
               <p class="caption"><span class="caption-text">Stand-Alone Alveo Products</span></p>
-<ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">Cosine Similarity</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="overview.html">Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="demos.html">Demos</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="api.html">API Reference</a><ul class="current">
-<li class="toctree-l3 current"><a class="reference internal" href="cpp-api.html">C++</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="rst-cpp-docs/page_index.html">API User's Guide</a></li>
-<li class="toctree-l4 current"><a class="current reference internal" href="#">Classes</a></li>
-<li class="toctree-l4"><a class="reference internal" href="rst-cpp-docs/global.html">Global Namespace</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="python-api.html">Python 3</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../cosinesim/index.html">Cosine Similarity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/index.html">Louvain Modularity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mis/index.html">Maximal Independent Set</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../fuzzymatch/index.html">Fuzzy Match</a></li>
@@ -364,7 +347,7 @@
 </ul>
 <p class="caption"><span class="caption-text">Use Cases</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="usecases.html"> Cosine Similarity Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cosinesim/usecases.html"> Cosine Similarity Use Cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/usecases.html"> Louvain Modularity Use Cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mis/usecases.html"> Maximal Independent Set Use Cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../fuzzymatch/usecases.html"> Fuzzy Match Use Cases</a></li>
@@ -429,13 +412,7 @@
     
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-          <li><a href="index.html">Xilinx Cosine Similarity Alveo Product</a> &raquo;</li>
-        
-          <li><a href="api.html">Xilinx Cosine Similarity API Reference</a> &raquo;</li>
-        
-          <li><a href="cpp-api.html">Cosine Similarity C++ API Reference</a> &raquo;</li>
-        
-      <li>Cosine Similarity C++ API Classes</li>
+      <li>Install TigerGraph Enterprise 3.x</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -452,16 +429,35 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="cosine-similarity-c-api-classes">
-<h1>Cosine Similarity C++ API Classes<a class="headerlink" href="#cosine-similarity-c-api-classes" title="Permalink to this headline">¶</a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSim.html">CosineSim</a></li>
-<li class="toctree-l1"><a class="reference internal" href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSimBase.html">CosineSimBase</a></li>
-<li class="toctree-l1"><a class="reference internal" href="rst-cpp-docs/class_xilinx_apps_cosinesim_Exception.html">Exception</a></li>
-<li class="toctree-l1"><a class="reference internal" href="rst-cpp-docs/struct_xilinx_apps_cosinesim_Options.html">Options</a></li>
-<li class="toctree-l1"><a class="reference internal" href="rst-cpp-docs/struct_xilinx_apps_cosinesim_Result.html">Result</a></li>
+  <div class="section" id="install-tigergraph-enterprise-3-x">
+<h1>Install TigerGraph Enterprise 3.x<a class="headerlink" href="#install-tigergraph-enterprise-3-x" title="Permalink to this headline">¶</a></h1>
+<p>Next, follow the steps below to install TigerGraph on your server if you have
+not already.  The latest version tested with Xilinx Graph Analytics products is
+version 3.1.</p>
+<ul class="simple">
+<li><p>Install <a class="reference external" href="https://info.tigergraph.com/enterprise-free">TigerGraph Enterprise version 3.1</a>,
+accepting the defaults for all settings that have them.  Be sure to leave the
+database owner as user “tigergraph”, as the Fuzzy Match scripts
+depend on that user name.  Make a note of the password for the user “tigergraph”.
+That password will be needed for later steps.</p></li>
+<li><p>Create an account in the TigerGraph installation for yourself in the role of
+a TigerGraph application developer by issuing the commands below (replace
+YOUR-LINUX-USERNAME with your actual Linux username).  Xilinx Graph Analytics
+products examples will use this account to create graphs and install GSQL queries
+on your behalf.</p></li>
 </ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">$su</span> - tigergraph
+Password:
+<span class="nv">$gsql</span>
+Welcome to TigerGraph.
+GSQL &gt; create user
+User Name : YOUR-LINUX-USERNAME
+New Password : *********
+Re-enter Password : *********
+The user <span class="s2">&quot;YOUR-LINUX_USERNAME&quot;</span> is created.
+GSQL &gt; grant role globaldesigner to YOUR-LINUX-USERNAME
+Role <span class="s2">&quot;globaldesigner&quot;</span> is successfully granted to user<span class="o">(</span>s<span class="o">)</span>: YOUR-LINUX-USERNAME
+</pre></div>
 </div>
 </div>
 
@@ -478,15 +474,6 @@
 
 
 	  <!-- Sphinx Page Footer block -->
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="rst-cpp-docs/class_xilinx_apps_cosinesim_CosineSim.html" class="btn btn-neutral float-right" title="template class xilinx_apps::cosinesim::CosineSim" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="rst-cpp-docs/page_index.html" class="btn btn-neutral float-left" title="API User’s Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
   
 
   <hr/>

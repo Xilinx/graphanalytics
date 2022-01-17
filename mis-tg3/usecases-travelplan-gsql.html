@@ -366,7 +366,6 @@
 </ul>
 <p class="caption"><span class="caption-text">Additional Info</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../tg3-plugins.html">TigerGraph 3.x Plugin Methodology</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../vitis-dev-flow.html">Vitis Development Flow</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Notice</span></p>
@@ -457,6 +456,10 @@
 cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/0.1/examples mis-examples
 
 <span class="nb">cd</span> mis-examples/travelplan
+
+<span class="c1"># Install demo specific UDFs. This is needed to run **ONLY ONCE**.</span>
+./bin/install-udf.sh
+
 <span class="c1"># Print travelplan demo help messages</span>
 ./bin/run.sh -h
 
@@ -496,7 +499,7 @@ cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/0.1/example
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 13, 2022.
+        Last updated on January 17, 2022.
       </span>
 
     </p>

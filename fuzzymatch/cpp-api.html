@@ -373,7 +373,6 @@
 </ul>
 <p class="caption"><span class="caption-text">Additional Info</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../tg3-plugins.html">TigerGraph 3.x Plugin Methodology</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../vitis-dev-flow.html">Vitis Development Flow</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Notice</span></p>
@@ -457,105 +456,60 @@
 <h1>Fuzzy Match C++ API Reference<a class="headerlink" href="#fuzzy-match-c-api-reference" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="overview">
 <h2><strong>Overview</strong><a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div><div class="line-block">
-<div class="line">FuzzyMatch provides FuzzyMatch class which has interfaces to enable fuzzy match in batch mode.</div>
-<div class="line">Maximum length of blacklist/query string: 64</div>
-</div>
-</div></blockquote>
+<p>FuzzyMatch provides FuzzyMatch class which has interfaces to enable fuzzy match in batch mode.
+Maximum length of blacklist/query string: 64</p>
 </div>
 <div class="section" id="options">
 <h2><strong>Options</strong><a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div><div class="line-block">
-<div class="line">FuzyMatch constructor takes Options which configure the xclbin and device.</div>
-</div>
-<blockquote>
-<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>struct Options <span class="o">{</span>
-   XString xclbinPath<span class="p">;</span>
-   XString deviceNames<span class="p">;</span>
+<p>FuzyMatch constructor takes Options which configure the xclbin and device.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>struct Options <span class="o">{</span>
+    XString xclbinPath<span class="p">;</span>
+    XString deviceNames<span class="p">;</span>
 <span class="o">}</span><span class="p">;</span>
 </pre></div>
 </div>
-</div></blockquote>
-</div></blockquote>
 </div>
 <div class="section" id="startfuzzymatch-interface">
 <h2><strong>startFuzzyMatch Interface</strong><a class="headerlink" href="#startfuzzymatch-interface" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div><div class="line-block">
-<div class="line">Initialize and set up FuzzyMatch software and Alveo cards.</div>
-</div>
-<div class="line-block">
-<div class="line">Return:</div>
-</div>
-<blockquote>
-<div><div class="line-block">
-<div class="line">status: 0: successful; 1: fail.</div>
-</div>
-</div></blockquote>
+<p>Initialize and set up FuzzyMatch software and Alveo cards.</p>
+<dl class="simple">
+<dt>Return:</dt><dd><p>status: 0: successful; 1: fail.</p>
+</dd>
+</dl>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>int startFuzzyMatch<span class="o">()</span>
 </pre></div>
 </div>
-</div></blockquote>
 </div>
 <div class="section" id="fuzzymatchloadvec-interface">
 <h2><strong>fuzzyMatchLoadVec Interface</strong><a class="headerlink" href="#fuzzymatchloadvec-interface" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div><div class="line-block">
-<div class="line">Load and preprocess the input table.</div>
-</div>
-<div class="line-block">
-<div class="line">Parameters:</div>
-</div>
-<blockquote>
-<div><div class="line-block">
-<div class="line">patternVec : vector of  pattern strings (e.g. black list strings).</div>
-</div>
-</div></blockquote>
-<div class="line-block">
-<div class="line">Return:</div>
-</div>
-<blockquote>
-<div><div class="line-block">
-<div class="line">status: 0: successful; 1: fail.</div>
-</div>
-</div></blockquote>
+<p>Load and preprocess the input table.</p>
+<dl class="simple">
+<dt>Parameters:</dt><dd><p>patternVec : vector of  pattern strings (e.g. black list strings).</p>
+</dd>
+<dt>Return:</dt><dd><p>status: 0: successful; 1: fail.</p>
+</dd>
+</dl>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>int fuzzyMatchLoadVec<span class="o">(</span>std::vector&lt;std::string&gt;<span class="p">&amp;</span> patternVec<span class="o">)</span>
 </pre></div>
 </div>
-</div></blockquote>
 </div>
 <div class="section" id="executefuzzymatch-interface">
 <h2><strong>executefuzzyMatch Interface</strong><a class="headerlink" href="#executefuzzymatch-interface" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div><div class="line-block">
-<div class="line">Run fuzzymatch in batch mode. Check each input string in input_patterns vector has fuzzymatch against the pattern strings loaded using fuzzyMatchLoadVec interface.</div>
-</div>
-<div class="line-block">
-<div class="line">Parameters:</div>
-</div>
-<blockquote>
-<div><div class="line-block">
-<div class="line">input_patterns    :   vector of input strings. For each input string in input_patterns, run fuzzymatch against the pattern strings loaded using fuzzyMatchLoadVec interface.</div>
-</div>
-<div class="line-block">
-<div class="line">similarity_level  :   similarity threshold.  value range [0-100]. 100 means exact same.</div>
-</div>
-</div></blockquote>
-<div class="line-block">
-<div class="line">Return:</div>
-</div>
-<blockquote>
-<div><div class="line-block">
-<div class="line">2D vectors of pairs. Each row represents array of matched result pairs {id,score}.
-Maximum top 100 of pairs for each input string result.</div>
-</div>
-</div></blockquote>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>std::vector&lt;std::vector&lt;std::pair&lt;int,int&gt;&gt;&gt; executefuzzyMatch<span class="o">(</span>std::vector&lt;std::string&gt; input_patterns, int similarity_level<span class="o">)</span><span class="p">;</span>
+<p>Run fuzzymatch in batch mode. Match each input string in input_patterns vector
+against the pattern strings loaded using fuzzyMatchLoadVec interface.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>std::vector&lt;std::vector&lt;std::pair&lt;int,int&gt;&gt;&gt; executefuzzyMatch<span class="o">(</span>
+    std::vector&lt;std::string&gt; input_patterns,
+    int similarity_level<span class="o">)</span><span class="p">;</span>
 </pre></div>
 </div>
-</div></blockquote>
+<dl class="simple">
+<dt>Parameters:</dt><dd><p>input_patterns    :   vector of input strings. For each input string in input_patterns, run fuzzymatch against the pattern strings loaded using fuzzyMatchLoadVec interface.
+similarity_level  :   similarity threshold.  value range [0-100]. 100 means exact same.</p>
+</dd>
+<dt>Return:</dt><dd><p>2D vectors of pairs. Each row represents array of matched result pairs {id,score}.
+Maximum top 100 of pairs for each input string result.</p>
+</dd>
+</dl>
 </div>
 </div>
 
@@ -588,7 +542,7 @@ Maximum top 100 of pairs for each input string result.</div>
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 13, 2022.
+        Last updated on January 17, 2022.
       </span>
 
     </p>

@@ -349,7 +349,7 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Installation</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#install-the-alveo-acclerator-card">Install the Alveo Acclerator Card</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#install-tigergraph-enterprise-3-x">Install TigerGraph Enterprise 3.x</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#install-the-maximal-independent-set-software">Install the Maximal Independent Set Software</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#install-maximal-independent-set-software">Install Maximal Independent Set Software</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#install-the-maximal-independent-set-from-a-package">Install the Maximal Independent Set from a Package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#build-the-maximal-independent-set-from-sources">Build the Maximal Independent Set from Sources</a></li>
 </ul>
@@ -372,7 +372,6 @@
 </ul>
 <p class="caption"><span class="caption-text">Additional Info</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../tg3-plugins.html">TigerGraph 3.x Plugin Methodology</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../vitis-dev-flow.html">Vitis Development Flow</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Notice</span></p>
@@ -456,7 +455,7 @@
 Independent Set on your server.</p>
 <div class="section" id="install-the-alveo-acclerator-card">
 <h2>Install the Alveo Acclerator Card<a class="headerlink" href="#install-the-alveo-acclerator-card" title="Permalink to this headline">¶</a></h2>
-<p>The Maximal Independent Set requires one or more Xilinx Alveo accelerator cards
+<p>Xilinx Graph Analytics products require one or more Xilinx Alveo accelerator cards
 to be installed on your server. Follow the steps below to install the card(s).</p>
 <ul class="simple">
 <li><p>Power off the server</p></li>
@@ -467,17 +466,18 @@ to be installed on your server. Follow the steps below to install the card(s).</
 <div class="section" id="install-tigergraph-enterprise-3-x">
 <h2>Install TigerGraph Enterprise 3.x<a class="headerlink" href="#install-tigergraph-enterprise-3-x" title="Permalink to this headline">¶</a></h2>
 <p>Next, follow the steps below to install TigerGraph on your server if you have
-not already.  The latest version tested with the Maximal Independent Set is version 3.1.</p>
+not already.  The latest version tested with Xilinx Graph Analytics products is
+version 3.1.</p>
 <ul class="simple">
 <li><p>Install <a class="reference external" href="https://info.tigergraph.com/enterprise-free">TigerGraph Enterprise version 3.1</a>,
 accepting the defaults for all settings that have them.  Be sure to leave the
-database owner as user “tigergraph”, as the Maximal Independent Set scripts
+database owner as user “tigergraph”, as the Fuzzy Match scripts
 depend on that user name.  Make a note of the password for the user “tigergraph”.
 That password will be needed for later steps.</p></li>
 <li><p>Create an account in the TigerGraph installation for yourself in the role of
 a TigerGraph application developer by issuing the commands below (replace
-YOUR-LINUX-USERNAME with your actual Linux username). The Maximal Independent
-Set examples will use this account to create graphs and install GSQL queries
+YOUR-LINUX-USERNAME with your actual Linux username).  Xilinx Graph Analytics
+products examples will use this account to create graphs and install GSQL queries
 on your behalf.</p></li>
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">$su</span> - tigergraph
@@ -494,32 +494,41 @@ Role <span class="s2">&quot;globaldesigner&quot;</span> is successfully granted 
 </pre></div>
 </div>
 </div>
-<div class="section" id="install-the-maximal-independent-set-software">
-<h2>Install the Maximal Independent Set Software<a class="headerlink" href="#install-the-maximal-independent-set-software" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="install-maximal-independent-set-software">
+<h2>Install Maximal Independent Set Software<a class="headerlink" href="#install-maximal-independent-set-software" title="Permalink to this headline">¶</a></h2>
 <p>To install the Maximal Independent Set product, you can either install a DEB/RPM
 pre-built package, or you can build the Maximal Independent Set from sources if
 you would like to collaborate with Xilinx and contribute to the Maximal Independent Set
 product. Follow the steps in <em>only one</em> of the two sections below.</p>
 <div class="section" id="install-the-maximal-independent-set-from-a-package">
 <h3>Install the Maximal Independent Set from a Package<a class="headerlink" href="#install-the-maximal-independent-set-from-a-package" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li><p>Get the installation package xilinx-tigergraph-install-1.0.2.tar.gz from the
+<ul>
+<li><p>Get the installation package xilinx-tigergraph-install-x.y.z.tar.gz from the
 <a class="reference external" href="https://www.xilinx.com/member/dba_poc.html">Database Analytics POC Secure Site</a>.
-This package contains the Maximal Independent Set as well as its dependencies:
-XRT, XRM, the Alveo U50 Platform, and the Maximal Independent Set Alveo Product.</p></li>
+This package contains the Maximal Independent Set as well as its dependencies.</p></li>
 <li><p>Install the product and its dependencies by un-tarring the package and running
-the included install script.</p></li>
-</ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf xilinx-tigergraph-install-1.0.2.tar.gz
-<span class="nb">cd</span> xilinx-tigergraph-install <span class="o">&amp;&amp;</span> ./install.sh
+the included install script.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf xilinx-tigergraph-install-x.y.z.tar.gz
+<span class="nb">cd</span> xilinx-tigergraph-install <span class="o">&amp;&amp;</span> ./install.sh -p mis
 </pre></div>
 </div>
-<ul class="simple">
-<li><p>Install the Maximal Independent Set plug-in into the TigerGraph installation.
-This step makes TigerGraph aware of the Maximal Independent Set features.</p></li>
-</ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/install.sh
+</li>
+<li><p>Install the Maximal Independent Set plugin into the TigerGraph installation
+targeting a supported Alveo device. Below is an example targeting Alveo U50”</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/0.1/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
 </pre></div>
+</div>
+<p>Supported Alveo devices:</p>
+<ul class="simple">
+<li><p>U50: xilinx_u50_gen3x16_xdma_201920_3</p></li>
+<li><p>U55C: xilinx_u55c_gen3x16_xdma_base_2</p></li>
+</ul>
+</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you only need to build applications utilizing Xilinx GraphAnalytics
+products, you can skip the section below.</p>
 </div>
 </div>
 <div class="section" id="build-the-maximal-independent-set-from-sources">
@@ -528,49 +537,34 @@ This step makes TigerGraph aware of the Maximal Independent Set features.</p></l
 Xilinx Maximal Independent Set Alveo Product and plugin for TigerGraph 3.x.
 Both products reside in one GitHub repository.</p>
 <ul>
-<li><p>Install the Xilinx XRT and XRM Libraries</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>Download the 2020.2 version of XRT for the Alveo U50 accelerator card from
-<a class="reference external" href="https://www.xilinx.com/products/boards-and-kits/alveo/u50.html#gettingStarted">xilinx.com</a> and install it.</p></li>
-<li><p>Follow the instructions from this
-<a class="reference external" href="https://developer.xilinx.com/en/articles/orchestrating-alveo-compute-workloads-with-xrm.html">Xilinx developer page</a>
-to build and install XRM.</p></li>
-</ul>
-</div></blockquote>
-</li>
-<li><p>Download the 2020.2 version of the shell for the Alveo U50 accelerator card from
-<a class="reference external" href="https://www.xilinx.com/products/boards-and-kits/alveo/u50.html#gettingStarted">xilinx.com</a> and install it.
-The package to download is called the “Deployment Target Platform.”</p></li>
-<li><p>Clone the Xilinx Graph Analytics repository from GitHub.</p></li>
-</ul>
+<li><p>Clone the Xilinx Graph Analytics repository from GitHub.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/Xilinx/graphanalytics.git
 </pre></div>
 </div>
-<ul class="simple">
-<li><p>Build and install the Maximum Independent Set package. The Ubuntu apt package manager is used as an example.</p></li>
-</ul>
+</li>
+<li><p>Build and install the Maximum Independent Set package. The Ubuntu apt package manager is used as an example.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> mis
 make dist
-sudo apt install --reinstall ./package/xilinx-mis-1.0_18.04-x86_64.deb
+sudo apt install --reinstall ./package/xilinx-mis-1.0_20.04-x86_64.deb
 </pre></div>
 </div>
-<ul class="simple">
+</li>
 <li><p>Build and install the Maximal Independent Set for TigerGraph 3.x package. (Replace the package
-installation command and name for your server’s OS.)</p></li>
-</ul>
+installation command and name for your server’s OS.)</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> plugin/tigergraph/mis
 make dist
-sudo apt install --reinstall ./package/xilinx-mis-tigergraph-1.0_18.04-x86_64.deb
+sudo apt install --reinstall ./package/xilinx-mis-tigergraph-1.0_20.04-x86_64.deb
+
+/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/0.1/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
 </pre></div>
 </div>
+<p>Supported Alveo devices:</p>
 <ul class="simple">
-<li><p>Install the Maximal Independent Set plug-in into the TigerGraph installation.  This step makes TigerGraph aware
-of the Maximal Independent Set features.</p></li>
+<li><p>U50: xilinx_u50_gen3x16_xdma_201920_3</p></li>
+<li><p>U55C: xilinx_u55c_gen3x16_xdma_base_2</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/install.sh
-</pre></div>
-</div>
+</li>
+</ul>
 </div>
 </div>
 <div class="section" id="flash-the-alveo-cards">
@@ -641,7 +635,7 @@ such as the Synthea Demo, before uninstalling the Maximal Independent Set itself
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 13, 2022.
+        Last updated on January 17, 2022.
       </span>
 
     </p>

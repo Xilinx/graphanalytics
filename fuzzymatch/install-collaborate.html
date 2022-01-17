@@ -354,7 +354,6 @@
 </ul>
 <p class="caption"><span class="caption-text">Additional Info</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../tg3-plugins.html">TigerGraph 3.x Plugin Methodology</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../vitis-dev-flow.html">Vitis Development Flow</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Notice</span></p>
@@ -439,30 +438,31 @@ you can skip the section below.</p>
 <h1>Collaborating on Fuzzy Match Product<a class="headerlink" href="#collaborating-on-fuzzy-match-product" title="Permalink to this headline">¶</a></h1>
 <p>The Fuzzy Match product is an open-source project hosted on github, you can
 collaborate with Xilinx and contribute to the development of the product.</p>
-<ul class="simple">
-<li><p>Clone the <code class="docutils literal notranslate"><span class="pre">graphanalytics</span></code> repository using <code class="docutils literal notranslate"><span class="pre">git</span></code></p></li>
-</ul>
+<ul>
+<li><p>Clone the <code class="docutils literal notranslate"><span class="pre">graphanalytics</span></code> repository using <code class="docutils literal notranslate"><span class="pre">git</span></code></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/Xilinx/graphanalytics.git
 <span class="nb">cd</span> graphanalytics
 git submodule update --init --recursive
 </pre></div>
 </div>
-<p>All commands below are executed from the root direcotry of the repository.</p>
-<ul class="simple">
-<li><p>Install required devlopment packages.</p></li>
+</li>
 </ul>
+<p>All commands below are executed from the root direcotry of the repository.</p>
+<ul>
+<li><p>Install required devlopment packages.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo scripts/devdeps.sh
 </pre></div>
 </div>
-<ul class="simple">
+</li>
 <li><p>Build and install the Fuzzy Match package. The example below shows
-installation using the Ubuntu <code class="docutils literal notranslate"><span class="pre">apt</span></code> package manager on a Ubuntu 20.04 machine.</p></li>
-</ul>
+installation using the Ubuntu <code class="docutils literal notranslate"><span class="pre">apt</span></code> package manager on a Ubuntu 20.04 machine.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> fuzzymatch
 make dist
 sudo apt install --reinstall ./package/xilinx-fuzzymatch-0.1_20.04-x86_64.deb
 </pre></div>
 </div>
+</li>
+</ul>
 </div>
 
 
@@ -485,7 +485,7 @@ sudo apt install --reinstall ./package/xilinx-fuzzymatch-0.1_20.04-x86_64.deb
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 13, 2022.
+        Last updated on January 17, 2022.
       </span>
 
     </p>

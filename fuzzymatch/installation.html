@@ -368,7 +368,6 @@
 </ul>
 <p class="caption"><span class="caption-text">Additional Info</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../tg3-plugins.html">TigerGraph 3.x Plugin Methodology</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../vitis-dev-flow.html">Vitis Development Flow</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Notice</span></p>
@@ -461,17 +460,18 @@ to be installed on your server. Follow the steps below to install the card(s).</
 </div>
 <div class="section" id="installing-fuzzy-match-alveo-from-a-pre-built-package">
 <h2>Installing Fuzzy Match Alveo from a Pre-built Package<a class="headerlink" href="#installing-fuzzy-match-alveo-from-a-pre-built-package" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
+<ul>
 <li><p>Get the installation package xilinx-tigergraph-install-x.y.z.tar.gz from the
 <a class="reference external" href="https://www.xilinx.com/member/dba_poc.html">Database Analytics POC Secure Site</a>.
-This package contains the Fuzzy Match as well as its dependencies:
-XRT, XRM, the Alveo U50 Platform, and the Fuzzy Match Alveo Product.</p></li>
-<li><p>Install Xilinx Fuzzy Match Alveo Products and dependencies (XRT, XRM, and Alveo firmware packages)</p></li>
-</ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf xilinx-tigergraph-install-1.4.tar.gz
+This package contains the Fuzzy Match as well as all dependencies (XRT, XRM, Alveo
+firmware, etc)</p></li>
+<li><p>Install Xilinx Fuzzy Match Alveo Products and dependencies:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf xilinx-tigergraph-install-x.y.z.tar.gz
 <span class="nb">cd</span> xilinx-tigergraph-install <span class="o">&amp;&amp;</span> ./install.sh -p fuzzymatch
 </pre></div>
 </div>
+</li>
+</ul>
 </div>
 <div class="section" id="setting-up-the-alveo-accelerator-card">
 <h2>Setting up the Alveo Accelerator Card<a class="headerlink" href="#setting-up-the-alveo-accelerator-card" title="Permalink to this headline">¶</a></h2>
@@ -482,30 +482,30 @@ their correponding firmware versions:</p>
 <li><p>AWS F1: xilinx_aws-vu9p-f1_shell-v04261818_201920_2</p></li>
 </ul>
 <p>Check and install the firmware by following the steps below:</p>
-<ul class="simple">
-<li><p>Run <code class="docutils literal notranslate"><span class="pre">xbutil</span> <span class="pre">scan</span></code> command to check the status of all Alveo cards on the server.</p></li>
-</ul>
+<ul>
+<li><p>Run <code class="docutils literal notranslate"><span class="pre">xbutil</span> <span class="pre">scan</span></code> command to check the status of all Alveo cards on the server.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/xrt/bin/xbutil scan
 </pre></div>
 </div>
-<ul class="simple">
+</li>
 <li><p>Look at the final rows of the output to see what firmware is installed on each
 card.  The example below shows the end of the output for a server with both
-Alveo U50 and U55C cards, all containing the correct shell.</p></li>
-</ul>
+Alveo U50 and U55C cards, all containing the correct shell.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="mi">0000</span><span class="p">:</span><span class="mi">81</span><span class="p">:</span><span class="mf">00.1</span> <span class="n">xilinx_u50_gen3x16_xdma_201920_3</span> <span class="n">user</span><span class="p">(</span><span class="n">inst</span><span class="o">=</span><span class="mi">131</span><span class="p">)</span>
 <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="mi">0000</span><span class="p">:</span><span class="mi">04</span><span class="p">:</span><span class="mf">00.1</span> <span class="n">xilinx_u55c_gen3x16_xdma_base_2</span> <span class="n">user</span><span class="p">(</span><span class="n">inst</span><span class="o">=</span><span class="mi">130</span><span class="p">)</span>
 </pre></div>
 </div>
-<ul class="simple">
+</li>
 <li><p>If all cards to use contain the right shell, skip the remainder of this section.</p></li>
-<li><p>Issue the following command to flash the cards with required firmware version:</p></li>
-</ul>
+<li><p>Issue the following command to flash the cards with required firmware version:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>U50
 sudo /opt/xilinx/xrt/bin/xbmgmt flash --update --shell xilinx_u50_gen3x16_xdma_201920_3
+
+U55C
+sudo /opt/xilinx/xrt/bin/xbmgmt flash --update --shell xilinx_u55c_gen3x16_xdma_base_2
 </pre></div>
 </div>
-<ul class="simple">
+</li>
 <li><p>Cold reboot the server after flashing is done.</p></li>
 </ul>
 <div class="admonition note">
@@ -518,30 +518,31 @@ you can skip the section below.</p>
 <h2>Collaborating on Fuzzy Match Product<a class="headerlink" href="#collaborating-on-fuzzy-match-product" title="Permalink to this headline">¶</a></h2>
 <p>The Fuzzy Match product is an open-source project hosted on github, you can
 collaborate with Xilinx and contribute to the development of the product.</p>
-<ul class="simple">
-<li><p>Clone the <code class="docutils literal notranslate"><span class="pre">graphanalytics</span></code> repository using <code class="docutils literal notranslate"><span class="pre">git</span></code></p></li>
-</ul>
+<ul>
+<li><p>Clone the <code class="docutils literal notranslate"><span class="pre">graphanalytics</span></code> repository using <code class="docutils literal notranslate"><span class="pre">git</span></code></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/Xilinx/graphanalytics.git
 <span class="nb">cd</span> graphanalytics
 git submodule update --init --recursive
 </pre></div>
 </div>
-<p>All commands below are executed from the root direcotry of the repository.</p>
-<ul class="simple">
-<li><p>Install required devlopment packages.</p></li>
+</li>
 </ul>
+<p>All commands below are executed from the root direcotry of the repository.</p>
+<ul>
+<li><p>Install required devlopment packages.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo scripts/devdeps.sh
 </pre></div>
 </div>
-<ul class="simple">
+</li>
 <li><p>Build and install the Fuzzy Match package. The example below shows
-installation using the Ubuntu <code class="docutils literal notranslate"><span class="pre">apt</span></code> package manager on a Ubuntu 20.04 machine.</p></li>
-</ul>
+installation using the Ubuntu <code class="docutils literal notranslate"><span class="pre">apt</span></code> package manager on a Ubuntu 20.04 machine.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> fuzzymatch
 make dist
 sudo apt install --reinstall ./package/xilinx-fuzzymatch-0.1_20.04-x86_64.deb
 </pre></div>
 </div>
+</li>
+</ul>
 </div>
 </div>
 
@@ -574,7 +575,7 @@ sudo apt install --reinstall ./package/xilinx-fuzzymatch-0.1_20.04-x86_64.deb
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 13, 2022.
+        Last updated on January 17, 2022.
       </span>
 
     </p>
