@@ -547,7 +547,7 @@ GLV* ParLV::FinalLouvain(char* opts_xclbinPath,
                          int numPhase) {
     if (st_Merged == false) return NULL;
     bool hasGhost = false;
-    plv_final = LouvainGLV_general(hasGhost, this->flowMode, 0, plv_merged, opts_xclbinPath, numThreads, id_glv,
+    plv_final = LouvainGLV_general(hasGhost, this->kernelMode, 0, plv_merged, opts_xclbinPath, numThreads, id_glv,
                                    minGraphSize, threshold, C_threshold, isParallel, numPhase);
     printf("\033[1;37;40mINFO: PAR\033[0m: Community of plv_merged is updated\n");
     // assert(plv_merged->NV==plv_src->NV);

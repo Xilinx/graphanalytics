@@ -116,7 +116,8 @@ CXXFLAGS += -I$(XFLIB_DIR)/L2/louvainmod_pruning_kernel
 CXXFLAGS += -I$(XFLIB_DIR)/ext/xcl2
 CXXFLAGS += -I$(XFLIB_DIR)/L2/include
 #CXXFLAGS += -I$(XFLIB_DIR)/../utils/L1/include
-CXXFLAGS += -I$(XFLIB_DIR)/ext/xcl2
+# please use "git submodule update --init --recursive"
+CXXFLAGS += -I$(XFLIB_DIR)/ext/HLS_arbitrary_Precision_Types/include/
 CXXFLAGS += -I$(XFLIB_DIR)/L3/include
 
 ifeq ($(TARGET),sw_emu)
@@ -137,7 +138,8 @@ CXXFLAGS += -O3 -Ofast
 CXXFLAGS += -I$(CUR_DIR)/src/ 
 
 ifeq ($(HOST_ARCH), x86)
-#LDFLAGS += -L$(XILINX_VIVADO)/lnx64/tools/fpo_v7_0 -Wl,--as-needed -lgmp -lmpfr -lIp_floating_point_v7_0_bitacc_cmodel
+LDFLAGS += -L$(XILINX_VIVADO)/lnx64/tools/fpo_v7_0 -Wl,--as-needed -lgmp
+#-lmpfr -lIp_floating_point_v7_0_bitacc_cmodel
 endif
 ifneq (,$(shell echo $(XPLATFORM) | awk '/u50/'))
 CXXFLAGS += -D USE_HBM
