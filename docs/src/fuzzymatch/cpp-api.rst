@@ -37,15 +37,17 @@ Return:
 
 Load and preprocess the input table. 
 
+.. code-block:: bash
+
+   int fuzzyMatchLoadVec(std::vector<std::string>& vec_pattern,std::vector<int> vec_id=std::vector<int>())
+
 Parameters:
-    patternVec : vector of  pattern strings (e.g. black list strings).
+    | vec_pattern : vector of  pattern strings (e.g. black list strings).
+    | vec_id : vector of pattern id. if null, internally will assign sequential index of vec_pattern.
  
 Return:
     status: 0: successful; 1: fail.
 
-.. code-block:: bash
-
-   int fuzzyMatchLoadVec(std::vector<std::string>& patternVec)
 
 **executefuzzyMatch Interface**
 --------------------------------------------
@@ -61,8 +63,8 @@ against the pattern strings loaded using fuzzyMatchLoadVec interface.
 
   
 Parameters:
-  input_patterns    :   vector of input strings. For each input string in input_patterns, run fuzzymatch against the pattern strings loaded using fuzzyMatchLoadVec interface.
-  similarity_level  :   similarity threshold.  value range [0-100]. 100 means exact same.
+  | input_patterns    :   vector of input strings. For each input string in input_patterns, run fuzzymatch against the pattern strings loaded using fuzzyMatchLoadVec interface.
+  | similarity_level  :   similarity threshold.  value range [0-100]. 100 means exact same.
   
 Return:
     2D vectors of pairs. Each row represents array of matched result pairs {id,score}. 
