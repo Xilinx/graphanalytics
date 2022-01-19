@@ -39,14 +39,17 @@ with open(in_file) as in_fh:
         if len(name) > 11:
             print(str(ref_cnt) + ',' + name, file=out_fh_ref)
             ref_cnt += 1
-            # save 1/3 to new names with 0 to 5 mod
+            # save 1/3 to new names with 1 to 3 mod
             write_new = random.randint(1,3)
-            chars_new = random.randint(0,5)
+            chars_new = random.randint(1,3)
             if write_new == 1:
                 char_list = list(name)
                 for i in range(chars_new):
                     idx = random.randint(0,len(name)-1)
-                    char_list[idx] = str(idx)
+                    if char_list[idx] == 'Z':
+                        char_list[idx] = 'A'
+                    else:
+                        char_list[idx] = chr(ord(char_list[idx]) + 1)
                 new_name = "".join(char_list)
                 #print('new-name=', new_name)
                 print(str(new_cnt) + ',' + new_name, file=out_fh_new)
