@@ -374,10 +374,10 @@ inputIndex = 1
 run: cppTest stage
 	set -e; \
 	. $(XILINX_XRT)/setup.sh && \
-	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH $(CPP_BUILD_DIR)/fuzzymatch_test \
-	    -xclbin $(XCLBIN_RUN) --devices $(deviceNames) -c $(runMode) --threshold $(threshold) \
+	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH $(EXECS_test) \
+	    --xclbin $(XCLBIN_RUN) --devices $(deviceNames) -c $(runMode) --threshold $(threshold) \
 		--pattern_file $(patternFile) --pattern_index $(patternIndex) --total_entities $(totalEntities) \
-		--input_file $(inputFile) --input_index $(inputIndex) --num_entities $(numEntities) \
+		--input_file $(inputFile) --input_index $(inputIndex) --num_entities $(numEntities)
 		
 
 run-staging-cpp: cppTest stage
@@ -454,7 +454,7 @@ $(foreach f,$(STAGE_LIB_FILES),$(eval $(call STAGE_LIB_RULE,$(f))))
 #STAGE_EXAMPLE_ZIP = examples.zip
 STAGE_EXAMPLE_FILE_NAMES = \
 	cpp/fuzzymatch_demo.cpp cpp/Makefile \
-	data/all-names.csv data/new-names.csv \
+	data/ref-names.csv data/new-names.csv \
 	python/pythondemo.py python/run.sh python/README.md
 
 STAGE_EXAMPLE_FILES = $(addprefix examples/,$(STAGE_EXAMPLE_FILE_NAMES))

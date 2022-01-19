@@ -94,7 +94,7 @@ int main(int argc, const char* argv[]) {
         return 0;
     }
 
-    if (!parser.getCmdOption("-xclbin", xclbin_path)) {
+    if (!parser.getCmdOption("--xclbin", xclbin_path)) {
         std::cout << "ERROR: xclbin path is not set!\n";
         return -1;
     }

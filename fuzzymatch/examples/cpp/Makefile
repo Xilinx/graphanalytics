@@ -17,7 +17,7 @@
 SHELL := /bin/bash
 # Run make using "make DEBUG=1" to build debuggable executables
 
-# Location of cosine similarity Alveo product 
+# Location of Fuzzy Match Alveo product 
 ifndef XILINX_FUZZYMATCH
     XILINX_FUZZYMATCH = /opt/xilinx/apps/graphanalytics/fuzzymatch
     export XILINX_FUZZYMATCH
@@ -98,15 +98,26 @@ $(EXE_FILE): fuzzymatch_demo.cpp
 
 .PHONY: run clean
 
-runMode=0
-totalEntities=10000000
-numEntities=100
+patternFile = ../data/ref-names.csv
+inputFile = ../data/new-names.csv
+runMode = 0
+totalEntities = 10000000
+numEntities = 100
+threshold = 90
+patternFileAbs = $(abspath $(patternFile))
+patternIndex = 1
+inputFileAbs = $(abspath $(inputFile))
+inputIndex = 1
+
 run: $(EXE_FILE)
 	set -e; \
 	. $(XILINX_XRT)/setup.sh; \
 	LD_LIBRARY_PATH=$(LIB_PATH):$$LD_LIBRARY_PATH; \
-	$(abspath $^)  -xclbin $(XCLBIN_FILE) -d ../data -c $(runMode) --devices $(deviceNames) \
-		--total_entities $(totalEntities) --num_entities $(numEntities)
+	$(abspath $^)  --xclbin $(XCLBIN_FILE) \
+	    --devices $(deviceNames) -c $(runMode) --threshold $(threshold) \
+		--pattern_file $(patternFileAbs) --pattern_index $(patternIndex) --total_entities $(totalEntities) \
+		--input_file $(inputFileAbs) --input_index $(inputIndex) --num_entities $(numEntities)
+
  
 
 clean:
