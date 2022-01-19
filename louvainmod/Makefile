@@ -365,7 +365,7 @@ ifeq ($(deviceNames),xilinx_u55c_gen3x16_xdma_base_2)
 	KERNEL_MODE = -kernel_mode 4
 endif
 
-CMDLINE_CREATE_PARTITIONS = $(graph) $(KERNEL_MODE) -num_pars $(numPars) -create_alveo_LBW_partitions \
+CMDLINE_CREATE_PARTITIONS = $(graph) $(KERNEL_MODE) -num_pars $(numPars) -create_alveo_partitions \
                             -name $(alveoProject)
 
 WORKERS=192.168.1.21 192.168.1.31
