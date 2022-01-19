@@ -26,6 +26,7 @@
 #include "partitionLouvain.hpp"
 #include "xf_graph_L3.hpp"
 #include "zmq.h"
+#include <unordered_map>
 #define MAX_PARTITION (512)
 #define MAX_DEVICE (64)
 #define MAX_SERVER (64)
@@ -167,7 +168,7 @@ public:
 	long* p_v_new[MAX_PARTITION];
 	SttGPar stt[MAX_PARTITION];
 	TimePartition timesPar;
-	map<long, long> m_v_gh;
+	unordered_map<long, long> m_v_gh;
 	//list<GLV*> lv_list;
 
     edge* elist;

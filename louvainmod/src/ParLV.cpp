@@ -15,7 +15,6 @@
 */
 #include <thread>
 #include <chrono>
-#include <unordered_map>
 
 #include "defs.h"
 #include "ParLV.h"
@@ -1938,8 +1937,8 @@ long ParLV::FindC_nhop(long m_g) {
 }
 
 //#define DBG_PAR_PRINT
-long FindOldOrAddNew(map<long, long>& map_v, long& NV, long v) {
-    map<long, long>::iterator iter;
+long FindOldOrAddNew(unordered_map<long, long>& map_v, long& NV, long v) {
+    unordered_map<long, long>::iterator iter;
     int ret;
     iter = map_v.find(v);
     if (iter == map_v.end()) {
@@ -3102,10 +3101,10 @@ long BFSPar_AddNeighbors(
 		long num_e_dir_lg[],
 		long num_v_l[],
 		long num_v_g[],
-		map<long, long> map_v_l[],//std:map for local vertices, will be used for renumbering and creating M
-		map<long, long> map_v_g[],//std:map for ghost vertices, will be used for renumbering and creating M
+		unordered_map<long, long> map_v_l[],//std:map for local vertices, will be used for renumbering and creating M
+		unordered_map<long, long> map_v_g[],//std:map for ghost vertices, will be used for renumbering and creating M
 		std::queue<HopV> q_par[],
-		map<long, long> map_v_l_scaned[],
+		unordered_map<long, long> map_v_l_scaned[],
 		int max_hop[]
 ){
     long* offsets = G->edgeListPtrs;
@@ -3122,7 +3121,7 @@ long BFSPar_AddNeighbors(
     long num_e_min = num_e_dir[p];//the min degree of the edge's sub-graph ID
 
 	for (int d = 0; d < degree; d++) {
-		map<long, long>::iterator itr;
+		unordered_map<long, long>::iterator itr;
 		bool notSelected = false;
 		bool isTailLocal = false;
 		bool isTailGhost = false;
@@ -3253,10 +3252,10 @@ long addGhostAfterPartition(
 		long num_e_dir_lg[],
 		long num_v_l[],
 		long num_v_g[],
-		map<long, long> map_v_l[],//std:map for local vertices, will be used for renumbering and creating M
-		map<long, long> map_v_g[],//std:map for ghost vertices, will be used for renumbering and creating M
+		unordered_map<long, long> map_v_l[],//std:map for local vertices, will be used for renumbering and creating M
+		unordered_map<long, long> map_v_g[],//std:map for ghost vertices, will be used for renumbering and creating M
 		std::queue<HopV> q_par[],
-		map<long, long> map_v_l_scaned[],
+		unordered_map<long, long> map_v_l_scaned[],
 		int max_hop[]
 ){
     long* offsets = G->edgeListPtrs;
@@ -3273,7 +3272,7 @@ long addGhostAfterPartition(
     long num_e_min = num_e_dir[p];//the min degree of the edge's sub-graph ID
 
 	for (int d = 0; d < degree; d++) {
-		map<long, long>::iterator itr;
+		unordered_map<long, long>::iterator itr;
 		bool notSelected = false;
 		bool isTailLocal = false;
 		bool isTailGhost = false;
@@ -3414,19 +3413,20 @@ void BFSPar_creatingEdgeLists_fixed_prune(
 		long num_e_dir_lg[],
 		long num_v_l[],
 		long num_v_g[],
-		map<long, long> map_v_l[],//std:map for local vertices, will be used for renumbering and creating M
-		map<long, long> map_v_g[]//std:map for ghost vertices, will be used for renumbering and creating M
+		unordered_map<long, long> map_v_l[],//std:map for local vertices, will be used for renumbering and creating M
+		unordered_map<long, long> map_v_g[]//std:map for ghost vertices, will be used for renumbering and creating M
 ){
 	const int MAX_PAR = num_par;
 	std::queue<HopV> q_par[MAX_PAR];
 	int num_hop[MAX_PAR];
 	//long v_start[MAX_PAR];
-	map<long, long> map_v_l_scaned[MAX_PAR];
+	unordered_map<long, long> map_v_l_scaned[MAX_PAR];
 
     long NV_all = G->numVertices;
     long* offsets = G->edgeListPtrs;
     edge* indices = G->edgeList;
 	int idx_par=0;
+    long laststart = 0;                 // for the last round fast sourch
 
 #ifdef DEBUGPAR
     for(int e = 0 ; e < G->numEdges; e++ ){
@@ -3454,9 +3454,11 @@ void BFSPar_creatingEdgeLists_fixed_prune(
 		num_v_l[p] = 0;
 
 		long v_start;
-		if(mode_start==0)
-			v_start = FindStartVertex(G, V_selected);
-		else
+		if(mode_start==0){
+			//v_start = FindStartVertex(G, V_selected);
+            v_start = FindStartVertexlastround(G, V_selected, laststart);
+            laststart = v_start;
+        }else
 			v_start = p*(NV_all/num_par);
 		V_selected[v_start] = p+1;//true;
 		HopV hv_start;
@@ -3474,13 +3476,13 @@ void BFSPar_creatingEdgeLists_fixed_prune(
 	}
 
 	bool notAllQueuesEmpty = true;
-	map<long, long>::iterator itr;
+	unordered_map<long, long>::iterator itr;
 	/************************************/
 	//Step-2: based on start vertices, doing hop-search:
 	/************************************/
 	int cnt_hop_round=0;
 	long num_v_all_l =0;
-    long laststart = 0;//for the last round fast sourch
+
     for( int p = 0; p < num_par; p++){// loop for each partition
         bool notQueueEmpty = false;
 
@@ -3543,9 +3545,11 @@ void BFSPar_creatingEdgeLists_fixed_prune(
             //printf("2-1-2. add a new start for the empty par-queue to continue growing the partition graph\n ");
                 long v_start;
                 if(mode_start==0)                
-                    if(p < num_par - 1)// to make the last round
-                        v_start = FindStartVertex(G, V_selected);
-                    else{
+                    if(p < num_par - 1){// to make the last round
+                        //v_start = FindStartVertex(G, V_selected);
+                        v_start = FindStartVertexlastround(G, V_selected, laststart);
+                        laststart = v_start;
+                    }else{
                         v_start = FindStartVertexlastround(G, V_selected, laststart); 
                         laststart = v_start;                     
                     }
@@ -3629,9 +3633,9 @@ void BFSPar_creatingEdgeLists_fixed_prune(
 }
 
 //find the v in the map and renum use the second value of map
-bool MapRenumber(map<long, long> &map_v, long v, long& renum)
+bool MapRenumber(unordered_map<long, long> &map_v, long v, long& renum)
 {
-	map<long, long>::iterator storedAlready = map_v.find(v);
+	unordered_map<long, long>::iterator storedAlready = map_v.find(v);
 	if(storedAlready != map_v.end()){
 		renum = storedAlready->second;
         //printf("renum %ld to %ld\n", v, renum);
@@ -3649,8 +3653,8 @@ void BFSPar_renumberingEdgeLists(//return: real number of partition
 		long num_e_dir_lg[],
 		long num_v_l[],
 		long num_v_g[],
-		map<long, long> map_v_l[],//std:map for local vertices, will be used for renumbering and creating M
-		map<long, long> map_v_g[],//std:map for ghost vertices, will be used for renumbering and creating M
+		unordered_map<long, long> map_v_l[],//std:map for local vertices, will be used for renumbering and creating M
+		unordered_map<long, long> map_v_g[],//std:map for ghost vertices, will be used for renumbering and creating M
 		long* M[]
 ){
     //map_v_l first value is v_global(key), second value is renum (value++)
@@ -3745,8 +3749,8 @@ void BFS_par_general_4TG(
 	long num_e_dir_lg[num_par];//,
 	long num_v_l[num_par];//,
 	long num_v_g[num_par];//,
-	map<long, long> map_v_l[num_par];//,//std:map for local vertices, will be used for renumbering and creating M
-	map<long, long> map_v_g[num_par];////std:map for ghost vertices, will be used for renumbering and creating M
+	unordered_map<long, long> map_v_l[num_par];//,//std:map for local vertices, will be used for renumbering and creating M
+	unordered_map<long, long> map_v_g[num_par];////std:map for ghost vertices, will be used for renumbering and creating M
 	for(int p = 0 ; p < num_par; p++ ){
 		elist_par[p] = (edge*)malloc(sizeof(edge) * (G->numEdges));
         tmp_M_v[p] = (long*)malloc(sizeof(long) * (G->numVertices));
@@ -3798,7 +3802,7 @@ void BFS_par_general_4TG(
     
     bfs_selected* bfs_adjacent = (bfs_selected*)malloc(sizeof(bfs_selected) * (G->numVertices));
     for(int p=0; p<num_par; p++){
-        for(map<long, long>::iterator itr = map_v_l[p].begin(); itr != map_v_l[p].end(); ++itr){
+        for(unordered_map<long, long>::iterator itr = map_v_l[p].begin(); itr != map_v_l[p].end(); ++itr){
             int v = itr->first;
             bfs_adjacent[v].par_idx = V_selected[v]-1;
             bfs_adjacent[v].renum_in_par = itr->second;
