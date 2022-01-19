@@ -208,7 +208,7 @@ $(BUILD_DIR)/kernel_louvain.xclbin: $(BINARY_CONTAINER_kernel_louvain_OBJS)
 
 # Add kernel alias to xclbin post-build so that the same kernel targeting different devices can be differentiated.
 	rm -f $(BUILD_DIR)/kernel_louvain_pruning_alias.xclbin
-	/opt/xilinx/xrt/bin/xclbinutil -i $(BUILD_DIR)/kernel_louvain.xclbin \
+	$(XILINX_VIVADO)/bin/xclbinutil -i $(BUILD_DIR)/kernel_louvain.xclbin \
 								   --key-value=USER:kernel_louvain:'{"alias": "kernel_louvain_pruning_u50"}' \
 	                               -o $(BUILD_DIR)/kernel_louvain_pruning_alias.xclbin
 
