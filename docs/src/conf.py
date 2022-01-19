@@ -1,5 +1,5 @@
 #
-# Copyright 2021 Xilinx, Inc.
+# Copyright 2022 Xilinx, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -41,13 +41,13 @@ sys.path.insert(1, os.path.join(tools_dir, 'share/doxyrest/sphinx'))
 # -- Project information -----------------------------------------------------
 
 project = 'Xilinx Alveo Graph Analytics Products'
-copyright = '2021, Xilinx'
+copyright = '2022, Xilinx'
 author = 'Xilinx'
 
 # The short X.Y version
-version = '1.4'
+version = '1.5'
 # The full version, including alpha/beta/rc tags
-release = 'v1.4'
+release = 'v1.5'
 
 # For bottom-left nav
 try:
@@ -57,7 +57,7 @@ except NameError:
 
 #html_context['display_lower_left'] = True
 html_context['current_version'] = version
-html_context['versions'] = ['1.4']
+html_context['versions'] = ['1.5']
 
 # -- General configuration ---------------------------------------------------
 

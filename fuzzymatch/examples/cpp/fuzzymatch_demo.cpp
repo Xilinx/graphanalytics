@@ -81,7 +81,7 @@ int main(int argc, const char* argv[]) {
     std::string deviceNames;
     unsigned int totalEntities = 10000000;
     unsigned int numEntities = 100;
-    unsigned int similarity_level = 90;
+    unsigned int similarity_threshold = 90;
 
     if (parser.getCmdOption("-h")) {
         std::cout << "Usage:\n\ttest.exe -xclbin XCLBIN_PATH -d WATCH_LIST_PATH [-c (0|1|2)]\n" << std::endl;
@@ -131,11 +131,11 @@ int main(int argc, const char* argv[]) {
         }
     }
 
-        if (parser.getCmdOption("--thres", is_check_str)) {
+    if (parser.getCmdOption("--threshold", is_check_str)) {
         try {
-            similarity_level = std::stoi(is_check_str);
+            similarity_threshold = std::stoi(is_check_str);
         } catch (...) {
-            similarity_level = 90;
+            similarity_threshold = 90;
         }
     }
 
@@ -205,7 +205,7 @@ int main(int argc, const char* argv[]) {
         float min = std::numeric_limits<float>::max(), max = 0.0, sum = 0.0;
    
         auto ts = std::chrono::high_resolution_clock::now();
-        result_set = fm.executefuzzyMatch(test_transaction,similarity_level);
+        result_set = fm.executefuzzyMatch(test_transaction, similarity_threshold);
         auto te = std::chrono::high_resolution_clock::now();
         float timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(te - ts).count() / 1000.0f;
         perf0 = timeTaken;
@@ -234,7 +234,7 @@ int main(int argc, const char* argv[]) {
         float min = std::numeric_limits<float>::max(), max = 0.0, sum = 0.0;
         for (int i = 0; i < numEntities; i++) {
             auto ts = std::chrono::high_resolution_clock::now();
-            std::unordered_map<int,int> swresult = cpu_checker.check(similarity_level,test_transaction[i]);
+            std::unordered_map<int,int> swresult = cpu_checker.check(similarity_threshold,test_transaction[i]);
             auto te = std::chrono::high_resolution_clock::now();
             float timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(te - ts).count() / 1000.0f;
             swperf0[i] = timeTaken;

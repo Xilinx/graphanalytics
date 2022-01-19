@@ -270,11 +270,11 @@ namespace fuzzymatch {
         vec_base.resize(100, 0);
         vec_offset.resize(100, 0);
     
-        std::cout << "    Pre-sorting..." << std::flush;
+        //std::cout << "    Pre-sorting..." << std::flush;
         std::vector<std::vector<std::pair<int, std::string> > > vec_grp_str(100);
         preCalculateOffsetPerPU(vec_grp_str, vec_base, vec_offset);
         int sum_line_num = sum_line;
-        std::cout << "    Pre-sort completed" << std::endl;
+        //std::cout << "    Pre-sort completed" << std::endl;
     
         const int line_per_elem = (max_fuzzy_len + 1 + 4 + 15) / 16;
         char *csv_part[PU_NUM];

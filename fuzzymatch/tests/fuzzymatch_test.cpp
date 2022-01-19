@@ -76,12 +76,14 @@ int main(int argc, const char* argv[]) {
     ArgParser parser(argc, argv);
 
     std::string xclbin_path;
-    std::string in_dir;
+    std::string patternFile, inputFile;
+    unsigned int patternIndex = 1, inputIndex = 1;
     unsigned int work_mode = 0; // FPGA-only mode
     std::string deviceNames;
     unsigned int totalEntities = 10000000;
     unsigned int numEntities = 100;
-    unsigned int similarity_level = 90;
+    unsigned int similarity_threshold = 90;
+    std::string is_check_str;
 
     if (parser.getCmdOption("-h")) {
         std::cout << "Usage:\n\ttest.exe -xclbin XCLBIN_PATH -d WATCH_LIST_PATH [-c (0|1|2)]\n" << std::endl;
@@ -96,11 +98,33 @@ int main(int argc, const char* argv[]) {
         std::cout << "ERROR: xclbin path is not set!\n";
         return -1;
     }
-    if (!parser.getCmdOption("-d", in_dir)) {
-        std::cout << "ERROR: input watch list csv file path is not set!\n";
-        return -1;
+
+    if (!parser.getCmdOption("--pattern_file", patternFile)) {
+        std::cout << "ERROR: csv file for pattern vectors is not set!\n";
+        return -2;
     }
-    std::string is_check_str;
+
+    if (parser.getCmdOption("--pattern_index", is_check_str)) {
+        try {
+            patternIndex = std::stoi(is_check_str);
+        } catch (...) {
+            patternIndex = 1;
+        }
+    }
+
+    if (!parser.getCmdOption("--input_file", inputFile)) {
+        std::cout << "ERROR: csv file for input vectors is not set!\n";
+        return -3;
+    }
+
+    if (parser.getCmdOption("--input_index", is_check_str)) {
+        try {
+            inputIndex = std::stoi(is_check_str);
+        } catch (...) {
+            inputIndex = 1;
+        }
+    }
+
     if (parser.getCmdOption("-c", is_check_str)) {
         try {
             work_mode = std::stoi(is_check_str);
@@ -108,6 +132,7 @@ int main(int argc, const char* argv[]) {
             work_mode = 0;
         }
     }
+
     if (parser.getCmdOption("--devices", deviceNames)) {
         std::cout << "INFO: Set deviceNames to " << deviceNames << std::endl;
     } else {
@@ -131,11 +156,11 @@ int main(int argc, const char* argv[]) {
         }
     }
 
-        if (parser.getCmdOption("--thres", is_check_str)) {
+    if (parser.getCmdOption("--threshold", is_check_str)) {
         try {
-            similarity_level = std::stoi(is_check_str);
+            similarity_threshold = std::stoi(is_check_str);
         } catch (...) {
-            similarity_level = 90;
+            similarity_threshold = 90;
         }
     }
 
@@ -147,138 +172,146 @@ int main(int argc, const char* argv[]) {
         std::cout << "Select both FPGA and CPU checker\n";
     else {
         std::cout << "ERROR: work mode out of range [0,2]" << std::endl;
-        return -1;
+        return -4;
     }
-
 
     // Add Watch List CSV Files
     std::ifstream f;
-    const std::string peopleFile = in_dir + "/" + "all-names.csv";
-    f.open(peopleFile);
+    f.open(patternFile);
     if (f.good()) {
         f.close();
         f.clear();
     } else {
-        std::cout << "Error: File " << peopleFile << " cannot be found, please check and re-run.\n\n";
+        std::cout << "Error: File " << patternFile << " cannot be found, please check and re-run.\n\n";
         exit(1);
     }
  
     // Read some transactions
-    std::string test_input = in_dir + "/" + "new-names.csv";
-    f.open(test_input);
+    f.open(inputFile);
     if (f.good()) {
         f.close();
         f.clear();
     } else {
-        std::cout << "Error: Test input file " << test_input
-                  << " cannot be found, please check and re-run.\n\n";
-        exit(1);
+        std::cout << "Error: Test input file " << inputFile
+                  << " cannot be found, please check and re-run." << std::endl;
+        exit(-5);
     }
 
     std::vector<std::string> list_trans;
-    load_csv(numEntities, -1U, test_input, 1, list_trans); 
+    load_csv(numEntities, -1U, inputFile, inputIndex, list_trans); 
     std::vector<std::string> test_transaction(numEntities);
     for (int i = 0; i < numEntities; i++) {
         test_transaction[i] = list_trans[i];
     }
 
-    std::vector<std::vector<std::pair<int,int>>> result_set(numEntities);
-    float perf0;
+    std::vector<std::vector<std::pair<int,int>>> hwResult(numEntities);
 
-    std::vector<std::string> peopleVec;
-    load_csv(totalEntities, -1U, peopleFile , 1, peopleVec);
+    std::vector<std::string> patternVector;
+    load_csv(totalEntities, -1U, patternFile , patternIndex, patternVector);
+    std::cout << "INFO: total number of patterns loaded: " << patternVector.size() << std::endl;
     
     // Begin to analyze if on mode 0 or 2
+    float hwExecTime = 0.0;
     if (work_mode == 0 || work_mode == 2) {
         Options options;
         options.xclbinPath=xclbin_path;
         options.deviceNames=deviceNames;
         FuzzyMatch fm(options);
         
-        //checker.initialize(xclbin_path, stopKeywordFile, peopleFile, entityFile, BICRefFile, 0); // card 0
         if (fm.startFuzzyMatch() < 0) {
             std::cout << "ERROR: Failed to initialize " << deviceNames << " with xclbin " << xclbin_path << std::endl;
             return -1;
         }
 
-        fm.fuzzyMatchLoadVec(peopleVec);
-        float min = std::numeric_limits<float>::max(), max = 0.0, sum = 0.0;
+        fm.fuzzyMatchLoadVec(patternVector);
+        float min = std::numeric_limits<float>::max(), max = 0.0;
    
         auto ts = std::chrono::high_resolution_clock::now();
-        result_set = fm.executefuzzyMatch(test_transaction,similarity_level);
+        hwResult = fm.executefuzzyMatch(test_transaction, similarity_threshold);
         auto te = std::chrono::high_resolution_clock::now();
         float timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(te - ts).count() / 1000.0f;
-        perf0 = timeTaken;
 
         if (min > timeTaken) min = timeTaken;
         if (max < timeTaken) max = timeTaken;
-        sum += timeTaken;
+        hwExecTime += timeTaken;
 
-        std::cout << "\nFor FPGA, ";
+        std::cout << "\nINFO: FuzzyMatch FPGA statistics:";
         std::cout << numEntities << " transactions were processed.\n";
 
         std::cout << "Min(ms)\t\tMax(ms)\t\tAvg(ms)\n";
         std::cout << "----------------------------------------" << std::endl;
-        std::cout << min << "\t\t" << max << "\t\t" << sum / numEntities << std::endl;
+        std::cout << min << "\t\t" << max << "\t\t" << hwExecTime / numEntities << std::endl;
         std::cout << "----------------------------------------" << std::endl;
     }
 
+
     // check the result
     FuzzyMatchSW cpu_checker;
+    float swExecTime = 0.0; 
     if (work_mode == 1 || work_mode == 2) {
-        std::vector<float> swperf0(numEntities);
-        if (work_mode == 2) std::cout << "\nStart to check...\n";
+        std::vector<float> swperf(numEntities);
         int nerror = 0;
-        cpu_checker.initialize(peopleFile);
+        cpu_checker.initialize(patternVector);
 
         float min = std::numeric_limits<float>::max(), max = 0.0, sum = 0.0;
         for (int i = 0; i < numEntities; i++) {
+
+#ifndef NDEBUG
+            std::cout << "DEBUG: finding match for " << test_transaction[i] << std::endl;
+#endif            
             auto ts = std::chrono::high_resolution_clock::now();
-            std::unordered_map<int,int> swresult = cpu_checker.check(similarity_level, test_transaction[i]);
+            std::unordered_map<int,int> swResult = cpu_checker.check(similarity_threshold, test_transaction[i]);
             auto te = std::chrono::high_resolution_clock::now();
             float timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(te - ts).count() / 1000.0f;
-            swperf0[i] = timeTaken;
+            swperf[i] = timeTaken;
             if (work_mode == 2) {
-                if(swresult.size()<100 && swresult.size() != result_set[i].size()) {
-                    std::cout << "Error: Trans-"<< i << " number of matches is NOT matched!!!" << std::endl;
-                    std::cout << swresult.size() << " <-> " << result_set[i].size() << std::endl;
+                if (swResult.size() < 100 && swResult.size() != hwResult[i].size()) {
+                    std::cout << "ERROR: Trans-"<< i << " number of matches is NOT matched!!!" << std::endl;
+                    std::cout << swResult.size() << " <-> " << hwResult[i].size() << std::endl;
                     nerror++;
                 } else {
-                    std::cout << "total number of matched string = " << swresult.size() << std::endl;
-                    for (unsigned int j = 0; j < result_set[i].size(); j++) {
-                        int hw_id_t = result_set[i][j].first;
-                        int hw_score_t = result_set[i][j].second;
-                        if (swresult.find(hw_id_t) != swresult.end() && swresult[hw_id_t] == hw_score_t) {
+#ifndef NDEBUG                    
+                    std::cout << "total number of matched string = " << swResult.size() << std::endl;
+#endif                    
+                    for (unsigned int j = 0; j < hwResult[i].size(); j++) {
+                        int hw_id_t = hwResult[i][j].first;
+                        int hw_score_t = hwResult[i][j].second;
+                        if (swResult.find(hw_id_t) != swResult.end() && swResult[hw_id_t] == hw_score_t) {
+#ifndef NDEBUG                            
                             std::cout << "Check matched. <" << hw_id_t << ", " << hw_score_t << ">" << std::endl;
+#endif                            
                         } else {
                             nerror++;
-                            if (swresult.find(hw_id_t) == swresult.end())
+                            if (swResult.find(hw_id_t) == swResult.end())
                                 std::cout << "ID is not matched!!! " << std::endl;
                             else
-                                std::cout << "Score is not matched!!! " << swresult[hw_id_t] << " <-> " << hw_score_t
+                                std::cout << "Score is not matched!!! " << swResult[hw_id_t] << " <-> " << hw_score_t
                                           << std::endl;
                         }
                     }
                 }              
 
-                if (min > swperf0[i]) min = swperf0[i];
-                if (max < swperf0[i]) max = swperf0[i];
-                sum +=swperf0[i] ;
+                if (min > swperf[i]) min = swperf[i];
+                if (max < swperf[i]) max = swperf[i];
+                swExecTime += swperf[i] ;
             }
         }
 
-        std::cout << "\nFor CPU, " << std::endl;
+        std::cout << "\nINFO: FuzzyMatch CPU statictics" << std::endl;
         std::cout << "Min(ms)\t\tMax(ms)\t\tAvg(ms)\n";
         std::cout << "----------------------------------------" << std::endl;
-        std::cout << min << "\t\t" << max << "\t\t" << sum / (numEntities - nerror) << std::endl;
+        std::cout << min << "\t\t" << max << "\t\t" << swExecTime / (numEntities - nerror) << std::endl;
         std::cout << "----------------------------------------" << std::endl;
     
         if (work_mode == 2) {
             if (nerror != 0) {
-                std::cout << "Error: faild to check " << nerror << " transactions!\n";
+                std::cout << "ERROR: faild to check " << nerror << " transactions!\n";
                 return -1;
             } else {
-                std::cout << "Check passed!\n";
+                std::cout << "INFO: Check passed!\n";
+                std::cout << "INFO: Pattern vector size: " << patternVector.size() << std::endl;
+                std::cout << "INFO: Input size: " << numEntities << std::endl;
+                std::cout << "INFO: FuzzyMatch FPGA speedup: " << swExecTime/hwExecTime << std::endl;
             }
         }
     }

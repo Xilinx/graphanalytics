@@ -17,11 +17,15 @@
 """
 
 # command line examples:
+# ./gen-fuzzy-data.py all-last-names.csv 10
 
 import sys
 import random
 
+# input csv name
 in_file = sys.argv[1]
+# minimum length for name to be selected for test.
+min_len = int(sys.argv[2])
 
 out_file_ref = "ref-names.csv"
 out_file_new = "new-names.csv"
@@ -36,7 +40,7 @@ print('Id,Name', file=out_fh_new)
 with open(in_file) as in_fh:
     for line in in_fh:
         name = line.split()[0]
-        if len(name) > 11:
+        if len(name) > min_len:
             print(str(ref_cnt) + ',' + name, file=out_fh_ref)
             ref_cnt += 1
             # save 1/3 to new names with 1 to 3 mod

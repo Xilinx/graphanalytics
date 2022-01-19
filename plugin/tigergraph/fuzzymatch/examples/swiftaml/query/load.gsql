@@ -25,5 +25,5 @@ CREATE LOADING JOB load_job FOR GRAPH @graph {
 	LOAD blacklist_csv TO VERTEX blacklist VALUES ($0, $1) USING separator=",", Header="true";
     
     // load transactions. Using the name directly as the primary key
-    LOAD transaction_csv TO VERTEX person_tx VALUES ($0, $1) USING separator=",", Header="true";
+    LOAD transaction_csv TO VERTEX person_tx VALUES ($15, $15) USING separator=",", Header="true";
 }

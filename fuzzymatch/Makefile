@@ -362,15 +362,23 @@ else ifeq ($(deviceNames),xilinx_aws-vu9p-f1_shell-v04261818_201920_2)
     XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_F1)	
 endif
 
-runMode=0
-totalEntities=10000000
-numEntities=100
+runMode = 0
+totalEntities = 10000000
+numEntities = 100
+threshold = 90
+patternFile = ./examples/data/ref-names.csv
+patternIndex = 1
+inputFile = ./examples/data/new-names.csv
+inputIndex = 1
+
 run: cppTest stage
 	set -e; \
 	. $(XILINX_XRT)/setup.sh && \
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH $(CPP_BUILD_DIR)/fuzzymatch_test \
-	    -xclbin $(XCLBIN_RUN) -d ./examples/data -c $(runMode) --devices $(deviceNames) \
-		--total_entities $(totalEntities) --num_entities $(numEntities)
+	    -xclbin $(XCLBIN_RUN) --devices $(deviceNames) -c $(runMode) --threshold $(threshold) \
+		--pattern_file $(patternFile) --pattern_index $(patternIndex) --total_entities $(totalEntities) \
+		--input_file $(inputFile) --input_index $(inputIndex) --num_entities $(numEntities) \
+		
 
 run-staging-cpp: cppTest stage
 	cd staging/examples/cpp && make run
@@ -577,8 +585,6 @@ javaTest:
 #### Clean target deletes all generated files ####
 .PHONY: clean clean-xclbin clean-dist
 
-run: 
-
 clean:
 	rm -rf Debug Release $(JAVA_LIB_DIR) $(BUILD_DIR) $(STAGE_DIR)
 	@echo "Note: because the XCLBIN file takes so long to generate, it is not removed with this 'clean' target."
@@ -607,11 +613,16 @@ help:
 	@echo "                 Supported devices:"
 	@echo "                 xilinx_u50_gen3x16_xdma_201920_3 (default)"
 	@echo "                 xilinx_aws-vu9p-f1_shell-v04261818_201920_2"
+	@echo "  patternFile  :  Pattern file to match against (default=./examples/data/ref-names.csv)"
+	@echo "  patternIndex :  The column index to extract field of interest from the pattern file (default=1)"
+	@echo "  inputFile    :  Input file that needs to be matched against patternFile (default=./examples/data/new-names.csv)"
+	@echo "  inputIndex   :  The column index to extract field of interest from the input file (default=1)"
 	@echo "  numEntities  : Number of entities to match (default=100)"
 	@echo "  runMode      : 0: Run on Alveo Only (default)"
 	@echo "                 1: Run on CPU Only"
 	@echo "                 2: Run on both Alveo and CPU"
 	@echo "  totalEntities: total number of entities to match against(default=10000000)"
+	@echo "  threshold    : similarity score threshold to be considered a match. An integer value representing percentage. (default=90 or 90%) "
 	@echo ""
 	@echo "  make all"
 	@echo "  Compile fuzzyMatch lib and generate staging area"
@@ -627,3 +638,4 @@ help:
 	@echo ""
 	@echo "  Common options"
 	@echo "  INC_ALL_XCLBINS: 1: Include all supported XCLBINs for staging (default). 0: Only incude target XCLBIN"
+	@echo "  DEBUG          : 1: Build applications for debug"
