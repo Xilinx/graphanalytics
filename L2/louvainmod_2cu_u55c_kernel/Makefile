@@ -113,7 +113,8 @@ CXXFLAGS += -I$(XFLIB_DIR)/L2/louvainmod_2cu_u55c_kernel
 CXXFLAGS += -I$(XFLIB_DIR)/ext/xcl2
 CXXFLAGS += -I$(XFLIB_DIR)/L2/include
 #CXXFLAGS += -I$(XFLIB_DIR)/../utils/L1/include
-CXXFLAGS += -I$(XFLIB_DIR)/ext/xcl2
+# please use "git submodule update --init --recursive"
+CXXFLAGS += -I$(XFLIB_DIR)/ext/HLS_arbitrary_Precision_Types/include/
 
 ifeq ($(TARGET),sw_emu)
 CXXFLAGS += -D SW_EMU_TEST
@@ -130,7 +131,8 @@ CXXFLAGS += -fmessage-length=0 -O3 -DPRAGMA -Ofast -fopenmp -fPIC -DMULTITHREAD
 CXXFLAGS += -I$(CUR_DIR)/src/ 
 
 ifeq ($(HOST_ARCH), x86)
-LDFLAGS += -L$(XILINX_VIVADO)/lnx64/tools/fpo_v7_0 -Wl,--as-needed -lgmp -lmpfr -lIp_floating_point_v7_0_bitacc_cmodel
+LDFLAGS += -L$(XILINX_VIVADO)/lnx64/tools/fpo_v7_0 -Wl,--as-needed -lgmp
+#-lmpfr -lIp_floating_point_v7_0_bitacc_cmodel
 endif
 #ifneq (,$(shell echo $(XPLATFORM) | awk '/u50/'))
 #CXXFLAGS += -D USE_HBM
@@ -200,7 +202,7 @@ $(BUILD_DIR)/kernel_louvain.xclbin: $(BINARY_CONTAINER_kernel_louvain_OBJS)
 
 # Add kernel alias to xclbin post-build so that the same kernel targeting different devices can be differentiated.
 	rm -f $(BUILD_DIR)/kernel_louvain_2cu_u55c_alias.xclbin
-	/opt/xilinx/xrt/bin/xclbinutil -i $(BUILD_DIR)/kernel_louvain.xclbin \
+	$(XILINX_VIVADO)/bin/xclbinutil -i $(BUILD_DIR)/kernel_louvain.xclbin \
 								   --key-value=USER:kernel_louvain:'{"alias": "kernel_louvain_2cu_u55"}' \
 	                               -o $(BUILD_DIR)/kernel_louvain_2cu_u55c_alias.xclbin
 

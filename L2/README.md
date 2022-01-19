@@ -10,6 +10,7 @@ To run a test for a specific kernel, execute the following command:
 
 ```
 cd <KERNEL-NAME>
+git submodule update --init --recursive
 source <install path>/Vitis/2020.2/settings64.sh
 source /opt/xilinx/xrt/setup.sh
 export PLATFORM_REPO_PATHS=/opt/xilinx/platforms
