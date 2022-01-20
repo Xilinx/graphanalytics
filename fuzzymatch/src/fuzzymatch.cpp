@@ -453,14 +453,16 @@ namespace fuzzymatch {
         }
         queue.flush();
         queue.finish();
-        //std::vector<std::vector<int>> results(batch_num); // for each pattern string store top 100 matched patterns. fixed size 201 ints. 0 th is hit number ; 1..100 is match id; 101..200 is score
+        //std::vector<std::vector<int>> results(batch_num); 
+        // for each pattern string store top 100 matched patterns. fixed size 201 ints. 
+        // 0 th is hit number ; 1..100 is match id; 101..200 is score
         std::vector<std::vector<std::pair<int,int>>> results(batch_num);
         for(int bi = 0;bi < batch_num; bi++){
             int i = bi % ((batch_num+1)/2);
             int k = (bi<(batch_num+1)/2) ? 0 :1;
             int cnt = buf_result[k][i*201]; 
             for(int j=0; j<cnt; j++){
-                results[bi].push_back(std::make_pair(buf_result[k][i*201 + 1+j],buf_result[k][i*201+101+j]));
+                results[bi].push_back(std::make_pair(buf_result[k][i*201 + 1+j], buf_result[k][i*201+101+j]));
             }               
         }
         
