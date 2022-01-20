@@ -197,11 +197,11 @@ int main(int argc, const char* argv[]) {
         exit(-5);
     }
 
-    std::vector<std::string> list_trans;
-    load_csv(numEntities, -1U, inputFile, inputIndex, list_trans); 
-    std::vector<std::string> test_transaction(numEntities);
-    for (int i = 0; i < numEntities; i++) {
-        test_transaction[i] = list_trans[i];
+    std::vector<std::string> allInputVector;
+    load_csv(numEntities, -1U, inputFile, inputIndex, allInputVector); 
+    std::vector<std::string> inputVector(numEntities);
+    for (unsigned int i = 0; i < numEntities; i++) {
+        inputVector[i] = allInputVector[i];
     }
 
     std::vector<std::vector<std::pair<int,int>>> hwResult(numEntities);
@@ -227,7 +227,7 @@ int main(int argc, const char* argv[]) {
         float min = std::numeric_limits<float>::max(), max = 0.0;
    
         auto ts = std::chrono::high_resolution_clock::now();
-        hwResult = fm.executefuzzyMatch(test_transaction, similarity_threshold);
+        hwResult = fm.executefuzzyMatch(inputVector, similarity_threshold);
         auto te = std::chrono::high_resolution_clock::now();
         float timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(te - ts).count() / 1000.0f;
 
@@ -235,13 +235,25 @@ int main(int argc, const char* argv[]) {
         if (max < timeTaken) max = timeTaken;
         hwExecTime += timeTaken;
 
-        std::cout << "\nINFO: FuzzyMatch FPGA statistics:";
-        std::cout << numEntities << " transactions were processed.\n";
+#ifndef NDEBUG
+        for (unsigned int i = 0; i < numEntities; i++) {
+            if (hwResult[i].size() > 0)
+                std::cout << "Input " << i << ":" << inputVector[i] << std::endl;
 
-        std::cout << "Min(ms)\t\tMax(ms)\t\tAvg(ms)\n";
-        std::cout << "----------------------------------------" << std::endl;
-        std::cout << min << "\t\t" << max << "\t\t" << hwExecTime / numEntities << std::endl;
-        std::cout << "----------------------------------------" << std::endl;
+            for (unsigned int j = 0; j < hwResult[i].size(); j++) {
+                int hw_id_t = hwResult[i][j].first;
+                int hw_score_t = hwResult[i][j].second;
+                std::cout << "    hw_id_t=" << hw_id_t 
+                          << " matched pattern=" << patternVector[hw_id_t] 
+                          << " similarity score=" << hw_score_t << std::endl;
+            }
+        }
+
+#endif
+        std::cout << "--------------------------------------------------------------------------------" << std::endl;
+        std::cout << "INFO: FuzzyMatch FPGA result: "  
+                  << numEntities << " transactions were processed in " << hwExecTime << " ms" << std::endl;
+        std::cout << "--------------------------------------------------------------------------------" << std::endl;
     }
 
 
@@ -257,13 +269,14 @@ int main(int argc, const char* argv[]) {
         for (int i = 0; i < numEntities; i++) {
 
 #ifndef NDEBUG
-            std::cout << "DEBUG: finding match for " << test_transaction[i] << std::endl;
+            std::cout << "DEBUG: finding match for " << inputVector[i] << std::endl;
 #endif            
             auto ts = std::chrono::high_resolution_clock::now();
-            std::unordered_map<int,int> swResult = cpu_checker.check(similarity_threshold, test_transaction[i]);
+            std::unordered_map<int,int> swResult = cpu_checker.check(similarity_threshold, inputVector[i]);
             auto te = std::chrono::high_resolution_clock::now();
             float timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(te - ts).count() / 1000.0f;
             swperf[i] = timeTaken;
+
             if (work_mode == 2) {
                 if (swResult.size() < 100 && swResult.size() != hwResult[i].size()) {
                     std::cout << "ERROR: Trans-"<< i << " number of matches is NOT matched!!!" << std::endl;
@@ -294,10 +307,16 @@ int main(int argc, const char* argv[]) {
                 if (min > swperf[i]) min = swperf[i];
                 if (max < swperf[i]) max = swperf[i];
                 swExecTime += swperf[i] ;
+            } else if (work_mode == 1) {
+                if (swResult.size() > 0) {
+                    //std::cout << swResult[hw_id_t]
+                }
+
+
             }
         }
 
-        std::cout << "\nINFO: FuzzyMatch CPU statictics" << std::endl;
+        std::cout << "\nINFO: FuzzyMatch CPU Result: " << std::endl;
         std::cout << "Min(ms)\t\tMax(ms)\t\tAvg(ms)\n";
         std::cout << "----------------------------------------" << std::endl;
         std::cout << min << "\t\t" << max << "\t\t" << swExecTime / (numEntities - nerror) << std::endl;
