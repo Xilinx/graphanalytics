@@ -50,6 +50,7 @@ $(PLUGIN_TARGET): $(PLUGIN_DEPS)
 	cd ../../ && \
 	    make DEBUG=$(DEBUG) stage INC_ALL_XCLBINS=$(INC_ALL_XCLBINS) deviceNames=$(deviceNames) && \
 		./staging/install.sh -v -f $(SSH_KEY_OPT) -d $(deviceNames) 
+	touch $(PLUGIN_TARGET)
 
 $(EXAMPLE_UDF_TARGET): $(PLUGIN_TARGET) $(EXAMPLE_UDF_DEPS)
 	@echo "--------------------------------------------------------------"
@@ -57,6 +58,7 @@ $(EXAMPLE_UDF_TARGET): $(PLUGIN_TARGET) $(EXAMPLE_UDF_DEPS)
 	@echo "--------------------------------------------------------------"
 	cd ../../ && make DEBUG=$(DEBUG) stage && \
 	./staging/examples/$(EXAMPLE)/bin/install-udf.sh -v -f $(SSH_KEY_OPT)
+	touch $(EXAMPLE_UDF_TARGET)
 
 test: $(EXAMPLE_UDF_TARGET)
 	@echo "-------------------------------------------------------"
@@ -90,6 +92,7 @@ help:
 	@echo "deviceNames : Target device name. Supported devices: "
 	@echo "              xilinx_u50_gen3x16_xdma_201920_3 (default)"
 	@echo "              xilinx_aws-vu9p-f1_shell-v04261818_201920_2"
+	@echo "              xilinx_u55c_gen3x16_xdma_base_2"
 	@echo "refNames    : A csv file with reference names. default=../data/ref-names.csv"
 	@echo "newNames    : A csv file with new names. default=../data/new-names.csv"
 	@echo "graphName   : graph name (default=swift_<username>"

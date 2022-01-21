@@ -27,16 +27,16 @@ pluginAlveoProductName="Xilinx Fuzzy Match"
 standaloneAlveoProductName="Xilinx Fuzzy Match"
 
 # The usual place where the Alveo Product is installed
-pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/fuzzymatch/0.1
+pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/fuzzymatch/0.2
 
 # Where to find the git repo for the Alveo Product if it exists
 pluginLocalAlveoProductPath=$SCRIPTPATH/../../../../../fuzzymatch/staging
 
 # The name of supported XCLBIN files
-pluginSupportedDevices="xilinx_u50_gen3x16_xdma_201920_3 xilinx_aws-vu9p-f1_shell-v04261818_201920_2"
+pluginSupportedDevices="xilinx_u50_gen3x16_xdma_201920_3 xilinx_aws-vu9p-f1_shell-v04261818_201920_2 xilinx_u55c_gen3x16_xdma_base_2"
 pluginXclbinNameU50=fuzzy_xilinx_u50_gen3x16_xdma_201920_3.xclbin
 pluginXclbinNameAwsF1=fuzzy_xilinx_aws-vu9p-f1_shell-v04261818_201920_2.awsxclbin
-pluginXclbinNameU55C=
+pluginXclbinNameU55C=fuzzy_xilinx_u55c_gen3x16_xdma_2_202110_1.xclbin
 
 # The name of the Alveo Product's .so file
 pluginLibName=libXilinxFuzzyMatch.so
