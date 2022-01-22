@@ -237,6 +237,77 @@ $(XCLBIN_FILE_U55):
 
 #######################################################################################################################
 #
+# python API wrapper
+#
+
+PYTHON = python3
+PYTHON_DIR = /usr/include/$(PYTHON)
+PYTHONENV_NAME = pyvenv
+PYTHONENV = ./$(PYTHONENV_NAME)/bin/$(PYTHON)
+PYTHON_API_DIR = wrappers/python
+PYTHON_LIB_NAME := xilMisPython.so #$(shell python-config --extension-suffix)
+
+SRC_FILE_NAMES_python = pythonapi.cpp
+PYTHON_INC_FLAGS = $(shell python3-config --includes)
+INCLUDES_python = \
+    -I$(PYTHON_DIR) \
+    -Iinclude \
+	-I$(GRAPH_ANALYTICS_DIR)/ext \
+	-I$(PYTHON_INC_FLAGS)
+
+SRCS_python = $(addprefix $(PYTHON_API_DIR)/,$(SRC_FILE_NAMES_python))
+OBJS_python = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_python:.cpp=.o)))
+
+LIB_PATH = $(CPP_BUILD_DIR)
+
+LDFLAGS_python = -L$(LIB_PATH) -l$(LIB_SHORT_NAME)
+
+# Add pybind11 includes and set library name after setting virtual env
+ifeq ($(MAKECMDGOALS),pythonApi2)
+INCLUDES_python += $(shell $(PYTHONENV) -m pybind11 --includes)
+endif
+
+SHAREDLIB_FLAGS_python = -shared
+
+.PHONY: pythonApi pythonApi2
+
+# Make in a child process so that we can isolate the run that includes automatic header dependencies
+pythonApi: cppBuild $(PYTHONENV_NAME)
+	@make pythonApi2
+
+$(PYTHONENV_NAME):
+	$(PYTHON) -m venv $(PYTHONENV_NAME);\
+	$(PYTHONENV) -m pip install wheel; \
+	$(PYTHONENV) -m pip install pybind11; \
+	$(PYTHONENV) -m pip install python-config
+
+pythonApi2: $(CPP_BUILD_DIR) $(CPP_BUILD_DIR)/$(PYTHON_LIB_NAME)
+
+$(CPP_BUILD_DIR)/$(PYTHON_LIB_NAME): $(OBJS_python)
+	$(LINK.cc) $^ -o $@ $(SHAREDLIB_FLAGS_python) $(LDFLAGS_python)
+
+# Macro to create a .o rule and a .d rule for each .cpp
+
+define BUILD_CPP_RULE
+
+$(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o): $(1)
+	$(COMPILE.cc) $(INCLUDES_python) -o $$@ $$<
+
+$(CPP_BUILD_DIR)/$(notdir $(basename $(1)).d): $(1)
+	@set -e; \
+	rm -f $$@; \
+	$(COMPILE.cc) -MM -MT $(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o) $(INCLUDES_python)   -MF $$@.$$$$$$$$ $$<; \
+        sed 's,\($(CPP_BUILD_DIR)/$(notdir $(basename $(1)).o)\)[ :]*,\1 $$@ : ,g' < $$@.$$$$$$$$ > $$@; \
+	rm -f $$@.$$$$$$$$
+
+endef
+
+# Expand the macro for each source file
+
+$(foreach src,$(SRCS_python),$(eval $(call BUILD_CPP_RULE,$(src))))
+
+#######################################################################################################################
+#
 # C++ Tests
 #
 
@@ -368,7 +439,9 @@ $(foreach f,$(STAGE_LIB_FILES),$(eval $(call STAGE_LIB_RULE,$(f))))
 #STAGE_EXAMPLE_ZIP = examples.zip
 STAGE_EXAMPLE_FILE_NAMES = \
 	cpp/misdemo.cpp cpp/Makefile \
+	python/misdemo.py python/run.sh \
 	data/rowPtr.bin data/colIdx.bin data/infos.txt
+	#python/README.md python/jupyter/misdemo_notebook.ipynb \
 
 STAGE_EXAMPLE_FILES = $(addprefix examples/,$(STAGE_EXAMPLE_FILE_NAMES))
 STAGE_STAGED_EXAMPLE_FILES = $(addprefix $(STAGE_DIR)/,$(STAGE_EXAMPLE_FILES))
@@ -434,7 +507,7 @@ endif
 
 # make staging areaing in two steps so intermediate outputs can be included in the 
 # staging output as well.
-stage: cppBuild
+stage: pythonApi
 	make stage2 INC_ALL_XCLBINS=$(INC_ALL_XCLBINS) deviceNames=$(deviceNames)
 
 stage2: $(STAGE_SUBDIRS) stage-examples $(STAGE_ALL_FILES)
@@ -511,6 +584,8 @@ clean-dist:
 	@cd package; \
 	make clean
 
+cleanpy:
+	rm -rf $(PYTHONENV_NAME)
 
 cleanall: clean cleanpy
 	rm -f ./package/*.deb ./package/*.rpm
