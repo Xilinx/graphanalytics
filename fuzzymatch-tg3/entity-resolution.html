@@ -59,7 +59,7 @@
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Entity Resolution Overview" href="entity-resolution-overview.html" />
+    <link rel="next" title="Entity Resolution Use Case Overview" href="entity-resolution-overview.html" />
     <link rel="prev" title="Fuzzy Match Use Cases" href="../fuzzymatch/usecases.html" /> 
 	</head>
 	<body>
@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                1.4
+                1.5
               </div>
             
           
@@ -445,15 +445,14 @@
             
   <div class="section" id="entity-resolution">
 <span id="fuzzymatch-usecases-entity-resolution-label"></span><h1>Entity Resolution<a class="headerlink" href="#entity-resolution" title="Permalink to this headline">¶</a></h1>
-<p>Entity resolution is an operational intelligence process, whereby organizations
-can connect disparate data sources with a view to understanding possible entity
-matches and non-obvious relationships across multiple data silos. It analyzes
-all of the information relating to individuals and/or entities from multiple
-sources of data, and then applies likelihood and probability scoring to determine
-which identities are a match and what, if any, non-obvious relationships
-exist between those identities.</p>
-<p>This use case shows hows how a TigerGraph-based application can leverage Xilinx
-FuzzyMatch plugin to achieve order of magnitude speedup in entity resolution.</p>
+<p>Entity resolution is an operational intelligence process of identifying records
+corresponding to the same real-world entities across multiple data sources.
+The challenge in entity resolution is that records from different data sources
+are not exactly the same and they do not share a unique identifier.</p>
+<p>One popular technique used for entity resolution is to calcualte the Levenshtein
+edit distance between two strings. This use case shows how a TigerGraph-based
+application can leverage Xilinx FuzzyMatch plugin to achieve order of magnitude
+speedup in entity resolution using Levenshtein edit distance technique.</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="entity-resolution-overview.html">Overview</a></li>
@@ -478,7 +477,7 @@ FuzzyMatch plugin to achieve order of magnitude speedup in entity resolution.</p
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="entity-resolution-overview.html" class="btn btn-neutral float-right" title="Entity Resolution Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="entity-resolution-overview.html" class="btn btn-neutral float-right" title="Entity Resolution Use Case Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="../fuzzymatch/usecases.html" class="btn btn-neutral float-left" title="Fuzzy Match Use Cases" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -491,7 +490,7 @@ FuzzyMatch plugin to achieve order of magnitude speedup in entity resolution.</p
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 17, 2022.
+        Last updated on January 22, 2022.
       </span>
 
     </p>
@@ -587,7 +586,7 @@ FuzzyMatch plugin to achieve order of magnitude speedup in entity resolution.</p
 														<div class="col-md-pull-6 col-lg-pull-6 col-md-6 col-lg-6">
 															<span class="copyright">
                                   
-                                  &copy; 2021, Xilinx
+                                  &copy; 2022, Xilinx
                               </span>
 															<ul class="list-inline sub-menu">
 																<li>

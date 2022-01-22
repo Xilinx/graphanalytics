@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                1.4
+                1.5
               </div>
             
           
@@ -428,7 +428,7 @@
         
           <li><a href="entity-resolution.html">Entity Resolution</a> &raquo;</li>
         
-      <li>Entity Resolution Overview</li>
+      <li>Entity Resolution Use Case Overview</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -445,12 +445,43 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="entity-resolution-overview">
-<h1>Entity Resolution Overview<a class="headerlink" href="#entity-resolution-overview" title="Permalink to this headline">¶</a></h1>
-<p>In this example, the goal is to identify if last names from a new data source
-match names loaded previously using a reference dataset in TigerGraph. Two names
-are considered a match if they differ by a few characters as programmed by the
-user.</p>
+  <div class="section" id="entity-resolution-use-case-overview">
+<h1>Entity Resolution Use Case Overview<a class="headerlink" href="#entity-resolution-use-case-overview" title="Permalink to this headline">¶</a></h1>
+<p>In this use case, two data sources are used. The first data source is a reference
+CSV file with a list of last names. The second data source is a new CSV file
+with a new list of last names that slightly differ from the reference. The table
+below shows some examples:</p>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 70%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Reference Name</p></th>
+<th class="head"><p>New Name</p></th>
+<th class="head"><p>Levenshtein Edit Distance</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>HIGGINBOTHAM</p></td>
+<td><p>HJGGJNCOTHAM</p></td>
+<td><p>3</p></td>
+</tr>
+<tr class="row-odd"><td><p>STRINGFELLOW</p></td>
+<td><p>STRINGFELMOW</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p>VANLANDINGHAM</p></td>
+<td><p>VAOLBNDINGHAM</p></td>
+<td><p>2</p></td>
+</tr>
+</tbody>
+</table>
+<p>The reference names are loaded to the Xilinx Alveo card first. The list of new
+names will be sent to the card to match against the reference with a user sepcified
+threshold. If the Levenshtein edit distance between the new name and the reference
+is within the threshold, a match is found.</p>
 </div>
 
 
@@ -482,7 +513,7 @@ user.</p>
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 17, 2022.
+        Last updated on January 22, 2022.
       </span>
 
     </p>
@@ -578,7 +609,7 @@ user.</p>
 														<div class="col-md-pull-6 col-lg-pull-6 col-md-6 col-lg-6">
 															<span class="copyright">
                                   
-                                  &copy; 2021, Xilinx
+                                  &copy; 2022, Xilinx
                               </span>
 															<ul class="list-inline sub-menu">
 																<li>

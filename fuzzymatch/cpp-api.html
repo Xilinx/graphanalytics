@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                1.4
+                1.5
               </div>
             
           
@@ -483,15 +483,18 @@ Maximum length of blacklist/query string: 64</p>
 <div class="section" id="fuzzymatchloadvec-interface">
 <h2><strong>fuzzyMatchLoadVec Interface</strong><a class="headerlink" href="#fuzzymatchloadvec-interface" title="Permalink to this headline">¶</a></h2>
 <p>Load and preprocess the input table.</p>
-<dl class="simple">
-<dt>Parameters:</dt><dd><p>patternVec : vector of  pattern strings (e.g. black list strings).</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>int fuzzyMatchLoadVec<span class="o">(</span>std::vector&lt;std::string&gt;<span class="p">&amp;</span> vec_pattern,std::vector&lt;int&gt; <span class="nv">vec_id</span><span class="o">=</span>std::vector&lt;int&gt;<span class="o">())</span>
+</pre></div>
+</div>
+<dl>
+<dt>Parameters:</dt><dd><div class="line-block">
+<div class="line">vec_pattern : vector of  pattern strings (e.g. black list strings).</div>
+<div class="line">vec_id : vector of pattern id. if null, internally will assign sequential index of vec_pattern.</div>
+</div>
 </dd>
 <dt>Return:</dt><dd><p>status: 0: successful; 1: fail.</p>
 </dd>
 </dl>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>int fuzzyMatchLoadVec<span class="o">(</span>std::vector&lt;std::string&gt;<span class="p">&amp;</span> patternVec<span class="o">)</span>
-</pre></div>
-</div>
 </div>
 <div class="section" id="executefuzzymatch-interface">
 <h2><strong>executefuzzyMatch Interface</strong><a class="headerlink" href="#executefuzzymatch-interface" title="Permalink to this headline">¶</a></h2>
@@ -502,9 +505,11 @@ against the pattern strings loaded using fuzzyMatchLoadVec interface.</p>
     int similarity_level<span class="o">)</span><span class="p">;</span>
 </pre></div>
 </div>
-<dl class="simple">
-<dt>Parameters:</dt><dd><p>input_patterns    :   vector of input strings. For each input string in input_patterns, run fuzzymatch against the pattern strings loaded using fuzzyMatchLoadVec interface.
-similarity_level  :   similarity threshold.  value range [0-100]. 100 means exact same.</p>
+<dl>
+<dt>Parameters:</dt><dd><div class="line-block">
+<div class="line">input_patterns    :   vector of input strings. For each input string in input_patterns, run fuzzymatch against the pattern strings loaded using fuzzyMatchLoadVec interface.</div>
+<div class="line">similarity_level  :   similarity threshold.  value range [0-100]. 100 means exact same.</div>
+</div>
 </dd>
 <dt>Return:</dt><dd><p>2D vectors of pairs. Each row represents array of matched result pairs {id,score}.
 Maximum top 100 of pairs for each input string result.</p>
@@ -542,7 +547,7 @@ Maximum top 100 of pairs for each input string result.</p>
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 17, 2022.
+        Last updated on January 22, 2022.
       </span>
 
     </p>
@@ -638,7 +643,7 @@ Maximum top 100 of pairs for each input string result.</p>
 														<div class="col-md-pull-6 col-lg-pull-6 col-md-6 col-lg-6">
 															<span class="copyright">
                                   
-                                  &copy; 2021, Xilinx
+                                  &copy; 2022, Xilinx
                               </span>
 															<ul class="list-inline sub-menu">
 																<li>
