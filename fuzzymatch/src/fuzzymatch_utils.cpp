@@ -372,7 +372,7 @@ namespace fuzzymatch {
             for (std::vector<std::string>::iterator it = vec_pattern.begin(); it != vec_pattern.end(); ++it) {
                 size_t len = it->length();
                 assert(len < max_pattern_len_in_char && "Defined <max_people_len_in_char> is not enough!");
-                vec_pattern_id[len].push_back(++id_cnt);
+                vec_pattern_id[len].push_back(id_cnt++);
             }
         }
         

@@ -261,7 +261,7 @@ namespace fuzzymatch {
                     std::cerr << "ERROR: the string " << *it << " length should not larger than" << max_fuzzy_len <<std::endl;
                     abort();
                 }
-                vec_pattern_id[len].push_back(++id_cnt);
+                vec_pattern_id[len].push_back(id_cnt++);
             }
         }
         preSortbyLength(vec_pattern, this->vec_pattern_grp);

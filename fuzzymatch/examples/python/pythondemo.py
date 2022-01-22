@@ -51,7 +51,7 @@ xclbin_path= str(args.xclbin)
 deviceNames= str(args.deviceNames)
 threshold = int(args.threshold)
 #load csv
-peopleFile = str(args.data_dir) + "all-names.csv"
+peopleFile = str(args.data_dir) + "ref-names.csv"
 trans_num=100
 test_input = str(args.data_dir) + "new-names.csv"
 stats=pd.read_csv(test_input, delimiter=',', names=['Id','Name'])
@@ -105,7 +105,7 @@ for idx in range (0,len(data_vec)-1):
         print("no match")
     else :
         for item in result_list[idx]:
-            print('{',inputVec[item[0]-1],':', item[1], '}', end=';  ')
+            print('{',inputVec[item[0]],':', item[1], '}', end=';  ')
         print()
 
     
