@@ -23,6 +23,6 @@ TigerGraph 3.x via plugins and UDFs.
   .. toctree::
     :maxdepth: 1
 
-    ../setup-demo-plugin.rst
+    ../common/setup-demo-plugin.rst
 
 * Now follow instructions in the Demo use cases pages to run the corresponding Notebooks
