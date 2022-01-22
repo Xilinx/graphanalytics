@@ -20,9 +20,7 @@
 #pip install pandas
 
 # Product version
-test -d "$PRODUCT_VER" || export PRODUCT_VER=0.1
-#PRODUCT_VER=$(strip $(shell cat ../VERSION))
-
+export PRODUCT_VER=`cat ../VERSION`
 
 # Location of cosine similarity Alveo product
 export XF_PROJ_ROOT=$PWD/../../
