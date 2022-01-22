@@ -6,9 +6,7 @@ C++ Example of Fuzzy Match using Makefile
 
   .. code-block:: bash
   
-    # replace the ${VERSION} to the version you want to run 
-    # so far VERSION list: 0.1, 0.2
-    cp -r /opt/xilinx/apps/graphanalytics/fuzzymatch/${VERSION}/examples fuzzymatch-examples
+    cp -r /opt/xilinx/apps/graphanalytics/fuzzymatch/0.2/examples fuzzymatch-examples
     cd fuzzymatch-examples/cpp
     
     # Print makefile usage and options
@@ -19,3 +17,6 @@ C++ Example of Fuzzy Match using Makefile
 
     # Run the demo on AWS F1
     make run deviceNames=xilinx_aws-vu9p-f1_shell-v04261818_201920_2
+
+    # Run the demo on U55C
+    make run deviceNames=xilinx_u55c_gen3x16_xdma_base_2    

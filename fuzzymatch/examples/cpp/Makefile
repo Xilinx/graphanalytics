@@ -56,23 +56,19 @@ endif
 CXXFLAGS = -std=c++11 -D_GLIBCXX_USE_CXX11_ABI=0 -fPIC -pthread -I$(INCLUDE_PATH) -Wall -Wextra -Wno-unknown-pragmas -Wno-unused-label \
     -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers -Wno-deprecated-declarations
 
-#ifdef U50
-#    deviceNames ?= xilinx_u50_gen3x16_xdma_201920_3
-#else
-#    deviceNames ?= xilinx_aws-vu9p-f1_shell-v04261818_201920_2
-#endif
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3
 XDEVICE = $(basename $(notdir $(deviceNames)))
 
 
 XF_LIB_DIR := $(abspath $(XF_PROJ_ROOT))/examples
-
-ifneq (,$(shell echo $(XDEVICE) | awk '/u50/'))
-XCLBIN_FILE := $(XCLBIN_PATH)/fuzzy_xilinx_u50_gen3x16_xdma_201920_3.xclbin
-else ifneq (,$(shell echo $(XDEVICE) | awk '/aws-vu9p-f1/'))
-XCLBIN_FILE := $(XCLBIN_PATH)/fuzzy_xilinx_aws-vu9p-f1_shell-v04261818_201920_2.awsxclbin 
+ifeq ($(XDEVICE), xilinx_u50_gen3x16_xdma_201920_3)
+	XCLBIN_FILE := $(XCLBIN_PATH)/fuzzy_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+else ifeq ($(XDEVICE), xilinx_aws-vu9p-f1_shell-v04261818_201920_2)
+    XCLBIN_FILE := $(XCLBIN_PATH)/fuzzy_xilinx_aws-vu9p-f1_shell-v04261818_201920_2.awsxclbin 
+else ifeq ($(XDEVICE),xilinx_u55c_gen3x16_xdma_base_2)
+    XCLBIN_FILE := $(XCLBIN_PATH)/fuzzy_xilinx_u55c_gen3x16_xdma_2_202110_1.xclbin 
 else
-$(warning [WARNING]: This project has not been tested for $(deviceNames). It may or may not work.)
+    $(warning [WARNING]: This project has not been tested for $(deviceNames). It may or may not work.)
 endif
 
 
@@ -133,6 +129,7 @@ help:
 	@echo "                 Supported devices:"
 	@echo "                 xilinx_u50_gen3x16_xdma_201920_3(default) "
 	@echo "                 xilinx_aws-vu9p-f1_shell-v04261818_201920_2"
+	@echo "                 xilinx_u55c_gen3x16_xdma_base_2"
 	@echo "  numEntities  : Number of entities to match (default=100)"
 	@echo "  runMode      : 0: Run on Alveo Only (default)"
 	@echo "                 1: Run on CPU Only"

@@ -57,6 +57,9 @@ fi
 if [[ "${DEVICE}" == "U50" ]] ; then
     deviceNames="xilinx_u50_gen3x16_xdma_201920_3"
     xclbinFile="fuzzy_xilinx_u50_gen3x16_xdma_201920_3.xclbin"
+elif [[ "${DEVICE}" == "U55C" ]] ; then
+    deviceNames="xilinx_u55c_gen3x16_xdma_base_2"
+    xclbinFile="fuzzy_xilinx_u55c_gen3x16_xdma_2_202110_1.xclbin"
 elif [[ "${DEVICE}" == "AWS" ]]; then
     deviceNames="xilinx_aws-vu9p-f1_shell-v04261818_201920_2"
     xclbinFile="fuzzy_xilinx_aws-vu9p-f1_shell-v04261818_201920_2.awsxclbin"
