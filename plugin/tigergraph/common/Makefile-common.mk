@@ -110,6 +110,9 @@ $(STAGE_SUBDIRS):
 
 OSDIST = $(shell lsb_release -si)
 OSVER = $(shell lsb_release -sr)
+OSVER_MAJOR = $(shell lsb_release -sr | tr -dc '0-9.' | cut -d \. -f1)
+OSVER_MINOR = $(shell lsb_release -sr | tr -dc '0-9.' | cut -d \. -f2)
+OSVER_DIR=$(OSVER_MAJOR).$(OSVER_MINOR)
 DIST_TARGET =
 OSDISTLC =
 ifeq ($(OSDIST),Ubuntu)
@@ -122,7 +125,7 @@ endif
 
 ARCH = $(shell uname -p)
 CPACK_PACKAGE_FILE_NAME= xilinx-$(STANDALONE_NAME)-tigergraph-$(PRODUCT_VER)_$(OSVER)-$(ARCH).$(DIST_TARGET)
-DIST_INSTALL_DIR = $(GRAPH_ANALYTICS_DIR)/scripts/xilinx-tigergraph-install/$(OSDISTLC)-$(OSVER)/$(STANDALONE_NAME)/
+DIST_INSTALL_DIR = $(GRAPH_ANALYTICS_DIR)/scripts/xilinx-tigergraph-install/$(OSDISTLC)-$(OSVER_DIR)/$(STANDALONE_NAME)/
 
 .PHONY: dist
 

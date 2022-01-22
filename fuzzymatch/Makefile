@@ -566,41 +566,9 @@ $(STAGE_SUBDIRS):
 	mkdir -p $@
 
 
-#######################################################################################################################
-#
-# Packaging
-#
+# Common targets for all products
+include ../common/Makefile-common.mk
 
-OSDIST = $(shell lsb_release -si)
-OSVER = $(shell lsb_release -sr)
-DIST_TARGET =
-OSDISTLC =
-ifeq ($(OSDIST),Ubuntu)
-    DIST_TARGET = deb
-	OSDISTLC = ubuntu
-else ifeq ($(OSDIST),CentOS)
-    DIST_TARGET = rpm
-	OSDISTLC = centos
-endif
-
-ARCH = $(shell uname -p)
-CPACK_PACKAGE_FILE_NAME= xilinx-$(STANDALONE_NAME)-$(PRODUCT_VER)_$(OSVER)-$(ARCH).$(DIST_TARGET)
-DIST_INSTALL_DIR = $(GRAPH_ANALYTICS_DIR)/scripts/xilinx-tigergraph-install/$(OSDISTLC)-$(OSVER)/$(STANDALONE_NAME)/
-
-.PHONY: dist
-
-dist: stage
-	@if [ "$(DIST_TARGET)" == "" ]; then \
-	    echo "Packaging is supported for only Ubuntu and CentOS."; \
-	else \
-	    echo "Packaging $(DIST_TARGET) for $(OSDIST)"; \
-	    cd package; \
-		make ; \
-		cd - ; \
-		cp ./package/$(CPACK_PACKAGE_FILE_NAME) $(DIST_INSTALL_DIR); \
-		echo "INFO: $(CPACK_PACKAGE_FILE_NAME) saved to $(DIST_INSTALL_DIR)"; \
-	fi
-	
 
 
 #######################################################################################################################
