@@ -7,5 +7,11 @@ This GitHub repository includes the following individual products:
 * Recommendattion Engine plugin for Tigergraph
 * Louvain Modularity
 * Community Detection plugin for TigerGraph
+* Fuzzy Match
+* Fuzzy Match plugin for TigerGraph
+* Maximal Independent Set (MIS)
+* Maximal Independent Set plugin for TigerGraph
 
-Each individual product is released asynchronously and tagged seperately. To get a stable build for the particular product you are evaluating, please check out by the specific tag for that product.
+Each individual product is released asynchronously and tagged seperately. To get 
+a stable build for the particular product you are evaluating, please check out by 
+the specific tag for that product.
