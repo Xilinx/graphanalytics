@@ -120,7 +120,8 @@ if [[ $OSDIST == "ubuntu" ]]; then
         printf "\n-------------------------------------------------------------\n"
         printf "INFO: Install deployment shell. Enter sudo password if asked."
         printf "\n-------------------------------------------------------------\n"
-        sudo apt install $pkg_dir/../deployment-shell/xilinx*.deb
+        sudo apt install $pkg_dir/../deployment-shell/u50/xilinx*.deb
+        sudo apt install $pkg_dir/../deployment-shell/u55c/xilinx*.deb
 
         # install required package
         sudo apt install jq opencl-headers -y

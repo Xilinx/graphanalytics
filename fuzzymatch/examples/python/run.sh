@@ -20,11 +20,11 @@
 #pip install pandas
 
 # Product version
-test -d "$PRODUCT_VER" || export PRODUCT_VER=0.1
+export PRODUCT_VER=`cat ../VERSION`
 
 # Location of cosine similarity Alveo product
 export XF_PROJ_ROOT=$PWD/../../
-test -d "$XILINX_FUZZYMATCH" || $XILINX_FUZZYMATCH=/opt/xilinx/apps/graphanalytics/fuzzymatch
+test -d "$XILINX_FUZZYMATCH" || export XILINX_FUZZYMATCH=/opt/xilinx/apps/graphanalytics/fuzzymatch
 
 # Location of XRT and XRM
 test -d "$XILINX_XRT" || export XILINX_XRT=/opt/xilinx/xrt
@@ -35,12 +35,17 @@ export LIB_PATH=$XF_PROJ_ROOT/lib
 test -d "$LIB_PATH" || export LIB_PATH=$XILINX_FUZZYMATCH/$PRODUCT_VER/lib
 export PYTHONPATH=$LIB_PATH:$PYTHONPATH
 
+# Location of xclbin path
+export XCLBIN_PATH=$XF_PROJ_ROOT/xclbin
+test -d "$XCLBIN_PATH" || export XCLBIN_PATH=$XILINX_FUZZYMATCH/$PRODUCT_VER/xclbin
+
 # Setup Xilinx Tools
 . $XILINX_XRT/setup.sh
 #. $XILINX_XRM/setup.sh
 
 # Location of the C++ library
 export LD_LIBRARY_PATH=$LIB_PATH:$LD_LIBRARY_PATH
+echo $LD_LIBRARY_PATH
 
 if [ $# -eq 0 ]; then
     DEVICE="AWS"
@@ -52,8 +57,11 @@ fi
 if [[ "${DEVICE}" == "U50" ]] ; then
     deviceNames="xilinx_u50_gen3x16_xdma_201920_3"
     xclbinFile="fuzzy_xilinx_u50_gen3x16_xdma_201920_3.xclbin"
+elif [[ "${DEVICE}" == "U55C" ]] ; then
+    deviceNames="xilinx_u55c_gen3x16_xdma_base_2"
+    xclbinFile="fuzzy_xilinx_u55c_gen3x16_xdma_2_202110_1.xclbin"
 elif [[ "${DEVICE}" == "AWS" ]]; then
     deviceNames="xilinx_aws-vu9p-f1_shell-v04261818_201920_2"
     xclbinFile="fuzzy_xilinx_aws-vu9p-f1_shell-v04261818_201920_2.awsxclbin"
 fi
-python3 pythondemo.py  --deviceNames ${deviceNames}  --xclbin $XF_PROJ_ROOT/xclbin/${xclbinFile}
+python3 pythondemo.py  --deviceNames ${deviceNames}  --xclbin ${XCLBIN_PATH}/${xclbinFile}
