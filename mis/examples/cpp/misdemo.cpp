@@ -144,7 +144,7 @@ int main(int argc, const char* argv[]) {
     double elapsed = duration.count();
     int count = xmis.count();
 
-    std::cout << "Find MIS with " << count << " vertices within " << elapsed << " s." << std::endl;
+    std::cout << "\nFound MIS with " << count << " vertices within " << elapsed << " sec" << std::endl;
 
     return 0;
  

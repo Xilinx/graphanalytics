@@ -18,7 +18,7 @@ SHELL := /bin/bash
 
 # Run make using "make DEBUG=1" to build debuggable executables
 
-# Location of cosine similarity Alveo product 
+# Location of mis Alveo product
 ifndef XILINX_MIS
     XILINX_MIS = /opt/xilinx/apps/graphanalytics/mis
     export XILINX_MIS
