@@ -20,12 +20,13 @@ import argparse
 import struct
 import time
 
+
 def readBin(filename, readSize):
     with open(filename, 'rb') as fh:
         fileSize = os.path.getsize(filename)
 
         if 0 < readSize != fileSize:
-            print(f"WARNNING: file {filename} size {fileSize} doesn't match required size {readSize}")
+            print(f"WARNING: file {filename} size {fileSize} doesn't match required size {readSize}")
 
         assert (fileSize >= readSize)
 

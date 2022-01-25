@@ -37,12 +37,15 @@ export PYTHONPATH=$LIB_PATH:$PYTHONPATH
 export XCLBIN_PATH=$XF_PROJ_ROOT/xclbin
 test -d "$XCLBIN_PATH" || export XCLBIN_PATH=$XILINX_MIS/$PRODUCT_VER/xclbin
 # device name
-DEV_NAME=xilinx_u50_gen3x16_xdma_201920_3
-XCLBIN_FILE=$XCLBIN_PATH/mis_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+export DEV_NAME=xilinx_u50_gen3x16_xdma_201920_3
+export XCLBIN_FILE=$XCLBIN_PATH/mis_xilinx_u50_gen3x16_xdma_201920_3.xclbin
 if [[ "$DEV_NAME" == "xilinx_u55c_gen3x16_xdma_base_2" ]]
 then
-  XCLBIN_FILE=$XCLBIN_PATH/mis_xilinx_u55c_gen3x16_xdma_2_202110_1.xclbin
+  export XCLBIN_FILE=$XCLBIN_PATH/mis_xilinx_u55c_gen3x16_xdma_2_202110_1.xclbin
 fi
+# data directory
+export DATA_DIR=$XF_PROJ_ROOT/examples/data
+test -d "$DATA_DIR" || export DATA_DIR=$XILINX_MIS/$PRODUCT_VER/examples/data
 
 # Setup Xilinx Tools
 . $XILINX_XRT/setup.sh
@@ -52,5 +55,11 @@ fi
 export LD_LIBRARY_PATH=$LIB_PATH:$LD_LIBRARY_PATH
 
 # Run the command
-echo "INFO: misdemo --xclbin $XCLBIN_FILE --data_dir ../data --deviceNames $DEV_NAME"
-$* --xclbin $XCLBIN_FILE --data_dir ../data --deviceNames $DEV_NAME
+if [[ "$1" == "jupyter"* ]]
+then
+  $*
+else
+  echo "INFO: misdemo --xclbin $XCLBIN_FILE --data_dir ../data --deviceNames $DEV_NAME"
+  $* --xclbin "$XCLBIN_FILE" --data_dir "$DATA_DIR" --deviceNames "$DEV_NAME"
+fi
+
