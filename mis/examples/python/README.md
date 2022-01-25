@@ -22,13 +22,13 @@ This README file explains how to set up and run maximal independent set example 
 ```
 
 ### 2. Run the Jupyter example (Jupyter notebook assumed to be installed)
-* Start Junpyter notebook server
+* Start Jupyter notebook server
 ```
-./run.sh jupyter notebook
+./run.sh jupyter notebook   
 ```
 
 * Open Jupyter notebook in a browser and select one of examples to run.
 ```
-misdemo_notebook.ipynb
+jupyter/misdemo_notebook.ipynb
 ```
 
