@@ -17,7 +17,7 @@ Run following commands in the Python virtual environment (from setup) to run the
     (fpga)$ ./run.sh jupyter notebook jupyter/jupyter_demo.ipynb
 
 
-The Jupter Notebook demo is also available on 
+The Jupyter Notebook demo is also available on
 `Github <https://github.com/Xilinx/graphanalytics/blob/master/cosinesim/examples/python/jupyter/jupyter_demo.ipynb>`_
 
 Watch `Standalone Cosine Similarity Direct Python Webinar 

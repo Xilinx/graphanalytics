@@ -34,19 +34,25 @@ Method 2: Run directly on the local server
 
 * Install conda by following instructions on https://docs.conda.io/en/latest/miniconda.html
 * Create and activate a new virtual environment and install all required packages
+
 .. code-block:: bash
+
     $ conda env list
     $ conda create -n fpga python=3.6
     $ conda activate fpga
     (fpga)$ conda install -r /opt/xilinx/apps/graphanalytics/cosinesim/1.4/requirements.txt
 
 **Using local python**
+
 * At least Python version 3.6 is required, install or upgrade python using your package manager
 * Create and activate a new virtual environment and install all required packages
+
 .. code-block:: bash
+
     $ python3 -m venv fpga
     $ source fpga/bin/activate
     (fpga)$ pip install -r /opt/xilinx/apps/graphanalytics/cosinesim/1.4/requirements.txt
+
 * Now copy examples to user accessible directory
 
 .. code-block:: bash
