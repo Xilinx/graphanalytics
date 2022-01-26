@@ -19,18 +19,6 @@
 all: stage
 #all: stage cppBuild pythonApi  
 
-SHELL := /bin/bash
-
-ifndef XILINX_XRT
-    XILINX_XRT = /opt/xilinx/xrt
-    export XILINX_XRT
-endif
-
-ifndef XILINX_PLATFORMS
-    XILINX_PLATFORMS = /opt/xilinx/platforms
-    export XILINX_PLATFORMS
-endif
-
 #
 # Global Definitions
 #
@@ -556,8 +544,7 @@ cleanall: clean cleanpy
 	rm -f ./package/*.deb ./package/*.rpm
 	
 
-help:
-	@echo "Makefile usages:"
+help: help-common
 	@echo "  make run [deviceNames=xilinx_u50_gen3x16_xdma_201920_3]"
 	@echo "    Run standalone test with statically linked executable"
 	@echo ""
@@ -570,12 +557,6 @@ help:
 	@echo ""
 	@echo "  make all"
 	@echo "  Compile MIS lib and generate staging area"
-	@echo "" 
-	@echo "  make dist"
-	@echo "  Generate product installation package (RPM or DEB) for the current OS and architecture"
-	@echo "" 
-	@echo "  make clean-dist"
-	@echo "  Clean build area for distribution packages"
 	@echo "" 
 	@echo "  make run-staging-cpp"
 	@echo "  Run the CPP example from the staging area"

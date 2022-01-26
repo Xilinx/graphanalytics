@@ -24,22 +24,6 @@ import numpy as np
 from timeit import default_timer as timer
 
 
-def print_result(id, r, timeTaken):
-    res = str(id)+','
-    if r:
-        res += "KO" 
-        res += ":"
-        res += "Sender"
-    else:
-        res+= "OK"
-    
-    res += ","
-    res += '{:.6f}'.format(timeTaken)
-
-    return res
-
-
-
 parser = argparse.ArgumentParser(description="Run fuzzyMatch test")
 parser.add_argument("--xclbin", help="xclbin path", default="./")
 parser.add_argument("--data_dir", help="Directory where data files are", default="../data/", type=str )
