@@ -1,5 +1,5 @@
 #
-# Copyright 2020-2021 Xilinx, Inc.
+# Copyright 2020-2022 Xilinx, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,12 +14,23 @@
 # limitations under the License.
 
 ###############################################################################
-# Common targets for all products
+# Common variable and targets for all products
 ###############################################################################
+SHELL := /bin/bash
+
+ifndef XILINX_XRT
+    XILINX_XRT = /opt/xilinx/xrt
+    export XILINX_XRT
+endif
+
+ifndef XILINX_PLATFORMS
+    XILINX_PLATFORMS = /opt/xilinx/platforms
+    export XILINX_PLATFORMS
+endif
+
 #
 # Packaging
 #
-
 OSDIST = $(shell lsb_release -si)
 OSVER = $(shell lsb_release -sr)
 OSVER_MAJOR = $(shell lsb_release -sr | tr -dc '0-9.' | cut -d \. -f1)
@@ -52,3 +63,31 @@ dist: stage
 		cp ./package/$(CPACK_PACKAGE_FILE_NAME) $(DIST_INSTALL_DIR); \
 		echo "INFO: $(CPACK_PACKAGE_FILE_NAME) saved to $(DIST_INSTALL_DIR)"; \
 	fi
+
+.PHONY: install
+install: dist
+	@echo "-----------------------------------------------------------------------"
+	@echo "INFO: Installing ./package/$(CPACK_PACKAGE_FILE_NAME)"
+	@echo "INFO: Enter sudo password if prompted"
+	@echo "-----------------------------------------------------------------------"
+	
+	sudo apt install --reinstall ./package/$(CPACK_PACKAGE_FILE_NAME)
+	
+	@echo "-----------------------------------------------------------------------"
+	@echo "INFO: Installation completed."
+	@echo "-----------------------------------------------------------------------"	
+
+#
+# Installation
+#
+help-common:
+	@echo "Makefile usages:"
+	@echo "  make dist"
+	@echo "  Generate product installation package (RPM or DEB) for the current OS and architecture"
+	@echo "" 
+	@echo "  make install"
+	@echo "  Install RPM or DEB package on the current server. sudo priviledge is required."
+	@echo "" 
+	@echo "  make clean-dist"
+	@echo "  Clean build area for distribution packages"
+	@echo "" 	

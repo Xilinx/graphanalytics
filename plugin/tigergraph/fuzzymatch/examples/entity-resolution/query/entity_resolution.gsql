@@ -18,7 +18,35 @@
 SET QUERY_TIMEOUT = 600000
 USE GRAPH @graph
 
-DROP QUERY entity_resolution_cpu, entity_resolution_alveo
+DROP QUERY entity_resolution_tg, entity_resolution_alveo, entity_resolution_cpu
+
+CREATE QUERY entity_resolution_tg( ) for graph @graph 
+{
+    DOUBLE vm_peak, vm_hwm;
+  	INT ret;
+    bool isMatch;
+    DOUBLE matchExecTime;
+
+    ListAccum<string > @@refNamesAccum, @@newNamesAccum;
+
+    refNamesSet = {ref_names.*};
+    refNamesSelect = SELECT b FROM refNamesSet:b ACCUM @@refNamesAccum += b.name;
+
+    newNamesSet = {new_names.*};
+    newNamesSelect = SELECT t FROM newNamesSet:t ACCUM @@newNamesAccum += t.name;
+
+    // matchExecTime only measures the match execution time. refnames load time
+    // is excluded.
+    matchExecTime = udf_fuzzymatch_tg(@@refNamesAccum, @@newNamesAccum);
+    ret = udf_peak_memory_usage(vm_peak, vm_hwm);
+    print "TigerGraph CPU" AS ComputationTechnique;
+    print vm_peak/1000000.0 as PeakVirtualMemoryInGB;
+    print vm_hwm/1000000.0 as PeakResidentMemoryInGB;
+    print matchExecTime as ExecTimeInMs;
+    print @@refNamesAccum.size() as RefNamesSize;
+    print @@newNamesAccum.size() as TargetPersonsSize;
+    print matchExecTime/@@newNamesAccum.size() as AvergeTimePerPersonInMs;
+}
 
 CREATE QUERY entity_resolution_cpu( ) for graph @graph 
 {
@@ -47,7 +75,6 @@ CREATE QUERY entity_resolution_cpu( ) for graph @graph
     print @@newNamesAccum.size() as TargetPersonsSize;
     print matchExecTime/@@newNamesAccum.size() as AvergeTimePerPersonInMs;
 }
-
 
 CREATE QUERY entity_resolution_alveo( ) for graph @graph 
 {
@@ -81,4 +108,4 @@ CREATE QUERY entity_resolution_alveo( ) for graph @graph
 }
 
 
-INSTALL QUERY entity_resolution_cpu, entity_resolution_alveo
+INSTALL QUERY entity_resolution_tg, entity_resolution_alveo, entity_resolution_cpu

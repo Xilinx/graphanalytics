@@ -82,6 +82,16 @@ fi
 echo "-------------------------------------------------------------------------"
 echo "Run mode: $run_mode"
 
+# if [ "$run_mode" -eq 1 ] || [ "$run_mode" -eq 3 ]; then
+#     echo "Running entity_resolution_tg"
+#     echo gsql -u $username -p $password -g $xgraph \'run query entity_resolution_tg\(\)\'
+#     echo "-------------------------------------------------------------------------"
+#     START=$(date +%s%3N)
+#     time gsql -u $username -p $password -g $xgraph "run query entity_resolution_tg()"
+#     TOTAL_TIME=$(($(date +%s%3N) - START))
+#     echo "entity_resolution_tg runtime: " $tg_home
+# fi
+
 if [ "$run_mode" -eq 1 ] || [ "$run_mode" -eq 3 ]; then
     echo "Running entity_resolution_cpu"
     echo gsql -u $username -p $password -g $xgraph \'run query entity_resolution_cpu\(\)\'

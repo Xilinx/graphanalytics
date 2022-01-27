@@ -19,8 +19,11 @@
 #. venv/bin/activate
 #pip install pandas
 
+SCRIPT=$(readlink -f $0)
+SCRIPTPATH=`dirname $SCRIPT`
+
 # Product version
-export PRODUCT_VER=`cat ../VERSION`
+export PRODUCT_VER=`cat $SCRIPTPATH/../VERSION`
 
 # Location of cosine similarity Alveo product
 export XF_PROJ_ROOT=$PWD/../../
@@ -47,7 +50,9 @@ test -d "$XCLBIN_PATH" || export XCLBIN_PATH=$XILINX_FUZZYMATCH/$PRODUCT_VER/xcl
 export LD_LIBRARY_PATH=$LIB_PATH:$LD_LIBRARY_PATH
 echo $LD_LIBRARY_PATH
 
-if [ $# -eq 0 ]; then
+if [[ "$1" == "jupyter"* ]]; then
+    DEVICE="U50"
+elif [ $# -eq 0 ]; then
     DEVICE="AWS"
 else
     DEVICE=$1
@@ -64,4 +69,20 @@ elif [[ "${DEVICE}" == "AWS" ]]; then
     deviceNames="xilinx_aws-vu9p-f1_shell-v04261818_201920_2"
     xclbinFile="fuzzy_xilinx_aws-vu9p-f1_shell-v04261818_201920_2.awsxclbin"
 fi
-python3 pythondemo.py  --deviceNames ${deviceNames}  --xclbin ${XCLBIN_PATH}/${xclbinFile}
+
+# export variables for Jupyter Notebook
+export XCLBIN_FILE=$XCLBIN_PATH/$xclbinFile
+export DEV_NAME=$deviceNames
+export DATA_DIR=$SCRIPTPATH/../data
+
+# Run the command
+if [[ "$1" == "jupyter"* ]]
+then
+  $*
+else
+  echo "INFO: python3 pythondemo.py  --deviceNames ${deviceNames}  --xclbin ${XCLBIN_PATH}/${xclbinFile}"
+  python3 pythondemo.py  --deviceNames $deviceNames  --xclbin $XCLBIN_FILE
+  #$* --xclbin "$XCLBIN_FILE" --data_dir "$DATA_DIR" --deviceNames "$DEV_NAME"
+fi
+
+

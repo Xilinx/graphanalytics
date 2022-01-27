@@ -21,18 +21,6 @@
 #all: stage
 all: stage cppBuild pythonApi  
 
-SHELL := /bin/bash
-
-ifndef XILINX_XRT
-    XILINX_XRT = /opt/xilinx/xrt
-    export XILINX_XRT
-endif
-
-ifndef XILINX_PLATFORMS
-    XILINX_PLATFORMS = /opt/xilinx/platforms
-    export XILINX_PLATFORMS
-endif
-
 #
 # Global Definitions
 #
@@ -481,7 +469,8 @@ $(foreach f,$(STAGE_LIB_FILES),$(eval $(call STAGE_LIB_RULE,$(f))))
 STAGE_EXAMPLE_FILE_NAMES = \
 	cpp/fuzzymatch_demo.cpp cpp/Makefile \
 	data/ref-names.csv data/new-names.csv \
-	python/pythondemo.py python/run.sh python/README.md
+	python/pythondemo.py python/run.sh python/README.md \
+	python/jupyter/fuzzymatch-demo-notebook.ipynb 
 
 STAGE_EXAMPLE_FILES = $(addprefix examples/,$(STAGE_EXAMPLE_FILE_NAMES))
 STAGE_STAGED_EXAMPLE_FILES = $(addprefix $(STAGE_DIR)/,$(STAGE_EXAMPLE_FILES))
@@ -569,8 +558,6 @@ $(STAGE_SUBDIRS):
 # Common targets for all products
 include ../common/Makefile-common.mk
 
-
-
 #######################################################################################################################
 #
 # Java Tests
@@ -606,8 +593,7 @@ cleanpy:
 cleanall: clean cleanpy
 	rm -rf ./package/*.deb ./package/*.rpm ./package/_CPack_Packages
 
-help:
-	@echo "Makefile usages:"
+help: help-common
 	@echo "  make run [runMode=0] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3] [totalEntities=10000000]"
 	@echo "    Run standalone test with statically linked executable"
 	@echo ""
@@ -630,12 +616,6 @@ help:
 	@echo ""
 	@echo "  make all"
 	@echo "  Compile fuzzyMatch lib and generate staging area"
-	@echo "" 
-	@echo "  make dist"
-	@echo "  Generate product installation package (RPM or DEB) for the current OS and architecture"
-	@echo "" 
-	@echo "  make clean-dist"
-	@echo "  Clean build area for distribution packages"
 	@echo "" 
 	@echo "  make run-staging-cpp"
 	@echo "  Run the CPP example from the staging area"

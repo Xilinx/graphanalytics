@@ -69,6 +69,72 @@ inline int64_t udf_peak_memory_usage(double& VmPeak, double& VmHWM)
     return 0L;
 }
 
+inline int64_t levenshtein_distance(string s1, string s2)
+{
+    int len_s1 = s1.length();
+    int len_s2 = s2.length();
+    int dist[len_s1+1][len_s2+1];
+
+    int i;
+    int j;
+    int len_cost;
+
+    for (i = 0;i <= len_s1; i++) {
+        dist[i][0] = i;
+    }
+    for(j = 0; j<= len_s2; j++) {
+        dist[0][j] = j;
+    }
+    for (i = 1;i <= len_s1;i++) {
+        for (j = 1; j<= len_s2; j++) {
+            if ( s1[i-1] == s2[j-1] ) {
+                len_cost = 0;
+            } else {
+                len_cost = 1;
+            }
+
+            dist[i][j] = std::min(dist[i-1][j] + 1,                  // delete
+                                  std::min(dist[i][j-1] + 1,         // insert
+                                  dist[i-1][j-1] + len_cost)           // substitution
+                                 );
+            if ((i > 1) && (j > 1) && (s1[i-1] == s2[j-2]) && (s1[i-2] == s2[j-1])) {
+                dist[i][j] = std::min(dist[i][j],
+                                      dist[i-2][j-2] + len_cost   // transposition
+                                     );
+            }
+        }
+    }
+    return dist[len_s1][len_s2];
+}
+
+inline int udf_fuzzymatch_tg(ListAccum<string> sourceList, ListAccum<string> targetList) 
+{
+
+    std::cout << "INFO: udf_fuzzymatch_tg sourceList size=" << sourceList.size() 
+              << " targetList size=" << targetList.size() << std::endl;
+
+    int execTime;
+    int threshold = 90;
+    string srcString, targetString;
+    int editDistance;
+
+    uint32_t sourceListLen = sourceList.size();
+    uint32_t targetListLen = targetList.size();
+    udf_reset_timer(true);
+    for (unsigned i = 0; i < sourceListLen; ++i) {
+        srcString = sourceList.get(i);
+        for (unsigned j = 0; j < targetListLen; ++j) {
+            targetString = targetList.get(j);
+            editDistance = levenshtein_distance(srcString, targetString);
+            std::cout << "    " << i << "," << j << " ed=" << editDistance << std::endl;
+        }
+    }
+
+    execTime = udf_elapsed_time(true);
+
+    return execTime;
+}
+
 inline int udf_fuzzymatch_cpu(ListAccum<string> sourceList, ListAccum<string> targetList) 
 {
 
