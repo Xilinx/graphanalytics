@@ -1,5 +1,5 @@
 ===========================================
-Jupyter Notebook with CosineSim Python API
+Jupyter Notebook
 ===========================================
 
 Follow the setup process below before running the notebook:
@@ -9,11 +9,11 @@ Follow the setup process below before running the notebook:
 
     Setup <setup-standalone.rst>
 
-Run following commands in the Python virtual environment (from setup) to run the example:
+Run following commands in the Python virtual environment (from setup) to run the Notebook:
 
 .. code-block:: bash
 
-    (fpga)$ cd examples/python
+    (fpga)$ cd cosinesim-examples/python
     (fpga)$ ./run.sh jupyter notebook jupyter/jupyter_demo.ipynb
 
 

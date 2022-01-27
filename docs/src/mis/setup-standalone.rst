@@ -3,31 +3,8 @@
 Setup Maximal Independent Set for Stand-Alone Runs
 ==============================================
 
-..  note:: If running Python Example only, directly go to Method 2
-
-The stand-alone MIS jupyter notebooks run on the same server that has the Alveo cards installed.
-Consequently, there a few ways to run the notebooks:
-
-Method 1: Connect to a locally running Jupyterhub server from a remote system
-##################################################################
-..  note:: Jupyterhub must be running with proper configuration, contact Xilinx Support for instructions
-
-* Login to the **local** (Alveo) machine and copy examples to user accessible directory
-
-.. code-block:: bash
-
-    $ mkdir mis-example
-    $ cd mis-example
-    $ cp /opt/xilinx/apps/graphanalytics/mis/0.1/examples.zip .
-    $ unzip examples.zip
-
-* Open a web browser on your **remote** machine, enter the IP address and port of the Jupyterhub server
-* Navigate to :code:`mis-example/examples/python/jupyter` and open the notebook(s)
-
-Method 2: Run directly on the local server
-#############
-
-* To run the stand alone MIS jupyter notebooks, start by creating a python virtual environment and installing the required packages.
+1. Create a virtual environment and install dependencies
+--------------------------------------------------------
 
 **Using Conda**
 
@@ -52,11 +29,47 @@ Method 2: Run directly on the local server
     $ source fpga/bin/activate
     (fpga)$ pip install -r /opt/xilinx/apps/graphanalytics/mis/0.1/requirements.txt
 
-* Now copy examples to user accessible directory
+2. Copy examples to user accessible directory
+--------------------------------------------------------
 
 .. code-block:: bash
 
-    (fpga)$ mkdir mis-example
-    (fpga)$ cd mis-example
-    (fpga)$ cp /opt/xilinx/apps/graphanalytics/mis/0.1/examples.zip .
-    (fpga)$ unzip examples.zip
+    (fpga)$ cp -r /opt/xilinx/apps/graphanalytics/mis/0.1/examples mis-examples
+    (fpga)$ cd mis-examples/python
+
+---------------------------
+
+Setup for Jupyter Notebooks
+---------------------------
+
+..  note:: If running Jupyter Notebook(s), read this section and follow instructions in the
+           corresponding Notebook Demo pages to run.
+
+The stand-alone MIS jupyter notebooks run on the same server (**local**) that has the Alveo cards installed,
+but can be launched locally or remotely from a system **that is on the same network**. Consequently, there are
+two ways to run the notebooks:
+
+Method 1: Run on the local server
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Simply start the jupyter server as:
+
+.. code-block:: bash
+
+    (fpga)$ ./run.sh jupyter notebook
+
+* Navigate to the Notebook under current directory that you want to run
+
+Method 2: Run from a remote machine
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* JupyterHub is not part of the requirements.txt dependency list. Install JupyterHub on the **local**
+  machine as shown `here <https://jupyterhub.readthedocs.io/en/stable/quickstart.html#installation>`_
+* Start a JupyterHub server on the **local** machine as:
+
+.. code-block:: bash
+
+    (fpga)$ ./run.sh jupyterhub
+
+* Open a web browser on your **remote** machine, enter the IP address and port of the Jupyterhub server
+* Navigate to the Notebook under current directory that you want to run

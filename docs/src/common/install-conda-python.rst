@@ -6,8 +6,8 @@ Install Conda or Python Environment
     as the TigerGraph server i.e. can connect via HTTP connections. These Notebooks 
     use **pytigerGraph** module to connect to the TigerGraph server via REST APIs.
 
-* To run the TigerGraph jupyter notebooks, start by creating a python virtual 
-  environment and installing the required packages.
+1. Create a virtual environment and install dependencies
+--------------------------------------------------------
 
 **Using Conda**
 

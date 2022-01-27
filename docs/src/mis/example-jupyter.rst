@@ -8,11 +8,11 @@ Follow the setup process below before running the notebook:
 
     Setup <setup-standalone.rst>
 
-Run following commands in the Python virtual environment (from setup) to run the example:
+Run following commands in the Python virtual environment (from setup) to run the notebook:
 
 .. code-block:: bash
 
-    (fpga)$ cd examples/python
+    (fpga)$ cd mis-examples/python
     (fpga)$ ./run.sh jupyter notebook jupyter/misdemo_notebook.ipynb
 
 
