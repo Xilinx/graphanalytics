@@ -449,8 +449,8 @@ stage-examples: $(STAGE_EXAMPLE_FILES)
 
 fill-example-stage: $(STAGE_STAGED_EXAMPLE_FILES)
 	cp VERSION $(STAGE_DIR)/examples/
+	cp $(GRAPH_ANALYTICS_DIR)/requirements.txt $(STAGE_DIR)
 
-	
 $(STAGE_STAGED_EXAMPLE_FILES):
 	cp -f $(patsubst $(STAGE_DIR)/%,%,$@) $@
 	
