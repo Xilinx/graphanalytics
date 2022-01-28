@@ -125,13 +125,13 @@ CXXFLAGS += -D HW_EMU_TEST
 endif
 
 # ######################### Host compiler global settings ############################
-CXXFLAGS += -I$(XILINX_XRT)/include -I$(XILINX_VIVADO)/include -std=c++11 -O3 -Wall -Wno-unknown-pragmas
+CXXFLAGS += -I$(XILINX_XRT)/include -I$(XILINX_VITIS)/include -std=c++11 -O3 -Wall -Wno-unknown-pragmas
 LDFLAGS += -L$(XILINX_XRT)/lib -lOpenCL -lpthread -lrt -Wno-unused-label -Wno-unused-variable -Wno-write-strings -Wno-narrowing -DVERBOSE -Wno-format
 CXXFLAGS += -fmessage-length=0 -O3 -DPRAGMA -Ofast -fopenmp -fPIC -DMULTITHREAD
 CXXFLAGS += -I$(CUR_DIR)/src/ 
 
 ifeq ($(HOST_ARCH), x86)
-LDFLAGS += -L$(XILINX_VIVADO)/lnx64/tools/fpo_v7_0 -Wl,--as-needed -lgmp
+LDFLAGS += -L$(XILINX_VITIS)/lnx64/tools/fpo_v7_0 -Wl,--as-needed -lgmp
 #-lmpfr -lIp_floating_point_v7_0_bitacc_cmodel
 endif
 #ifneq (,$(shell echo $(XPLATFORM) | awk '/u50/'))
@@ -202,7 +202,7 @@ $(BUILD_DIR)/kernel_louvain.xclbin: $(BINARY_CONTAINER_kernel_louvain_OBJS)
 
 # Add kernel alias to xclbin post-build so that the same kernel targeting different devices can be differentiated.
 	rm -f $(BUILD_DIR)/kernel_louvain_2cu_u55c_alias.xclbin
-	$(XILINX_VIVADO)/bin/xclbinutil -i $(BUILD_DIR)/kernel_louvain.xclbin \
+	$(XILINX_VITIS)/bin/xclbinutil -i $(BUILD_DIR)/kernel_louvain.xclbin \
 								   --key-value=USER:kernel_louvain:'{"alias": "kernel_louvain_2cu_u55"}' \
 	                               -o $(BUILD_DIR)/kernel_louvain_2cu_u55c_alias.xclbin
 

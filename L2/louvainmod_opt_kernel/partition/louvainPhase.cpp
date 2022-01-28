@@ -1721,20 +1721,20 @@ void ConsumingOnePhase_prune(GLV* pglv_iter,
     kernel_evt0[0].resize(1);
     kernel_evt1[0].resize(1);
     cl_uint cntq = 0;
-cl_uint  sizeq = 0;
-cl_int error_number;
-cntq = q.getInfo<CL_QUEUE_REFERENCE_COUNT>(&error_number  );
- if (error_number != CL_SUCCESS)
- {
-         std::cerr << "Failed call to clGetqueueInfo(..., cnt,...)\n";
- }
- error_number = q.getInfo(CL_QUEUE_SIZE, &sizeq);
- if (error_number != CL_SUCCESS)
- {
-         std::cerr << "Failed call to clGetqueueInfo(..., size,...)\n";
- }
- printf("q_count:%lu\n", (unsigned long)cntq);
- printf("q_size:%lu\n", (unsigned long)sizeq);
+    cl_uint  sizeq = 0;
+    //cl_int error_number;
+    //cntq = q.getInfo<CL_QUEUE_REFERENCE_COUNT>(&error_number  );
+    //if (error_number != CL_SUCCESS)
+    //{
+    //     std::cerr << "Failed call to clGetqueueInfo(..., cnt,...)\n";
+    //}
+    //error_number = q.getInfo(CL_QUEUE_SIZE, &sizeq);
+    //if (error_number != CL_SUCCESS)
+    //{
+    //     std::cerr << "Failed call to clGetqueueInfo(..., size,...)\n";
+    //}
+    printf("q_count:%lu\n", (unsigned long)cntq);
+    printf("q_size:%lu\n", (unsigned long)sizeq);
 
     bool isLargeEdge = pglv_iter->G->numEdges > ((MAXNV) / 2);
     eachTimeInitBuff = PhaseLoop_UsingFPGA_Prep_Init_buff_host_prune(
