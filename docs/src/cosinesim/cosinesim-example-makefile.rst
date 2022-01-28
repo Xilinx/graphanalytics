@@ -7,10 +7,7 @@ C++ Example using Makefile
 
 .. code-block:: bash
 
-    mkdir cosinesim-example
-    cd cosinesim-example 
-    cp /opt/xilinx/apps/graphanalytics/cosinesim/%COSINESIM_VERSION/examples.zip .
-    unzip examples.zip
-    cd examples/cpp
+    cp -r /opt/xilinx/apps/graphanalytics/cosinesim/%COSINESIM_VERSION/examples cosinesim-examples
+    cd cosinesim-examples/cpp
     make
     make run
