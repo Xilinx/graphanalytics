@@ -16,7 +16,7 @@ Setup Cosine Similarity for Stand-Alone Runs
     $ conda env list
     $ conda create -n fpga python=3.6
     $ conda activate fpga
-    (fpga)$ conda install -r /opt/xilinx/apps/graphanalytics/cosinesim/1.4/requirements.txt
+    (fpga)$ conda install -r /opt/xilinx/apps/graphanalytics/requirements.txt
 
 **Using local python**
 
@@ -27,14 +27,14 @@ Setup Cosine Similarity for Stand-Alone Runs
 
     $ python3 -m venv fpga
     $ source fpga/bin/activate
-    (fpga)$ pip install -r /opt/xilinx/apps/graphanalytics/cosinesim/1.4/requirements.txt
+    (fpga)$ pip install -r /opt/xilinx/apps/graphanalytics/requirements.txt
 
 2. Copy examples to user accessible directory
 --------------------------------------------------------
 
 .. code-block:: bash
 
-    (fpga)$ cp -r /opt/xilinx/apps/graphanalytics/cosinesim/1.4/examples cosinesim-examples
+    (fpga)$ cp -r /opt/xilinx/apps/graphanalytics/cosinesim/%COSINESIM_VERSION/examples cosinesim-examples
     (fpga)$ cd cosinesim-examples/python
 
 ---------------------------

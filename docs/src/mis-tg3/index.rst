@@ -11,6 +11,6 @@ of vertices in your graph data using a Xilinx Alveo accelerator cards.
 
     Overview <overview.rst>
     Installation <install.rst>
-    Reference Manual <api.rst>
+..    Reference Manual <api.rst>
 
 

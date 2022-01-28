@@ -17,4 +17,4 @@ collaborate with Xilinx and contribute to the development of the product.
 
     cd fuzzymatch
     make dist
-    sudo apt install --reinstall ./package/xilinx-fuzzymatch-0.1_20.04-x86_64.deb
+    sudo apt install --reinstall ./package/xilinx-fuzzymatch-%FUZZYMATCH_VERSION_20.04-x86_64.deb

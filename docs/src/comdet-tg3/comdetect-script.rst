@@ -11,9 +11,9 @@ Run Bash Script with GSQL
 .. code-block:: bash
 
    # Copy examples from the installation to your own working directory
-   cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/0.5/examples comdetect-examples
+   cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/%COMDETECT_TG_VERSION/examples comdetect-examples
    
-   cd comdetect-examples/comdetect  
+   cd comdetect-examples/comdetect
    # Print comdetect demo help messages
    ./bin/run.sh -h
    

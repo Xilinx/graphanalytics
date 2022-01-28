@@ -2,14 +2,14 @@
 Xilinx Maximal Independent Set Alveo Product Installation
 =========================================================
 
-Follow the steps below to install the Maximal Independent Set Alveo Alveo Product.
+Follow the steps below to install the Maximal Independent Set Alveo Product.
 
 .. include:: ../common/install-alveo.rst
 
 Installing Maximal Independent Set Alveo from a Pre-built Package
 ------------------------------------------------------------------
-* Get the installation package xilinx-tigergraph-install-x.y.z.tar.gz from the
-  `Database Analytics POC Secure Site <https://www.xilinx.com/member/dba_poc.html>`_.  
+* Get the installation package **xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz** from the
+  `Database Analytics POC Secure Site <%PACKAGE_LINK>`_.
   This package contains the MIS as well as its dependencies.
 
 * Install Xilinx MIS and MIS TigerGraph Plugin Alveo Products and dependencies 
@@ -17,15 +17,15 @@ Installing Maximal Independent Set Alveo from a Pre-built Package
 
 .. code-block:: bash
 
-   tar xzf xilinx-tigergraph-install-x.y.z.tar.gz
+   tar xzf xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz
    cd xilinx-tigergraph-install && ./install.sh -p mis
 
 
 Setting up the Alveo Accelerator Card
 -------------------------------------
 
-The Maximal Independent Set Alveo Alveo Product requires the following Alveo cards 
-and their correponding firmware versions to be installed on each Alveo card to use.
+The Maximal Independent Set Alveo Product requires the following Alveo cards
+and their corresponding firmware versions to be installed on each Alveo card to use.
 
 * U50: xilinx_u50_gen3x16_xdma_201920_3 
 * U55C: xilinx_u55c_gen3x16_xdma_base_2
@@ -53,5 +53,5 @@ collaborate with Xilinx and contribute to the development of the product.
 
    cd mis
    make dist
-   sudo apt install --reinstall ./package/xilinx-mis-0.1_20.04-x86_64.deb
+   sudo apt install --reinstall ./package/xilinx-mis-%MIS_VERSION_20.04-x86_64.deb
 

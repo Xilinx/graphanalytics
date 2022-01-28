@@ -54,8 +54,8 @@ Engine product.  Follow the steps in *only one* of the two sections below.
 Install the Recommendation Engine from a Package
 ************************************************
 
-* Get the installation package xilinx-tigergraph-install-1.0.2.tar.gz from the
-  `Database Analytics POC Secure Site <https://www.xilinx.com/member/dba_poc.html>`_.  This package contains
+* Get the installation package **xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz** from the
+  `Database Analytics POC Secure Site <%PACKAGE_LINK>`_.  This package contains
   the Recommendation Engine as well as its dependencies: XRT, XRM, the Alveo U50 Platform, and the Cosine Similarity
   Alveo Product.
 
@@ -64,7 +64,7 @@ Install the Recommendation Engine from a Package
 
 .. code-block:: bash
 
-   tar xzf xilinx-tigergraph-install-1.0.2.tar.gz
+   tar xzf xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz
    cd xilinx-tigergraph-install && ./install.sh
 
 * Install the Recommendation Engine plug-in into the TigerGraph installation.  This step makes TigerGraph aware
@@ -72,7 +72,7 @@ Install the Recommendation Engine from a Package
 
 .. code-block:: bash
 
-   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/install.sh
+   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/recomengine/%RECOMENGINE_TG_VERSION/install.sh
 
 Build the Recommendation Engine from Sources
 ********************************************
@@ -105,7 +105,7 @@ and Recommendation Engine for TigerGraph 3.x.  Both products reside in one GitHu
 
    cd cosinesim
    make dist
-   sudo apt install --reinstall ./package/xilinx-cosinesim-1.0_18.04-x86_64.deb
+   sudo apt install --reinstall ./package/xilinx-cosinesim-%COSINESIM_VERSION_18.04-x86_64.deb
 
 * Build and install the Recommendation Engine package. (Replace the package 
   installation command and name for your server's OS.)
@@ -114,14 +114,14 @@ and Recommendation Engine for TigerGraph 3.x.  Both products reside in one GitHu
 
   cd plugin/tigergraph/recomengine
   make dist
-  sudo apt install --reinstall ./package/xilinx-recomengine-tigergraph-1.0_18.04-x86_64.deb
+  sudo apt install --reinstall ./package/xilinx-recomengine-tigergraph-%RECOMENGINE_TG_VERSION_18.04-x86_64.deb
 
 * Install the Recommendation Engine plug-in into the TigerGraph installation.  This step makes TigerGraph aware
   of the Recommendation Engine features.
 
 .. code-block:: bash
 
-   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/install.sh
+   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/recomengine/%RECOMENGINE_TG_VERSION/install.sh
 
 Flash the Alveo Cards
 ---------------------
@@ -160,7 +160,7 @@ You can uninstall the Recommendation Engine from TigerGraph by running the insta
 
 .. code-block:: bash
 
-   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/install.sh -u
+   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/recomengine/%RECOMENGINE_TG_VERSION/install.sh -u
 
 **TIP**: To avoid TigerGraph errors, uninstall any queries and UDFs that use the Recommendation Engine,
 such as the Synthea Demo, before uninstalling the Recommendation Engine itself.

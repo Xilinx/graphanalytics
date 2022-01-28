@@ -1,4 +1,4 @@
-Install the Alveo Acclerator Card
+Install the Alveo Accelerator Card
 ---------------------------------
 
 Xilinx Graph Analytics products require one or more Xilinx Alveo accelerator cards 

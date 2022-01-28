@@ -7,7 +7,7 @@ C++ Example using Makefile
 
 .. code-block:: bash
 
-    cp -r /opt/xilinx/apps/graphanalytics/louvainmod/0.5/examples louvain-examples
+    cp -r /opt/xilinx/apps/graphanalytics/louvainmod/%LOUVAIN_VERSION/examples louvain-examples
     cd louvain-examples/cpp
     make run
 

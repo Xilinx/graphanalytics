@@ -7,7 +7,7 @@ C++ Example using Makefile
 
     .. code-block:: bash
 
-        cp -r /opt/xilinx/apps/graphanalytics/mis/0.1/examples mis-examples
+        cp -r /opt/xilinx/apps/graphanalytics/mis/%MIS_VERSION/examples mis-examples
         cd mis-examples/cpp
     
         # Print makefile usage and options

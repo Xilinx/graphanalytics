@@ -17,7 +17,7 @@ TigerGraph 3.x via plugins and UDFs.
 
     (fpga)$ mkdir comdetect-example
     (fpga)$ cd comdetect-example
-    (fpga)$ cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/1.4/examples .
+    (fpga)$ cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/%COMDETECT_TG_VERSION/examples .
 
 
 3. Install demo specific plugin

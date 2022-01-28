@@ -19,8 +19,8 @@ the steps in *only one* of the two sections below.
 Install Fuzzy Match from a Package
 **********************************
 
-* Get the installation package xilinx-tigergraph-install-x.y.z.tar.gz from the
-  `Database Analytics POC Secure Site <https://www.xilinx.com/member/dba_poc.html>`_.  
+* Get the installation package **xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz** from the
+  `Database Analytics POC Secure Site <%PACKAGE_LINK>`_.
   This package contains the Fuzzy Match as well as its dependencies: 
   XRT, XRM, the Alveo U50 Platform, and the Fuzzy Match Alveo Product.
 
@@ -29,14 +29,14 @@ Install Fuzzy Match from a Package
 
   .. code-block:: bash
 
-    tar xzf xilinx-tigergraph-install-x.y.z.tar.gz
+    tar xzf xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz
     cd xilinx-tigergraph-install && ./install.sh -p fuzzymatch
 
 * Install the Fuzzy Match plugin into the TigerGraph installation.  
 
   .. code-block:: bash
 
-    /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/0.1/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
+    /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/%FUZZYMATCH_TG_VERSION/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
 
   Supported Alveo devices:
 
@@ -53,13 +53,13 @@ Install Fuzzy Match from a Package
 
     cd plugin/tigergraph/fuzzymatch
     make dist
-    sudo apt install --reinstall ./package/xilinx-fuzzymatch-tigergraph-0.1_20.04-x86_64.deb
+    sudo apt install --reinstall ./package/xilinx-fuzzymatch-tigergraph-%FUZZYMATCH_TG_VERSION_20.04-x86_64.deb
 
 * Install the Fuzzy Match plugin into the TigerGraph installation. 
 
   .. code-block:: bash
 
-    /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/0.1/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
+    /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/%FUZZYMATCH_TG_VERSION/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
 
   Supported Alveo devices:
 
@@ -80,7 +80,7 @@ You can uninstall the Fuzzy Match from TigerGraph by running the install script 
 
 .. code-block:: bash
 
-   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/install.sh -u
+   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/%FUZZYMATCH_TG_VERSION/install.sh -u
 
 **TIP**: To avoid TigerGraph errors, uninstall any queries and UDFs that use the Fuzzy Match,
 such as the Synthea Demo, before uninstalling the Fuzzy Match itself.

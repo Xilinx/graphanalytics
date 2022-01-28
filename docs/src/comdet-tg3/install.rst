@@ -45,7 +45,7 @@ of the Community Detection features.
 
 .. code-block:: bash
 
-   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/0.5/install.sh
+   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/%COMDETECT_TG_VERSION/install.sh
 
 ..  note:: 
     
@@ -53,8 +53,8 @@ of the Community Detection features.
     products, you can skip the section "Collaborating on Community Detection 
     Plugin" below.
 
-Collaboring on Community Detection Plugin 
-*****************************************
+Collaborating on Community Detection Plugin
+*******************************************
 
 Follow the instructions below if you want to collaborate and contribute to the 
 Xilinx Louvain Modularity Alveo Product and Community Detection for TigerGraph 3.x.
@@ -72,7 +72,7 @@ Both products reside in one GitHub repository.
 
    cd louvainmod
    make dist
-   sudo apt install --reinstall ./package/xilinx-louvainmod-0.5_18.04-x86_64.deb
+   sudo apt install --reinstall ./package/xilinx-louvainmod-%LOUVAIN_VERSION_18.04-x86_64.deb
 
 * Build and install the Community Detection package. (Replace the package 
   installation command and name for your server's OS.)
@@ -81,14 +81,14 @@ Both products reside in one GitHub repository.
 
   cd plugin/tigergraph/comdetect
   make dist
-  sudo apt install --reinstall ./package/xilinx-comdetect-tigergraph-0.5_18.04-x86_64.deb
+  sudo apt install --reinstall ./package/xilinx-comdetect-tigergraph-%COMDETECT_TG_VERSION_18.04-x86_64.deb
 
 * Install the Community Detection plug-in into the TigerGraph installation.  This step makes TigerGraph aware
   of the Community Detection features.
 
 .. code-block:: bash
 
-   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/0.5/install.sh
+   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/%COMDETECT_TG_VERSION/install.sh
 
 Uninstalling the Community Detection
 --------------------------------------
@@ -97,7 +97,7 @@ You can uninstall the Community Detection from TigerGraph by running the install
 
 .. code-block:: bash
 
-   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/0.5/install.sh -u
+   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/%COMDETECT_TG_VERSION/install.sh -u
 
 **TIP**: To avoid TigerGraph errors, uninstall any queries and UDFs that use the Community Detection,
 before uninstalling the Community Detection itself.

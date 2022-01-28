@@ -61,7 +61,7 @@ plans, remove vertices and edges associated to them from the conflict graph, and
 This is continued till the graph is empty.
 
 If a maximal set is used instead of the maximum set, the scheduling will not be optimal. The Xilinx Maximal
-Independent Set library produces high "quality" (close to maximum) sets which can achieve slose to optimal results
+Independent Set library produces high "quality" (close to maximum) sets which can achieve close to optimal results
 for all practical purposes.
 
 

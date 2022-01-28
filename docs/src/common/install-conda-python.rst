@@ -4,7 +4,7 @@ Install Conda or Python Environment
 .. note:: 
     Demo Jupyter Notebooks can be run from any machine that is on the same network 
     as the TigerGraph server i.e. can connect via HTTP connections. These Notebooks 
-    use **pytigerGraph** module to connect to the TigerGraph server via REST APIs.
+    use **pyTigerGraph** module to connect to the TigerGraph server via REST APIs.
 
 1. Create a virtual environment and install dependencies
 --------------------------------------------------------
@@ -20,7 +20,7 @@ Install Conda or Python Environment
     $ conda env list
     $ conda create -n fpga python=3.6
     $ conda activate fpga
-    (fpga)$ conda install -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.4/requirements.txt
+    (fpga)$ conda install -r /opt/xilinx/apps/graphanalytics/requirements.txt
 
 **Using local python**
 
@@ -32,4 +32,4 @@ Install Conda or Python Environment
 
     $ python3 -m venv fpga
     $ source fpga/bin/activate
-    (fpga)$ pip install -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.4/requirements.txt
+    (fpga)$ pip install -r /opt/xilinx/apps/graphanalytics/requirements.txt

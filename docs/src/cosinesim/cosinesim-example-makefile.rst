@@ -9,7 +9,7 @@ C++ Example using Makefile
 
     mkdir cosinesim-example
     cd cosinesim-example 
-    cp /opt/xilinx/apps/graphanalytics/cosinesim/1.0/examples.zip .
+    cp /opt/xilinx/apps/graphanalytics/cosinesim/%COSINESIM_VERSION/examples.zip .
     unzip examples.zip
     cd examples/cpp
     make

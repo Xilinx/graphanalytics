@@ -11,6 +11,4 @@ Alveo U50 accelerator card.
 
     Overview <overview.rst>
     Installation <install.rst>
-    Reference Manual <api.rst>
-
-
+..    Reference Manual <api.rst>

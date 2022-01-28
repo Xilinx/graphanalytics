@@ -9,7 +9,7 @@ Run Bash Script with GSQL
   .. code-block:: bash
 
     # Copy examples from the installation to your own working directory mis-examples
-    cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/0.1/examples fuzzymatch-examples
+    cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/%FUZZYMATCH_TG_VERSION/examples fuzzymatch-examples
 
     cd fuzzymatch-examples/entity-resolution
     

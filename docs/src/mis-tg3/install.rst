@@ -20,8 +20,8 @@ product. Follow the steps in *only one* of the two sections below.
 Install the Maximal Independent Set from a Package
 **************************************************
 
-* Get the installation package xilinx-tigergraph-install-x.y.z.tar.gz from the
-  `Database Analytics POC Secure Site <https://www.xilinx.com/member/dba_poc.html>`_.  
+* Get the installation package **xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz** from the
+  `Database Analytics POC Secure Site <%PACKAGE_LINK>`_.
   This package contains the Maximal Independent Set as well as its dependencies.
 
 * Install the product and its dependencies by un-tarring the package and running
@@ -29,7 +29,7 @@ Install the Maximal Independent Set from a Package
 
   .. code-block:: bash
 
-    tar xzf xilinx-tigergraph-install-x.y.z.tar.gz
+    tar xzf xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz
     cd xilinx-tigergraph-install && ./install.sh -p mis
 
 * Install the Maximal Independent Set plugin into the TigerGraph installation 
@@ -37,7 +37,7 @@ Install the Maximal Independent Set from a Package
 
   .. code-block:: bash
 
-    /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/0.1/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
+    /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/%MIS_TG_VERSION/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
 
   Supported Alveo devices:
 
@@ -68,7 +68,7 @@ Both products reside in one GitHub repository.
 
     cd mis
     make dist
-    sudo apt install --reinstall ./package/xilinx-mis-1.0_20.04-x86_64.deb
+    sudo apt install --reinstall ./package/xilinx-mis-%MIS_VERSION_20.04-x86_64.deb
 
 * Build and install the Maximal Independent Set for TigerGraph 3.x package. (Replace the package
   installation command and name for your server's OS.)
@@ -77,9 +77,9 @@ Both products reside in one GitHub repository.
 
     cd plugin/tigergraph/mis
     make dist
-    sudo apt install --reinstall ./package/xilinx-mis-tigergraph-1.0_20.04-x86_64.deb
+    sudo apt install --reinstall ./package/xilinx-mis-tigergraph-%MIS_TG_VERSION_20.04-x86_64.deb
 
-    /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/0.1/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
+    /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/%MIS_TG_VERSION/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
 
   Supported Alveo devices:
 
@@ -124,7 +124,7 @@ You can uninstall the Maximal Independent Set from TigerGraph by running the ins
 
 .. code-block:: bash
 
-   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/install.sh -u
+   /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/%MIS_TG_VERSION/install.sh -u
 
 **TIP**: To avoid TigerGraph errors, uninstall any queries and UDFs that use the Maximal Independent Set,
 such as the Synthea Demo, before uninstalling the Maximal Independent Set itself.

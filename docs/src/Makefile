@@ -26,6 +26,7 @@ endif
 ifeq (, $(HTML_DEST_DIR))
 $(error "HTML_DEST_DIR is not set.")
 endif
+HTML_BUILD_DIR = _build/html
 
 # doxygen settings
 DOXYGEN_CPP_CONFIG_FILE = DoxyFile-cpp
@@ -42,7 +43,7 @@ all: install
 
 install: .stamp/sphinx
 	rsync -av --delete --exclude .git --exclude .buildinfo \
-		 _build/html/ $(HTML_DEST_DIR) 1>/dev/null
+		 $(HTML_BUILD_DIR) $(HTML_DEST_DIR) 1>/dev/null
 
 
 #######################################################################################################################
@@ -135,6 +136,40 @@ recom-tg3-clean:
 
 
 #######################################################################################################################
+# Product versions
+#
+# Add product version variables used in rst files to be replaced
+#
+
+# Package version
+PACKAGE_VERSION=$(strip $(shell cat ../../scripts/xilinx-tigergraph-install/VERSION))
+
+# Standalone products
+COSINESIM_VERSION=$(strip $(shell cat ../../cosinesim/VERSION))
+LOUVAIN_VERSION=$(strip $(shell cat ../../louvainmod/VERSION))
+FUZZYMATCH_VERSION=$(strip $(shell cat ../../fuzzymatch/VERSION))
+MIS_VERSION=$(strip $(shell cat ../../mis/VERSION))
+
+# TG Integrated products
+RECOMENGINE_TG_VERSION=$(strip $(shell cat ../../plugin/tigergraph/recomengine/VERSION))
+COMDETECT_TG_VERSION=$(strip $(shell cat ../../plugin/tigergraph/comdetect/VERSION))
+FUZZYMATCH_TG_VERSION=$(strip $(shell cat ../../plugin/tigergraph/fuzzymatch/VERSION))
+MIS_TG_VERSION=$(strip $(shell cat ../../plugin/tigergraph/mis/VERSION))
+
+# Pre-built package link
+PACKAGE_LINK=$(strip $(shell cat xilinx-tigergraph-install-package_link))
+
+VERSION_LIST = 's/%PACKAGE_VERSION/$(PACKAGE_VERSION)/g; \
+				s,%PACKAGE_LINK,$(PACKAGE_LINK),g; \
+				s/%COSINESIM_VERSION/$(COSINESIM_VERSION)/g; \
+				s/%LOUVAIN_VERSION/$(LOUVAIN_VERSION)/g; \
+				s/%FUZZYMATCH_VERSION/$(FUZZYMATCH_VERSION)/g; \
+				s/%MIS_VERSION/$(MIS_VERSION)/g; \
+				s/%RECOMENGINE_TG_VERSION/$(RECOMENGINE_TG_VERSION)/g; \
+				s/%COMDETECT_TG_VERSION/$(COMDETECT_TG_VERSION)/g; \
+				s/%FUZZYMATCH_TG_VERSION/$(FUZZYMATCH_TG_VERSION)/g; \
+				s/%MIS_TG_VERSION/$(MIS_TG_VERSION)/g'
+#######################################################################################################################
 
 RST_FILES = index.rst notice.rst tg3-plugins.rst vitis-dev-flow.rst \
     $(COSINESIM_RST_FILES) \
@@ -148,7 +183,11 @@ doxyrest: .stamp .stamp/cosinesim-doxyrest .stamp/recom-tg3-doxyrest
 	make -f Makefile-sphinx.mk html && \
 	touch .stamp/sphinx
 
-html: cleanhtml .stamp/sphinx
+html: cleanhtml .stamp/sphinx update-html-versions
+
+update-html-versions:
+	# update product versions in generated html files
+	find $(HTML_BUILD_DIR) -type f -exec sed -ie $(VERSION_LIST) {} +
 
 .stamp:
 	mkdir -p .stamp
@@ -158,5 +197,5 @@ clean: cosinesim-clean recom-tg3-clean cleanhtml
 	rm -rf .stamp
 
 cleanhtml:
-	rm -rf .stamp/sphinx _build/html _build/doctrees
+	rm -rf .stamp/sphinx $(HTML_BUILD_DIR) _build/doctrees
 

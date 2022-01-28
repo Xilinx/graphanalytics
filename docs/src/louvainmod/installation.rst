@@ -9,20 +9,20 @@ Installing the Alveo Accelerator Cards
 -----------------------------------------
 
 * Power off the server.
-* Plug the Xilinx U50 or U55C Alveo Data Center Acclerator card into a PCIe Gen3 x16 slot
+* Plug the Xilinx U50 or U55C Alveo Data Center Accelerator card into a PCIe Gen3 x16 slot
 * Power on the server.
 
 Installing Louvain Modularity Library from a Pre-built Package
 -------------------------------------------------------------
-* Get the installation package `xilinx-tigergraph-install-1.4.tar.gz from 
-  Xilinx website <https://www.xilinx.com/member/forms/download/design-license-xef.html?filename=xilinx-tigergraph-install-1.4.tar.gz>`_ 
+* Get the installation package **xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz** from the
+  `Database Analytics POC Secure Site <%PACKAGE_LINK>`_.
 
 * Install Xilinx Louvain Modularity and Community Detection Alveo products and dependencies 
   (XRT, XRM, and Alveo firmware packages)
 
 .. code-block:: bash
 
-   tar xzf xilinx-tigergraph-install-1.4.tar.gz
+   tar xzf xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz
    cd xilinx-tigergraph-install && ./install.sh -p louvainmod
 
 
@@ -30,7 +30,7 @@ Setting up the Alveo Accelerator Card
 -------------------------------------
 
 The Cosine Similarity Alveo Product requires the following Alveo cards and their 
-correponding firmware versions to be installed on each Alveo card to use.  
+corresponding firmware versions to be installed on each Alveo card to use.
 * U50: xilinx_u50_gen3x16_xdma_201920_3 
 * U55C: xilinx_u55c_gen3x16_xdma_base_2
  
@@ -83,9 +83,9 @@ collaborate with Xilinx and contribute to the development of the product.
    cd graphanalytics
    git submodule update --init --recursive
 
-All commands below are executed from the root direcotry of the repository.
+All commands below are executed from the root directory of the repository.
 
-* Install required devlopment packages. 
+* Install required development packages.
 
 .. code-block:: bash
 
@@ -98,5 +98,5 @@ All commands below are executed from the root direcotry of the repository.
 
    cd louvainmod
    make dist
-   sudo apt install --reinstall ./package/xilinx-louvainmod-1.0_18.04-x86_64.deb
+   sudo apt install --reinstall ./package/xilinx-louvainmod-%LOUVAIN_VERSION_18.04-x86_64.deb
 

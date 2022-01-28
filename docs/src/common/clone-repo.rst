@@ -6,9 +6,9 @@
     cd graphanalytics
     git submodule update --init --recursive
 
-All commands below are executed from the root direcotry of the repository.
+All commands below are executed from the root directory of the repository.
 
-* Install required devlopment packages. 
+* Install required development packages.
 
   .. code-block:: bash
 
