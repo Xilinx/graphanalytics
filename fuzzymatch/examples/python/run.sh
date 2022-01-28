@@ -74,14 +74,20 @@ fi
 export XCLBIN_FILE=$XCLBIN_PATH/$xclbinFile
 export DEV_NAME=$deviceNames
 export DATA_DIR=$SCRIPTPATH/../data
+patternFile="../data/ref-names.csv"
+inputFile="../data/new-names.csv"
+
+echo "patternFile is ${patternFile}" 
+echo "inputFile is ${inputFile}"
 
 # Run the command
 if [[ "$1" == "jupyter"* ]]
 then
   $*
 else
-  echo "INFO: python3 pythondemo.py  --deviceNames ${deviceNames}  --xclbin ${XCLBIN_PATH}/${xclbinFile}"
-  python3 pythondemo.py  --deviceNames $deviceNames  --xclbin $XCLBIN_FILE
+  echo "INFO: python3 pythondemo.py  --deviceNames ${deviceNames}  --xclbin ${XCLBIN_PATH}/${xclbinFile} --pattern_file ${patternFile} --pattern_index 1 --inputFile ${inputFile} --inputIndex 1"
+  #python3 pythondemo.py  --deviceNames $deviceNames  --xclbin $XCLBIN_FILE
+  python3 pythondemo.py  --deviceNames $deviceNames  --xclbin $XCLBIN_FILE --pattern_file ${patternFile} --pattern_index 1 --inputFile ${inputFile} --inputIndex 1
   #$* --xclbin "$XCLBIN_FILE" --data_dir "$DATA_DIR" --deviceNames "$DEV_NAME"
 fi
 

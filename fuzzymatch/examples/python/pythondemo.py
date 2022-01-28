@@ -26,34 +26,44 @@ from timeit import default_timer as timer
 
 parser = argparse.ArgumentParser(description="Run fuzzyMatch test")
 parser.add_argument("--xclbin", help="xclbin path", default="./")
-parser.add_argument("--data_dir", help="Directory where data files are", default="../data/", type=str )
+parser.add_argument("--pattern_file", help="Pattern file to match against", default="../data/ref-names.csv", type=str )
+parser.add_argument("--pattern_index", help="The column index to extract field of interest from the pattern file", default=1, type=int)
+parser.add_argument("--inputFile", help="Input file that needs to be matched against patternFile", default="../data/new-names.csv", type=str )
+parser.add_argument("--inputIndex", help="The column index to extract field of interest from the input file ", default=1, type=int)
 parser.add_argument('--deviceNames', help="device name", default="xilinx_u50_gen3x16_xdma_201920_3", type=str)
 parser.add_argument('--threshold', help="threshold", default=90, type=int)
+
 args = parser.parse_args()
 
 xclbin_path= str(args.xclbin)
 deviceNames= str(args.deviceNames)
 threshold = int(args.threshold)
 #load csv
-peopleFile = str(args.data_dir) + "ref-names.csv"
+patternFile = str(args.pattern_file) 
+patternIdx = int(args.pattern_index)
+
 trans_num=100
-test_input = str(args.data_dir) + "new-names.csv"
-stats=pd.read_csv(test_input, delimiter=',', names=['Id','Name'])
-peopleVecs=pd.read_csv(peopleFile, delimiter=',',names = ['Id','Name'])
+test_input = str(args.inputFile)
+inputFileIdx = int(args.inputIndex)
+
+stats=pd.read_csv(test_input, delimiter=',', usecols=[patternIdx])
+patternVecs=pd.read_csv(patternFile, delimiter=',',usecols=[inputFileIdx])
 
 totalEntities = 10000000
 
 stats=stats.iloc[1:]
-peopleVecs=peopleVecs.iloc[1:]
-peopleVec=peopleVecs[['Name']]
+patternVecs=patternVecs.iloc[1:]
+patternVec=patternVecs[['Name']]
 data_vec=stats[['Name']]
+
 
 inputVec=[]
 inputId=[]
-print(len(peopleVec['Name']))
-for idx in range(1,len(peopleVec['Name'])):
+print(len(patternVec['Name']))
+
+for idx in range(1,len(patternVec['Name'])):
     #print(peopleVec['Name'][idx])
-    inputVec.append(peopleVec['Name'][idx])
+    inputVec.append(patternVec['Name'][idx])
 
 #create options
 opt = xfm.options()
