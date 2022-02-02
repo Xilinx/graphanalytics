@@ -1,0 +1,57 @@
+USE GRAPH social_ywu
+DROP QUERY test_louvain
+
+//CREATE QUERY test_mis () for GRAPH travelplan_ywu
+//{
+//
+//    FILE f ("/tmp/degrees.log");
+//    SumAccum<INT> @@total_degrees = 0;
+//    SumAccum<INT> @@total_degrees1 = 0;
+//    SumAccum<INT> @outdegrees;
+//    
+//    travel_plans = {travel_plan.*};
+//
+//    TMP = SELECT tps FROM travel_plans:tps -(tp2tp:e)-> travel_plan:tpe
+//		      ACCUM @@total_degrees += 1;
+//
+//    TMP = SELECT tps FROM travel_plans:tps -(tp2tp:e)-> travel_plan:tpe
+//		      ACCUM tps.@outdegrees += 1
+//              POST-ACCUM f.println(tps.@outdegrees);
+//
+//    TMP = SELECT tps FROM travel_plans:tps
+//		      ACCUM @@total_degrees1 += tps.@outdegrees;                  
+//    
+//    print @@total_degrees;
+//    print @@total_degrees1;
+//    //print @@total_degrees;
+//    print "Done";
+//}
+
+CREATE QUERY test_louvain () for GRAPH social_ywu
+{
+
+    FILE f ("/tmp/louvain-degrees.log");
+    SumAccum<INT> @@total_degrees = 0;
+    SumAccum<INT> @@total_degrees1 = 0;
+    SumAccum<INT> @outdegrees;
+    
+    persons = {Person.*};
+
+    TMP = SELECT p FROM persons:p -(Coworker:e)-> Person:p1
+		      ACCUM @@total_degrees += 1;
+
+    TMP = SELECT p FROM persons:p -(Coworker:e)-> Person:p1
+		      ACCUM p.@outdegrees += 1
+              POST-ACCUM f.println(p.@outdegrees);
+
+    TMP = SELECT p FROM persons:p
+		      ACCUM @@total_degrees1 += p.@outdegrees;                  
+    
+    print @@total_degrees;
+    print @@total_degrees1;
+    //print @@total_degrees;
+    print "Done";
+}
+
+INSTALL QUERY test_louvain
+RUN QUERY test_louvain()
