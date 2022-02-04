@@ -59,7 +59,7 @@
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Maximal Independent Set for TigerGraph 3.x Reference Manual" href="api.html" />
+    <link rel="next" title="Xilinx Fuzzy Match for TigerGraph 3.x" href="../fuzzymatch-tg3/index.html" />
     <link rel="prev" title="Xilinx Maximal Independent Set for TigerGraph 3.x Overview" href="overview.html" /> 
 	</head>
 	<body>
@@ -347,7 +347,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="index.html"> Maximal Independent Set for TigerGraph 3.x</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="overview.html">Overview</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Installation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#install-the-alveo-acclerator-card">Install the Alveo Acclerator Card</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#install-the-alveo-accelerator-card">Install the Alveo Accelerator Card</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#install-tigergraph-enterprise-3-x">Install TigerGraph Enterprise 3.x</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#install-maximal-independent-set-software">Install Maximal Independent Set Software</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#install-the-maximal-independent-set-from-a-package">Install the Maximal Independent Set from a Package</a></li>
@@ -358,7 +358,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#uninstalling-the-maximal-independent-set">Uninstalling the Maximal Independent Set</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="api.html">Reference Manual</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../fuzzymatch-tg3/index.html"> Fuzzy Match for TigerGraph 3.x</a></li>
@@ -453,8 +452,8 @@
 <h1>Xilinx Maximal Independent Set for TigerGraph 3.x Installation<a class="headerlink" href="#xilinx-maximal-independent-set-for-tigergraph-3-x-installation" title="Permalink to this headline">¶</a></h1>
 <p>Follow the instructions in each of the sections below to install the Maximal
 Independent Set on your server.</p>
-<div class="section" id="install-the-alveo-acclerator-card">
-<h2>Install the Alveo Acclerator Card<a class="headerlink" href="#install-the-alveo-acclerator-card" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="install-the-alveo-accelerator-card">
+<h2>Install the Alveo Accelerator Card<a class="headerlink" href="#install-the-alveo-accelerator-card" title="Permalink to this headline">¶</a></h2>
 <p>Xilinx Graph Analytics products require one or more Xilinx Alveo accelerator cards
 to be installed on your server. Follow the steps below to install the card(s).</p>
 <ul class="simple">
@@ -503,19 +502,19 @@ product. Follow the steps in <em>only one</em> of the two sections below.</p>
 <div class="section" id="install-the-maximal-independent-set-from-a-package">
 <h3>Install the Maximal Independent Set from a Package<a class="headerlink" href="#install-the-maximal-independent-set-from-a-package" title="Permalink to this headline">¶</a></h3>
 <ul>
-<li><p>Get the installation package xilinx-tigergraph-install-x.y.z.tar.gz from the
-<a class="reference external" href="https://www.xilinx.com/member/dba_poc.html">Database Analytics POC Secure Site</a>.
+<li><p>Get the installation package <strong>xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz</strong> from the
+<a class="reference external" href="%PACKAGE_LINK">Database Analytics POC Secure Site</a>.
 This package contains the Maximal Independent Set as well as its dependencies.</p></li>
 <li><p>Install the product and its dependencies by un-tarring the package and running
 the included install script.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf xilinx-tigergraph-install-x.y.z.tar.gz
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz
 <span class="nb">cd</span> xilinx-tigergraph-install <span class="o">&amp;&amp;</span> ./install.sh -p mis
 </pre></div>
 </div>
 </li>
 <li><p>Install the Maximal Independent Set plugin into the TigerGraph installation
 targeting a supported Alveo device. Below is an example targeting Alveo U50”</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/0.1/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/%MIS_TG_VERSION/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
 </pre></div>
 </div>
 <p>Supported Alveo devices:</p>
@@ -545,7 +544,7 @@ Both products reside in one GitHub repository.</p>
 <li><p>Build and install the Maximum Independent Set package. The Ubuntu apt package manager is used as an example.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> mis
 make dist
-sudo apt install --reinstall ./package/xilinx-mis-1.0_20.04-x86_64.deb
+sudo apt install --reinstall ./package/xilinx-mis-%MIS_VERSION_20.04-x86_64.deb
 </pre></div>
 </div>
 </li>
@@ -553,9 +552,9 @@ sudo apt install --reinstall ./package/xilinx-mis-1.0_20.04-x86_64.deb
 installation command and name for your server’s OS.)</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> plugin/tigergraph/mis
 make dist
-sudo apt install --reinstall ./package/xilinx-mis-tigergraph-1.0_20.04-x86_64.deb
+sudo apt install --reinstall ./package/xilinx-mis-tigergraph-%MIS_TG_VERSION_20.04-x86_64.deb
 
-/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/0.1/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
+/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/%MIS_TG_VERSION/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
 </pre></div>
 </div>
 <p>Supported Alveo devices:</p>
@@ -598,7 +597,7 @@ command to flash the cards.  Cold reboot the server after flashing is done.</p><
 <div class="section" id="uninstalling-the-maximal-independent-set">
 <h2>Uninstalling the Maximal Independent Set<a class="headerlink" href="#uninstalling-the-maximal-independent-set" title="Permalink to this headline">¶</a></h2>
 <p>You can uninstall the Maximal Independent Set from TigerGraph by running the install script with the <code class="docutils literal notranslate"><span class="pre">-u</span></code> option:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/install.sh -u
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/%MIS_TG_VERSION/install.sh -u
 </pre></div>
 </div>
 <p><strong>TIP</strong>: To avoid TigerGraph errors, uninstall any queries and UDFs that use the Maximal Independent Set,
@@ -622,7 +621,7 @@ such as the Synthea Demo, before uninstalling the Maximal Independent Set itself
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="api.html" class="btn btn-neutral float-right" title="Maximal Independent Set for TigerGraph 3.x Reference Manual" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../fuzzymatch-tg3/index.html" class="btn btn-neutral float-right" title="Xilinx Fuzzy Match for TigerGraph 3.x" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="overview.html" class="btn btn-neutral float-left" title="Xilinx Maximal Independent Set for TigerGraph 3.x Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -635,7 +634,7 @@ such as the Synthea Demo, before uninstalling the Maximal Independent Set itself
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 22, 2022.
+        Last updated on February 03, 2022.
       </span>
 
     </p>

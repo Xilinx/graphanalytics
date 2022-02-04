@@ -452,19 +452,19 @@
 <h2>Installing the Alveo Accelerator Cards<a class="headerlink" href="#installing-the-alveo-accelerator-cards" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Power off the server</p></li>
-<li><p>Plug the Xilinx U50 or U55C Alveo Data Center Acclerator card into a PCIe Gen3 x16 slot</p></li>
+<li><p>Plug the Xilinx U50 or U55C Alveo Data Center Accelerator card into a PCIe Gen3 x16 slot</p></li>
 <li><p>Power on the server</p></li>
 </ul>
 </div>
 <div class="section" id="installing-cosine-similarity-library-from-a-pre-built-package">
 <h2>Installing Cosine Similarity Library from a Pre-built Package<a class="headerlink" href="#installing-cosine-similarity-library-from-a-pre-built-package" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p>Get the installation package <a class="reference external" href="https://www.xilinx.com/member/forms/download/design-license-xef.html?filename=xilinx-tigergraph-install-1.4.tar.gz">xilinx-tigergraph-install-1.4.tar.gz from
-Xilinx website</a></p></li>
+<li><p>Get the installation package <strong>xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz</strong> from the
+<a class="reference external" href="%PACKAGE_LINK">Database Analytics POC Secure Site</a>.</p></li>
 <li><p>Install Xilinx CosineSim and Recommendation Engine Alveo Products and dependencies
 (XRT, XRM, and Alveo firmware packages)</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf xilinx-tigergraph-install-1.4.tar.gz
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz
 <span class="nb">cd</span> xilinx-tigergraph-install <span class="o">&amp;&amp;</span> ./install.sh -p cosinesim
 </pre></div>
 </div>
@@ -472,9 +472,11 @@ Xilinx website</a></p></li>
 <div class="section" id="setting-up-the-alveo-accelerator-card">
 <h2>Setting up the Alveo Accelerator Card<a class="headerlink" href="#setting-up-the-alveo-accelerator-card" title="Permalink to this headline">¶</a></h2>
 <p>The Cosine Similarity Alveo Product requires the following Alveo cards and their
-correponding firmware versions to be installed on each Alveo card to use.
-* U50: xilinx_u50_gen3x16_xdma_201920_3
-* U55C: xilinx_u55c_gen3x16_xdma_base_2</p>
+corresponding firmware versions to be installed on each Alveo card to use.</p>
+<ul class="simple">
+<li><p>U50: xilinx_u50_gen3x16_xdma_201920_3</p></li>
+<li><p>U55C: xilinx_u55c_gen3x16_xdma_base_2</p></li>
+</ul>
 <p>Check and install the firmware by following the steps below:</p>
 <ul class="simple">
 <li><p>Run <code class="docutils literal notranslate"><span class="pre">xbutil</span> <span class="pre">scan</span></code> command to check the status of all Alveo cards on the server.</p></li>
@@ -523,9 +525,9 @@ collaborate with Xilinx and contribute to the development of the product.</p>
 git submodule update --init --recursive
 </pre></div>
 </div>
-<p>All commands below are executed from the root direcotry of the repository.</p>
+<p>All commands below are executed from the root directory of the repository.</p>
 <ul class="simple">
-<li><p>Install required devlopment packages.</p></li>
+<li><p>Install required development packages.</p></li>
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo scripts/devdeps.sh
 </pre></div>
@@ -536,7 +538,7 @@ Ubuntu <code class="docutils literal notranslate"><span class="pre">apt</span></
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> cosinesim
 make dist
-sudo apt install --reinstall ./package/xilinx-cosinesim-1.4_18.04-x86_64.deb
+sudo apt install --reinstall ./package/xilinx-cosinesim-%COSINESIM_VERSION_18.04-x86_64.deb
 </pre></div>
 </div>
 </div>
@@ -571,7 +573,7 @@ sudo apt install --reinstall ./package/xilinx-cosinesim-1.4_18.04-x86_64.deb
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 22, 2022.
+        Last updated on February 03, 2022.
       </span>
 
     </p>

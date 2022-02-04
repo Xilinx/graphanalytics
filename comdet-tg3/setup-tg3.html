@@ -444,7 +444,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="set-up-community-detection-for-tigergraph-3-x">
-<span id="cosinesim-setup-tg3-label"></span><h1>Set up Community Detection for TigerGraph 3.x<a class="headerlink" href="#set-up-community-detection-for-tigergraph-3-x" title="Permalink to this headline">¶</a></h1>
+<span id="louvain-setup-tg3-label"></span><h1>Set up Community Detection for TigerGraph 3.x<a class="headerlink" href="#set-up-community-detection-for-tigergraph-3-x" title="Permalink to this headline">¶</a></h1>
 <p>The Community Detection consists of Louvain Modularity library integrated into
 TigerGraph 3.x via plugins and UDFs.</p>
 <div class="section" id="install-conda-or-python-environment">
@@ -453,12 +453,10 @@ TigerGraph 3.x via plugins and UDFs.</p>
 <p class="admonition-title">Note</p>
 <p>Demo Jupyter Notebooks can be run from any machine that is on the same network
 as the TigerGraph server i.e. can connect via HTTP connections. These Notebooks
-use <strong>pytigerGraph</strong> module to connect to the TigerGraph server via REST APIs.</p>
+use <strong>pyTigerGraph</strong> module to connect to the TigerGraph server via REST APIs.</p>
 </div>
-<ul class="simple">
-<li><p>To run the TigerGraph jupyter notebooks, start by creating a python virtual
-environment and installing the required packages.</p></li>
-</ul>
+<div class="section" id="create-a-virtual-environment-and-install-dependencies">
+<h3>1. Create a virtual environment and install dependencies<a class="headerlink" href="#create-a-virtual-environment-and-install-dependencies" title="Permalink to this headline">¶</a></h3>
 <p><strong>Using Conda</strong></p>
 <ul class="simple">
 <li><p>Install conda by following instructions on <a class="reference external" href="https://docs.conda.io/en/latest/miniconda.html">https://docs.conda.io/en/latest/miniconda.html</a></p></li>
@@ -467,7 +465,7 @@ environment and installing the required packages.</p></li>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ conda env list
 $ conda create -n fpga <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.6
 $ conda activate fpga
-<span class="o">(</span>fpga<span class="o">)</span>$ conda install -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.4/requirements.txt
+<span class="o">(</span>fpga<span class="o">)</span>$ conda install -r /opt/xilinx/apps/graphanalytics/requirements.txt
 </pre></div>
 </div>
 <p><strong>Using local python</strong></p>
@@ -477,28 +475,33 @@ $ conda activate fpga
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python3 -m venv fpga
 $ <span class="nb">source</span> fpga/bin/activate
-<span class="o">(</span>fpga<span class="o">)</span>$ pip install -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.4/requirements.txt
+<span class="o">(</span>fpga<span class="o">)</span>$ pip install -r /opt/xilinx/apps/graphanalytics/requirements.txt
 </pre></div>
 </div>
-<ul class="simple">
-<li><p>Now copy examples to user accessible directory</p></li>
-</ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ mkdir recomengine-example
-<span class="o">(</span>fpga<span class="o">)</span>$ <span class="nb">cd</span> recomengine-example
-<span class="o">(</span>fpga<span class="o">)</span>$ cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.4/examples .
+</div>
+<div class="section" id="copy-examples-to-user-accessible-directory">
+<h3>2. Copy examples to user accessible directory<a class="headerlink" href="#copy-examples-to-user-accessible-directory" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ mkdir comdetect-example
+<span class="o">(</span>fpga<span class="o">)</span>$ <span class="nb">cd</span> comdetect-example
+<span class="o">(</span>fpga<span class="o">)</span>$ cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/%COMDETECT_TG_VERSION/examples .
 </pre></div>
 </div>
-<ul>
-<li><p>Install demo specific plugin by following the instructions below. Note
-the demo plugin is only needed to be installed once.</p>
+</div>
+<div class="section" id="install-demo-specific-plugin">
+<h3>3. Install demo specific plugin<a class="headerlink" href="#install-demo-specific-plugin" title="Permalink to this headline">¶</a></h3>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The demo plugin needs to be installed only once</p>
+</div>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../common/setup-demo-plugin.html">Installing and Uninstalling the Demo use cases</a></li>
 </ul>
 </div>
-</li>
-<li><p>Now follow instructions in the Demo use cases pages to run the corresponding Notebooks</p></li>
-</ul>
+</div>
+<div class="section" id="follow-instructions-in-the-demo-use-cases-pages-to-run-the-corresponding-notebooks">
+<h3>4. Follow instructions in the Demo use cases pages to run the corresponding Notebooks<a class="headerlink" href="#follow-instructions-in-the-demo-use-cases-pages-to-run-the-corresponding-notebooks" title="Permalink to this headline">¶</a></h3>
+</div>
 </div>
 </div>
 
@@ -531,7 +534,7 @@ the demo plugin is only needed to be installed once.</p>
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 22, 2022.
+        Last updated on February 03, 2022.
       </span>
 
     </p>

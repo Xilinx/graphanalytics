@@ -59,7 +59,7 @@
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Community Detection for TigerGraph 3.x User’s Guide" href="users-guide.html" />
+    <link rel="next" title="Xilinx Maximal Independent Set for TigerGraph 3.x" href="../mis-tg3/index.html" />
     <link rel="prev" title="Xilinx Community Detection for TigerGraph 3.x Overview" href="overview.html" /> 
 	</head>
 	<body>
@@ -348,14 +348,12 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Installation</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#install-tigergraph-enterprise-3-x">Install TigerGraph Enterprise 3.x</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#install-the-community-detection-software">Install the Community Detection Software</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#collaboring-on-community-detection-plugin">Collaboring on Community Detection Plugin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#collaborating-on-community-detection-plugin">Collaborating on Community Detection Plugin</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#uninstalling-the-community-detection">Uninstalling the Community Detection</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="users-guide.html">Application Development with Community Detection</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api.html">Reference Manual</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../mis-tg3/index.html"> Maximal Independent Set for TigerGraph 3.x</a></li>
@@ -484,7 +482,7 @@ Role <span class="s2">&quot;globaldesigner&quot;</span> is successfully granted 
 <h2>Install the Community Detection Software<a class="headerlink" href="#install-the-community-detection-software" title="Permalink to this headline">¶</a></h2>
 <p>Install the Community Detection plug-in into the TigerGraph installation. This step makes TigerGraph aware
 of the Community Detection features.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/0.5/install.sh
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/%COMDETECT_TG_VERSION/install.sh
 </pre></div>
 </div>
 <div class="admonition note">
@@ -493,8 +491,8 @@ of the Community Detection features.</p>
 products, you can skip the section “Collaborating on Community Detection
 Plugin” below.</p>
 </div>
-<div class="section" id="collaboring-on-community-detection-plugin">
-<h3>Collaboring on Community Detection Plugin<a class="headerlink" href="#collaboring-on-community-detection-plugin" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="collaborating-on-community-detection-plugin">
+<h3>Collaborating on Community Detection Plugin<a class="headerlink" href="#collaborating-on-community-detection-plugin" title="Permalink to this headline">¶</a></h3>
 <p>Follow the instructions below if you want to collaborate and contribute to the
 Xilinx Louvain Modularity Alveo Product and Community Detection for TigerGraph 3.x.
 Both products reside in one GitHub repository.</p>
@@ -509,7 +507,7 @@ Both products reside in one GitHub repository.</p>
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> louvainmod
 make dist
-sudo apt install --reinstall ./package/xilinx-louvainmod-0.5_18.04-x86_64.deb
+sudo apt install --reinstall ./package/xilinx-louvainmod-%LOUVAIN_VERSION_18.04-x86_64.deb
 </pre></div>
 </div>
 <ul class="simple">
@@ -518,14 +516,14 @@ installation command and name for your server’s OS.)</p></li>
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> plugin/tigergraph/comdetect
 make dist
-sudo apt install --reinstall ./package/xilinx-comdetect-tigergraph-0.5_18.04-x86_64.deb
+sudo apt install --reinstall ./package/xilinx-comdetect-tigergraph-%COMDETECT_TG_VERSION_18.04-x86_64.deb
 </pre></div>
 </div>
 <ul class="simple">
 <li><p>Install the Community Detection plug-in into the TigerGraph installation.  This step makes TigerGraph aware
 of the Community Detection features.</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/0.5/install.sh
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/%COMDETECT_TG_VERSION/install.sh
 </pre></div>
 </div>
 </div>
@@ -533,7 +531,7 @@ of the Community Detection features.</p></li>
 <div class="section" id="uninstalling-the-community-detection">
 <h2>Uninstalling the Community Detection<a class="headerlink" href="#uninstalling-the-community-detection" title="Permalink to this headline">¶</a></h2>
 <p>You can uninstall the Community Detection from TigerGraph by running the install script with the <code class="docutils literal notranslate"><span class="pre">-u</span></code> option:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/0.5/install.sh -u
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/%COMDETECT_TG_VERSION/install.sh -u
 </pre></div>
 </div>
 <p><strong>TIP</strong>: To avoid TigerGraph errors, uninstall any queries and UDFs that use the Community Detection,
@@ -557,7 +555,7 @@ before uninstalling the Community Detection itself.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="users-guide.html" class="btn btn-neutral float-right" title="Community Detection for TigerGraph 3.x User’s Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../mis-tg3/index.html" class="btn btn-neutral float-right" title="Xilinx Maximal Independent Set for TigerGraph 3.x" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="overview.html" class="btn btn-neutral float-left" title="Xilinx Community Detection for TigerGraph 3.x Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -570,7 +568,7 @@ before uninstalling the Community Detection itself.</p>
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 22, 2022.
+        Last updated on February 03, 2022.
       </span>
 
     </p>

@@ -58,7 +58,9 @@
   <link rel="stylesheet" href="../_static/css/pro.min.css" media="all" />
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Xilinx Maximal Independent Set API Reference" href="api.html" />
+    <link rel="prev" title="Setup Maximal Independent Set for Stand-Alone Runs" href="setup-standalone.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -332,10 +334,24 @@
             
             
               <p class="caption"><span class="caption-text">Stand-Alone Alveo Products</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../cosinesim/index.html">Cosine Similarity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/index.html">Louvain Modularity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="index.html">Maximal Independent Set</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Maximal Independent Set</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="demos.html">Demos</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="example-makefile.html">C++ Example using Makefile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="example-python.html">Python API Example</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Jupyter Notebook</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="setup-standalone.html">Setup</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api.html">API Reference</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../fuzzymatch/index.html">Fuzzy Match</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Software Stack Integration Products</span></p>
@@ -412,7 +428,11 @@
     
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Jupyter Notebook with Maximal Independent Set Python API</li>
+          <li><a href="index.html">Xilinx Maximal Independent Set Alveo Product</a> &raquo;</li>
+        
+          <li><a href="demos.html">Xilinx Maximal Independent Set Alveo Product Demos</a> &raquo;</li>
+        
+      <li>Jupyter Notebook</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -429,9 +449,21 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="jupyter-notebook-with-maximal-independent-set-python-api">
-<h1>Jupyter Notebook with Maximal Independent Set Python API<a class="headerlink" href="#jupyter-notebook-with-maximal-independent-set-python-api" title="Permalink to this headline">¶</a></h1>
-<p>Coming soon</p>
+  <div class="section" id="jupyter-notebook">
+<h1>Jupyter Notebook<a class="headerlink" href="#jupyter-notebook" title="Permalink to this headline">¶</a></h1>
+<p>Follow the setup process below before running the notebook:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="setup-standalone.html">Setup</a></li>
+</ul>
+</div>
+<p>Run following commands in the Python virtual environment (from setup) to run the notebook:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ <span class="nb">cd</span> mis-examples/python
+<span class="o">(</span>fpga<span class="o">)</span>$ ./run.sh jupyter notebook jupyter/misdemo_notebook.ipynb
+</pre></div>
+</div>
+<p>The Jupyter Notebook demo is also available on
+<a class="reference external" href="https://github.com/Xilinx/graphanalytics/blob/master/mis/examples/python/jupyter/misdemo_notebook.ipynb">Github</a></p>
 </div>
 
 
@@ -448,13 +480,22 @@
 
 	  <!-- Sphinx Page Footer block -->
   
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="api.html" class="btn btn-neutral float-right" title="Xilinx Maximal Independent Set API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="setup-standalone.html" class="btn btn-neutral float-left" title="Setup Maximal Independent Set for Stand-Alone Runs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
 
   <hr/>
 
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 22, 2022.
+        Last updated on February 03, 2022.
       </span>
 
     </p>

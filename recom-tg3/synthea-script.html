@@ -455,9 +455,23 @@
 <h1>Run Bash Script with GSQL<a class="headerlink" href="#run-bash-script-with-gsql" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
 <li><p>Open a terminal using your Linux credentials</p></li>
+<li><p>Set up a directory that is readable and writable by the user “tigergraph”</p></li>
 <li><p>Execute the command below to run the example</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/examples/synthea/run.sh
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Copy examples from the installation to your own working directory</span>
+cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/recomengine/%RECOMENGINE_TG_VERSION/examples recomengine-examples
+
+<span class="nb">cd</span> recomengine-examples/synthea
+
+<span class="c1"># Install demo specific UDFs. This is needed to run **ONLY ONCE**.</span>
+./bin/install-udf.sh
+
+<span class="c1"># Print synthea demo help messages</span>
+./bin/run.sh -h
+
+<span class="c1"># Run synthea demo with default settings. Settings can be changed via command</span>
+<span class="c1"># line options as shown above</span>
+./bin/run.sh
 </pre></div>
 </div>
 </div>
@@ -491,7 +505,7 @@
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 22, 2022.
+        Last updated on February 03, 2022.
       </span>
 
     </p>

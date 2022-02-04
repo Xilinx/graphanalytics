@@ -59,7 +59,7 @@
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Recommendation Engine for TigerGraph 3.x Reference Manual" href="api.html" />
+    <link rel="next" title="Xilinx Community Detection for TigerGraph 3.x" href="../comdet-tg3/index.html" />
     <link rel="prev" title="Xilinx Recommendation Engine for TigerGraph 3.x Overview" href="overview.html" /> 
 	</head>
 	<body>
@@ -356,7 +356,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#uninstalling-the-recommendation-engine">Uninstalling the Recommendation Engine</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="api.html">Reference Manual</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../comdet-tg3/index.html"> Community Detection for TigerGraph 3.x</a></li>
@@ -498,14 +497,14 @@ Engine product.  Follow the steps in <em>only one</em> of the two sections below
 <div class="section" id="install-the-recommendation-engine-from-a-package">
 <h3>Install the Recommendation Engine from a Package<a class="headerlink" href="#install-the-recommendation-engine-from-a-package" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p>Get the installation package xilinx-tigergraph-install-1.0.2.tar.gz from the
-<a class="reference external" href="https://www.xilinx.com/member/dba_poc.html">Database Analytics POC Secure Site</a>.  This package contains
+<li><p>Get the installation package <strong>xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz</strong> from the
+<a class="reference external" href="%PACKAGE_LINK">Database Analytics POC Secure Site</a>.  This package contains
 the Recommendation Engine as well as its dependencies: XRT, XRM, the Alveo U50 Platform, and the Cosine Similarity
 Alveo Product.</p></li>
 <li><p>Install the Recommendation Engine product and its dependencies by un-tarring the package and running
 the included install script.</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf xilinx-tigergraph-install-1.0.2.tar.gz
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz
 <span class="nb">cd</span> xilinx-tigergraph-install <span class="o">&amp;&amp;</span> ./install.sh
 </pre></div>
 </div>
@@ -513,7 +512,7 @@ the included install script.</p></li>
 <li><p>Install the Recommendation Engine plug-in into the TigerGraph installation.  This step makes TigerGraph aware
 of the Recommendation Engine features.</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/install.sh
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/recomengine/%RECOMENGINE_TG_VERSION/install.sh
 </pre></div>
 </div>
 </div>
@@ -546,7 +545,7 @@ The package to download is called the “Deployment Target Platform.”</p></li>
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> cosinesim
 make dist
-sudo apt install --reinstall ./package/xilinx-cosinesim-1.0_18.04-x86_64.deb
+sudo apt install --reinstall ./package/xilinx-cosinesim-%COSINESIM_VERSION_18.04-x86_64.deb
 </pre></div>
 </div>
 <ul class="simple">
@@ -555,14 +554,14 @@ installation command and name for your server’s OS.)</p></li>
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> plugin/tigergraph/recomengine
 make dist
-sudo apt install --reinstall ./package/xilinx-recomengine-tigergraph-1.0_18.04-x86_64.deb
+sudo apt install --reinstall ./package/xilinx-recomengine-tigergraph-%RECOMENGINE_TG_VERSION_18.04-x86_64.deb
 </pre></div>
 </div>
 <ul class="simple">
 <li><p>Install the Recommendation Engine plug-in into the TigerGraph installation.  This step makes TigerGraph aware
 of the Recommendation Engine features.</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/install.sh
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/recomengine/%RECOMENGINE_TG_VERSION/install.sh
 </pre></div>
 </div>
 </div>
@@ -598,7 +597,7 @@ command to flash the cards.  Cold reboot the server after flashing is done.</p><
 <div class="section" id="uninstalling-the-recommendation-engine">
 <h2>Uninstalling the Recommendation Engine<a class="headerlink" href="#uninstalling-the-recommendation-engine" title="Permalink to this headline">¶</a></h2>
 <p>You can uninstall the Recommendation Engine from TigerGraph by running the install script with the <code class="docutils literal notranslate"><span class="pre">-u</span></code> option:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/install.sh -u
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/recomengine/%RECOMENGINE_TG_VERSION/install.sh -u
 </pre></div>
 </div>
 <p><strong>TIP</strong>: To avoid TigerGraph errors, uninstall any queries and UDFs that use the Recommendation Engine,
@@ -622,7 +621,7 @@ such as the Synthea Demo, before uninstalling the Recommendation Engine itself.<
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="api.html" class="btn btn-neutral float-right" title="Recommendation Engine for TigerGraph 3.x Reference Manual" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../comdet-tg3/index.html" class="btn btn-neutral float-right" title="Xilinx Community Detection for TigerGraph 3.x" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="overview.html" class="btn btn-neutral float-left" title="Xilinx Recommendation Engine for TigerGraph 3.x Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -635,7 +634,7 @@ such as the Synthea Demo, before uninstalling the Recommendation Engine itself.<
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 22, 2022.
+        Last updated on February 03, 2022.
       </span>
 
     </p>

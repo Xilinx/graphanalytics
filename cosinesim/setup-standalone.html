@@ -59,8 +59,8 @@
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Python Example" href="cosinesim-example-python.html" />
-    <link rel="prev" title="Jupyter Notebook with CosineSim Python API" href="cosinesim-example-jupyter.html" /> 
+    <link rel="next" title="Jupyter Notebook" href="cosinesim-example-jupyter.html" />
+    <link rel="prev" title="Python API Example" href="cosinesim-example-python.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -352,8 +352,9 @@
 <li class="toctree-l1 current"><a class="reference internal" href="usecases.html"> Cosine Similarity Use Cases</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="usecases.html#stand-alone-alveo-product">Stand-Alone Alveo Product</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Setup Cosine Similarity for Stand-Alone Runs</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#method-1-connect-to-a-locally-running-jupyterhub-server-from-a-remote-system">Method 1: Connect to a locally running Jupyterhub server from a remote system</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#method-2-run-directly-on-the-local-server">Method 2: Run directly on the local server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#create-a-virtual-environment-and-install-dependencies">1. Create a virtual environment and install dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#copy-examples-to-user-accessible-directory">2. Copy examples to user accessible directory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#setup-for-jupyter-notebooks">Setup for Jupyter Notebooks</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="usecases-wiki-search.html">Wikipedia Search Engine</a></li>
@@ -430,7 +431,7 @@
         
           <li><a href="demos.html">Xilinx Cosine Similarity Alveo Product Demos</a> &raquo;</li>
         
-          <li><a href="cosinesim-example-jupyter.html">Jupyter Notebook with CosineSim Python API</a> &raquo;</li>
+          <li><a href="cosinesim-example-python.html">Python API Example</a> &raquo;</li>
         
       <li>Setup Cosine Similarity for Stand-Alone Runs</li>
     
@@ -451,59 +452,74 @@
             
   <div class="section" id="setup-cosine-similarity-for-stand-alone-runs">
 <span id="cosinesim-setup-standalone-label"></span><h1>Setup Cosine Similarity for Stand-Alone Runs<a class="headerlink" href="#setup-cosine-similarity-for-stand-alone-runs" title="Permalink to this headline">¶</a></h1>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>If running Python Example only, directly go to Method 2</p>
-</div>
-<p>The stand-alone cosine similarity jupyter notebooks run on the same server that has the Alveo cards installed.
-Consequently, there a few ways to run the notebooks:</p>
-<div class="section" id="method-1-connect-to-a-locally-running-jupyterhub-server-from-a-remote-system">
-<h2>Method 1: Connect to a locally running Jupyterhub server from a remote system<a class="headerlink" href="#method-1-connect-to-a-locally-running-jupyterhub-server-from-a-remote-system" title="Permalink to this headline">¶</a></h2>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Jupyterhub must be running with proper configuration, contact Xilinx Support for instructions</p>
-</div>
-<ul class="simple">
-<li><p>Login to the <strong>local</strong> (Alveo) machine and copy examples to user accessible directory</p></li>
-</ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ mkdir cosinesim-example
-$ <span class="nb">cd</span> cosinesim-example
-$ cp /opt/xilinx/apps/graphanalytics/cosinesim/1.4/examples.zip .
-$ unzip examples.zip
-</pre></div>
-</div>
-<ul class="simple">
-<li><p>Open a web browser on your <strong>remote</strong> machine, enter the IP address and port of the Jupyterhub server</p></li>
-<li><p>Navigate to <code class="code docutils literal notranslate"><span class="pre">cosinesim-example/examples/python/jupyter</span></code> and open the notebook(s)</p></li>
-</ul>
-</div>
-<div class="section" id="method-2-run-directly-on-the-local-server">
-<h2>Method 2: Run directly on the local server<a class="headerlink" href="#method-2-run-directly-on-the-local-server" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>To run the stand alone cosine similarity jupyter notebooks, start by creating a python virtual environment and installing the required packages.</p></li>
-</ul>
+<div class="section" id="create-a-virtual-environment-and-install-dependencies">
+<h2>1. Create a virtual environment and install dependencies<a class="headerlink" href="#create-a-virtual-environment-and-install-dependencies" title="Permalink to this headline">¶</a></h2>
 <p><strong>Using Conda</strong></p>
 <ul class="simple">
 <li><p>Install conda by following instructions on <a class="reference external" href="https://docs.conda.io/en/latest/miniconda.html">https://docs.conda.io/en/latest/miniconda.html</a></p></li>
 <li><p>Create and activate a new virtual environment and install all required packages</p></li>
 </ul>
-<p><strong>Using local python</strong>
-* At least Python version 3.6 is required, install or upgrade python using your package manager
-* Create and activate a new virtual environment and install all required packages
-.. code-block:: bash</p>
-<blockquote>
-<div><p>$ python3 -m venv fpga
-$ source fpga/bin/activate
-(fpga)$ pip install -r /opt/xilinx/apps/graphanalytics/cosinesim/1.4/requirements.txt</p>
-</div></blockquote>
-<ul class="simple">
-<li><p>Now copy examples to user accessible directory</p></li>
-</ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ mkdir cosinesim-example
-<span class="o">(</span>fpga<span class="o">)</span>$ <span class="nb">cd</span> cosinesim-example
-<span class="o">(</span>fpga<span class="o">)</span>$ cp /opt/xilinx/apps/graphanalytics/cosinesim/1.4/examples.zip .
-<span class="o">(</span>fpga<span class="o">)</span>$ unzip examples.zip
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ conda env list
+$ conda create -n fpga <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.6
+$ conda activate fpga
+<span class="o">(</span>fpga<span class="o">)</span>$ conda install -r /opt/xilinx/apps/graphanalytics/requirements.txt
 </pre></div>
+</div>
+<p><strong>Using local python</strong></p>
+<ul class="simple">
+<li><p>At least Python version 3.6 is required, install or upgrade python using your package manager</p></li>
+<li><p>Create and activate a new virtual environment and install all required packages</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python3 -m venv fpga
+$ <span class="nb">source</span> fpga/bin/activate
+<span class="o">(</span>fpga<span class="o">)</span>$ pip install -r /opt/xilinx/apps/graphanalytics/requirements.txt
+</pre></div>
+</div>
+</div>
+<div class="section" id="copy-examples-to-user-accessible-directory">
+<h2>2. Copy examples to user accessible directory<a class="headerlink" href="#copy-examples-to-user-accessible-directory" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ cp -r /opt/xilinx/apps/graphanalytics/cosinesim/%COSINESIM_VERSION/examples cosinesim-examples
+<span class="o">(</span>fpga<span class="o">)</span>$ <span class="nb">cd</span> cosinesim-examples/python
+</pre></div>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="setup-for-jupyter-notebooks">
+<h2>Setup for Jupyter Notebooks<a class="headerlink" href="#setup-for-jupyter-notebooks" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If running Jupyter Notebook(s), read this section and follow instructions in the
+corresponding Notebook Demo pages to run.</p>
+</div>
+<p>The stand-alone cosine similarity jupyter notebooks run on the same server (<strong>local</strong>) that has the Alveo cards installed,
+but can be launched locally or remotely from a system <strong>that is on the same network</strong>. Consequently, there are
+two ways to run the notebooks:</p>
+<div class="section" id="method-1-run-on-the-local-server">
+<h3>Method 1: Run on the local server<a class="headerlink" href="#method-1-run-on-the-local-server" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Simply start the jupyter server as:</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ ./run.sh jupyter notebook
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Navigate to the Notebook under current directory that you want to run</p></li>
+</ul>
+</div>
+<div class="section" id="method-2-run-from-a-remote-machine">
+<h3>Method 2: Run from a remote machine<a class="headerlink" href="#method-2-run-from-a-remote-machine" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>JupyterHub is not part of the requirements.txt dependency list. Install JupyterHub on the <strong>local</strong>
+machine as shown <a class="reference external" href="https://jupyterhub.readthedocs.io/en/stable/quickstart.html#installation">here</a></p></li>
+<li><p>Start a JupyterHub server on the <strong>local</strong> machine as:</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ ./run.sh jupyterhub
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Open a web browser on your <strong>remote</strong> machine, enter the IP address and port of the Jupyterhub server</p></li>
+<li><p>Navigate to the Notebook under current directory that you want to run</p></li>
+</ul>
 </div>
 </div>
 </div>
@@ -524,10 +540,10 @@ $ source fpga/bin/activate
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="cosinesim-example-python.html" class="btn btn-neutral float-right" title="Python Example" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="cosinesim-example-jupyter.html" class="btn btn-neutral float-right" title="Jupyter Notebook" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="cosinesim-example-jupyter.html" class="btn btn-neutral float-left" title="Jupyter Notebook with CosineSim Python API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="cosinesim-example-python.html" class="btn btn-neutral float-left" title="Python API Example" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -537,7 +553,7 @@ $ source fpga/bin/activate
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 22, 2022.
+        Last updated on February 03, 2022.
       </span>
 
     </p>

@@ -348,7 +348,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="index.html"> Fuzzy Match for TigerGraph 3.x</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="overview.html">Overview</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Installation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#install-the-alveo-acclerator-card">Install the Alveo Acclerator Card</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#install-the-alveo-accelerator-card">Install the Alveo Accelerator Card</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#install-tigergraph-enterprise-3-x">Install TigerGraph Enterprise 3.x</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#install-fuzzy-match-software">Install Fuzzy Match Software</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#install-fuzzy-match-from-a-package">Install Fuzzy Match from a Package</a></li>
@@ -452,8 +452,8 @@
 <h1>Xilinx Fuzzy Match Plugin for TigerGraph Installation<a class="headerlink" href="#xilinx-fuzzy-match-plugin-for-tigergraph-installation" title="Permalink to this headline">¶</a></h1>
 <p>Follow the instructions in each of the sections below to install the Fuzzy Match
 products on your server.</p>
-<div class="section" id="install-the-alveo-acclerator-card">
-<h2>Install the Alveo Acclerator Card<a class="headerlink" href="#install-the-alveo-acclerator-card" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="install-the-alveo-accelerator-card">
+<h2>Install the Alveo Accelerator Card<a class="headerlink" href="#install-the-alveo-accelerator-card" title="Permalink to this headline">¶</a></h2>
 <p>Xilinx Graph Analytics products require one or more Xilinx Alveo accelerator cards
 to be installed on your server. Follow the steps below to install the card(s).</p>
 <ul class="simple">
@@ -502,19 +502,19 @@ the steps in <em>only one</em> of the two sections below.</p>
 <div class="section" id="install-fuzzy-match-from-a-package">
 <h3>Install Fuzzy Match from a Package<a class="headerlink" href="#install-fuzzy-match-from-a-package" title="Permalink to this headline">¶</a></h3>
 <ul>
-<li><p>Get the installation package xilinx-tigergraph-install-x.y.z.tar.gz from the
-<a class="reference external" href="https://www.xilinx.com/member/dba_poc.html">Database Analytics POC Secure Site</a>.
+<li><p>Get the installation package <strong>xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz</strong> from the
+<a class="reference external" href="%PACKAGE_LINK">Database Analytics POC Secure Site</a>.
 This package contains the Fuzzy Match as well as its dependencies:
 XRT, XRM, the Alveo U50 Platform, and the Fuzzy Match Alveo Product.</p></li>
 <li><p>Install the product and its dependencies by un-tarring the package and running
 the included install script.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf xilinx-tigergraph-install-x.y.z.tar.gz
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz
 <span class="nb">cd</span> xilinx-tigergraph-install <span class="o">&amp;&amp;</span> ./install.sh -p fuzzymatch
 </pre></div>
 </div>
 </li>
 <li><p>Install the Fuzzy Match plugin into the TigerGraph installation.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/0.1/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/%FUZZYMATCH_TG_VERSION/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
 </pre></div>
 </div>
 <p>Supported Alveo devices:</p>
@@ -544,9 +544,9 @@ git submodule update --init --recursive
 </div>
 </li>
 </ul>
-<p>All commands below are executed from the root direcotry of the repository.</p>
+<p>All commands below are executed from the root directory of the repository.</p>
 <ul>
-<li><p>Install required devlopment packages.</p>
+<li><p>Install required development packages.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo scripts/devdeps.sh
 </pre></div>
 </div>
@@ -555,7 +555,7 @@ git submodule update --init --recursive
 installation using the Ubuntu <code class="docutils literal notranslate"><span class="pre">apt</span></code> package manager on a Ubuntu 20.04 machine.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> fuzzymatch
 make dist
-sudo apt install --reinstall ./package/xilinx-fuzzymatch-0.1_20.04-x86_64.deb
+sudo apt install --reinstall ./package/xilinx-fuzzymatch-%FUZZYMATCH_VERSION_20.04-x86_64.deb
 </pre></div>
 </div>
 </li>
@@ -563,12 +563,12 @@ sudo apt install --reinstall ./package/xilinx-fuzzymatch-0.1_20.04-x86_64.deb
 command and name for your server’s OS.)</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> plugin/tigergraph/fuzzymatch
 make dist
-sudo apt install --reinstall ./package/xilinx-fuzzymatch-tigergraph-0.1_20.04-x86_64.deb
+sudo apt install --reinstall ./package/xilinx-fuzzymatch-tigergraph-%FUZZYMATCH_TG_VERSION_20.04-x86_64.deb
 </pre></div>
 </div>
 </li>
 <li><p>Install the Fuzzy Match plugin into the TigerGraph installation.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/0.1/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/%FUZZYMATCH_TG_VERSION/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
 </pre></div>
 </div>
 <p>Supported Alveo devices:</p>
@@ -613,7 +613,7 @@ sudo /opt/xilinx/xrt/bin/xbmgmt flash --update --shell xilinx_u55c_gen3x16_xdma_
 <div class="section" id="uninstalling-the-fuzzy-match">
 <h2>Uninstalling the Fuzzy Match<a class="headerlink" href="#uninstalling-the-fuzzy-match" title="Permalink to this headline">¶</a></h2>
 <p>You can uninstall the Fuzzy Match from TigerGraph by running the install script with the <code class="docutils literal notranslate"><span class="pre">-u</span></code> option:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.0/install.sh -u
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/%FUZZYMATCH_TG_VERSION/install.sh -u
 </pre></div>
 </div>
 <p><strong>TIP</strong>: To avoid TigerGraph errors, uninstall any queries and UDFs that use the Fuzzy Match,
@@ -650,7 +650,7 @@ such as the Synthea Demo, before uninstalling the Fuzzy Match itself.</p>
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 22, 2022.
+        Last updated on February 03, 2022.
       </span>
 
     </p>

@@ -439,12 +439,10 @@ via UDFs.</p>
 <p class="admonition-title">Note</p>
 <p>Demo Jupyter Notebooks can be run from any machine that is on the same network
 as the TigerGraph server i.e. can connect via HTTP connections. These Notebooks
-use <strong>pytigerGraph</strong> module to connect to the TigerGraph server via REST APIs.</p>
+use <strong>pyTigerGraph</strong> module to connect to the TigerGraph server via REST APIs.</p>
 </div>
-<ul class="simple">
-<li><p>To run the TigerGraph jupyter notebooks, start by creating a python virtual
-environment and installing the required packages.</p></li>
-</ul>
+<div class="section" id="create-a-virtual-environment-and-install-dependencies">
+<h3>1. Create a virtual environment and install dependencies<a class="headerlink" href="#create-a-virtual-environment-and-install-dependencies" title="Permalink to this headline">¶</a></h3>
 <p><strong>Using Conda</strong></p>
 <ul class="simple">
 <li><p>Install conda by following instructions on <a class="reference external" href="https://docs.conda.io/en/latest/miniconda.html">https://docs.conda.io/en/latest/miniconda.html</a></p></li>
@@ -453,7 +451,7 @@ environment and installing the required packages.</p></li>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ conda env list
 $ conda create -n fpga <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.6
 $ conda activate fpga
-<span class="o">(</span>fpga<span class="o">)</span>$ conda install -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.4/requirements.txt
+<span class="o">(</span>fpga<span class="o">)</span>$ conda install -r /opt/xilinx/apps/graphanalytics/requirements.txt
 </pre></div>
 </div>
 <p><strong>Using local python</strong></p>
@@ -463,7 +461,7 @@ $ conda activate fpga
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python3 -m venv fpga
 $ <span class="nb">source</span> fpga/bin/activate
-<span class="o">(</span>fpga<span class="o">)</span>$ pip install -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/1.4/requirements.txt
+<span class="o">(</span>fpga<span class="o">)</span>$ pip install -r /opt/xilinx/apps/graphanalytics/requirements.txt
 </pre></div>
 </div>
 <ul class="simple">
@@ -487,6 +485,7 @@ the demo plugin is only needed to be installed once.</p>
 </ul>
 </div>
 </div>
+</div>
 
 
            </div>
@@ -508,7 +507,7 @@ the demo plugin is only needed to be installed once.</p>
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on January 22, 2022.
+        Last updated on February 03, 2022.
       </span>
 
     </p>
