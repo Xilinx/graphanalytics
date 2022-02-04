@@ -22,6 +22,7 @@ set -e
 
 SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`
+PRODUCT_VER=`cat $SCRIPTPATH/VERSION`
 
 # Read plugin specific variables
 . $SCRIPTPATH/bin/set-plugin-vars.sh

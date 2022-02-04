@@ -41,9 +41,9 @@ DOXYREST_RST_TARGET_DIR = rst-cpp-docs
 
 all: install
 
-install: .stamp/sphinx
+install: .stamp/sphinx update-html-versions
 	rsync -av --delete --exclude .git --exclude .buildinfo \
-		 $(HTML_BUILD_DIR) $(HTML_DEST_DIR) 1>/dev/null
+		 $(HTML_BUILD_DIR)/ $(HTML_DEST_DIR) 1>/dev/null
 
 
 #######################################################################################################################

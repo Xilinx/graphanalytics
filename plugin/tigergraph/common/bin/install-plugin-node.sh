@@ -22,6 +22,7 @@ set -e
 
 SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`
+PRODUCT_VER=`cat $SCRIPTPATH/../VERSION`
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color

@@ -56,7 +56,7 @@ tg_udf_xclbin_dir=$tg_udf_dir/xclbin
 plugin_ld_preload=
 
 # Set up variables and checks specific to the plugin
-
+PRODUCT_VER=`cat $SCRIPTPATH/../VERSION`
 . $SCRIPTPATH/set-plugin-vars.sh
 
 # Use the local git repo for Alveo Product artifacts if the repo dir exists;
