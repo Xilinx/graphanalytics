@@ -17,7 +17,7 @@ USE GRAPH @graph
 DROP GRAPH @graph CASCADE
 
 CREATE GRAPH @graph()
-
+BEGIN
 CREATE SCHEMA_CHANGE JOB job_schema_change_local FOR GRAPH @graph {
     // reference names
     ADD VERTEX ref_names(PRIMARY_ID id UINT, name STRING);
@@ -27,7 +27,7 @@ CREATE SCHEMA_CHANGE JOB job_schema_change_local FOR GRAPH @graph {
     ADD VERTEX dummy_nodes(PRIMARY_ID ID UINT, NODE_ID UINT);
 
 }
-
+END
 RUN SCHEMA_CHANGE JOB job_schema_change_local
 DROP JOB job_schema_change_local
 
