@@ -148,7 +148,7 @@ inline ListAccum<ListAccum<ListAccum<int64_t>>> udf_fuzzymatch_retres_alveo(List
     // only measure match time
     auto ts = std::chrono::high_resolution_clock::now();
     match_result_p = pFuzzyMatch->executefuzzyMatch(targetVector, similarity_level);
-    std::cout << "INFO: match_result_p size=" << match_result_p.size()<<std::endl;
+    //std::cout << "INFO: match_result_p size=" << match_result_p.size()<<std::endl;
     auto te = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> l_durationSec = te - ts;
     execTime = l_durationSec.count() * 1e3;

@@ -76,7 +76,7 @@ CREATE QUERY entity_resolution_cpu( ) for graph @graph
     print matchExecTime/@@newNamesAccum.size() as AvergeTimePerPersonInMs;
 }
 
-CREATE QUERY entity_resolution_alveo( ) for graph @graph 
+CREATE QUERY entity_resolution_perf_alveo( ) for graph @graph 
 {
     DOUBLE vm_peak, vm_hwm;
   	INT ret;
@@ -106,7 +106,7 @@ CREATE QUERY entity_resolution_alveo( ) for graph @graph
     END;
     
 }
-CREATE QUERY entity_resolution_retres_alveo( ) for graph @graph 
+CREATE QUERY entity_resolution_alveo( ) for graph @graph 
 {
     DOUBLE vm_peak, vm_hwm;
   	INT ret;
@@ -137,8 +137,8 @@ CREATE QUERY entity_resolution_retres_alveo( ) for graph @graph
     IF matchExecTime < 0 THEN
         PRINT matchExecTime as MatchErrorCode;   
     ELSE
-        PRINT matchExecTime as MatchExecTimeInMs;
-        PRINT matchExecTime/@@newNamesAccum.size() as AvergeTimePerPersonInMs;   
+        #PRINT matchExecTime as MatchExecTimeInMs;
+        #PRINT matchExecTime/@@newNamesAccum.size() as AvergeTimePerPersonInMs;   
     END;
 
     #add result
@@ -148,4 +148,4 @@ CREATE QUERY entity_resolution_retres_alveo( ) for graph @graph
 }
 
 
-INSTALL QUERY entity_resolution_tg, entity_resolution_alveo, entity_resolution_retres_alveo, entity_resolution_cpu
+INSTALL QUERY entity_resolution_tg, entity_resolution_perf_alveo, entity_resolution_alveo, entity_resolution_cpu
