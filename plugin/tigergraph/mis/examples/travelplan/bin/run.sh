@@ -53,10 +53,14 @@ if [ "$compile_mode" -eq 1 ]; then
     gsql -u $username -p $password "$(cat $script_dir/../query/load.gsql | sed "s/@graph/$xgraph/")"
 
     # set timeout of loading job to 1 hour
-    time gsql -u $username -p $password -g $xgraph "SET QUERY_TIMEOUT=3600000 RUN LOADING JOB load_xgraph USING tp2wo_infile=\"$tp2wo_data\", tp2tr_infile=\"$tp2tr_data\""
-    gsql -u $username -p $password -g $xgraph "DROP JOB load_xgraph"
-    echo "INFO: -------- $(date) load_xgraph completed. --------"
+    time gsql -u $username -p $password -g $xgraph "SET QUERY_TIMEOUT=3600000 RUN LOADING JOB load_tp2tr USING tp2tr_infile=\"$tp2tr_data\""
+    gsql -u $username -p $password -g $xgraph "DROP JOB load_tp2tr"
+    time gsql -u $username -p $password -g $xgraph "SET QUERY_TIMEOUT=3600000 RUN LOADING JOB load_tp2wo USING tp2wo_infile=\"$tp2wo_data\""
+    gsql -u $username -p $password -g $xgraph "DROP JOB load_tp2wo"
+    echo "INFO: -------- $(date) load jobs completed. --------"
+fi
 
+if [ "$compile_mode" -eq 1 ] || [ "$compile_mode" -eq 2 ]; then
     gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/build_edges.gsql | sed "s/@graph/$xgraph/")"
     echo " "
     gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/tg_maximal_indep_set.gsql)"
@@ -65,21 +69,23 @@ if [ "$compile_mode" -eq 1 ]; then
 
     echo "Run query build_edges"
     time gsql -u $username -p $password -g $xgraph "run query build_edges()"
+    echo "Waiting for 30 sec for Graph changes to take effect ... (TigerGraph recommended)"
+    sleep 30
 fi
 
 if [ "$run_mode" -eq 1 ] || [ "$run_mode" -eq 3 ]; then
     echo "Run query tg_maximal_indep_set"
-    time gsql -u $username -p $password -g $xgraph "run query tg_maximal_indep_set([\"travel_plan\"], [\"tp2tp\"], 100, TRUE, \"/tmp/mis-$username.out\")"
+    time gsql -u $username -p $password -g $xgraph "run query tg_maximal_indep_set(\"travel_plan\", \"tp2tp\", 100, False, \"/tmp/tg-mis-$username.out\")"
 fi
 
 # Run on FPGA
 if [ "$run_mode" -eq 2 ] || [ "$run_mode" -eq 3 ]; then
     echo "Run query assign_ids"
-    time gsql -u $username -p $password -g $xgraph "run query assign_ids()"
+    time gsql -u $username -p $password -g $xgraph "run query assign_ids(\"travel_plan\", \"tp2tp\")"
 
-    echo "Run query assign_ids"
-    time gsql -u $username -p $password -g $xgraph "run query build_csr()"
+    echo "Run query build_csr"
+    time gsql -u $username -p $password -g $xgraph "run query build_csr(\"travel_plan\", \"tp2tp\")"
 
     echo "Run query maximal_indep_set_alveo"
-    time gsql -u $username -p $password -g $xgraph "run query maximal_indep_set_alveo()"
+    time gsql -u $username -p $password -g $xgraph "run query maximal_indep_set_alveo(\"travel_plan\", \"tp2tp\", False, \"/tmp/xlnx-mis-$username.out\")"
 fi

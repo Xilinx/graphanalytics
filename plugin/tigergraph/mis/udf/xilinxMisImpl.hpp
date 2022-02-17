@@ -160,6 +160,17 @@ public:
     std::vector<uint32_t>& getRowPtr() { return rowPtr_; }
     std::vector<uint32_t>& getColIdx() { return colIdx_; }
 
+    void resetContext() {
+        // clear variables
+        vid_ = 0;
+        row_id_ = 0;
+        rowPtr_.clear();
+        colIdx_.clear();
+
+        // add default zero entry
+        rowPtr_.push_back(0);
+    }
+
 private:
     int vid_;
     int row_id_;

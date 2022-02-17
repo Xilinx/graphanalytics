@@ -51,6 +51,7 @@ STAGE_COPY_FILES = \
 	$(EXAMPLE_DIR)/query/xlnx_maximal_indep_set.gsql \
     \
     $(EXAMPLE_DIR)/bin/run.sh \
+    $(EXAMPLE_DIR)/jupyter/travelplan-jupyter-tg.ipynb \
 
 # Example directories into which to copy example common files
 STAGE_EXAMPLES_DIRS = $(EXAMPLE_DIR)
