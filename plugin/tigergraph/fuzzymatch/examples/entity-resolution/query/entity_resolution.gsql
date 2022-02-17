@@ -18,7 +18,7 @@
 SET QUERY_TIMEOUT = 600000
 USE GRAPH @graph
 
-DROP QUERY entity_resolution_tg,entity_resolution_alveo, entity_resolution_retres_alveo, entity_resolution_cpu
+DROP QUERY entity_resolution_tg,entity_resolution_alveo, entity_resolution_perf_alveo, entity_resolution_cpu, entity_resolution_loadvec_alveo
 
 CREATE QUERY entity_resolution_tg( ) for graph @graph 
 {
@@ -76,7 +76,7 @@ CREATE QUERY entity_resolution_cpu( ) for graph @graph
     print matchExecTime/@@newNamesAccum.size() as AvergeTimePerPersonInMs;
 }
 
-CREATE QUERY entity_resolution_alveo( ) for graph @graph 
+CREATE QUERY entity_resolution_perf_alveo( ) for graph @graph 
 {
     DOUBLE vm_peak, vm_hwm;
   	INT ret;
@@ -106,46 +106,72 @@ CREATE QUERY entity_resolution_alveo( ) for graph @graph
     END;
     
 }
-CREATE QUERY entity_resolution_retres_alveo( ) for graph @graph 
+
+CREATE QUERY entity_resolution_loadvec_alveo( ) for graph @graph 
+{
+    DOUBLE vm_peak, vm_hwm;
+  	INT ret;
+    DOUBLE matchExecTime;
+    ListAccum<string > @@refNamesAccum ;
+    ListAccum<UINT> @@refIdAccum;
+    #TYPEDEF TUPLE <id INT, score INT> MatchResultPair;
+    #ListAccum<ListAccum<MatchResultPair>> result;
+    #ListAccum<ListAccum<ListAccum<INT>>> @@result;
+    #INT similarity_level = 90;  // threshold for match
+    INT status;
+
+    refNamesSet = {ref_names.*};
+    refNamesSelect = SELECT b FROM refNamesSet:b ACCUM @@refNamesAccum += b.name, @@refIdAccum += b.id;
+
+    #newNamesSet = {new_names.*};
+    #newNamesSelect = SELECT t FROM newNamesSet:t ACCUM @@newNamesAccum += t.name;
+   
+    status = udf_fuzzymatch_loadvec_alveo(@@refNamesAccum,@@refIdAccum);
+    IF status < 0 THEN
+        PRINT status as LoadErrorCode;
+    END;
+}
+
+CREATE QUERY entity_resolution_alveo( ) for graph @graph 
 {
     DOUBLE vm_peak, vm_hwm;
   	INT ret;
     DOUBLE matchExecTime;
     ListAccum<string > @@refNamesAccum, @@newNamesAccum;
+    ListAccum<UINT> @@refIdAccum;
     #TYPEDEF TUPLE <id INT, score INT> MatchResultPair;
     #ListAccum<ListAccum<MatchResultPair>> result;
     ListAccum<ListAccum<ListAccum<INT>>> @@result;
     INT similarity_level = 90;  // threshold for match
 
-    refNamesSet = {ref_names.*};
-    refNamesSelect = SELECT b FROM refNamesSet:b ACCUM @@refNamesAccum += b.name;
 
     newNamesSet = {new_names.*};
     newNamesSelect = SELECT t FROM newNamesSet:t ACCUM @@newNamesAccum += t.name;
 
     udf_reset_timer(true);
-    #matchExecTime = udf_fuzzymatch_alveo(@@refNamesAccum, @@newNamesAccum, similarity_level);
-    @@result = udf_fuzzymatch_retres_alveo(@@refNamesAccum, @@newNamesAccum, similarity_level);
+    #@@result = udf_fuzzymatch_retres_alveo(@@refNamesAccum, @@refIdAccum,@@newNamesAccum, similarity_level);
+    @@result = udf_fuzzymatch_retres_alveo(@@newNamesAccum, similarity_level);
     matchExecTime = udf_elapsed_time(true);
 
     ret = udf_peak_memory_usage(vm_peak, vm_hwm);
     PRINT "Xilinx Alveo device" AS ComputationTechnique;
     PRINT vm_peak/1000000.0 as PeakVirtualMemoryInGB;
     PRINT vm_hwm/1000000.0 as PeakResidentMemoryInGB;
-    PRINT @@refNamesAccum.size() as RefNamesSize;
     PRINT @@newNamesAccum.size() as TargetPersonsSize;
     IF matchExecTime < 0 THEN
         PRINT matchExecTime as MatchErrorCode;   
-    ELSE
-        PRINT matchExecTime as MatchExecTimeInMs;
-        PRINT matchExecTime/@@newNamesAccum.size() as AvergeTimePerPersonInMs;   
+    #ELSE
+        #PRINT matchExecTime as MatchExecTimeInMs;
+        #PRINT matchExecTime/@@newNamesAccum.size() as AvergeTimePerPersonInMs;   
     END;
 
     #add result
+    PRINT @@newNamesAccum as NewNames;
+
     PRINT @@result.size() as ResultSize;
     PRINT @@result as TopKMatch;
     
 }
 
 
-INSTALL QUERY entity_resolution_tg, entity_resolution_alveo, entity_resolution_retres_alveo, entity_resolution_cpu
+INSTALL QUERY entity_resolution_tg, entity_resolution_perf_alveo, entity_resolution_alveo, entity_resolution_cpu,entity_resolution_loadvec_alveo
