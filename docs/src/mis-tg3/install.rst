@@ -126,5 +126,5 @@ You can uninstall the Maximal Independent Set from TigerGraph by running the ins
 
    /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/%MIS_TG_VERSION/install.sh -u
 
-**TIP**: To avoid TigerGraph errors, uninstall any queries and UDFs that use the Maximal Independent Set,
-such as the Synthea Demo, before uninstalling the Maximal Independent Set itself.
+**TIP**: To avoid TigerGraph errors, uninstall any queries and UDFs that use the Maximal Independent Set before
+uninstalling the Maximal Independent Set itself.

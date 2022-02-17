@@ -10,9 +10,12 @@ has demonstrated great performance in accelerating the applications listed below
 Maximal Independent Set TigerGraph Product
 ------------------------------------------
 
-.. Go through the setup section below for your preferred environment:
+Go through the setup section below for your preferred environment:
 
-.. * No additional setup is currently needed to do the GSQL only run
+.. toctree::
+    :maxdepth: 1
+
+    ../mis-tg3/setup-tg3.rst
 
 For details about the Tigergraph integrated MIS usecases, go to the corresponding usecase link below:
 

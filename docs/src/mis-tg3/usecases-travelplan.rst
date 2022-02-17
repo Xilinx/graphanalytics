@@ -16,3 +16,4 @@ This example shows hows how a TigerGraph-based application can leverage Xilinx M
 
     Overview <usecases-travelplan-overview.rst>
     Run Bash Script with GSQL <usecases-travelplan-gsql.rst>
+    Run Jupyter Notebook <usecases-travelplan-notebook.rst>
