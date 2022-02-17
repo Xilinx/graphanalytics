@@ -95,27 +95,17 @@ inline int udf_fuzzymatch_alveo(ListAccum<string> sourceList,
 
     return execTime;
 }
-
-// Return value:
-// ListAccum<ListAccum<ListAccum<int64_t>>> for each target string, return topK result {id,score}
-inline ListAccum<ListAccum<ListAccum<int64_t>>> udf_fuzzymatch_retres_alveo(ListAccum<string> sourceList,  ListAccum<int64_t> sourceIdList,
-                                ListAccum<string> targetList, 
-                                int similarity_level) 
+inline int udf_fuzzymatch_loadvec_alveo(ListAccum<string> sourceList,  ListAccum<int64_t> sourceIdList) 
 {
 
-    std::vector<std::string> sourceVector, targetVector;
+    std::vector<std::string> sourceVector;
     std::vector<int> sourceIdVector;
     xilFuzzyMatch::Context *pContext = xilFuzzyMatch::Context::getInstance();
     xilinx_apps::fuzzymatch::FuzzyMatch *pFuzzyMatch = pContext->getFuzzyMatchObj();
 
-    int execTime;
-
-    std::vector<std::vector<std::pair<int,int>>> match_result_p;
-    //std::vector<std::vector<std::vector<int>>> match_result;
-    ListAccum<ListAccum<ListAccum<int64_t>>> match_result;
     if (pFuzzyMatch->startFuzzyMatch() < 0) {
         std::cout << "ERROR: Failed to initialize Alveo device" << std::endl;
-        return match_result;
+        return -1;
     }
 
     // load sourceVector
@@ -128,6 +118,26 @@ inline ListAccum<ListAccum<ListAccum<int64_t>>> udf_fuzzymatch_retres_alveo(List
 
     std::cout << "sourceVector size=" << sourceVector.size() << std::endl;
     pFuzzyMatch->fuzzyMatchLoadVec(sourceVector,sourceIdVector);
+
+    return 1;
+
+}
+
+// Return value:
+// ListAccum<ListAccum<ListAccum<int64_t>>> for each target string, return topK result {id,score}
+inline ListAccum<ListAccum<ListAccum<int64_t>>> udf_fuzzymatch_retres_alveo(
+                                ListAccum<string> targetList, 
+                                int similarity_level) 
+{
+
+    std::vector<std::string>  targetVector;
+    xilFuzzyMatch::Context *pContext = xilFuzzyMatch::Context::getInstance();
+    xilinx_apps::fuzzymatch::FuzzyMatch *pFuzzyMatch = pContext->getFuzzyMatchObj();
+
+    int execTime;
+
+    std::vector<std::vector<std::pair<int,int>>> match_result_p;
+    ListAccum<ListAccum<ListAccum<int64_t>>> match_result;
 
     // populate target vector
     uint32_t targetListLen = targetList.size();
@@ -145,7 +155,6 @@ inline ListAccum<ListAccum<ListAccum<int64_t>>> udf_fuzzymatch_retres_alveo(List
 
     std::cout << "INFO: udf_fuzzymatch_alveo" 
               << "\n    similarity_level=" << similarity_level 
-              << "\n    sourceListLen=" << sourceListLen
               << "\n    targetListLen=" << targetListLen << std::endl;
 
 
