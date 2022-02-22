@@ -25,11 +25,11 @@ CREATE QUERY assign_ids(STRING v_type, STRING e_type) FOR GRAPH @graph
     Verts = {v_type.*};
     udf_reset_context();
     Start = SELECT v1 FROM Verts:v1 -(e_type:e)- v_type:v2
-                POST-ACCUM v1.v_id = udf_get_next_vid();
+                POST-ACCUM v1.v_id = udf_get_next_vid(getvid(v1));
 
     PRINT e_type as EdgeType;
     PRINT v_type as VertexType;
-    PRINT udf_get_next_vid() as TotalVertices;
+    PRINT Start.size() as TotalVertices;
 }
 
 CREATE QUERY build_csr(STRING v_type, STRING e_type) FOR GRAPH @graph
@@ -65,29 +65,18 @@ CREATE QUERY maximal_indep_set_alveo(STRING v_type, STRING e_type, BOOL print_ac
 {
     DOUBLE vm_peak, vm_hwm;
     INT ret;
-    ListAccum<INT> @@mis_v_id;
     ListAccum<vertex> @@mis;
     FILE f(file_path);
-    MapAccum<UINT, vertex> @@v_id_map;
 
     udf_reset_timer(true);    
     # call Xilinx MIS UDF
-    @@mis_v_id += udf_xilinx_mis();
-
-    # create vertex to v_id map
-    Verts = {v_type.*};
-    Start = SELECT v1 FROM Verts:v1 -(e_type:e)- v_type:v2
-            ACCUM @@v_id_map += (v1.v_id -> v1);
-
-    IF file_path != "" THEN
-      f.println("Vertex");
-    END;
+    @@mis += udf_xilinx_mis();
 
     # collect MIS vertex IDs
-    FOREACH i in RANGE[0, @@mis_v_id.size()-1] DO
-        @@mis += @@v_id_map.get( @@mis_v_id.get(i) );
-        IF file_path != "" THEN
-            f.println( @@v_id_map.get( @@mis_v_id.get(i) ) );
+    IF file_path != "" THEN
+        f.println("Vertex");
+        FOREACH i in RANGE[0, @@mis.size()] DO
+            f.println( @@mis.get(i) );
         END;
     END;
 

@@ -42,9 +42,10 @@ inline void udf_reset_context() {
     context->resetContext();
 }
 
-inline int udf_get_next_vid() {
+inline int udf_get_next_vid(int tg_v_id) {
     xilMis::Lock guard(xilMis::getMutex());
     xilMis::Context *context = xilMis::Context::getContext();
+    context->addVertexToMap(tg_v_id);
     return context->getNextVid();
 }
 
@@ -60,9 +61,9 @@ inline void udf_build_col_idx(int vid)
     context->addColIdxEntry(vid);
 }
 
-inline ListAccum<int> udf_xilinx_mis()
+inline ListAccum<VERTEX> udf_xilinx_mis()
 {
-    ListAccum<int> res;
+    ListAccum<VERTEX> res;
     xilMis::Context *context = xilMis::Context::getContext();
 
     // set MIS options
@@ -77,13 +78,12 @@ inline ListAccum<int> udf_xilinx_mis()
 
     xmis.startMis();
 
-
     xmis.setGraph(&graph);
 
     std::vector<int> mis_res = xmis.executeMIS();
 
     for(int &vid : mis_res)
-        res += vid;
+        res += VERTEX(context->v_id_map[vid]);
 
     return res;
 }
