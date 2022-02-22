@@ -21,19 +21,31 @@
    :xlnxdocumentclass: Document
    :xlnxdocumenttype: Tutorials
 
-Vitis Graph Database Analytics Library
-======================================
-Vitis Graph Database Analytics Library is an open-sourced Vitis library written 
-in C++ for accelerating database applications in a variety of use cases. The library 
-includes stand-alone Alveo products as well as products integrated with third-party
-software such as TigerGraph. 
+Alveo-Accelerated GraphAnalytics
+================================
 
-The library is released on `GitHub <https://github.com/Xilinx/graphanalytics>`_ 
+We offer ready-to-use Alveo-Accelerated GraphAnalytics products for variety of business applications. You can use them on-prem or in cloud (AWS, Azure etc.). 
+The accelerated products can be instaleld on top of your existing Tigergraph installaiton or can be used stand alone. Using the Avlveo-accelerated 
+products can reduce your time-to-insight by as much as 1000x compared to your existing CPU only solutions. Additionally, they can lower requirements
+for system memeory for your servers.
+
+
+The products are released on `GitHub <https://github.com/Xilinx/graphanalytics>`_ 
 under Apache License, Version 2.0
 
 
 .. toctree::
-   :caption: Stand-Alone Alveo Products
+   :caption: Tigergraph Applications
+   :maxdepth: 1
+
+    Recommnedation System <cosinesim/usecases.rst>
+    Fraud Detection <louvainmod/usecases.rst>
+    Supply Chain Optimization <mis/usecases.rst>
+    Entity Resolution <fuzzymatch/usecases.rst>
+
+
+.. toctree::
+   :caption: Stand-Alone Applications
    :maxdepth: 1
 
    Cosine Similarity <cosinesim/index.rst>
@@ -43,22 +55,14 @@ under Apache License, Version 2.0
 
 
 .. toctree::
-   :caption: Software Stack Integration Products
+   :caption: Product Installation (TigerGraph 3.x)
    :maxdepth: 1
 
-    Recommendation Engine for TigerGraph 3.x <recom-tg3/index.rst>
-    Community Detection for TigerGraph 3.x <comdet-tg3/index.rst>
-    Maximal Independent Set for TigerGraph 3.x <mis-tg3/index.rst>
-    Fuzzy Match for TigerGraph 3.x <fuzzymatch-tg3/index.rst>
+    Recommendation System  <recom-tg3/index.rst>
+    Fraud Detection  <comdet-tg3/index.rst>
+    Supply Chain Optimization  <mis-tg3/index.rst>
+    Entity Resolution <fuzzymatch-tg3/index.rst>
 
-.. toctree::
-   :caption: Use Cases
-   :maxdepth: 1
-
-    Cosine Similarity Use Cases <cosinesim/usecases.rst>
-    Louvain Modularity Use Cases <louvainmod/usecases.rst>
-    Maximal Independent Set Use Cases <mis/usecases.rst>
-    Fuzzy Match Use Cases <fuzzymatch/usecases.rst>
 
 .. toctree::
     :caption: Additional Info
