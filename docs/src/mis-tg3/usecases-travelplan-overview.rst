@@ -38,7 +38,7 @@ on trucks and work orders as shown in the following figure:
    :scale: 50
 
 Truck *tr0* is used in trips *tp0* and *tp2* while truck *tr1* is used only in trip *tp1*. Similarly, work order
-*wo0* is part of trips *tp0* and *tp1* while work order *wo1* is split between trips *tp1* and *tp2*. These
+*wo0* is part of only trip *tp0* while work order *wo1* is split between trips *tp1* and *tp2*. These
 dependencies create conflicts such that travel plans *tp0* and *tp2* can not be executed at the same time. This
 relationship is captured in a travel plans conflict graph as shown below where travel plans are represented as
 vertices and are connected by an edge if there is a schedule conflict between them.
