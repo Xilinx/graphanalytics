@@ -36,6 +36,12 @@ inline int64_t rand_int (int minVal, int maxVal) {
     return (int64_t) dist(e1);
 }
 
+inline void udf_reset_context() {
+    xilMis::Lock guard(xilMis::getMutex());
+    xilMis::Context *context = xilMis::Context::getContext();
+    context->resetContext();
+}
+
 inline int udf_get_next_vid() {
     xilMis::Lock guard(xilMis::getMutex());
     xilMis::Context *context = xilMis::Context::getContext();
@@ -54,8 +60,9 @@ inline void udf_build_col_idx(int vid)
     context->addColIdxEntry(vid);
 }
 
-inline int udf_xilinx_mis()
+inline ListAccum<int> udf_xilinx_mis()
 {
+    ListAccum<int> res;
     xilMis::Context *context = xilMis::Context::getContext();
 
     // set MIS options
@@ -73,9 +80,12 @@ inline int udf_xilinx_mis()
 
     xmis.setGraph(&graph);
 
-    xmis.executeMIS();
+    std::vector<int> mis_res = xmis.executeMIS();
 
-    return xmis.count();
+    for(int &vid : mis_res)
+        res += vid;
+
+    return res;
 }
 
 // mergeHeaders 1 section body end xilinxMis DO NOT REMOVE!

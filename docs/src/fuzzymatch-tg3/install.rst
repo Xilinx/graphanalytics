@@ -82,5 +82,5 @@ You can uninstall the Fuzzy Match from TigerGraph by running the install script 
 
    /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/%FUZZYMATCH_TG_VERSION/install.sh -u
 
-**TIP**: To avoid TigerGraph errors, uninstall any queries and UDFs that use the Fuzzy Match,
-such as the Synthea Demo, before uninstalling the Fuzzy Match itself.
+**TIP**: To avoid TigerGraph errors, uninstall any queries and UDFs that use the Fuzzy Match before
+uninstalling the Fuzzy Match itself.

@@ -175,7 +175,7 @@ $(BUILD_DIR)/denseSimilarityKernel.xclbin: $(BINARY_CONTAINER_denseSimilarityKer
 # Add kernel alias to xclbin post-build to support the same kernel targeting different devices
 # can be differentiated
 	rm -f $(BUILD_DIR)/denseSimilarityKernelWithAlias.xclbin
-	/opt/xilinx/xrt/bin/xclbinutil -i $(BUILD_DIR)/denseSimilarityKernel.xclbin \
+	$(XILINX_VITIS)/bin/xclbinutil -i $(BUILD_DIR)/denseSimilarityKernel.xclbin \
 								   --key-value=USER:denseSimilarityKernel:'{"alias": "denseSimilarityKernel_U50"}' \
 	                               -o $(BUILD_DIR)/denseSimilarityKernelWithAlias.xclbin
 
