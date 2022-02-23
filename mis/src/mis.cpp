@@ -299,7 +299,7 @@ namespace mis {
         mGraphOrig = graph;
         int n=mGraphOrig->n;
         if(n > 1536000) {
-            std::cout << "Graph not supported: number of vertex should be less than 1536000" << std::endl;
+            std::cout << "Graph with more than 1536000 vertexex is not supported." << std::endl;
             exit(EXIT_FAILURE);
         }
 
