@@ -298,6 +298,11 @@ namespace mis {
     void MisImpl::setGraph(GraphCSR<int>* graph) {
         mGraphOrig = graph;
         int n=mGraphOrig->n;
+        if(n > 1536000) {
+            std::cout << "Graph not supported: number of vertex should be less than 1536000" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
         int nz=mGraphOrig->colIdxSize;
 
         //process the graph
