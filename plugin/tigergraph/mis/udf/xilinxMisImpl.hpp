@@ -33,6 +33,7 @@
 #include <vector>
 #include <map>
 #include <fstream>
+#include <unordered_map>
 
 namespace xilMis {
 
@@ -151,6 +152,7 @@ public:
         return l_context;
     }
 
+    void addVertexToMap( int x ) { v_id_map[vid_] = x; }
     int getNextVid() { return vid_++; }
     void addRowPtrEntry( uint32_t x ) { rowPtr_.push_back( rowPtr_[row_id_++] + x ); }
     void addColIdxEntry( uint32_t x ) { colIdx_.push_back( x ); }
@@ -166,10 +168,13 @@ public:
         row_id_ = 0;
         rowPtr_.clear();
         colIdx_.clear();
+        v_id_map.clear();
 
         // add default zero entry
         rowPtr_.push_back(0);
     }
+
+    std::unordered_map<int, int> v_id_map;
 
 private:
     int vid_;

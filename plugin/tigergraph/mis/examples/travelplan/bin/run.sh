@@ -58,19 +58,21 @@ if [ "$compile_mode" -eq 1 ]; then
     time gsql -u $username -p $password -g $xgraph "SET QUERY_TIMEOUT=3600000 RUN LOADING JOB load_tp2wo USING tp2wo_infile=\"$tp2wo_data\""
     gsql -u $username -p $password -g $xgraph "DROP JOB load_tp2wo"
     echo "INFO: -------- $(date) load jobs completed. --------"
+
+    #  build tp2tp edges
+    echo " "
+    echo "Install and Run query build_edges"
+    gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/build_edges.gsql | sed "s/@graph/$xgraph/")"
+    echo "Running build_edges()"
+    time gsql -u $username -p $password -g $xgraph "run query build_edges()"
+    echo "Waiting for Graph to stabilize..."
+    sleep 90
 fi
 
 if [ "$compile_mode" -eq 1 ] || [ "$compile_mode" -eq 2 ]; then
-    gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/build_edges.gsql | sed "s/@graph/$xgraph/")"
-    echo " "
     gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/tg_maximal_indep_set.gsql)"
     echo " "
     gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/xlnx_maximal_indep_set.gsql | sed "s/@graph/$xgraph/")"
-
-    echo "Run query build_edges"
-    time gsql -u $username -p $password -g $xgraph "run query build_edges()"
-    echo "Waiting for 30 sec for Graph changes to take effect ... (TigerGraph recommended)"
-    sleep 30
 fi
 
 if [ "$run_mode" -eq 1 ] || [ "$run_mode" -eq 3 ]; then
