@@ -34,8 +34,8 @@ function usage() {
     echo "  -f                   : Force (re)install"
     echo "  -g graphName         : graph name (default=travelplan_<username>)"
     echo "  -i sshKey            : SSH key for user tigergraph"    
-    echo "  -t truckData         : A csv file with travelPlan and truck data. default=../data/HasTravelPlans.csv"
-    echo "  -w woData            : A csv file with travelPlan and work order data. default=../data/HasWorkOrder.csv"
+    echo "  -t truckData         : A csv file with travelPlan and truck data. default=../data/travelplan2trucks100.csv"
+    echo "  -w woData            : A csv file with travelPlan and work order data. default=../data/travelplan2workorders100.csv"
     echo "  -v                   : Print verbose messages"
     echo "  -h                   : Print this help message"
 }
