@@ -1,30 +1,10 @@
 .. _cosinesim-usecases-label:
 
-Xilinx Cosine Similarity Use Cases
+Recommendation System Applications
 ==================================
 
-Xilinx Cosine Similarity has demonstrated great performance in accelerating the 
-applications listed below.
-
-Stand-Alone Alveo Product
--------------------------
-
-Go through the setup section if running the Notebooks.
-
-.. toctree::
-    :maxdepth: 1
-
-    Setup Cosine Similarity for Stand-Alone Runs <setup-standalone.rst>
-
-For details about the usecase or to read the Notebook go to the corresponding usecase link below:
-
-.. toctree::
-    :maxdepth: 1
-
-    Wikipedia Search Engine <usecases-wiki-search.rst>
-
-Recommendation Engine Product
------------------------------
+Recommendation System in TigerGraph
+-----------------------------------
 
 Go through the setup section below for your preferred environment:
 
@@ -41,3 +21,23 @@ For details about the usecase or to read the Notebook go to the corresponding us
     Patient Similarity using Synthetic Patient Data (Synthea) <../recom-tg3/synthea.rst>
     Error Log Analysis <../recom-tg3/usecases-log.rst>
     Heathcare Concept Similarity with UMLS <../recom-tg3/usecases-healthcare.rst>
+
+
+Stand-Alone Recommendation System
+---------------------------------
+
+Go through the setup section if running the Notebooks.
+
+.. toctree::
+    :maxdepth: 1
+
+    Setup Cosine Similarity for Stand-Alone Runs <setup-standalone.rst>
+
+For details about the usecase or to read the Notebook go to the corresponding usecase link below:
+
+.. toctree::
+    :maxdepth: 1
+
+    Wikipedia Search Engine <usecases-wiki-search.rst>
+
+

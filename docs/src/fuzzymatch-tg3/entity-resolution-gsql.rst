@@ -1,6 +1,6 @@
-=========================
-Run Bash Script with GSQL
-=========================
+===========================================
+Running Entity Resolution Using GSQL Client
+===========================================
 
 * Open a terminal using your Linux credentials
 * Set up a directory that is readable and writable by the user "tigergraph"

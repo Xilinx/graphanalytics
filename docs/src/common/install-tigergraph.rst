@@ -1,5 +1,5 @@
-Install TigerGraph Enterprise 3.x
----------------------------------
+Install TigerGraph Enterprise Software
+--------------------------------------
 
 Next, follow the steps below to install TigerGraph on your server if you have 
 not already.  The latest version tested with Xilinx Graph Analytics products is 

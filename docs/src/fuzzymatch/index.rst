@@ -1,9 +1,9 @@
 .. _fuzzymatch-label:
 
-Xilinx Fuzzy Match Alveo Product
+AMD Levenshtein Edit Distance Alveo Product
 ============================================
 
-The Fuzzy Match Alveo Product uses a Xilinx Alveo accelerator card to calculate 
+The Levenshtein Edit Distance Alveo Product uses a Xilinx Alveo accelerator card to calculate 
 similarity between two strings by making use of the `Levenshtein edit distance 
 <https://en.wikipedia.org/wiki/Levenshtein_distance>`_ between them.
 
