@@ -93,8 +93,6 @@ namespace mis {
             n = rowPtr.size() - 1;
         }
 
-        int bandwidth();
-
     };
 
 

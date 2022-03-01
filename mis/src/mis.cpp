@@ -91,7 +91,7 @@ namespace mis {
         Options options_;
         MisImpl(const Options &options) : options_(options)
         { 
-
+            mColIdx.resize(MIS_numChannels);
         }
         //std::string xclbinPath;
         int device_id=0;
@@ -109,8 +109,9 @@ namespace mis {
 
 
         std::vector<uint16_t,aligned_allocator<uint16_t>> mPrior;
-        std::unique_ptr<GraphCSR<int>> mGraph;
         GraphCSR<int>* mGraphOrig;
+        std::vector<int, aligned_allocator<int>> mRowPtr;
+        std::vector<std::vector<int, aligned_allocator<int>>> mColIdx;
 
         // The intialize process will download FPGA binary to FPGA card
         void startMis(const std::string& xclbinPath,const std::string& deviceNames);
@@ -299,40 +300,15 @@ namespace mis {
         mGraphOrig = graph;
         int n=mGraphOrig->n;
         if(n > 1536000) {
-            std::cout << "Graph with more than 1536000 vertexex is not supported." << std::endl;
+            std::cout << "Graph with more than 1536000 vertices is not supported." << std::endl;
             exit(EXIT_FAILURE);
         }
 
         int nz=mGraphOrig->colIdxSize;
 
         //process the graph
-        auto bw = mGraphOrig->bandwidth();
-        std::cout << "Processing the graph with " << n << " vertices, " << nz / 2 << " edges and bandwidth " << bw << std::endl;
+        std::cout << "Processing the graph with " << n << " vertices and " << nz / 2 << " edges." << std::endl;
 
-        //convert it to adjacent list graph
-        //Graph graphAdj = createFromGraphCSR(mGraphOrig);
-        std::unique_ptr<Graph> graphAdj{createFromGraphCSR(mGraphOrig)};
-        //padding 
-        for (int r = 0; r < n; r++) {
-            std::vector<std::vector<int>> nSplit(MIS_PEs);
-            int start = mGraphOrig->rowPtr[r], stop = mGraphOrig -> rowPtr[r + 1];
-            for(int c = start;c<stop;c++) {
-                int colId = mGraphOrig -> colIdx[c];
-                nSplit[colId % MIS_PEs].push_back(colId);
-            }
-
-            size_t maxSize = 0;
-            for(int pe=0;pe<MIS_PEs;pe++)
-                if(nSplit[pe].size() > maxSize)
-                    maxSize = nSplit[pe].size();
-            for(int pe=0;pe<MIS_PEs;pe++)
-                nSplit[pe].resize(maxSize, -1);
-            graphAdj -> adjList[r].resize(maxSize * MIS_PEs);
-
-            for(size_t s=0;s<maxSize;s++)
-                for(int pe=0;pe<MIS_PEs;pe++)
-                    graphAdj -> adjList[r][s * MIS_PEs + pe] = nSplit[pe][s];
-        }
         //convert back tp graphCSR
         //std::unique_ptr<GraphCSR>  graphAfter{createFromGraph(graphAdj.get())};
         //auto start = chrono::high_resolution_clock::now();
@@ -340,69 +316,54 @@ namespace mis {
         mPrior.resize(n);
         init(mGraphOrig, mPrior);
 
-        //assign back
-        //mGraph.reset(createFromGraph(graphAdj.get()));
-        //mGraph.reset(graphAfter.get());
-        //mGraph.reset(createFromGraph<std::vector<int>>(graphAdj.get()));
-        mGraph.reset(createFromGraph<int>(graphAdj.get()));
+        mRowPtr.resize(n + 1);
+        mRowPtr[0] = 0;
+        size_t maxSize = 0;
+        for (int pe = 0; pe < MIS_numChannels; pe++) mColIdx[pe].clear();
+        for (int r = 0; r < n; r++) {
+            int start = mGraphOrig->rowPtr[r], stop = mGraphOrig->rowPtr[r + 1];
+            for (int c = start; c < stop; c++) {
+                int colId = mGraphOrig->colIdx[c];
+                mColIdx[colId & (MIS_numChannels - 1)].push_back(colId);
+            }
+
+            for (int pe = 0; pe < MIS_numChannels; pe++)
+                if (mColIdx[pe].size() > maxSize) maxSize = mColIdx[pe].size();
+            for (int pe = 0; pe < MIS_numChannels; pe++) mColIdx[pe].resize(maxSize, -1);
+            mRowPtr[r + 1] = maxSize * MIS_numChannels;
+        }
+
+        if (maxSize * sizeof(int) > MIS_hbmSize) {
+            std::cout << "Graph is not supported due to memory limit." << std::endl;
+            exit(EXIT_FAILURE);
+        }
     }
 
     std::vector<int> MIS::executeMIS(){ return pImpl_->executeMIS();}
     std::vector<int> MisImpl::executeMIS() {
-        
-    #ifdef OPENCL
-        std::vector<cl::Event> events_write(2);
-        std::vector<cl::Event> events_kernel(1);
-        std::vector<cl::Event> events_read(1);
-        cl::Buffer d_rowPtr = cl::Buffer(ctx, CL_MEM_EXT_PTR_XILINX | CL_MEM_READ_ONLY, mGraph->rowPtr.size() * sizeof(int), NULL,NULL);
-        cl::Buffer d_colIdx = cl::Buffer(ctx, CL_MEM_EXT_PTR_XILINX | CL_MEM_READ_ONLY, mGraph->colIdx.size() * sizeof(int), NULL,NULL);
-        cl::Buffer d_prior = cl::Buffer(ctx, CL_MEM_EXT_PTR_XILINX | CL_MEM_WRITE_ONLY, mPrior.size() * sizeof(uint16_t), NULL,NULL);
-    #else
-    /*
-        auto d_rowPtr = xrt::bo(m_Device, (void*)mGraph->rowPtr.data(), mGraph->rowPtr.size() * sizeof(int),
-                                m_Kernel.group_id(1));
-        auto d_colIdx = xrt::bo(m_Device, (void*)mGraph->colIdx.data(), mGraph->colIdx.size() * sizeof(int),
-                                m_Kernel.group_id(2));
-        auto d_prior = xrt::bo(m_Device, (void*)mPrior.data(), mPrior.size() * sizeof(uint16_t), m_Kernel.group_id(3));*/
-        auto d_rowPtr = xrt::bo(m_Device, (void*)mGraph->rowPtr, mGraph->rowPtrSize * sizeof(int),
-                                m_Kernel.group_id(1));
-        auto d_colIdx = xrt::bo(m_Device, (void*)mGraph->colIdx, mGraph->colIdxSize * sizeof(int),
-                                m_Kernel.group_id(2));
-        auto d_prior = xrt::bo(m_Device, (void*)mPrior.data(), mPrior.size() * sizeof(uint16_t), m_Kernel.group_id(3));
-    #endif
-    
-    #ifdef OPENCL
-        queue.enqueueWriteBuffer(d_rowPtr, CL_FALSE, 0, mGraph->rowPtr.size() * sizeof(int), (void*)mGraph->rowPtr.data(), nullptr,
-                                                &events_write[0]);
-        queue.enqueueWriteBuffer(d_colIdx, CL_FALSE, 0, mGraph->colIdx.size() * sizeof(int), (void*)mGraph->colIdx.data(), nullptr,
-                                                &events_write[1]);
-    #else
-        std::vector<xrt::bo> buffers({d_rowPtr, d_colIdx, d_prior});
-        for(auto & bo: buffers)
-            bo.sync(XCL_BO_SYNC_BO_TO_DEVICE);
-    #endif
 
-    #ifdef OPENCL
-        int j = 0;
-        miskernel.setArg(j++, mGraph->n);
-        miskernel.setArg(j++, d_rowPtr);
-        miskernel.setArg(j++, d_colIdx);
-        miskernel.setArg(j++, d_prior);
-        //std::vector<cl::Event> waitEnqueueEvents0{events_write};
-        queue.enqueueTask(miskernel, &events_write, &(events_kernel[0]));
-    #else
-        auto run = m_Kernel(mGraph->n, d_rowPtr, d_colIdx, d_prior);
+        int nargs = 1;
+        auto d_rowPtr = xrt::bo(m_Device, (void*)mRowPtr.data(), mRowPtr.size() * sizeof(int), m_Kernel.group_id(nargs++));
+        std::vector<xrt::bo> d_colIdx;
+        for (int i = 0; i < MIS_numChannels; i++) {
+            d_colIdx.push_back(
+                    xrt::bo(m_Device, (void*)mColIdx[i].data(), mColIdx[i].size() * sizeof(int), m_Kernel.group_id(nargs++)));
+        }
+        auto d_mPrior = xrt::bo(m_Device, (void*)mPrior.data(), mPrior.size() * sizeof(uint16_t), m_Kernel.group_id(nargs++));
+
+        std::vector<xrt::bo> buffers({d_rowPtr, d_mPrior});
+        for (auto& bo : buffers) bo.sync(XCL_BO_SYNC_BO_TO_DEVICE);
+        for (auto& bo : d_colIdx) bo.sync(XCL_BO_SYNC_BO_TO_DEVICE);
+
+        auto run = xrt::run(m_Kernel);
+        nargs = 0;
+        run.set_arg(nargs++, mGraphOrig->n);
+        run.set_arg(nargs++, d_rowPtr);
+        for (xrt::bo& bo : d_colIdx) run.set_arg(nargs++, bo);
+        run.set_arg(nargs++, d_mPrior);
+        run.start();
         run.wait();
-    #endif
-
-
-    #ifdef OPENCL
-        std::vector<cl::Event> waitEnqueueReadEvents0{events_kernel};
-        queue.enqueueReadBuffer(d_prior, CL_FALSE, 0, mPrior.size() * sizeof(uint16_t), (void*)mPrior.data(), &waitEnqueueReadEvents0, &(events_read[0]));
-    #else
-        d_prior.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
-    #endif
-
+        d_mPrior.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
         std::vector<int> result;
         result.reserve(mPrior.size());
         for(int idx=0;idx<mPrior.size();idx++) {
@@ -412,20 +373,6 @@ namespace mis {
         }
         return result;
     }
-
-//from graph.hpp
-    template <typename T>
-    int GraphCSR<T>::bandwidth() {
-        int maxB = 0;
-        for (int i = 0; i < n; i++) {
-            for (int j = rowPtr[i]; j < rowPtr[i + 1]; i++) {
-                int b = std::abs((long int)(colIdx[j] - i));
-                if (b > maxB) maxB = b;
-            }
-        }
-        return maxB;
-    }
- 
 
 } // namespace mis
 } // namespace xilinx_apps
