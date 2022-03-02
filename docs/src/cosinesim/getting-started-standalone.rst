@@ -1,11 +1,10 @@
-.. _fuzzymatch-usecases-entity-resolution-label:
+.. _recom-getting-started-tg-label:
 
 ===========================================
-Getting Started Guide for Entity Resolution
+Getting Started Guide for C++/Python Users
 ===========================================
 
-Below are step-by-step instructions on how to get started with AMD Entity 
-Resolution product:
+Below are step-by-step instructions on how to get started with AMD Recommendation System:
 
 .. toctree::
     :maxdepth: 1
@@ -13,9 +12,5 @@ Resolution product:
     Deploy Alveo card <../common/deploy-alveo.rst>
     Install TigerGraph <../common/install-tigergraph.rst>
     Install Python Virtual Environment (PyTigerGraph users ONLY) <../common/install-conda-python.rst>  
-    Install Entity Resolution Product <../fuzzymatch/installation.rst>
-    Run Demo <../fuzzymatch-tg3/entity-resolution-notebook.rst>
-
-
-
-
+    Install Recommendation System <../cosinesim/install.rst>
+    Run Demo <../cosinesim/demos.rst>

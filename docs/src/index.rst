@@ -26,15 +26,17 @@ Alveo-Accelerated GraphAnalytics
 
 We offer ready-to-use Alveo-Accelerated GraphAnalytics products for variety of 
 business applications. You can use them on-prem or in cloud (AWS, Azure etc.). 
-The accelerated products can be installedd on top of your existing Tigergraph 
-installaiton or can be used standalone. Using the Alveo-accelerated 
-products can reduce your time-to-insight by as much as 1000x compared to your 
+The accelerated products can be installed on top of your existing Tigergraph 
+installation or can be used standalone. Using the Alveo-accelerated 
+products can reduce your time-to-insight by as much as 100x compared to your 
 existing CPU only solutions. Additionally, they can lower requirements
 for server system memory as much as 3x.
 
 
-The products are released on `GitHub <https://github.com/Xilinx/graphanalytics>`_ 
-under Apache License, Version 2.0
+The binary installation package is available on `Database Analytics POC Secure Site <%PACKAGE_LINK>`_. 
+Additionally for advanced users wanting to make code changes, the source code is available at 
+`https://github.com/Xilinx/graphanalytics <https://github.com/Xilinx/graphanalytics>`_ under 
+Apache License, Version 2.0.
 
 
 .. toctree::
@@ -42,9 +44,9 @@ under Apache License, Version 2.0
    :maxdepth: 1
 
     Recommendation System <cosinesim/usecases.rst>
-    Fraud Detection <louvainmod/usecases.rst>
-    Supply Chain Optimization <mis/usecases.rst>
-    Entity Resolution <fuzzymatch/usecases.rst>
+    Fraud Detection <louvainmod/fraud-detection.rst>
+    Supply Chain Optimization <mis/supply-chain.rst>
+    Entity Resolution <fuzzymatch/entity-resolution.rst>
 
 
 
@@ -55,7 +57,7 @@ under Apache License, Version 2.0
    Cosine Similarity <cosinesim/index.rst>
    Louvain Modularity <louvainmod/index.rst>
    Maximal Independent Set <mis/index.rst>
-   Levenstein Edit Distance <fuzzymatch/index.rst>
+   Levenstein Edit Distance (Fuzzy Match) <fuzzymatch/index.rst>
 
 .. toctree::
    :caption: Notice

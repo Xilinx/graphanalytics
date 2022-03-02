@@ -1,13 +1,6 @@
-==============================================================
-Xilinx Maximal Independent Set for TigerGraph 3.x Installation
-==============================================================
-
-Follow the instructions in each of the sections below to install the Maximal 
-Independent Set on your server.
-
-.. include:: ../common/install-alveo.rst
-
-.. include:: ../common/install-tigergraph.rst
+=====================================================
+Install Xilinx Maximal Independent Set for TigerGraph
+=====================================================
 
 Install Maximal Independent Set Software
 ----------------------------------------
@@ -85,32 +78,6 @@ Both products reside in one GitHub repository.
 
   * U50: xilinx_u50_gen3x16_xdma_201920_3 
   * U55C: xilinx_u55c_gen3x16_xdma_base_2   
-
-
-Flash the Alveo Cards
----------------------
-
-The Maximal Independent Set requires the xilinx_u50_gen3x16_xdma_201920_3 shell to be installed on each
-Alveo card to use.  Check and install the shell by following the steps below.
-
-* Run the ``xbutil scan`` command to check the status of all Alveo cards on the server.
-
-.. code-block:: bash
-
-    /opt/xilinx/xrt/bin/xbutil scan
-
-* Look at the final rows of the output to see what shell is installed on each card.  The example below shows the
-  end of the output for a server with three Alveo U50 cards, all containing the correct shell.
-
-.. code-block::
-
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     [0] 0000:81:00.1 xilinx_u50_gen3x16_xdma_201920_3 user(inst=130)
-     [1] 0000:21:00.1 xilinx_u50_gen3x16_xdma_201920_3 user(inst=129)
-     [2] 0000:01:00.1 xilinx_u50_gen3x16_xdma_201920_3 user(inst=128)
-
-* If one or more cards is not already running with the correct shell, issue the following
-  command to flash the cards.  Cold reboot the server after flashing is done.
 
 .. code-block:: bash
 

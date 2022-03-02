@@ -11,7 +11,7 @@ set <https://en.wikipedia.org/wiki/Maximal_independent_set>`_ of vertices in a g
     :maxdepth: 1
 
     Overview <overview.rst>
-    Installation <installation.rst>
+    Installation <install.rst>
     Demos <demos.rst>
     API Reference <api.rst>
 

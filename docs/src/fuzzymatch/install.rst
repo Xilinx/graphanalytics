@@ -1,8 +1,8 @@
-===========================================
-Installing Xilinx Fuzzy Match Alveo Product
-===========================================
+========================================
+Install Xilinx Fuzzy Match Alveo Product
+========================================
 
-Installing Fuzzy Match Alveo from a Pre-built Package
+Install Fuzzy Match Alveo from a Pre-built Package
 ------------------------------------------------------------------
 * Get the installation package **xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz** from the
   `Database Analytics POC Secure Site <%PACKAGE_LINK>`_.
@@ -16,16 +16,5 @@ Installing Fuzzy Match Alveo from a Pre-built Package
     tar xzf xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz
     cd xilinx-tigergraph-install && ./install.sh -p fuzzymatch
 
-
-Setting up the Alveo Accelerator Card
--------------------------------------
-
-The Fuzzy Match Alveo Product requires the following Xilinx FPGA cards and
-their corresponding firmware versions:
-
-* U50: xilinx_u50_gen3x16_xdma_201920_3 
-* AWS F1: xilinx_aws-vu9p-f1_shell-v04261818_201920_2
- 
-.. include:: ../common/flash-alveo.rst
 
 .. include:: install-collaborate.rst

@@ -45,9 +45,9 @@ copyright = '2022, Xilinx'
 author = 'Xilinx'
 
 # The short X.Y version
-version = '1.6'
+version = '2.0'
 # The full version, including alpha/beta/rc tags
-release = 'v1.6'
+release = 'v2.0'
 
 # For bottom-left nav
 try:
@@ -57,7 +57,7 @@ except NameError:
 
 #html_context['display_lower_left'] = True
 html_context['current_version'] = version
-html_context['versions'] = ['1.6']
+html_context['versions'] = ['2.0']
 
 # -- General configuration ---------------------------------------------------
 

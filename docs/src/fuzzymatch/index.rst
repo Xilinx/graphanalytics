@@ -1,18 +1,18 @@
 .. _fuzzymatch-label:
 
-AMD Levenshtein Edit Distance Alveo Product
-============================================
+Levenshtein Edit Distance Product
+=================================
 
-The Levenshtein Edit Distance Alveo Product uses a Xilinx Alveo accelerator card to calculate 
-similarity between two strings by making use of the `Levenshtein edit distance 
-<https://en.wikipedia.org/wiki/Levenshtein_distance>`_ between them.
+The `Levenshtein Edit Distance <https://en.wikipedia.org/wiki/Levenshtein_distance>`_ 
+Product uses a Xilinx Alveo accelerator card to speed up similarity computation 
+between two strings. 
 
 
 .. toctree::
     :maxdepth: 1
 
     Overview <overview.rst>
-    Installation <installation.rst>
+    Installation <install.rst>
     Demos <demos.rst>
     API Reference <api.rst>
 
