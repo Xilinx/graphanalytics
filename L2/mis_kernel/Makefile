@@ -67,6 +67,7 @@ export XCL_BINDIR = $(XCLBIN_DIR)
 # ##################### Kernel compiler global settings ##########################
 VPP_FLAGS += -t $(TARGET) --platform $(XPLATFORM) --save-temps --optimize 2
 VPP_FLAGS += --hls.jobs 16
+VPP_FLAGS += --hls.clock 333000000:misKernel
 VPP_FLAGS += -I$(XFLIB_DIR)/mis_kernel/include
 ifeq ($(DEBUG), yes)
 VPP_FLAGS += -g
@@ -83,12 +84,12 @@ VPP_FLAGS += -DMIS_maxRows=1024000
 
 ifneq (,$(shell echo $(XPLATFORM) | awk '/u55c/'))
 VPP_LDFLAGS_misKernel_temp += --config $(CUR_DIR)/conn_u55c.cfg
-VPP_LDFLAGS_misKernel += --kernel_frequency 250
+VPP_LDFLAGS_misKernel_temp += --kernel_frequency 300
 endif
 
 ifneq (,$(shell echo $(XPLATFORM) | awk '/u50/'))
 VPP_LDFLAGS_misKernel_temp += --config $(CUR_DIR)/conn_u50.cfg
-VPP_LDFLAGS_misKernel += --kernel_frequency 250
+VPP_LDFLAGS_misKernel_temp += --kernel_frequency 300
 endif
 
 VPP_LDFLAGS_misKernel += $(VPP_LDFLAGS_misKernel_temp)
