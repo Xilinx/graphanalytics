@@ -91,6 +91,7 @@ CREATE QUERY tg_maximal_indep_set(STRING v_type, STRING e_type, INT max_iter = 1
     ret = udf_peak_memory_usage(vm_peak, vm_hwm);
     PRINT vm_peak/1000000.0 as PeakVirtualMemoryInGB;
     PRINT vm_hwm/1000000.0 as PeakResidentMemoryInGB;
+    PRINT iter as NumberOfIterations;
     PRINT Start.size() as MisSize;
 
     IF print_accum THEN

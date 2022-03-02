@@ -44,6 +44,10 @@ CXXFLAGS = -std=c++14 -DPRAGMA -Ofast -fopenmp -fmessage-length=0  -fPIC -Wall -
     -Wno-unused-variable -Wno-sign-compare -Wno-unused-result -Wno-unused-but-set-variable \
     -Wno-narrowing -D USE_HBM -fmessage-length=0 
 
+CXXFLAGS += -DMIS_numChannels=16
+CXXFLAGS += -DMIS_hbmSize=0x10000000
+CXXFLAGS += -DMIS_vertexLimits=1024000
+
 # Define the target directories.
 #DEBUG = 1
 ifdef DEBUG
@@ -52,7 +56,7 @@ CXXFLAGS += -O0 -g
 else
 CPP_BUILD_DIR = Release
 CXXFLAGS += -O3 -DNDEBUG
-#CXXFLAGS += -O3 -g
+#CXXFLAGS += -O0 -g
 endif
 
 USE_F1 = 0
