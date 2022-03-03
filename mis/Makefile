@@ -216,7 +216,7 @@ $(XCLBIN_FILE_U50):
 
 $(XCLBIN_FILE_U55):
 	@if [ -r $(XCLBIN_INSTALLED_U55) ]; then \
-	    echo "INFO: The XCLBIN file $(XCLBIN_FILE_U50) is missing.  Copying from installed area."; \
+	    echo "INFO: The XCLBIN file $(XCLBIN_FILE_U55) is missing.  Copying from installed area."; \
 	    cp -r $(XCLBIN_INSTALLED_U55) $@; \
 	else \
 	    echo "ERROR: The XCLBIN file $(XCLBIN_FILE_U55) is missing."; \
@@ -534,7 +534,7 @@ clean:
 	@echo "To clean the XCLBIN, use 'make clean-xclbin'"
 	
 clean-xclbin:
-	rm -f $(XCLBIN_FILE_U50)
+	rm -f $(XCLBIN_FILE_U50) $(XCLBIN_FILE_U55)
 
 clean-dist:
 	@cd package; \

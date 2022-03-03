@@ -18,44 +18,46 @@ USE GRAPH @graph
 DROP QUERY assign_ids, build_csr, maximal_indep_set_alveo
 
 # Assign nice integer IDs to vertices
-CREATE QUERY assign_ids(STRING v_type, STRING e_type) FOR GRAPH @graph
+CREATE QUERY assign_ids(STRING v_type) FOR GRAPH @graph
 {
     # Note: the query requires v_id attribute to be present on vertices
 
     Verts = {v_type.*};
     udf_reset_context();
-    Start = SELECT v1 FROM Verts:v1 -(e_type:e)- v_type:v2
+    Start = SELECT v1 FROM Verts:v1
                 POST-ACCUM v1.v_id = udf_get_next_vid(getvid(v1));
 
-    PRINT e_type as EdgeType;
     PRINT v_type as VertexType;
     PRINT Start.size() as TotalVertices;
 }
 
 CREATE QUERY build_csr(STRING v_type, STRING e_type) FOR GRAPH @graph
 {
+    INT num_neighbors = 0;
     INT non_zero_entries = 0;
-    
-    MapAccum<UINT,UINT> @@row_ptr;
-    MapAccum<UINT, SetAccum<UINT> > @@col_idx;
 
+    ListAccum<UINT> @@row_ptr;
+    MapAccum<UINT, ListAccum<INT> > @@col_idx;
+
+    udf_reset_timer(true);
     Verts = {v_type.*};
 	
 	# create row pointer and column index arrays for CSR format
-    Start = SELECT v1 FROM Verts:v1 -(e_type:e1)- v_type:v2
-                ACCUM @@col_idx += (v1.v_id -> v2.v_id)
-                POST-ACCUM @@row_ptr += (v1.v_id -> @@col_idx.get(v1.v_id).size());
+    Start = SELECT v1
+            FROM Verts:v1 -(e_type:e)- v_type:v2
+            ACCUM @@col_idx += (v1.v_id -> v2.v_id);    # this is by far the most time taking step
+    PRINT udf_elapsed_time(true) AS TgEdgeTraversalTimeInMs;
 
-    # dump csr to files
-    FOREACH i in RANGE[0, @@row_ptr.size()-1] DO
-        udf_build_row_ptr(@@row_ptr.get(i));
+    # build the CSR arrays in C++
+    udf_reset_timer(true);
+    FOREACH i in RANGE[0, Start.size()-1] DO
+        udf_build_col_idx(@@col_idx.get(i));
+        num_neighbors = @@col_idx.get(i).size();
+        non_zero_entries = non_zero_entries + num_neighbors;
+        @@row_ptr += num_neighbors;
     END;
-    FOREACH i in RANGE[0, @@col_idx.size()-1] DO
-        FOREACH vert_id in @@col_idx.get(i) DO
-            udf_build_col_idx(vert_id);
-            non_zero_entries = non_zero_entries + 1;
-        END;
-    END;
+    udf_build_row_ptr(@@row_ptr);
+    PRINT udf_elapsed_time(true) AS CsrUdfTimeInMs;
 
     PRINT @@row_ptr.size() as NumberOfRows;
     PRINT non_zero_entries as NumberOfNonZeroEntries;

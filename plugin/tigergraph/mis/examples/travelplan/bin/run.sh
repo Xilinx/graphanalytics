@@ -83,7 +83,7 @@ fi
 # Run on FPGA
 if [ "$run_mode" -eq 2 ] || [ "$run_mode" -eq 3 ]; then
     echo "Run query assign_ids"
-    time gsql -u $username -p $password -g $xgraph "run query assign_ids(\"travel_plan\", \"tp2tp\")"
+    time gsql -u $username -p $password -g $xgraph "run query assign_ids(\"travel_plan\")"
 
     echo "Run query build_csr"
     time gsql -u $username -p $password -g $xgraph "run query build_csr(\"travel_plan\", \"tp2tp\")"
