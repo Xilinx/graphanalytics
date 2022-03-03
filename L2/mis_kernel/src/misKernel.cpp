@@ -45,14 +45,19 @@ void checkColIdx(const uint32_t cStart,
                  bool& move_out,
                  bool& undet) {
     bool l_mOut[MIS_numChannels][MIS_entries];
+#pragma HLS ARRAY_PARTITION variable=l_mOut complete dim=0
     bool l_undet[MIS_numChannels][MIS_entries];
+#pragma HLS ARRAY_PARTITION variable=l_undet complete dim=0
+
     for (int c = 0; c < MIS_numChannels; c++) {
+#pragma HLS UNROLL
         for (int pe = 0; pe < MIS_entries; pe++) {
 #pragma HLS UNROLL
             l_mOut[c][pe] = false;
             l_undet[c][pe] = false;
         }
     }
+
     for (int c = cStart; c < cEnd; c++) {
 #pragma HLS PIPELINE II = 1
         WideType<int, MIS_entries> cId[MIS_numChannels];
