@@ -18,8 +18,11 @@ Run Bash Script with GSQL
    ./bin/run.sh -h
    
    # Run comdetect demo with default settings. Settings can be changed via command 
-   # line options as shown above
-   ./bin/run.sh 
+   # line options as shown above. "alveoProject" is a required option that specifies 
+   # a partition project basename for saving generated partitions for efficient 
+   # FPGA memory mapping. The project needs to be on a shared network drive if TigerGraph
+   # is set up as a multi-node cluster.
+   ./bin/run.sh -a alveoProject
 
 
 
