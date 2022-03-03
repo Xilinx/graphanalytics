@@ -1,8 +1,8 @@
-Community Detection Demo
-==================================
+Fraud Detection Demo
+====================
 
-The Community Detection Demo shows how a TigerGraph-based application might leverage Xilinx 
-Louvain Modularity for TigerGraph 3.x.
+The Fraud Detection demo shows how a TigerGraph-based application can leverage AMD 
+Louvain Modularity TigerGraph plugin to detect fraud rings.
 
 .. toctree::
     :maxdepth: 1
