@@ -34,12 +34,16 @@ PLUGIN_DEPS = ../../udf/xilinxComDetect.hpp \
 			  ../../../../../louvainmod/src/ParLV.cpp \
 			  ../../../../../louvainmod/src/xilinxlouvain.cpp
 
+TG_DATA_ROOT = $(shell cat ~tigergraph/.tg.cfg | jq .System.DataRoot | tr -d \")
+#PLUGIN_TARGET = $(TG_DATA_ROOT)/gsql/udf/xilinx-plugin-config.json
+PLUGIN_TARGET = .install-plugin-done
+
 all: run
 
-.install-plugin-done: $(PLUGIN_DEPS)
+$(PLUGIN_TARGET): $(PLUGIN_DEPS)
 	cd ../../../../../louvainmod && make DEBUG=$(DEBUG)
 	@echo "-------------------------------------------------------"
-	@echo "Installing plugin files into TigerGraph software"
+	@echo "Installing plugin files into TigerGraph $(TG_DATA_ROOT)"
 	@echo "-------------------------------------------------------"
 	cd ../../ && \
 	    make DEBUG=$(DEBUG) stage && \

@@ -46,7 +46,7 @@ function usage() {
 	echo "                         1: Generate partitions from TigerGraph memory"
 	echo "                         2: Generate partitions from .mtx file"
 	echo "                         3: Generate partitions from TigerGraph using whole-graph technique (default)"
-        echo "                         4: Generate partitions from TG's vertex IDs and low-bandwidth partitioner"
+    echo "                         4: Generate partitions from TG's vertex IDs and low-bandwidth partitioner"
 	echo "  -r runMode           : 0: Skip both CPU and Alveo run (i.e. only run partition)"
 	echo "                         1: Run only on CPU"
 	echo "                         2: Run only on Alveo (default)"
