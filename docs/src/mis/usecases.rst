@@ -1,8 +1,8 @@
 .. _mis-usecases-label:
 
-========================================
-Xilinx Maximal Independent Set Use Cases
-========================================
+=========================
+Supply Chain Optimization
+=========================
 
 Solution to a well formulated MIS problem can help optimize a variety of applications. The Xilinx library
 has demonstrated great performance in accelerating the applications listed below:

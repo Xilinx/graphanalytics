@@ -1,41 +1,5 @@
-Xilinx Community Detection for TigerGraph 3.x Installation
-============================================================
-
-The instructions below assume that you have completed :ref:`louvain-install-label`.
-
-Follow the instructions in each of the sections below to install the Community Detection on your server.
-
-Install TigerGraph Enterprise 3.x
----------------------------------
-
-Next, follow the steps below to install TigerGraph on your server if you have not 
-already.  The latest version tested with the Community Detection is version 3.1.
-
-* Install `TigerGraph Enterprise version 3.1 <https://info.tigergraph.com/enterprise-free>`_, 
-  accepting the defaults for all settings. Be sure to leave the database owner 
-  as user "tigergraph", as the Community Engine install scripts depend on that 
-  user name.  Make a note of the password for the user "tigergraph". That password 
-  will be needed for later steps.
-
-* Create an account in the TigerGraph installation for yourself in the role of a 
-  TigerGraph application developer by issuing the commands below (replace 
-  YOUR-LINUX-USERNAME with your actual Linux username). The Community Detection 
-  examples will use this account to create graphs and install GSQL queries on your behalf.
-
-.. code-block:: bash
-
-   $su - tigergraph
-   Password:
-   $gsql
-   Welcome to TigerGraph.
-   GSQL > create user
-   User Name : YOUR-LINUX-USERNAME
-   New Password : *********
-   Re-enter Password : *********
-   The user "YOUR-LINUX_USERNAME" is created.
-   GSQL > grant role globaldesigner to YOUR-LINUX-USERNAME
-   Role "globaldesigner" is successfully granted to user(s): YOUR-LINUX-USERNAME
-
+Xilinx Community Detection for TigerGraph Installation
+======================================================
 
 Install the Community Detection Software
 ------------------------------------------

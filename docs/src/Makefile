@@ -53,7 +53,7 @@ install: .stamp/sphinx update-html-versions
 #
 
 COSINESIM_RST_NAMES = \
-    api.rst cpp-api.rst cpp-classes.rst demos.rst index.rst installation.rst \
+    api.rst cpp-api.rst cpp-classes.rst demos.rst index.rst install.rst \
     cosinesim-example-makefile.rst cosinesim-example-jupyter.rst cosinesim-example-python.rst
 
 COSINESIM_RST_FILES = $(addprefix cosinesim/,$(COSINESIM_RST_NAMES))

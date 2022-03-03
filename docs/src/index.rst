@@ -1,5 +1,5 @@
 .. 
-   Copyright 2021 Xilinx, Inc.
+   Copyright 2021-2022 Xilinx, Inc.
   
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -21,52 +21,43 @@
    :xlnxdocumentclass: Document
    :xlnxdocumenttype: Tutorials
 
-Vitis Graph Database Analytics Library
-======================================
-Vitis Graph Database Analytics Library is an open-sourced Vitis library written 
-in C++ for accelerating database applications in a variety of use cases. The library 
-includes stand-alone Alveo products as well as products integrated with third-party
-software such as TigerGraph. 
+Alveo-Accelerated GraphAnalytics
+================================
 
-The library is released on `GitHub <https://github.com/Xilinx/graphanalytics>`_ 
-under Apache License, Version 2.0
+We offer ready-to-use Alveo-Accelerated GraphAnalytics products for variety of 
+business applications. You can use them on-prem or in cloud (AWS, Azure etc.). 
+The accelerated products can be installed on top of your existing Tigergraph 
+installation or can be used standalone. Using the Alveo-accelerated 
+products can reduce your time-to-insight by as much as 100x compared to your 
+existing CPU only solutions. Additionally, they can lower requirements
+for server system memory as much as 3x.
+
+
+The binary installation package is available on `Database Analytics POC Secure Site <%PACKAGE_LINK>`_. 
+Additionally for advanced users wanting to make code changes, the source code is available at 
+`https://github.com/Xilinx/graphanalytics <https://github.com/Xilinx/graphanalytics>`_ under 
+Apache License, Version 2.0.
 
 
 .. toctree::
-   :caption: Stand-Alone Alveo Products
+   :caption: Applications
+   :maxdepth: 1
+
+    Recommendation System <cosinesim/usecases.rst>
+    Fraud Detection <louvainmod/fraud-detection.rst>
+    Supply Chain Optimization <mis/supply-chain.rst>
+    Entity Resolution <fuzzymatch/entity-resolution.rst>
+
+
+
+.. toctree::
+   :caption: Algorithms
    :maxdepth: 1
 
    Cosine Similarity <cosinesim/index.rst>
    Louvain Modularity <louvainmod/index.rst>
    Maximal Independent Set <mis/index.rst>
-   Fuzzy Match <fuzzymatch/index.rst>
-
-
-.. toctree::
-   :caption: Software Stack Integration Products
-   :maxdepth: 1
-
-    Recommendation Engine for TigerGraph 3.x <recom-tg3/index.rst>
-    Community Detection for TigerGraph 3.x <comdet-tg3/index.rst>
-    Maximal Independent Set for TigerGraph 3.x <mis-tg3/index.rst>
-    Fuzzy Match for TigerGraph 3.x <fuzzymatch-tg3/index.rst>
-
-.. toctree::
-   :caption: Use Cases
-   :maxdepth: 1
-
-    Cosine Similarity Use Cases <cosinesim/usecases.rst>
-    Louvain Modularity Use Cases <louvainmod/usecases.rst>
-    Maximal Independent Set Use Cases <mis/usecases.rst>
-    Fuzzy Match Use Cases <fuzzymatch/usecases.rst>
-
-.. toctree::
-    :caption: Additional Info
-    :maxdepth: 1
-
-    vitis-dev-flow.rst
-    ..tg3-plugins.rst
-    
+   Levenstein Edit Distance (Fuzzy Match) <fuzzymatch/index.rst>
 
 .. toctree::
    :caption: Notice
