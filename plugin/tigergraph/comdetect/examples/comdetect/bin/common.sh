@@ -89,7 +89,7 @@ if [ -f ~/.ssh/tigergraph_rsa ]; then
     ssh_key_flag="-i ~/.ssh/tigergraph_rsa"
 fi
 
-while getopts "c:fg:i:lm:n:p:r:s:u:vx:ha:" opt
+while getopts "c:fg:i:lm:n:o:p:r:s:u:vx:ha:" opt
 do
 case $opt in
     a) alveo_prj=$OPTARG;;
@@ -99,7 +99,7 @@ case $opt in
     i) ssh_key=$OPTARG; ssh_key_flag="-i $ssh_key";;
     m) num_nodes=$OPTARG;;
     n) num_partitions_node=$OPTARG;;
-    o) gen_outfile=1;;
+    o) gen_outfile=$OPTARG;;
     p) password=$OPTARG;;
     r) run_mode=$OPTARG;;
     s) data_source=$OPTARG;;

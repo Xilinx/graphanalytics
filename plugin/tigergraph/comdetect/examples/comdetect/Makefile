@@ -23,6 +23,7 @@ numPartitionsNode=9
 compileMode=1
 partitionMode=3
 runMode=2
+genOutputFile=0
 
 ifdef sshKey
     SSH_KEY_OPT=-i $(sshKey)
@@ -84,7 +85,7 @@ endif
 	cd ../../ && make DEBUG=$(DEBUG) stage && \
 	    ./staging/examples/comdetect/bin/run.sh -v \
 	    -g $(graphName) -s $(dataSource) -a $(alveoProject) \
-		-n $(numPartitionsNode) -c $(compileMode) -x $(partitionMode) -r $(runMode) 
+		-n $(numPartitionsNode) -c $(compileMode) -x $(partitionMode) -r $(runMode) -o $(genOutputFile)
 
 .PHONY: partition
 partition: .install-udf-done
@@ -135,6 +136,8 @@ help:
 	@echo "                    3: Run on both CPU and Alveo"
 	@echo ""
 	@echo "sshKey            : SSH key for user tigergraph"	
+	@echo "genOutputFile     : 0: not generate output file (default)"
+	@echo "                  : 1: generate output file"
 	@echo ""
 	@echo "Examples:"
 	@echo "make dataSource=/proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx"
