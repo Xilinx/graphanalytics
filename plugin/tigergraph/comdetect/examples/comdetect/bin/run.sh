@@ -108,57 +108,59 @@ fi
 # Partition the graph and save partitions on disk.
 use_saved_partition="FALSE"
 #num_partitions= $num_partitions_node * $num_nodes
-if [ "$partition_mode" -eq 1 ]; then
-    START=$(date +%s%3N)
-    echo "Running tg_partition_phase_1"
-    echo gsql -u $username -p $password -g $xgraph \'run query tg_partition_phase_1\([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\"\)\'
-    time gsql -u $username -p $password -g $xgraph "run query tg_partition_phase_1([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\")"
-    TOTAL_TIME=$(($(date +%s%3N) - START))
-    echo "tg_partition_phase_1: " $TOTAL_TIME
+if [ "$run_mode" -eq 2 ] || [ "$run_mode" -eq 3 ]; then
+    if [ "$partition_mode" -eq 1 ]; then
+        START=$(date +%s%3N)
+        echo "Running tg_partition_phase_1"
+        echo gsql -u $username -p $password -g $xgraph \'run query tg_partition_phase_1\([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\"\)\'
+        time gsql -u $username -p $password -g $xgraph "run query tg_partition_phase_1([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\")"
+        TOTAL_TIME=$(($(date +%s%3N) - START))
+        echo "tg_partition_phase_1: " $TOTAL_TIME
 
-    START=$(date +%s%3N)
-    echo "Running tg_partition_phase_2"
-    echo gsql -u $username -p $password -g $xgraph \'run query tg_partition_phase_2\([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\"\)\'
-    time gsql -u $username -p $password -g $xgraph "run query tg_partition_phase_2([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\")"
-    TOTAL_TIME=$(($(date +%s%3N) - START))
-    echo "tg_partition_phase_2: " $TOTAL_TIME
-    
-    START=$(date +%s%3N)
-    echo "Running tg_partition_phase_3"
-    echo gsql -u $username -p $password -g $xgraph \'run query tg_partition_phase_3\([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\", $num_partitions_node\)\'
-    time gsql -u $username -p $password -g $xgraph "run query tg_partition_phase_3([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\", $num_partitions_node)"
-    TOTAL_TIME=$(($(date +%s%3N) - START))
-    echo "tg_partition_phase_3 " $TOTAL_TIME
-elif [ "$partition_mode" -eq 2 ]; then
-    echo "Running load_alveo"
-    START=$(date +%s%3N)
-    echo gsql -u $username -p $password -g $xgraph \'run query load_alveo\([\"Person\"], [\"Coworker\"], \"weight\", \
-              $use_saved_partition, \"$data_source\", \"$alveo_prj\", $num_partitions_node, 1\)\'
-    time gsql -u $username -p $password -g $xgraph "run query load_alveo([\"Person\"], [\"Coworker\"], \
-         \"weight\", $use_saved_partition, \"$data_source\", \"$alveo_prj\", $num_partitions_node, 1)"
-    TOTAL_TIME=$(($(date +%s%3N) - START))
-    echo "load_alveo: " $TOTAL_TIME
+        START=$(date +%s%3N)
+        echo "Running tg_partition_phase_2"
+        echo gsql -u $username -p $password -g $xgraph \'run query tg_partition_phase_2\([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\"\)\'
+        time gsql -u $username -p $password -g $xgraph "run query tg_partition_phase_2([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\")"
+        TOTAL_TIME=$(($(date +%s%3N) - START))
+        echo "tg_partition_phase_2: " $TOTAL_TIME
+        
+        START=$(date +%s%3N)
+        echo "Running tg_partition_phase_3"
+        echo gsql -u $username -p $password -g $xgraph \'run query tg_partition_phase_3\([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\", $num_partitions_node\)\'
+        time gsql -u $username -p $password -g $xgraph "run query tg_partition_phase_3([\"Person\"], [\"Coworker\"], \"weight\", \"louvainId\", $num_partitions_node)"
+        TOTAL_TIME=$(($(date +%s%3N) - START))
+        echo "tg_partition_phase_3 " $TOTAL_TIME
+    elif [ "$partition_mode" -eq 2 ]; then
+        echo "Running load_alveo"
+        START=$(date +%s%3N)
+        echo gsql -u $username -p $password -g $xgraph \'run query load_alveo\([\"Person\"], [\"Coworker\"], \"weight\", \
+                $use_saved_partition, \"$data_source\", \"$alveo_prj\", $num_partitions_node, 1\)\'
+        time gsql -u $username -p $password -g $xgraph "run query load_alveo([\"Person\"], [\"Coworker\"], \
+            \"weight\", $use_saved_partition, \"$data_source\", \"$alveo_prj\", $num_partitions_node, 1)"
+        TOTAL_TIME=$(($(date +%s%3N) - START))
+        echo "load_alveo: " $TOTAL_TIME
 
-elif [ "$partition_mode" -eq 3 ]; then
-    echo "Running tg_prenumbered_partition"
-    START=$(date +%s%3N)
-    echo gsql -u $username -p $password -g $xgraph \'run query tg_prenumbered_partition\([\"Person\"], [\"Coworker\"], \"weight\", \"num\", $num_partitions_node\)\'
-    time gsql -u $username -p $password -g $xgraph "run query tg_prenumbered_partition([\"Person\"], [\"Coworker\"], \
-         \"weight\", \"num\", \"$alveo_prj\", $num_partitions_node)"
-    TOTAL_TIME=$(($(date +%s%3N) - START))
-    echo "tg_prenumbered_partition: " $TOTAL_TIME
+    elif [ "$partition_mode" -eq 3 ]; then
+        echo "Running tg_prenumbered_partition"
+        START=$(date +%s%3N)
+        echo gsql -u $username -p $password -g $xgraph \'run query tg_prenumbered_partition\([\"Person\"], [\"Coworker\"], \"weight\", \"num\", $num_partitions_node\)\'
+        time gsql -u $username -p $password -g $xgraph "run query tg_prenumbered_partition([\"Person\"], [\"Coworker\"], \
+            \"weight\", \"num\", \"$alveo_prj\", $num_partitions_node)"
+        TOTAL_TIME=$(($(date +%s%3N) - START))
+        echo "tg_prenumbered_partition: " $TOTAL_TIME
 
-elif [ "$partition_mode" -eq 4 ]; then
-    echo "Running tg_low_bandwidth_partition"
-    START=$(date +%s%3N)
-    echo gsql -u $username -p $password -g $xgraph \'run query tg_low_bandwidth_partition\([\"Person\"], [\"Coworker\"], \"weight\", \"$alveo_prj\", $num_partitions_node\)\'
-    time gsql -u $username -p $password -g $xgraph "run query tg_low_bandwidth_partition([\"Person\"], [\"Coworker\"], \
-         \"weight\", \"$alveo_prj\", $num_partitions_node)"
-    TOTAL_TIME=$(($(date +%s%3N) - START))
-    echo "tg_prenumbered_partition: " $TOTAL_TIME
+    elif [ "$partition_mode" -eq 4 ]; then
+        echo "Running tg_low_bandwidth_partition"
+        START=$(date +%s%3N)
+        echo gsql -u $username -p $password -g $xgraph \'run query tg_low_bandwidth_partition\([\"Person\"], [\"Coworker\"], \"weight\", \"$alveo_prj\", $num_partitions_node\)\'
+        time gsql -u $username -p $password -g $xgraph "run query tg_low_bandwidth_partition([\"Person\"], [\"Coworker\"], \
+            \"weight\", \"$alveo_prj\", $num_partitions_node)"
+        TOTAL_TIME=$(($(date +%s%3N) - START))
+        echo "tg_prenumbered_partition: " $TOTAL_TIME
 
-else
-    echo "Skip partitioning and use existing partitions from xgstore"
+    else
+        echo "Skip partitioning and use existing partitions from xgstore"
+    fi
 fi
 
 # Run Louvain computation on FPGA

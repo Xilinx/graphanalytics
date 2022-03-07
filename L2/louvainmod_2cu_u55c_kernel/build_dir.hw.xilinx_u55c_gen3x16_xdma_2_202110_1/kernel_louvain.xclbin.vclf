@@ -4,8 +4,11 @@
         "xilinx_u55c_gen3x16_xdma_2_202110_1",
         "vitis-2021.2_released",
         "flow4",
-        "214M"
+        "214M",
+        "vitis-2021.2",
+        "fix_single_vertexAt0pos",
+        "205M"
     ],
     "filename": "kernel_louvain.xclbin",
-    "sha256sum": "25b8ab99a80432e12a3a781237aabb056f7239c7bf24d75a9c8d1be33bbc0555"
+    "sha256sum": "429b0b9a22522b1be8771df23e52514a5225e498e3e906d207b96d7ec798f8ec"
 }

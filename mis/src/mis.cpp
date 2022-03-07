@@ -184,8 +184,8 @@ namespace mis {
         devices[0] = device;
         prg = cl::Program(ctx, devices, xclBins);
     
-        std::string kernelName = "findMIS:{findMIS_0}";
-        miskernel = cl::Kernel(prg, "findMIS:{findMIS_0}");
+        std::string kernelName = "misKernel:{misKernel_0}";
+        miskernel = cl::Kernel(prg, "misKernel:{misKernel_0}");
     
         std::size_t u50_found = devName.find("u50");
 
@@ -200,7 +200,7 @@ namespace mis {
     #else
         m_Device = xrt::device(device_id);
         auto uuid = m_Device.load_xclbin(xclbinPath);
-        std::string kernelName = "findMIS:{findMIS_0}";
+        std::string kernelName = "misKernel:{misKernel_0}";
         m_Kernel = xrt::kernel(m_Device, uuid, kernelName);
     #endif
         //return 0;

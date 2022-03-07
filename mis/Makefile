@@ -175,7 +175,7 @@ INC_ALL_XCLBINS=1
 L2_TOP_DIR_U50 = $(GRAPH_ANALYTICS_DIR)/L2/mis_kernel
 L2_XDEVICE_U50 = xilinx_u50_gen3x16_xdma_201920_3
 L2_BUILD_DIR_U50 = $(L2_TOP_DIR_U50)/build_dir.hw.$(L2_XDEVICE_U50)
-XCLBIN_NAME_U50 = findMIS.xclbin
+XCLBIN_NAME_U50 = misKernel.xclbin
 XCLBIN_FILE_U50 = $(L2_BUILD_DIR_U50)/$(XCLBIN_NAME_U50)
 XCLBIN_INSTALLED_NAME_U50 = mis_xilinx_u50_gen3x16_xdma_201920_3.xclbin
 XCLBIN_INSTALLED_U50 =/opt/xilinx/apps/graphanalytics/mis/$(PRODUCT_VER)/xclbin/$(XCLBIN_INSTALLED_NAME_U50)
@@ -184,7 +184,7 @@ XCLBIN_INSTALLED_U50 =/opt/xilinx/apps/graphanalytics/mis/$(PRODUCT_VER)/xclbin/
 L2_TOP_DIR_U55 = $(GRAPH_ANALYTICS_DIR)/L2/mis_kernel
 L2_XDEVICE_U55 = xilinx_u55c_gen3x16_xdma_2_202110_1
 L2_BUILD_DIR_U55 = $(L2_TOP_DIR_U55)/build_dir.hw.$(L2_XDEVICE_U55)
-XCLBIN_NAME_U55 = findMIS.xclbin
+XCLBIN_NAME_U55 = misKernel.xclbin
 XCLBIN_FILE_U55 = $(L2_BUILD_DIR_U55)/$(XCLBIN_NAME_U55)
 XCLBIN_INSTALLED_NAME_U55 = mis_$(L2_XDEVICE_U55).xclbin
 XCLBIN_INSTALLED_U55 =/opt/xilinx/apps/graphanalytics/mis/$(PRODUCT_VER)/xclbin/$(XCLBIN_INSTALLED_NAME_U55)
@@ -217,7 +217,7 @@ $(XCLBIN_FILE_U50):
 
 $(XCLBIN_FILE_U55):
 	@if [ -r $(XCLBIN_INSTALLED_U55) ]; then \
-	    echo "INFO: The XCLBIN file $(XCLBIN_FILE_U50) is missing.  Copying from installed area."; \
+	    echo "INFO: The XCLBIN file $(XCLBIN_FILE_U55) is missing.  Copying from installed area."; \
 	    cp -r $(XCLBIN_INSTALLED_U55) $@; \
 	else \
 	    echo "ERROR: The XCLBIN file $(XCLBIN_FILE_U55) is missing."; \
@@ -532,7 +532,7 @@ clean:
 	@echo "To clean the XCLBIN, use 'make clean-xclbin'"
 	
 clean-xclbin:
-	rm -f $(XCLBIN_FILE_U50)
+	rm -f $(XCLBIN_FILE_U50) $(XCLBIN_FILE_U55)
 
 clean-dist:
 	@cd package; \
