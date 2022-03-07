@@ -30,8 +30,12 @@ tar_file=xilinx-tigergraph-install-$version.tar
 
 # remove the package with the same version
 rm -f $tar_file.gz 
+
 #update version number in the pacakge
 echo $version > xilinx-tigergraph-install/VERSION
+
+# copy requirements.txt
+cp ../requirements.txt xilinx-tigergraph-install/
 
 #generate .tar.gz package
 tar cf $tar_file xilinx-tigergraph-install

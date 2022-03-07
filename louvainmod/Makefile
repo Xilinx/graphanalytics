@@ -66,11 +66,13 @@ CXXFLAGS = -std=c++11 -DPRAGMA -fopenmp -fmessage-length=0  -fPIC -Wall -Wno-unk
 # Define the target directories.
 #DEBUG = 1
 ifdef DEBUG
-CPP_BUILD_DIR = Debug
-CXXFLAGS += -O0 -g -D_SINGLE_THREAD_
+    CPP_BUILD_DIR = Debug
+    #CXXFLAGS += -O0 -g -D_SINGLE_THREAD_
+	#CXXFLAGS += -O0 -g
+	CXXFLAGS += -O3 -Ofast
 else
-CPP_BUILD_DIR = Release
-CXXFLAGS += -O3 -Ofast -DNDEBUG
+    CPP_BUILD_DIR = Release
+    CXXFLAGS += -O3 -Ofast -DNDEBUG
 endif
 
 USE_U55C = 0
