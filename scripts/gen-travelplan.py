@@ -35,11 +35,28 @@ out_fh_tp2wo = open(out_file_tp2wo, 'w')
 print('TravelPlan,Truck', file=out_fh_tp2tr)
 # The travelpaln to trum mapping is N:1
 # The same truck can be mapped to multiple travelplans 
-for i in range(total_travelplans):
-    # Randomly pick a truck for each travelplan
-    truck_sel = random.randint(0,total_trucks-1)
-    print('tp' + str(i) + ',' + 'tr' + str(truck_sel), file=out_fh_tp2tr)
-    print('tp' + str(i) + ',' + 'tr' + str(truck_sel))
+
+# generate a random number list that totals to #travel_plans
+x = 0
+y = []
+z = int(total_travelplans/total_trucks)
+for i in range(total_trucks):
+    a = random.randint(0, z)
+    y.append(a)
+    x += a
+for i in range(total_travelplans-x): # distribute remaining tps evenly
+    y[i%total_trucks] += 1
+
+# each entry in list y connects that many travelplans to a truck
+tp_num = 0
+tr = 0
+for tps in y:
+    for tp in range(tps):
+        print('tp' + str(tp_num) + ',' + 'tr' + str(tr), file=out_fh_tp2tr)
+        print('tp' + str(tp_num) + ',' + 'tr' + str(tr))
+        tp_num += 1
+    tr += 1
+
 
 # generate travelplan to work order map
 print('TravelPlan,WorkOrder', file=out_fh_tp2wo)
@@ -47,14 +64,25 @@ print('TravelPlan,WorkOrder', file=out_fh_tp2wo)
 # Same travelplan can be mapped to multiple work orders. 
 # Same work order can can be mapped to multiple travelplans. 
 total_tr2wo = 0
+wo_added = {}
+wo_list = [i for i in range(total_workorders)]
 for i in range(total_travelplans):
     # limit up to 6 workorders to the same travelplan for now
-    m_workorders = random.randint(1,6)
-    for m in range(m_workorders):
-        # randomly pick a work order
-        workorder_sel = random.randint(0,total_workorders-1)
+    m_workorders = random.randint(1,12)
+    wo_sel_list = random.sample(wo_list, m_workorders)
+    for workorder_sel in wo_sel_list:
+        wo_added[workorder_sel] = 1
         print('tp' + str(i) + ',' + 'wo' + str(workorder_sel), file=out_fh_tp2wo)
         print('tp' + str(i) + ',' + 'wo' + str(workorder_sel))
+        total_tr2wo += 1
+
+# now add workorders not yet added evenly
+tp_num = 0
+for i in range(total_workorders):
+    if i not in wo_added:
+        print('tp' + str(tp_num%total_travelplans) + ',' + 'wo' + str(i), file=out_fh_tp2wo)
+        print('tp' + str(tp_num%total_travelplans) + ',' + 'wo' + str(i))
+        tp_num += 1
         total_tr2wo += 1
 
 out_fh_tp2tr.close()
