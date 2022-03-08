@@ -353,12 +353,18 @@ ifneq ($(verbose),0)
   verboseFlag=-v
 endif
 
-run-test: cppTest
+ifeq ($(deviceNames),xilinx_u50_gen3x16_xdma_201920_3)
+    XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U50)
+else ifeq ($(deviceNames),xilinx_u55c_gen3x16_xdma_base_2)
+    XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U55C)
+endif
+
+run: cppTest
 	set -e; \
 	. $(XILINX_XRT)/setup.sh && \
 	. $(XILINX_XRM)/setup.sh && \
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH $(CPP_BUILD_DIR)/cosinesim_test \
-	    -d $(numDevices) -t $(deviceNames) -1 $(testNum) -n $(numResults) $(verboseFlag)
+	    -d $(numDevices) --xclbin $(XCLBIN_RUN) -t $(deviceNames) -1 $(testNum) -n $(numResults) $(verboseFlag)
 
 run-dyn-test: cppTest
 	LD_PRELOAD=$(PWD)/$(CPP_BUILD_DIR)/$(LIB_NAME) LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARY_PATH) \
@@ -403,16 +409,16 @@ L2_XDEVICE_U50 = xilinx_u50_gen3x16_xdma_201920_3
 L2_BUILD_DIR_U50 = $(L2_TOP_DIR)/build_dir.hw.$(L2_XDEVICE_U50)
 XCLBIN_NAME = denseSimilarityKernelWithAlias.xclbin
 XCLBIN_FILE_U50 = $(L2_BUILD_DIR_U50)/$(XCLBIN_NAME)
-XCLBIN_NAME_U50 = cosinesim_32bit_$(L2_XDEVICE_U50).xclbin
-XCLBIN_INSTALLED_U50 = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/$(XCLBIN_NAME_U50)
+XCLBIN_INSTALLED_NAME_U50 = cosinesim_32bit_$(L2_XDEVICE_U50).xclbin
+XCLBIN_INSTALLED_U50 = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/$(XCLBIN_INSTALLED_NAME_U50)
 
 L2_XDEVICE_U55C = xilinx_u55c_gen3x16_xdma_2_202110_1
 L2_BUILD_DIR_U55C = $(L2_TOP_DIR_4PU)/build_dir.hw.$(L2_XDEVICE_U55C)
 L2_TOP_DIR_4PU = $(GRAPH_ANALYTICS_DIR)/L2/dense_similarity_multi_kernel_4pu
 XCLBIN_NAME_4PU = denseSimilarityKernel4PUWithAlias.xclbin
-XCLBIN_NAME_U55C = cosinesim_32bit_4pu_xilinx_u55c_gen3x16_xdma_base_2.xclbin
 XCLBIN_FILE_U55C = $(L2_BUILD_DIR_U55C)/$(XCLBIN_NAME_4PU)
-XCLBIN_INSTALLED_U55C = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/$(XCLBIN_NAME_U55C)
+XCLBIN_INSTALLED_NAME_U55C = cosinesim_32bit_4pu_xilinx_u55c_gen3x16_xdma_base_2.xclbin
+XCLBIN_INSTALLED_U55C = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/$(XCLBIN_INSTALLED_NAME_U55C)
 
 DEVICE ?= $(L2_XDEVICE)
 ifeq ($(findstring u55, $(DEVICE)), u55)
@@ -528,14 +534,14 @@ $(STAGE_STAGED_EXAMPLE_FILES):
 
 # XCLBIN file
 
-STAGE_XCLBIN_NAME_U50 = $(XCLBIN_NAME_U50)
+STAGE_XCLBIN_NAME_U50 = $(XCLBIN_INSTALLED_NAME_U50)
 STAGE_XCLBIN_FILE_U50 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U50)
 
 $(STAGE_XCLBIN_FILE_U50): $(XCLBIN_FILE_U50)
 	cp -f $^ $@
 
 
-STAGE_XCLBIN_NAME_U55C = $(XCLBIN_NAME_U55C)
+STAGE_XCLBIN_NAME_U55C = $(XCLBIN_INSTALLED_NAME_U55C)
 STAGE_XCLBIN_FILE_U55C = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U55C)
 
 $(STAGE_XCLBIN_FILE_U55C): $(XCLBIN_FILE_U55C)
@@ -640,7 +646,7 @@ help:
 	@echo "  make doxy-cpp "
 	@echo "      Generate CPP documentation using doxygen. The default html output directory is ./build/cppdocs"
 	@echo ""
-	@echo "  make run-test [numDevices=1] [iterations=1] [numVectors=5000] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3]"
+	@echo "  make run [numDevices=1] [iterations=1] [numVectors=5000] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3]"
 	@echo "      Run standalone test with statically linked executable. numDevices, numVectors, and iterations are optional."
 	@echo "      Supported deviceNames: "
 	@echo "      xilinx_u50_gen3x16_xdma_201920_3"
