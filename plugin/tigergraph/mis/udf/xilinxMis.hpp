@@ -49,16 +49,18 @@ inline int udf_get_next_vid(int tg_v_id) {
     return context->getNextVid();
 }
 
-inline void udf_build_row_ptr(int num_edges)
+inline void udf_build_row_ptr(ListAccum<int> row_ptr)
 {
     xilMis::Context *context = xilMis::Context::getContext();
-    context->addRowPtrEntry(num_edges);
+    for(int i = 0; i < row_ptr.size(); i++)
+        context->addRowPtrEntry(row_ptr.get(i));
 }
 
-inline void udf_build_col_idx(int vid)
+inline void udf_build_col_idx(ListAccum<int> neighbors)
 {
     xilMis::Context *context = xilMis::Context::getContext();
-    context->addColIdxEntry(vid);
+    for(int i = 0; i < neighbors.size(); i++)
+        context->addColIdxEntry(neighbors.get(i));
 }
 
 inline ListAccum<VERTEX> udf_xilinx_mis()

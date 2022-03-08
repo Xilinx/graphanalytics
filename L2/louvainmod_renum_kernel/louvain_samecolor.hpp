@@ -111,7 +111,7 @@ GET_V:
 #endif
         } // push
     }
-    out_v.vcd.set(dinout, 0, 0, -1);
+    out_v.vcd.set(dinout, 0, -1, -1);
     str_GetVout.write(dinout);
 }
 
@@ -235,7 +235,7 @@ GET_E:
         if ((d + 0) == e_dgr) {
             str_GetVout.read(dinout);
             u_vod.vod.get(dinout, v, off, e_dgr);
-            if(e_dgr <= 0 && (off>0)){
+            if(e_dgr <= 0 && (off>=0)){
                 e_dgr = 0;//when off!=0 & dgr<=0 reset
                 d = 0;
                 continue;

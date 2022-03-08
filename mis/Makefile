@@ -217,7 +217,7 @@ $(XCLBIN_FILE_U50):
 
 $(XCLBIN_FILE_U55):
 	@if [ -r $(XCLBIN_INSTALLED_U55) ]; then \
-	    echo "INFO: The XCLBIN file $(XCLBIN_FILE_U50) is missing.  Copying from installed area."; \
+	    echo "INFO: The XCLBIN file $(XCLBIN_FILE_U55) is missing.  Copying from installed area."; \
 	    cp -r $(XCLBIN_INSTALLED_U55) $@; \
 	else \
 	    echo "ERROR: The XCLBIN file $(XCLBIN_FILE_U55) is missing."; \
@@ -453,7 +453,6 @@ stage-examples: $(STAGE_EXAMPLE_FILES)
 
 fill-example-stage: $(STAGE_STAGED_EXAMPLE_FILES)
 	cp VERSION $(STAGE_DIR)/examples/
-	cp $(GRAPH_ANALYTICS_DIR)/requirements.txt $(STAGE_DIR)
 
 $(STAGE_STAGED_EXAMPLE_FILES):
 	cp -f $(patsubst $(STAGE_DIR)/%,%,$@) $@
@@ -527,15 +526,13 @@ javaTest:
 #### Clean target deletes all generated files ####
 .PHONY: clean clean-xclbin clean-dist
 
-run: 
-
 clean:
 	rm -rf Debug Release $(JAVA_LIB_DIR) $(BUILD_DIR) $(STAGE_DIR)
 	@echo "Note: because the XCLBIN file takes so long to generate, it is not removed with this 'clean' target."
 	@echo "To clean the XCLBIN, use 'make clean-xclbin'"
 	
 clean-xclbin:
-	rm -f $(XCLBIN_FILE_U50)
+	rm -f $(XCLBIN_FILE_U50) $(XCLBIN_FILE_U55)
 
 clean-dist:
 	@cd package; \
