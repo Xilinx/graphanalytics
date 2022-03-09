@@ -14,6 +14,12 @@
 # limitations under the License.
 #
 
+# Product name and version
+STANDALONE_NAME = cosinesim
+PRODUCT_NAME = recomengine
+PRODUCT_VER=$(strip $(shell cat VERSION))
+
+
 .DELETE_ON_ERROR:
 .PHONY: all
 

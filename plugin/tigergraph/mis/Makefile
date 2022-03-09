@@ -13,6 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+# Product name and version: PRODUCT_NAME is the name for TigerGraph plugin
+STANDALONE_NAME = mis
+PRODUCT_NAME = mis
+PRODUCT_VER=$(strip $(shell cat VERSION))
+
 .DELETE_ON_ERROR:
 .PHONY: all
 
@@ -21,10 +27,6 @@ all:
 
 #all: stage
 
-
-# Product name and version
-STANDALONE_NAME = mis
-PRODUCT_VER=$(strip $(shell cat VERSION))
 
 EXAMPLE_DIR = examples/travelplan
 

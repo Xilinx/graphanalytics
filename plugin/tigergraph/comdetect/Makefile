@@ -13,14 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+# Product name and version: PRODUCT_NAME is the name for TigerGraph plugin
+STANDALONE_NAME = louvainmod
+PRODUCT_NAME = comdetect
+PRODUCT_VER=$(strip $(shell cat VERSION))
+
 .DELETE_ON_ERROR:
 .PHONY: all
 
 #all: javaApi cppBuild javaTest stage
 all: stage
-
-# Product version
-PRODUCT_VER=$(strip $(shell cat VERSION))
 
 EXAMPLE_DIR = examples/comdetect
 

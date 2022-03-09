@@ -16,6 +16,10 @@
 
 SHELL := /bin/bash
 
+# Product name and version
+STANDALONE_NAME=cosinesim
+PRODUCT_VER=$(strip $(shell cat VERSION))
+
 #
 # Define __PROFILING__ to turn on profiling message from compute units
 #
@@ -46,8 +50,6 @@ GRAPH_ANALYTICS_DIR = ..
 # General output directory for intermediate build artifacts
 BUILD_DIR = build
 
-# Product version
-PRODUCT_VER=$(strip $(shell cat VERSION))
 
 #######################################################################################################################
 #
@@ -581,23 +583,15 @@ else ifeq ($(OSDIST),CentOS)
     DIST_TARGET = RPM
 endif
 
-.PHONY: dist
-
-dist: update-version stage
-	@cd package; \
-	if [ "$(DIST_TARGET)" == "" ]; then \
-	    echo "Packaging is supported for only Ubuntu and CentOS."; \
-	else \
-	    echo "Packaging $(DIST_TARGET) for $(OSDIST)"; \
-	    make ; \
-	fi
-
 examples/python/run.sh: VERSION
 	# update PRODUCT_VER in python run.sh
 	sed -i 's/PRODUCT_VER=.*/PRODUCT_VER=$(PRODUCT_VER)/g' examples/python/run.sh
 	sed -i 's,/cosinesim/1.2/xclbin,/cosinesim/$(PRODUCT_VER)/xclbin,g' src/cosinesim.cpp
 
 update-version : examples/python/run.sh
+
+# Common targets for all products
+include ../common/Makefile-common.mk
 
 #######################################################################################################################
 #
@@ -635,13 +629,9 @@ cleanall: clean cleanpy
 	
 
 .PHONY: help
-help:
-	@echo "Makefile Usage:"
+help: help-common
 	@echo "  make"
 	@echo "      Build staging files including the library for PythonAPI"
-	@echo ""
-	@echo "  make dist"
-	@echo "      Generate cosinesim product package (RPM or DEB) for the current OS and architecture"
 	@echo ""
 	@echo "  make doxy-cpp "
 	@echo "      Generate CPP documentation using doxygen. The default html output directory is ./build/cppdocs"

@@ -14,6 +14,10 @@
 # limitations under the License.
 #
 
+# Product name and version
+STANDALONE_NAME=mis
+PRODUCT_VER=$(strip $(shell cat VERSION))
+
 .DELETE_ON_ERROR:
 .PHONY: all	
 all: stage
@@ -28,9 +32,6 @@ GRAPH_ANALYTICS_DIR = ..
 
 # General output directory for intermediate build artifacts
 BUILD_DIR = build
-# Product version and name
-PRODUCT_VER=$(strip $(shell cat VERSION))
-STANDALONE_NAME=mis
 
 #######################################################################################################################
 #
