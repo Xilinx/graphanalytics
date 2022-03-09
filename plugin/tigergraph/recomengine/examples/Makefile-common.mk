@@ -24,6 +24,7 @@ help-common:
 	@echo "    Supported deviceNames:"
 	@echo "    xilinx_u50_gen3x16_xdma_201920_3"
 	@echo "    xilinx_u55c_gen3x16_xdma_base_2"
+	
 
 	@echo "Parameter descriptions:"
 	@echo ""

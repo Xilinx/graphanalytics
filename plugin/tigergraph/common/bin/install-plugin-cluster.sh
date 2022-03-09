@@ -111,9 +111,10 @@ else
         echo "INFO: Apply environment changes to TigerGraph installation"
         gadmin start all
 
+        #ld_preload="$HOME/libstd/libstdc++.so.6"
         ld_preload=
         if [ $pluginAlveoProductLibNeedsPreload -eq 1 ]; then
-            ld_preload="$runtimeLibDir/$pluginLibName";
+            ld_preload="$ld_preload:$runtimeLibDir/$pluginLibName";
         fi
         if [ "$mem_alloc" == "tcmalloc" ]; then
             ld_preload="$ld_preload:$tg_root_dir/dev/gdk/gsdk/include/thirdparty/prebuilt/dynamic_libs/gmalloc/tcmalloc/libtcmalloc.so"

@@ -68,14 +68,16 @@ print('DEBUG: curNodeHostname=', curNodeHostname, 'curNodeIp=', curNodeIp)
 print('DEBUG: nodeIps', nodeIps)
 
 # Get number of U50 devices
-print('DEBUG: Searching device', deviceName)
+print('INFO: Searching device', deviceName)
 re_u50 = re.compile(deviceName)
-command = '/opt/xilinx/xrt/bin/xbutil scan'
+command = '/opt/xilinx/xrt/bin/xbutil examine'
 p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
 p_out = p.stdout.readlines()
 p_returncode = p.wait()
 if p_returncode != 0:
-    print(p_out)
+    print(b''.join(p_out).decode('ascii'))
+    print('ERROR: Failed to find supported Alveo devices. Check messages above for details.')
+    sys.exit(p_returncode)
 
 numDevices = 0
 for line in p_out:
@@ -97,4 +99,6 @@ pluginConfigDict = {'curNodeHostname': curNodeHostname,
 
 with pluginConfigFile.open(mode='w') as fh:
     json.dump(pluginConfigDict, fh, indent=4)
+
+sys.exit(0) 
 

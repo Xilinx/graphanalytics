@@ -190,6 +190,7 @@ mkdir -p $tg_data_root/xgstore
 
 # Generate cluster configuration file
 echo "INFO: Generate plugin configration file $tg_udf_dir/xilinx-plugin-config.json for $device_name"
+echo "DEBUG: python3 $SCRIPTPATH/gen-cluster-info.py $tg_udf_dir/xilinx-plugin-config.json $tg_data_root $device_name"
 python3 $SCRIPTPATH/gen-cluster-info.py $tg_udf_dir/xilinx-plugin-config.json $tg_data_root $device_name
 
 # Substitute the XCLBIN path for PLUGIN_XCLBIN_PATH_[FPGA] in all files that need the substitution
@@ -222,4 +223,16 @@ for i in $compile_plugin_files; do
 done
 cp $tg_udf_dir/ExprFunctions.hpp $tg_temp_include_dir
 cp $tg_udf_dir/ExprUtil.hpp $tg_temp_include_dir
+
+# Copy system libstdc++ for GPE to work around library compatibility issue
+OSDIST=`lsb_release -i |awk -F: '{print tolower($2)}' | tr -d ' \t'`
+mkdir -p $HOME/libstd
+if [[ $OSDIST == "ubuntu" ]]; then
+    cp /usr/lib/x86_64-linux-gnu/libstdc++.so.6* $HOME/libstd
+elif [[ $OSDIST == "centos" ]]; then
+    cp /usr/lib64/libstdc++.so.6* $HOME/libstd
+else 
+    echo "ERROR: only Ubuntu and Centos are supported."
+    exit 3
+fi
 

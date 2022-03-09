@@ -30,4 +30,7 @@ run: .install-udf-done
 include ../Makefile-common.mk
 
 help: help-common
+	@echo ""
+	@echo "make run [deviceNames=deviceNames]"
+	@echo "    Run the example"
 

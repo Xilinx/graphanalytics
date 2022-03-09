@@ -186,11 +186,6 @@ if [[ $OSDIST == "centos" ]]; then
         printf "\nINFO: Install Xilinx Recommend Engine package\n"
         sudo yum install $pkg_dir/recomengine/xilinx-recomengine*.rpm
     fi
-
-    # only need to run this on CentOS
-    #copy the standard libstdc++ to $HOME/libstd
-    mkdir -p $HOME/libstd
-    cp /usr/lib64/libstdc++.so.6* $HOME/libstd
 fi
 
 printf "\nINFO: All packages have been installed.\n"
