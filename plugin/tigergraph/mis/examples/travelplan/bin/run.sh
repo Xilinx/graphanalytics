@@ -77,7 +77,7 @@ fi
 
 if [ "$run_mode" -eq 1 ] || [ "$run_mode" -eq 3 ]; then
     echo "Run query tg_maximal_indep_set"
-    time gsql -u $username -p $password -g $xgraph "run query tg_maximal_indep_set(\"travel_plan\", \"tp2tp\", 100, False, \"/tmp/tg-mis-$username.out\")"
+    time gsql -u $username -p $password -g $xgraph "run query tg_maximal_indep_set(\"travel_plan\", \"tp2tp\", 100, False, \"\")"
 fi
 
 # Run on FPGA
@@ -89,5 +89,5 @@ if [ "$run_mode" -eq 2 ] || [ "$run_mode" -eq 3 ]; then
     time gsql -u $username -p $password -g $xgraph "run query build_csr(\"travel_plan\", \"tp2tp\")"
 
     echo "Run query maximal_indep_set_alveo"
-    time gsql -u $username -p $password -g $xgraph "run query maximal_indep_set_alveo(\"travel_plan\", \"tp2tp\", False, \"/tmp/xlnx-mis-$username.out\")"
+    time gsql -u $username -p $password -g $xgraph "run query maximal_indep_set_alveo(\"travel_plan\", \"tp2tp\", False, \"\")"
 fi
