@@ -1,6 +1,11 @@
 {
     "note": "stub file for large file",
-    "tags": [],
+    "tags": [
+        "xilinx_u50_gen3x16_xdma_201920_3",
+        "vitis-2021.2",
+        "fix_single_vertexAt0pos",
+        "189M"
+    ],
     "filename": "kernel_louvain_pruning_alias.xclbin",
-    "sha256sum": "e84b4b472312875807a0777310b1dbfd87b54abaf4cf848b6a98bc6ca769401f"
+    "sha256sum": "ea312978ddbfba24c4ca6b178f741cbec6069ec6c7935d1ed40d3e849e03bed0"
 }

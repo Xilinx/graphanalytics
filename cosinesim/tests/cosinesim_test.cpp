@@ -417,6 +417,8 @@ int main(int argc, char **argv) {
     int singleTestNum = -1;  // < 0 means run all tests
     (void) numIterations;  // TODO: implement multiple runs on hardware
     std::string deviceTypes = "xilinx_u50_gen3x16_xdma_201920_3";
+    std::string xclbinPath = std::string("/opt/xilinx/apps/graphanalytics/cosinesim/") + std::string(VERSION) + 
+                             std::string("/xclbin/cosinesim_32bit_xilinx_u50_gen3x16_xdma_201920_3.xclbin");
     int userNumResults = -1;  // < 0 means all values of numResults
 
     int curArgNum = 1;
@@ -442,8 +444,15 @@ int main(int argc, char **argv) {
                     printUsage(argv[0]);
                     return 2;
                 }
-            }
-            else if (curArg == "-1") {
+            } else if (curArg == "--xclbin") {
+                if (curArgNum < argc)
+                    xclbinPath = argv[curArgNum++];
+                else {
+                    std::cout << "ERROR: option --xclbin requires an argument." << std::endl;
+                    printUsage(argv[0]);
+                    return 2;
+                }
+            } else if (curArg == "-1") {
                 if (curArgNum < argc) {
 //                    std::cout << "-1 argument: " << argv[curArgNum] << std::endl;
                     singleTestNum = std::stoi(argv[curArgNum++]);
@@ -521,6 +530,7 @@ int main(int argc, char **argv) {
             options.vecLength = testParams.m_vectorLength;
             options.numDevices = numDevices;
             options.deviceNames = deviceTypes;
+            options.xclbinPath = xclbinPath;
 
             CosineSim cosineSim(options);
 

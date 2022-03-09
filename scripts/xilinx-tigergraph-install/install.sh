@@ -68,15 +68,15 @@ NC='\033[0m' # No Color
 
 if [[ $OSDIST == "ubuntu" ]]; then
     if (( $OSREL == 1804 )); then
-        pkg_dir="./ubuntu-18.04"
+        pkg_dir="$SCRIPTPATH/ubuntu-18.04"
     elif (( $OSREL == 2004 )); then
-        pkg_dir="./ubuntu-20.04"        
+        pkg_dir="$SCRIPTPATH/ubuntu-20.04"        
     else
         echo "ERROR: Ubuntu release version must be 18.04 or 20.04."
         exit 2
     fi
 elif [[ $OSDIST == "centos" ]]; then
-    pkg_dir="./centos-7.8"
+    pkg_dir="$SCRIPTPATH/centos-7.8"
 else 
     echo "ERROR: only Ubuntu and Centos are supported."
     exit 3
@@ -162,6 +162,9 @@ if [[ $OSDIST == "ubuntu" ]]; then
     fi
 fi
 
+# copy requirements.txt to /opt/xilinx/apps/graphanalytics/
+sudo cp $pkg_dir/requirements.txt /opt/xilinx/apps/graphanalytics/
+
 if [[ $OSDIST == "centos" ]]; then
     # install XRT/XRM/Deployment shell
     printf "\nINFO: Install XRT. \n"
@@ -190,8 +193,11 @@ if [[ $OSDIST == "centos" ]]; then
     cp /usr/lib64/libstdc++.so.6* $HOME/libstd
 fi
 
-printf "\nINFO: All packages have been installed. Please run the command below to flash your Alveo card if needed. \n" 
-printf "Xilinx Alveo U50 card\n"
-printf "${YELLOW}sudo /opt/xilinx/xrt/bin/xbmgmt flash --update --shell xilinx_u50_gen3x16_xdma_201920_3${NC}\n"
-printf "\nXilinx Alveo U55C card\n"
-printf "${YELLOW}sudo /opt/xilinx/xrt/bin/xbmgmt flash --update --shell xilinx_u55c_gen3x16_xdma_base_2${NC}\n"
+printf "\nINFO: All packages have been installed.\n"
+if [[ $install_dep -eq 1 ]] ; then
+    printf "\nPlease run the command below to flash your Alveo card if needed. \n" 
+    printf "Xilinx Alveo U50 card\n"
+    printf "${YELLOW}sudo /opt/xilinx/xrt/bin/xbmgmt flash --update --shell xilinx_u50_gen3x16_xdma_201920_3${NC}\n"
+    printf "\nXilinx Alveo U55C card\n"
+    printf "${YELLOW}sudo /opt/xilinx/xrt/bin/xbmgmt flash --update --shell xilinx_u55c_gen3x16_xdma_base_2${NC}\n"
+fi    

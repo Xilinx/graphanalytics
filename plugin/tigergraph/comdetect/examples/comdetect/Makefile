@@ -23,6 +23,7 @@ numPartitionsNode=9
 compileMode=1
 partitionMode=3
 runMode=2
+genOutputFile=0
 
 ifdef sshKey
     SSH_KEY_OPT=-i $(sshKey)
@@ -84,7 +85,7 @@ endif
 	cd ../../ && make DEBUG=$(DEBUG) stage && \
 	    ./staging/examples/comdetect/bin/run.sh -v \
 	    -g $(graphName) -s $(dataSource) -a $(alveoProject) \
-		-n $(numPartitionsNode) -c $(compileMode) -x $(partitionMode) -r $(runMode) 
+		-n $(numPartitionsNode) -c $(compileMode) -x $(partitionMode) -r $(runMode) -o $(genOutputFile)
 
 .PHONY: partition
 partition: .install-udf-done
@@ -103,7 +104,7 @@ help:
 	@echo "make install-plugin [deviceNames=deviceNames]"
 	@echo "    Install the plugin for the selected target device"
 	@echo ""
-	@echo "make run [deviceNames=deviceNames]"
+	@echo "make run alveoProject=alveo-project-name [deviceNames=deviceNames]"
 	@echo "    Run the example"
 	@echo ""
 	@echo "make partition"
@@ -113,12 +114,12 @@ help:
 	@echo "    Resets all the Alveo cards in the xsj-dxgradb cluster:"
 	@echo ""
 	@echo "Parameter descriptions:"
+	@echo "alveoProject      : Required. Partition files path / partition file name prefix"
 	@echo "deviceNames       : Target device name. Supported devices: "
-	@echo "                    xilinx_u50_gen3x16_xdma_201920_3"
+	@echo "                    xilinx_u50_gen3x16_xdma_201920_3 (default)"
 	@echo "                    xilinx_u55c_gen3x16_xdma_base_2"
 	@echo "dataSource        : A .mtx file containing input graph. default=./data/as-Skitter-wt-r100.mtx"
 	@echo "graphName         : graph name (default=social_<username>"
-	@echo "alveoProject      : partition files path / partition file name prefix"
 	@echo "numPartitionsNode : Number of Alveo partitions per node"
 	@echo ""
 	@echo "compileMode       : 0: skip database creation and gsql compilation"
@@ -135,6 +136,8 @@ help:
 	@echo "                    3: Run on both CPU and Alveo"
 	@echo ""
 	@echo "sshKey            : SSH key for user tigergraph"	
+	@echo "genOutputFile     : 0: not generate output file (default)"
+	@echo "                  : 1: generate output file"
 	@echo ""
 	@echo "Examples:"
 	@echo "make dataSource=/proj/gdba/datasets/louvain-graphs/as-Skitter-wt.mtx"

@@ -453,7 +453,6 @@ stage-examples: $(STAGE_EXAMPLE_FILES)
 
 fill-example-stage: $(STAGE_STAGED_EXAMPLE_FILES)
 	cp VERSION $(STAGE_DIR)/examples/
-	cp $(GRAPH_ANALYTICS_DIR)/requirements.txt $(STAGE_DIR)
 
 $(STAGE_STAGED_EXAMPLE_FILES):
 	cp -f $(patsubst $(STAGE_DIR)/%,%,$@) $@
@@ -526,8 +525,6 @@ javaTest:
 
 #### Clean target deletes all generated files ####
 .PHONY: clean clean-xclbin clean-dist
-
-run: 
 
 clean:
 	rm -rf Debug Release $(JAVA_LIB_DIR) $(BUILD_DIR) $(STAGE_DIR)
