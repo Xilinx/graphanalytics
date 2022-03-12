@@ -62,8 +62,8 @@ bool readBin(const std::string filename, const std::streampos readSize, std::vec
     fileSize = file.tellg();
     file.seekg(0, std::ios::beg);
     if (readSize > 0 && fileSize != readSize) {
-        std::cout << "WARNNING: file " << filename << " size " << fileSize << " doesn't match required size " << readSize
-             << std::endl;
+        std::cout << "WARNNING: file " << filename << " size " << fileSize << " doesn't match required size "
+                  << readSize << std::endl;
     }
     assert(fileSize >= readSize);
 
@@ -104,11 +104,11 @@ int main(int argc, const char* argv[]) {
     if (parser.getCmdOption("--devices", deviceNames)) {
         std::cout << "INFO: Set deviceNames to " << deviceNames << std::endl;
     } else {
-    	deviceNames = "xilinx_u50_gen3x16_xdma_201920_3";
+        deviceNames = "xilinx_u50_gen3x16_xdma_201920_3";
         std::cout << "INFO: Use default deviceNames " << deviceNames << std::endl;
     }
 
-//search for input file matrix meta data information which stored in infos.txt
+    // search for input file matrix meta data information which stored in infos.txt
     std::ifstream file(in_dir + "/infos.txt");
     std::string line;
     getline(file, line);
@@ -120,9 +120,9 @@ int main(int argc, const char* argv[]) {
     file.close();
 
     Options options;
-    options.xclbinPath=xclbin_path;
-    options.deviceNames=deviceNames;
-    
+    options.xclbinPath = xclbin_path;
+    options.deviceNames = deviceNames;
+
     MIS xmis(options);
     std::vector<int> h_rowPtr(n + 1);
     std::vector<int> h_colIdx(nz);
@@ -130,20 +130,19 @@ int main(int argc, const char* argv[]) {
     readBin(in_dir + "/rowPtr.bin", (n + 1) * sizeof(int), h_rowPtr);
     readBin(in_dir + "/colIdx.bin", nz * sizeof(int), h_colIdx);
 
-    //GraphCSR<std::vector<int> > graph(h_rowPtr, h_colIdx);
+    // GraphCSR<std::vector<int> > graph(h_rowPtr, h_colIdx);
     GraphCSR<int> graph(h_rowPtr, h_colIdx);
-    xmis.setGraph(&graph);
     xmis.startMis();
+    xmis.setGraph(&graph);
     auto start = std::chrono::high_resolution_clock::now();
     xmis.executeMIS();
 
     auto stop = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> duration = stop-start;
+    std::chrono::duration<double> duration = stop - start;
     double elapsed = duration.count();
     int count = xmis.count();
 
     std::cout << "Find MIS with " << count << " vertices within " << elapsed << " s." << std::endl;
 
     return 0;
- 
 }

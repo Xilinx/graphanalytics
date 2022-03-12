@@ -133,8 +133,8 @@ int main(int argc, const char* argv[]) {
 
     GraphCSR<int> graph(h_rowPtr, h_colIdx);
  
-    xmis.setGraph(&graph);
     xmis.startMis();
+    xmis.setGraph(&graph);
     auto start = std::chrono::high_resolution_clock::now();
     //xmis.find(&graph, h_prior);
     xmis.executeMIS();
