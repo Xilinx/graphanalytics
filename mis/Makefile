@@ -353,12 +353,13 @@ else ifeq ($(deviceNames),xilinx_u55c_gen3x16_xdma_base_2)
     XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U55)		
 endif
 
+data_path=./examples/data
 
 run: cppTest stage
 	set -e; \
 	. $(XILINX_XRT)/setup.sh && \
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH $(CPP_BUILD_DIR)/mis_test \
-	    -xclbin $(XCLBIN_RUN) -d ./examples/data  --devices $(deviceNames) 
+	    -xclbin $(XCLBIN_RUN) -d $(data_path)  --devices $(deviceNames) 
 
 run-staging-cpp: cppTest stage
 	cd staging/examples/cpp && make run
