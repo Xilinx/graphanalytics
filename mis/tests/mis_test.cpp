@@ -132,11 +132,11 @@ int main(int argc, const char* argv[]) {
 
     // GraphCSR<std::vector<int> > graph(h_rowPtr, h_colIdx);
     xmis.startMis();
-    auto start = std::chrono::high_resolution_clock::now();
     GraphCSR graph(std::move(h_rowPtr), std::move(h_colIdx));
     xmis.setGraph(&graph);
-    xmis.executeMIS();
 
+    auto start = std::chrono::high_resolution_clock::now();
+    xmis.executeMIS();
     auto stop = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration = stop - start;
     double elapsed = duration.count();
