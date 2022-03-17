@@ -23,9 +23,6 @@ namespace xilinx_apps {
 namespace mis {
 
 template <typename T>
-class GraphCSR;
-
-template <typename T>
 struct aligned_allocator {
     using value_type = T;
 
@@ -63,26 +60,6 @@ struct aligned_allocator {
     }
 };
 
-class Graph {
-   public:
-    // template <typename T>
-    // static Graph createFromGraphCSR(GraphCSR<T>* graph);
-    // the number of vertex
-    int n;
-    // converted adjList Graph
-    std::vector<std::vector<int> > adjList;
-    Graph(int n) {
-        this->n = n;
-        adjList.resize(n);
-    }
-
-    Graph(const std::vector<std::vector<int> >& adjList) {
-        this->n = adjList.size();
-        this->adjList = adjList;
-    }
-    Graph(std::vector<std::vector<int> >&& adjList) : adjList(adjList) { this->n = this->adjList.size(); }
-};
-
 class MisImpl {
    public:
     Options options_;
@@ -107,13 +84,13 @@ class MisImpl {
 #endif
 
     std::vector<uint16_t, aligned_allocator<uint16_t> > mPrior;
-    GraphCSR<int>* mOrigGraph;
+    GraphCSR* mOrigGraph;
     std::vector<int, aligned_allocator<int> > mRowPtr;
     std::vector<int*> mColIdx;
 
     // The intialize process will download FPGA binary to FPGA card
     void startMis(const std::string& xclbinPath, const std::string& deviceNames);
-    void setGraph(GraphCSR<int>* graph);
+    void setGraph(GraphCSR* graph);
     std::vector<int> executeMIS();
 
     int getDevice(const std::string& deviceNames);
@@ -207,8 +184,8 @@ void MisImpl::startMis(const std::string& xclbinPath, const std::string& deviceN
 }
 
 // from xil_mis.hpp
-template <typename T, typename G>
-void init(const GraphCSR<T>* graph, G& prior) {
+template <typename G>
+void init(const GraphCSR* graph, G& prior) {
     constexpr int LargeNum = 65535;
     int n = graph->n;
     // int aveDegree = graph->colIdx.size() / n;
@@ -221,8 +198,8 @@ void init(const GraphCSR<T>* graph, G& prior) {
     }
 }
 
-template <typename T, typename G>
-bool verifyMis(GraphCSR<T>* graph, G& prior) {
+template <typename G>
+bool verifyMis(GraphCSR* graph, G& prior) {
     int n = graph->n;
     for (int i = 0; i < n; i++) {
         int rp = prior[i] >> 14;
@@ -265,40 +242,12 @@ size_t MisImpl::count() const {
     return num;
 }
 
-template <typename T>
-Graph* createFromGraphCSR(GraphCSR<T>* graph) {
-    int n = graph->n;
-    std::vector<std::vector<int> > adjList;
-    adjList.reserve(n);
-    for (int i = 0; i < graph->n; i++) {
-        int start = graph->rowPtr[i], stop = graph->rowPtr[i + 1];
-        // adjList.emplace_back(std::vector<int>(graph->colIdx.begin() + start, graph->colIdx.begin() + stop));
-        std::vector<int> tmp;
-        for (int i = start; i < stop; i++) {
-            tmp.push_back(graph->colIdx[i]);
-        }
-        adjList.emplace_back(tmp);
-    }
-    return new Graph(adjList);
-}
-
-template <typename T>
-GraphCSR<T>* createFromGraph(Graph* graph) {
-    std::vector<T> rowPtr(graph->n + 1, 0);
-    std::vector<T> colIdx;
-    for (int i = 0; i < graph->n; i++) {
-        rowPtr[i + 1] = rowPtr[i] + graph->adjList[i].size();
-        colIdx.insert(colIdx.end(), graph->adjList[i].begin(), graph->adjList[i].end());
-    }
-    return new GraphCSR<T>(rowPtr, colIdx);
-}
-
 // void MIS::setGraph(GraphCSR<std::vector<int> >* graph) { pImpl_->setGraph(graph);}
-void MIS::setGraph(GraphCSR<int>* graph) {
+void MIS::setGraph(GraphCSR* graph) {
     pImpl_->setGraph(graph);
 }
 // void MisImpl::setGraph(GraphCSR<std::vector<int> >* graph) {
-void MisImpl::setGraph(GraphCSR<int>* graph) {
+void MisImpl::setGraph(GraphCSR* graph) {
     mOrigGraph = graph;
     int n = mOrigGraph->n;
     if (n > MIS_vertexLimits) {
