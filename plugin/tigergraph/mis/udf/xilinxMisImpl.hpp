@@ -71,6 +71,7 @@ public:
         row_id_ = 0;
         rowPtr_.push_back(0);
         pMis_ = nullptr;
+        pGraph_ = nullptr;
 
         misObjIsModified_ = false;
 
@@ -154,13 +155,13 @@ public:
 
     void addVertexToMap( int x ) { v_id_map[vid_] = x; }
     int getNextVid() { return vid_++; }
-    void addRowPtrEntry( uint32_t x ) { rowPtr_.push_back( rowPtr_[row_id_++] + x ); }
-    void addColIdxEntry( uint32_t x ) { colIdx_.push_back( x ); }
+    void addRowPtrEntry( int x ) { rowPtr_.push_back( rowPtr_[row_id_++] + x ); }
+    void addColIdxEntry( int x ) { colIdx_.push_back( x ); }
     std::string getXclbinPath() { return xclbinPath_; }
     std::string getDeviceNames() { return deviceNames_; }
 
-    std::vector<uint32_t>& getRowPtr() { return rowPtr_; }
-    std::vector<uint32_t>& getColIdx() { return colIdx_; }
+    std::vector<int>& getRowPtr() { return rowPtr_; }
+    std::vector<int>& getColIdx() { return colIdx_; }
 
     void resetContext() {
         // clear variables
@@ -207,7 +208,7 @@ public:
             // start MIS, program xclbin: one time operation
             pMis_->startMis();
             // create graph object
-            pGraph_ = new xilinx_apps::mis::GraphCSR<int>(rowPtr_, colIdx_);
+            pGraph_ = new xilinx_apps::mis::GraphCSR(std::move(rowPtr_), std::move(colIdx_));
             // set MIS graph
             pMis_->setGraph(pGraph_);
         }
@@ -220,10 +221,10 @@ public:
 private:
     int vid_;
     int row_id_;
-    std::vector<uint32_t> rowPtr_;
-    std::vector<uint32_t> colIdx_;
+    std::vector<int> rowPtr_;
+    std::vector<int> colIdx_;
     xilinx_apps::mis::MIS *pMis_;
-    xilinx_apps::mis::GraphCSR<int> *pGraph_;
+    xilinx_apps::mis::GraphCSR *pGraph_;
 
     std::string deviceNames_ = "xilinx_u50_gen3x16_xdma_201920_3";
     std::string xclbinPath_;

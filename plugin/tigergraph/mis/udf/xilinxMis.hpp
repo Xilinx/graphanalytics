@@ -69,8 +69,8 @@ inline ListAccum<VERTEX> udf_xilinx_mis()
     xilMis::Context *context = xilMis::Context::getContext();
 
     // build/get MIS object and execute MIS
-    xilinx_apps::mis::MIS *pMis_ = context->getMisObj();
-    std::vector<int> mis_res = pMis_->executeMIS();
+    xilinx_apps::mis::MIS *pMis = context->getMisObj();
+    std::vector<int> mis_res = pMis->executeMIS();
 
     for(int &vid : mis_res)
         res += VERTEX(context->v_id_map[vid]);
