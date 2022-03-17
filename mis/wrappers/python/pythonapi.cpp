@@ -22,14 +22,6 @@ using namespace xilinx_apps::mis;
 
 namespace py = pybind11;
 
-namespace xilinx_apps {
-namespace mis {
-// GraphCSR binding fixed to following datatype
-using DataType = int;
-}
-}
-
-
 PYBIND11_MODULE (xilMisPython, pc) {
   pc.doc() = "Python bindings for the Xilinx Maximal Independent Set library";
 
@@ -38,8 +30,8 @@ PYBIND11_MODULE (xilMisPython, pc) {
     .def(py::init<const char *>())
     .def(py::init<const std::string &>());
 
-  py::class_<GraphCSR<DataType>>(pc, "GraphCSR")
-    .def(py::init<std::vector<DataType> &, std::vector<DataType> &>());
+  py::class_<GraphCSR>(pc, "GraphCSR")
+    .def(py::init<std::vector<int> &, std::vector<int> &>());
     
   py::class_<Options>(pc, "options")
     .def(py::init())

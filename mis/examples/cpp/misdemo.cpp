@@ -124,14 +124,13 @@ int main(int argc, const char* argv[]) {
     options.deviceNames=deviceNames;
     
     MIS xmis(options);
-    std::vector<uint32_t> h_rowPtr(n + 1);
-    std::vector<uint32_t> h_colIdx(nz);
-    std::vector<uint16_t> h_prior(n + 1);
+    std::vector<int> h_rowPtr(n + 1);
+    std::vector<int> h_colIdx(nz);
 
     readBin(in_dir + "/rowPtr.bin", (n + 1) * sizeof(uint32_t), h_rowPtr);
     readBin(in_dir + "/colIdx.bin", nz * sizeof(uint32_t), h_colIdx);
 
-    GraphCSR<int> graph(std::move(h_rowPtr), std::move(h_colIdx));
+    GraphCSR graph(std::move(h_rowPtr), std::move(h_colIdx));
  
     xmis.startMis();
     xmis.setGraph(&graph);
