@@ -3,6 +3,25 @@
 SCRIPT=$(readlink -f $0)
 script_dir=`dirname $SCRIPT`
 
+function usage() {
+    echo "Usage: $0 -u TG-username -p TG-password [optional options]"
+    echo "Optionally optional options:"
+    echo "  -d : Skip doing drop all"
+    echo "  -h : Display this help message"
+}
+
+doDropAll=1
+
+while getopts "dh" opt
+do
+case $opt in
+    d) doDropAll=0;;
+    h) usage; exit 0;;
+    ?) echo "ERROR: Unknown option: -$OPTARG"; usage; exit 1;;
+esac
+done
+
+
 if ! [ -x "$(command -v jq)" ]; then
     echo "ERROR: The program jq is required. Please follow the instructions below to install it:"
     echo "       RedHat/CentOS: sudo yum install jq"
@@ -41,12 +60,16 @@ if [ -f $expr_functions_dir/ExprFunctions.hpp.orig ]; then
 # Otherwise, the user will have to clean up ExprFunctions.hpp manually
 
 else
-    if [ $(grep -c "mergeHeaders" $tg_udf_dir/ExprFunctions.hpp) -gt 0 ]; then
-        echo "ERROR: ExprFunctions.hpp has been modified and there is no ExprFunctions.hpp.orig."
-        echo "       The file will need to be restored manually."
-        exit 1
+    if [ -f $expr_functions_dir/ExprFunctions.hpp ]; then
+        if [ $(grep -c "mergeHeaders" $expr_functions_dir/ExprFunctions.hpp) -gt 0 ]; then
+            echo "ERROR: ExprFunctions.hpp has been modified and there is no ExprFunctions.hpp.orig."
+            echo "       The file will need to be restored manually."
+            exit 1
+        else
+            echo "INFO: ExprFunctions.hpp appears not to have any plug-ins installed.  Leaving the file as is."
+        fi
     else
-        echo "INFO: ExprFunctions.hpp appears not to have any plug-ins installed.  Leaving the file as is."
+        echo "INFO: There is no ExprFunctions.hpp to clean."
     fi
 fi
 
@@ -54,8 +77,12 @@ fi
 # Clean the TG database
 #
 
-echo "INFO: Dropping all items from TigerGraph database..."
-gsql drop all
+if [ $doDropAll -eq 1 ]; then
+    echo "INFO: Dropping all items from TigerGraph database..."
+    gsql drop all
+else
+    echo "INFO: Skipping drop all"
+fi
 
 #
 # Clean out UDF .so's
