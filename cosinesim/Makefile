@@ -361,7 +361,7 @@ else ifeq ($(deviceNames),xilinx_u55c_gen3x16_xdma_base_2)
     XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U55C)
 endif
 
-run: cppTest
+run: stage cppTest
 	set -e; \
 	. $(XILINX_XRT)/setup.sh && \
 	. $(XILINX_XRM)/setup.sh && \
