@@ -68,21 +68,9 @@ inline ListAccum<VERTEX> udf_xilinx_mis()
     ListAccum<VERTEX> res;
     xilMis::Context *context = xilMis::Context::getContext();
 
-    // set MIS options
-    xilinx_apps::mis::Options options;
-    options.xclbinPath = context->getXclbinPath();
-    std::cout << "DEBUG: XCLBIN=" << options.xclbinPath << std::endl;
-    options.deviceNames = context->getDeviceNames();
-
-    xilinx_apps::mis::MIS xmis(options);
-
-    xilinx_apps::mis::GraphCSR<int> graph(context->getRowPtr(), context->getColIdx());
-
-    xmis.startMis();
-
-    xmis.setGraph(&graph);
-
-    std::vector<int> mis_res = xmis.executeMIS();
+    // build/get MIS object and execute MIS
+    xilinx_apps::mis::MIS *pMis = context->getMisObj();
+    std::vector<int> mis_res = pMis->executeMIS();
 
     for(int &vid : mis_res)
         res += VERTEX(context->v_id_map[vid]);

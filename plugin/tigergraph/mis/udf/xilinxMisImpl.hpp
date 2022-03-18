@@ -70,6 +70,10 @@ public:
         vid_ = 0;
         row_id_ = 0;
         rowPtr_.push_back(0);
+        pMis_ = nullptr;
+        pGraph_ = nullptr;
+
+        misObjIsModified_ = false;
 
         // PLUGIN_CONFIG_PATH will be replaced by the actual config path during plugin installation
         std::fstream config_json(PLUGIN_CONFIG_PATH, std::ios::in);
@@ -138,12 +142,9 @@ public:
         } else if (deviceNames_ == "xilinx_u55c_gen3x16_xdma_base_2") {
             xclbinPath_ = PLUGIN_XCLBIN_PATH_U55C;
         }
-
-        std::cout << "DEBUG: " << __FILE__ << "Context"
-                  << "\n    deviceNames=" << deviceNames_ 
-                  << "\n    xclbinPath_=" << xclbinPath_
-                  << std::endl; 
     }
+
+    ~Context() { delete pGraph_; delete pMis_; }
 
     static Context *getContext() {
         static Context *l_context = nullptr;
@@ -154,13 +155,13 @@ public:
 
     void addVertexToMap( int x ) { v_id_map[vid_] = x; }
     int getNextVid() { return vid_++; }
-    void addRowPtrEntry( uint32_t x ) { rowPtr_.push_back( rowPtr_[row_id_++] + x ); }
-    void addColIdxEntry( uint32_t x ) { colIdx_.push_back( x ); }
+    void addRowPtrEntry( int x ) { rowPtr_.push_back( rowPtr_[row_id_++] + x ); }
+    void addColIdxEntry( int x ) { colIdx_.push_back( x ); }
     std::string getXclbinPath() { return xclbinPath_; }
     std::string getDeviceNames() { return deviceNames_; }
 
-    std::vector<uint32_t>& getRowPtr() { return rowPtr_; }
-    std::vector<uint32_t>& getColIdx() { return colIdx_; }
+    std::vector<int>& getRowPtr() { return rowPtr_; }
+    std::vector<int>& getColIdx() { return colIdx_; }
 
     void resetContext() {
         // clear variables
@@ -172,6 +173,47 @@ public:
 
         // add default zero entry
         rowPtr_.push_back(0);
+
+        // force recreate MIS Object
+        misObjIsModified_ = true;
+    }
+
+    xilinx_apps::mis::MIS *getMisObj() {
+
+        if (misObjIsModified_) {
+#ifdef XILINX_MIS_DEBUG_ON
+            std::cout << "DEBUG: mis options changed.  Deleting old mis object (if it exists)." << std::endl;
+#endif
+            delete pGraph_;
+            delete pMis_;
+            pMis_ = nullptr;
+            misObjIsModified_ = false;
+        }
+
+        if (pMis_ == nullptr) {
+            // set MIS options
+            xilinx_apps::mis::Options options;
+            options.xclbinPath = getXclbinPath();
+            options.deviceNames = getDeviceNames();
+
+#ifdef XILINX_MIS_DEBUG_ON
+            std::cout << "DEBUG: mis options:"
+                      << "\n    xclbinPath=" << options.xclbinPath
+                      << "\n    deviceNames=" << options.deviceNames
+                      << std::endl;
+#endif
+
+            // create MIS object
+            pMis_ = new xilinx_apps::mis::MIS(options);
+            // start MIS, program xclbin: one time operation
+            pMis_->startMis();
+            // create graph object
+            pGraph_ = new xilinx_apps::mis::GraphCSR(std::move(rowPtr_), std::move(colIdx_));
+            // set MIS graph
+            pMis_->setGraph(pGraph_);
+        }
+
+        return pMis_;
     }
 
     std::unordered_map<int, int> v_id_map;
@@ -179,8 +221,10 @@ public:
 private:
     int vid_;
     int row_id_;
-    std::vector<uint32_t> rowPtr_;
-    std::vector<uint32_t> colIdx_;
+    std::vector<int> rowPtr_;
+    std::vector<int> colIdx_;
+    xilinx_apps::mis::MIS *pMis_;
+    xilinx_apps::mis::GraphCSR *pGraph_;
 
     std::string deviceNames_ = "xilinx_u50_gen3x16_xdma_201920_3";
     std::string xclbinPath_;
@@ -189,6 +233,7 @@ private:
     std::string curNodeHostname_;
     std::string curNodeIp_;
     std::string xGraphStorePath_;
+    bool misObjIsModified_;
 
 
 };
