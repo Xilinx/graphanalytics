@@ -35,18 +35,16 @@ struct aligned_allocator {
 
     T* allocate(std::size_t num) {
         void* ptr = nullptr;
-
 #if defined(_WINDOWS)
-        {
-            ptr = _aligned_malloc(num * sizeof(T), 4096);
-            if (ptr == nullptr) {
-                std::cout << "Failed to allocate memory" << std::endl;
-                exit(EXIT_FAILURE);
-            }
+        ptr = _aligned_malloc(num * sizeof(T), 4096);
+        if (ptr == nullptr) {
+            std::cout << "Failed to allocate memory" << std::endl;
+            exit(EXIT_FAILURE);
         }
 #else
-        {
-            if (posix_memalign(&ptr, 4096, num * sizeof(T))) throw std::bad_alloc();
+        if (posix_memalign(&ptr, 4096, num * sizeof(T))) {
+            std::cout << "Failed to allocate memory, maybe the card is used by other processes." << std::endl;
+            throw std::bad_alloc();
         }
 #endif
         return reinterpret_cast<T*>(ptr);
