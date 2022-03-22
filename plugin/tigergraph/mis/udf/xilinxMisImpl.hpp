@@ -73,7 +73,8 @@ public:
         pMis_ = nullptr;
         pGraph_ = nullptr;
 
-        misObjIsModified_ = false;
+        misObjIsModified_ = true;
+        misGraphIsModified_ = true;
 
         // PLUGIN_CONFIG_PATH will be replaced by the actual config path during plugin installation
         std::fstream config_json(PLUGIN_CONFIG_PATH, std::ios::in);
@@ -175,7 +176,7 @@ public:
         rowPtr_.push_back(0);
 
         // force recreate MIS Object
-        misObjIsModified_ = true;
+        misGraphIsModified_ = true;
     }
 
     xilinx_apps::mis::MIS *getMisObj() {
@@ -188,6 +189,7 @@ public:
             delete pMis_;
             pMis_ = nullptr;
             misObjIsModified_ = false;
+            misGraphIsModified_ = true;
         }
 
         if (pMis_ == nullptr) {
@@ -207,13 +209,20 @@ public:
             pMis_ = new xilinx_apps::mis::MIS(options);
             // start MIS, program xclbin: one time operation
             pMis_->startMis();
+        }
+
+        return pMis_;
+    }
+
+    void setMisGraph() {
+        if (misGraphIsModified_) {
             // create graph object
             pGraph_ = new xilinx_apps::mis::GraphCSR(std::move(rowPtr_), std::move(colIdx_));
             // set MIS graph
             pMis_->setGraph(pGraph_);
-        }
 
-        return pMis_;
+            misGraphIsModified_ = false;
+        }
     }
 
     std::unordered_map<int, int> v_id_map;
@@ -234,6 +243,7 @@ private:
     std::string curNodeIp_;
     std::string xGraphStorePath_;
     bool misObjIsModified_;
+    bool misGraphIsModified_;
 
 
 };

@@ -40,7 +40,8 @@ STAGE_COPY_FILES = \
     udf/xilinxMis.hpp \
     udf/xilinxMisImpl.hpp \
     \
-    $(wildcard $(EXAMPLE_DIR)/data/*) \
+    $(wildcard $(EXAMPLE_DIR)/data/travelplan2trucks100.csv) \
+    $(wildcard $(EXAMPLE_DIR)/data/travelplan2workorders100.csv) \
 	$(EXAMPLE_DIR)/README.md \
     $(EXAMPLE_DIR)/bin/common.sh \
     $(EXAMPLE_DIR)/bin/set-plugin-vars.sh \
