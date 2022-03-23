@@ -35,18 +35,16 @@ struct aligned_allocator {
 
     T* allocate(std::size_t num) {
         void* ptr = nullptr;
-
 #if defined(_WINDOWS)
-        {
-            ptr = _aligned_malloc(num * sizeof(T), 4096);
-            if (ptr == nullptr) {
-                std::cout << "Failed to allocate memory" << std::endl;
-                exit(EXIT_FAILURE);
-            }
+        ptr = _aligned_malloc(num * sizeof(T), 4096);
+        if (ptr == nullptr) {
+            std::cout << "Failed to allocate memory" << std::endl;
+            exit(EXIT_FAILURE);
         }
 #else
-        {
-            if (posix_memalign(&ptr, 4096, num * sizeof(T))) throw std::bad_alloc();
+        if (posix_memalign(&ptr, 4096, num * sizeof(T))) {
+            std::cout << "Failed to allocate memory." << std::endl;
+            throw std::bad_alloc();
         }
 #endif
         return reinterpret_cast<T*>(ptr);
@@ -171,13 +169,21 @@ void MisImpl::startMis(const std::string& xclbinPath, const std::string& deviceN
     }
 
 #else
-    mDevice = xrt::device(device_id);
-    auto uuid = mDevice.load_xclbin(xclbinPath);
-    std::string kernelName = "misKernel:{misKernel_0}";
-    mKernel = xrt::kernel(mDevice, uuid, kernelName);
-    for (int i = 0; i < MIS_numChannels; i++) {
-        d_colIdx[i] = xrt::bo(mDevice, MIS_hbmSize, mKernel.group_id(i + 2));
-        mColIdx[i] = d_colIdx[i].map<int*>();
+    try {
+        mDevice = xrt::device(device_id);
+        auto uuid = mDevice.load_xclbin(xclbinPath);
+        std::string kernelName = "misKernel:{misKernel_0}";
+        mKernel = xrt::kernel(mDevice, uuid, kernelName);
+        for (int i = 0; i < MIS_numChannels; i++) {
+            d_colIdx[i] = xrt::bo(mDevice, MIS_hbmSize, mKernel.group_id(i + 2));
+            mColIdx[i] = d_colIdx[i].map<int*>();
+        }
+    } catch (std::bad_alloc& e) {
+        std::cout << "Error: CU on the device is busy." << std::endl;
+        exit(EXIT_FAILURE);
+    } catch (...) {
+        std::cout << "Error: Device is busy." << std::endl;
+        exit(EXIT_FAILURE);
     }
 #endif
     // return 0;
