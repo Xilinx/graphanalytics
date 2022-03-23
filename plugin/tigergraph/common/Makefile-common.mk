@@ -138,7 +138,7 @@ dist: stage
 		make ; \
 		cd - ; \
 		cp ./package/$(CPACK_PACKAGE_FILE_NAME) $(DIST_INSTALL_DIR); \
-		echo "INFO: $(CPACK_PACKAGE_FILE_NAME) saved to $(DIST_INSTALL_DIR)"; \
+		echo "INFO: Package published to $(DIST_INSTALL_DIR)/$(CPACK_PACKAGE_FILE_NAME)"; \
 	fi
 ###############################################################################
 
