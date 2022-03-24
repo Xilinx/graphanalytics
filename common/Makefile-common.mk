@@ -23,6 +23,11 @@ ifndef XILINX_XRT
     export XILINX_XRT
 endif
 
+ifndef XILINX_XRM
+    XILINX_XRM=/opt/xilinx/xrm
+    export XILINX_XRM
+endif
+
 ifndef XILINX_PLATFORMS
     XILINX_PLATFORMS = /opt/xilinx/platforms
     export XILINX_PLATFORMS
@@ -48,13 +53,19 @@ endif
 
 ARCH = $(shell uname -p)
 CPACK_PACKAGE_FILE_NAME= xilinx-$(STANDALONE_NAME)-$(PRODUCT_VER)_$(OSVER)-$(ARCH).$(DIST_TARGET)
-DIST_INSTALL_DIR = $(GRAPH_ANALYTICS_DIR)/scripts/xilinx-tigergraph-install/$(OSDISTLC)-$(OSVER_DIR)/$(STANDALONE_NAME)/
+DIST_INSTALL_DIR = $(GRAPH_ANALYTICS_DIR)/scripts/xilinx-tigergraph-install/$(OSDISTLC)-$(OSVER_DIR)/$(STANDALONE_NAME)
 
 .PHONY: dist
 
 dist: stage
+	@if [ $(DIST_RELEASE) == 1 ]; then \
+		echo "INFO: Removing previous versions of the package and vclf"; \
+		git rm -f $(DIST_INSTALL_DIR)/xilinx-$(STANDALONE_NAME)-?.*.$(DIST_TARGET).vclf; \
+        rm     -f $(DIST_INSTALL_DIR)/xilinx-$(STANDALONE_NAME)-?.*.$(DIST_TARGET); \
+	fi
+
 	@if [ "$(DIST_TARGET)" == "" ]; then \
-	    echo "Packaging is supported for only Ubuntu and CentOS."; \
+	    echo "INFO: Packaging is supported for only Ubuntu and CentOS."; \
 	else \
 	    echo "Packaging $(DIST_TARGET) for $(OSDIST)"; \
 	    cd package; \
@@ -62,6 +73,11 @@ dist: stage
 		cd - ; \
 		cp ./package/$(CPACK_PACKAGE_FILE_NAME) $(DIST_INSTALL_DIR); \
 		echo "INFO: Package file saved as $(DIST_INSTALL_DIR)/$(CPACK_PACKAGE_FILE_NAME)"; \
+	fi
+
+	@if [ $(DIST_RELEASE) == 1 ]; then \
+		echo "INFO: Adding new package to vclf"; \
+		vclf add $(DIST_INSTALL_DIR)/$(CPACK_PACKAGE_FILE_NAME); \
 	fi
 
 .PHONY: install

@@ -27,7 +27,7 @@ pluginAlveoProductName="Xilinx Fuzzy Match"
 standaloneAlveoProductName="Xilinx Fuzzy Match"
 
 # The usual place where the Alveo Product is installed
-pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/fuzzymatch/0.2
+pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/fuzzymatch/0.3
 
 # Where to find the git repo for the Alveo Product if it exists
 pluginLocalAlveoProductPath=$SCRIPTPATH/../../../../../fuzzymatch/staging
