@@ -123,8 +123,8 @@ if [[ $OSDIST == "ubuntu" ]]; then
         sudo apt install $pkg_dir/../deployment-shell/u50/xilinx*.deb
         sudo apt install $pkg_dir/../deployment-shell/u55c/xilinx*.deb
 
-        # install required package
-        sudo apt install jq opencl-headers -y
+        # install required packages
+        sudo apt install jq opencl-headers libzmq3-dev default-jre -y
     fi
 
     if [[ $product == "cosinesim" ]]; then
