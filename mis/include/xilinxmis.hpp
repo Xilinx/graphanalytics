@@ -77,6 +77,28 @@ class GraphCSR {
         colIdxSize = this->colIdx.size();
         n = this->rowPtr.size() - 1;
     }
+
+    void isolateVertex(const std::vector<int>& vertices) {
+        std::vector<bool> valid(n, true);
+        for (int v : vertices) valid[v] = false;
+
+        int cstart = 0, validPos = 0;
+        for (int r = 0; r < n; r++) {
+            int cstop = rowPtr[r + 1];
+            if (valid[r]) {
+                for (int c = cstart; c < cstop; c++) {
+                    int cId = colIdx[c];
+                    if (valid[cId]) {
+                        colIdx[validPos++] = cId;
+                    }
+                }
+            }
+            cstart = cstop;
+            rowPtr[r + 1] = validPos;
+        }
+        colIdx.resize(validPos);
+        colIdxSize = validPos;
+    }
 };
 
 /*
@@ -125,6 +147,7 @@ class MIS {
     // set the graph and internal pre-process the graph
     void setGraph(GraphCSR* graph);
     std::vector<int> executeMIS();
+    void evict(const std::vector<int>&);
     size_t count() const;
 
    private:

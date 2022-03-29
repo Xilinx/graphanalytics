@@ -77,6 +77,13 @@ bool readBin(const std::string filename, const std::streampos readSize, std::vec
     else
         return false;
 }
+template <typename T, typename A>
+bool writeBin(const std::string filename, std::vector<T, A>& vec) {
+    std::ofstream file(filename, std::ios::binary);
+    file.write((char*)vec.data(), vec.size() * sizeof(T));
+    file.close();
+}
+
 int main(int argc, const char* argv[]) {
     ArgParser parser(argc, argv);
 
@@ -134,15 +141,25 @@ int main(int argc, const char* argv[]) {
     xmis.startMis();
     GraphCSR graph(std::move(h_rowPtr), std::move(h_colIdx));
     xmis.setGraph(&graph);
-
-    auto start = std::chrono::high_resolution_clock::now();
-    xmis.executeMIS();
-    auto stop = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> duration = stop - start;
-    double elapsed = duration.count();
-    int count = xmis.count();
-
-    std::cout << "Find MIS with " << count << " vertices within " << elapsed << " s." << std::endl;
-
+    std::vector<int> list, countList;
+    std::vector<double> timeList;
+    double total = 0;
+    for (int iter = 0; list.size() < n; iter++) {
+        auto start = std::chrono::high_resolution_clock::now();
+        xmis.evict(list);
+        auto res = xmis.executeMIS();
+        auto stop = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> duration = stop - start;
+        double elapsed = duration.count();
+        total += elapsed;
+        timeList.push_back(elapsed);
+        countList.push_back(res.size());
+        list.insert(list.end(), res.begin(), res.end());
+        std::cout << "Iter: " << iter << ", list size: " << list.size() << ", time: " << elapsed
+                  << "s and total time: " << total << "s." << std::endl;
+    }
+    writeBin("./misTime.bin", timeList);
+    // writeBin("./edgeCount.bin", edgeCount);
+    writeBin("./misSize.bin", countList);
     return 0;
 }

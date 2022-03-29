@@ -79,6 +79,7 @@ class MisImpl {
     xrt::device mDevice;
     xrt::kernel mKernel;
     std::vector<xrt::bo> d_sync, d_colIdx;
+    xrt::bo d_rowPtr;
 #endif
 
     std::vector<uint16_t, aligned_allocator<uint16_t> > mPrior;
@@ -90,6 +91,8 @@ class MisImpl {
     void startMis(const std::string& xclbinPath, const std::string& deviceNames);
     void setGraph(GraphCSR* graph);
     std::vector<int> executeMIS();
+    void evict(const std::vector<int>&);
+    void genPrior();
 
     int getDevice(const std::string& deviceNames);
     size_t count() const;
@@ -126,6 +129,18 @@ int MisImpl::getDevice(const std::string& deviceNames) {
 
     return status;
 }
+
+void MIS::evict(const std::vector<int>& list) {
+    pImpl_->evict(list);
+}
+
+void MisImpl::evict(const std::vector<int>& list) {
+    genPrior();
+    for (const int& v : list) {
+        mPrior[v] = 3 << 14;
+    }
+}
+
 void MIS::startMis() {
     pImpl_->startMis(pImpl_->options_.xclbinPath, pImpl_->options_.deviceNames);
 }
@@ -189,18 +204,17 @@ void MisImpl::startMis(const std::string& xclbinPath, const std::string& deviceN
     // return 0;
 }
 
-// from xil_mis.hpp
-template <typename G>
-void init(const GraphCSR* graph, G& prior) {
+void MisImpl::genPrior() {
     constexpr int LargeNum = 65535;
-    int n = graph->n;
+    int n = mOrigGraph->n;
+    mPrior.resize(n);
     // int aveDegree = graph->colIdx.size() / n;
-    int aveDegree = graph->colIdxSize / n;
+    int aveDegree = mOrigGraph->colIdxSize / n;
     for (int i = 0; i < n; i++) {
-        int degree = graph->rowPtr[i + 1] - graph->rowPtr[i];
+        int degree = mOrigGraph->rowPtr[i + 1] - mOrigGraph->rowPtr[i];
         double r = (rand() % LargeNum) / (double)LargeNum;
-        prior[i] = (aveDegree / (aveDegree + degree + r) * 8191);
-        prior[i] &= 0x03fff;
+        mPrior[i] = (aveDegree / (aveDegree + degree + r) * 8191);
+        mPrior[i] &= 0x03fff;
     }
 }
 
@@ -239,6 +253,7 @@ bool verifyMis(GraphCSR* graph, G& prior) {
 size_t MIS::count() const {
     return pImpl_->count();
 }
+
 size_t MisImpl::count() const {
     size_t num = 0;
     for (int i = 0; i < mOrigGraph->n; i++) {
@@ -270,8 +285,7 @@ void MisImpl::setGraph(GraphCSR* graph) {
     // std::unique_ptr<GraphCSR>  graphAfter{createFromGraph(graphAdj.get())};
     // auto start = chrono::high_resolution_clock::now();
     // generate h_prior
-    mPrior.resize(n);
-    init(mOrigGraph, mPrior);
+    genPrior();
 
     mRowPtr.resize(n + 1);
     mRowPtr[0] = 0;
@@ -299,23 +313,21 @@ void MisImpl::setGraph(GraphCSR* graph) {
     }
 
     for (int i = 0; i < MIS_numChannels; i++) d_sync[i] = xrt::bo(d_colIdx[i], maxSize * sizeof(int), 0);
+    for (auto& bo : d_sync) bo.sync(XCL_BO_SYNC_BO_TO_DEVICE);
+    d_rowPtr = xrt::bo(mDevice, (void*)mRowPtr.data(), mRowPtr.size() * sizeof(int), mKernel.group_id(1));
+    d_rowPtr.sync(XCL_BO_SYNC_BO_TO_DEVICE);
 }
 
 std::vector<int> MIS::executeMIS() {
     return pImpl_->executeMIS();
 }
 std::vector<int> MisImpl::executeMIS() {
-    int nargs = 1;
-    auto d_rowPtr = xrt::bo(mDevice, (void*)mRowPtr.data(), mRowPtr.size() * sizeof(int), mKernel.group_id(nargs++));
-    nargs += MIS_numChannels;
-    auto d_mPrior = xrt::bo(mDevice, (void*)mPrior.data(), mPrior.size() * sizeof(uint16_t), mKernel.group_id(nargs++));
-
-    std::vector<xrt::bo> buffers({d_rowPtr, d_mPrior});
-    for (auto& bo : buffers) bo.sync(XCL_BO_SYNC_BO_TO_DEVICE);
-    for (auto& bo : d_sync) bo.sync(XCL_BO_SYNC_BO_TO_DEVICE);
+    auto d_mPrior =
+        xrt::bo(mDevice, (void*)mPrior.data(), mPrior.size() * sizeof(uint16_t), mKernel.group_id(2 + MIS_numChannels));
+    d_mPrior.sync(XCL_BO_SYNC_BO_TO_DEVICE);
 
     auto run = xrt::run(mKernel);
-    nargs = 0;
+    int nargs = 0;
     run.set_arg(nargs++, mOrigGraph->n);
     run.set_arg(nargs++, d_rowPtr);
     for (xrt::bo& bo : d_sync) run.set_arg(nargs++, bo);
