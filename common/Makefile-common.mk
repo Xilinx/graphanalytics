@@ -71,7 +71,7 @@ dist: stage
 	    cd package; \
 		make ; \
 		cd - ; \
-		cp ./package/$(CPACK_PACKAGE_FILE_NAME) $(DIST_INSTALL_DIR); \
+		cp ./package/$(CPACK_PACKAGE_FILE_NAME) $(DIST_INSTALL_DIR)/; \
 		echo "INFO: Package file saved as $(DIST_INSTALL_DIR)/$(CPACK_PACKAGE_FILE_NAME)"; \
 	fi
 
