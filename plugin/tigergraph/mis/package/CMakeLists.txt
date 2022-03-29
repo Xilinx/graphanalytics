@@ -13,6 +13,7 @@
 # under the License.
 
 cmake_minimum_required(VERSION 2.8.11)
+set(PYTHON_EXECUTABLE /usr/bin/python3 )
 project(xilinx-mis-tigergraph)
 
 set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE INTERNAL "No dev warnings")
@@ -69,7 +70,7 @@ if (${LINUX_FLAVOR} MATCHES "^(Ubuntu|Debian)")
 elseif (${LINUX_FLAVOR} MATCHES "^(RedHat|CentOS|Amazon)")
     set(CPACK_GENERATOR "RPM")
     set(PACKAGE_KIND "RPM")
-
+    set(CPACK_RPM_SPEC_MORE_DEFINE "%define __python ${PYTHON_EXECUTABLE}") 
 endif()
 
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${CPACK_REL_VER}-${CPACK_ARCH}")
