@@ -601,32 +601,6 @@ include ../common/Makefile-common.mk
 javaTest:
 	cd test/java && ant
 
-#######################################################################################################################
-#
-# Clean
-#
-
-#### Clean target deletes all generated files ####
-.PHONY: clean clean-xclbin clean-dist
-
-clean:
-	rm -rf Debug Release $(JAVA_LIB_DIR) $(BUILD_DIR) $(STAGE_DIR)
-	@echo "Note: because the XCLBIN file takes so long to generate, it is not removed with this 'clean' target."
-	@echo "To clean the XCLBIN, use 'make clean-xclbin'"
-	
-clean-xclbin:
-	rm -f $(XCLBIN_FILE_U50)
-
-clean-dist:
-	@cd package; \
-	make clean
-
-cleanpy:
-	rm -rf $(PYTHONENV_NAME)
-
-cleanall: clean cleanpy
-	rm -rf ./package/*.deb ./package/*.rpm ./package/_CPack_Packages
-
 help: help-common
 	@echo "  make run [runMode=0] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3] [totalEntities=10000000]"
 	@echo "    Run standalone test with statically linked executable"
