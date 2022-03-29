@@ -51,6 +51,9 @@ else ifeq ($(OSDIST),CentOS)
 	OSDISTLC = centos
 endif
 
+# DIST_RELEASE = 1: release the package to xilinx-tigergraph-install area
+DIST_RELEASE = 0
+
 ARCH = $(shell uname -p)
 CPACK_PACKAGE_FILE_NAME= xilinx-$(STANDALONE_NAME)-$(PRODUCT_VER)_$(OSVER)-$(ARCH).$(DIST_TARGET)
 DIST_INSTALL_DIR = $(GRAPH_ANALYTICS_DIR)/scripts/xilinx-tigergraph-install/$(OSDISTLC)-$(OSVER_DIR)/$(STANDALONE_NAME)
@@ -92,6 +95,32 @@ install: dist
 	@echo "-----------------------------------------------------------------------"
 	@echo "INFO: Installation completed."
 	@echo "-----------------------------------------------------------------------"	
+
+#######################################################################################################################
+#
+# Clean
+#
+
+#### Clean target deletes all generated files ####
+.PHONY: clean clean-xclbin clean-dist
+
+clean:
+	rm -rf Debug Release $(JAVA_LIB_DIR) $(BUILD_DIR) $(STAGE_DIR)
+	@echo "Note: because the XCLBIN file takes so long to generate, it is not removed with this 'clean' target."
+	@echo "To clean the XCLBIN, use 'make clean-xclbin'"
+	
+clean-xclbin:
+	rm -f $(XCLBIN_FILE_U50)
+
+clean-dist:
+	@cd package; \
+	make clean
+
+cleanpy:
+	rm -rf $(PYTHONENV_NAME)
+
+cleanall: clean cleanpy
+	rm -rf ./package/*.deb ./package/*.rpm ./package/_CPack_Packages
 
 #
 # Installation
