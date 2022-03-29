@@ -447,7 +447,7 @@ git submodule update --init --recursive
 installation using the Ubuntu <code class="docutils literal notranslate"><span class="pre">apt</span></code> package manager on a Ubuntu 20.04 machine.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> fuzzymatch
 make dist
-sudo apt install --reinstall ./package/xilinx-fuzzymatch-%FUZZYMATCH_VERSION_20.04-x86_64.deb
+sudo apt install --reinstall ./package/xilinx-fuzzymatch-0.3_20.04-x86_64.deb
 </pre></div>
 </div>
 </li>

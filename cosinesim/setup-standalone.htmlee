@@ -470,7 +470,7 @@ $ <span class="nb">source</span> fpga/bin/activate
 </div>
 <div class="section" id="copy-examples-to-user-accessible-directory">
 <h2>2. Copy examples to user accessible directory<a class="headerlink" href="#copy-examples-to-user-accessible-directory" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ cp -r /opt/xilinx/apps/graphanalytics/cosinesim/%COSINESIM_VERSION/examples cosinesim-examples
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ cp -r /opt/xilinx/apps/graphanalytics/cosinesim/1.5/examples cosinesim-examples
 <span class="o">(</span>fpga<span class="o">)</span>$ <span class="nb">cd</span> cosinesim-examples/python
 </pre></div>
 </div>

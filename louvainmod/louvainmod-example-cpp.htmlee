@@ -439,7 +439,7 @@
 <li><p>Open a terminal using your Linux credentials</p></li>
 <li><p>Execute following commands to run the example</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp -r /opt/xilinx/apps/graphanalytics/louvainmod/%LOUVAIN_VERSION/examples louvain-examples
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp -r /opt/xilinx/apps/graphanalytics/louvainmod/0.6/examples louvain-examples
 <span class="nb">cd</span> louvain-examples/cpp
 make run
 </pre></div>

@@ -456,7 +456,7 @@ $ <span class="nb">source</span> fpga/bin/activate
 <h3>2. Copy examples to user accessible directory<a class="headerlink" href="#copy-examples-to-user-accessible-directory" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ mkdir mis-example
 <span class="o">(</span>fpga<span class="o">)</span>$ <span class="nb">cd</span> mis-example
-<span class="o">(</span>fpga<span class="o">)</span>$ cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/%MIS_TG_VERSION/examples .
+<span class="o">(</span>fpga<span class="o">)</span>$ cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/0.4/examples .
 </pre></div>
 </div>
 </div>

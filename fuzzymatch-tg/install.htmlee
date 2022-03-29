@@ -422,7 +422,7 @@
 <h1>AMD Fuzzy Match Plugin for TigerGraph<a class="headerlink" href="#amd-fuzzy-match-plugin-for-tigergraph" title="Permalink to this headline">¶</a></h1>
 <ul>
 <li><p>Install the Fuzzy Match plugin into the TigerGraph installation.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/%FUZZYMATCH_TG_VERSION/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/0.3/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
 </pre></div>
 </div>
 <p>Supported Alveo devices:</p>
@@ -435,12 +435,12 @@
 command and name for your server’s OS.)</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> plugin/tigergraph/fuzzymatch
 make dist
-sudo apt install --reinstall ./package/xilinx-fuzzymatch-tigergraph-%FUZZYMATCH_TG_VERSION_20.04-x86_64.deb
+sudo apt install --reinstall ./package/xilinx-fuzzymatch-tigergraph-0.3_20.04-x86_64.deb
 </pre></div>
 </div>
 </li>
 <li><p>Install the Fuzzy Match plugin into the TigerGraph installation.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/%FUZZYMATCH_TG_VERSION/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/0.3/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
 </pre></div>
 </div>
 <p>Supported Alveo devices:</p>
@@ -453,7 +453,7 @@ sudo apt install --reinstall ./package/xilinx-fuzzymatch-tigergraph-%FUZZYMATCH_
 <div class="section" id="uninstalling-the-fuzzy-match">
 <h2>Uninstalling the Fuzzy Match<a class="headerlink" href="#uninstalling-the-fuzzy-match" title="Permalink to this headline">¶</a></h2>
 <p>You can uninstall the Fuzzy Match from TigerGraph by running the install script with the <code class="docutils literal notranslate"><span class="pre">-u</span></code> option:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/%FUZZYMATCH_TG_VERSION/install.sh -u
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/0.3/install.sh -u
 </pre></div>
 </div>
 <p><strong>TIP</strong>: To avoid TigerGraph errors, uninstall any queries and UDFs that use the Fuzzy Match before

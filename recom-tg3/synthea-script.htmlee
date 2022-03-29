@@ -451,7 +451,7 @@
 <li><p>Execute the command below to run the example</p></li>
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Copy examples from the installation to your own working directory</span>
-cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/recomengine/%RECOMENGINE_TG_VERSION/examples recomengine-examples
+cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/recomengine/1.5/examples recomengine-examples
 
 <span class="nb">cd</span> recomengine-examples/synthea
 

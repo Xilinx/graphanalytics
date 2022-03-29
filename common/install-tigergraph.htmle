@@ -458,6 +458,10 @@ on your behalf.</p></li>
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">$su</span> - tigergraph
 Password:
+
+<span class="c1"># Set up tigergraph environment if needed</span>
+<span class="nv">$source</span> ~/.bashrc
+
 <span class="nv">$gsql</span>
 Welcome to TigerGraph.
 GSQL &gt; create user
