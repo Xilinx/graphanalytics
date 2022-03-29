@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 
+SHELL := /bin/bash
+
 # Product name and version
 STANDALONE_NAME=mis
 PRODUCT_VER=$(strip $(shell cat VERSION))
