@@ -467,7 +467,7 @@ $ <span class="nb">source</span> fpga/bin/activate
 </div>
 <div class="section" id="copy-examples-to-user-accessible-directory">
 <h2>2. Copy examples to user accessible directory<a class="headerlink" href="#copy-examples-to-user-accessible-directory" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ cp -r /opt/xilinx/apps/graphanalytics/mis/0.2/examples mis-examples
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ cp -r /opt/xilinx/apps/graphanalytics/mis/0.4/examples mis-examples
 <span class="o">(</span>fpga<span class="o">)</span>$ <span class="nb">cd</span> mis-examples/python
 </pre></div>
 </div>
@@ -542,7 +542,7 @@ machine as shown <a class="reference external" href="https://jupyterhub.readthed
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 01, 2022.
+        Last updated on March 29, 2022.
       </span>
 
     </p>

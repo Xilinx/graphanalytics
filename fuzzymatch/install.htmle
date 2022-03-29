@@ -439,12 +439,12 @@
 <div class="section" id="install-fuzzy-match-alveo-from-a-pre-built-package">
 <h2>Install Fuzzy Match Alveo from a Pre-built Package<a class="headerlink" href="#install-fuzzy-match-alveo-from-a-pre-built-package" title="Permalink to this headline">¶</a></h2>
 <ul>
-<li><p>Get the installation package <strong>xilinx-tigergraph-install-1.5.3.tar.gz</strong> from the
+<li><p>Get the installation package <strong>xilinx-tigergraph-install-1.5.5.tar.gz</strong> from the
 <a class="reference external" href="https://www.xilinx.com/member/dba_poc.html#designFiles">Database Analytics POC Secure Site</a>.
 This package contains the Fuzzy Match as well as all dependencies (XRT, XRM, Alveo
 firmware, etc)</p></li>
 <li><p>Install Xilinx Fuzzy Match Alveo Products and dependencies:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf xilinx-tigergraph-install-1.5.3.tar.gz
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf xilinx-tigergraph-install-1.5.5.tar.gz
 <span class="nb">cd</span> xilinx-tigergraph-install <span class="o">&amp;&amp;</span> ./install.sh -p fuzzymatch
 </pre></div>
 </div>
@@ -480,7 +480,7 @@ git submodule update --init --recursive
 installation using the Ubuntu <code class="docutils literal notranslate"><span class="pre">apt</span></code> package manager on a Ubuntu 20.04 machine.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> fuzzymatch
 make dist
-sudo apt install --reinstall ./package/xilinx-fuzzymatch-0.2_20.04-x86_64.deb
+sudo apt install --reinstall ./package/xilinx-fuzzymatch-0.3_20.04-x86_64.deb
 </pre></div>
 </div>
 </li>
@@ -517,7 +517,7 @@ sudo apt install --reinstall ./package/xilinx-fuzzymatch-0.2_20.04-x86_64.deb
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 01, 2022.
+        Last updated on March 29, 2022.
       </span>
 
     </p>

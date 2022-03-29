@@ -440,7 +440,7 @@
 <li><p>Open a terminal using your Linux credentials</p></li>
 <li><p>Execute following commands to run the example</p>
 <blockquote>
-<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp -r /opt/xilinx/apps/graphanalytics/mis/0.2/examples mis-examples
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp -r /opt/xilinx/apps/graphanalytics/mis/0.4/examples mis-examples
 <span class="nb">cd</span> mis-examples/cpp
 
 <span class="c1"># Print makefile usage and options</span>
@@ -487,7 +487,7 @@ make run <span class="nv">deviceNames</span><span class="o">=</span>xilinx_u55c_
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 01, 2022.
+        Last updated on March 29, 2022.
       </span>
 
     </p>

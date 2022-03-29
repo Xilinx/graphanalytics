@@ -425,7 +425,7 @@
 <li><p>Set up a directory that is readable and writable by the user “tigergraph”</p></li>
 <li><p>Execute the commands below to run the demo</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span> <span class="c1"># Copy examples from the installation to your own working directory mis-examples</span>
- cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/0.2/examples fuzzymatch-examples
+ cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/0.3/examples fuzzymatch-examples
 
  <span class="nb">cd</span> fuzzymatch-examples/entity-resolution
 
@@ -464,7 +464,7 @@
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 01, 2022.
+        Last updated on March 29, 2022.
       </span>
 
     </p>

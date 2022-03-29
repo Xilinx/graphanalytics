@@ -434,13 +434,13 @@ cards into PCIe Gen3 x16 slots</p></li>
 <div class="section" id="installing-maximal-independent-set-alveo-from-a-pre-built-package">
 <h3>Installing Maximal Independent Set Alveo from a Pre-built Package<a class="headerlink" href="#installing-maximal-independent-set-alveo-from-a-pre-built-package" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p>Get the installation package <strong>xilinx-tigergraph-install-1.5.3.tar.gz</strong> from the
+<li><p>Get the installation package <strong>xilinx-tigergraph-install-1.5.5.tar.gz</strong> from the
 <a class="reference external" href="https://www.xilinx.com/member/dba_poc.html#designFiles">Database Analytics POC Secure Site</a>.
 This package contains the MIS as well as its dependencies.</p></li>
 <li><p>Install Xilinx MIS and MIS TigerGraph Plugin Alveo Products and dependencies
 (XRT, XRM, and Alveo firmware packages)</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf xilinx-tigergraph-install-1.5.3.tar.gz
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf xilinx-tigergraph-install-1.5.5.tar.gz
 <span class="nb">cd</span> xilinx-tigergraph-install <span class="o">&amp;&amp;</span> ./install.sh -p mis
 </pre></div>
 </div>
@@ -512,7 +512,7 @@ installation using the Ubuntu <code class="docutils literal notranslate"><span c
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> mis
 make dist
-sudo apt install --reinstall ./package/xilinx-mis-0.2_20.04-x86_64.deb
+sudo apt install --reinstall ./package/xilinx-mis-0.4_20.04-x86_64.deb
 </pre></div>
 </div>
 </div>
@@ -539,7 +539,7 @@ sudo apt install --reinstall ./package/xilinx-mis-0.2_20.04-x86_64.deb
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 01, 2022.
+        Last updated on March 29, 2022.
       </span>
 
     </p>

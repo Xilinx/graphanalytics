@@ -59,7 +59,7 @@
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Community Detection Demo" href="comdetect.html" />
+    <link rel="next" title="Fraud Detection Demo" href="comdetect.html" />
     <link rel="prev" title="Getting Started Guide for TigerGraph Users" href="../louvainmod/getting-started-tg.html" /> 
 	</head>
 	<body>
@@ -518,7 +518,7 @@ before uninstalling the Community Detection itself.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="comdetect.html" class="btn btn-neutral float-right" title="Community Detection Demo" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="comdetect.html" class="btn btn-neutral float-right" title="Fraud Detection Demo" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="../louvainmod/getting-started-tg.html" class="btn btn-neutral float-left" title="Getting Started Guide for TigerGraph Users" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -531,7 +531,7 @@ before uninstalling the Community Detection itself.</p>
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 01, 2022.
+        Last updated on March 29, 2022.
       </span>
 
     </p>

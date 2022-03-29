@@ -517,7 +517,7 @@ sudo apt install --reinstall ./package/xilinx-fuzzymatch-%FUZZYMATCH_VERSION_20.
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 01, 2022.
+        Last updated on March 29, 2022.
       </span>
 
     </p>
