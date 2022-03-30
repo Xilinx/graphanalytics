@@ -62,34 +62,35 @@ class MisImpl {
    public:
     Options options_;
     MisImpl(const Options& options) : options_(options) {
+#ifdef USE_HBM
         mColIdx.resize(MIS_numChannels);
         d_colIdx.resize(MIS_numChannels);
         d_sync.resize(MIS_numChannels);
+#endif
     }
     // std::string xclbinPath;
     int device_id = 0;
 
-#ifdef OPENCL
-    cl::Context ctx;
-    cl::Device device;
-    cl::Program prg;
-    cl::CommandQueue queue;
-    cl::Kernel miskernel;
-#else
     xrt::device mDevice;
     xrt::kernel mKernel;
-    std::vector<xrt::bo> d_sync, d_colIdx;
-#endif
+    xrt::bo d_rowPtr;
 
     std::vector<uint16_t, aligned_allocator<uint16_t> > mPrior;
     GraphCSR* mOrigGraph;
     std::vector<int, aligned_allocator<int> > mRowPtr;
+#ifdef USE_HBM
     std::vector<int*> mColIdx;
-
+    std::vector<xrt::bo> d_sync, d_colIdx;
+#else
+    int* mColIdx;
+    xrt::bo d_sync, d_colIdx;
+#endif
     // The intialize process will download FPGA binary to FPGA card
     void startMis(const std::string& xclbinPath, const std::string& deviceNames);
     void setGraph(GraphCSR* graph);
+    void graphPadding();
     std::vector<int> executeMIS();
+    void genPrior();
 
     int getDevice(const std::string& deviceNames);
     size_t count() const;
@@ -126,6 +127,7 @@ int MisImpl::getDevice(const std::string& deviceNames) {
 
     return status;
 }
+
 void MIS::startMis() {
     pImpl_->startMis(pImpl_->options_.xclbinPath, pImpl_->options_.deviceNames);
 }
@@ -142,66 +144,173 @@ void MisImpl::startMis(const std::string& xclbinPath, const std::string& deviceN
     } else
         std::cout << "INFO: Start MIS on " << deviceNames << std::endl;
 
-#ifdef OPENCL
-    std::vector<cl::Device> devices;
-    // Creating Context and Command Queue for selected device from getDevice
-    ctx = cl::Context(device);
-    queue = cl::CommandQueue(ctx, device, CL_QUEUE_PROFILING_ENABLE | CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE);
-    std::string devName = device.getInfo<CL_DEVICE_NAME>();
-    std::cout << "INFO: found device=" << devName << std::endl;
-
-    // Create program with given xclbin file
-    cl::Program::Binaries xclBins = xcl::import_binary_file(xclbinPath);
-    devices.resize(1);
-    devices[0] = device;
-    prg = cl::Program(ctx, devices, xclBins);
-
-    std::string kernelName = "misKernel:{misKernel_0}";
-    miskernel = cl::Kernel(prg, "misKernel:{misKernel_0}");
-
-    std::size_t u50_found = devName.find("u50");
-
-    if (u50_found == std::string::npos) {
-        std::cout << "Only U50 is supported so far, please check it "
-                     "and re-run"
-                  << std::endl;
-        exit(1);
-    }
-
-#else
     try {
         mDevice = xrt::device(device_id);
         auto uuid = mDevice.load_xclbin(xclbinPath);
         std::string kernelName = "misKernel:{misKernel_0}";
         mKernel = xrt::kernel(mDevice, uuid, kernelName);
+#ifdef USE_HBM
         for (int i = 0; i < MIS_numChannels; i++) {
             d_colIdx[i] = xrt::bo(mDevice, MIS_hbmSize, mKernel.group_id(i + 2));
             mColIdx[i] = d_colIdx[i].map<int*>();
         }
+#else
+        d_colIdx = xrt::bo(mDevice, MIS_ddrSize, mKernel.group_id(2));
+        mColIdx = d_colIdx.map<int*>();
+#endif
     } catch (std::bad_alloc& e) {
-        std::cout << "Error: CU on the device is busy." << std::endl;
+        std::cout << "Error: memory allocation failed. Maybe the CU on the device is busy." << std::endl;
         exit(EXIT_FAILURE);
     } catch (...) {
         std::cout << "Error: Device is busy." << std::endl;
         exit(EXIT_FAILURE);
     }
-#endif
     // return 0;
 }
 
-// from xil_mis.hpp
-template <typename G>
-void init(const GraphCSR* graph, G& prior) {
+void MisImpl::genPrior() {
     constexpr int LargeNum = 65535;
-    int n = graph->n;
+    int n = mOrigGraph->n;
+    mPrior.resize(n);
     // int aveDegree = graph->colIdx.size() / n;
-    int aveDegree = graph->colIdxSize / n;
+    int aveDegree = mOrigGraph->colIdxSize / n;
     for (int i = 0; i < n; i++) {
-        int degree = graph->rowPtr[i + 1] - graph->rowPtr[i];
+        int degree = mOrigGraph->rowPtr[i + 1] - mOrigGraph->rowPtr[i];
         double r = (rand() % LargeNum) / (double)LargeNum;
-        prior[i] = (aveDegree / (aveDegree + degree + r) * 8191);
-        prior[i] &= 0x03fff;
+        mPrior[i] = (aveDegree / (aveDegree + degree + r) * 8191);
+        mPrior[i] &= 0x03fff;
     }
+}
+// from liang's local mis_kernel_xrt.cpp
+size_t MIS::count() const {
+    return pImpl_->count();
+}
+
+size_t MisImpl::count() const {
+    size_t num = 0;
+    for (int i = 0; i < mOrigGraph->n; i++) {
+        int rp = mPrior[i] >> 14;
+        if (rp == 1) num++;
+    }
+    return num;
+}
+
+// void MIS::setGraph(GraphCSR<std::vector<int> >* graph) { pImpl_->setGraph(graph);}
+void MIS::setGraph(GraphCSR* graph) {
+    pImpl_->setGraph(graph);
+}
+
+void MisImpl::graphPadding() {
+    int n = mOrigGraph->n;
+    mRowPtr.resize(n + 1);
+    mRowPtr[0] = 0;
+    size_t maxSize = 0;
+    std::vector<size_t> index(MIS_numChannels, 0);
+    for (int r = 0; r < n; r++) {
+        int start = mOrigGraph->rowPtr[r], stop = mOrigGraph->rowPtr[r + 1];
+        for (int c = start; c < stop; c++) {
+            int colId = mOrigGraph->colIdx[c];
+            int ch = colId & (MIS_numChannels - 1);
+            if (index[ch] == MIS_hbmSize / sizeof(int)) {
+                std::cout << "Graph is not supported due to memory limit." << std::endl;
+                exit(EXIT_FAILURE);
+            }
+#ifdef USE_HBM
+            mColIdx[ch][index[ch]++] = colId;
+#else
+            mColIdx[index[ch] * MIS_numChannels + ch] = colId;
+            index[ch]++;
+#endif
+        }
+
+        for (int pe = 0; pe < MIS_numChannels; pe++)
+            if (index[pe] > maxSize) maxSize = index[pe];
+        for (int pe = 0; pe < MIS_numChannels; pe++) {
+            int iter = maxSize - index[pe];
+            for (int i = 0; i < iter; i++) {
+#ifdef USE_HBM
+                mColIdx[pe][index[pe]++] = -1;
+#else
+                mColIdx[index[pe] * MIS_numChannels + pe] = -1;
+                index[pe]++;
+#endif
+            }
+        }
+        mRowPtr[r + 1] = maxSize * MIS_numChannels;
+    }
+}
+
+// void MisImpl::setGraph(GraphCSR<std::vector<int> >* graph) {
+void MisImpl::setGraph(GraphCSR* graph) {
+    mOrigGraph = graph;
+    int n = mOrigGraph->n;
+    if (n > MIS_vertexLimits) {
+        std::cout << "Graph with more than " << MIS_vertexLimits << " vertices is not supported." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    int nz = mOrigGraph->colIdxSize;
+
+    // process the graph
+    std::cout << "Processing the graph with " << n << " vertices and " << nz / 2 << " edges." << std::endl;
+
+    // convert back tp graphCSR
+    // std::unique_ptr<GraphCSR>  graphAfter{createFromGraph(graphAdj.get())};
+    // auto start = chrono::high_resolution_clock::now();
+    // generate h_prior
+    genPrior();
+    graphPadding();
+
+#ifdef USE_HBM
+    int memSize = mRowPtr[n] / MIS_numChannels;
+    for (int i = 0; i < MIS_numChannels; i++) d_sync[i] = xrt::bo(d_colIdx[i], memSize * sizeof(int), 0);
+    for (auto& bo : d_sync) bo.sync(XCL_BO_SYNC_BO_TO_DEVICE);
+#else
+    int memSize = mRowPtr[n];
+    d_sync = xrt::bo(d_colIdx, memSize * sizeof(int), 0);
+    d_sync.sync(XCL_BO_SYNC_BO_TO_DEVICE);
+#endif
+
+    d_rowPtr = xrt::bo(mDevice, (void*)mRowPtr.data(), mRowPtr.size() * sizeof(int), mKernel.group_id(1));
+    d_rowPtr.sync(XCL_BO_SYNC_BO_TO_DEVICE);
+}
+
+std::vector<int> MIS::executeMIS() {
+    return pImpl_->executeMIS();
+}
+
+std::vector<int> MisImpl::executeMIS() {
+    auto run = xrt::run(mKernel);
+    int nargs = 0;
+#ifdef USE_HBM
+    auto d_mPrior =
+        xrt::bo(mDevice, (void*)mPrior.data(), mPrior.size() * sizeof(uint16_t), mKernel.group_id(2 + MIS_numChannels));
+    d_mPrior.sync(XCL_BO_SYNC_BO_TO_DEVICE);
+
+    run.set_arg(nargs++, mOrigGraph->n);
+    run.set_arg(nargs++, d_rowPtr);
+    for (xrt::bo& bo : d_sync) run.set_arg(nargs++, bo);
+    run.set_arg(nargs++, d_mPrior);
+#else
+    auto d_mPrior = xrt::bo(mDevice, (void*)mPrior.data(), mPrior.size() * sizeof(uint16_t), mKernel.group_id(3));
+    d_mPrior.sync(XCL_BO_SYNC_BO_TO_DEVICE);
+
+    run.set_arg(nargs++, mOrigGraph->n);
+    run.set_arg(nargs++, d_rowPtr);
+    run.set_arg(nargs++, d_sync);
+    run.set_arg(nargs++, d_mPrior);
+#endif
+    run.start();
+    run.wait();
+    d_mPrior.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
+
+    std::vector<int> result;
+    result.reserve(mPrior.size());
+    for (int idx = 0; idx < mPrior.size(); idx++) {
+        int rp = mPrior[idx] >> 14;
+        if (rp == 1) result.push_back(idx);
+    }
+    return result;
 }
 
 template <typename G>
@@ -234,103 +343,6 @@ bool verifyMis(GraphCSR* graph, G& prior) {
         }
     }
     return true;
-}
-// from liang's local mis_kernel_xrt.cpp
-size_t MIS::count() const {
-    return pImpl_->count();
-}
-size_t MisImpl::count() const {
-    size_t num = 0;
-    for (int i = 0; i < mOrigGraph->n; i++) {
-        int rp = mPrior[i] >> 14;
-        if (rp == 1) num++;
-    }
-    return num;
-}
-
-// void MIS::setGraph(GraphCSR<std::vector<int> >* graph) { pImpl_->setGraph(graph);}
-void MIS::setGraph(GraphCSR* graph) {
-    pImpl_->setGraph(graph);
-}
-// void MisImpl::setGraph(GraphCSR<std::vector<int> >* graph) {
-void MisImpl::setGraph(GraphCSR* graph) {
-    mOrigGraph = graph;
-    int n = mOrigGraph->n;
-    if (n > MIS_vertexLimits) {
-        std::cout << "Graph with more than " << MIS_vertexLimits << " vertices is not supported." << std::endl;
-        exit(EXIT_FAILURE);
-    }
-
-    int nz = mOrigGraph->colIdxSize;
-
-    // process the graph
-    std::cout << "Processing the graph with " << n << " vertices and " << nz / 2 << " edges." << std::endl;
-
-    // convert back tp graphCSR
-    // std::unique_ptr<GraphCSR>  graphAfter{createFromGraph(graphAdj.get())};
-    // auto start = chrono::high_resolution_clock::now();
-    // generate h_prior
-    mPrior.resize(n);
-    init(mOrigGraph, mPrior);
-
-    mRowPtr.resize(n + 1);
-    mRowPtr[0] = 0;
-    size_t maxSize = 0;
-    std::vector<size_t> index(MIS_numChannels, 0);
-    for (int r = 0; r < n; r++) {
-        int start = mOrigGraph->rowPtr[r], stop = mOrigGraph->rowPtr[r + 1];
-        for (int c = start; c < stop; c++) {
-            int colId = mOrigGraph->colIdx[c];
-            int ch = colId & (MIS_numChannels - 1);
-            if (index[ch] == MIS_hbmSize / sizeof(int)) {
-                std::cout << "Graph is not supported due to memory limit." << std::endl;
-                exit(EXIT_FAILURE);
-            }
-            mColIdx[ch][index[ch]++] = colId;
-        }
-
-        for (int pe = 0; pe < MIS_numChannels; pe++)
-            if (index[pe] > maxSize) maxSize = index[pe];
-        for (int pe = 0; pe < MIS_numChannels; pe++) {
-            int iter = maxSize - index[pe];
-            for (int i = 0; i < iter; i++) mColIdx[pe][index[pe]++] = -1;
-        }
-        mRowPtr[r + 1] = maxSize * MIS_numChannels;
-    }
-
-    for (int i = 0; i < MIS_numChannels; i++) d_sync[i] = xrt::bo(d_colIdx[i], maxSize * sizeof(int), 0);
-}
-
-std::vector<int> MIS::executeMIS() {
-    return pImpl_->executeMIS();
-}
-std::vector<int> MisImpl::executeMIS() {
-    int nargs = 1;
-    auto d_rowPtr = xrt::bo(mDevice, (void*)mRowPtr.data(), mRowPtr.size() * sizeof(int), mKernel.group_id(nargs++));
-    nargs += MIS_numChannels;
-    auto d_mPrior = xrt::bo(mDevice, (void*)mPrior.data(), mPrior.size() * sizeof(uint16_t), mKernel.group_id(nargs++));
-
-    std::vector<xrt::bo> buffers({d_rowPtr, d_mPrior});
-    for (auto& bo : buffers) bo.sync(XCL_BO_SYNC_BO_TO_DEVICE);
-    for (auto& bo : d_sync) bo.sync(XCL_BO_SYNC_BO_TO_DEVICE);
-
-    auto run = xrt::run(mKernel);
-    nargs = 0;
-    run.set_arg(nargs++, mOrigGraph->n);
-    run.set_arg(nargs++, d_rowPtr);
-    for (xrt::bo& bo : d_sync) run.set_arg(nargs++, bo);
-    run.set_arg(nargs++, d_mPrior);
-    run.start();
-    run.wait();
-    d_mPrior.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
-
-    std::vector<int> result;
-    result.reserve(mPrior.size());
-    for (int idx = 0; idx < mPrior.size(); idx++) {
-        int rp = mPrior[idx] >> 14;
-        if (rp == 1) result.push_back(idx);
-    }
-    return result;
 }
 
 } // namespace mis

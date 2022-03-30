@@ -47,6 +47,7 @@ CXXFLAGS = -std=c++14 -DPRAGMA -Ofast -fopenmp -fmessage-length=0  -fPIC -Wall -
 
 CXXFLAGS += -DMIS_numChannels=16
 CXXFLAGS += -DMIS_hbmSize=0x10000000
+CXXFLAGS += -DMIS_ddrSize=0x10000000
 CXXFLAGS += -DMIS_vertexLimits=1024000
 
 # Define the target directories.
