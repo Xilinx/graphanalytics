@@ -211,13 +211,17 @@ void MisImpl::graphPadding() {
         for (int c = start; c < stop; c++) {
             int colId = mOrigGraph->colIdx[c];
             int ch = colId & (MIS_numChannels - 1);
+#ifdef USE_HBM
             if (index[ch] == MIS_hbmSize / sizeof(int)) {
                 std::cout << "Graph is not supported due to memory limit." << std::endl;
                 exit(EXIT_FAILURE);
             }
-#ifdef USE_HBM
             mColIdx[ch][index[ch]++] = colId;
 #else
+            if (index[ch] == MIS_ddrSize / MIS_numChannels / sizeof(int)) {
+                std::cout << "Graph is not supported due to memory limit." << std::endl;
+                exit(EXIT_FAILURE);
+            }
             mColIdx[index[ch] * MIS_numChannels + ch] = colId;
             index[ch]++;
 #endif

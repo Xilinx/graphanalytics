@@ -45,11 +45,9 @@ CXX = g++
 # -D PRINTINFO: print additional debug messages
 CXXFLAGS = -std=c++14 -DPRAGMA -Ofast -fopenmp -fmessage-length=0  -fPIC -Wall -Wno-unknown-pragmas -Wno-unused-label \
     -Wno-unused-variable -Wno-sign-compare -Wno-unused-result -Wno-unused-but-set-variable \
-    -Wno-narrowing -D USE_HBM -fmessage-length=0 
+    -Wno-narrowing -fmessage-length=0 
 
 CXXFLAGS += -DMIS_numChannels=16
-CXXFLAGS += -DMIS_hbmSize=0x10000000
-CXXFLAGS += -DMIS_ddrSize=0x10000000
 CXXFLAGS += -DMIS_vertexLimits=1024000
 
 # Define the target directories.
@@ -67,6 +65,26 @@ USE_F1 = 0
 ifeq ($(USE_F1),1)
     CXXFLAGS += -D USE_F1
 endif
+
+GLIB_VERSION=1
+CXXFLAGS += -D_GLIBCXX_USE_CXX11_ABI=$(GLIB_VERSION)
+
+###############################################################################
+# Device related parameters 
+
+deviceNames=xilinx_u50_gen3x16_xdma_201920_3
+
+
+ifeq ($(deviceNames),xilinx_u50_gen3x16_xdma_201920_3)
+	CXXFLAGS += -DMIS_hbmSize=0x10000000
+	CXXFLAGS += -DUSE_HBM
+else ifeq ($(deviceNames),xilinx_u200_gen3x16_xdma_base_1)
+	CXXFLAGS += -DMIS_ddrSize=0x80000000
+else ifeq ($(deviceNames),xilinx_u55c_gen3x16_xdma_base_2)
+	CXXFLAGS += -DMIS_hbmSize=0x10000000
+	CXXFLAGS += -DUSE_HBM
+endif
+
 
 ## Target: libMis.so
 INCLUDES_libMis = \
@@ -174,6 +192,15 @@ endif
 # XCLBIN
 #
 INC_ALL_XCLBINS=1
+
+# U200 XCLBIN 
+L2_TOP_DIR_U200 = $(GRAPH_ANALYTICS_DIR)/L2/mis_kernel
+L2_XDEVICE_U200 = xilinx_u200_gen3x16_xdma_1_202110_1
+L2_BUILD_DIR_U200 = $(L2_TOP_DIR_U200)/build_dir.hw.$(L2_XDEVICE_U200)
+XCLBIN_NAME_U200 = misKernel.xclbin
+XCLBIN_FILE_U200 = $(L2_BUILD_DIR_U200)/$(XCLBIN_NAME_U200)
+XCLBIN_INSTALLED_NAME_U200 = mis_xilinx_u200_gen3x16_xdma_1_202110_1.xclbin
+XCLBIN_INSTALLED_U200 =/opt/xilinx/apps/graphanalytics/mis/$(PRODUCT_VER)/xclbin/$(XCLBIN_INSTALLED_NAME_U200)
 
 # U50 XCLBIN 
 L2_TOP_DIR_U50 = $(GRAPH_ANALYTICS_DIR)/L2/mis_kernel
@@ -352,6 +379,8 @@ $(CPP_BUILD_DIR)/mis_test: $(SRCS_test) $(CPP_BUILD_DIR)/$(LIB_NAME)
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3
 ifeq ($(deviceNames),xilinx_u50_gen3x16_xdma_201920_3)
     XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U50)
+else ifeq ($(deviceNames),xilinx_u200_gen3x16_xdma_base_1)
+    XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U200)		
 else ifeq ($(deviceNames),xilinx_u55c_gen3x16_xdma_base_2)
     XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U55)		
 endif
@@ -466,8 +495,13 @@ $(STAGE_STAGED_EXAMPLE_FILES):
 # XCLBIN file
 STAGE_XCLBIN_NAME_U50 = $(XCLBIN_INSTALLED_NAME_U50)
 STAGE_XCLBIN_FILE_U50 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U50)
+STAGE_XCLBIN_NAME_U200 = $(XCLBIN_INSTALLED_NAME_U200)
+STAGE_XCLBIN_FILE_U200 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U200)
 STAGE_XCLBIN_NAME_U55 = $(XCLBIN_INSTALLED_NAME_U55)
 STAGE_XCLBIN_FILE_U55 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U55)
+
+$(STAGE_XCLBIN_FILE_U200): $(XCLBIN_FILE_U200)
+	cp -f $^ $@
 
 $(STAGE_XCLBIN_FILE_U50): $(XCLBIN_FILE_U50)
 	cp -f $^ $@
@@ -492,10 +526,12 @@ STAGE_ALL_FILES = \
 
 # Conditionally add XCLBIN files
 ifeq ($(INC_ALL_XCLBINS),1) 
-	STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U50) $(STAGE_XCLBIN_FILE_U55)
+	STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U200) $(STAGE_XCLBIN_FILE_U50) $(STAGE_XCLBIN_FILE_U55)
+else ifeq ($(deviceNames),xilinx_u200_gen3x16_xdma_base_1)
+    STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U200)
 else ifeq ($(deviceNames),xilinx_u50_gen3x16_xdma_201920_3)
     STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U50)
-else ifeq ($(deviceNames),xilinx_u55c_gen3x16_xdma_2_202110_1)
+else ifeq ($(deviceNames),xilinx_u55c_gen3x16_xdma_base_2)
     STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U55)
 endif
 
