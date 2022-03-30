@@ -185,7 +185,6 @@ XCLBIN_INSTALLED_U50 =/opt/xilinx/apps/graphanalytics/fuzzymatch/$(PRODUCT_VER)/
 
 XCLBIN_BUILD_DIR=$(L2_TOP_DIR_U50)
 
-
 # F1 XCLBIN 
 L2_TOP_DIR_F1 = $(GRAPH_ANALYTICS_DIR)/L2/fuzzy_kernel
 L2_XDEVICE_F1 = xilinx_aws-vu9p-f1_shell-v04261818_201920_2
@@ -195,7 +194,6 @@ XCLBIN_FILE_F1 = $(L2_BUILD_DIR_F1)/$(XCLBIN_NAME_F1)
 XCLBIN_INSTALLED_NAME_F1 = $(XCLBIN_NAME_F1)
 XCLBIN_INSTALLED_F1 =/opt/xilinx/apps/graphanalytics/fuzzymatch/$(PRODUCT_VER)/xclbin/$(XCLBIN_INSTALLED_NAME_F1)
 
-
 #U55C
 L2_TOP_DIR_U55C = $(GRAPH_ANALYTICS_DIR)/L2/fuzzy_kernel
 L2_XDEVICE_U55C = xilinx_u55c_gen3x16_xdma_2_202110_1
@@ -204,6 +202,15 @@ XCLBIN_NAME_U55C = fuzzy_kernel.xclbin
 XCLBIN_FILE_U55C = $(L2_BUILD_DIR_U55C)/$(XCLBIN_NAME_U55C)
 XCLBIN_INSTALLED_NAME_U55C = fuzzy_xilinx_u55c_gen3x16_xdma_2_202110_1.xclbin
 XCLBIN_INSTALLED_U55C =/opt/xilinx/apps/graphanalytics/fuzzymatch/$(PRODUCT_VER)/xclbin/$(XCLBIN_INSTALLED_NAME_U55C)
+
+#U250
+L2_TOP_DIR_U250= $(GRAPH_ANALYTICS_DIR)/L2/fuzzy_kernel
+L2_XDEVICE_U250 = xilinx_u250_gen3x16_xdma_2_1_202010_1
+L2_BUILD_DIR_U250 = $(L2_TOP_DIR_U250)/build_dir.hw.$(L2_XDEVICE_U250)
+XCLBIN_NAME_U250 = fuzzy_kernel.xclbin
+XCLBIN_FILE_U250 = $(L2_BUILD_DIR_U250)/$(XCLBIN_NAME_U250)
+XCLBIN_INSTALLED_NAME_U250 = fuzzy_xilinx_u250_gen3x16_xdma_2_1_202010_1.xclbin
+XCLBIN_INSTALLED_U250 =/opt/xilinx/apps/graphanalytics/fuzzymatch/$(PRODUCT_VER)/xclbin/$(XCLBIN_INSTALLED_NAME_U250)
 
 
 .PHONY: xclbin
@@ -249,6 +256,18 @@ $(XCLBIN_FILE_U55C):
 	    echo "2. Do 'make xclbin' and go for a very long coffee break.  (Recommended for build automation)"; \
     	false; \
 	fi
+
+$(XCLBIN_FILE_U250):
+	@if [ -r $(XCLBIN_INSTALLED_U250) ]; then \
+	    echo "INFO: The XCLBIN file $(XCLBIN_FILE_U250) is missing.  Copying from installed area."; \
+	    cp -r $(XCLBIN_INSTALLED_U250) $@; \
+	else \
+	    echo "INFO: The XCLBIN file $(XCLBIN_FILE_U250) is missing."; \
+	    echo "Because building an XCLBIN file can be an all-day proposition, you have two choices for completing this build:"; \
+	    echo "1. Copy a pre-built XCLBIN to the target location above.  (Recommended for developers)"; \
+	    echo "2. Do 'make xclbin' and go for a very long coffee break.  (Recommended for build automation)"; \
+    	false; \
+	fi	
 
 #######################################################################################################################
 #
@@ -368,13 +387,18 @@ $(CPP_BUILD_DIR)/fuzzymatch_test: $(CPP_BUILD_DIR)/fuzzymatch_test.o $(CPP_BUILD
 # Test targets and parameters
 
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3
-ifeq ($(deviceNames),xilinx_u50_gen3x16_xdma_201920_3)
+ifeq ($(deviceNames), xilinx_u50_gen3x16_xdma_201920_3)
     XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U50)
-else ifeq ($(deviceNames),xilinx_aws-vu9p-f1_shell-v04261818_201920_2)
+else ifeq ($(deviceNames), xilinx_aws-vu9p-f1_shell-v04261818_201920_2)
     XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_F1)
-else ifeq ($(deviceNames),xilinx_u55c_gen3x16_xdma_base_2)
-    XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U55C)		
+else ifeq ($(deviceNames), xilinx_u55c_gen3x16_xdma_base_2)
+    XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U55C)
+else ifeq ($(deviceNames), xilinx_u250_gen3x16_xdma_shell_2_1)
+    XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U250)
+else ifeq ($(deviceNames), xilinx_u250_gen3x16_base_2)
+    XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U250)	
 endif
+
 
 runMode = 0
 totalEntities = 10000000
@@ -500,10 +524,16 @@ $(STAGE_STAGED_EXAMPLE_FILES):
 # XCLBIN file
 STAGE_XCLBIN_NAME_U50 = $(XCLBIN_INSTALLED_NAME_U50)
 STAGE_XCLBIN_FILE_U50 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U50)
+
 STAGE_XCLBIN_NAME_F1 = $(XCLBIN_INSTALLED_NAME_F1)
 STAGE_XCLBIN_FILE_F1 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_F1)
+
 STAGE_XCLBIN_NAME_U55C = $(XCLBIN_INSTALLED_NAME_U55C)
 STAGE_XCLBIN_FILE_U55C = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U55C)
+
+STAGE_XCLBIN_NAME_U250 = $(XCLBIN_INSTALLED_NAME_U250)
+STAGE_XCLBIN_FILE_U250 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U250)
+
 
 $(STAGE_XCLBIN_FILE_U50): $(XCLBIN_FILE_U50)
 	cp -f $^ $@
@@ -511,9 +541,11 @@ $(STAGE_XCLBIN_FILE_U50): $(XCLBIN_FILE_U50)
 $(STAGE_XCLBIN_FILE_F1): $(XCLBIN_FILE_F1)
 	cp -f $^ $@
 
-
 $(STAGE_XCLBIN_FILE_U55C): $(XCLBIN_FILE_U55C)
 	cp -f $^ $@
+
+$(STAGE_XCLBIN_FILE_U250): $(XCLBIN_FILE_U250)
+	cp -f $^ $@	
 
 
 STAGE_XILINX_APPS_COMMON = $(STAGE_DIR)/include/xilinx_apps_common.hpp
@@ -533,16 +565,18 @@ STAGE_ALL_FILES = \
 
 # Conditionally add XCLBIN files
 ifeq ($(INC_ALL_XCLBINS),1) 
-	STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U50) $(STAGE_XCLBIN_FILE_F1) $(STAGE_XCLBIN_FILE_U55C)
-else ifeq ($(deviceNames),xilinx_u50_gen3x16_xdma_201920_3)
+	STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U50) $(STAGE_XCLBIN_FILE_F1) $(STAGE_XCLBIN_FILE_U55C) $(STAGE_XCLBIN_FILE_U250)
+else ifeq ($(deviceNames), xilinx_u50_gen3x16_xdma_201920_3)
     STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U50)
-else ifeq ($(deviceNames),xilinx_aws-vu9p-f1_shell-v04261818_201920_2)
+else ifeq ($(deviceNames), xilinx_aws-vu9p-f1_shell-v04261818_201920_2)
     STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_F1)
-else ifeq ($(deviceNames),xilinx_u55c_gen3x16_xdma_2_202110_1)
+else ifeq ($(deviceNames), xilinx_u55c_gen3x16_xdma_base_2)
     STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U55C)
+else ifeq ($(deviceNames), xilinx_u250_gen3x16_xdma_shell_2_1)
+    STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U250)
+else ifeq ($(deviceNames), xilinx_u250_gen3x16_base_2)
+    STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U250)	
 endif
-
-
 
 # make staging areaing in two steps so intermediate outputs can be included in the 
 # staging output as well.
@@ -567,32 +601,6 @@ include ../common/Makefile-common.mk
 javaTest:
 	cd test/java && ant
 
-#######################################################################################################################
-#
-# Clean
-#
-
-#### Clean target deletes all generated files ####
-.PHONY: clean clean-xclbin clean-dist
-
-clean:
-	rm -rf Debug Release $(JAVA_LIB_DIR) $(BUILD_DIR) $(STAGE_DIR)
-	@echo "Note: because the XCLBIN file takes so long to generate, it is not removed with this 'clean' target."
-	@echo "To clean the XCLBIN, use 'make clean-xclbin'"
-	
-clean-xclbin:
-	rm -f $(XCLBIN_FILE_U50)
-
-clean-dist:
-	@cd package; \
-	make clean
-
-cleanpy:
-	rm -rf $(PYTHONENV_NAME)
-
-cleanall: clean cleanpy
-	rm -rf ./package/*.deb ./package/*.rpm ./package/_CPack_Packages
-
 help: help-common
 	@echo "  make run [runMode=0] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3] [totalEntities=10000000]"
 	@echo "    Run standalone test with statically linked executable"
@@ -601,8 +609,9 @@ help: help-common
 	@echo "  deviceNames  : Specify Alveo devices to use for computation"
 	@echo "                 Supported devices:"
 	@echo "                 xilinx_u50_gen3x16_xdma_201920_3 (default)"
+	@echo "                 xilinx_u55c_gen3x16_xdma_base_2"	
+	@echo "                 xilinx_u250_gen3x16_xdma_shell_2_1"
 	@echo "                 xilinx_aws-vu9p-f1_shell-v04261818_201920_2"
-	@echo "                 xilinx_u55c_gen3x16_xdma_base_2"
 	@echo "  patternFile  :  Pattern file to match against (default=./examples/data/ref-names.csv)"
 	@echo "  patternIndex :  The column index to extract field of interest from the pattern file (default=1)"
 	@echo "  inputFile    :  Input file that needs to be matched against patternFile (default=./examples/data/new-names.csv)"

@@ -25,6 +25,10 @@ version 3.1.
 
    $su - tigergraph
    Password:
+
+   # Set up tigergraph environment if needed
+   $source ~/.bashrc
+   
    $gsql
    Welcome to TigerGraph.
    GSQL > create user

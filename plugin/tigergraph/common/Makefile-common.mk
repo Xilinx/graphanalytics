@@ -130,6 +130,12 @@ DIST_INSTALL_DIR = $(GRAPH_ANALYTICS_DIR)/scripts/xilinx-tigergraph-install/$(OS
 .PHONY: dist
 
 dist: stage
+	@if [ $(DIST_RELEASE) == 1 ]; then \
+		echo "INFO: Removing previous versions of the package and vclf"; \
+		git rm -f $(DIST_INSTALL_DIR)/xilinx-$(PRODUCT_NAME)-tigergraph-?.*.$(DIST_TARGET).vclf; \
+        rm -f     $(DIST_INSTALL_DIR)/xilinx-$(PRODUCT_NAME)-tigergraph-?.*.$(DIST_TARGET); \
+	fi
+	
 	@if [ "$(DIST_TARGET)" == "" ]; then \
 	    echo "Packaging is supported for only Ubuntu and CentOS."; \
 	else \
@@ -138,7 +144,12 @@ dist: stage
 		make ; \
 		cd - ; \
 		cp ./package/$(CPACK_PACKAGE_FILE_NAME) $(DIST_INSTALL_DIR); \
-		echo "INFO: $(CPACK_PACKAGE_FILE_NAME) saved to $(DIST_INSTALL_DIR)"; \
+		echo "INFO: Package published to $(DIST_INSTALL_DIR)/$(CPACK_PACKAGE_FILE_NAME)"; \
+	fi
+
+	@if [ $(DIST_RELEASE) == 1 ]; then \
+		echo "INFO: Adding new package to vclf"; \
+		vclf add $(DIST_INSTALL_DIR)/$(CPACK_PACKAGE_FILE_NAME); \
 	fi
 ###############################################################################
 

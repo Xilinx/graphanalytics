@@ -929,22 +929,20 @@ void opLouvainModularity::UsingFPGA_MapHostClBuff_prune_2cu(
 		////offset
 		//
 		hds[0].buffer[18] = cl::Buffer(hds[0].context, flag_RW, sizeof(ap_uint<8>) * (NV), &mext_in[18]);
-		std::cout<< "INFO: init buffer  " <<std::endl;
 		hds[0].buffer[19] = cl::Buffer(hds[0].context, flag_RW, sizeof(ap_uint<8>) * (NV), &mext_in[19]);
-		std::cout<< "INFO: init buffer 1  " <<std::endl;
 		if (NE_mem_2 > 0) {
-	#ifdef PRINTINFO
+#ifdef PRINTINFO
 		std::cout<< "INFO: NE_mem_2 =  " <<NE_mem_2<<std::endl;
-		#endif
+#endif
 				//
 				hds[0].buffer[21] = cl::Buffer(hds[0].context, flag_RD, sizeof(int) * NE_mem_2, &mext_in[21]);
 				hds[0].buffer[22] = cl::Buffer(hds[0].context, flag_RD, sizeof(int) * NE_mem_2, &mext_in[22]);
 			}
-		#ifdef PRINTINFO
+#ifdef PRINTINFO
 			std::cout<< "INFO: init buffer done!  " <<std::endl;
-		#endif
+#endif
 
-	}else{
+	} else{
 
 	#ifdef PRINTINFO
 		std::cout<< "INFO: start MapHostClBuff kernel_louvain_1" <<std::endl;
