@@ -61,13 +61,7 @@ struct aligned_allocator {
 class MisImpl {
    public:
     Options options_;
-    MisImpl(const Options& options) : options_(options) {
-#ifdef USE_HBM
-        mColIdx.resize(MIS_numChannels);
-        d_colIdx.resize(MIS_numChannels);
-        d_sync.resize(MIS_numChannels);
-#endif
-    }
+    MisImpl(const Options& options) : options_(options) {}
     // std::string xclbinPath;
     int device_id = 0;
 
@@ -81,9 +75,11 @@ class MisImpl {
 #ifdef USE_HBM
     std::vector<int*> mColIdx;
     std::vector<xrt::bo> d_sync, d_colIdx;
+    size_t mHBMSize;
 #else
     int* mColIdx;
     xrt::bo d_sync, d_colIdx;
+    size_t mDDRSize;
 #endif
     // The intialize process will download FPGA binary to FPGA card
     void startMis(const std::string& xclbinPath, const std::string& deviceNames);
@@ -150,12 +146,30 @@ void MisImpl::startMis(const std::string& xclbinPath, const std::string& deviceN
         std::string kernelName = "misKernel:{misKernel_0}";
         mKernel = xrt::kernel(mDevice, uuid, kernelName);
 #ifdef USE_HBM
+        if (deviceNames.find("u50") != std::string::npos) {
+            mHBMSize = 0x10000000;
+        } else if (deviceNames.find("u55c") != std::string::npos) {
+            mHBMSize = 0x20000000;
+        } else {
+            std::cerr << "ERROR: Device " << deviceNames << " is not supported." << std::endl;
+            abort();
+        }
+        mColIdx.resize(MIS_numChannels);
+        d_colIdx.resize(MIS_numChannels);
+        d_sync.resize(MIS_numChannels);
         for (int i = 0; i < MIS_numChannels; i++) {
-            d_colIdx[i] = xrt::bo(mDevice, MIS_hbmSize, mKernel.group_id(i + 2));
+            d_colIdx[i] = xrt::bo(mDevice, mHBMSize, mKernel.group_id(i + 2));
             mColIdx[i] = d_colIdx[i].map<int*>();
         }
 #else
-        d_colIdx = xrt::bo(mDevice, MIS_ddrSize, mKernel.group_id(2));
+        if (deviceNames.find("u200") == std::string::npos)
+            if (deviceNames.find("u250") == std::string::npos)
+                if (deviceNames.find("vu9p") == std::string::npos) {
+                    std::cerr << "ERROR: Device " << deviceNames << " is not supported." << std::endl;
+                    abort();
+                }
+        mDDRSize = 0x80000000;
+        d_colIdx = xrt::bo(mDevice, mDDRSize, mKernel.group_id(2));
         mColIdx = d_colIdx.map<int*>();
 #endif
     } catch (std::bad_alloc& e) {
@@ -212,13 +226,13 @@ void MisImpl::graphPadding() {
             int colId = mOrigGraph->colIdx[c];
             int ch = colId & (MIS_numChannels - 1);
 #ifdef USE_HBM
-            if (index[ch] == MIS_hbmSize / sizeof(int)) {
+            if (index[ch] == mHBMSize / sizeof(int)) {
                 std::cout << "Graph is not supported due to memory limit." << std::endl;
                 exit(EXIT_FAILURE);
             }
             mColIdx[ch][index[ch]++] = colId;
 #else
-            if (index[ch] == MIS_ddrSize / MIS_numChannels / sizeof(int)) {
+            if (index[ch] == mDDRSize / MIS_numChannels / sizeof(int)) {
                 std::cout << "Graph is not supported due to memory limit." << std::endl;
                 exit(EXIT_FAILURE);
             }
