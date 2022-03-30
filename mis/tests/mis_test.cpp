@@ -139,11 +139,13 @@ int main(int argc, const char* argv[]) {
 
     // GraphCSR<std::vector<int> > graph(h_rowPtr, h_colIdx);
     xmis.startMis();
-    GraphCSR graph(std::move(h_rowPtr), std::move(h_colIdx));
+    GraphCSR graph(std::move(h_rowPtr), std::move(h_colIdx));    
+    double total = 0;
+
+#if 0
     xmis.setGraph(&graph);
     std::vector<int> list, countList;
     std::vector<double> timeList;
-    double total = 0;
     for (int iter = 0; list.size() < n; iter++) {
         auto start = std::chrono::high_resolution_clock::now();
         xmis.evict(list);
@@ -159,7 +161,32 @@ int main(int argc, const char* argv[]) {
                   << "s and total time: " << total << "s." << std::endl;
     }
     writeBin("./misTime.bin", timeList);
-    // writeBin("./edgeCount.bin", edgeCount);
     writeBin("./misSize.bin", countList);
+#else
+    std::vector<int> list, countList, edgeList;
+    std::vector<double> timeList;
+    for (int iter = 0; list.size() < n; iter++) {
+        graph.isolateVertex(list);
+        if(graph.colIdxSize % 2 != 0) {
+            std::cout << "graph is not symmetric." << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        edgeList.push_back(graph.colIdxSize / 2);
+        xmis.setGraph(&graph);
+        auto start = std::chrono::high_resolution_clock::now();
+        list = xmis.executeMIS();
+        auto stop = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> duration = stop - start;
+        double elapsed = duration.count();
+        total += elapsed;
+        timeList.push_back(elapsed);
+        countList.push_back(list.size());
+        std::cout << "Iter: " << iter << ", list size: " << list.size() << ", time: " << elapsed
+                  << "s and total time: " << total << "s." << std::endl;
+    }
+    writeBin("./misTime.bin", timeList);
+    writeBin("./edgeCount.bin", edgeList);
+    writeBin("./misSize.bin", countList);
+#endif
     return 0;
 }
