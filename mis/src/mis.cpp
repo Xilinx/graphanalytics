@@ -243,6 +243,7 @@ void MisImpl::graphPadding() {
 
         for (int pe = 0; pe < MIS_numChannels; pe++)
             if (index[pe] > maxSize) maxSize = index[pe];
+        maxSize += maxSize % MIS_entries;
         for (int pe = 0; pe < MIS_numChannels; pe++) {
             int iter = maxSize - index[pe];
             for (int i = 0; i < iter; i++) {

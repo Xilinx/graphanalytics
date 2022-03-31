@@ -78,18 +78,19 @@ VPP_LDFLAGS += --vivado.synth.jobs 16 --vivado.impl.jobs 16
 # Kernel linker flags
 VPP_LDFLAGS_misKernel_temp := --config $(CUR_DIR)/opts.cfg 
 
-VPP_FLAGS += -DMIS_entries=1
 VPP_FLAGS += -DMIS_numChannels=16
 VPP_FLAGS += -DMIS_maxRows=1024000 
 
 ifneq (,$(shell echo $(XPLATFORM) | awk '/u55c/'))
 VPP_LDFLAGS_misKernel_temp += --config $(CUR_DIR)/conn_u55c.cfg
 VPP_LDFLAGS_misKernel_temp += --kernel_frequency 300
+VPP_FLAGS += -DMIS_entries=2
 endif
 
 ifneq (,$(shell echo $(XPLATFORM) | awk '/u50/'))
 VPP_LDFLAGS_misKernel_temp += --config $(CUR_DIR)/conn_u50.cfg
 VPP_LDFLAGS_misKernel_temp += --kernel_frequency 300
+VPP_FLAGS += -DMIS_entries=1
 endif
 
 VPP_LDFLAGS_misKernel += $(VPP_LDFLAGS_misKernel_temp)

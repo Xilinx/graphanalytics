@@ -77,8 +77,10 @@ deviceNames=xilinx_u50_gen3x16_xdma_201920_3
 
 ifneq (, $(shell echo $(deviceNames) | awk '/u50/'))
 	CXXFLAGS += -DUSE_HBM
+	CXXFLAGS += -DMIS_entries=1
 else ifneq (, $(shell echo $(deviceNames) | awk '/u55c/'))
 	CXXFLAGS += -DUSE_HBM
+	CXXFLAGS += -DMIS_entries=2
 endif
 
 
