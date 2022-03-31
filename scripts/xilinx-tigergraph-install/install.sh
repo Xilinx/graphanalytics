@@ -76,7 +76,16 @@ if [[ $OSDIST == "ubuntu" ]]; then
         exit 2
     fi
 elif [[ $OSDIST == "centos" ]]; then
-    pkg_dir="$SCRIPTPATH/centos-7.8"
+    if (( $OSREL == 708 )); then
+        pkg_dir="$SCRIPTPATH/centos-7.8"
+    elif (( $OSREL == 709 )); then
+        pkg_dir="$SCRIPTPATH/ubuntu-20.04"        
+    else
+        echo "ERROR: Ubuntu release version must be 18.04 or 20.04."
+        exit 2
+    fi
+
+    
 else 
     echo "ERROR: only Ubuntu and Centos are supported."
     exit 3
@@ -104,6 +113,9 @@ if [[ $is_supported -eq 0 ]] ; then
     exit 5
 fi
 
+###############################################################################
+# Ubuntu
+###############################################################################
 if [[ $OSDIST == "ubuntu" ]]; then
     # install dependencies(XRT/XRM/Deployment shell. etc)
     if [[ $install_dep -eq 1 ]] ; then
@@ -123,8 +135,8 @@ if [[ $OSDIST == "ubuntu" ]]; then
         sudo apt install $pkg_dir/../deployment-shell/u50/xilinx*.deb
         sudo apt install $pkg_dir/../deployment-shell/u55c/xilinx*.deb
 
-        # install required package
-        sudo apt install jq opencl-headers -y
+        # install required packages
+        sudo apt install jq opencl-headers libzmq3-dev default-jre -y
     fi
 
     if [[ $product == "cosinesim" ]]; then
@@ -162,9 +174,9 @@ if [[ $OSDIST == "ubuntu" ]]; then
     fi
 fi
 
-# copy requirements.txt to /opt/xilinx/apps/graphanalytics/
-sudo cp $pkg_dir/requirements.txt /opt/xilinx/apps/graphanalytics/
-
+###############################################################################
+# CentOS
+###############################################################################
 if [[ $OSDIST == "centos" ]]; then
     # install XRT/XRM/Deployment shell
     printf "\nINFO: Install XRT. \n"
@@ -187,6 +199,9 @@ if [[ $OSDIST == "centos" ]]; then
         sudo yum install $pkg_dir/recomengine/xilinx-recomengine*.rpm
     fi
 fi
+
+# copy requirements.txt to /opt/xilinx/apps/graphanalytics/
+sudo cp $SCRIPTPATH/requirements.txt /opt/xilinx/apps/graphanalytics/
 
 printf "\nINFO: All packages have been installed.\n"
 if [[ $install_dep -eq 1 ]] ; then

@@ -165,9 +165,7 @@ namespace fuzzymatch {
                 status = 0; // found a matching device
                 break;
             } else {
-#ifndef NDEBUG                
                 std::cout << "INFO: Skipped non-requested device: " << curDeviceName << " ID=" << i << std::endl;
-#endif                
             }
         }
     

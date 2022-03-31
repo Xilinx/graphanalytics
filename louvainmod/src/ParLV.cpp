@@ -4734,8 +4734,9 @@ int createSharedHandle(
     // return right away if the handle has already been created
     if (!sharedHandlesLouvainMod::instance().handlesMap.empty()) {
         std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesLouvainMod::instance().handlesMap[0];
-
+#ifndef NDEBUG
         std::cout << "DEBUG: " << __FUNCTION__ << " numDevices=" << handle0->getNumDevices() << std::endl;
+#endif        
         handle0->showHandleInfo();
         if (numDevices != handle0->getNumDevices()) {
             std::cout << "INFO: " << __FUNCTION__ << "numDevices changed. Creating a new handle." 
@@ -4748,7 +4749,6 @@ int createSharedHandle(
             return 0;
         }
     }
-    std::cout << "INFO: " << __FUNCTION__ << std::endl;
     std::shared_ptr<xf::graph::L3::Handle> handleInstance(new xf::graph::L3::Handle);
     sharedHandlesLouvainMod::instance().handlesMap[0] = handleInstance;
     status = loadComputeUnitsToFPGAs(xclbinPath, kernelMode, numDevices, deviceNames);

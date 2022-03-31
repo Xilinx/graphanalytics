@@ -37,8 +37,10 @@ function gsql () {
 
 function usage() {
     echo "Usage: $0 -u TG-username -p TG-password [optional options]"
+    echo "Required Options:"
+    echo "  -a alveoProject      : Alveo partition project basename. It can include a path (.e.g /path/to/alveo_proj)"
+    echo ""
     echo "Optional options:"
-    echo "  -a alveoProject      : Alveo partition project basename. It can include a path (.e.g /path/to/alveo_proj"
 	echo "  -c compileMode       : 0: skip database creation and gsql compilation"
 	echo "                         1: recreate database and compile all (default)"
 	echo "                         2: only compile query gsql"

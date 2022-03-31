@@ -16,20 +16,9 @@
 
 SHELL := /bin/bash
 
-ifndef XILINX_XRT
-    XILINX_XRT = /opt/xilinx/xrt
-    export XILINX_XRT
-endif
-
-ifndef XILINX_XRM
-    XILINX_XRM=/opt/xilinx/xrm
-    export XILINX_XRM
-endif
-
-ifndef XILINX_PLATFORMS
-    XILINX_PLATFORMS = /opt/xilinx/platforms
-    export XILINX_PLATFORMS
-endif
+# Product name and version
+STANDALONE_NAME=louvainmod
+PRODUCT_VER=$(strip $(shell cat VERSION))
 
 .DELETE_ON_ERROR:
 .PHONY: all
@@ -638,29 +627,8 @@ stage2: cppTest $(STAGE_SUBDIRS) stage-examples $(STAGE_ALL_FILES)
 $(STAGE_SUBDIRS):
 	mkdir -p $@
 
-#######################################################################################################################
-#
-# Packaging
-#
-
-OSDIST = $(shell lsb_release -si)
-DIST_TARGET =
-ifeq ($(OSDIST),Ubuntu)
-    DIST_TARGET = DEB
-else ifeq ($(OSDIST),CentOS)
-    DIST_TARGET = RPM
-endif
-
-.PHONY: dist
-
-dist: stage
-	@cd package; \
-	if [ "$(DIST_TARGET)" == "" ]; then \
-	    echo "Packaging is supported for only Ubuntu and CentOS."; \
-	else \
-	    echo "Packaging $(DIST_TARGET) for $(OSDIST)"; \
-	    make ; \
-	fi
+# Common targets for all products (packaging)
+include ../common/Makefile-common.mk
 
 #######################################################################################################################
 #
@@ -671,31 +639,8 @@ dist: stage
 javaTest:
 	cd test/java && ant
 
-#######################################################################################################################
-#
-# Clean
-#
-
-#### Clean target deletes all generated files ####
-.PHONY: clean clean-xclbin
-
-clean:
-	rm -rf Debug Release $(JAVA_LIB_DIR) $(BUILD_DIR) $(STAGE_DIR)
-	@echo "Note: because the XCLBIN file takes so long to generate, it is not removed with this 'clean' target."
-	@echo "To clean the XCLBIN, use 'make clean-xclbin'"
-	
-clean-xclbin:
-	rm -f $(XCLBIN_FILE_U50)
-
 clean-par:
 	rm -f $(CPPDEMO_OUT_DIR)/$(graphBasename)*
-
-cleanpy:
-	rm -rf $(PYTHONENV_NAME)
-
-cleanall: clean cleanpy
-	rm -f ./package/*.deb ./package/*.rpm
-	
 
 help:
 	@echo "Makefile usages:"
