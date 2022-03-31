@@ -142,7 +142,7 @@ int main(int argc, const char* argv[]) {
     GraphCSR graph(std::move(h_rowPtr), std::move(h_colIdx));    
     double total = 0;
 
-#if 0
+#if 1
     xmis.setGraph(&graph);
     std::vector<int> list, countList;
     std::vector<double> timeList;
