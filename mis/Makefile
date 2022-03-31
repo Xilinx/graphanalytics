@@ -73,11 +73,11 @@ CXXFLAGS += -D_GLIBCXX_USE_CXX11_ABI=$(GLIB_VERSION)
 # Device related parameters 
 
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3
+CXXFLAGS += -DMIS_entries=1
 
 
 ifneq (, $(shell echo $(deviceNames) | awk '/u50/'))
 	CXXFLAGS += -DUSE_HBM
-	CXXFLAGS += -DMIS_entries=1
 else ifneq (, $(shell echo $(deviceNames) | awk '/u55c/'))
 	CXXFLAGS += -DUSE_HBM
 	CXXFLAGS += -DMIS_entries=2
@@ -191,14 +191,15 @@ endif
 #
 INC_ALL_XCLBINS=1
 
-# VU9P XCLBIN 
-L2_TOP_DIR_VU9P = $(GRAPH_ANALYTICS_DIR)/L2/mis_kernel
-L2_XDEVICE_VU9P = xilinx_aws-vu9p-f1_shell-v04261818_201920_2
-L2_BUILD_DIR_VU9P = $(L2_TOP_DIR_VU9P)/build_dir.hw.$(L2_XDEVICE_VU9P)
-XCLBIN_NAME_VU9P = misKernel.awsxclbin
-XCLBIN_FILE_VU9P = $(L2_BUILD_DIR_VU9P)/$(XCLBIN_NAME_VU9P)
-XCLBIN_INSTALLED_NAME_VU9P = mis_xilinx_aws-vu9p-f1_shell-v04261818_201920_2.awsxclbin
-XCLBIN_INSTALLED_VU9P =/opt/xilinx/apps/graphanalytics/mis/$(PRODUCT_VER)/xclbin/$(XCLBIN_INSTALLED_NAME_VU9P)
+# F1 XCLBIN 
+L2_TOP_DIR_F1 = $(GRAPH_ANALYTICS_DIR)/L2/mis_kernel
+L2_XDEVICE_F1 = xilinx_aws-vu9p-f1_shell-v04261818_201920_3
+L2_BUILD_DIR_F1 = $(L2_TOP_DIR_F1)/build_dir.hw.$(L2_XDEVICE_F1)
+XCLBIN_NAME_F1 = misKernel.awsxclbin
+XCLBIN_FILE_F1 = $(L2_BUILD_DIR_F1)/$(XCLBIN_NAME_F1)
+XCLBIN_INSTALLED_NAME_F1 = mis_xilinx_aws-vu9p-f1_shell-v04261818_201920_3.awsxclbin
+XCLBIN_INSTALLED_F1 =/opt/xilinx/apps/graphanalytics/mis/$(PRODUCT_VER)/xclbin/$(XCLBIN_INSTALLED_NAME_F1)
+
 
 # U200 XCLBIN 
 L2_TOP_DIR_U200 = $(GRAPH_ANALYTICS_DIR)/L2/mis_kernel
@@ -251,6 +252,18 @@ $(XCLBIN_FILE_U50):
 	    echo "1. Copy a pre-built XCLBIN to the target location above.  (Recommended for developers)"; \
 	    echo "2. Do 'make xclbin' and go for a very long coffee break.  (Recommended for build automation)"; \
     	false; \
+	fi
+
+$(XCLBIN_FILE_F1):
+	@if [ -r $(XCLBIN_INSTALLED_F1) ]; then \
+	    echo "INFO: The XCLBIN file $(XCLBIN_FILE_F1) is missing.  Copying from installed area."; \
+	    cp -r $(XCLBIN_INSTALLED_F1) $@; \
+	else \
+	    echo "ERROR: The XCLBIN file $(XCLBIN_FILE_F1) is missing."; \
+	    echo "Because building an XCLBIN file can be an all-day proposition, you have two choices for completing this build:"; \
+	    echo "1. Copy a pre-built XCLBIN to the target location above.  (Recommended for developers)"; \
+	    echo "2. Do 'make xclbin' and go for a very long coffee break.  (Recommended for build automation)"; \
+	    false; \
 	fi
 
 $(XCLBIN_FILE_U55):
@@ -386,6 +399,8 @@ $(CPP_BUILD_DIR)/mis_test: $(SRCS_test) $(CPP_BUILD_DIR)/$(LIB_NAME)
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3
 ifeq ($(deviceNames),xilinx_u50_gen3x16_xdma_201920_3)
     XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U50)
+else ifeq ($(deviceNames), xilinx_aws-vu9p-f1_shell-v04261818_201920_3)
+    XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_F1)
 else ifeq ($(deviceNames),xilinx_u200_gen3x16_xdma_base_1)
     XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U200)		
 else ifeq ($(deviceNames),xilinx_u55c_gen3x16_xdma_base_2)
@@ -500,8 +515,8 @@ $(STAGE_STAGED_EXAMPLE_FILES):
 	
 
 # XCLBIN file
-STAGE_XCLBIN_NAME_VU9P = $(XCLBIN_INSTALLED_NAME_VU9P)
-STAGE_XCLBIN_FILE_VU9P = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_VU9P)
+STAGE_XCLBIN_NAME_F1 = $(XCLBIN_INSTALLED_NAME_F1)
+STAGE_XCLBIN_FILE_F1 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_F1)
 
 STAGE_XCLBIN_NAME_U50 = $(XCLBIN_INSTALLED_NAME_U50)
 STAGE_XCLBIN_FILE_U50 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U50)
@@ -515,7 +530,7 @@ STAGE_XCLBIN_FILE_U55 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U55)
 $(STAGE_XCLBIN_FILE_U200): $(XCLBIN_FILE_U200)
 	cp -f $^ $@
 
-$(STAGE_XCLBIN_FILE_VU9P): $(XCLBIN_FILE_VU9P)
+$(STAGE_XCLBIN_FILE_F1): $(XCLBIN_FILE_F1)
 	cp -f $^ $@
 
 $(STAGE_XCLBIN_FILE_U50): $(XCLBIN_FILE_U50)
@@ -541,13 +556,15 @@ STAGE_ALL_FILES = \
 
 # Conditionally add XCLBIN files
 ifeq ($(INC_ALL_XCLBINS),1) 
-	STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_VU9P) $(STAGE_XCLBIN_FILE_U200) $(STAGE_XCLBIN_FILE_U50) $(STAGE_XCLBIN_FILE_U55)
+	STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_F1) $(STAGE_XCLBIN_FILE_U200) $(STAGE_XCLBIN_FILE_U50) $(STAGE_XCLBIN_FILE_U55)
 else ifeq ($(deviceNames),xilinx_u200_gen3x16_xdma_base_1)
     STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U200)
 else ifeq ($(deviceNames),xilinx_u50_gen3x16_xdma_201920_3)
     STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U50)
 else ifeq ($(deviceNames),xilinx_u55c_gen3x16_xdma_base_2)
     STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U55)
+else ifeq ($(deviceNames), xilinx_aws-vu9p-f1_shell-v04261818_201920_3)
+    STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_F1)
 endif
 
 
@@ -584,6 +601,7 @@ help: help-common
 	@echo "                 Supported devices:"
 	@echo "                 xilinx_u50_gen3x16_xdma_201920_3 (default)"
 	@echo "                 xilinx_u55c_gen3x16_xdma_base_2"
+	@echo "                 xilinx_aws-vu9p-f1_shell-v04261818_201920_3"
 	@echo "  totalEntities: total number of entities to match against(default=10000000)"
 	@echo ""
 	@echo "  make all"

@@ -152,7 +152,11 @@ extern "C" void misKernel(const int rows,
 
     uint16_t l_prior[MIS_numChannels][(MIS_maxRows + MIS_numChannels - 1) / MIS_numChannels];
 #pragma HLS ARRAY_PARTITION variable = l_prior dim = 1 complete
+#if MIS_entries==1
 #pragma HLS BIND_STORAGE variable = l_prior type = RAM_1P impl = URAM
+#else
+#pragma HLS BIND_STORAGE variable = l_prior type = RAM_2P impl = URAM
+#endif
 
     for (int row = 0; row < rows; row++)
 #pragma HLS PIPELINE II = 1
