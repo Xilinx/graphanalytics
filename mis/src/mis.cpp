@@ -131,9 +131,11 @@ void MIS::evict(const std::vector<int>& list) {
 }
 
 void MisImpl::evict(const std::vector<int>& list) {
-    genPrior();
+    for (int i = 0; i < mPrior.size(); i++) {
+        mPrior[i] = mPrior[i] & 0x3fff;
+    }
     for (const int& v : list) {
-        mPrior[v] = 3 << 14;
+        mPrior[v] = 0xc000;
     }
 }
 
