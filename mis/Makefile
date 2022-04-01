@@ -73,14 +73,14 @@ CXXFLAGS += -D_GLIBCXX_USE_CXX11_ABI=$(GLIB_VERSION)
 # Device related parameters 
 
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3
-CXXFLAGS += -DMIS_entries=1
 
 
 ifneq (, $(shell echo $(deviceNames) | awk '/u50/'))
-	CXXFLAGS += -DUSE_HBM
+CXXFLAGS += -DUSE_HBM
+CXXFLAGS += -DMIS_entries=2
 else ifneq (, $(shell echo $(deviceNames) | awk '/u55c/'))
-	CXXFLAGS += -DUSE_HBM
-	CXXFLAGS += -DMIS_entries=2
+CXXFLAGS += -DUSE_HBM
+CXXFLAGS += -DMIS_entries=2
 endif
 
 
