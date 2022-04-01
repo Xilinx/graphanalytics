@@ -88,6 +88,7 @@ class MisImpl {
     std::vector<int> executeMIS();
     void evict(const std::vector<int>&);
     void genPrior();
+    bool verifyMis();
 
     int getDevice(const std::string& deviceNames);
     size_t count() const;
@@ -334,6 +335,7 @@ std::vector<int> MisImpl::executeMIS() {
     run.start();
     run.wait();
     d_mPrior.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
+    // verifyMis();
 
     std::vector<int> result;
     result.reserve(mPrior.size());
@@ -344,25 +346,24 @@ std::vector<int> MisImpl::executeMIS() {
     return result;
 }
 
-template <typename G>
-bool verifyMis(GraphCSR* graph, G& prior) {
-    int n = graph->n;
+bool MisImpl::verifyMis() {
+    int n = mOrigGraph->n;
     for (int i = 0; i < n; i++) {
-        int rp = prior[i] >> 14;
+        int rp = mPrior[i] >> 14;
         if (rp == 3) {
             bool oppo = false;
-            for (int j = graph->rowPtr[i]; j < graph->rowPtr[i + 1]; j++) {
-                int v = graph->colIdx[j];
+            for (int j = mOrigGraph->rowPtr[i]; j < mOrigGraph->rowPtr[i + 1]; j++) {
+                int v = mOrigGraph->colIdx[j];
                 if (v == i || v >= n) continue;
-                int vp = prior[v] >> 14;
+                int vp = mPrior[v] >> 14;
                 oppo = oppo || (vp == 1);
             }
             if (!oppo) return false;
         } else if (rp == 1)
-            for (int j = graph->rowPtr[i]; j < graph->rowPtr[i + 1]; j++) {
-                int v = graph->colIdx[j];
+            for (int j = mOrigGraph->rowPtr[i]; j < mOrigGraph->rowPtr[i + 1]; j++) {
+                int v = mOrigGraph->colIdx[j];
                 if (v == i || v >= n) continue;
-                int vp = prior[v] >> 14;
+                int vp = mPrior[v] >> 14;
                 if (vp == 1) {
                     std::cout << "Conflicted vertices in the set with id " << i << '\t' << v << std::endl;
                     return false;
