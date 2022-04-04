@@ -60,6 +60,8 @@ CXXFLAGS = -std=c++14 -fPIC -pthread -I$(INCLUDE_PATH) -Wall -Wextra -Wno-unknow
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3
 ifeq ($(deviceNames),xilinx_u50_gen3x16_xdma_201920_3)
 	XCLBIN_FILE := $(XCLBIN_PATH)/mis_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+else ifeq ($(deviceNames), xilinx_aws-vu9p-f1_shell-v04261818_201920_3)
+    XCLBIN_FILE := $(XCLBIN_PATH)/mis_xilinx_aws-vu9p-f1_shell-v04261818_201920_3.awsxclbin
 else ifeq ($(deviceNames),xilinx_u55c_gen3x16_xdma_base_2)
 	XCLBIN_FILE := $(XCLBIN_PATH)/mis_xilinx_u55c_gen3x16_xdma_2_202110_1.xclbin
 endif
@@ -104,12 +106,13 @@ clean:
 
 help:
 	@echo "Makefile usages:"
-	@echo "  make run [runMode=0] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3] [totalEntities=10000000]"
+	@echo "  make run [deviceNames=xilinx_u50_gen3x16_xdma_201920_3]"
 	@echo "    Run standalone test with statically linked executable"
 	@echo ""
 	@echo "  Run options:"
 	@echo "  deviceNames  : Specify Alveo devices to use for computation. Supported devices:"
 	@echo "                 xilinx_u50_gen3x16_xdma_201920_3 "
+	@echo "                 xilinx_aws-vu9p-f1_shell-v04261818_201920_3"
 	@echo "                 xilinx_u55c_gen3x16_xdma_base_2"
 	@echo ""
 	@echo "  make test"

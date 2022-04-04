@@ -11,7 +11,7 @@ Engine product.  Follow the steps in *only one* of the two sections below.
 Install the Recommendation Engine from a Package
 ************************************************
 
-* Get the installation package **xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz** from the
+* Get the installation package **amd-graphanalytics-install-%PACKAGE_VERSION.tar.gz** from the
   `Database Analytics POC Secure Site <%PACKAGE_LINK>`_.  This package contains
   the Recommendation Engine as well as its dependencies: XRT, XRM, the Alveo U50 Platform, and the Cosine Similarity
   Alveo Product.
@@ -21,8 +21,8 @@ Install the Recommendation Engine from a Package
 
 .. code-block:: bash
 
-   tar xzf xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz
-   cd xilinx-tigergraph-install && ./install.sh
+   tar xzf amd-graphanalytics-install-%PACKAGE_VERSION.tar.gz
+   cd amd-graphanalytics-install && ./install.sh
 
 * Install the Recommendation Engine plug-in into the TigerGraph installation.  This step makes TigerGraph aware
   of the Recommendation Engine features.
