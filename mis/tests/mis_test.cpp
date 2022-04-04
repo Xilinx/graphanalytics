@@ -77,6 +77,13 @@ bool readBin(const std::string filename, const std::streampos readSize, std::vec
     else
         return false;
 }
+template <typename T, typename A>
+bool writeBin(const std::string filename, std::vector<T, A>& vec) {
+    std::ofstream file(filename, std::ios::binary);
+    file.write((char*)vec.data(), vec.size() * sizeof(T));
+    file.close();
+}
+
 int main(int argc, const char* argv[]) {
     ArgParser parser(argc, argv);
 
@@ -130,19 +137,24 @@ int main(int argc, const char* argv[]) {
     readBin(in_dir + "/rowPtr.bin", (n + 1) * sizeof(int), h_rowPtr);
     readBin(in_dir + "/colIdx.bin", nz * sizeof(int), h_colIdx);
 
-    // GraphCSR<std::vector<int> > graph(h_rowPtr, h_colIdx);
     xmis.startMis();
     GraphCSR graph(std::move(h_rowPtr), std::move(h_colIdx));
-    xmis.setGraph(&graph);
 
+    xmis.setGraph(&graph);
+    std::vector<int> list, countList;
+    std::vector<double> timeList;
     auto start = std::chrono::high_resolution_clock::now();
-    xmis.executeMIS();
+    auto res = xmis.executeMIS();
     auto stop = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration = stop - start;
     double elapsed = duration.count();
-    int count = xmis.count();
-
-    std::cout << "Find MIS with " << count << " vertices within " << elapsed << " s." << std::endl;
-
+    int size = 0;
+    for (int i = 0; i < res.size(); i++) {
+        auto& list = res[i];
+        // std::cout << "Iter: " << i << " scheduled " << list.size() << " trips." << std::endl;
+        size += list.size();
+    }
+    std::cout << size << " trip(s) were scheduled in " << res.size()
+              << " kernel call(s) and the total execution time is " << elapsed << "s." << std::endl;
     return 0;
 }

@@ -42,9 +42,13 @@ DEVICE ?= xilinx_u50_gen3x16_xdma_201920_3
 # #################### Checking if DEVICE in blacklist #############################
 
 # #################### Checking if DEVICE in whitelist ############################
+ifneq ($(findstring u250, $(DEVICE)), u250)
+ifneq ($(findstring u200, $(DEVICE)), u200)
 ifneq ($(findstring u50, $(DEVICE)), u50)
 ifneq ($(findstring u55c, $(DEVICE)), u55c)
 $(error [ERROR]: This project is not supported for $(DEVICE).)
+endif
+endif
 endif
 endif
 
@@ -78,18 +82,36 @@ VPP_LDFLAGS += --vivado.synth.jobs 16 --vivado.impl.jobs 16
 # Kernel linker flags
 VPP_LDFLAGS_misKernel_temp := --config $(CUR_DIR)/opts.cfg 
 
-VPP_FLAGS += -DMIS_entries=1
-VPP_FLAGS += -DMIS_numChannels=16
 VPP_FLAGS += -DMIS_maxRows=1024000 
+
+ifneq (,$(shell echo $(XPLATFORM) | awk '/u200/'))
+VPP_LDFLAGS_misKernel_temp += --config $(CUR_DIR)/conn_u200c.cfg
+VPP_LDFLAGS_misKernel_temp += --kernel_frequency 300
+SRCS=$(XFLIB_DIR)/mis_kernel/src/misKernel_ddr.cpp
+VPP_FLAGS += -DMIS_numChannels=16
+endif
+
+ifneq (,$(shell echo $(XPLATFORM) | awk '/u250/'))
+VPP_LDFLAGS_misKernel_temp += --config $(CUR_DIR)/conn_u250.cfg
+VPP_LDFLAGS_misKernel_temp += --kernel_frequency 300
+SRCS=$(XFLIB_DIR)/mis_kernel/src/misKernel_ddr.cpp
+VPP_FLAGS += -DMIS_numChannels=16
+endif
 
 ifneq (,$(shell echo $(XPLATFORM) | awk '/u55c/'))
 VPP_LDFLAGS_misKernel_temp += --config $(CUR_DIR)/conn_u55c.cfg
 VPP_LDFLAGS_misKernel_temp += --kernel_frequency 300
+SRCS=$(XFLIB_DIR)/mis_kernel/src/misKernel.cpp
+VPP_FLAGS += -DMIS_entries=2
+VPP_FLAGS += -DMIS_numChannels=16
 endif
 
 ifneq (,$(shell echo $(XPLATFORM) | awk '/u50/'))
 VPP_LDFLAGS_misKernel_temp += --config $(CUR_DIR)/conn_u50.cfg
 VPP_LDFLAGS_misKernel_temp += --kernel_frequency 300
+SRCS=$(XFLIB_DIR)/mis_kernel/src/misKernel.cpp
+VPP_FLAGS += -DMIS_entries=2
+VPP_FLAGS += -DMIS_numChannels=16
 endif
 
 VPP_LDFLAGS_misKernel += $(VPP_LDFLAGS_misKernel_temp)
@@ -111,7 +133,7 @@ xclbin: check_vpp $(BINARY_CONTAINERS)
 build: xclbin
 
 # ################ Setting Rules for Binary Containers (Building Kernels) ################
-$(TEMP_DIR)/misKernel.xo: $(XFLIB_DIR)/mis_kernel/src/misKernel.cpp
+$(TEMP_DIR)/misKernel.xo: $(SRCS)
 	$(ECHO) "Compiling Kernel: misKernel"
 	mkdir -p $(TEMP_DIR)
 	$(VPP) -c $(misKernel_VPP_FLAGS) $(VPP_FLAGS) -k misKernel -I'$(<D)' --temp_dir $(TEMP_DIR) --report_dir $(TEMP_REPORT_DIR) -o'$@' '$<'

@@ -64,7 +64,11 @@ endif
 
 USE_F1 = 0
 ifeq ($(USE_F1),1)
-    CXXFLAGS += -D USE_F1
+    CXXFLAGS += -D USE_F1 
+endif
+
+ifeq ($(deviceNames), xilinx_aws-vu9p-f1_shell-v04261818_201920_2)
+	C++FLAGS += -D DDRBASED
 endif
 
 ## Target: libFuzzyMatch.so
