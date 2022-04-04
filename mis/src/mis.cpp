@@ -68,8 +68,9 @@ class MisImpl {
     xrt::device mDevice;
     xrt::kernel mKernel;
     xrt::bo d_rowPtr;
+    xrt::bo d_mPrior;
 
-    std::vector<uint16_t, aligned_allocator<uint16_t> > mPrior;
+    uint16_t* mPrior;
     GraphCSR* mOrigGraph;
     std::vector<int, aligned_allocator<int> > mRowPtr;
 #ifdef USE_HBM
@@ -85,8 +86,9 @@ class MisImpl {
     void startMis(const std::string& xclbinPath, const std::string& deviceNames);
     void setGraph(GraphCSR* graph);
     void graphPadding();
-    std::vector<int> executeMIS();
+    std::vector<std::vector<int> > executeMIS(int iter);
     void evict(const std::vector<int>&);
+    void fresh();
     void genPrior();
     bool verifyMis();
 
@@ -126,12 +128,24 @@ int MisImpl::getDevice(const std::string& deviceNames) {
     return status;
 }
 
+/*
 void MIS::evict(const std::vector<int>& list) {
     pImpl_->evict(list);
 }
+*/
+
+void MisImpl::fresh() {
+    for (int i = 0; i < mOrigGraph->n; i++) {
+        int st = mPrior[i] >> 14;
+        if (st == 1 || mPrior[i] == 0xc000)
+            mPrior[i] = 0xc000;
+        else
+            mPrior[i] = mPrior[i] & 0x3fff;
+    }
+}
 
 void MisImpl::evict(const std::vector<int>& list) {
-    for (int i = 0; i < mPrior.size(); i++) {
+    for (int i = 0; i < mOrigGraph->n; i++) {
         mPrior[i] = mPrior[i] & 0x3fff;
     }
     for (const int& v : list) {
@@ -200,7 +214,6 @@ void MisImpl::startMis(const std::string& xclbinPath, const std::string& deviceN
 void MisImpl::genPrior() {
     constexpr int LargeNum = 65535;
     int n = mOrigGraph->n;
-    mPrior.resize(n);
     // int aveDegree = graph->colIdx.size() / n;
     int aveDegree = mOrigGraph->colIdxSize / n;
     for (int i = 0; i < n; i++) {
@@ -292,60 +305,65 @@ void MisImpl::setGraph(GraphCSR* graph) {
     // std::unique_ptr<GraphCSR>  graphAfter{createFromGraph(graphAdj.get())};
     // auto start = chrono::high_resolution_clock::now();
     // generate h_prior
-    genPrior();
     graphPadding();
 
 #ifdef USE_HBM
     int memSize = mRowPtr[n] / MIS_numChannels;
     for (int i = 0; i < MIS_numChannels; i++) d_sync[i] = xrt::bo(d_colIdx[i], memSize * sizeof(int), 0);
     for (auto& bo : d_sync) bo.sync(XCL_BO_SYNC_BO_TO_DEVICE);
+    d_mPrior = xrt::bo(mDevice, n * sizeof(uint16_t), mKernel.group_id(2 + MIS_numChannels));
 #else
     int memSize = mRowPtr[n];
     d_sync = xrt::bo(d_colIdx, memSize * sizeof(int), 0);
     d_sync.sync(XCL_BO_SYNC_BO_TO_DEVICE);
+    d_mPrior = xrt::bo(mDevice, n * sizeof(uint16_t), mKernel.group_id(3));
 #endif
 
+    mPrior = d_mPrior.map<uint16_t*>();
+    genPrior();
     d_rowPtr = xrt::bo(mDevice, (void*)mRowPtr.data(), mRowPtr.size() * sizeof(int), mKernel.group_id(1));
     d_rowPtr.sync(XCL_BO_SYNC_BO_TO_DEVICE);
 }
 
-std::vector<int> MIS::executeMIS() {
-    return pImpl_->executeMIS();
+std::vector<std::vector<int> > MIS::executeMIS(int iter) {
+    return pImpl_->executeMIS(iter);
 }
 
-std::vector<int> MisImpl::executeMIS() {
+std::vector<std::vector<int> > MisImpl::executeMIS(int iter) {
     auto run = xrt::run(mKernel);
     int nargs = 0;
+    run.set_arg(nargs++, mOrigGraph->n);
+    run.set_arg(nargs++, d_rowPtr);
 #ifdef USE_HBM
-    auto d_mPrior =
-        xrt::bo(mDevice, (void*)mPrior.data(), mPrior.size() * sizeof(uint16_t), mKernel.group_id(2 + MIS_numChannels));
-    d_mPrior.sync(XCL_BO_SYNC_BO_TO_DEVICE);
-
-    run.set_arg(nargs++, mOrigGraph->n);
-    run.set_arg(nargs++, d_rowPtr);
     for (xrt::bo& bo : d_sync) run.set_arg(nargs++, bo);
-    run.set_arg(nargs++, d_mPrior);
 #else
-    auto d_mPrior = xrt::bo(mDevice, (void*)mPrior.data(), mPrior.size() * sizeof(uint16_t), mKernel.group_id(3));
-    d_mPrior.sync(XCL_BO_SYNC_BO_TO_DEVICE);
-
-    run.set_arg(nargs++, mOrigGraph->n);
-    run.set_arg(nargs++, d_rowPtr);
     run.set_arg(nargs++, d_sync);
-    run.set_arg(nargs++, d_mPrior);
 #endif
-    run.start();
-    run.wait();
-    d_mPrior.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
-    // verifyMis();
+    run.set_arg(nargs++, d_mPrior);
 
-    std::vector<int> result;
-    result.reserve(mPrior.size());
-    for (int idx = 0; idx < mPrior.size(); idx++) {
-        int rp = mPrior[idx] >> 14;
-        if (rp == 1) result.push_back(idx);
+    int size = 0;
+    int n = mOrigGraph->n;
+    iter = iter <= 0 || iter > n ? n : iter;
+    std::vector<std::vector<int> > ret;
+    ret.reserve(iter);
+
+    for (int i = 0; i < iter && size < n; i++) {
+        fresh();
+        d_mPrior.sync(XCL_BO_SYNC_BO_TO_DEVICE);
+        run.start();
+        run.wait();
+        d_mPrior.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
+
+        std::vector<int> result;
+        result.reserve(n);
+        for (int idx = 0; idx < n; idx++) {
+            int rp = mPrior[idx] >> 14;
+            if (rp == 1 && mPrior[idx] != 0xc000) result.push_back(idx);
+        }
+        ret.push_back(result);
+        size += result.size();
     }
-    return result;
+    return ret;
 }
 
 bool MisImpl::verifyMis() {

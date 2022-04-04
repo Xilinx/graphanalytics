@@ -137,56 +137,24 @@ int main(int argc, const char* argv[]) {
     readBin(in_dir + "/rowPtr.bin", (n + 1) * sizeof(int), h_rowPtr);
     readBin(in_dir + "/colIdx.bin", nz * sizeof(int), h_colIdx);
 
-    // GraphCSR<std::vector<int> > graph(h_rowPtr, h_colIdx);
     xmis.startMis();
-    GraphCSR graph(std::move(h_rowPtr), std::move(h_colIdx));    
-    double total = 0;
+    GraphCSR graph(std::move(h_rowPtr), std::move(h_colIdx));
 
-#if 1
     xmis.setGraph(&graph);
     std::vector<int> list, countList;
     std::vector<double> timeList;
-    for (int iter = 0; list.size() < n; iter++) {
-        auto start = std::chrono::high_resolution_clock::now();
-        xmis.evict(list);
-        auto res = xmis.executeMIS();
-        auto stop = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> duration = stop - start;
-        double elapsed = duration.count();
-        total += elapsed;
-        timeList.push_back(elapsed);
-        countList.push_back(res.size());
-        list.insert(list.end(), res.begin(), res.end());
-        std::cout << "Iter: " << iter << ", list size: " << list.size() << ", time: " << elapsed
-                  << "s and total time: " << total << "s." << std::endl;
+    auto start = std::chrono::high_resolution_clock::now();
+    auto res = xmis.executeMIS();
+    auto stop = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> duration = stop - start;
+    double elapsed = duration.count();
+    int size = 0;
+    for (int i = 0; i < res.size(); i++) {
+        auto& list = res[i];
+        // std::cout << "Iter: " << i << " scheduled " << list.size() << " trips." << std::endl;
+        size += list.size();
     }
-    writeBin("./misTime.bin", timeList);
-    writeBin("./misSize.bin", countList);
-#else
-    std::vector<int> list, countList, edgeList;
-    std::vector<double> timeList;
-    for (int iter = 0; list.size() < n; iter++) {
-        graph.isolateVertex(list);
-        if(graph.colIdxSize % 2 != 0) {
-            std::cout << "graph is not symmetric." << std::endl;
-            exit(EXIT_FAILURE);
-        }
-        edgeList.push_back(graph.colIdxSize / 2);
-        xmis.setGraph(&graph);
-        auto start = std::chrono::high_resolution_clock::now();
-        list = xmis.executeMIS();
-        auto stop = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> duration = stop - start;
-        double elapsed = duration.count();
-        total += elapsed;
-        timeList.push_back(elapsed);
-        countList.push_back(list.size());
-        std::cout << "Iter: " << iter << ", list size: " << list.size() << ", time: " << elapsed
-                  << "s and total time: " << total << "s." << std::endl;
-    }
-    writeBin("./misTime.bin", timeList);
-    writeBin("./edgeCount.bin", edgeList);
-    writeBin("./misSize.bin", countList);
-#endif
+    std::cout << size << " trip(s) were scheduled in " << res.size()
+              << " kernel call(s) and the total execution time is " << elapsed << "s." << std::endl;
     return 0;
 }

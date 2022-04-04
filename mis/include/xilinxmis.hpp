@@ -146,8 +146,8 @@ class MIS {
     void startMis();
     // set the graph and internal pre-process the graph
     void setGraph(GraphCSR* graph);
-    std::vector<int> executeMIS();
-    void evict(const std::vector<int>&);
+    std::vector<std::vector<int> > executeMIS(int iter = 1);
+    // void evict(const std::vector<int>&);
     size_t count() const;
 
    private:
