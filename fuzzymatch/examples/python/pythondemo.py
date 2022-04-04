@@ -46,13 +46,13 @@ trans_num=100
 test_input = str(args.inputFile)
 inputFileIdx = int(args.inputIndex)
 
-stats=pd.read_csv(test_input, delimiter=',', usecols=[patternIdx])
-patternVecs=pd.read_csv(patternFile, delimiter=',',usecols=[inputFileIdx])
+stats=pd.read_csv(test_input, delimiter=',', usecols=[inputFileIdx])
+patternVecs=pd.read_csv(patternFile, delimiter=',',usecols=[patternIdx])
 
 totalEntities = 10000000
 
-stats=stats.iloc[1:]
-patternVecs=patternVecs.iloc[1:]
+stats=stats.iloc[0:]
+patternVecs=patternVecs.iloc[0:]
 patternVec=patternVecs.to_numpy()
 data_vec=stats.to_numpy()
 
@@ -60,7 +60,10 @@ inputVec=[]
 inputId=[]
 print(len(patternVec))
 
-for idx in range(1,len(patternVec)):
+#for idx in range(0,10):
+#    print(patternVec[idx][0])
+
+for idx in range(0,len(patternVec)):
     #print(patternVec[idx][0])
     inputVec.append(patternVec[idx][0])
 
@@ -80,7 +83,7 @@ stat_check=mchecker.fuzzyMatchLoadVec(inputVec,inputId)
 test_transaction=[]
 print('the size of data_vec',len(data_vec))
 
-for idx in range (1,len(data_vec)):
+for idx in range (0,len(data_vec)):
     test_transaction.append(data_vec[idx][0])
 
 result_list={}

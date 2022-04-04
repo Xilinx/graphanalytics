@@ -16,7 +16,7 @@ Setup Cosine Similarity for Stand-Alone Runs
     $ conda env list
     $ conda create -n fpga python=3.6
     $ conda activate fpga
-    (fpga)$ conda install -r /opt/xilinx/apps/graphanalytics/requirements.txt
+    (fpga)$ pip install -r /opt/xilinx/apps/graphanalytics/requirements.txt
 
 **Using local python**
 

@@ -20,20 +20,6 @@ SHELL := /bin/bash
 STANDALONE_NAME=cosinesim
 PRODUCT_VER=$(strip $(shell cat VERSION))
 
-#
-# Define __PROFILING__ to turn on profiling message from compute units
-#
-ifndef XILINX_XRT
-    XILINX_XRT = /opt/xilinx/xrt
-    export XILINX_XRT
-endif
-
-ifndef XILINX_XRM
-    XILINX_XRM=/opt/xilinx/xrm
-    export XILINX_XRM
-endif
-
-
 .DELETE_ON_ERROR:
 .PHONY: all
 
@@ -361,7 +347,7 @@ else ifeq ($(deviceNames),xilinx_u55c_gen3x16_xdma_base_2)
     XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U55C)
 endif
 
-run: cppTest
+run: stage cppTest
 	set -e; \
 	. $(XILINX_XRT)/setup.sh && \
 	. $(XILINX_XRM)/setup.sh && \
@@ -570,18 +556,6 @@ stage2: cppTest $(STAGE_SUBDIRS) stage-examples $(STAGE_ALL_FILES)
 $(STAGE_SUBDIRS):
 	mkdir -p $@
 
-#######################################################################################################################
-#
-# Packaging
-#
-
-OSDIST = $(shell lsb_release -si)
-DIST_TARGET =
-ifeq ($(OSDIST),Ubuntu)
-    DIST_TARGET = DEB
-else ifeq ($(OSDIST),CentOS)
-    DIST_TARGET = RPM
-endif
 
 examples/python/run.sh: VERSION
 	# update PRODUCT_VER in python run.sh
@@ -590,7 +564,7 @@ examples/python/run.sh: VERSION
 
 update-version : examples/python/run.sh
 
-# Common targets for all products
+# Common targets for all products (packaging)
 include ../common/Makefile-common.mk
 
 #######################################################################################################################
@@ -603,30 +577,6 @@ include ../common/Makefile-common.mk
 javaTest:
 	cd test/java && ant
 
-#######################################################################################################################
-#
-# Clean
-#
-
-#### Clean target deletes all generated files ####
-.PHONY: clean clean-xclbin clean-pyenv clean-all
-
-clean:
-	rm -rf Debug Release $(JAVA_LIB_DIR) $(BUILD_DIR) $(STAGE_DIR)
-	@echo "Note: because the XCLBIN file takes so long to generate, it is not removed with this 'clean' target."
-	@echo "To clean the XCLBIN, use 'make clean-xclbin'"
-	cd package; make clean
-	
-clean-xclbin:
-	rm -f $(XCLBIN_FILE_U50) $(XCLBIN_FILE_U55C)
-
-cleanpy:
-	rm -rf $(PYTHONENV_NAME)
-
-cleanall: clean cleanpy
-	# remove generated packages as well
-	rm -f ./package/*.deb ./package/*.rpm 
-	
 
 .PHONY: help
 help: help-common

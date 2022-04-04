@@ -81,7 +81,7 @@ public:
     PrivateImpl(const Options &options, unsigned valueSize){
         //errorCode_ = NoError;
         valueSize_ = valueSize;
-       if(valueSize_ != 4) {
+        if(valueSize_ != 4) {
             std::cout << "DEBUG: valueType is not supported" << std::endl;
             std::ostringstream oss;
             oss << "the only Value size currently supported is 32 bits.  Please ensure that you have constructed the CosineSim object with a 32-bit template parameter" <<std::endl;
@@ -119,6 +119,13 @@ public:
             kernelName_ = "denseSimilarityKernel4PU";
             kernelAlias_ = "denseSimilarityKernel4PU_U55C";
             numPUs_ = 4;
+        } else {
+            std::cout << "DEBUG: deviceNames " << deviceNames << " is not supported" << std::endl;
+            std::ostringstream oss;
+            oss << "Supported deviceNames: xilinx_u50_gen3x16_xdma_201920_3 and xilinx_u55c_gen3x16_xdma_base_2" <<std::endl;
+            throw xilinx_apps::cosinesim::Exception(oss.str());
+            std::cerr << "ERROR: deviceNames " << deviceNames << " not supported" <<std::endl;
+            abort();
         }
 
         if (!options.xclbinPath.empty()) {

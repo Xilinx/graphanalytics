@@ -22,9 +22,11 @@
 #include "xilinx_runtime_common.hpp"
 #include "fuzzymatch.hpp"
 
+
+
 namespace xilinx_apps {
 namespace fuzzymatch {
-    #ifdef AWSF1
+    #ifdef DDRBASED
     const int max_num_of_entries_for_big_tbl = 100*1024*1024;
     //For DDR-based AWS F1/U200/U250 cards, the maximum batch_num should be 4096*1024
     const int max_batch_num = 4096*1024;
@@ -165,9 +167,7 @@ namespace fuzzymatch {
                 status = 0; // found a matching device
                 break;
             } else {
-#ifndef NDEBUG                
                 std::cout << "INFO: Skipped non-requested device: " << curDeviceName << " ID=" << i << std::endl;
-#endif                
             }
         }
     

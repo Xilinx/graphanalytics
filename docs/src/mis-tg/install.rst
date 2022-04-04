@@ -13,7 +13,7 @@ product. Follow the steps in *only one* of the two sections below.
 Install the Maximal Independent Set from a Package
 **************************************************
 
-* Get the installation package **xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz** from the
+* Get the installation package **amd-graphanalytics-install-%PACKAGE_VERSION.tar.gz** from the
   `Database Analytics POC Secure Site <%PACKAGE_LINK>`_.
   This package contains the Maximal Independent Set as well as its dependencies.
 
@@ -22,8 +22,8 @@ Install the Maximal Independent Set from a Package
 
   .. code-block:: bash
 
-    tar xzf xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz
-    cd xilinx-tigergraph-install && ./install.sh -p mis
+    tar xzf amd-graphanalytics-install-%PACKAGE_VERSION.tar.gz
+    cd amd-graphanalytics-install && ./install.sh -p mis
 
 * Install the Maximal Independent Set plugin into the TigerGraph installation 
   targeting a supported Alveo device. Below is an example targeting Alveo U50"
