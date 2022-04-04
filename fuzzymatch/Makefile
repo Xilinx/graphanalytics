@@ -395,8 +395,6 @@ else ifeq ($(deviceNames), xilinx_u55c_gen3x16_xdma_base_2)
     XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U55C)
 else ifeq ($(deviceNames), xilinx_u250_gen3x16_xdma_shell_2_1)
     XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U250)
-else ifeq ($(deviceNames), xilinx_u250_gen3x16_base_2)
-    XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U250)	
 endif
 
 

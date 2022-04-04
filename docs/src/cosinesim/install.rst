@@ -12,7 +12,7 @@ Installing the Alveo Accelerator Cards
 
 Installing Cosine Similarity Library from a Pre-built Package
 -------------------------------------------------------------
-* Get the installation package **xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz** from the
+* Get the installation package **amd-graphanalytics-install-%PACKAGE_VERSION.tar.gz** from the
   `Database Analytics POC Secure Site <%PACKAGE_LINK>`_.
 
 * Install Xilinx CosineSim and Recommendation Engine Alveo Products and dependencies 
@@ -20,8 +20,8 @@ Installing Cosine Similarity Library from a Pre-built Package
 
 .. code-block:: bash
 
-   tar xzf xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz
-   cd xilinx-tigergraph-install && ./install.sh -p cosinesim
+   tar xzf amd-graphanalytics-install-%PACKAGE_VERSION.tar.gz
+   cd amd-graphanalytics-install && ./install.sh -p cosinesim
 
 
 Setting up the Alveo Accelerator Card

@@ -51,12 +51,12 @@ else ifeq ($(OSDIST),CentOS)
 	OSDISTLC = centos
 endif
 
-# DIST_RELEASE = 1: release the package to xilinx-tigergraph-install area
+# DIST_RELEASE = 1: release the package to amd-graphanalytics-install area
 DIST_RELEASE = 0
 
 ARCH = $(shell uname -p)
 CPACK_PACKAGE_FILE_NAME= xilinx-$(STANDALONE_NAME)-$(PRODUCT_VER)_$(OSVER)-$(ARCH).$(DIST_TARGET)
-DIST_INSTALL_DIR = $(GRAPH_ANALYTICS_DIR)/scripts/xilinx-tigergraph-install/$(OSDISTLC)-$(OSVER_DIR)/$(STANDALONE_NAME)
+DIST_INSTALL_DIR = $(GRAPH_ANALYTICS_DIR)/scripts/amd-graphanalytics-install/$(OSDISTLC)-$(OSVER_DIR)/$(STANDALONE_NAME)
 
 .PHONY: dist
 
