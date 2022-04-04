@@ -70,14 +70,14 @@ if [ "$compile_mode" -eq 1 ]; then
 fi
 
 if [ "$compile_mode" -eq 1 ] || [ "$compile_mode" -eq 2 ]; then
-    gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/tg_maximal_indep_set.gsql)"
+    gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/tg_supply_chain_schedule.gsql)"
     echo " "
-    gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/xlnx_maximal_indep_set.gsql | sed "s/@graph/$xgraph/")"
+    gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/xlnx_supply_chain_schedule.gsql | sed "s/@graph/$xgraph/")"
 fi
 
 if [ "$run_mode" -eq 1 ] || [ "$run_mode" -eq 3 ]; then
-    echo "Run query tg_maximal_indep_set"
-    time gsql -u $username -p $password -g $xgraph "run query tg_maximal_indep_set(\"travel_plan\", \"tp2tp\", 100, False, \"\")"
+    echo "Run query tg_supply_chain_schedule"
+    time gsql -u $username -p $password -g $xgraph "run query tg_supply_chain_schedule(\"travel_plan\", \"tp2tp\", 100, 0, False, \"/tmp/tg-mis_schedules.log\", \"/tmp/tg-mis_mdata.log\")"
 fi
 
 # Run on FPGA
@@ -89,5 +89,5 @@ if [ "$run_mode" -eq 2 ] || [ "$run_mode" -eq 3 ]; then
     time gsql -u $username -p $password -g $xgraph "run query build_csr(\"travel_plan\", \"tp2tp\")"
 
     echo "Run query maximal_indep_set_alveo"
-    time gsql -u $username -p $password -g $xgraph "run query maximal_indep_set_alveo(\"travel_plan\", \"tp2tp\", False, \"\")"
+    time gsql -u $username -p $password -g $xgraph "run query supply_chain_schedule_alveo(\"travel_plan\", \"tp2tp\", 0, False, \"/tmp/xlnx-mis_schedules.log\", \"/tmp/xlnx-mis_mdata.log\")"
 fi

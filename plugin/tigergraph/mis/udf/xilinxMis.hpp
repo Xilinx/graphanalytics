@@ -63,9 +63,11 @@ inline void udf_build_col_idx(ListAccum<int> neighbors)
         context->addColIdxEntry(neighbors.get(i));
 }
 
-inline ListAccum<VERTEX> udf_xilinx_mis()
+inline ListAccum<VERTEX> udf_xilinx_mis(int num_schedules, int total_trips)
 {
+    ListAccum<ListAccum<VERTEX>> schedules;
     ListAccum<VERTEX> res;
+    int total_scheduled;
     xilMis::Context *context = xilMis::Context::getContext();
 
     // build/get MIS object
@@ -74,13 +76,26 @@ inline ListAccum<VERTEX> udf_xilinx_mis()
     // set MIS object
     context->setMisGraph();
 
-    // execute MIS
-    std::vector<int> mis_res = pMis->executeMIS();
+    std::vector<int> scheduled_list, countList;
+    std::vector<double> timeList;
+    for (int i = 0; scheduled_list.size() < total_trips && i < num_schedules; i++ ) {
+        // mark vertices inactive
+        pMis->evict(scheduled_list)
 
-    for(int &vid : mis_res)
-        res += VERTEX(context->v_id_map[vid]);
+        // execute MIS
+        std::vector<int> mis_res = pMis->executeMIS();
 
-    return res;
+        // add to lists
+        for(int &vid : mis_res) {
+            res += VERTEX(context->v_id_map[vid]);
+            scheduled_list.push_back(vid);
+        }
+
+        schedules += res;
+        res.clear();
+    }
+
+    return schedules;
 }
 
 // mergeHeaders 1 section body end xilinxMis DO NOT REMOVE!
