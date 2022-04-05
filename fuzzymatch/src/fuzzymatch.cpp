@@ -160,7 +160,7 @@ namespace fuzzymatch {
         for (uint32_t i = 0; i < totalXilinxDevices; ++i) {
             curDeviceName = devices0[i].getInfo<CL_DEVICE_NAME>();
     
-            if (deviceNames == curDeviceName) {
+            if (deviceNames == curDeviceName || (deviceNames == "azure_u250" && curDeviceName == "xilinx_u250_gen3x16_xdma_shell_2_1")) {
                 std::cout << "INFO: Found requested device: " << curDeviceName << " ID=" << i << std::endl;
                 // save the matching device
                 device = devices0[i];

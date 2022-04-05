@@ -207,15 +207,19 @@ XCLBIN_FILE_U55C = $(L2_BUILD_DIR_U55C)/$(XCLBIN_NAME_U55C)
 XCLBIN_INSTALLED_NAME_U55C = fuzzy_xilinx_u55c_gen3x16_xdma_2_202110_1.xclbin
 XCLBIN_INSTALLED_U55C =/opt/xilinx/apps/graphanalytics/fuzzymatch/$(PRODUCT_VER)/xclbin/$(XCLBIN_INSTALLED_NAME_U55C)
 
-#U250
+#U250/Azure
 L2_TOP_DIR_U250= $(GRAPH_ANALYTICS_DIR)/L2/fuzzy_kernel
 L2_XDEVICE_U250 = xilinx_u250_gen3x16_xdma_2_1_202010_1
 L2_BUILD_DIR_U250 = $(L2_TOP_DIR_U250)/build_dir.hw.$(L2_XDEVICE_U250)
-XCLBIN_NAME_U250 = fuzzy_kernel.xclbin
+XCLBIN_NAME_U250 = fuzzy_kernel.bit.xclbin
 XCLBIN_FILE_U250 = $(L2_BUILD_DIR_U250)/$(XCLBIN_NAME_U250)
 XCLBIN_INSTALLED_NAME_U250 = fuzzy_xilinx_u250_gen3x16_xdma_2_1_202010_1.xclbin
 XCLBIN_INSTALLED_U250 =/opt/xilinx/apps/graphanalytics/fuzzymatch/$(PRODUCT_VER)/xclbin/$(XCLBIN_INSTALLED_NAME_U250)
 
+XCLBIN_NAME_AZURE_U250 = fuzzy_kernel.azure.xclbin
+XCLBIN_FILE_AZURE_U250 = $(L2_BUILD_DIR_U250)/$(XCLBIN_NAME_AZURE_U250)
+XCLBIN_INSTALLED_NAME_AZURE_U250 = fuzzy_xilinx_azure_u250_gen3x16_xdma_2_1_202010_1.xclbin
+XCLBIN_INSTALLED_AZURE_U250 =/opt/xilinx/apps/graphanalytics/fuzzymatch/$(PRODUCT_VER)/xclbin/$(XCLBIN_INSTALLED_NAME_AZURE_U250)
 
 .PHONY: xclbin
 
@@ -273,6 +277,17 @@ $(XCLBIN_FILE_U250):
     	false; \
 	fi	
 
+$(XCLBIN_FILE_AZURE_U250):
+	@if [ -r $(XCLBIN_INSTALLED_AZURE_U250) ]; then \
+	    echo "INFO: The XCLBIN file $(XCLBIN_FILE_AZURE_U250) is missing.  Copying from installed area."; \
+	    cp -r $(XCLBIN_INSTALLED_AZURE_U250) $@; \
+	else \
+	    echo "INFO: The XCLBIN file $(XCLBIN_FILE_AZURE_U250) is missing."; \
+	    echo "Because building an XCLBIN file can be an all-day proposition, you have two choices for completing this build:"; \
+	    echo "1. Copy a pre-built XCLBIN to the target location above.  (Recommended for developers)"; \
+	    echo "2. Do 'make xclbin' and go for a very long coffee break.  (Recommended for build automation)"; \
+    	false; \
+	fi	
 #######################################################################################################################
 #
 # python API wrapper
@@ -399,6 +414,8 @@ else ifeq ($(deviceNames), xilinx_u55c_gen3x16_xdma_base_2)
     XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U55C)
 else ifeq ($(deviceNames), xilinx_u250_gen3x16_xdma_shell_2_1)
     XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U250)
+else ifeq ($(deviceNames), azure_u250)
+    XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_AZURE_U250)	
 endif
 
 
@@ -536,6 +553,9 @@ STAGE_XCLBIN_FILE_U55C = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U55C)
 STAGE_XCLBIN_NAME_U250 = $(XCLBIN_INSTALLED_NAME_U250)
 STAGE_XCLBIN_FILE_U250 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U250)
 
+STAGE_XCLBIN_NAME_AZURE_U250 = $(XCLBIN_INSTALLED_NAME_AZURE_U250)
+STAGE_XCLBIN_FILE_AZURE_U250 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_AZURE_U250)
+
 
 $(STAGE_XCLBIN_FILE_U50): $(XCLBIN_FILE_U50)
 	cp -f $^ $@
@@ -547,6 +567,9 @@ $(STAGE_XCLBIN_FILE_U55C): $(XCLBIN_FILE_U55C)
 	cp -f $^ $@
 
 $(STAGE_XCLBIN_FILE_U250): $(XCLBIN_FILE_U250)
+	cp -f $^ $@
+
+$(STAGE_XCLBIN_FILE_AZURE_U250): $(XCLBIN_FILE_AZURE_U250)
 	cp -f $^ $@	
 
 
@@ -567,7 +590,9 @@ STAGE_ALL_FILES = \
 
 # Conditionally add XCLBIN files
 ifeq ($(INC_ALL_XCLBINS),1) 
-	STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U50) $(STAGE_XCLBIN_FILE_F1) $(STAGE_XCLBIN_FILE_U55C) $(STAGE_XCLBIN_FILE_U250)
+	STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U50) $(STAGE_XCLBIN_FILE_F1) \
+	                   $(STAGE_XCLBIN_FILE_U55C) $(STAGE_XCLBIN_FILE_U250) \
+					   $(STAGE_XCLBIN_FILE_AZURE_U250)
 else ifeq ($(deviceNames), xilinx_u50_gen3x16_xdma_201920_3)
     STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U50)
 else ifeq ($(deviceNames), xilinx_aws-vu9p-f1_shell-v04261818_201920_2)
@@ -576,8 +601,8 @@ else ifeq ($(deviceNames), xilinx_u55c_gen3x16_xdma_base_2)
     STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U55C)
 else ifeq ($(deviceNames), xilinx_u250_gen3x16_xdma_shell_2_1)
     STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U250)
-else ifeq ($(deviceNames), xilinx_u250_gen3x16_base_2)
-    STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U250)	
+else ifeq ($(deviceNames), azure_u250)
+    STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_AZURE_U250)	
 endif
 
 # make staging areaing in two steps so intermediate outputs can be included in the 
@@ -614,6 +639,7 @@ help: help-common
 	@echo "                 xilinx_u55c_gen3x16_xdma_base_2"	
 	@echo "                 xilinx_u250_gen3x16_xdma_shell_2_1"
 	@echo "                 xilinx_aws-vu9p-f1_shell-v04261818_201920_2"
+	@echo "                 azure_u250"
 	@echo "  patternFile  :  Pattern file to match against (default=./examples/data/ref-names.csv)"
 	@echo "  patternIndex :  The column index to extract field of interest from the pattern file (default=1)"
 	@echo "  inputFile    :  Input file that needs to be matched against patternFile (default=./examples/data/new-names.csv)"
