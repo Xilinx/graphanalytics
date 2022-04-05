@@ -110,7 +110,8 @@ int MisImpl::getDevice(const std::string& deviceNames) {
     for (int i = 0; i < totalXilinxDevices; ++i) {
         curDeviceName = devices0[i].getInfo<CL_DEVICE_NAME>();
 
-        if (deviceNames == curDeviceName || (deviceNames == "xilinx_aws-vu9p-f1_shell-v04261818_201920_3" && curDeviceName == "xilinx_aws-vu9p-f1_dynamic-shell")) {
+        if (deviceNames == curDeviceName || 
+            (deviceNames == "xilinx_aws-vu9p-f1_shell-v04261818_201920_3" && curDeviceName == "xilinx_aws-vu9p-f1_dynamic-shell")) {
             std::cout << "INFO: Found requested device: " << curDeviceName << " ID=" << i << std::endl;
 // save the matching device
 #ifdef OPENCL
