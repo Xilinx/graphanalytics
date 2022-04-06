@@ -1,0 +1,156 @@
+/*
+   Copyright 2017-2019 TigerRes_Graph Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
+DROP QUERY tg_supply_chain_schedule
+
+CREATE QUERY tg_supply_chain_schedule(
+    STRING v_type,                      // vertex type
+    STRING e_type,                      // edge types to traverse
+    INT max_iter_per_schedule = 100,    // iteration limit for the MIS algorithm
+    INT num_schedule = 10,              // total number of schedules to generate; 0 means generate all possible
+    BOOL print_accum = TRUE,            // print meta data for each schedule to stdout
+    STRING sched_file_path = "",        // if set, print meta data for each schedule to file
+    STRING sched_metadata_path = "")    // if set, print vertex MISs for each schedule to file
+{
+    /*
+    Maximal Independent Set query only supports one edge type and works only for undirected Res_Graphs at the moment (8/12/20).
+    */
+    TYPEDEF TUPLE <INT sz, INT itr, DOUBLE runtime> MIS_MDATA;
+
+    DOUBLE vm_peak, vm_hwm;
+    INT ret;
+
+    AndAccum @and_active;
+    OrAccum @or_selected;
+    AndAccum @valid;
+    ListAccum<ListAccum<STRING>> @@trip_schedule;
+    ListAccum<MIS_MDATA> @@mis_mdata;
+    ListAccum<STRING> @@mis;
+    INT total_scheduled;
+    DOUBLE runtime;
+    MinAccum<INT> @min_vid;
+    FILE fs(sched_file_path);
+    FILE fm(sched_metadata_path);
+    INT total_trips = 0;
+    INT remaining_verts = 0;
+    INT mis_iter = 0;
+    INT sched_iter = 0;
+    BOOL full_schedule = False;
+    SumAccum<STRING> @@mis_string;
+
+    IF sched_metadata_path != "" THEN
+        fm.println("MIS size,Iterations,RunTime(ms)");
+    END;
+
+    IF num_schedule == 0 THEN
+        full_schedule = True;
+    END;
+
+    Res_Graph = {v_type.*};
+    total_trips = Res_Graph.size();
+    WHILE total_scheduled < total_trips AND (sched_iter < num_schedule OR full_schedule) DO
+
+        udf_reset_timer(true);
+        #Start = {v_type.*};
+        Res_Graph = SELECT s
+                FROM Res_Graph:s
+                WHERE s.@valid == TRUE
+                ACCUM
+                    s.@and_active = TRUE,
+                    IF s.outdegree(e_type) == 0 THEN
+                        s.@or_selected += TRUE,
+                        s.@and_active += FALSE
+                    END
+                HAVING s.@and_active;
+
+        mis_iter = 0;
+        Start = SELECT s FROM Res_Graph:s;
+        WHILE Start.size()>0 AND mis_iter<max_iter_per_schedule DO
+            Start = SELECT s
+                    FROM Start:s
+                    POST-ACCUM
+                        s.@min_vid = 9223372036854775807;
+
+            TMP = SELECT s
+                  FROM Start:s-(e_type:e)->v_type:t
+                  WHERE t.@valid AND t.@and_active
+                  ACCUM
+                      s.@min_vid += getvid(t);
+
+            TMP = SELECT s
+                  FROM Start:s
+                  POST-ACCUM
+                      IF getvid(s) < s.@min_vid THEN
+                          s.@or_selected += TRUE,
+                          s.@and_active += FALSE
+                      END
+                  HAVING s.@or_selected;
+
+            TMP = SELECT s
+                  FROM TMP:s-(e_type:e)->v_type:t
+                  WHERE t.@valid
+                  ACCUM
+                      t.@and_active += FALSE;
+
+            Start = SELECT s
+                    FROM Start:s
+                    WHERE s.@and_active;
+            mis_iter = mis_iter+1;
+        END;
+
+        @@mis_string = "";
+        Start = {v_type.*};
+        Start = SELECT s
+                FROM Start:s
+                WHERE s.@or_selected AND s.@valid
+                ACCUM
+                    @@mis += s.tp_id,
+                    IF sched_file_path != "" THEN
+                        @@mis_string += s.tp_id + ","
+                    END,
+                    s.@valid += FALSE;
+
+        IF sched_file_path != "" THEN
+            fs.println(@@mis_string);
+        END;
+
+        @@trip_schedule += @@mis;
+        total_scheduled = total_scheduled+Start.size();
+        runtime = udf_elapsed_time(true);
+        @@mis_mdata += MIS_MDATA(Start.size(), mis_iter, runtime);
+
+        IF sched_metadata_path != "" THEN
+            fm.println(Start.size(), mis_iter, runtime);
+        END;
+
+        sched_iter = sched_iter+1;
+        @@mis.clear();
+    END;
+
+    print "TigerRes_Graph CPU" AS ComputationTechnique;
+    ret = udf_peak_memory_usage(vm_peak, vm_hwm);
+    PRINT vm_peak/1000000.0 as PeakVirtualMemoryInGB;
+    PRINT vm_hwm/1000000.0 as PeakResidentMemoryInGB;
+    PRINT total_scheduled as TripsScheduled;
+    PRINT sched_iter as NumSchedules;
+
+    IF print_accum THEN
+      PRINT @@mis_mdata;
+      #PRINT @@trip_schedule;
+    END;
+}
+
+
+INSTALL QUERY tg_supply_chain_schedule

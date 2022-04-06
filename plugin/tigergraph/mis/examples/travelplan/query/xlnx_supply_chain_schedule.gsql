@@ -15,7 +15,7 @@
  */
 
 USE GRAPH @graph
-DROP QUERY assign_ids, build_csr, maximal_indep_set_alveo
+DROP QUERY assign_ids, build_csr, supply_chain_schedule_alveo
 
 # Assign nice integer IDs to vertices
 CREATE QUERY assign_ids(STRING v_type) FOR GRAPH @graph
@@ -59,26 +59,51 @@ CREATE QUERY build_csr(STRING v_type, STRING e_type) FOR GRAPH @graph
     udf_build_row_ptr(@@row_ptr);
     PRINT udf_elapsed_time(true) AS CsrUdfTimeInMs;
 
+    udf_dump_csr();
+
     PRINT @@row_ptr.size() as NumberOfRows;
     PRINT non_zero_entries as NumberOfNonZeroEntries;
 }
 
-CREATE QUERY maximal_indep_set_alveo(STRING v_type, STRING e_type, BOOL print_accum = TRUE, STRING file_path = "") FOR GRAPH @graph
+CREATE QUERY supply_chain_schedule_alveo(
+    STRING v_type,                      // vertex type
+    STRING e_type,                      // edge types to traverse
+    INT num_schedule = 10,              // total number of schedules to generate; 0 means generate all possible
+    BOOL print_accum = TRUE,            // print meta data for each schedule to stdout
+    STRING sched_file_path = "",        // if set, print meta data for each schedule to file
+    STRING sched_metadata_path = "")    // if set, print vertex MISs for each schedule to file
+    FOR GRAPH @graph
 {
+    TYPEDEF TUPLE <INT sz, INT itr, DOUBLE runtime> MIS_MDATA;
+
     DOUBLE vm_peak, vm_hwm;
     INT ret;
-    ListAccum<vertex> @@mis;
-    FILE f(file_path);
+    ListAccum<ListAccum<vertex>> @@schedules;
+    ListAccum<INT> @@mis_mdata;
+    FILE fs(sched_file_path);
+    FILE fm(sched_metadata_path);
+    INT total_scheduled = 0;
+    INT mis_size = 0;
 
-    udf_reset_timer(true);    
+    IF sched_metadata_path != "" THEN
+        fm.println("MIS size");
+    END;
+
+    udf_reset_timer(true);
+
     # call Xilinx MIS UDF
-    @@mis += udf_xilinx_mis();
+    @@schedules += udf_xilinx_mis(num_schedule);
 
     # collect MIS vertex IDs
-    IF file_path != "" THEN
-        f.println("Vertex");
-        FOREACH i in RANGE[0, @@mis.size()] DO
-            f.println( @@mis.get(i) );
+    FOREACH i in RANGE[0, @@schedules.size()-1] DO
+        mis_size = @@schedules.get(i).size();
+        total_scheduled = total_scheduled + mis_size;
+        @@mis_mdata += mis_size;
+        IF sched_file_path != "" THEN
+            fs.println( @@schedules.get(i) );
+        END;
+        IF sched_metadata_path != "" THEN
+            fm.println( mis_size );
         END;
     END;
 
@@ -88,11 +113,12 @@ CREATE QUERY maximal_indep_set_alveo(STRING v_type, STRING e_type, BOOL print_ac
     ret = udf_peak_memory_usage(vm_peak, vm_hwm);
     PRINT vm_peak/1000000.0 as PeakVirtualMemoryInGB;
     PRINT vm_hwm/1000000.0 as PeakResidentMemoryInGB;
-    PRINT @@mis.size() as MisSize;
+    PRINT total_scheduled as TripsScheduled;
+    PRINT @@schedules.size() as NumSchedules;
 
     IF print_accum THEN
-      PRINT @@mis;
+      PRINT @@mis_mdata;
     END;
 }
 
-INSTALL QUERY assign_ids, build_csr, maximal_indep_set_alveo
+INSTALL QUERY assign_ids, build_csr, supply_chain_schedule_alveo
