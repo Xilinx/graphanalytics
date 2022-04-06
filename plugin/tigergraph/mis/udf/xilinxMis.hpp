@@ -24,6 +24,7 @@
 #include <cstdint>
 #include <vector>
 #include <random>
+#include <iostream>
 // mergeHeaders 1 section include end xilinxMis DO NOT REMOVE!
 
 namespace UDIMPL {
@@ -63,10 +64,32 @@ inline void udf_build_col_idx(ListAccum<int> neighbors)
         context->addColIdxEntry(neighbors.get(i));
 }
 
-inline ListAccum<VERTEX> udf_xilinx_mis(int num_schedules, int total_trips)
+inline void udf_dump_csr()
 {
-    ListAccum<ListAccum<VERTEX>> schedules;
-    ListAccum<VERTEX> res;
+    xilMis::Context *context = xilMis::Context::getContext();
+    std::vector<int> rowPtr = context->getRowPtr();
+    std::vector<int> colIdx = context->getColIdx();
+
+    std::ofstream row_file ("/tmp/rowPtr.bin", std::ios::out | std::ios::binary);
+    row_file.write(reinterpret_cast<const char*>(&rowPtr[0]), rowPtr.size()*4);
+    row_file.close();
+
+    std::ofstream col_file ("/tmp/colIdx.bin", std::ios::out | std::ios::binary);
+    col_file.write(reinterpret_cast<const char*>(&colIdx[0]), colIdx.size()*4);
+    col_file.close();
+
+    std::ofstream info_file ("/tmp/info.txt", std::ios::out);
+    info_file << "graph\n";
+    info_file << rowPtr.size()-1 << std::endl;
+    info_file << rowPtr.size()-1 << std::endl;
+    info_file << colIdx.size() << std::endl;
+    info_file.close();
+}
+
+inline ListAccum<ListAccum<VERTEX> > udf_xilinx_mis(int num_schedules)
+{
+    ListAccum<ListAccum<VERTEX> > scheduleAccum;
+    ListAccum<VERTEX> misAccum;
     int total_scheduled;
     xilMis::Context *context = xilMis::Context::getContext();
 
@@ -76,26 +99,21 @@ inline ListAccum<VERTEX> udf_xilinx_mis(int num_schedules, int total_trips)
     // set MIS object
     context->setMisGraph();
 
-    std::vector<int> scheduled_list, countList;
-    std::vector<double> timeList;
-    for (int i = 0; scheduled_list.size() < total_trips && i < num_schedules; i++ ) {
-        // mark vertices inactive
-        pMis->evict(scheduled_list)
+    // execute MIS
+    std::vector<std::vector<int> > schedules = pMis->executeMIS(num_schedules);
 
-        // execute MIS
-        std::vector<int> mis_res = pMis->executeMIS();
-
+    // collect results into TG accumulator
+    for (int i = 0; i < schedules.size(); i++ ) {
         // add to lists
-        for(int &vid : mis_res) {
-            res += VERTEX(context->v_id_map[vid]);
-            scheduled_list.push_back(vid);
+        for(int &vid : schedules[i]) {
+            misAccum += VERTEX(context->v_id_map[vid]);
         }
 
-        schedules += res;
-        res.clear();
+        scheduleAccum += misAccum;
+        misAccum.clear();
     }
 
-    return schedules;
+    return scheduleAccum;
 }
 
 // mergeHeaders 1 section body end xilinxMis DO NOT REMOVE!
