@@ -222,7 +222,7 @@ install()
         yum install -y "${RH_LIST[@]}"
         if [ $FLAVOR == "rhel" ] || [ $FLAVOR == "centos" ]; then
             if [ $VERSION -lt "8" ]; then
-                yum install -y devtoolset-6
+                yum install -y devtoolset-9
             fi
         fi
     fi
