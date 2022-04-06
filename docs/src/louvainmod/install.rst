@@ -14,7 +14,7 @@ Installing the Alveo Accelerator Cards
 
 Installing Louvain Modularity Library from a Pre-built Package
 -------------------------------------------------------------
-* Get the installation package **xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz** from the
+* Get the installation package **amd-graphanalytics-install-%PACKAGE_VERSION.tar.gz** from the
   `Database Analytics POC Secure Site <%PACKAGE_LINK>`_.
 
 * Install Xilinx Louvain Modularity and Community Detection Alveo products and dependencies 
@@ -22,8 +22,8 @@ Installing Louvain Modularity Library from a Pre-built Package
 
 .. code-block:: bash
 
-   tar xzf xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz
-   cd xilinx-tigergraph-install && ./install.sh -p louvainmod
+   tar xzf amd-graphanalytics-install-%PACKAGE_VERSION.tar.gz
+   cd amd-graphanalytics-install && ./install.sh -p louvainmod
 
 
 Setting up the Alveo Accelerator Card

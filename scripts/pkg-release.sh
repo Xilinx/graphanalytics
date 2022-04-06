@@ -25,20 +25,20 @@ if [ "$#" -lt 1 ]; then
 fi 
 
 version=$1
-
-tar_file=xilinx-tigergraph-install-$version.tar
+pkg_name=amd-graphanalytics-install
+tar_file=$pkg_name-$version.tar
 
 # remove the package with the same version
 rm -f $tar_file.gz 
 
 #update version number in the pacakge
-echo $version > xilinx-tigergraph-install/VERSION
+echo $version > $pkg_name/VERSION
 
 # copy requirements.txt
-cp ../requirements.txt xilinx-tigergraph-install/
+cp ../requirements.txt $pkg_name/
 
 #generate .tar.gz package
-tar cf $tar_file xilinx-tigergraph-install
+tar cf $tar_file $pkg_name
 gzip $tar_file
 
 mv $tar_file.gz /proj/gdba/release
