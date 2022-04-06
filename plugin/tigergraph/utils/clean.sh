@@ -89,6 +89,10 @@ fi
 #
 
 echo "INFO: Cleaning out UDF .so libraries..."
-rm -rf $tg_app_root/bin/libudf/*.so* $tg_app_root/dev/gdk/objs/gq_*.o
+rm -rf \
+    $tg_app_root/bin/libudf/*.so* \
+    $tg_app_root/dev/gdk/objs/gq_*.o \
+    $tg_temp_root/gsql/codegen/QueryUdf/* \
+    $tg_app_root/dev/gdk/gsql/.tmp/codeGen/* 
 
 echo "INFO: Done"
