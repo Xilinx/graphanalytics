@@ -105,8 +105,8 @@ LIB_NAME = lib$(LIB_SHORT_NAME).so
 LOADER_SHORT_NAME = XilinxMis_loader
 LOADER_NAME = lib$(LOADER_SHORT_NAME).a
 
-SRCS_L3 = $(GRAPH_ANALYTICS_DIR)/ext/xcl2/xcl2.cpp
-OBJS_L3 = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_L3:.cpp=.o)))
+#SRCS_L3 = $(GRAPH_ANALYTICS_DIR)/ext/xcl2/xcl2.cpp
+#OBJS_L3 = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_L3:.cpp=.o)))
 # louvain dynamic load 
 
 SRCS_loader = src/mis_loader.cpp
@@ -117,12 +117,12 @@ SRCS_top = $(filter-out $(SRCS_loader),$(wildcard src/*.cpp))
 #SRCS_top = $(wildcard src/*.cpp) 
 OBJS_top = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_top:.cpp=.o)))
 
-SRCS_all = $(SRCS_L3) $(SRCS_top) $(SRCS_loader)
+SRCS_all = $(SRCS_top) $(SRCS_loader) #$(SRCS_L3) 
 #SRCS_all = $(SRCS_L3) $(SRCS_top) 
 OBJS_all = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_all:.cpp=.o)))
 DEPS_all = $(OBJS_all:.o=.d)
 
-OBJS_libMis = $(OBJS_L3) $(OBJS_top) 
+OBJS_libMis = $(OBJS_top) #$(OBJS_L3) 
 
 
 .PHONY: cppBuild cppBuild2
@@ -556,7 +556,8 @@ STAGE_ALL_FILES = \
 
 # Conditionally add XCLBIN files
 ifeq ($(INC_ALL_XCLBINS),1) 
-	STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_F1) $(STAGE_XCLBIN_FILE_U200) $(STAGE_XCLBIN_FILE_U50) $(STAGE_XCLBIN_FILE_U55)
+#	STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_F1) $(STAGE_XCLBIN_FILE_U200) $(STAGE_XCLBIN_FILE_U50) $(STAGE_XCLBIN_FILE_U55)
+	STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_F1) $(STAGE_XCLBIN_FILE_U50) $(STAGE_XCLBIN_FILE_U55)
 else ifeq ($(deviceNames),xilinx_u200_gen3x16_xdma_base_1)
     STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U200)
 else ifeq ($(deviceNames),xilinx_u50_gen3x16_xdma_201920_3)

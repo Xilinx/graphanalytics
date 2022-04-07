@@ -54,7 +54,7 @@ ifeq ($(wildcard $(LIB_PATH)/*.so),)
     XCLBIN_PATH = $(XILINX_MIS)/${PRODUCT_VER}/xclbin
 endif
 
-CXXFLAGS = -std=c++14 -fPIC -pthread -I$(INCLUDE_PATH) -Wall -Wextra -Wno-unknown-pragmas -Wno-unused-label \
+CXXFLAGS = -std=c++11 -fPIC -pthread -I$(INCLUDE_PATH) -Wall -Wextra -Wno-unknown-pragmas -Wno-unused-label \
     -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers -Wno-deprecated-declarations
 
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3

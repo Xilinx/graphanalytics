@@ -24,6 +24,7 @@
 #include <cstdint>
 #include <vector>
 #include <random>
+#include <iostream>
 // mergeHeaders 1 section include end xilinxMis DO NOT REMOVE!
 
 namespace UDIMPL {
@@ -63,9 +64,33 @@ inline void udf_build_col_idx(ListAccum<int> neighbors)
         context->addColIdxEntry(neighbors.get(i));
 }
 
-inline ListAccum<VERTEX> udf_xilinx_mis()
+inline void udf_dump_csr()
 {
-    ListAccum<VERTEX> res;
+    xilMis::Context *context = xilMis::Context::getContext();
+    std::vector<int> rowPtr = context->getRowPtr();
+    std::vector<int> colIdx = context->getColIdx();
+
+    std::ofstream row_file ("/tmp/rowPtr.bin", std::ios::out | std::ios::binary);
+    row_file.write(reinterpret_cast<const char*>(&rowPtr[0]), rowPtr.size()*4);
+    row_file.close();
+
+    std::ofstream col_file ("/tmp/colIdx.bin", std::ios::out | std::ios::binary);
+    col_file.write(reinterpret_cast<const char*>(&colIdx[0]), colIdx.size()*4);
+    col_file.close();
+
+    std::ofstream info_file ("/tmp/info.txt", std::ios::out);
+    info_file << "graph\n";
+    info_file << rowPtr.size()-1 << std::endl;
+    info_file << rowPtr.size()-1 << std::endl;
+    info_file << colIdx.size() << std::endl;
+    info_file.close();
+}
+
+inline ListAccum<ListAccum<VERTEX> > udf_xilinx_mis(int num_schedules)
+{
+    ListAccum<ListAccum<VERTEX> > scheduleAccum;
+    ListAccum<VERTEX> misAccum;
+    int total_scheduled;
     xilMis::Context *context = xilMis::Context::getContext();
 
     // build/get MIS object
@@ -75,12 +100,20 @@ inline ListAccum<VERTEX> udf_xilinx_mis()
     context->setMisGraph();
 
     // execute MIS
-    std::vector<int> mis_res = pMis->executeMIS();
+    std::vector<std::vector<int> > schedules = pMis->executeMIS(num_schedules);
 
-    for(int &vid : mis_res)
-        res += VERTEX(context->v_id_map[vid]);
+    // collect results into TG accumulator
+    for (int i = 0; i < schedules.size(); i++ ) {
+        // add to lists
+        for(int &vid : schedules[i]) {
+            misAccum += VERTEX(context->v_id_map[vid]);
+        }
 
-    return res;
+        scheduleAccum += misAccum;
+        misAccum.clear();
+    }
+
+    return scheduleAccum;
 }
 
 // mergeHeaders 1 section body end xilinxMis DO NOT REMOVE!

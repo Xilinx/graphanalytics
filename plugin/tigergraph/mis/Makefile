@@ -50,8 +50,8 @@ STAGE_COPY_FILES = \
     $(EXAMPLE_DIR)/query/schema.gsql \
     $(EXAMPLE_DIR)/query/load.gsql \
     $(EXAMPLE_DIR)/query/build_edges.gsql \
-	$(EXAMPLE_DIR)/query/tg_maximal_indep_set.gsql \
-	$(EXAMPLE_DIR)/query/xlnx_maximal_indep_set.gsql \
+	$(EXAMPLE_DIR)/query/tg_supply_chain_schedule.gsql \
+	$(EXAMPLE_DIR)/query/xlnx_supply_chain_schedule.gsql \
     \
     $(EXAMPLE_DIR)/bin/run.sh \
     $(EXAMPLE_DIR)/jupyter/travelplan-jupyter-tg.ipynb \

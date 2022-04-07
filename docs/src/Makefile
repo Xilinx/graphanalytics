@@ -142,7 +142,7 @@ recom-tg3-clean:
 #
 
 # Package version
-PACKAGE_VERSION=$(strip $(shell cat ../../scripts/xilinx-tigergraph-install/VERSION))
+PACKAGE_VERSION=$(strip $(shell cat ../../scripts/amd-graphanalytics-install/VERSION))
 
 # Standalone products
 COSINESIM_VERSION=$(strip $(shell cat ../../cosinesim/VERSION))
@@ -157,7 +157,7 @@ FUZZYMATCH_TG_VERSION=$(strip $(shell cat ../../plugin/tigergraph/fuzzymatch/VER
 MIS_TG_VERSION=$(strip $(shell cat ../../plugin/tigergraph/mis/VERSION))
 
 # Pre-built package link
-PACKAGE_LINK=$(strip $(shell cat xilinx-tigergraph-install-package_link))
+PACKAGE_LINK=$(strip $(shell cat amd-graphanalytics-install-package_link))
 
 VERSION_LIST = 's/%PACKAGE_VERSION/$(PACKAGE_VERSION)/g; \
 				s,%PACKAGE_LINK,$(PACKAGE_LINK),g; \
