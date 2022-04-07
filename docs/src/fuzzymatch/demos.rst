@@ -9,3 +9,4 @@ the sections below.
 
     example-makefile.rst
     example-python.rst
+    example-jupyter.rst

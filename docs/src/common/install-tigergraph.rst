@@ -6,9 +6,8 @@ Install TigerGraph Enterprise Software
     cards, this step can be skipped. 
 
 
-Next, follow the steps below to install TigerGraph on your server if you have 
-not already.  The latest version tested with Xilinx Graph Analytics products is 
-version 3.1.
+Next, follow the steps below to install TigerGraph on your server.  The latest version tested with Xilinx Graph Analytics products is
+version 3.4.
 
 * Install `TigerGraph Enterprise version 3.4 <https://info.tigergraph.com/enterprise-free>`_, 
   accepting the defaults for all settings that have them.  Be sure to leave the 
@@ -17,7 +16,7 @@ version 3.1.
 
 * Create an account in the TigerGraph installation for yourself in the role of 
   a TigerGraph application developer by issuing the commands below (replace 
-  YOUR-LINUX-USERNAME with your actual Linux username). Xilinx Graph Analytics 
+  YOUR-LINUX-USERNAME with your actual Linux username). Xilinx Graph Analytics
   products examples will use this account to create graphs and install GSQL queries 
   on your behalf.
 

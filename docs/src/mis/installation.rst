@@ -2,9 +2,7 @@
 Xilinx Maximal Independent Set Alveo Product Installation
 =========================================================
 
-Follow the steps below to install the Maximal Independent Set Alveo Product.
-
-.. include:: ../common/install-alveo.rst
+Follow the steps below to install the Maximal Independent Set Alveo Product. Skip the collaboration section if only deploying.
 
 Installing Maximal Independent Set Alveo from a Pre-built Package
 ------------------------------------------------------------------

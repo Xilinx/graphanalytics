@@ -1,14 +1,8 @@
 Xilinx Cosine Similarity Alveo Product Installation
 ===================================================
 
-Follow the steps below to install the Cosine Similarity Alveo Product.
-
-Installing the Alveo Accelerator Cards
------------------------------------------
-
-* Power off the server
-* Plug the Xilinx U50 or U55C Alveo Data Center Accelerator card into a PCIe Gen3 x16 slot
-* Power on the server
+Follow the steps below to install the Cosine Similarity Alveo Product. Skip the collaboration section if
+only deploying.
 
 Installing Cosine Similarity Library from a Pre-built Package
 -------------------------------------------------------------

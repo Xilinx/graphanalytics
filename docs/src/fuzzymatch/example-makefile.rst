@@ -6,7 +6,7 @@ C++ Example of Fuzzy Match using Makefile
 
   .. code-block:: bash
   
-    cp -r /opt/xilinx/apps/graphanalytics/fuzzymatch/#FUZZYMATCH_VERSION/examples fuzzymatch-examples
+    cp -r /opt/xilinx/apps/graphanalytics/fuzzymatch/%FUZZYMATCH_VERSION/examples fuzzymatch-examples
     cd fuzzymatch-examples/cpp
     
     # Print makefile usage and options

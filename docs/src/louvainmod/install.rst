@@ -3,14 +3,8 @@
 Xilinx Louvain Modularity Alveo Product Installation
 ===================================================
 
-Follow the steps below to install the Louvain Modularity Alveo Product.
-
-Installing the Alveo Accelerator Cards
------------------------------------------
-
-* Power off the server.
-* Plug the Xilinx U50 or U55C Alveo Data Center Accelerator card into a PCIe Gen3 x16 slot
-* Power on the server.
+Follow the steps below to install the Louvain Modularity Alveo Product. Skip the collaboration section if
+only deploying.
 
 Installing Louvain Modularity Library from a Pre-built Package
 -------------------------------------------------------------
