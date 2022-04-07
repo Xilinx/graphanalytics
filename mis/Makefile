@@ -43,7 +43,7 @@ BUILD_DIR = build
 CCC = g++
 CXX = g++
 # -D PRINTINFO: print additional debug messages
-CXXFLAGS = -std=c++11 -DPRAGMA -Ofast -fopenmp -fmessage-length=0  -fPIC -Wall -Wno-unknown-pragmas -Wno-unused-label \
+CXXFLAGS = -std=c++14 -DPRAGMA -Ofast -fopenmp -fmessage-length=0  -fPIC -Wall -Wno-unknown-pragmas -Wno-unused-label \
     -Wno-unused-variable -Wno-sign-compare -Wno-unused-result -Wno-unused-but-set-variable \
     -Wno-narrowing -fmessage-length=0 
 
@@ -105,8 +105,8 @@ LIB_NAME = lib$(LIB_SHORT_NAME).so
 LOADER_SHORT_NAME = XilinxMis_loader
 LOADER_NAME = lib$(LOADER_SHORT_NAME).a
 
-SRCS_L3 = $(GRAPH_ANALYTICS_DIR)/ext/xcl2/xcl2.cpp
-OBJS_L3 = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_L3:.cpp=.o)))
+#SRCS_L3 = $(GRAPH_ANALYTICS_DIR)/ext/xcl2/xcl2.cpp
+#OBJS_L3 = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_L3:.cpp=.o)))
 # louvain dynamic load 
 
 SRCS_loader = src/mis_loader.cpp
@@ -117,12 +117,12 @@ SRCS_top = $(filter-out $(SRCS_loader),$(wildcard src/*.cpp))
 #SRCS_top = $(wildcard src/*.cpp) 
 OBJS_top = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_top:.cpp=.o)))
 
-SRCS_all = $(SRCS_L3) $(SRCS_top) $(SRCS_loader)
+SRCS_all = $(SRCS_top) $(SRCS_loader) #$(SRCS_L3) 
 #SRCS_all = $(SRCS_L3) $(SRCS_top) 
 OBJS_all = $(addprefix $(CPP_BUILD_DIR)/,$(notdir $(SRCS_all:.cpp=.o)))
 DEPS_all = $(OBJS_all:.o=.d)
 
-OBJS_libMis = $(OBJS_L3) $(OBJS_top) 
+OBJS_libMis = $(OBJS_top) #$(OBJS_L3) 
 
 
 .PHONY: cppBuild cppBuild2
@@ -140,7 +140,7 @@ $(CPP_BUILD_DIR):
 
 # .so
 
-LIB_DEPS = -L$(XILINX_XRT)/lib -lOpenCL -lxrt_coreutil  -lpthread -lrt -Wno-unused-label -Wno-narrowing -DVERBOSE -fopenmp
+LIB_DEPS = -L$(XILINX_XRT)/lib -lOpenCL -lxrt_core -lxrt_coreutil  -lpthread -lrt -Wno-unused-label -Wno-narrowing -DVERBOSE -fopenmp
 
 ifeq ($(MEMALLOC),tcmalloc)
     LIB_DEPS += -ltcmalloc
