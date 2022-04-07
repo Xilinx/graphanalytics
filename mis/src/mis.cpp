@@ -18,7 +18,6 @@
 
 #include <xrt/xrt_kernel.h>
 #include <xrt/xrt_bo.h>
-#include "xilinx_runtime_common.hpp"
 #include "xilinxmis.hpp"
 #include "utils.hpp"
 
