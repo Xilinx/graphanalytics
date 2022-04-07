@@ -1,11 +1,31 @@
 Xilinx Community Detection for TigerGraph Installation
 ======================================================
 
+---------------------------------------
+
 Install the Community Detection Software
 ------------------------------------------
 
-Install the Community Detection plug-in into the TigerGraph installation. This step makes TigerGraph aware
-of the Community Detection features.
+Follow the steps in *only one* of the two sections below.
+
+Install the Community Detection from a Package
+************************************************
+
+* Get the installation package **amd-graphanalytics-install-%PACKAGE_VERSION.tar.gz** from the
+  `Database Analytics POC Secure Site <%PACKAGE_LINK>`_.  This package contains
+  the Community Detection as well as its dependencies: XRT, XRM, the Alveo U50 Platform, and the Louvain Modularity
+  Alveo Product.
+
+* Install the Community Detection product and its dependencies by un-tarring the package and running
+  the included install script.
+
+.. code-block:: bash
+
+   tar xzf amd-graphanalytics-install-%PACKAGE_VERSION.tar.gz
+   cd amd-graphanalytics-install && ./install.sh
+
+* Install the Community Detection plug-in into the TigerGraph installation. This step makes TigerGraph aware
+  of the Community Detection features.
 
 .. code-block:: bash
 
@@ -53,6 +73,8 @@ Both products reside in one GitHub repository.
 .. code-block:: bash
 
    /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/%COMDETECT_TG_VERSION/install.sh
+
+---------------------------------------
 
 Uninstalling the Community Detection
 --------------------------------------

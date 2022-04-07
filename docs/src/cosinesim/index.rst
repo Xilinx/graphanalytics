@@ -12,6 +12,6 @@ of a given vector of integers within a large set of such vectors using the
 
     Overview <overview.rst>
     Installation <install.rst>
-    Demos <demos.rst>
+    Demo(s) <demos.rst>
     API Reference <api.rst>
 

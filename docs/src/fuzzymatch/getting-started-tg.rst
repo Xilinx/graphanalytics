@@ -14,7 +14,7 @@ Resolution product:
     Install TigerGraph <../common/install-tigergraph.rst>
     Install Python Virtual Environment (PyTigerGraph users ONLY) <../common/install-conda-python.rst>  
     Install Entity Resolution Product <../fuzzymatch/install.rst>
-    Run Demo <../fuzzymatch-tg/entity-resolution-notebook.rst>
+    Run Demo <../fuzzymatch-tg/usecases-ent-resolve.rst>
 
 
 

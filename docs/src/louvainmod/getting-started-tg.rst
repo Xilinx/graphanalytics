@@ -12,5 +12,5 @@ Below are step-by-step instructions on how to get started with AMD Recommendatio
     Deploy Alveo card <../common/deploy-alveo.rst>
     Install TigerGraph <../common/install-tigergraph.rst>
     Install Python Virtual Environment (PyTigerGraph users ONLY) <../common/install-conda-python.rst>  
-    Install Fradu Detection Product <../comdet-tg/install.rst>
+    Install Fraud Detection Product <../comdet-tg/install.rst>
     Run Demo <../comdet-tg/comdetect.rst>
