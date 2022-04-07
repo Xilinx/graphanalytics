@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
+#include <iostream>
+#include <sstream>
+
 #include <xrt/xrt_kernel.h>
 #include <xrt/xrt_bo.h>
 #include "xilinx_runtime_common.hpp"
