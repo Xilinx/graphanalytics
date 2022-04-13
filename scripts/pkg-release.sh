@@ -42,3 +42,5 @@ tar cf $tar_file $pkg_name
 gzip $tar_file
 
 mv $tar_file.gz /proj/gdba/release
+
+echo "INFO: Pakcage is available at /proj/gdba/release/$tar_file.gz"
