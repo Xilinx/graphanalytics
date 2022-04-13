@@ -18,7 +18,6 @@
 
 #include <xrt/xrt_kernel.h>
 #include <xrt/xrt_bo.h>
-#include "xilinx_runtime_common.hpp"
 #include "xilinxmis.hpp"
 #include "utils.hpp"
 
@@ -105,30 +104,22 @@ class MisImpl {
 
 int MisImpl::getDevice(const std::string& deviceNames) {
     int status = -1; // initialize to no match device found
-    cl_device_id* devices;
-    std::vector<cl::Device> devices0 = xcl::get_xil_devices();
-    int totalXilinxDevices = devices0.size();
+    int count = xclProbe();
 
-    std::string curDeviceName;
-    for (int i = 0; i < totalXilinxDevices; ++i) {
-        curDeviceName = devices0[i].getInfo<CL_DEVICE_NAME>();
+    for (int i = 0; i < count; ++i) {
+        mDevice = xrt::device(i);
+        std::string curDeviceName = mDevice.get_info<xrt::info::device::name>();
 
-        if (deviceNames == curDeviceName || 
-            (deviceNames == "xilinx_aws-vu9p-f1_shell-v04261818_201920_3" && curDeviceName == "xilinx_aws-vu9p-f1_dynamic-shell")) {
+        if (deviceNames == curDeviceName || (deviceNames == "xilinx_aws-vu9p-f1_shell-v04261818_201920_3" &&
+                                             curDeviceName == "xilinx_aws-vu9p-f1_dynamic-shell")) {
             std::cout << "INFO: Found requested device: " << curDeviceName << " ID=" << i << std::endl;
-// save the matching device
-#ifdef OPENCL
-            device = devices0[i];
-#else
             device_id = i;
-#endif
             status = 0; // found a matching device
             break;
         } else {
             std::cout << "INFO: Skipped non-requested device: " << curDeviceName << " ID=" << i << std::endl;
         }
     }
-
     return status;
 }
 

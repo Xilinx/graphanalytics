@@ -2,6 +2,8 @@
 Install Xilinx Maximal Independent Set for TigerGraph
 =====================================================
 
+---------------------------------------
+
 Install Maximal Independent Set Software
 ----------------------------------------
 
@@ -83,6 +85,7 @@ Both products reside in one GitHub repository.
 
     sudo /opt/xilinx/xrt/bin/xbmgmt flash --update --shell xilinx_u50_gen3x16_xdma_201920_3
 
+---------------------------------------
 
 Uninstalling the Maximal Independent Set
 --------------------------------------

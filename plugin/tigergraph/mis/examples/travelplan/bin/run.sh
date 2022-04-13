@@ -88,6 +88,6 @@ if [ "$run_mode" -eq 2 ] || [ "$run_mode" -eq 3 ]; then
     echo "Run query build_csr"
     time gsql -u $username -p $password -g $xgraph "run query build_csr(\"travel_plan\", \"tp2tp\")"
 
-    echo "Run query maximal_indep_set_alveo"
+    echo "Run query supply_chain_schedule_alveo"
     time gsql -u $username -p $password -g $xgraph "run query supply_chain_schedule_alveo(\"travel_plan\", \"tp2tp\", 0, False, \"/tmp/xlnx-mis_schedules.log\", \"/tmp/xlnx-mis_mdata.log\")"
 fi

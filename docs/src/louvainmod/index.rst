@@ -11,7 +11,7 @@ Alveo accelerator card to extract communities from large networks.
     :maxdepth: 1
 
     Overview <overview.rst>
-    Installation <installation.rst>
+    Installation <install.rst>
     Demos <demos.rst>
 ..    API Reference <api.rst>
 

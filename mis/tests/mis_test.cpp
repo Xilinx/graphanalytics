@@ -20,10 +20,8 @@
 #include <chrono>
 #include <cstdlib>
 #include <cassert>
-//#include "binFiles.hpp"
-//#include "mis_kernel_xrt.hpp"
-//#include "graph.hpp"
 #include "xilinxmis.hpp"
+
 using namespace xilinx_apps::mis;
 
 class ArgParser {

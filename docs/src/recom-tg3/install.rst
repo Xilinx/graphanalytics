@@ -1,6 +1,8 @@
 AMD Recommendation Engine for TigerGraph Installation
 =====================================================
 
+---------------------------------------
+
 Install Recommendation Engine Software
 ---------------------------------------
 
@@ -79,6 +81,8 @@ and Recommendation Engine for TigerGraph 3.x.  Both products reside in one GitHu
 .. code-block:: bash
 
    /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/recomengine/%RECOMENGINE_TG_VERSION/install.sh
+
+---------------------------------------
 
 Uninstalling the Recommendation Engine
 --------------------------------------

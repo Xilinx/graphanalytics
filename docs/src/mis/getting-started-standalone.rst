@@ -11,7 +11,5 @@ Optimization product using C++/Python:
     :maxdepth: 1
 
     Deploy Alveo card <../common/deploy-alveo.rst>
-    Install TigerGraph <../common/install-tigergraph.rst>
-    Install Python Virtual Environment (PyTigerGraph users ONLY) <../common/install-conda-python.rst>  
-    Install Supply Chain Optimization Product <../mis-tg/install.rst>
-    Run Demo <../mis-tg/usecases-travelplan.rst>
+    Install Supply Chain Optimization Product <../mis/installation.rst>
+    Run Demo <../mis/demos.rst>
