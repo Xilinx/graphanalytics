@@ -23,8 +23,10 @@ endif
 ifeq (, $(shell which sphinx-build 2>/dev/null))
 $(error "No sphinx-build in PATH.")
 endif
+
 ifeq (, $(HTML_DEST_DIR))
-$(error "HTML_DEST_DIR is not set.")
+    $(info "HTML_DEST_DIR not set. Use the default name html-output")
+	HTML_DEST_DIR = html-output
 endif
 HTML_BUILD_DIR = _build/html
 
@@ -42,6 +44,7 @@ DOXYREST_RST_TARGET_DIR = rst-cpp-docs
 all: install
 
 install: .stamp/sphinx update-html-versions
+	mkdir -p $(HTML_DEST_DIR)
 	rsync -av --delete --exclude .git --exclude .buildinfo \
 		 $(HTML_BUILD_DIR)/ $(HTML_DEST_DIR) 1>/dev/null
 

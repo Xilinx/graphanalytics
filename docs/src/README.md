@@ -10,7 +10,7 @@ Run `./setup.sh` to set up the environment for generating documents
 The top Makefile contains the following targets: 
 
 + **html**: calls `sphinx` to generate HTML files from generated reStructuredText files and manually written ones.
-+ **install**: copies the HTML files to `$HTML_DEST_DIR`.
++ **install**: copies the HTML files to `$HTML_DEST_DIR`. If HTML_DEST_DIR is not set, the default is "html-output".
 
 # Trademark Notice
 

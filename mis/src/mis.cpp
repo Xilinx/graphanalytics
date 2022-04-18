@@ -110,8 +110,11 @@ int MisImpl::getDevice(const std::string& deviceNames) {
         mDevice = xrt::device(i);
         std::string curDeviceName = mDevice.get_info<xrt::info::device::name>();
 
-        if (deviceNames == curDeviceName || (deviceNames == "xilinx_aws-vu9p-f1_shell-v04261818_201920_3" &&
-                                             curDeviceName == "xilinx_aws-vu9p-f1_dynamic-shell")) {
+        // the device name on aws-f1 may show up in three forms
+        if (deviceNames == curDeviceName || 
+            (deviceNames == "aws-f1" && (curDeviceName == "xilinx_aws-vu9p-f1_dynamic-shell" ||
+                                         curDeviceName == "xilinx_aws-vu9p-f1_shell-v04261818_201920_2" ||
+                                         curDeviceName == "xilinx_aws-vu9p-f1_shell-v04261818_201920_3"))) {
             std::cout << "INFO: Found requested device: " << curDeviceName << " ID=" << i << std::endl;
             device_id = i;
             status = 0; // found a matching device
@@ -188,7 +191,7 @@ void MisImpl::startMis(const std::string& xclbinPath, const std::string& deviceN
 #else
         if (deviceNames.find("u200") == std::string::npos)
             if (deviceNames.find("u250") == std::string::npos)
-                if (deviceNames.find("vu9p") == std::string::npos) {
+                if (deviceNames.find("aws-f1") == std::string::npos) {
                     std::cerr << "ERROR: Device " << deviceNames << " is not supported." << std::endl;
                     abort();
                 }

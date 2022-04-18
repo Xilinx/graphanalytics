@@ -149,27 +149,37 @@ fi
 # Ubuntu
 ###############################################################################
 if [[ $OSDIST == "ubuntu" ]]; then
+
+
+    # install required packages
+    sudo apt install jq opencl-headers libzmq3-dev default-jre python3-venv \
+        python3-dev linux-modules-extra-$(uname -r) -y
+
     # install dependencies(XRT/XRM/Deployment shell. etc)
     if [[ $install_dep -eq 1 ]] ; then
         printf "\n-------------------------------------------------------------\n"
         printf "INFO: Install XRT. Enter sudo password if asked."
         printf "\n-------------------------------------------------------------\n"
-        sudo apt install --reinstall $pkg_dir/xrt/xrt*.deb
+        sudo apt install --reinstall $pkg_dir/xrt/xrt*-xrt.deb -y
+
+        if [[ $device == "aws-f1" ]] ; then
+            printf "\n-------------------------------------------------------------\n"
+            printf "INFO: Install XRT-AWS. Enter sudo password if asked."
+            printf "\n-------------------------------------------------------------\n"
+            sudo apt install --reinstall $pkg_dir/xrt/xrt*-aws.deb -y
+        fi
 
         printf "\n-------------------------------------------------------------\n"
         printf "INFO: Install XRM. Enter sudo password if asked."
         printf "\n-------------------------------------------------------------\n"
-        sudo apt install --reinstall $pkg_dir/xrm/xrm*.deb
+        sudo apt install --reinstall $pkg_dir/xrm/xrm*.deb -y
 
         printf "\n-------------------------------------------------------------\n"
         printf "INFO: Install deployment shell. Enter sudo password if asked."
         printf "\n-------------------------------------------------------------\n"
-        sudo apt install $pkg_dir/../deployment-shell/u50/xilinx*.deb
-        sudo apt install $pkg_dir/../deployment-shell/u55c/xilinx*.deb
+        sudo apt install $pkg_dir/../deployment-shell/u50/xilinx*.deb -y
+        sudo apt install $pkg_dir/../deployment-shell/u55c/xilinx*.deb -y
     fi
-
-    # install required packages
-    sudo apt install jq opencl-headers libzmq3-dev default-jre -y
 
     if [[ $product == "cosinesim" ]]; then
         # install required package
@@ -218,6 +228,9 @@ if [[ $OSDIST == "centos" ]]; then
         sudo yum install $pkg_dir/xrt/xrt*-xrt.rpm -y
 
         if [[ $device == "aws-f1" ]] ; then
+            printf "\n-------------------------------------------------------------\n"
+            printf "INFO: Install XRT-AWS. Enter sudo password if asked."
+            printf "\n-------------------------------------------------------------\n"
             sudo yum install $pkg_dir/xrt/xrt*-aws.rpm -y
         fi
 
@@ -258,9 +271,8 @@ sudo cp $SCRIPTPATH/requirements.txt /opt/xilinx/apps/graphanalytics/
 
 printf "\nINFO: All packages have been installed.\n"
 if [[ $install_dep -eq 1 ]] ; then
-    printf "\nPlease run the command below to flash your Alveo card if needed. Update the device ID to match your setup. \n" 
-    printf "Xilinx Alveo U50 card\n"
-    printf "${YELLOW}sudo /opt/xilinx/xrt/bin/xbmgmt program --base --device b3:00.0${NC}\n"
-    printf "\nXilinx Alveo U55C card\n"
-    printf "${YELLOW}sudo /opt/xilinx/xrt/bin/xbmgmt program --base --device b3:00.0${NC}\n"
+    if [[ $device == "u50" || $device == "u55c" ]] ; then
+        printf "\nPlease run the command below to flash your Alveo card if needed. Update the device ID to match your setup. \n" 
+        printf "${YELLOW}sudo /opt/xilinx/xrt/bin/xbmgmt program --base --device b3:00.0${NC}\n"
+    fi
 fi    

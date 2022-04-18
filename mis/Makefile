@@ -81,6 +81,8 @@ CXXFLAGS += -DMIS_entries=2
 else ifneq (, $(shell echo $(deviceNames) | awk '/u55c/'))
 CXXFLAGS += -DUSE_HBM
 CXXFLAGS += -DMIS_entries=2
+else
+CXXFLAGS += -DMIS_entries=1
 endif
 
 
@@ -399,7 +401,7 @@ $(CPP_BUILD_DIR)/mis_test: $(SRCS_test) $(CPP_BUILD_DIR)/$(LIB_NAME)
 deviceNames=xilinx_u50_gen3x16_xdma_201920_3
 ifeq ($(deviceNames),xilinx_u50_gen3x16_xdma_201920_3)
     XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U50)
-else ifeq ($(deviceNames), xilinx_aws-vu9p-f1_shell-v04261818_201920_3)
+else ifeq ($(deviceNames), aws-f1)
     XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_F1)
 else ifeq ($(deviceNames),xilinx_u200_gen3x16_xdma_base_1)
     XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U200)		
@@ -564,7 +566,7 @@ else ifeq ($(deviceNames),xilinx_u50_gen3x16_xdma_201920_3)
     STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U50)
 else ifeq ($(deviceNames),xilinx_u55c_gen3x16_xdma_base_2)
     STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_U55)
-else ifeq ($(deviceNames), xilinx_aws-vu9p-f1_shell-v04261818_201920_3)
+else ifeq ($(deviceNames), aws-f1)
     STAGE_ALL_FILES += $(STAGE_XCLBIN_FILE_F1)
 endif
 
@@ -602,7 +604,7 @@ help: help-common
 	@echo "                 Supported devices:"
 	@echo "                 xilinx_u50_gen3x16_xdma_201920_3 (default)"
 	@echo "                 xilinx_u55c_gen3x16_xdma_base_2"
-	@echo "                 xilinx_aws-vu9p-f1_shell-v04261818_201920_3"
+	@echo "                 aws-f1"
 	@echo "  totalEntities: total number of entities to match against(default=10000000)"
 	@echo ""
 	@echo "  make all"
