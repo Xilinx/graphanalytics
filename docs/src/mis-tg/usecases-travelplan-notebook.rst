@@ -21,4 +21,12 @@ Run Jupyter Notebook
 * Follow the step-by-step instructions in the notebook once it is loaded in your browser.
 
 The Jupter Notebook demo is also available on
-`Github <https://github.com/Xilinx/graphanalytics/blob/master/plugin/tigergraph/mis/examples/travelplan/jupyter-demo/travelplan-jupyter-tg.ipynb>`_
+`Github <https://github.com/Xilinx/graphanalytics/blob/master/plugin/tigergraph/mis/examples/travelplan/jupyter/travelplan-jupyter-tg.ipynb>`_
+
+To run the demo on a larger dataset (included under :bash:`/data` directory) that shows speedup over CPU only query,
+change the filename variables in **Path Setup** cell in the Notebook as follows:
+
+.. code-block:: python
+
+    tp2woInfile = serverDataLocation / "travelplan2workorders2000.csv"
+    tp2trInfile = serverDataLocation / "travelplan2trucks2000.csv"

@@ -21,3 +21,14 @@ Run Bash Script with GSQL
    # Run travelplan demo with default settings. Settings can be changed via command
    # line options as shown above
    ./bin/run.sh
+
+.. role:: bash(code)
+   :language: bash
+
+To run the demo on a larger dataset (included under :bash:`/data` directory) that shows speedup over CPU only query, run
+with full path to data files as follows (assuming working under home directory).
+
+.. code-block:: bash
+
+    # Run travelplan speedup demo
+    ./bin/run.sh tp2tr=$HOME/mis-examples/travelplan/data/travelplan2trucks2000.csv tp2wo=$HOME/mis-examples/travelplan/data/travelplan2workorders2000.csv runnMode=3
