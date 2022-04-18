@@ -142,6 +142,8 @@ public:
             xclbinPath_ = PLUGIN_XCLBIN_PATH_U50;
         } else if (deviceNames_ == "xilinx_u55c_gen3x16_xdma_base_2") {
             xclbinPath_ = PLUGIN_XCLBIN_PATH_U55C;
+        } else if (deviceNames_ == "aws-f1") {
+            xclbinPath_ = PLUGIN_XCLBIN_PATH_AWSF1;
         }
     }
 

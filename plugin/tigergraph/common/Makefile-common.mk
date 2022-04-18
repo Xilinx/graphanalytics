@@ -126,6 +126,7 @@ endif
 ARCH = $(shell uname -p)
 CPACK_PACKAGE_FILE_NAME= xilinx-$(PRODUCT_NAME)-tigergraph-$(PRODUCT_VER)_$(OSVER)-$(ARCH).$(DIST_TARGET)
 DIST_INSTALL_DIR = $(GRAPH_ANALYTICS_DIR)/scripts/amd-graphanalytics-install/$(OSDISTLC)-$(OSVER_DIR)/$(STANDALONE_NAME)/
+DIST_RELEASE = 0
 
 .PHONY: dist
 
@@ -143,7 +144,7 @@ dist: stage
 	    cd package; \
 		make ; \
 		cd - ; \
-		cp ./package/$(CPACK_PACKAGE_FILE_NAME) $(DIST_INSTALL_DIR); \
+		cp -f ./package/$(CPACK_PACKAGE_FILE_NAME) $(DIST_INSTALL_DIR); \
 		echo "INFO: Package published to $(DIST_INSTALL_DIR)/$(CPACK_PACKAGE_FILE_NAME)"; \
 	fi
 

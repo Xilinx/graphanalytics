@@ -48,6 +48,7 @@ rh_package_list()
      gcc-c++ \
      git \
      zeromq-devel \
+     java \
      jq \
     )
 
@@ -73,6 +74,7 @@ ub_package_list()
      python3-dev \
      python3-venv \
      libzmq3-dev \
+     default-jre \
      jq \
      )
 }

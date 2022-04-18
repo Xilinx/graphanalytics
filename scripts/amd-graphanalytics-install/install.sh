@@ -33,9 +33,10 @@ SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`
 
 supported_products="cosinesim louvainmod mis fuzzymatch"
+supported_alveos="u50 u55c aws-f1 azure-u250"
 
 function usage() {
-    echo "Usage: $0 -p product-name [options]"
+    echo "Usage: $0 -p product-name -d device-name [options]"
     echo "Required options:"
     echo "  -p product-name  : Product to install. Supported products:"
     for prod in $supported_products
@@ -43,6 +44,12 @@ function usage() {
         echo "      $prod"
     done
     
+    echo "  -d device-name   : Target Alveo device. Supported Alveo devices:"
+    for dev in $supported_alveos
+    do
+        echo "      $dev"
+    done
+
     echo ""
     echo "Optional options:"
     echo "  -s               : Skip installation of dependencies (XRT, XRM, etc)"
@@ -50,10 +57,12 @@ function usage() {
 }
 
 product="none"
+device="none"
 install_dep=1
-while getopts ":p:sh" opt
+while getopts ":d:p:sh" opt
 do
 case $opt in
+    d) device=$OPTARG;;
     p) product=$OPTARG;;
     s) install_dep=0;;
     h) usage; exit 0;;
@@ -63,6 +72,7 @@ done
 
 OSDIST=`lsb_release -i |awk -F: '{print tolower($2)}' | tr -d ' \t'`
 OSREL=`lsb_release -r |awk -F: '{print tolower($2)}' |tr -d ' \t' | awk -F. '{print $1*100+$2}'`
+OSREL_VER=`lsb_release -r |awk -F: '{print tolower($2)}' |tr -d ' \t'`
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
@@ -76,67 +86,99 @@ if [[ $OSDIST == "ubuntu" ]]; then
         exit 2
     fi
 elif [[ $OSDIST == "centos" ]]; then
-    if (( $OSREL == 708 )); then
-        pkg_dir="$SCRIPTPATH/centos-7.8"
-    elif (( $OSREL == 709 )); then
-        pkg_dir="$SCRIPTPATH/ubuntu-20.04"        
+    if (( $OSREL == 709 )); then
+        pkg_dir="$SCRIPTPATH/centos-7.9"
     else
-        echo "ERROR: Ubuntu release version must be 18.04 or 20.04."
+        echo "ERROR: CentOS release version must be 7.9."
         exit 2
     fi
-
-    
 else 
     echo "ERROR: only Ubuntu and Centos are supported."
     exit 3
 fi
 
+# Check if the speficified product is supported
 if [[ $product == "none" ]] ; then
     echo "ERROR: Must select a product to install via -p option."
     usage
     exit 4
 fi
 
-is_supported=0
+product_supported=0
 for prod in $supported_products
 do
     if [[ $product == $prod ]] ; then
-        is_supported=1
-        echo "INFO: Installing Xilinx $product product and its dependencies on $OSDIST $OSREL..."
+        product_supported=1
         break
     fi
 done
 
-if [[ $is_supported -eq 0 ]] ; then
+if [[ $product_supported -eq 0 ]] ; then
     echo "ERROR: Unsupported product $product"
     usage
     exit 5
+fi
+
+# Check if the speficified device is supported
+if [[ $device == "none" ]] ; then
+    echo "ERROR: Must select a device to install via -d option."
+    usage
+    exit 6
+fi
+
+device_supported=0
+for dev in $supported_alveos
+do
+    if [[ $device == $dev ]] ; then
+        device_supported=1
+        break
+    fi
+done
+
+if [[ $device_supported -eq 0 ]] ; then
+    echo "ERROR: Unsupported product $product"
+    usage
+    exit 5
+fi
+
+if [[ $device_supported -eq 1 && $product_supported -eq 1 ]] ; then
+    echo "INFO: Installing Xilinx $product product for $device and its dependencies on $OSDIST $OSREL_VER..."
 fi
 
 ###############################################################################
 # Ubuntu
 ###############################################################################
 if [[ $OSDIST == "ubuntu" ]]; then
+
+
+    # install required packages
+    sudo apt install jq opencl-headers libzmq3-dev default-jre python3-venv \
+        python3-dev linux-modules-extra-$(uname -r) -y
+
     # install dependencies(XRT/XRM/Deployment shell. etc)
     if [[ $install_dep -eq 1 ]] ; then
         printf "\n-------------------------------------------------------------\n"
         printf "INFO: Install XRT. Enter sudo password if asked."
         printf "\n-------------------------------------------------------------\n"
-        sudo apt install --reinstall $pkg_dir/xrt/xrt*.deb
+        sudo apt install --reinstall $pkg_dir/xrt/xrt*-xrt.deb -y
+
+        if [[ $device == "aws-f1" ]] ; then
+            printf "\n-------------------------------------------------------------\n"
+            printf "INFO: Install XRT-AWS. Enter sudo password if asked."
+            printf "\n-------------------------------------------------------------\n"
+            sudo apt install --reinstall $pkg_dir/xrt/xrt*-aws.deb -y
+        fi
 
         printf "\n-------------------------------------------------------------\n"
         printf "INFO: Install XRM. Enter sudo password if asked."
         printf "\n-------------------------------------------------------------\n"
-        sudo apt install --reinstall $pkg_dir/xrm/xrm*.deb
+        sudo apt install --reinstall $pkg_dir/xrm/xrm*.deb -y
 
         printf "\n-------------------------------------------------------------\n"
         printf "INFO: Install deployment shell. Enter sudo password if asked."
         printf "\n-------------------------------------------------------------\n"
-        sudo apt install $pkg_dir/../deployment-shell/u50/xilinx*.deb
-        sudo apt install $pkg_dir/../deployment-shell/u55c/xilinx*.deb
-
-        # install required packages
-        sudo apt install jq opencl-headers libzmq3-dev default-jre -y
+        sudo apt install $pkg_dir/../deployment-shell/u50/xilinx*.deb -y
+        sudo apt install $pkg_dir/../deployment-shell/u55c/xilinx*.deb -y
     fi
 
     if [[ $product == "cosinesim" ]]; then
@@ -178,26 +220,50 @@ fi
 # CentOS
 ###############################################################################
 if [[ $OSDIST == "centos" ]]; then
-    # install XRT/XRM/Deployment shell
-    printf "\nINFO: Install XRT. \n"
-    sudo yum install $pkg_dir/xrt/xrt*.rpm
+    # install dependencies(XRT/XRM/Deployment shell. etc)
+    if [[ $install_dep -eq 1 ]] ; then
+        printf "\n-------------------------------------------------------------\n"
+        printf "INFO: Install XRT. Enter sudo password if asked."
+        printf "\n-------------------------------------------------------------\n"
+        sudo yum install $pkg_dir/xrt/xrt*-xrt.rpm -y
 
-    printf "\nINFO: Install XRM. Enter sudo password if asked.\n"
-    sudo yum install $pkg_dir/xrm/xrm*.rpm
+        if [[ $device == "aws-f1" ]] ; then
+            printf "\n-------------------------------------------------------------\n"
+            printf "INFO: Install XRT-AWS. Enter sudo password if asked."
+            printf "\n-------------------------------------------------------------\n"
+            sudo yum install $pkg_dir/xrt/xrt*-aws.rpm -y
+        fi
 
-    printf "\nINFO: Install deployment shell\n"
-    sudo yum install $pkg_dir/deployment-shell/xilinx*.rpm
+        printf "\n-------------------------------------------------------------\n"
+        printf "INFO: Install XRM. Enter sudo password if asked."
+        printf "\n-------------------------------------------------------------\n"
+        sudo yum install $pkg_dir/xrm/xrm*.rpm
+
+        printf "\n-------------------------------------------------------------\n"
+        printf "INFO: Install deployment shell. Enter sudo password if asked."
+        printf "\n-------------------------------------------------------------\n"
+        sudo yum install $pkg_dir/../deployment-shell/u50/xilinx*.rpm
+        #sudo apt install $pkg_dir/../deployment-shell/u55c/xilinx*.rpm 
+
+        # install required packages
+        sudo yum install jq opencl-headers zeromq-devel java -y
+    fi
 
     if [[ $product == "cosinesim" ]]; then
         # install required package
         sudo yum install jq opencl-headers -y
 
         printf "\nINFO: Install Xilinx CosineSim package\n"
-        sudo yum install $pkg_dir/cosinesim/xilinx-cosinesim*.rpm
+        sudo yum install $pkg_dir/cosinesim/xilinx-cosinesim*.rpm -y
 
         printf "\nINFO: Install Xilinx Recommend Engine package\n"
-        sudo yum install $pkg_dir/recomengine/xilinx-recomengine*.rpm
-    fi
+        sudo yum install $pkg_dir/recomengine/xilinx-recomengine*.rpm -y
+    elif [[ $product == "fuzzymatch" ]]; then
+        printf "\n-------------------------------------------------------------\n"
+        printf "INFO: Install Xilinx FuzzyMatch. Enter sudo password if asked."
+        printf "\n-------------------------------------------------------------\n"
+        sudo yum install $pkg_dir/fuzzymatch/xilinx-fuzzymatch*.rpm -y
+    fi    
 fi
 
 # copy requirements.txt to /opt/xilinx/apps/graphanalytics/
@@ -205,9 +271,8 @@ sudo cp $SCRIPTPATH/requirements.txt /opt/xilinx/apps/graphanalytics/
 
 printf "\nINFO: All packages have been installed.\n"
 if [[ $install_dep -eq 1 ]] ; then
-    printf "\nPlease run the command below to flash your Alveo card if needed. \n" 
-    printf "Xilinx Alveo U50 card\n"
-    printf "${YELLOW}sudo /opt/xilinx/xrt/bin/xbmgmt flash --update --shell xilinx_u50_gen3x16_xdma_201920_3${NC}\n"
-    printf "\nXilinx Alveo U55C card\n"
-    printf "${YELLOW}sudo /opt/xilinx/xrt/bin/xbmgmt flash --update --shell xilinx_u55c_gen3x16_xdma_base_2${NC}\n"
+    if [[ $device == "u50" || $device == "u55c" ]] ; then
+        printf "\nPlease run the command below to flash your Alveo card if needed. Update the device ID to match your setup. \n" 
+        printf "${YELLOW}sudo /opt/xilinx/xrt/bin/xbmgmt program --base --device b3:00.0${NC}\n"
+    fi
 fi    

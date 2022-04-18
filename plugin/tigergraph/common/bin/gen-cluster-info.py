@@ -67,9 +67,14 @@ curNodeHostname = socket.gethostname()
 print('DEBUG: curNodeHostname=', curNodeHostname, 'curNodeIp=', curNodeIp)
 print('DEBUG: nodeIps', nodeIps)
 
-# Get number of U50 devices
+# Get number of supported devices
 print('INFO: Searching device', deviceName)
-re_u50 = re.compile(deviceName)
+
+if deviceName == 'aws-f1':
+    re_device = re.compile('xilinx_aws-vu9p')
+else:
+    re_device = re.compile(deviceName)
+
 command = '/opt/xilinx/xrt/bin/xbutil examine'
 p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
 p_out = p.stdout.readlines()
@@ -82,7 +87,7 @@ if p_returncode != 0:
 numDevices = 0
 for line in p_out:
     lineStr = line.decode('utf-8')
-    m = re_u50.findall(lineStr)
+    m = re_device.findall(lineStr)
     if m:
         numDevices += 1
 
