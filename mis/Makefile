@@ -615,3 +615,6 @@ help: help-common
 	@echo ""
 	@echo "  Common options"
 	@echo "  INC_ALL_XCLBINS: 1: Include all supported XCLBINs for staging (default). 0: Only incude target XCLBIN"
+	@echo ""
+	@echo "NOTES: To compile MIS on Redhat/CentOS 7.x you may need to enable a newer gcc by running the command below:"
+	@echo "  scl enable devtoolset-9 bash"
