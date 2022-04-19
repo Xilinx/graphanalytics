@@ -31,4 +31,4 @@ with full path to data files as follows (assuming working under home directory).
 .. code-block:: bash
 
     # Run travelplan speedup demo
-    ./bin/run.sh tp2tr=$HOME/mis-examples/travelplan/data/travelplan2trucks2000.csv tp2wo=$HOME/mis-examples/travelplan/data/travelplan2workorders2000.csv runnMode=3
+    ./bin/run.sh tp2tr=$HOME/mis-examples/travelplan/data/travelplan2trucks2000.csv tp2wo=$HOME/mis-examples/travelplan/data/travelplan2workorders2000.csv runMode=3
