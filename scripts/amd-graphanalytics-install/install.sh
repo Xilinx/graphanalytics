@@ -149,8 +149,6 @@ fi
 # Ubuntu
 ###############################################################################
 if [[ $OSDIST == "ubuntu" ]]; then
-
-
     # install required packages
     sudo apt install jq opencl-headers libzmq3-dev default-jre python3-venv \
         python3-dev linux-modules-extra-$(uname -r) -y

@@ -173,6 +173,8 @@ void MisImpl::startMis(const std::string& xclbinPath, const std::string& deviceN
         std::string kernelName = "misKernel:{misKernel_0}";
         mKernel = xrt::kernel(mDevice, uuid, kernelName);
 #ifdef USE_HBM
+        std::cout << "INFO: Setting up parameters for Alveo with HBM memory..." << std::endl;
+
         if (deviceNames.find("u50") != std::string::npos) {
             mHBMSize = 0x10000000;
         } else if (deviceNames.find("u55c") != std::string::npos) {
@@ -189,6 +191,7 @@ void MisImpl::startMis(const std::string& xclbinPath, const std::string& deviceN
             mColIdx[i] = d_colIdx[i].map<int*>();
         }
 #else
+        std::cout << "INFO: Setting up parameters for Alveo with DDR memory..." << std::endl;
         if (deviceNames.find("u200") == std::string::npos)
             if (deviceNames.find("u250") == std::string::npos)
                 if (deviceNames.find("aws-f1") == std::string::npos) {

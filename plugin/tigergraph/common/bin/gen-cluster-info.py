@@ -68,7 +68,7 @@ print('DEBUG: curNodeHostname=', curNodeHostname, 'curNodeIp=', curNodeIp)
 print('DEBUG: nodeIps', nodeIps)
 
 # Get number of supported devices
-print('INFO: Searching device', deviceName)
+print('INFO: Searching the target device', deviceName)
 
 if deviceName == 'aws-f1':
     re_device = re.compile('xilinx_aws-vu9p')
@@ -90,6 +90,13 @@ for line in p_out:
     m = re_device.findall(lineStr)
     if m:
         numDevices += 1
+
+
+if numDevices == 0:
+    print('ERROR: Unable to find target Alveo devices. Please contact AMD GraphAnalytics support.')
+    print('       Please run the command below to list all Alveo devices installed on the system:')
+    print('       /opt/xilinx/xrt/bin/xbutil examine')
+    sys.exit(1) 
 
 curNodeHostname = socket.gethostname()
 print('DEBUG: numDevices=', numDevices)
