@@ -37,10 +37,10 @@ case $opt in
 esac
 done
 
-if [[ "$device" == "notset" ]] ; then
-    echo "ERROR: Alveo device name must be set via -d option."
-    exit 1
-fi
+#if [[ "$device" == "notset" ]] ; then
+#    echo "ERROR: Alveo device name must be set via -d option."
+#    exit 1
+#fi
 
 if ! command -v vclf &> /dev/null
     echo "INFO: Using $(command -v vclf)"
@@ -66,7 +66,7 @@ if [[ $fuzzymatch -eq 1 ]] ; then
 fi
 
 if [[ $mis -eq 1 ]] ; then
-    cd ../mis && make cleanall && make dist DIST_RELEASE=1 deviceNames=$device && cd -
+    cd ../mis && make cleanall && make dist DIST_RELEASE=1 && cd -
     cd ../plugin/tigergraph/mis/ && make clean && make dist DIST_RELEASE=1 && cd -
 fi
 

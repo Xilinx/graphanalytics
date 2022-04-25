@@ -40,6 +40,7 @@ CREATE QUERY tg_supply_chain_schedule(
     ListAccum<STRING> @@mis;
     INT total_scheduled;
     DOUBLE runtime;
+    DOUBLE totalRuntime = 0;
     MinAccum<INT> @min_vid;
     FILE fs(sched_file_path);
     FILE fm(sched_metadata_path);
@@ -128,18 +129,22 @@ CREATE QUERY tg_supply_chain_schedule(
 
         @@trip_schedule += @@mis;
         total_scheduled = total_scheduled+Start.size();
+
+        sched_iter = sched_iter+1;
+        @@mis.clear();
+
         runtime = udf_elapsed_time(true);
+        totalRuntime = totalRuntime + runtime;
         @@mis_mdata += MIS_MDATA(Start.size(), mis_iter, runtime);
 
         IF sched_metadata_path != "" THEN
             fm.println(Start.size(), mis_iter, runtime);
+            #log(TRUE, "XILINX-INFO", Start.size(), mis_iter, runtime);
         END;
-
-        sched_iter = sched_iter+1;
-        @@mis.clear();
     END;
 
     print "TigerRes_Graph CPU" AS ComputationTechnique;
+    PRINT totalRuntime AS ExecTimeInMs;
     ret = udf_peak_memory_usage(vm_peak, vm_hwm);
     PRINT vm_peak/1000000.0 as PeakVirtualMemoryInGB;
     PRINT vm_hwm/1000000.0 as PeakResidentMemoryInGB;
@@ -151,6 +156,5 @@ CREATE QUERY tg_supply_chain_schedule(
       #PRINT @@trip_schedule;
     END;
 }
-
 
 INSTALL QUERY tg_supply_chain_schedule

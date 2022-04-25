@@ -156,6 +156,12 @@ public:
         return l_context;
     }
 
+    std::string checkContext(int num_vertices) {
+        if(rowPtr_.size() <= 1) return "1";
+        else if(rowPtr_.size()-1 != num_vertices) return "2";
+        else return "0";
+    }
+
     void addVertexToMap( int x ) { v_id_map[vid_] = x; }
     int getNextVid() { return vid_++; }
     void addRowPtrEntry( int x ) { rowPtr_.push_back( rowPtr_[row_id_++] + x ); }

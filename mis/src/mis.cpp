@@ -64,8 +64,14 @@ class MisImpl {
    public:
     Options options_;
     MisImpl(const Options& options) : options_(options) {}
-    // std::string xclbinPath;
+
+    static const int mVertexLimits = 1024000;
     int device_id = 0;
+
+    size_t mMemSize;
+    int mNumChannels;
+    int mEntrySize;
+    bool mHBM;
 
     xrt::device mDevice;
     xrt::kernel mKernel;
@@ -75,15 +81,8 @@ class MisImpl {
     uint16_t* mPrior;
     GraphCSR* mOrigGraph;
     std::vector<int, aligned_allocator<int> > mRowPtr;
-#ifdef USE_HBM
     std::vector<int*> mColIdx;
     std::vector<xrt::bo> d_sync, d_colIdx;
-    size_t mHBMSize;
-#else
-    int* mColIdx;
-    xrt::bo d_sync, d_colIdx;
-    size_t mDDRSize;
-#endif
     // The intialize process will download FPGA binary to FPGA card
     void startMis(const std::string& xclbinPath, const std::string& deviceNames);
     void setGraph(GraphCSR* graph);
@@ -111,7 +110,7 @@ int MisImpl::getDevice(const std::string& deviceNames) {
         std::string curDeviceName = mDevice.get_info<xrt::info::device::name>();
 
         // the device name on aws-f1 may show up in three forms
-        if (deviceNames == curDeviceName || 
+        if (deviceNames == curDeviceName ||
             (deviceNames == "aws-f1" && (curDeviceName == "xilinx_aws-vu9p-f1_dynamic-shell" ||
                                          curDeviceName == "xilinx_aws-vu9p-f1_shell-v04261818_201920_2" ||
                                          curDeviceName == "xilinx_aws-vu9p-f1_shell-v04261818_201920_3"))) {
@@ -172,41 +171,42 @@ void MisImpl::startMis(const std::string& xclbinPath, const std::string& deviceN
         auto uuid = mDevice.load_xclbin(xclbinPath);
         std::string kernelName = "misKernel:{misKernel_0}";
         mKernel = xrt::kernel(mDevice, uuid, kernelName);
-#ifdef USE_HBM
+        mHBM = false;
         std::cout << "INFO: Setting up parameters for Alveo with HBM memory..." << std::endl;
 
         if (deviceNames.find("u50") != std::string::npos) {
-            mHBMSize = 0x10000000;
+            mMemSize = 0x10000000;
+            mNumChannels = 16;
+            mEntrySize = 1;
+            mHBM = true;
         } else if (deviceNames.find("u55c") != std::string::npos) {
-            mHBMSize = 0x20000000;
+            mMemSize = 0x20000000;
+            mNumChannels = 16;
+            mEntrySize = 2;
+            mHBM = true;
         } else {
-            std::cerr << "ERROR: Device " << deviceNames << " is not supported." << std::endl;
-            abort();
+            if (deviceNames.find("u200") == std::string::npos && deviceNames.find("u250") == std::string::npos &&
+                deviceNames.find("aws-f1") == std::string::npos) {
+                std::cerr << "ERROR: Device " << deviceNames << " is not supported." << std::endl;
+                abort();
+            }
+            mMemSize = 0x80000000;
+            mNumChannels = 1;
+            mEntrySize = 16;
         }
-        mColIdx.resize(MIS_numChannels);
-        d_colIdx.resize(MIS_numChannels);
-        d_sync.resize(MIS_numChannels);
-        for (int i = 0; i < MIS_numChannels; i++) {
-            d_colIdx[i] = xrt::bo(mDevice, mHBMSize, mKernel.group_id(i + 2));
+
+        mColIdx.resize(mNumChannels);
+        d_colIdx.resize(mNumChannels);
+        d_sync.resize(mNumChannels);
+        for (int i = 0; i < mNumChannels; i++) {
+            d_colIdx[i] = xrt::bo(mDevice, mMemSize, mKernel.group_id(i + 2));
             mColIdx[i] = d_colIdx[i].map<int*>();
         }
-#else
-        std::cout << "INFO: Setting up parameters for Alveo with DDR memory..." << std::endl;
-        if (deviceNames.find("u200") == std::string::npos)
-            if (deviceNames.find("u250") == std::string::npos)
-                if (deviceNames.find("aws-f1") == std::string::npos) {
-                    std::cerr << "ERROR: Device " << deviceNames << " is not supported." << std::endl;
-                    abort();
-                }
-        mDDRSize = 0x80000000;
-        d_colIdx = xrt::bo(mDevice, mDDRSize, mKernel.group_id(2));
-        mColIdx = d_colIdx.map<int*>();
-#endif
     } catch (std::bad_alloc& e) {
         std::cout << "Error: memory allocation failed. Maybe the CU on the device is busy." << std::endl;
         exit(EXIT_FAILURE);
-    } catch (...) {
-        std::cout << "Error: Device is busy." << std::endl;
+    } catch (const std::exception& exc) {
+        std::cout << "Error: " << exc.what() << std::endl;
         exit(EXIT_FAILURE);
     }
     // return 0;
@@ -248,43 +248,57 @@ void MisImpl::graphPadding() {
     mRowPtr.resize(n + 1);
     mRowPtr[0] = 0;
     size_t maxSize = 0;
-    std::vector<size_t> index(MIS_numChannels, 0);
-    for (int r = 0; r < n; r++) {
-        int start = mOrigGraph->rowPtr[r], stop = mOrigGraph->rowPtr[r + 1];
-        for (int c = start; c < stop; c++) {
-            int colId = mOrigGraph->colIdx[c];
-            int ch = colId & (MIS_numChannels - 1);
-#ifdef USE_HBM
-            if (index[ch] == mHBMSize / sizeof(int)) {
-                std::cout << "Graph is not supported due to memory limit." << std::endl;
-                exit(EXIT_FAILURE);
+    if (mHBM) {
+        std::vector<size_t> index(mNumChannels, 0);
+        for (int r = 0; r < n; r++) {
+            int start = mOrigGraph->rowPtr[r], stop = mOrigGraph->rowPtr[r + 1];
+            for (int c = start; c < stop; c++) {
+                int colId = mOrigGraph->colIdx[c];
+                int ch = colId & (mNumChannels - 1);
+                if (index[ch] == mMemSize / sizeof(int)) {
+                    std::cout << "Graph is not supported due to memory limit." << std::endl;
+                    exit(EXIT_FAILURE);
+                }
+                mColIdx[ch][index[ch]++] = colId;
             }
-            mColIdx[ch][index[ch]++] = colId;
-#else
-            if (index[ch] == mDDRSize / MIS_numChannels / sizeof(int)) {
-                std::cout << "Graph is not supported due to memory limit." << std::endl;
-                exit(EXIT_FAILURE);
-            }
-            mColIdx[index[ch] * MIS_numChannels + ch] = colId;
-            index[ch]++;
-#endif
-        }
 
-        for (int pe = 0; pe < MIS_numChannels; pe++)
-            if (index[pe] > maxSize) maxSize = index[pe];
-        maxSize += maxSize % MIS_entries;
-        for (int pe = 0; pe < MIS_numChannels; pe++) {
-            int iter = maxSize - index[pe];
-            for (int i = 0; i < iter; i++) {
-#ifdef USE_HBM
-                mColIdx[pe][index[pe]++] = -1;
-#else
-                mColIdx[index[pe] * MIS_numChannels + pe] = -1;
-                index[pe]++;
-#endif
+            for (int pe = 0; pe < mNumChannels; pe++)
+                if (index[pe] > maxSize) maxSize = index[pe];
+            maxSize += maxSize % mEntrySize;
+            for (int pe = 0; pe < mNumChannels; pe++) {
+                int iter = maxSize - index[pe];
+                for (int i = 0; i < iter; i++) {
+                    mColIdx[pe][index[pe]++] = -1;
+                }
             }
+            mRowPtr[r + 1] = maxSize * mNumChannels;
         }
-        mRowPtr[r + 1] = maxSize * MIS_numChannels;
+    } else {
+        std::vector<size_t> index(mEntrySize, 0);
+        for (int r = 0; r < n; r++) {
+            int start = mOrigGraph->rowPtr[r], stop = mOrigGraph->rowPtr[r + 1];
+            for (int c = start; c < stop; c++) {
+                int colId = mOrigGraph->colIdx[c];
+                int ch = colId & (mEntrySize - 1);
+                if (index[ch] == mMemSize / mEntrySize / sizeof(int)) {
+                    std::cout << "Graph is not supported due to memory limit." << std::endl;
+                    exit(EXIT_FAILURE);
+                }
+                mColIdx[0][index[ch] * mEntrySize + ch] = colId;
+                index[ch]++;
+            }
+
+            for (int pe = 0; pe < mEntrySize; pe++)
+                if (index[pe] > maxSize) maxSize = index[pe];
+            for (int pe = 0; pe < mEntrySize; pe++) {
+                int iter = maxSize - index[pe];
+                for (int i = 0; i < iter; i++) {
+                    mColIdx[0][index[pe] * mEntrySize + pe] = -1;
+                    index[pe]++;
+                }
+            }
+            mRowPtr[r + 1] = maxSize * mEntrySize;
+        }
     }
 }
 
@@ -292,8 +306,8 @@ void MisImpl::graphPadding() {
 void MisImpl::setGraph(GraphCSR* graph) {
     mOrigGraph = graph;
     int n = mOrigGraph->n;
-    if (n > MIS_vertexLimits) {
-        std::cout << "Graph with more than " << MIS_vertexLimits << " vertices is not supported." << std::endl;
+    if (n > mVertexLimits) {
+        std::cout << "Graph with more than " << mVertexLimits << " vertices is not supported." << std::endl;
         exit(EXIT_FAILURE);
     }
 
@@ -308,17 +322,10 @@ void MisImpl::setGraph(GraphCSR* graph) {
     // generate h_prior
     graphPadding();
 
-#ifdef USE_HBM
-    int memSize = mRowPtr[n] / MIS_numChannels;
-    for (int i = 0; i < MIS_numChannels; i++) d_sync[i] = xrt::bo(d_colIdx[i], memSize * sizeof(int), 0);
+    int memSize = mRowPtr[n] / mNumChannels;
+    for (int i = 0; i < mNumChannels; i++) d_sync[i] = xrt::bo(d_colIdx[i], memSize * sizeof(int), 0);
     for (auto& bo : d_sync) bo.sync(XCL_BO_SYNC_BO_TO_DEVICE);
-    d_mPrior = xrt::bo(mDevice, n * sizeof(uint16_t), mKernel.group_id(2 + MIS_numChannels));
-#else
-    int memSize = mRowPtr[n];
-    d_sync = xrt::bo(d_colIdx, memSize * sizeof(int), 0);
-    d_sync.sync(XCL_BO_SYNC_BO_TO_DEVICE);
-    d_mPrior = xrt::bo(mDevice, n * sizeof(uint16_t), mKernel.group_id(3));
-#endif
+    d_mPrior = xrt::bo(mDevice, n * sizeof(uint16_t), mKernel.group_id(2 + mNumChannels));
 
     mPrior = d_mPrior.map<uint16_t*>();
     genPrior();
@@ -335,11 +342,7 @@ std::vector<std::vector<int> > MisImpl::executeMIS(int iter) {
     int nargs = 0;
     run.set_arg(nargs++, mOrigGraph->n);
     run.set_arg(nargs++, d_rowPtr);
-#ifdef USE_HBM
     for (xrt::bo& bo : d_sync) run.set_arg(nargs++, bo);
-#else
-    run.set_arg(nargs++, d_sync);
-#endif
     run.set_arg(nargs++, d_mPrior);
 
     int size = 0;

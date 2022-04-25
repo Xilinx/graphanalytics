@@ -27,7 +27,7 @@ pluginAlveoProductName="Xilinx Maximal Independent Set"
 standaloneAlveoProductName="Xilinx Maximal Independent Set"
 
 # The usual place where the Alveo Product is installed
-pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/mis/$PRODUCT_VER
+pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/mis/0.6
 
 # Where to find the git repo for the Alveo Product if it exists
 pluginLocalAlveoProductPath=$SCRIPTPATH/../../../../../mis/staging

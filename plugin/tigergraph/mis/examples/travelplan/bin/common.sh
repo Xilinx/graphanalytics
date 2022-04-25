@@ -28,7 +28,7 @@ function usage() {
     echo "                         2: only compile query gsql"
     echo "  -r runMode           : 0: Skip both CPU and Alveo run (i.e. only run partition)"
     echo "                         1: Run only on CPU"
-    echo "                         2: Run only on Alveo "
+    echo "                         2: Run only on Alveo"
     echo "                         3: Run on both CPU and Alveo (default)"
     echo "  -d numDevices        : number of FPGAs needed (default=1)"
     echo "  -f                   : Force (re)install"
