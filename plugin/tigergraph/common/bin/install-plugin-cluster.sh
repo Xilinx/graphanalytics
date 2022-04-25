@@ -33,7 +33,6 @@ if [ "$USER" != "tigergraph" ]; then
 fi
 
 mem_alloc="tcmalloc"
-dev_mode=0
 debug_flag=0
 device_name="xilinx_u50_gen3x16_xdma_201920_3"
 xrt_profiling=0
@@ -98,46 +97,36 @@ echo "--------------------------------------------------------------------------
 
 grun all "${SCRIPTPATH}/install-plugin-node.sh $node_flags"
 
-if [ $dev_mode -eq 1 ]; then
-    echo "INFO: Development mode -- skipping TigerGraph configuration."
+if [[ $uninstall -eq 1 ]]; then
+    echo "INFO: Restarting GPE service"
+    gadmin restart gpe -y
 else
-    if [ $uninstall -eq 1 ]; then
-        echo "INFO: Restarting GPE service"
-        gadmin restart gpe -y
-    else
-        # copy gsql-client.jar to tmp directory
-        cp $tg_root_dir/dev/gdk/gsql/lib/gsql_client.jar /tmp/gsql_client.jar.tmp
-
-        echo "INFO: Apply environment changes to TigerGraph installation"
-        gadmin start all
-
-        #ld_preload="$HOME/libstd/libstdc++.so.6"
-        ld_preload=
-        if [ $pluginAlveoProductLibNeedsPreload -eq 1 ]; then
-            ld_preload="$ld_preload:$runtimeLibDir/$pluginLibName";
-        fi
-        if [ "$mem_alloc" == "tcmalloc" ]; then
-            ld_preload="$ld_preload:$tg_root_dir/dev/gdk/gsdk/include/thirdparty/prebuilt/dynamic_libs/gmalloc/tcmalloc/libtcmalloc.so"
-        fi
-
-        ld_lib_path="$HOME/libstd:$runtimeLibDir:/opt/xilinx/xrt/lib:/opt/xilinx/xrm/lib:/usr/lib/x86_64-linux-gnu/"
-
-        if [ "$xrt_profiling" -eq 1 ]; then
-            gpe_config="LD_PRELOAD=$ld_preload;LD_LIBRARY_PATH=$ld_lib_path:\$LD_LIBRARY_PATH;CPUPROFILE=/tmp/tg_cpu_profiler;CPUPROFILESIGNAL=12;MALLOC_CONF=prof:true,prof_active:false;XILINX_XRT=/opt/xilinx/xrt;XILINX_XRM=/opt/xilinx/xrm;XRT_INI_PATH=$PWD/../scripts/debug/xrt-profile.ini"
-        else
-            gpe_config="LD_PRELOAD=$ld_preload;LD_LIBRARY_PATH=$ld_lib_path:\$LD_LIBRARY_PATH;CPUPROFILE=/tmp/tg_cpu_profiler;CPUPROFILESIGNAL=12;MALLOC_CONF=prof:true,prof_active:false;XILINX_XRT=/opt/xilinx/xrt;XILINX_XRM=/opt/xilinx/xrm"
-        fi
-
-        gadmin config set GPE.BasicConfig.Env "$gpe_config"
-        # increase RESTPP timeout
-        gadmin config set RESTPP.Factory.DefaultQueryTimeoutSec 36000
-        gadmin config set GUI.HTTPRequest.TimeoutSec 36000
-
-
-        echo "INFO: Apply the new configurations to $gpe_config"
-        gadmin config apply -y
-        gadmin restart GPE RESTPP -y
-        gadmin config get GPE.BasicConfig.Env
-        gadmin config get RESTPP.Factory.DefaultQueryTimeoutSec
+    # copy gsql-client.jar to tmp directory
+    cp $tg_root_dir/dev/gdk/gsql/lib/gsql_client.jar /tmp/gsql_client.jar.tmp
+    echo "INFO: Apply environment changes to TigerGraph installation"
+    gadmin start all
+    #ld_preload="$HOME/libstd/libstdc++.so.6"
+    ld_preload=
+    if [ $pluginAlveoProductLibNeedsPreload -eq 1 ]; then
+        ld_preload="$ld_preload:$runtimeLibDir/$pluginLibName";
     fi
+    if [ "$mem_alloc" == "tcmalloc" ]; then
+        ld_preload="$ld_preload:$tg_root_dir/dev/gdk/gsdk/include/thirdparty/prebuilt/dynamic_libs/gmalloc/tcmalloc/libtcmalloc.so"
+    fi
+    ld_lib_path="$HOME/libstd:$runtimeLibDir:/opt/xilinx/xrt/lib:/opt/xilinx/xrm/lib:/usr/lib/x86_64-linux-gnu/"
+    if [ "$xrt_profiling" -eq 1 ]; then
+        gpe_config="LD_PRELOAD=$ld_preload;LD_LIBRARY_PATH=$ld_lib_path:\$LD_LIBRARY_PATH;CPUPROFILE=/tmp/tg_cpu_profiler;CPUPROFILESIGNAL=12;MALLOC_CONF=prof:true,prof_active:false;XILINX_XRT=/opt/xilinx/xrt;XILINX_XRM=/opt/xilinx/xrm;XRT_INI_PATH=$PWD/../scripts/debug/xrt-profile.ini"
+    else
+        gpe_config="LD_PRELOAD=$ld_preload;LD_LIBRARY_PATH=$ld_lib_path:\$LD_LIBRARY_PATH;CPUPROFILE=/tmp/tg_cpu_profiler;CPUPROFILESIGNAL=12;MALLOC_CONF=prof:true,prof_active:false;XILINX_XRT=/opt/xilinx/xrt;XILINX_XRM=/opt/xilinx/xrm"
+    fi
+    gadmin config set GPE.BasicConfig.Env "$gpe_config"
+    # increase RESTPP timeout
+    gadmin config set RESTPP.Factory.DefaultQueryTimeoutSec 36000
+    gadmin config set GUI.HTTPRequest.TimeoutSec 36000
+    echo "INFO: Apply the new configurations to $gpe_config"
+    gadmin config apply -y
+    gadmin restart GPE RESTPP -y
+    gadmin config get GPE.BasicConfig.Env
+    gadmin config get RESTPP.Factory.DefaultQueryTimeoutSec
 fi
+

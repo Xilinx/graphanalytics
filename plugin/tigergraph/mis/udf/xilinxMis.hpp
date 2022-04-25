@@ -86,12 +86,16 @@ inline void udf_dump_csr()
     info_file.close();
 }
 
-inline ListAccum<ListAccum<VERTEX> > udf_xilinx_mis(int num_schedules)
+inline ListAccum<ListAccum<VERTEX> > udf_xilinx_mis(int num_schedules, int num_verts, std::string &status)
 {
     ListAccum<ListAccum<VERTEX> > scheduleAccum;
     ListAccum<VERTEX> misAccum;
     int total_scheduled;
     xilMis::Context *context = xilMis::Context::getContext();
+
+    // CSR data check
+    status = context->checkContext(num_verts);
+    if(status != "0") return scheduleAccum;
 
     // build/get MIS object
     xilinx_apps::mis::MIS *pMis = context->getMisObj();

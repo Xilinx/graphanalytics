@@ -18,7 +18,7 @@ graphName=travelplan_$(USER)
 tp2tr=$(abspath $(CURDIR)/data/travelplan2trucks100.csv)
 tp2wo=$(abspath $(CURDIR)/data/travelplan2workorders100.csv)
 compileMode=1
-runMode=2
+runMode=3
 INC_ALL_XCLBINS=1
 
 ifdef sshKey
@@ -99,8 +99,8 @@ help:
 	@echo "              2: only compile query gsql"
 	@echo "runMode     : 0: Skip both CPU and Alveo run"
 	@echo "              1: Run only on CPU"
-	@echo "              2: Run only on Alveo (default)"
-	@echo "              3: Run on both CPU and Alveo"
+	@echo "              2: Run only on Alveo"
+	@echo "              3: Run on both CPU and Alveo (default)"
 	@echo ""
 	@echo "sshKey      : SSH key for user tigergraph"	
 	@echo "INC_ALL_XCLBINS : 1: Include all supported XCLBINs for staging"
