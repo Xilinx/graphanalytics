@@ -26,7 +26,8 @@ def readBin(filename, readSize):
         fileSize = os.path.getsize(filename)
 
         if 0 < readSize != fileSize:
-            print(f"WARNING: file {filename} size {fileSize} doesn't match required size {readSize}")
+            #print(f"WARNING: file {filename} size {fileSize} doesn't match required size {readSize}")
+            print("test")
 
         assert (fileSize >= readSize)
 
@@ -84,4 +85,5 @@ if __name__ == '__main__':
     # get size of the MIS
     vertex_count = mis.count()  # can also do len(mis_vertex_list)
 
-    print(f"\nFound MIS with {vertex_count} vertices within {elapsed:0.6f} sec")
+    #print(f"\nFound MIS with {vertex_count} vertices within {elapsed:0.6f} sec")
+    print("test")

@@ -89,25 +89,25 @@ compile_plugin_files="$pluginAlveoProductHeaders $pluginHeaders"
 # If uninstalling, remove UDFs from UDF file ExprFunctions.hpp and delete auxiliary files
 #
 
-if [ $uninstall -eq 1 ]; then
-    # If there are Recom Engine UDFs in the UDF file, uninstall them
+if [[ $uninstall -eq 1 ]]; then
+    # If there are product UDFs in the UDF file, uninstall them
     if [ -f $tg_udf_dir/ExprFunctions.hpp ] \
             && [ $(grep -c "mergeHeaders.*$pluginName" $tg_udf_dir/ExprFunctions.hpp) -gt 0 ]
     then
         if [ ! -f "$tg_udf_dir/mergeHeaders.py" ]; then
             cp $plugin_udf_dir/mergeHeaders.py $tg_udf_dir
         fi
-        echo "INFO: Uninstalling Xilinx Recommendation Engine UDFs"
+        echo "INFO: Uninstalling $pluginAlveoProductName UDFs"
         mv $tg_udf_dir/ExprFunctions.hpp $tg_udf_dir/ExprFunctions.hpp.prev
         python3 $tg_udf_dir/mergeHeaders.py -u $tg_udf_dir/ExprFunctions.hpp.prev $pluginName \
              > $tg_udf_dir/ExprFunctions.hpp
     else
         if [ $verbose -eq 1 ]; then
-            echo "INFO: Xilinx Recommendation Engine UDFs not found in UDF file ExprFunctions.hpp"
+            echo "INFO: $pluginAlveoProductName UDFs not found in UDF file ExprFunctions.hpp"
         fi
     fi
 
-    echo "INFO: Uninstalling Xilinx Recommendation Engine auxiliary files"
+    echo "INFO: Uninstalling $pluginAlveoProductName auxiliary files"
     for i in $app_plugin_files $app_alveo_product_files; do
         rm -f $tg_udf_dir/${i##*/}
     done
@@ -121,11 +121,12 @@ if [ $uninstall -eq 1 ]; then
 
     cp $tg_udf_dir/ExprFunctions.hpp $tg_temp_include_dir
 
+    echo "INFO: $pluginAlveoProductName uninstalled."
+
     exit 0
 fi
 
 ###############################################################################
-
 #
 # Install the plugin files to the current TigerGraph node
 #

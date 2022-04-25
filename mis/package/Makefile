@@ -29,7 +29,7 @@ package:$(PKGDIR)
 	cmake --build .;\
 	cpack -B $(shell pwd) ; \
 	cd ..; \
-	rm ${PKGDIR} -r; 
+	echo rm ${PKGDIR} -r; 
 
 
 $(PKGDIR):

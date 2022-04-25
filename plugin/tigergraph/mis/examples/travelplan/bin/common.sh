@@ -28,8 +28,8 @@ function usage() {
     echo "                         2: only compile query gsql"
     echo "  -r runMode           : 0: Skip both CPU and Alveo run (i.e. only run partition)"
     echo "                         1: Run only on CPU"
-    echo "                         2: Run only on Alveo (default)"
-    echo "                         3: Run on both CPU and Alveo"
+    echo "                         2: Run only on Alveo "
+    echo "                         3: Run on both CPU and Alveo (default)"
     echo "  -d numDevices        : number of FPGAs needed (default=1)"
     echo "  -f                   : Force (re)install"
     echo "  -g graphName         : graph name (default=travelplan_<username>)"
@@ -52,7 +52,7 @@ verbose=0
 xgraph="travelplan_$username"
 force_clean=0
 compile_mode=1
-run_mode=2
+run_mode=3
 force_clean_flag=
 verbose_flag=
 
