@@ -22,7 +22,7 @@ Run Bash Script with GSQL
    # a partition project basename for saving generated partitions for efficient 
    # FPGA memory mapping. The project needs to be on a shared network drive if TigerGraph
    # is set up as a multi-node cluster.
-   ./bin/run.sh -a alveoProject
+   ./bin/run.sh -a alveoProject -u <username> -p <password>
 
 
 

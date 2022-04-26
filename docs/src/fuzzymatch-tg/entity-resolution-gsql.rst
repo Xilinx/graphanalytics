@@ -21,4 +21,4 @@ Running Entity Resolution Using GSQL Client
 
    # Run entity resolution demo with default settings. Settings can be changed via command
    # line options as shown above
-   ./bin/run.sh
+   ./bin/run.sh -u <username> -p <password>
