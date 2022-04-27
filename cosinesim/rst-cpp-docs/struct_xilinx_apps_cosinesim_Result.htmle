@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -345,7 +345,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../index.html">Cosine Similarity</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../overview.html">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../install.html">Installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../demos.html">Demos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../demos.html">Demo(s)</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../api.html">API Reference</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="../cpp-api.html">C++</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="page_index.html">API User's Guide</a></li>
@@ -526,7 +526,7 @@
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

@@ -60,7 +60,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Supply Chain Travel Plan" href="usecases-travelplan.html" />
-    <link rel="prev" title="Getting Started Guide for TigerGraph Users" href="../mis/getting-started-tg.html" /> 
+    <link rel="prev" title="Install Conda or Python Environment" href="../mis/install-conda-python.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -339,9 +339,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/fraud-detection.html"> Fraud Detection</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../mis/supply-chain.html"> Supply Chain Optimization</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../mis/getting-started-tg.html">TigerGraph Users</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="../common/deploy-alveo.html">Deploy Alveo card</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../common/install-tigergraph.html">Install TigerGraph</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../common/install-conda-python.html">Install Python Virtual Environment (PyTigerGraph users ONLY)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../mis/deploy-alveo.html">Deploy Alveo card</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../mis/install-tigergraph.html">Install TigerGraph</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../mis/install-conda-python.html">Install Python Virtual Environment (PyTigerGraph users ONLY)</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Install Supply Chain Optimization Product</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#install-maximal-independent-set-software">Install Maximal Independent Set Software</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#uninstalling-the-maximal-independent-set">Uninstalling the Maximal Independent Set</a></li>
@@ -441,6 +441,7 @@
             
   <div class="section" id="install-xilinx-maximal-independent-set-for-tigergraph">
 <h1>Install Xilinx Maximal Independent Set for TigerGraph<a class="headerlink" href="#install-xilinx-maximal-independent-set-for-tigergraph" title="Permalink to this headline">¶</a></h1>
+<hr class="docutils" />
 <div class="section" id="install-maximal-independent-set-software">
 <h2>Install Maximal Independent Set Software<a class="headerlink" href="#install-maximal-independent-set-software" title="Permalink to this headline">¶</a></h2>
 <p>To install the Maximal Independent Set product, you can either install a DEB/RPM
@@ -450,19 +451,20 @@ product. Follow the steps in <em>only one</em> of the two sections below.</p>
 <div class="section" id="install-the-maximal-independent-set-from-a-package">
 <h3>Install the Maximal Independent Set from a Package<a class="headerlink" href="#install-the-maximal-independent-set-from-a-package" title="Permalink to this headline">¶</a></h3>
 <ul>
-<li><p>Get the installation package <strong>xilinx-tigergraph-install-1.5.5.tar.gz</strong> from the
+<li><p>Get the installation package <strong>amd-graphanalytics-install-1.5.8b.tar.gz</strong> from the
 <a class="reference external" href="https://www.xilinx.com/member/dba_poc.html#designFiles">Database Analytics POC Secure Site</a>.
 This package contains the Maximal Independent Set as well as its dependencies.</p></li>
 <li><p>Install the product and its dependencies by un-tarring the package and running
 the included install script.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf xilinx-tigergraph-install-1.5.5.tar.gz
-<span class="nb">cd</span> xilinx-tigergraph-install <span class="o">&amp;&amp;</span> ./install.sh -p mis
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf amd-graphanalytics-install-1.5.8b.tar.gz
+<span class="c1"># Install the MIS products for the specified device. Supported device name: u50, u55c, aws-f1</span>
+<span class="nb">cd</span> amd-graphanalytics-install <span class="o">&amp;&amp;</span> ./install.sh -p mis -d &lt;device-name&gt;
 </pre></div>
 </div>
 </li>
 <li><p>Install the Maximal Independent Set plugin into the TigerGraph installation
 targeting a supported Alveo device. Below is an example targeting Alveo U50”</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/0.4/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/0.6/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
 </pre></div>
 </div>
 <p>Supported Alveo devices:</p>
@@ -492,7 +494,7 @@ Both products reside in one GitHub repository.</p>
 <li><p>Build and install the Maximum Independent Set package. The Ubuntu apt package manager is used as an example.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> mis
 make dist
-sudo apt install --reinstall ./package/xilinx-mis-0.4_20.04-x86_64.deb
+sudo apt install --reinstall ./package/xilinx-mis-0.6_20.04-x86_64.deb
 </pre></div>
 </div>
 </li>
@@ -500,9 +502,9 @@ sudo apt install --reinstall ./package/xilinx-mis-0.4_20.04-x86_64.deb
 installation command and name for your server’s OS.)</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> plugin/tigergraph/mis
 make dist
-sudo apt install --reinstall ./package/xilinx-mis-tigergraph-0.4_20.04-x86_64.deb
+sudo apt install --reinstall ./package/xilinx-mis-tigergraph-0.6_20.04-x86_64.deb
 
-/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/0.4/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
+/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/0.6/install.sh -d xilinx_u50_gen3x16_xdma_201920_3
 </pre></div>
 </div>
 <p>Supported Alveo devices:</p>
@@ -517,10 +519,11 @@ sudo apt install --reinstall ./package/xilinx-mis-tigergraph-0.4_20.04-x86_64.de
 </div>
 </div>
 </div>
+<hr class="docutils" />
 <div class="section" id="uninstalling-the-maximal-independent-set">
 <h2>Uninstalling the Maximal Independent Set<a class="headerlink" href="#uninstalling-the-maximal-independent-set" title="Permalink to this headline">¶</a></h2>
 <p>You can uninstall the Maximal Independent Set from TigerGraph by running the install script with the <code class="docutils literal notranslate"><span class="pre">-u</span></code> option:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/0.4/install.sh -u
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/0.6/install.sh -u
 </pre></div>
 </div>
 <p><strong>TIP</strong>: To avoid TigerGraph errors, uninstall any queries and UDFs that use the Maximal Independent Set before
@@ -547,7 +550,7 @@ uninstalling the Maximal Independent Set itself.</p>
         <a href="usecases-travelplan.html" class="btn btn-neutral float-right" title="Supply Chain Travel Plan" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../mis/getting-started-tg.html" class="btn btn-neutral float-left" title="Getting Started Guide for TigerGraph Users" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="../mis/install-conda-python.html" class="btn btn-neutral float-left" title="Install Conda or Python Environment" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -557,7 +560,7 @@ uninstalling the Maximal Independent Set itself.</p>
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

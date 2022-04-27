@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -345,6 +345,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../cosinesim/index.html">Cosine Similarity</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Louvain Modularity</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html">Installation</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="demos.html">Demos</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">C++ Example using Makefile</a></li>
 </ul>
@@ -439,7 +440,7 @@
 <li><p>Open a terminal using your Linux credentials</p></li>
 <li><p>Execute following commands to run the example</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp -r /opt/xilinx/apps/graphanalytics/louvainmod/0.6/examples louvain-examples
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp -r /opt/xilinx/apps/graphanalytics/louvainmod/%LOUVAIN_VERSION/examples louvain-examples
 <span class="nb">cd</span> louvain-examples/cpp
 make run
 </pre></div>
@@ -475,7 +476,7 @@ make run
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

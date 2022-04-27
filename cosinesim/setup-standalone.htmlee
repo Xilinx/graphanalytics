@@ -59,8 +59,8 @@
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Jupyter Notebook" href="cosinesim-example-jupyter.html" />
-    <link rel="prev" title="Python API Example" href="cosinesim-example-python.html" /> 
+    <link rel="next" title="Fraud Detection" href="../louvainmod/fraud-detection.html" />
+    <link rel="prev" title="Wikipedia Search Engine" href="usecases-wiki-search.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -345,13 +345,12 @@
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Cosine Similarity</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="overview.html">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="install.html">Installation</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="demos.html">Demos</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="cosinesim-example-makefile.html">C++ Example using Makefile</a></li>
-<li class="toctree-l3 current"><a class="reference internal" href="cosinesim-example-python.html">Python API Example</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="demos.html">Demo(s)</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="usecases-standalone.html">API Demo</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="usecases-wiki-search.html">Wikipedia Search Engine</a><ul class="current">
 <li class="toctree-l4 current"><a class="current reference internal" href="#">Setup</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="cosinesim-example-jupyter.html">Jupyter Notebook</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="api.html">API Reference</a></li>
@@ -423,7 +422,7 @@
         
           <li><a href="demos.html">Xilinx Cosine Similarity Alveo Product Demos</a> &raquo;</li>
         
-          <li><a href="cosinesim-example-python.html">Python API Example</a> &raquo;</li>
+          <li><a href="usecases-wiki-search.html">Wikipedia Search Engine</a> &raquo;</li>
         
       <li>Setup Cosine Similarity for Stand-Alone Runs</li>
     
@@ -454,7 +453,7 @@
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ conda env list
 $ conda create -n fpga <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.6
 $ conda activate fpga
-<span class="o">(</span>fpga<span class="o">)</span>$ conda install -r /opt/xilinx/apps/graphanalytics/requirements.txt
+<span class="o">(</span>fpga<span class="o">)</span>$ pip install -r /opt/xilinx/apps/graphanalytics/requirements.txt
 </pre></div>
 </div>
 <p><strong>Using local python</strong></p>
@@ -470,7 +469,7 @@ $ <span class="nb">source</span> fpga/bin/activate
 </div>
 <div class="section" id="copy-examples-to-user-accessible-directory">
 <h2>2. Copy examples to user accessible directory<a class="headerlink" href="#copy-examples-to-user-accessible-directory" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ cp -r /opt/xilinx/apps/graphanalytics/cosinesim/1.5/examples cosinesim-examples
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ cp -r /opt/xilinx/apps/graphanalytics/cosinesim/%COSINESIM_VERSION/examples cosinesim-examples
 <span class="o">(</span>fpga<span class="o">)</span>$ <span class="nb">cd</span> cosinesim-examples/python
 </pre></div>
 </div>
@@ -532,10 +531,10 @@ machine as shown <a class="reference external" href="https://jupyterhub.readthed
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="cosinesim-example-jupyter.html" class="btn btn-neutral float-right" title="Jupyter Notebook" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../louvainmod/fraud-detection.html" class="btn btn-neutral float-right" title="Fraud Detection" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="cosinesim-example-python.html" class="btn btn-neutral float-left" title="Python API Example" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="usecases-wiki-search.html" class="btn btn-neutral float-left" title="Wikipedia Search Engine" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -545,7 +544,7 @@ machine as shown <a class="reference external" href="https://jupyterhub.readthed
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

@@ -58,7 +58,9 @@
   <link rel="stylesheet" href="../_static/css/pro.min.css" media="all" />
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Xilinx Cosine Similarity Alveo Product" href="../cosinesim/index.html" />
+    <link rel="prev" title="Python API Example" href="example-python.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -306,7 +308,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -339,11 +341,25 @@
 <li class="toctree-l1"><a class="reference internal" href="entity-resolution.html"> Entity Resolution</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Algorithms</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../cosinesim/index.html">Cosine Similarity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/index.html">Louvain Modularity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mis/index.html">Maximal Independent Set</a></li>
-<li class="toctree-l1"><a class="reference internal" href="index.html">Levenstein Edit Distance (Fuzzy Match)</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Levenstein Edit Distance (Fuzzy Match)</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="demos.html">Demos</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="example-makefile.html">C++ Example of Fuzzy Match using Makefile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="example-python.html">Python API Example</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Jupyter Notebook with Fuzzy Match Python API</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../common/setup-python-standalone.html">Setup</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api.html">API Reference</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption"><span class="caption-text">Notice</span></p>
 <ul>
@@ -401,6 +417,12 @@
     
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
+          <li><a href="entity-resolution.html">Entity Resolution</a> &raquo;</li>
+        
+          <li><a href="getting-started-standalone.html">Getting Started Guide for C++/Python Users</a> &raquo;</li>
+        
+          <li><a href="demos.html">Xilinx Fuzzy Match Set Alveo Product Demos</a> &raquo;</li>
+        
       <li>Jupyter Notebook with Fuzzy Match Python API</li>
     
     
@@ -420,7 +442,20 @@
             
   <div class="section" id="jupyter-notebook-with-fuzzy-match-python-api">
 <h1>Jupyter Notebook with Fuzzy Match Python API<a class="headerlink" href="#jupyter-notebook-with-fuzzy-match-python-api" title="Permalink to this headline">¶</a></h1>
-<p>Coming soon</p>
+<p>Follow the setup process below before running the notebook:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../common/setup-python-standalone.html">Setup</a></li>
+</ul>
+</div>
+<p>Run following commands in the Python virtual environment (from setup) to run the notebook:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ cp -r /opt/xilinx/apps/graphanalytics/fuzzymatch/0.6/examples fuzzymatch-examples
+<span class="o">(</span>fpga<span class="o">)</span>$ <span class="nb">cd</span> fuzzymatch-examples/python
+<span class="o">(</span>fpga<span class="o">)</span>$ ./run.sh jupyter notebook jupyter/fuzzymatch_demo_notebook.ipynb
+</pre></div>
+</div>
+<p>The Jupyter Notebook demo is also available on
+<a class="reference external" href="https://github.com/Xilinx/graphanalytics/blob/master/fuzzymatch/examples/python/jupyter/fuzzymatch-demo-notebook.ipynb">Github</a></p>
 </div>
 
 
@@ -437,13 +472,22 @@
 
 	  <!-- Sphinx Page Footer block -->
   
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../cosinesim/index.html" class="btn btn-neutral float-right" title="Xilinx Cosine Similarity Alveo Product" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="example-python.html" class="btn btn-neutral float-left" title="Python API Example" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
 
   <hr/>
 
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

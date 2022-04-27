@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -336,22 +336,23 @@
               <p class="caption"><span class="caption-text">Applications</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../cosinesim/usecases.html"> Recommendation System</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../louvainmod/fraud-detection.html"> Fraud Detection</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="../mis/supply-chain.html"> Supply Chain Optimization</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="../mis/getting-started-tg.html">TigerGraph Users</a><ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../louvainmod/fraud-detection.html"> Fraud Detection</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../louvainmod/getting-started-tg.html">TigerGraph Users</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="deploy-alveo.html">Deploy Alveo card</a></li>
 <li class="toctree-l3"><a class="reference internal" href="install-tigergraph.html">Install TigerGraph</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Install Python Virtual Environment (PyTigerGraph users ONLY)</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#create-a-virtual-environment-and-install-dependencies">1. Create a virtual environment and install dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#using-conda">Using Conda</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#using-local-python">Using local python</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../mis-tg/install.html">Install Supply Chain Optimization Product</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../mis-tg/usecases-travelplan.html">Run Demo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../comdet-tg/install.html">Install Fraud Detection Product</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../comdet-tg/comdetect.html">Run Demo</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../mis/getting-started-standalone.html">C++/Python Users</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../louvainmod/getting-started-standalone.html">C++/Python Users</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../mis/supply-chain.html"> Supply Chain Optimization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../fuzzymatch/entity-resolution.html"> Entity Resolution</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Algorithms</span></p>
@@ -442,13 +443,13 @@
 <h1>Install Conda or Python Environment<a class="headerlink" href="#install-conda-or-python-environment" title="Permalink to this headline">¶</a></h1>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Demo Jupyter Notebooks can be run from any machine that is on the same network
+<p><strong>TigerGraph users ONLY</strong>: Demo Jupyter Notebooks can be run from any machine that is on the same network
 as the TigerGraph server i.e. can connect via HTTP connections. These Notebooks
 use <strong>pyTigerGraph</strong> module to connect to the TigerGraph server via REST APIs.</p>
 </div>
-<div class="section" id="create-a-virtual-environment-and-install-dependencies">
-<h2>1. Create a virtual environment and install dependencies<a class="headerlink" href="#create-a-virtual-environment-and-install-dependencies" title="Permalink to this headline">¶</a></h2>
-<p><strong>Using Conda</strong></p>
+<p>Create a virtual environment using <em>any</em> of the following methods and install dependencies.</p>
+<div class="section" id="using-conda">
+<h2>Using Conda<a class="headerlink" href="#using-conda" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Install conda by following instructions on <a class="reference external" href="https://docs.conda.io/en/latest/miniconda.html">https://docs.conda.io/en/latest/miniconda.html</a></p></li>
 <li><p>Create and activate a new virtual environment and install all required packages</p></li>
@@ -456,10 +457,12 @@ use <strong>pyTigerGraph</strong> module to connect to the TigerGraph server via
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ conda env list
 $ conda create -n fpga <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.6
 $ conda activate fpga
-<span class="o">(</span>fpga<span class="o">)</span>$ conda install -r /opt/xilinx/apps/graphanalytics/requirements.txt
+<span class="o">(</span>fpga<span class="o">)</span>$ pip install -r /opt/xilinx/apps/graphanalytics/requirements.txt
 </pre></div>
 </div>
-<p><strong>Using local python</strong></p>
+</div>
+<div class="section" id="using-local-python">
+<h2>Using local python<a class="headerlink" href="#using-local-python" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>At least Python version 3.6 is required, install or upgrade python using your package manager</p></li>
 <li><p>Create and activate a new virtual environment and install all required packages</p></li>
@@ -501,7 +504,7 @@ $ <span class="nb">source</span> fpga/bin/activate
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

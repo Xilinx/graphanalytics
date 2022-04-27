@@ -60,7 +60,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Synthea Demo Overview" href="synthea-overview.html" />
-    <link rel="prev" title="AMD Recommendation Engine for TigerGraph Installation" href="install.html" /> 
+    <link rel="prev" title="Xilinx Recommendation Engine Use Cases" href="demos.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -341,11 +341,10 @@
 <li class="toctree-l3"><a class="reference internal" href="../common/install-tigergraph.html">Install TigerGraph</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../common/install-conda-python.html">Install Python Virtual Environment (PyTigerGraph users ONLY)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="install.html">Install Recommendation System</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Run Demo</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="synthea-overview.html">Synthea Demo Overview</a></li>
-<li class="toctree-l4"><a class="reference internal" href="synthea-script.html">Run Bash Script with GSQL</a></li>
-<li class="toctree-l4"><a class="reference internal" href="synthea-jupyter.html">Run Jupyter Notebook</a></li>
-<li class="toctree-l4"><a class="reference internal" href="synthea-query.html">Synthea Demo Query Reference</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="demos.html">Run Demo(s)</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Patient Similarity using Synthetic Patient Data (Synthea)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usecases-log.html">Error Log Analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usecases-healthcare.html">Heathcare Concept Similarity with UMLS</a></li>
 </ul>
 </li>
 </ul>
@@ -424,6 +423,8 @@
         
           <li><a href="../cosinesim/getting-started-tg.html">Getting Started Guide for TigerGraph Users</a> &raquo;</li>
         
+          <li><a href="demos.html">Xilinx Recommendation Engine Use Cases</a> &raquo;</li>
+        
       <li>Recommendation Engine Synthea Demo</li>
     
     
@@ -488,7 +489,7 @@ every aspect of healthcare.</p>
         <a href="synthea-overview.html" class="btn btn-neutral float-right" title="Synthea Demo Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="install.html" class="btn btn-neutral float-left" title="AMD Recommendation Engine for TigerGraph Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="demos.html" class="btn btn-neutral float-left" title="Xilinx Recommendation Engine Use Cases" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -498,7 +499,7 @@ every aspect of healthcare.</p>
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

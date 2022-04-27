@@ -59,7 +59,7 @@
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Setup Cosine Similarity for Stand-Alone Runs" href="setup-standalone.html" />
+    <link rel="next" title="Python Env Setup for Stand-Alone Runs" href="../common/setup-python-standalone.html" />
     <link rel="prev" title="C++ Example using Makefile" href="cosinesim-example-makefile.html" /> 
 	</head>
 	<body>
@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -345,13 +345,14 @@
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Cosine Similarity</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="overview.html">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="install.html">Installation</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="demos.html">Demos</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="cosinesim-example-makefile.html">C++ Example using Makefile</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Python API Example</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="setup-standalone.html">Setup</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="demos.html">Demo(s)</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="usecases-standalone.html">API Demo</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="cosinesim-example-makefile.html">C++ Example using Makefile</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Python API Example</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cosinesim-example-jupyter.html">Jupyter Notebook</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="cosinesim-example-jupyter.html">Jupyter Notebook</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usecases-wiki-search.html">Wikipedia Search Engine</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="api.html">API Reference</a></li>
@@ -423,6 +424,8 @@
         
           <li><a href="demos.html">Xilinx Cosine Similarity Alveo Product Demos</a> &raquo;</li>
         
+          <li><a href="usecases-standalone.html">Cosine Similarity API Demo</a> &raquo;</li>
+        
       <li>Python API Example</li>
     
     
@@ -445,11 +448,12 @@
 <p>Follow the setup process below before running the notebook:</p>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="setup-standalone.html">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../common/setup-python-standalone.html">Setup</a></li>
 </ul>
 </div>
 <p>Run following commands in the Python virtual environment (from setup) to run the example:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ <span class="nb">cd</span> cosinesim-examples/python
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ cp -r /opt/xilinx/apps/graphanalytics/cosinesim/1.5/examples cosinesim-examples
+<span class="o">(</span>fpga<span class="o">)</span>$ <span class="nb">cd</span> cosinesim-examples/python
 <span class="o">(</span>fpga<span class="o">)</span>$ ./run.sh python pythondemo.py
 </pre></div>
 </div>
@@ -471,7 +475,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="setup-standalone.html" class="btn btn-neutral float-right" title="Setup Cosine Similarity for Stand-Alone Runs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../common/setup-python-standalone.html" class="btn btn-neutral float-right" title="Python Env Setup for Stand-Alone Runs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="cosinesim-example-makefile.html" class="btn btn-neutral float-left" title="C++ Example using Makefile" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -484,7 +488,7 @@
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

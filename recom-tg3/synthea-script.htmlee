@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -341,11 +341,10 @@
 <li class="toctree-l3"><a class="reference internal" href="../common/install-tigergraph.html">Install TigerGraph</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../common/install-conda-python.html">Install Python Virtual Environment (PyTigerGraph users ONLY)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="install.html">Install Recommendation System</a></li>
-<li class="toctree-l3 current"><a class="reference internal" href="synthea.html">Run Demo</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="synthea-overview.html">Synthea Demo Overview</a></li>
-<li class="toctree-l4 current"><a class="current reference internal" href="#">Run Bash Script with GSQL</a></li>
-<li class="toctree-l4"><a class="reference internal" href="synthea-jupyter.html">Run Jupyter Notebook</a></li>
-<li class="toctree-l4"><a class="reference internal" href="synthea-query.html">Synthea Demo Query Reference</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="demos.html">Run Demo(s)</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="synthea.html">Patient Similarity using Synthetic Patient Data (Synthea)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usecases-log.html">Error Log Analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usecases-healthcare.html">Heathcare Concept Similarity with UMLS</a></li>
 </ul>
 </li>
 </ul>
@@ -424,6 +423,8 @@
         
           <li><a href="../cosinesim/getting-started-tg.html">Getting Started Guide for TigerGraph Users</a> &raquo;</li>
         
+          <li><a href="demos.html">Xilinx Recommendation Engine Use Cases</a> &raquo;</li>
+        
           <li><a href="synthea.html">Recommendation Engine Synthea Demo</a> &raquo;</li>
         
       <li>Run Bash Script with GSQL</li>
@@ -451,7 +452,7 @@
 <li><p>Execute the command below to run the example</p></li>
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Copy examples from the installation to your own working directory</span>
-cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/recomengine/1.5/examples recomengine-examples
+cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/recomengine/%RECOMENGINE_TG_VERSION/examples recomengine-examples
 
 <span class="nb">cd</span> recomengine-examples/synthea
 
@@ -463,7 +464,7 @@ cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/recomengine/1.5
 
 <span class="c1"># Run synthea demo with default settings. Settings can be changed via command</span>
 <span class="c1"># line options as shown above</span>
-./bin/run.sh
+./bin/run.sh -u &lt;username&gt; -p &lt;password&gt;
 </pre></div>
 </div>
 </div>
@@ -497,7 +498,7 @@ cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/recomengine/1.5
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

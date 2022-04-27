@@ -311,7 +311,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -432,7 +432,7 @@ installation or can be used standalone. Using the Alveo-accelerated
 products can reduce your time-to-insight by as much as 100x compared to your
 existing CPU only solutions. Additionally, they can lower requirements
 for server system memory as much as 3x.</p>
-<p>The binary installation package is available on <a class="reference external" href="https://www.xilinx.com/member/dba_poc.html#designFiles">Database Analytics POC Secure Site</a>.
+<p>The binary installation package is available on <a class="reference external" href="%PACKAGE_LINK">Database Analytics POC Secure Site</a>.
 Additionally for advanced users wanting to make code changes, the source code is available at
 <a class="reference external" href="https://github.com/Xilinx/graphanalytics">https://github.com/Xilinx/graphanalytics</a> under
 Apache License, Version 2.0.</p>
@@ -485,7 +485,7 @@ Apache License, Version 2.0.</p>
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

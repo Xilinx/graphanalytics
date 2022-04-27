@@ -59,7 +59,7 @@
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Getting Started Guide for C++/Python Users" href="../cosinesim/getting-started-standalone.html" />
+    <link rel="next" title="Error Log Analysis" href="usecases-log.html" />
     <link rel="prev" title="Run Jupyter Notebook" href="synthea-jupyter.html" /> 
 	</head>
 	<body>
@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -341,11 +341,10 @@
 <li class="toctree-l3"><a class="reference internal" href="../common/install-tigergraph.html">Install TigerGraph</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../common/install-conda-python.html">Install Python Virtual Environment (PyTigerGraph users ONLY)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="install.html">Install Recommendation System</a></li>
-<li class="toctree-l3 current"><a class="reference internal" href="synthea.html">Run Demo</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="synthea-overview.html">Synthea Demo Overview</a></li>
-<li class="toctree-l4"><a class="reference internal" href="synthea-script.html">Run Bash Script with GSQL</a></li>
-<li class="toctree-l4"><a class="reference internal" href="synthea-jupyter.html">Run Jupyter Notebook</a></li>
-<li class="toctree-l4 current"><a class="current reference internal" href="#">Synthea Demo Query Reference</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="demos.html">Run Demo(s)</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="synthea.html">Patient Similarity using Synthetic Patient Data (Synthea)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usecases-log.html">Error Log Analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usecases-healthcare.html">Heathcare Concept Similarity with UMLS</a></li>
 </ul>
 </li>
 </ul>
@@ -423,6 +422,8 @@
           <li><a href="../cosinesim/usecases.html">Recommendation System</a> &raquo;</li>
         
           <li><a href="../cosinesim/getting-started-tg.html">Getting Started Guide for TigerGraph Users</a> &raquo;</li>
+        
+          <li><a href="demos.html">Xilinx Recommendation Engine Use Cases</a> &raquo;</li>
         
           <li><a href="synthea.html">Recommendation Engine Synthea Demo</a> &raquo;</li>
         
@@ -544,7 +545,7 @@ in <code class="docutils literal notranslate"><span class="pre">base.gsql</span>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../cosinesim/getting-started-standalone.html" class="btn btn-neutral float-right" title="Getting Started Guide for C++/Python Users" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="usecases-log.html" class="btn btn-neutral float-right" title="Error Log Analysis" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="synthea-jupyter.html" class="btn btn-neutral float-left" title="Run Jupyter Notebook" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -557,7 +558,7 @@ in <code class="docutils literal notranslate"><span class="pre">base.gsql</span>
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

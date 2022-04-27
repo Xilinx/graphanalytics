@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -341,7 +341,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../common/install-tigergraph.html">Install TigerGraph</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../common/install-conda-python.html">Install Python Virtual Environment (PyTigerGraph users ONLY)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../recom-tg3/install.html">Install Recommendation System</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../recom-tg3/synthea.html">Run Demo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../recom-tg3/demos.html">Run Demo(s)</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="getting-started-standalone.html">C++/Python Users</a></li>
@@ -442,7 +442,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../common/install-tigergraph.html">Install TigerGraph</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../common/install-conda-python.html">Install Python Virtual Environment (PyTigerGraph users ONLY)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../recom-tg3/install.html">Install Recommendation System</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../recom-tg3/synthea.html">Run Demo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../recom-tg3/demos.html">Run Demo(s)</a></li>
 </ul>
 </div>
 </div>
@@ -476,7 +476,7 @@
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

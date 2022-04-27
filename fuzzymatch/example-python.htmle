@@ -59,7 +59,7 @@
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Xilinx Cosine Similarity Alveo Product" href="../cosinesim/index.html" />
+    <link rel="next" title="Jupyter Notebook with Fuzzy Match Python API" href="example-jupyter.html" />
     <link rel="prev" title="C++ Example of Fuzzy Match using Makefile" href="example-makefile.html" /> 
 	</head>
 	<body>
@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -350,7 +350,11 @@
 <li class="toctree-l2"><a class="reference internal" href="install.html">Installation</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="demos.html">Demos</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="example-makefile.html">C++ Example of Fuzzy Match using Makefile</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Python API Example</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Python API Example</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../common/setup-python-standalone.html">Setup</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="example-jupyter.html">Jupyter Notebook with Fuzzy Match Python API</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="api.html">API Reference</a></li>
@@ -438,28 +442,17 @@
             
   <div class="section" id="python-api-example">
 <h1>Python API Example<a class="headerlink" href="#python-api-example" title="Permalink to this headline">¶</a></h1>
+<p>Follow the setup process below before running the notebook:</p>
+<div class="toctree-wrapper compound">
 <ul>
-<li><p>Open a terminal using your Linux credentials</p></li>
-<li><p>Open python virtual environment and install pandas package.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python3 -m venv fpga
-$ . fpga/bin/activate
-<span class="o">(</span>fpga<span class="o">)</span>$ pip install -r /opt/xilinx/apps/graphanalytics/requirements.txt
-</pre></div>
+<li class="toctree-l1"><a class="reference internal" href="../common/setup-python-standalone.html">Setup</a></li>
+</ul>
 </div>
-</li>
+<ul>
 <li><p>Execute following commands to run the example</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ cp -r /opt/xilinx/apps/graphanalytics/fuzzymatch/0.3/examples fuzzymatch-examples
 <span class="o">(</span>fpga<span class="o">)</span>$ <span class="nb">cd</span> fuzzymatch-examples/python
-
-<span class="c1"># Support AWS F1 and U50 device</span>
-<span class="c1"># Run on AWS F1:</span>
-<span class="o">(</span>fpga<span class="o">)</span>$ ./run.sh
-
-<span class="c1"># Run on U50</span>
-<span class="o">(</span>fpga<span class="o">)</span>$ ./run.sh U50
-
-<span class="c1"># Run on U55C</span>
-<span class="o">(</span>fpga<span class="o">)</span>$ ./run.sh U55C
+<span class="o">(</span>fpga<span class="o">)</span>$ ./run.sh python pythondemo.py
 </pre></div>
 </div>
 </li>
@@ -482,7 +475,7 @@ $ . fpga/bin/activate
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../cosinesim/index.html" class="btn btn-neutral float-right" title="Xilinx Cosine Similarity Alveo Product" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="example-jupyter.html" class="btn btn-neutral float-right" title="Jupyter Notebook with Fuzzy Match Python API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="example-makefile.html" class="btn btn-neutral float-left" title="C++ Example of Fuzzy Match using Makefile" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -495,7 +488,7 @@ $ . fpga/bin/activate
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

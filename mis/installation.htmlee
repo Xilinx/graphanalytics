@@ -58,7 +58,9 @@
   <link rel="stylesheet" href="../_static/css/pro.min.css" media="all" />
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Xilinx Maximal Independent Set Alveo Product Demos" href="demos.html" />
+    <link rel="prev" title="Getting Started Guide for C++/Python Users" href="getting-started-standalone.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -306,7 +308,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -332,10 +334,24 @@
             
             
               <p class="caption"><span class="caption-text">Applications</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../cosinesim/usecases.html"> Recommendation System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/fraud-detection.html"> Fraud Detection</a></li>
-<li class="toctree-l1"><a class="reference internal" href="supply-chain.html"> Supply Chain Optimization</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="supply-chain.html"> Supply Chain Optimization</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="getting-started-tg.html">TigerGraph Users</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="getting-started-standalone.html">C++/Python Users</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../common/deploy-alveo.html">Deploy Alveo card</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Install Supply Chain Optimization Product</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#installing-maximal-independent-set-alveo-from-a-pre-built-package">Installing Maximal Independent Set Alveo from a Pre-built Package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#setting-up-the-alveo-accelerator-card">Setting up the Alveo Accelerator Card</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#collaborating-on-maximal-independent-set-product">Collaborating on Maximal Independent Set Product</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="demos.html">Run Demo</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../fuzzymatch/entity-resolution.html"> Entity Resolution</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Algorithms</span></p>
@@ -401,6 +417,10 @@
     
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
+          <li><a href="supply-chain.html">Supply Chain Optimization</a> &raquo;</li>
+        
+          <li><a href="getting-started-standalone.html">Getting Started Guide for C++/Python Users</a> &raquo;</li>
+        
       <li>Xilinx Maximal Independent Set Alveo Product Installation</li>
     
     
@@ -420,33 +440,23 @@
             
   <div class="section" id="xilinx-maximal-independent-set-alveo-product-installation">
 <h1>Xilinx Maximal Independent Set Alveo Product Installation<a class="headerlink" href="#xilinx-maximal-independent-set-alveo-product-installation" title="Permalink to this headline">¶</a></h1>
-<p>Follow the steps below to install the Maximal Independent Set Alveo Product.</p>
-<div class="section" id="install-alveo-accelerator-card-on-premises">
-<h2>Install Alveo Accelerator Card on-premises<a class="headerlink" href="#install-alveo-accelerator-card-on-premises" title="Permalink to this headline">¶</a></h2>
-<p>&lt;<a class="reference external" href="https://aws.amazon.com/marketplace/pp/prodview-zzeaoszfrkr7s">https://aws.amazon.com/marketplace/pp/prodview-zzeaoszfrkr7s</a>&gt;`_</p>
-<ul class="simple">
-<li><p>Power off the server</p></li>
-<li><p>Plug Alveo <a class="reference external" href="https://www.xilinx.com/products/boards-and-kits/alveo/u50.html">U50</a>
-or <a class="reference external" href="https://www.xilinx.com/products/boards-and-kits/alveo/u55c.html">U55C</a>
-cards into PCIe Gen3 x16 slots</p></li>
-<li><p>Power on the server</p></li>
-</ul>
+<p>Follow the steps below to install the Maximal Independent Set Alveo Product. Skip the collaboration section if only deploying.</p>
 <div class="section" id="installing-maximal-independent-set-alveo-from-a-pre-built-package">
-<h3>Installing Maximal Independent Set Alveo from a Pre-built Package<a class="headerlink" href="#installing-maximal-independent-set-alveo-from-a-pre-built-package" title="Permalink to this headline">¶</a></h3>
+<h2>Installing Maximal Independent Set Alveo from a Pre-built Package<a class="headerlink" href="#installing-maximal-independent-set-alveo-from-a-pre-built-package" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p>Get the installation package <strong>xilinx-tigergraph-install-1.5.5.tar.gz</strong> from the
-<a class="reference external" href="https://www.xilinx.com/member/dba_poc.html#designFiles">Database Analytics POC Secure Site</a>.
+<li><p>Get the installation package <strong>amd-graphanalytics-install-%PACKAGE_VERSION.tar.gz</strong> from the
+<a class="reference external" href="%PACKAGE_LINK">Database Analytics POC Secure Site</a>.
 This package contains the MIS as well as its dependencies.</p></li>
 <li><p>Install Xilinx MIS and MIS TigerGraph Plugin Alveo Products and dependencies
 (XRT, XRM, and Alveo firmware packages)</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf xilinx-tigergraph-install-1.5.5.tar.gz
-<span class="nb">cd</span> xilinx-tigergraph-install <span class="o">&amp;&amp;</span> ./install.sh -p mis
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf amd-graphanalytics-install-%PACKAGE_VERSION.tar.gz
+<span class="nb">cd</span> amd-graphanalytics-install <span class="o">&amp;&amp;</span> ./install.sh -p mis
 </pre></div>
 </div>
 </div>
 <div class="section" id="setting-up-the-alveo-accelerator-card">
-<h3>Setting up the Alveo Accelerator Card<a class="headerlink" href="#setting-up-the-alveo-accelerator-card" title="Permalink to this headline">¶</a></h3>
+<h2>Setting up the Alveo Accelerator Card<a class="headerlink" href="#setting-up-the-alveo-accelerator-card" title="Permalink to this headline">¶</a></h2>
 <p>The Maximal Independent Set Alveo Product requires the following Alveo cards
 and their corresponding firmware versions to be installed on each Alveo card to use.</p>
 <ul class="simple">
@@ -488,7 +498,7 @@ products, you can skip the section below.</p>
 </div>
 </div>
 <div class="section" id="collaborating-on-maximal-independent-set-product">
-<h3>Collaborating on Maximal Independent Set Product<a class="headerlink" href="#collaborating-on-maximal-independent-set-product" title="Permalink to this headline">¶</a></h3>
+<h2>Collaborating on Maximal Independent Set Product<a class="headerlink" href="#collaborating-on-maximal-independent-set-product" title="Permalink to this headline">¶</a></h2>
 <p>The Maximal Independent Set product is an open-source project hosted on github, you can
 collaborate with Xilinx and contribute to the development of the product.</p>
 <ul>
@@ -512,9 +522,8 @@ installation using the Ubuntu <code class="docutils literal notranslate"><span c
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> mis
 make dist
-sudo apt install --reinstall ./package/xilinx-mis-0.4_20.04-x86_64.deb
+sudo apt install --reinstall ./package/xilinx-mis-%MIS_VERSION_20.04-x86_64.deb
 </pre></div>
-</div>
 </div>
 </div>
 </div>
@@ -533,13 +542,22 @@ sudo apt install --reinstall ./package/xilinx-mis-0.4_20.04-x86_64.deb
 
 	  <!-- Sphinx Page Footer block -->
   
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="demos.html" class="btn btn-neutral float-right" title="Xilinx Maximal Independent Set Alveo Product Demos" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="getting-started-standalone.html" class="btn btn-neutral float-left" title="Getting Started Guide for C++/Python Users" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
 
   <hr/>
 
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

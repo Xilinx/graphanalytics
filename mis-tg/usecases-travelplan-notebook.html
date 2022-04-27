@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -339,9 +339,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/fraud-detection.html"> Fraud Detection</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../mis/supply-chain.html"> Supply Chain Optimization</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../mis/getting-started-tg.html">TigerGraph Users</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="../common/deploy-alveo.html">Deploy Alveo card</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../common/install-tigergraph.html">Install TigerGraph</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../common/install-conda-python.html">Install Python Virtual Environment (PyTigerGraph users ONLY)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../mis/deploy-alveo.html">Deploy Alveo card</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../mis/install-tigergraph.html">Install TigerGraph</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../mis/install-conda-python.html">Install Python Virtual Environment (PyTigerGraph users ONLY)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="install.html">Install Supply Chain Optimization Product</a></li>
 <li class="toctree-l3 current"><a class="reference internal" href="usecases-travelplan.html">Run Demo</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="usecases-travelplan-overview.html">Overview</a></li>
@@ -464,7 +464,13 @@ Password:
 <li><p>Follow the step-by-step instructions in the notebook once it is loaded in your browser.</p></li>
 </ul>
 <p>The Jupter Notebook demo is also available on
-<a class="reference external" href="https://github.com/Xilinx/graphanalytics/blob/master/plugin/tigergraph/mis/examples/travelplan/jupyter-demo/travelplan-jupyter-tg.ipynb">Github</a></p>
+<a class="reference external" href="https://github.com/Xilinx/graphanalytics/blob/master/plugin/tigergraph/mis/examples/travelplan/jupyter/travelplan-jupyter-tg.ipynb">Github</a></p>
+<p>To run the demo on a larger dataset (included under <code class="code bash docutils literal notranslate"><span class="pre">/data</span></code> directory) that shows speedup over CPU only query,
+change the filename variables in <strong>Path Setup</strong> cell in the Notebook as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tp2woInfile</span> <span class="o">=</span> <span class="n">serverDataLocation</span> <span class="o">/</span> <span class="s2">&quot;travelplan2workorders2000.csv&quot;</span>
+<span class="n">tp2trInfile</span> <span class="o">=</span> <span class="n">serverDataLocation</span> <span class="o">/</span> <span class="s2">&quot;travelplan2trucks2000.csv&quot;</span>
+</pre></div>
+</div>
 </div>
 
 
@@ -496,7 +502,7 @@ Password:
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

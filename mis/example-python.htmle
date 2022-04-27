@@ -59,7 +59,7 @@
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Setup Maximal Independent Set for Stand-Alone Runs" href="setup-standalone.html" />
+    <link rel="next" title="Jupyter Notebook" href="example-jupyter.html" />
     <link rel="prev" title="C++ Example using Makefile" href="example-makefile.html" /> 
 	</head>
 	<body>
@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -349,7 +349,7 @@
 <li class="toctree-l2 current"><a class="reference internal" href="demos.html">Demos</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="example-makefile.html">C++ Example using Makefile</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Python API Example</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="setup-standalone.html">Setup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../common/setup-python-standalone.html">Setup</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="example-jupyter.html">Jupyter Notebook</a></li>
@@ -416,7 +416,9 @@
     
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-          <li><a href="index.html">Xilinx Maximal Independent Set Alveo Product</a> &raquo;</li>
+          <li><a href="supply-chain.html">Supply Chain Optimization</a> &raquo;</li>
+        
+          <li><a href="getting-started-standalone.html">Getting Started Guide for C++/Python Users</a> &raquo;</li>
         
           <li><a href="demos.html">Xilinx Maximal Independent Set Alveo Product Demos</a> &raquo;</li>
         
@@ -442,11 +444,12 @@
 <p>Follow the setup process below before running the notebook:</p>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="setup-standalone.html">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../common/setup-python-standalone.html">Setup</a></li>
 </ul>
 </div>
 <p>Run following commands in the Python virtual environment (from setup) to run the example:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ <span class="nb">cd</span> mis-examples/python
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ cp -r /opt/xilinx/apps/graphanalytics/mis/0.6/examples mis-examples
+<span class="o">(</span>fpga<span class="o">)</span>$ <span class="nb">cd</span> mis-examples/python
 <span class="o">(</span>fpga<span class="o">)</span>$ ./run.sh python misdemo.py
 </pre></div>
 </div>
@@ -468,7 +471,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="setup-standalone.html" class="btn btn-neutral float-right" title="Setup Maximal Independent Set for Stand-Alone Runs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="example-jupyter.html" class="btn btn-neutral float-right" title="Jupyter Notebook" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="example-makefile.html" class="btn btn-neutral float-left" title="C++ Example using Makefile" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -481,7 +484,7 @@
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

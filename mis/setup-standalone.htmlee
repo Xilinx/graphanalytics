@@ -58,9 +58,7 @@
   <link rel="stylesheet" href="../_static/css/pro.min.css" media="all" />
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Jupyter Notebook" href="example-jupyter.html" />
-    <link rel="prev" title="Python API Example" href="example-python.html" /> 
+    <link rel="search" title="Search" href="../search.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -308,7 +306,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -341,23 +339,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../fuzzymatch/entity-resolution.html"> Entity Resolution</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Algorithms</span></p>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../cosinesim/index.html">Cosine Similarity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/index.html">Louvain Modularity</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">Maximal Independent Set</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="overview.html">Overview</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="demos.html">Demos</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="example-makefile.html">C++ Example using Makefile</a></li>
-<li class="toctree-l3 current"><a class="reference internal" href="example-python.html">Python API Example</a><ul class="current">
-<li class="toctree-l4 current"><a class="current reference internal" href="#">Setup</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="example-jupyter.html">Jupyter Notebook</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="api.html">API Reference</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Maximal Independent Set</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../fuzzymatch/index.html">Levenstein Edit Distance (Fuzzy Match)</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Notice</span></p>
@@ -416,12 +401,6 @@
     
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-          <li><a href="index.html">Xilinx Maximal Independent Set Alveo Product</a> &raquo;</li>
-        
-          <li><a href="demos.html">Xilinx Maximal Independent Set Alveo Product Demos</a> &raquo;</li>
-        
-          <li><a href="example-python.html">Python API Example</a> &raquo;</li>
-        
       <li>Setup Maximal Independent Set for Stand-Alone Runs</li>
     
     
@@ -451,7 +430,7 @@
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ conda env list
 $ conda create -n fpga <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.6
 $ conda activate fpga
-<span class="o">(</span>fpga<span class="o">)</span>$ conda install -r /opt/xilinx/apps/graphanalytics/requirements.txt
+<span class="o">(</span>fpga<span class="o">)</span>$ pip install -r /opt/xilinx/apps/graphanalytics/requirements.txt
 </pre></div>
 </div>
 <p><strong>Using local python</strong></p>
@@ -467,7 +446,7 @@ $ <span class="nb">source</span> fpga/bin/activate
 </div>
 <div class="section" id="copy-examples-to-user-accessible-directory">
 <h2>2. Copy examples to user accessible directory<a class="headerlink" href="#copy-examples-to-user-accessible-directory" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ cp -r /opt/xilinx/apps/graphanalytics/mis/0.4/examples mis-examples
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ cp -r /opt/xilinx/apps/graphanalytics/mis/%MIS_VERSION/examples mis-examples
 <span class="o">(</span>fpga<span class="o">)</span>$ <span class="nb">cd</span> mis-examples/python
 </pre></div>
 </div>
@@ -527,22 +506,13 @@ machine as shown <a class="reference external" href="https://jupyterhub.readthed
 
 	  <!-- Sphinx Page Footer block -->
   
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="example-jupyter.html" class="btn btn-neutral float-right" title="Jupyter Notebook" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="example-python.html" class="btn btn-neutral float-left" title="Python API Example" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
-  
 
   <hr/>
 
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

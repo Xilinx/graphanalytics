@@ -58,7 +58,9 @@
   <link rel="stylesheet" href="../_static/css/pro.min.css" media="all" />
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Setup Cosine Similarity for Stand-Alone Runs" href="setup-standalone.html" />
+    <link rel="prev" title="Jupyter Notebook" href="cosinesim-example-jupyter.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -306,7 +308,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -339,8 +341,21 @@
 <li class="toctree-l1"><a class="reference internal" href="../fuzzymatch/entity-resolution.html"> Entity Resolution</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Algorithms</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="index.html">Cosine Similarity</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Cosine Similarity</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="demos.html">Demo(s)</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="usecases-standalone.html">API Demo</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Wikipedia Search Engine</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="setup-standalone.html">Setup</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api.html">API Reference</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/index.html">Louvain Modularity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mis/index.html">Maximal Independent Set</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../fuzzymatch/index.html">Levenstein Edit Distance (Fuzzy Match)</a></li>
@@ -401,6 +416,12 @@
     
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
+          <li><a href="usecases.html">Recommendation System</a> &raquo;</li>
+        
+          <li><a href="getting-started-standalone.html">Getting Started Guide for C++/Python Users</a> &raquo;</li>
+        
+          <li><a href="demos.html">Xilinx Cosine Similarity Alveo Product Demos</a> &raquo;</li>
+        
       <li>Wikipedia Search Engine</li>
     
     
@@ -428,6 +449,17 @@ we used GloVe Word Embeddings, which maps words into more meaningful space.</p>
 of time on CPU. With the Xilinx Cosine Similarity Acceleration, it will speedup
 the process by &gt; ~80x.</p>
 <p>This use case can be downloaded from <a class="reference external" href="https://github.com/Xilinx/graphanalytics/blob/master/cosinesim/examples/python/jupyter/wikipedia_demo.ipynb">Wikipedia Search Engine Jupyter notebook on GitHub</a>.</p>
+<p>Follow the setup process below before running the notebook:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="setup-standalone.html">Setup</a></li>
+</ul>
+</div>
+<p>Run following commands in the Python virtual environment (from setup) to run the Notebook:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ <span class="nb">cd</span> cosinesim-examples/python
+<span class="o">(</span>fpga<span class="o">)</span>$ ./run.sh jupyter notebook jupyter/wikipedia_demo.ipynb
+</pre></div>
+</div>
 </div>
 
 
@@ -444,13 +476,22 @@ the process by &gt; ~80x.</p>
 
 	  <!-- Sphinx Page Footer block -->
   
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="setup-standalone.html" class="btn btn-neutral float-right" title="Setup Cosine Similarity for Stand-Alone Runs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="cosinesim-example-jupyter.html" class="btn btn-neutral float-left" title="Jupyter Notebook" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
 
   <hr/>
 
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

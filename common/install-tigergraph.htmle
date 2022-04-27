@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -336,19 +336,19 @@
               <p class="caption"><span class="caption-text">Applications</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../cosinesim/usecases.html"> Recommendation System</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../louvainmod/fraud-detection.html"> Fraud Detection</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="../mis/supply-chain.html"> Supply Chain Optimization</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="../mis/getting-started-tg.html">TigerGraph Users</a><ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../louvainmod/fraud-detection.html"> Fraud Detection</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../louvainmod/getting-started-tg.html">TigerGraph Users</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="deploy-alveo.html">Deploy Alveo card</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Install TigerGraph</a></li>
 <li class="toctree-l3"><a class="reference internal" href="install-conda-python.html">Install Python Virtual Environment (PyTigerGraph users ONLY)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../mis-tg/install.html">Install Supply Chain Optimization Product</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../mis-tg/usecases-travelplan.html">Run Demo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../comdet-tg/install.html">Install Fraud Detection Product</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../comdet-tg/comdetect.html">Run Demo</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../mis/getting-started-standalone.html">C++/Python Users</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../louvainmod/getting-started-standalone.html">C++/Python Users</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../mis/supply-chain.html"> Supply Chain Optimization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../fuzzymatch/entity-resolution.html"> Entity Resolution</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Algorithms</span></p>
@@ -436,20 +436,19 @@
            <div itemprop="articleBody">
             
   <div class="section" id="install-tigergraph-enterprise-software">
-<h1>Install TigerGraph Enterprise Software<a class="headerlink" href="#install-tigergraph-enterprise-software" title="Permalink to this headline">¶</a></h1>
+<span id="common-install-tigergraph-label"></span><h1>Install TigerGraph Enterprise Software<a class="headerlink" href="#install-tigergraph-enterprise-software" title="Permalink to this headline">¶</a></h1>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>If you already have TigerGraph 3.4 installed on the machines with Alveo U50 or U55C
 cards, this step can be skipped.</p>
 </div>
-<p>Next, follow the steps below to install TigerGraph on your server if you have
-not already.  The latest version tested with Xilinx Graph Analytics products is
-version 3.1.</p>
+<p>Next, follow the steps below to install TigerGraph on your server.  The latest version tested with Xilinx Graph Analytics products is
+version 3.4.</p>
 <ul class="simple">
-<li><p>Install <a class="reference external" href="https://info.tigergraph.com/enterprise-free">TigerGraph Enterprise version 3.4</a>,
-accepting the defaults for all settings that have them.  Be sure to leave the
-database owner as user “tigergraph”. Make a note of the password for the user “tigergraph”.
-That password will be needed for later steps.</p></li>
+<li><p>Download <a class="reference external" href="https://info.tigergraph.com/enterprise-free">TigerGraph Enterprise version 3.4</a>
+and follow installation instructions received from TigerGraph. Accept all default settings
+during the installation. Be sure to leave the database owner as user “tigergraph”. Make a note
+of the password for the user “tigergraph”. That password will be needed for later steps.</p></li>
 <li><p>Create an account in the TigerGraph installation for yourself in the role of
 a TigerGraph application developer by issuing the commands below (replace
 YOUR-LINUX-USERNAME with your actual Linux username). Xilinx Graph Analytics
@@ -462,6 +461,8 @@ Password:
 <span class="c1"># Set up tigergraph environment if needed</span>
 <span class="nv">$source</span> ~/.bashrc
 
+<span class="c1"># Set the new password to Xilinx123 if you plan to run demo scripts without entering a password.</span>
+<span class="c1"># Otherwise make a note of the new password. It will be needed when running demo scripts.</span>
 <span class="nv">$gsql</span>
 Welcome to TigerGraph.
 GSQL &gt; create user
@@ -504,7 +505,7 @@ Role <span class="s2">&quot;globaldesigner&quot;</span> is successfully granted 
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

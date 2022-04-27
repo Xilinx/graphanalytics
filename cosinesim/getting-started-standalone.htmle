@@ -60,7 +60,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Xilinx Cosine Similarity Alveo Product Installation" href="install.html" />
-    <link rel="prev" title="Synthea Demo Query Reference" href="../recom-tg3/synthea-query.html" /> 
+    <link rel="prev" title="Healthcare Concept Similarity with UMLS" href="../recom-tg3/usecases-healthcare.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -339,10 +339,8 @@
 <li class="toctree-l2"><a class="reference internal" href="getting-started-tg.html">TigerGraph Users</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">C++/Python Users</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../common/deploy-alveo.html">Deploy Alveo card</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../common/install-tigergraph.html">Install TigerGraph</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../common/install-conda-python.html">Install Python Virtual Environment (PyTigerGraph users ONLY)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="install.html">Install Recommendation System</a></li>
-<li class="toctree-l3"><a class="reference internal" href="demos.html">Run Demo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="demos.html">Run Demo(s)</a></li>
 </ul>
 </li>
 </ul>
@@ -439,10 +437,8 @@
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../common/deploy-alveo.html">Deploy Alveo card</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../common/install-tigergraph.html">Install TigerGraph</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../common/install-conda-python.html">Install Python Virtual Environment (PyTigerGraph users ONLY)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Install Recommendation System</a></li>
-<li class="toctree-l1"><a class="reference internal" href="demos.html">Run Demo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="demos.html">Run Demo(s)</a></li>
 </ul>
 </div>
 </div>
@@ -466,7 +462,7 @@
         <a href="install.html" class="btn btn-neutral float-right" title="Xilinx Cosine Similarity Alveo Product Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../recom-tg3/synthea-query.html" class="btn btn-neutral float-left" title="Synthea Demo Query Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="../recom-tg3/usecases-healthcare.html" class="btn btn-neutral float-left" title="Healthcare Concept Similarity with UMLS" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -476,7 +472,7 @@
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -339,9 +339,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../louvainmod/fraud-detection.html"> Fraud Detection</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../mis/supply-chain.html"> Supply Chain Optimization</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../mis/getting-started-tg.html">TigerGraph Users</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="../common/deploy-alveo.html">Deploy Alveo card</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../common/install-tigergraph.html">Install TigerGraph</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../common/install-conda-python.html">Install Python Virtual Environment (PyTigerGraph users ONLY)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../mis/deploy-alveo.html">Deploy Alveo card</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../mis/install-tigergraph.html">Install TigerGraph</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../mis/install-conda-python.html">Install Python Virtual Environment (PyTigerGraph users ONLY)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="install.html">Install Supply Chain Optimization Product</a></li>
 <li class="toctree-l3 current"><a class="reference internal" href="usecases-travelplan.html">Run Demo</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="usecases-travelplan-overview.html">Overview</a></li>
@@ -447,10 +447,13 @@
 <ul class="simple">
 <li><p>Open a terminal using your Linux credentials</p></li>
 <li><p>Set up a directory that is readable and writable by the user “tigergraph”</p></li>
-<li><p>Execute the commands below to run the demo</p></li>
+<li><p>Execute the commands below to run the demo. Note -u and -p options can be
+omitted in run.sh command if you set up the tigergraph user to your Linux
+username and password to Xilinx123 in <a class="reference internal" href="../mis/install-tigergraph.html#common-install-tigergraph-label"><span class="std std-ref">Install TigerGraph Enterprise Software</span></a>
+step.</p></li>
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Copy examples from the installation to your own working directory mis-examples</span>
-cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/0.4/examples mis-examples
+cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/0.6/examples mis-examples
 
 <span class="nb">cd</span> mis-examples/travelplan
 
@@ -460,9 +463,14 @@ cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/0.4/example
 <span class="c1"># Print travelplan demo help messages</span>
 ./bin/run.sh -h
 
-<span class="c1"># Run travelplan demo with default settings. Settings can be changed via command</span>
-<span class="c1"># line options as shown above</span>
-./bin/run.sh
+<span class="c1"># Run travelplan demo with default settings. Settings can be changed via command line options as shown above.</span>
+./bin/run.sh -u &lt;tigergraph-user&gt; -p &lt;password&gt;
+</pre></div>
+</div>
+<p>To run the demo on a larger dataset (included under <code class="code bash docutils literal notranslate"><span class="pre">/data</span></code> directory) that shows speedup over CPU only query, run
+with <strong>full</strong> path to data files as follows (assuming working under home directory).</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run travelplan speedup demo</span>
+./bin/run.sh -u &lt;username&gt; -p &lt;password&gt; <span class="nv">tp2tr</span><span class="o">=</span><span class="nv">$HOME</span>/mis-examples/travelplan/data/travelplan2trucks2000.csv <span class="nv">tp2wo</span><span class="o">=</span><span class="nv">$HOME</span>/mis-examples/travelplan/data/travelplan2workorders2000.csv
 </pre></div>
 </div>
 </div>
@@ -496,7 +504,7 @@ cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/0.4/example
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

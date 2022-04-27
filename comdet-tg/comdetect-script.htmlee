@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -436,7 +436,7 @@ this document.</p></li>
 <li><p>Execute the commands below to run the demo</p></li>
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Copy examples from the installation to your own working directory</span>
-cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/0.6/examples comdetect-examples
+cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/%COMDETECT_TG_VERSION/examples comdetect-examples
 
 <span class="nb">cd</span> comdetect-examples/comdetect
 <span class="c1"># Print comdetect demo help messages</span>
@@ -447,7 +447,7 @@ cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/0.6/e
 <span class="c1"># a partition project basename for saving generated partitions for efficient</span>
 <span class="c1"># FPGA memory mapping. The project needs to be on a shared network drive if TigerGraph</span>
 <span class="c1"># is set up as a multi-node cluster.</span>
-./bin/run.sh -a alveoProject
+./bin/run.sh -a alveoProject -u &lt;username&gt; -p &lt;password&gt;
 </pre></div>
 </div>
 </div>
@@ -481,7 +481,7 @@ cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/comdetect/0.6/e
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

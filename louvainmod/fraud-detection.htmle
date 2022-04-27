@@ -60,7 +60,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Getting Started Guide for TigerGraph Users" href="getting-started-tg.html" />
-    <link rel="prev" title="Jupyter Notebook" href="../cosinesim/cosinesim-example-jupyter.html" /> 
+    <link rel="prev" title="Setup Cosine Similarity for Stand-Alone Runs" href="../cosinesim/setup-standalone.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -460,7 +460,7 @@ as well as reduces system memory requirement by 2/3 comparing to a CPU only solu
         <a href="getting-started-tg.html" class="btn btn-neutral float-right" title="Getting Started Guide for TigerGraph Users" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../cosinesim/cosinesim-example-jupyter.html" class="btn btn-neutral float-left" title="Jupyter Notebook" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="../cosinesim/setup-standalone.html" class="btn btn-neutral float-left" title="Setup Cosine Similarity for Stand-Alone Runs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -470,7 +470,7 @@ as well as reduces system memory requirement by 2/3 comparing to a CPU only solu
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

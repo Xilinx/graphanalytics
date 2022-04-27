@@ -306,7 +306,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -426,13 +426,13 @@ TigerGraph 3.x via plugins and UDFs.</p>
 <h2>Install Conda or Python Environment<a class="headerlink" href="#install-conda-or-python-environment" title="Permalink to this headline">¶</a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Demo Jupyter Notebooks can be run from any machine that is on the same network
+<p><strong>TigerGraph users ONLY</strong>: Demo Jupyter Notebooks can be run from any machine that is on the same network
 as the TigerGraph server i.e. can connect via HTTP connections. These Notebooks
 use <strong>pyTigerGraph</strong> module to connect to the TigerGraph server via REST APIs.</p>
 </div>
-<div class="section" id="create-a-virtual-environment-and-install-dependencies">
-<h3>1. Create a virtual environment and install dependencies<a class="headerlink" href="#create-a-virtual-environment-and-install-dependencies" title="Permalink to this headline">¶</a></h3>
-<p><strong>Using Conda</strong></p>
+<p>Create a virtual environment using <em>any</em> of the following methods and install dependencies.</p>
+<div class="section" id="using-conda">
+<h3>Using Conda<a class="headerlink" href="#using-conda" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Install conda by following instructions on <a class="reference external" href="https://docs.conda.io/en/latest/miniconda.html">https://docs.conda.io/en/latest/miniconda.html</a></p></li>
 <li><p>Create and activate a new virtual environment and install all required packages</p></li>
@@ -440,10 +440,12 @@ use <strong>pyTigerGraph</strong> module to connect to the TigerGraph server via
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ conda env list
 $ conda create -n fpga <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.6
 $ conda activate fpga
-<span class="o">(</span>fpga<span class="o">)</span>$ conda install -r /opt/xilinx/apps/graphanalytics/requirements.txt
+<span class="o">(</span>fpga<span class="o">)</span>$ pip install -r /opt/xilinx/apps/graphanalytics/requirements.txt
 </pre></div>
 </div>
-<p><strong>Using local python</strong></p>
+</div>
+<div class="section" id="using-local-python">
+<h3>Using local python<a class="headerlink" href="#using-local-python" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>At least Python version 3.6 is required, install or upgrade python using your package manager</p></li>
 <li><p>Create and activate a new virtual environment and install all required packages</p></li>
@@ -458,7 +460,7 @@ $ <span class="nb">source</span> fpga/bin/activate
 <h3>2. Copy examples to user accessible directory<a class="headerlink" href="#copy-examples-to-user-accessible-directory" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>fpga<span class="o">)</span>$ mkdir recomengine-example
 <span class="o">(</span>fpga<span class="o">)</span>$ <span class="nb">cd</span> recomengine-example
-<span class="o">(</span>fpga<span class="o">)</span>$ cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/recomengine/1.5/examples .
+<span class="o">(</span>fpga<span class="o">)</span>$ cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/recomengine/%RECOMENGINE_TG_VERSION/examples .
 </pre></div>
 </div>
 </div>
@@ -500,7 +502,7 @@ $ <span class="nb">source</span> fpga/bin/activate
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

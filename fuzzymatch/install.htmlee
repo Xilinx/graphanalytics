@@ -59,7 +59,7 @@
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Running Entity Resolution Using JupyterNotebook" href="../fuzzymatch-tg/entity-resolution-notebook.html" />
+    <link rel="next" title="Entity Resolution" href="../fuzzymatch-tg/usecases-ent-resolve.html" />
     <link rel="prev" title="Getting Started Guide for TigerGraph Users" href="getting-started-tg.html" /> 
 	</head>
 	<body>
@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -439,13 +439,13 @@
 <div class="section" id="install-fuzzy-match-alveo-from-a-pre-built-package">
 <h2>Install Fuzzy Match Alveo from a Pre-built Package<a class="headerlink" href="#install-fuzzy-match-alveo-from-a-pre-built-package" title="Permalink to this headline">¶</a></h2>
 <ul>
-<li><p>Get the installation package <strong>xilinx-tigergraph-install-1.5.5.tar.gz</strong> from the
-<a class="reference external" href="https://www.xilinx.com/member/dba_poc.html#designFiles">Database Analytics POC Secure Site</a>.
+<li><p>Get the installation package <strong>amd-graphanalytics-install-%PACKAGE_VERSION.tar.gz</strong> from the
+<a class="reference external" href="%PACKAGE_LINK">Database Analytics POC Secure Site</a>.
 This package contains the Fuzzy Match as well as all dependencies (XRT, XRM, Alveo
 firmware, etc)</p></li>
 <li><p>Install Xilinx Fuzzy Match Alveo Products and dependencies:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf xilinx-tigergraph-install-1.5.5.tar.gz
-<span class="nb">cd</span> xilinx-tigergraph-install <span class="o">&amp;&amp;</span> ./install.sh -p fuzzymatch
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf amd-graphanalytics-install-%PACKAGE_VERSION.tar.gz
+<span class="nb">cd</span> amd-graphanalytics-install <span class="o">&amp;&amp;</span> ./install.sh -p fuzzymatch
 </pre></div>
 </div>
 </li>
@@ -480,7 +480,7 @@ git submodule update --init --recursive
 installation using the Ubuntu <code class="docutils literal notranslate"><span class="pre">apt</span></code> package manager on a Ubuntu 20.04 machine.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> fuzzymatch
 make dist
-sudo apt install --reinstall ./package/xilinx-fuzzymatch-0.3_20.04-x86_64.deb
+sudo apt install --reinstall ./package/xilinx-fuzzymatch-%FUZZYMATCH_VERSION_20.04-x86_64.deb
 </pre></div>
 </div>
 </li>
@@ -504,7 +504,7 @@ sudo apt install --reinstall ./package/xilinx-fuzzymatch-0.3_20.04-x86_64.deb
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../fuzzymatch-tg/entity-resolution-notebook.html" class="btn btn-neutral float-right" title="Running Entity Resolution Using JupyterNotebook" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../fuzzymatch-tg/usecases-ent-resolve.html" class="btn btn-neutral float-right" title="Entity Resolution" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="getting-started-tg.html" class="btn btn-neutral float-left" title="Getting Started Guide for TigerGraph Users" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -517,7 +517,7 @@ sudo apt install --reinstall ./package/xilinx-fuzzymatch-0.3_20.04-x86_64.deb
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

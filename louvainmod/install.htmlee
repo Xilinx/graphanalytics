@@ -58,7 +58,9 @@
   <link rel="stylesheet" href="../_static/css/pro.min.css" media="all" />
   <link rel="stylesheet" href="../_static/doxyrest-pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Xilinx Maximal Independent Set Alveo Product" href="../mis/index.html" />
+    <link rel="prev" title="Xilinx Louvain Modularity Alveo Product Overview" href="overview.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -306,7 +308,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -339,9 +341,19 @@
 <li class="toctree-l1"><a class="reference internal" href="../fuzzymatch/entity-resolution.html"> Entity Resolution</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Algorithms</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../cosinesim/index.html">Cosine Similarity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="index.html">Louvain Modularity</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Louvain Modularity</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#installing-louvain-modularity-library-from-a-pre-built-package">Installing Louvain Modularity Library from a Pre-built Package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#setting-up-the-alveo-accelerator-card">Setting up the Alveo Accelerator Card</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#collaborating-on-louvain-modularity-product">Collaborating on Louvain Modularity Product</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="demos.html">Demos</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../mis/index.html">Maximal Independent Set</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../fuzzymatch/index.html">Levenstein Edit Distance (Fuzzy Match)</a></li>
 </ul>
@@ -401,6 +413,8 @@
     
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
+          <li><a href="index.html">Xilinx Louvain Modularity Alveo Product</a> &raquo;</li>
+        
       <li>Xilinx Louvain Modularity Alveo Product Installation</li>
     
     
@@ -420,25 +434,18 @@
             
   <div class="section" id="xilinx-louvain-modularity-alveo-product-installation">
 <span id="louvain-install-label"></span><h1>Xilinx Louvain Modularity Alveo Product Installation<a class="headerlink" href="#xilinx-louvain-modularity-alveo-product-installation" title="Permalink to this headline">¶</a></h1>
-<p>Follow the steps below to install the Louvain Modularity Alveo Product.</p>
-<div class="section" id="installing-the-alveo-accelerator-cards">
-<h2>Installing the Alveo Accelerator Cards<a class="headerlink" href="#installing-the-alveo-accelerator-cards" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Power off the server.</p></li>
-<li><p>Plug the Xilinx U50 or U55C Alveo Data Center Accelerator card into a PCIe Gen3 x16 slot</p></li>
-<li><p>Power on the server.</p></li>
-</ul>
-</div>
+<p>Follow the steps below to install the Louvain Modularity Alveo Product. Skip the collaboration section if
+only deploying.</p>
 <div class="section" id="installing-louvain-modularity-library-from-a-pre-built-package">
 <h2>Installing Louvain Modularity Library from a Pre-built Package<a class="headerlink" href="#installing-louvain-modularity-library-from-a-pre-built-package" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p>Get the installation package <strong>xilinx-tigergraph-install-1.5.5.tar.gz</strong> from the
-<a class="reference external" href="https://www.xilinx.com/member/dba_poc.html#designFiles">Database Analytics POC Secure Site</a>.</p></li>
+<li><p>Get the installation package <strong>amd-graphanalytics-install-%PACKAGE_VERSION.tar.gz</strong> from the
+<a class="reference external" href="%PACKAGE_LINK">Database Analytics POC Secure Site</a>.</p></li>
 <li><p>Install Xilinx Louvain Modularity and Community Detection Alveo products and dependencies
 (XRT, XRM, and Alveo firmware packages)</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf xilinx-tigergraph-install-1.5.5.tar.gz
-<span class="nb">cd</span> xilinx-tigergraph-install <span class="o">&amp;&amp;</span> ./install.sh -p louvainmod
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf amd-graphanalytics-install-%PACKAGE_VERSION.tar.gz
+<span class="nb">cd</span> amd-graphanalytics-install <span class="o">&amp;&amp;</span> ./install.sh -p louvainmod
 </pre></div>
 </div>
 </div>
@@ -509,7 +516,7 @@ Ubuntu <code class="docutils literal notranslate"><span class="pre">apt</span></
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> louvainmod
 make dist
-sudo apt install --reinstall ./package/xilinx-louvainmod-0.6_18.04-x86_64.deb
+sudo apt install --reinstall ./package/xilinx-louvainmod-%LOUVAIN_VERSION_18.04-x86_64.deb
 </pre></div>
 </div>
 </div>
@@ -529,13 +536,22 @@ sudo apt install --reinstall ./package/xilinx-louvainmod-0.6_18.04-x86_64.deb
 
 	  <!-- Sphinx Page Footer block -->
   
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../mis/index.html" class="btn btn-neutral float-right" title="Xilinx Maximal Independent Set Alveo Product" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="overview.html" class="btn btn-neutral float-left" title="Xilinx Louvain Modularity Alveo Product Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
 
   <hr/>
 
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

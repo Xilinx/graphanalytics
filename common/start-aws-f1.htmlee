@@ -306,7 +306,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -427,7 +427,7 @@
 <p>Amazon EC2 F1 instances use FPGAs to enable delivery of custom hardware accelerations.
 Follow instructions below to start AWS EC2 F1 instances:</p>
 <ul class="simple">
-<li><p>Go to <a class="reference external" href="https://aws.amazon.com/marketplace/pp/prodview-zzeaoszfrkr7s">AMD/Xilinx FuzzyMatch AMI</a> on AWS Marketplace</p></li>
+<li><p>Go to the application specific Amazon AMI on AWS Marketplace. For example for Fuzzy Match Application go to: <a class="reference external" href="https://aws.amazon.com/marketplace/pp/prodview-zzeaoszfrkr7s">AMD/Xilinx FuzzyMatch AMI</a></p></li>
 <li><p>Select one of the supported EC2 instance types: f1.2xlarge, f1.4xlarge, and f1.8xlarge</p></li>
 <li><p>Start EC2 F1 instances</p></li>
 </ul>
@@ -453,7 +453,7 @@ Follow instructions below to start AWS EC2 F1 instances:</p>
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

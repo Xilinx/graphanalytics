@@ -60,7 +60,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Getting Started Guide for C++/Python Users" href="../fuzzymatch/getting-started-standalone.html" />
-    <link rel="prev" title="Install Xilinx Fuzzy Match Alveo Product" href="../fuzzymatch/install.html" /> 
+    <link rel="prev" title="Running Entity Resolution Using GSQL Client" href="entity-resolution-gsql.html" /> 
 	</head>
 	<body>
 		<div class="xilinx-bs3"/>
@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -344,7 +344,12 @@
 <li class="toctree-l3"><a class="reference internal" href="../common/install-tigergraph.html">Install TigerGraph</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../common/install-conda-python.html">Install Python Virtual Environment (PyTigerGraph users ONLY)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../fuzzymatch/install.html">Install Entity Resolution Product</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Run Demo</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="usecases-ent-resolve.html">Run Demo</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="entity-resolution-overview.html">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="entity-resolution-gsql.html">Run Bash Script with GSQL</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Run Jupyter Notebook</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../fuzzymatch/getting-started-standalone.html">C++/Python Users</a></li>
@@ -418,6 +423,8 @@
         
           <li><a href="../fuzzymatch/getting-started-tg.html">Getting Started Guide for TigerGraph Users</a> &raquo;</li>
         
+          <li><a href="usecases-ent-resolve.html">Entity Resolution</a> &raquo;</li>
+        
       <li>Running Entity Resolution Using JupyterNotebook</li>
     
     
@@ -442,7 +449,7 @@
 <li><p>Set up a directory that is readable and writable by the user “tigergraph”</p></li>
 <li><p>Execute the commands below to run the demo</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span> <span class="c1"># Copy examples from the installation to your own working directory mis-examples</span>
- cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/0.3/examples fuzzymatch-examples
+ cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/fuzzymatch/%FUZZYMATCH_TG_VERSION/examples fuzzymatch-examples
 
  <span class="nb">cd</span> fuzzymatch-examples/entity-resolution
 
@@ -480,7 +487,7 @@
         <a href="../fuzzymatch/getting-started-standalone.html" class="btn btn-neutral float-right" title="Getting Started Guide for C++/Python Users" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../fuzzymatch/install.html" class="btn btn-neutral float-left" title="Install Xilinx Fuzzy Match Alveo Product" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="entity-resolution-gsql.html" class="btn btn-neutral float-left" title="Running Entity Resolution Using GSQL Client" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -490,7 +497,7 @@
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>

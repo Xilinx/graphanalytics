@@ -308,7 +308,7 @@
             
             
               <div class="version">
-                2.0
+                2.1
               </div>
             
           
@@ -413,7 +413,9 @@
     
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-          <li><a href="index.html">Xilinx Maximal Independent Set Alveo Product</a> &raquo;</li>
+          <li><a href="supply-chain.html">Supply Chain Optimization</a> &raquo;</li>
+        
+          <li><a href="getting-started-standalone.html">Getting Started Guide for C++/Python Users</a> &raquo;</li>
         
           <li><a href="demos.html">Xilinx Maximal Independent Set Alveo Product Demos</a> &raquo;</li>
         
@@ -440,7 +442,7 @@
 <li><p>Open a terminal using your Linux credentials</p></li>
 <li><p>Execute following commands to run the example</p>
 <blockquote>
-<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp -r /opt/xilinx/apps/graphanalytics/mis/0.4/examples mis-examples
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp -r /opt/xilinx/apps/graphanalytics/mis/%MIS_VERSION/examples mis-examples
 <span class="nb">cd</span> mis-examples/cpp
 
 <span class="c1"># Print makefile usage and options</span>
@@ -487,7 +489,7 @@ make run <span class="nv">deviceNames</span><span class="o">=</span>xilinx_u55c_
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on March 29, 2022.
+        Last updated on April 26, 2022.
       </span>
 
     </p>
