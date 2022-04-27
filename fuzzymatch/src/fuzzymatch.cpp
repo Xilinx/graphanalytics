@@ -22,9 +22,11 @@
 #include "xilinx_runtime_common.hpp"
 #include "fuzzymatch.hpp"
 
+
+
 namespace xilinx_apps {
 namespace fuzzymatch {
-    #ifdef AWSF1
+    #ifdef DDRBASED
     const int max_num_of_entries_for_big_tbl = 100*1024*1024;
     //For DDR-based AWS F1/U200/U250 cards, the maximum batch_num should be 4096*1024
     const int max_batch_num = 4096*1024;
@@ -107,13 +109,15 @@ namespace fuzzymatch {
         int len = input.length();
         int med = len * (100 - similarity_level) / 100;
         int cnt = 0;
-        if (len == 0 || (len + med) > 64) {
-            std::cout << "Warning: lenght of input pattern string is too long/short, please check again." << std::endl;
+        int max_len = (len + med) > 64 ? 64 : (len + med);
+        if (len == 0) {
+            std::cout << "Warning: lenght of input pattern string is too short, please check again." << std::endl;
             return -1;
         }
 
+
         base = vec_base[len - med] * line_per_elem; // as 128-bit data width in AXI
-        for (int i = len - med; i <= len + med; i++) {
+        for (int i = len - med; i <= max_len; i++) {
             cnt += vec_offset[i];
         }
 
@@ -158,16 +162,14 @@ namespace fuzzymatch {
         for (uint32_t i = 0; i < totalXilinxDevices; ++i) {
             curDeviceName = devices0[i].getInfo<CL_DEVICE_NAME>();
     
-            if (deviceNames == curDeviceName) {
+            if (deviceNames == curDeviceName || (deviceNames == "azure_u250" && curDeviceName == "xilinx_u250_gen3x16_xdma_shell_2_1")) {
                 std::cout << "INFO: Found requested device: " << curDeviceName << " ID=" << i << std::endl;
                 // save the matching device
                 device = devices0[i];
                 status = 0; // found a matching device
                 break;
             } else {
-#ifndef NDEBUG                
                 std::cout << "INFO: Skipped non-requested device: " << curDeviceName << " ID=" << i << std::endl;
-#endif                
             }
         }
     

@@ -13,15 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+# Product name and version: PRODUCT_NAME is the name for TigerGraph plugin
+STANDALONE_NAME = fuzzymatch
+PRODUCT_NAME = fuzzymatch
+PRODUCT_VER=$(strip $(shell cat VERSION))
+
 .DELETE_ON_ERROR:
 .PHONY: all
 
 #all: javaApi cppBuild javaTest stage
 all: stage
 
-# Product version/name
-PRODUCT_VER=$(strip $(shell cat VERSION))
-STANDALONE_NAME = fuzzymatch
 
 SWIFTAML_DIR = examples/swiftaml
 ENTRESOLUTION_DIR = examples/entity-resolution
@@ -54,7 +57,8 @@ STAGE_COPY_FILES = \
     $(ENTRESOLUTION_DIR)/bin/set-plugin-vars.sh \
     $(ENTRESOLUTION_DIR)/udf/entityResolution.hpp \
     $(ENTRESOLUTION_DIR)/udf/entityResolutionImpl.hpp \
-	$(ENTRESOLUTION_DIR)/query/base.gsql \
+    $(ENTRESOLUTION_DIR)/jupyter-demo/TG_demo.ipynb \
+    $(ENTRESOLUTION_DIR)/query/base.gsql \
     $(ENTRESOLUTION_DIR)/query/load.gsql \
     $(ENTRESOLUTION_DIR)/query/entity_resolution.gsql \
     $(ENTRESOLUTION_DIR)/query/schema.gsql \

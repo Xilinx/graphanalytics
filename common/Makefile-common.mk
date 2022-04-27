@@ -23,6 +23,11 @@ ifndef XILINX_XRT
     export XILINX_XRT
 endif
 
+ifndef XILINX_XRM
+    XILINX_XRM=/opt/xilinx/xrm
+    export XILINX_XRM
+endif
+
 ifndef XILINX_PLATFORMS
     XILINX_PLATFORMS = /opt/xilinx/platforms
     export XILINX_PLATFORMS
@@ -46,22 +51,36 @@ else ifeq ($(OSDIST),CentOS)
 	OSDISTLC = centos
 endif
 
+# DIST_RELEASE = 1: release the package to amd-graphanalytics-install area
+DIST_RELEASE = 0
+
 ARCH = $(shell uname -p)
 CPACK_PACKAGE_FILE_NAME= xilinx-$(STANDALONE_NAME)-$(PRODUCT_VER)_$(OSVER)-$(ARCH).$(DIST_TARGET)
-DIST_INSTALL_DIR = $(GRAPH_ANALYTICS_DIR)/scripts/xilinx-tigergraph-install/$(OSDISTLC)-$(OSVER_DIR)/$(STANDALONE_NAME)/
+DIST_INSTALL_DIR = $(GRAPH_ANALYTICS_DIR)/scripts/amd-graphanalytics-install/$(OSDISTLC)-$(OSVER_DIR)/$(STANDALONE_NAME)
 
 .PHONY: dist
 
 dist: stage
+	@if [ $(DIST_RELEASE) == 1 ]; then \
+		echo "INFO: Removing previous versions of the package and vclf"; \
+		git rm -f $(DIST_INSTALL_DIR)/xilinx-$(STANDALONE_NAME)-?.*.$(DIST_TARGET).vclf; \
+        rm     -f $(DIST_INSTALL_DIR)/xilinx-$(STANDALONE_NAME)-?.*.$(DIST_TARGET); \
+	fi
+
 	@if [ "$(DIST_TARGET)" == "" ]; then \
-	    echo "Packaging is supported for only Ubuntu and CentOS."; \
+	    echo "INFO: Packaging is supported for only Ubuntu and CentOS."; \
 	else \
 	    echo "Packaging $(DIST_TARGET) for $(OSDIST)"; \
 	    cd package; \
 		make ; \
 		cd - ; \
-		cp ./package/$(CPACK_PACKAGE_FILE_NAME) $(DIST_INSTALL_DIR); \
-		echo "INFO: $(CPACK_PACKAGE_FILE_NAME) saved to $(DIST_INSTALL_DIR)"; \
+		cp -f ./package/$(CPACK_PACKAGE_FILE_NAME) $(DIST_INSTALL_DIR)/; \
+		echo "INFO: Package file saved as $(DIST_INSTALL_DIR)/$(CPACK_PACKAGE_FILE_NAME)"; \
+	fi
+
+	@if [ $(DIST_RELEASE) == 1 ]; then \
+		echo "INFO: Adding new package to vclf"; \
+		vclf add $(DIST_INSTALL_DIR)/$(CPACK_PACKAGE_FILE_NAME); \
 	fi
 
 .PHONY: install
@@ -76,6 +95,32 @@ install: dist
 	@echo "-----------------------------------------------------------------------"
 	@echo "INFO: Installation completed."
 	@echo "-----------------------------------------------------------------------"	
+
+#######################################################################################################################
+#
+# Clean
+#
+
+#### Clean target deletes all generated files ####
+.PHONY: clean clean-xclbin clean-dist
+
+clean:
+	rm -rf Debug Release $(JAVA_LIB_DIR) $(BUILD_DIR) $(STAGE_DIR)
+	@echo "Note: because the XCLBIN file takes so long to generate, it is not removed with this 'clean' target."
+	@echo "To clean the XCLBIN, use 'make clean-xclbin'"
+	
+clean-xclbin:
+	rm -f $(XCLBIN_FILE_U50)
+
+clean-dist:
+	@cd package; \
+	make clean
+
+cleanpy:
+	rm -rf $(PYTHONENV_NAME)
+
+cleanall: clean cleanpy
+	rm -rf ./package/*.deb ./package/*.rpm ./package/_CPack_Packages ./package/PKG_Release
 
 #
 # Installation

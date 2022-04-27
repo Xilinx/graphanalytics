@@ -185,7 +185,7 @@ $(BUILD_DIR)/denseSimilarityKernel4PU.xclbin: $(BINARY_CONTAINER_denseSimilarity
 # Add kernel alias to xclbin post-build so the same kernel targeting different devices
 # can be differentiated
 	rm -f $(BUILD_DIR)/denseSimilarityKernel4PUWithAlias.xclbin
-	/opt/xilinx/xrt/bin/xclbinutil -i $(BUILD_DIR)/denseSimilarityKernel4PU.xclbin \
+	$(XILINX_VITIS)/bin/xclbinutil -i $(BUILD_DIR)/denseSimilarityKernel4PU.xclbin \
 								   --key-value=USER:denseSimilarityKernel4PU:'{"alias": "denseSimilarityKernel4PU_U55C"}' \
 	                               -o $(BUILD_DIR)/denseSimilarityKernel4PUWithAlias.xclbin
 

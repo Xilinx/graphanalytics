@@ -81,7 +81,7 @@ public:
     PrivateImpl(const Options &options, unsigned valueSize){
         //errorCode_ = NoError;
         valueSize_ = valueSize;
-       if(valueSize_ != 4) {
+        if(valueSize_ != 4) {
             std::cout << "DEBUG: valueType is not supported" << std::endl;
             std::ostringstream oss;
             oss << "the only Value size currently supported is 32 bits.  Please ensure that you have constructed the CosineSim object with a 32-bit template parameter" <<std::endl;
@@ -119,6 +119,19 @@ public:
             kernelName_ = "denseSimilarityKernel4PU";
             kernelAlias_ = "denseSimilarityKernel4PU_U55C";
             numPUs_ = 4;
+        } else if (deviceNames == XString("xilinx_aws-vu9p-f1_shell-v04261818_201920_2")) {
+            xclbinPath = std::string("/opt/xilinx/apps/graphanalytics/cosinesim/") + std::string(VERSION) + 
+                         std::string("/xclbin/cosinesim_xilinx_aws-vu9p-f1_shell-v04261818_201920_2.awsxclbin");
+            kernelName_ = "denseSimilarityKernel";
+            //kernelAlias_ = "denseSimilarityKernel_F1";
+            numPUs_ = 1;
+        } else {
+            std::cout << "DEBUG: deviceNames " << deviceNames << " is not supported" << std::endl;
+            std::ostringstream oss;
+            oss << "Supported deviceNames: xilinx_u50_gen3x16_xdma_201920_3 and xilinx_u55c_gen3x16_xdma_base_2" <<std::endl;
+            throw xilinx_apps::cosinesim::Exception(oss.str());
+            std::cerr << "ERROR: deviceNames " << deviceNames << " not supported" <<std::endl;
+            abort();
         }
 
         if (!options.xclbinPath.empty()) {
@@ -171,14 +184,23 @@ public:
         //the following calculation and assignment is based on numVertices
         int general = ((numVertices - (numDevices * cuNm * numPUs_ * channelsPU + 1)) /
                 (numDevices * cuNm * numPUs_ * channelsPU)) * channelsPU;
+        // handle the case where numVertices is too small
+        if (general == 0)
+            general = numVertices/(numDevices * cuNm * numPUs_);
+
         int rest = numVertices - general * (numDevices * cuNm * numPUs_ - 1);
 
 #ifndef NDEBUG
         std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
-                << " numVertices=" << numVertices << ", general=" << general
-                << ", rest=" << rest
-                << ", split=" << numDevices * cuNm * numPUs_ 
-                << ", numDevices=" << numDevices << std::endl;
+                << "\n    numVertices=" << numVertices 
+                << "\n    cuNm=" << cuNm 
+                << "\n    numVertices=" << numVertices 
+                << "\n    numPUs_=" << numPUs_
+                << "\n    channelsPU=" << channelsPU
+                << "\n    general=" << general
+                << "\n    rest=" << rest
+                << "\n    split=" << numDevices * cuNm * numPUs_ 
+                << "\n    numDevices=" << numDevices << std::endl;
 #endif
 
         //assert((rest >= 0));
@@ -239,6 +261,13 @@ public:
         if(indexDeviceCuNm == numDevices * cuNm)
             return nullptr;
         subChNm = (numVerticesPU[indexDeviceCuNm][indexSplitNm] + channelsPU - 1) / channelsPU;
+#ifndef NDEBUG
+        std::cout << "DEBUG: " << __FILE__ << "::" << __FUNCTION__
+                << "\n    numVerticesPU[indexDeviceCuNm][indexSplitNm]=" << numVerticesPU[indexDeviceCuNm][indexSplitNm] 
+                << "\n    indexDeviceCuNm=" << indexDeviceCuNm
+                << "\n    indexSplitNm=" << indexSplitNm
+                << "\n    subChNm=" << subChNm << std::endl;
+#endif
 
         pbuf = &(g[indexDeviceCuNm]->weightsDense[indexSplitNm * channelsPU + indexNumVertices / subChNm][loadPopulationCnt[indexNumVertices / subChNm] * edgeAlign8]);
 
@@ -427,7 +456,9 @@ int createSharedHandle(uint32_t numDevices)
     if (!sharedHandlesCosSimDense::instance().handlesMap.empty()) {
         std::shared_ptr<xf::graph::L3::Handle> handle0 = sharedHandlesCosSimDense::instance().handlesMap[0];
 
+#ifndef NDEBUG
         std::cout << "DEBUG: " << __FUNCTION__ << " numDevices=" << handle0->getNumDevices() << std::endl;
+#endif        
         handle0->showHandleInfo();
         if (numDevices != handle0->getNumDevices()) {
             std::cout << "INFO: " << __FUNCTION__ << "numDevices changed. Creating a new handle." 
@@ -663,8 +694,13 @@ void close_fpga()
 
 
 extern "C" {
-xilinx_apps::cosinesim::ImplBase *xilinx_cosinesim_createImpl(const xilinx_apps::cosinesim::Options& options, unsigned valueSize){
+xilinx_apps::cosinesim::ImplBase *xilinx_cosinesim_createImpl(
+    const xilinx_apps::cosinesim::Options& options, 
+    unsigned valueSize) 
+{
+#ifndef NDEBUG    
     std::cout << "DEBUG: inside .so xilinx_cosinesim_createImpl" << std::endl;
+#endif    
     return new xilinx_apps::cosinesim::PrivateImpl(options,valueSize);
 }
 

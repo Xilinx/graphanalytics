@@ -56,7 +56,7 @@ tg_udf_xclbin_dir=$tg_udf_dir/xclbin
 plugin_ld_preload=
 
 # Set up variables and checks specific to the plugin
-
+PRODUCT_VER=`cat $SCRIPTPATH/../VERSION`
 . $SCRIPTPATH/set-plugin-vars.sh
 
 # Use the local git repo for Alveo Product artifacts if the repo dir exists;
@@ -102,14 +102,14 @@ if [ $uninstall -eq 0 ] && [ ! -f $pluginAlveoProductXclbinPathU50 ] && [ "$devi
     exit 1
 fi
 
-if [ $uninstall -eq 0 ] && [ ! -z "$pluginXclbinNameU55C" ] && [ ! -f $pluginAlveoProductXclbinPathU55C ]; then
+if [ $uninstall -eq 0 ] && [ ! -f $pluginAlveoProductXclbinPathU55C ] && [ "$device_name" == "xilinx_u55c_gen3x16_xdma_base_2" ]; then
     printf "${RED}ERROR: $standaloneAlveoProductName Alveo U55C product not found.${NC}\n"
     printf "INFO: Please download $standaloneAlveoProductName Alveo product installation package "
     printf "from Xilinx Database PoC site: https://www.xilinx.com/member/dba_poc.html\n"
     exit 1
 fi
 
-if [ $uninstall -eq 0 ] && [ ! -z "$pluginXclbinNameAwsF1" ] && [ ! -f $pluginAlveoProductXclbinPathAwsF1 ]; then
+if [ $uninstall -eq 0 ] && [ ! -f $pluginAlveoProductXclbinPathAwsF1 ] && [ "$device_name" == "xilinx_aws-vu9p-f1_shell-v04261818_201920_2" ]; then
     printf "${RED}ERROR: $standaloneAlveoProductName product not found.${NC}\n"
     printf "INFO: Please download $standaloneAlveoProductName product installation package "
     printf "from Xilinx Database PoC site: https://www.xilinx.com/member/dba_poc.html\n"

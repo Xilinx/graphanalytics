@@ -13,6 +13,7 @@
 # under the License.
 
 cmake_minimum_required(VERSION 2.8.11)
+set(PYTHON_EXECUTABLE /usr/bin/python3)
 project(xilinx-mis)
 
 # Linking variables
@@ -21,17 +22,28 @@ set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMake/")
 
 set(CS_FILE_PATH "${CMAKE_SOURCE_DIR}/../staging/")
 set(CMAKE_INSTALL_PATH "${CMAKE_INSTALL_PREFIX}/mis/${PROD_VERSION}")
-install(FILES "${CS_FILE_PATH}/requirements.txt" DESTINATION ${CMAKE_INSTALL_PREFIX}/)
+
 install(DIRECTORY "${CS_FILE_PATH}/lib/" DESTINATION ${CMAKE_INSTALL_PATH}/lib USE_SOURCE_PERMISSIONS)
 install(DIRECTORY "${CS_FILE_PATH}/include/" DESTINATION ${CMAKE_INSTALL_PATH}/include USE_SOURCE_PERMISSIONS)
 
-install(FILES "${CS_FILE_PATH}/xclbin/mis_xilinx_u50_gen3x16_xdma_201920_3.xclbin" DESTINATION ${CMAKE_INSTALL_PATH}/xclbin)
-install(FILES "${CS_FILE_PATH}/xclbin/mis_xilinx_u55c_gen3x16_xdma_2_202110_1.xclbin" DESTINATION ${CMAKE_INSTALL_PATH}/xclbin)
+install(DIRECTORY "${CS_FILE_PATH}/xclbin/" DESTINATION ${CMAKE_INSTALL_PATH}/xclbin)
+#install(FILES "${CS_FILE_PATH}/xclbin/mis_xilinx_u55c_gen3x16_xdma_2_202110_1.xclbin" DESTINATION ${CMAKE_INSTALL_PATH}/xclbin)
 
 install(FILES "${CS_FILE_PATH}/src/mis_loader.cpp" DESTINATION ${CMAKE_INSTALL_PATH}/src)
-#install(FILES "${CS_FILE_PATH}/examples.zip" DESTINATION ${CMAKE_INSTALL_PATH}/)
-install(DIRECTORY "${CS_FILE_PATH}/examples/" DESTINATION ${CMAKE_INSTALL_PATH}/examples USE_SOURCE_PERMISSIONS)
+
+
+#install(DIRECTORY "${CS_FILE_PATH}/examples/" DESTINATION ${CMAKE_INSTALL_PATH}/examples USE_SOURCE_PERMISSIONS)
+# Need to install example components differently to avoid __pycahe__ directory being installed
+install(FILES "${CS_FILE_PATH}/examples/VERSION" DESTINATION ${CMAKE_INSTALL_PATH}/examples)
+install(DIRECTORY "${CS_FILE_PATH}/examples/cpp/" DESTINATION ${CMAKE_INSTALL_PATH}/examples/cpp USE_SOURCE_PERMISSIONS)
+install(DIRECTORY "${CS_FILE_PATH}/examples/data/" DESTINATION ${CMAKE_INSTALL_PATH}/examples/data USE_SOURCE_PERMISSIONS)
+install(DIRECTORY "${CS_FILE_PATH}/examples/python/jupyter/"   DESTINATION ${CMAKE_INSTALL_PATH}/examples/python/jupyter USE_SOURCE_PERMISSIONS)
+install(FILES     "${CS_FILE_PATH}/examples/python/misdemo.py" DESTINATION ${CMAKE_INSTALL_PATH}/examples/python)
+install(FILES     "${CS_FILE_PATH}/examples/python/run.sh"     DESTINATION ${CMAKE_INSTALL_PATH}/examples/python)
+    
 install(FILES "${CS_FILE_PATH}/VERSION" DESTINATION ${CMAKE_INSTALL_PATH}/ )
+
+#VERSION  cpp  data  python
 
 #version 
 
@@ -69,13 +81,10 @@ execute_process(
 if (${LINUX_FLAVOR} MATCHES "^(Ubuntu|Debian)")
     set(CPACK_GENERATOR "DEB")
     set(PACKAGE_KIND "DEB")
-
-
 elseif (${LINUX_FLAVOR} MATCHES "^(RedHat|CentOS|Amazon)")
     set(CPACK_GENERATOR "RPM")
     set(PACKAGE_KIND "RPM")
- 
-
+    set(CPACK_RPM_SPEC_MORE_DEFINE "%define __python ${PYTHON_EXECUTABLE}") 
 endif()
 
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${CPACK_REL_VER}-${CPACK_ARCH}")

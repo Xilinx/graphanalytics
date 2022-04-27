@@ -97,11 +97,17 @@ PYBIND11_MODULE (xilCosineSim, pc) {
 
   pc.def("buildRandData", &buildRandData);
 
+  py::class_<XString>(pc, "xString")
+    .def(py::init<>())
+    .def(py::init<const char *>())
+    .def(py::init<const std::string &>());
+    
   py::class_<Options>(pc, "options")
     .def(py::init())
     .def_readwrite("vecLength", &Options::vecLength)
     .def_readwrite("numDevices", &Options::numDevices)
-    .def_readwrite("xclbinPath", &Options::xclbinPath);
+    .def_readwrite("xclbinPath", &Options::xclbinPath)
+    .def_readwrite("deviceNames", &Options::deviceNames);
 
   py::class_<Result>(pc, "result")
     .def(py::init<RowIndex, double>())

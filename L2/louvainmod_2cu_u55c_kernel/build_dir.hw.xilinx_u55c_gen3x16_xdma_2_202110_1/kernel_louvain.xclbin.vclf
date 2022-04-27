@@ -1,6 +1,14 @@
 {
     "note": "stub file for large file",
-    "tags": [],
+    "tags": [
+        "xilinx_u55c_gen3x16_xdma_2_202110_1",
+        "vitis-2021.2_released",
+        "flow4",
+        "214M",
+        "vitis-2021.2",
+        "fix_single_vertexAt0pos",
+        "205M"
+    ],
     "filename": "kernel_louvain.xclbin",
-    "sha256sum": "e2f2259c77c4e7000e2240b3f6500f6307b69de3f00f6a1b73d34cf126f16a21"
+    "sha256sum": "429b0b9a22522b1be8771df23e52514a5225e498e3e906d207b96d7ec798f8ec"
 }

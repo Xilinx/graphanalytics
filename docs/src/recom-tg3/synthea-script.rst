@@ -21,4 +21,4 @@ Run Bash Script with GSQL
 
    # Run synthea demo with default settings. Settings can be changed via command
    # line options as shown above
-   ./bin/run.sh
+   ./bin/run.sh -u <username> -p <password>

@@ -23,8 +23,10 @@ endif
 ifeq (, $(shell which sphinx-build 2>/dev/null))
 $(error "No sphinx-build in PATH.")
 endif
+
 ifeq (, $(HTML_DEST_DIR))
-$(error "HTML_DEST_DIR is not set.")
+    $(info "HTML_DEST_DIR not set. Use the default name html-output")
+	HTML_DEST_DIR = html-output
 endif
 HTML_BUILD_DIR = _build/html
 
@@ -41,9 +43,10 @@ DOXYREST_RST_TARGET_DIR = rst-cpp-docs
 
 all: install
 
-install: .stamp/sphinx
+install: .stamp/sphinx update-html-versions
+	mkdir -p $(HTML_DEST_DIR)
 	rsync -av --delete --exclude .git --exclude .buildinfo \
-		 $(HTML_BUILD_DIR) $(HTML_DEST_DIR) 1>/dev/null
+		 $(HTML_BUILD_DIR)/ $(HTML_DEST_DIR) 1>/dev/null
 
 
 #######################################################################################################################
@@ -53,7 +56,7 @@ install: .stamp/sphinx
 #
 
 COSINESIM_RST_NAMES = \
-    api.rst cpp-api.rst cpp-classes.rst demos.rst index.rst installation.rst \
+    api.rst cpp-api.rst cpp-classes.rst demos.rst index.rst install.rst \
     cosinesim-example-makefile.rst cosinesim-example-jupyter.rst cosinesim-example-python.rst
 
 COSINESIM_RST_FILES = $(addprefix cosinesim/,$(COSINESIM_RST_NAMES))
@@ -142,7 +145,7 @@ recom-tg3-clean:
 #
 
 # Package version
-PACKAGE_VERSION=$(strip $(shell cat ../../scripts/xilinx-tigergraph-install/VERSION))
+PACKAGE_VERSION=$(strip $(shell cat ../../scripts/amd-graphanalytics-install/VERSION))
 
 # Standalone products
 COSINESIM_VERSION=$(strip $(shell cat ../../cosinesim/VERSION))
@@ -157,7 +160,7 @@ FUZZYMATCH_TG_VERSION=$(strip $(shell cat ../../plugin/tigergraph/fuzzymatch/VER
 MIS_TG_VERSION=$(strip $(shell cat ../../plugin/tigergraph/mis/VERSION))
 
 # Pre-built package link
-PACKAGE_LINK=$(strip $(shell cat xilinx-tigergraph-install-package_link))
+PACKAGE_LINK=$(strip $(shell cat amd-graphanalytics-install-package_link))
 
 VERSION_LIST = 's/%PACKAGE_VERSION/$(PACKAGE_VERSION)/g; \
 				s,%PACKAGE_LINK,$(PACKAGE_LINK),g; \

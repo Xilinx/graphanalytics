@@ -59,8 +59,10 @@ int main(int argc, char **argv) {
     else if (toolOptions.modeZmq == ZMQ_WORKER)
         options.nodeId = toolOptions.nodeId;
 
-    std::cout << "toolOptions.modeZmq=" << toolOptions.modeZmq << " toolOptions.nodeId=" << toolOptions.nodeId 
+#ifndef NDEBUG
+    std::cout << "DEBUG: toolOptions.modeZmq=" << toolOptions.modeZmq << " toolOptions.nodeId=" << toolOptions.nodeId 
               << " toolOptions.numNodes=" << toolOptions.numNodes << std::endl;
+#endif              
 
     options.hostName = "localhost";
     options.hostIpAddress = serverIp.str();
@@ -72,22 +74,20 @@ int main(int argc, char **argv) {
 
     switch (toolOptions.mode_alveo) {
     case ALVEOAPI_PARTITION:  // 1
-        std::cout << "ALVEOAPI_PARTITION" << std::endl;
+        std::cout << "INFO: ALVEOAPI_PARTITION" << std::endl;
         partOpts.LBW_partition = false;
         partOpts.numPars = toolOptions.numPars;
         partOpts.par_prune = toolOptions.gh_par;
         louvainMod.partitionDataFile(toolOptions.opts_inFile, partOpts);
         break;
     case ALVEOAPI_PARTITION_LBW:  // 2
-        std::cout << "ALVEOAPI_PARTITION_LBW" << std::endl;
+        std::cout << "INFO: ALVEOAPI_PARTITION_LBW" << std::endl;
         partOpts.LBW_partition = true;
         partOpts.numPars = toolOptions.numPars;
         partOpts.par_prune = toolOptions.gh_par;
         louvainMod.partitionDataFile(toolOptions.opts_inFile, partOpts);
         break;
     case ALVEOAPI_LOAD: // 3
-        std::cout << "ALVEOAPI_LOAD" << std::endl;
-
         computeOpts.outputFile = toolOptions.outputFile;
         computeOpts.max_iter = toolOptions.max_iter;
         computeOpts.max_level = toolOptions.max_level; 

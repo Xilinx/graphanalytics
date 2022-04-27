@@ -19,27 +19,75 @@
 #include <cstdint>
 #include <vector>
 #include <iostream>
+#include <fstream>
+#include <algorithm>
 #include "cosinesim.hpp"
 
+class ArgParser {
+   public:
+    ArgParser(int& argc, const char** argv) {
+        for (int i = 1; i < argc; ++i) mTokens.push_back(std::string(argv[i]));
+    }
+    bool getCmdOption(const std::string option) const {
+        std::vector<std::string>::const_iterator itr;
+        itr = std::find(this->mTokens.begin(), this->mTokens.end(), option);
+        if (itr != this->mTokens.end()) {
+            return true;
+        }
+        return false;
+    }
+    bool getCmdOption(const std::string option, std::string& value) const {
+        std::vector<std::string>::const_iterator itr;
+        itr = std::find(this->mTokens.begin(), this->mTokens.end(), option);
+        if (itr != this->mTokens.end() && ++itr != this->mTokens.end()) {
+            value = *itr;
+            return true;
+        }
+        return false;
+    }
 
-int main(int argc, char **argv) {
+   private:
+    std::vector<std::string> mTokens;
+};
+
+int main(int argc, const char* argv[]) {
     const unsigned VectorLength = 200;
     unsigned Iterations = 1;
     unsigned NumVectors = 5000;
     const int MaxValue = 16383;
     std::string deviceNames = "xilinx_u50_gen3x16_xdma_201920_3";
 
-    if (argc > 1) {
-        Iterations = std::stoi(argv[1]);
+    ArgParser parser(argc, argv);
+    std::string is_check_str;
+    std::string xclbin_path;
+
+    if (!parser.getCmdOption("--xclbin", xclbin_path)) {
+        std::cout << "ERROR: xclbin path is not set!\n";
+        return -1;
     }
 
-    if (argc > 2) {
-        NumVectors = std::stoi(argv[2]);
-    } 
+    if (!parser.getCmdOption("-d", deviceNames)) {
+        std::cout << "ERROR: deviceNames is not set!\n";
+        return -1;
+    }
 
-    if (argc > 3) {
-        deviceNames = argv[3];
-    } 
+    if (parser.getCmdOption("-i", is_check_str)) {
+        try {
+            Iterations = std::stoi(is_check_str);
+        } catch (...) {
+            Iterations = 1;
+        }
+    }
+
+    if (parser.getCmdOption("-n", is_check_str)) {
+        try {
+            NumVectors = std::stoi(is_check_str);
+        } catch (...) {
+            NumVectors = 5000;
+        }
+    }
+
+
 
     using CosineSim = xilinx_apps::cosinesim::CosineSim<std::int32_t>;
 
@@ -52,6 +100,7 @@ int main(int argc, char **argv) {
     options.vecLength = VectorLength;
     options.numDevices = 1;
     options.deviceNames = deviceNames;
+    options.xclbinPath = xclbin_path;
 
     std::vector<xilinx_apps::cosinesim::Result> results;
     try {

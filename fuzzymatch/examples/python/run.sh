@@ -77,6 +77,9 @@ export DATA_DIR=$SCRIPTPATH/../data
 patternFile="../data/ref-names.csv"
 inputFile="../data/new-names.csv"
 
+#patternFile="/wrk/xsjhdnobkup4/vivianw/graphanalytics_wrk/dev/graphanalytics/fuzzymatch/5Party-ocp20/ncvr_numrec_1000000_modrec_2_ocp_20_myp_0_nump_5_7000.csv"
+#inputFile="/wrk/xsjhdnobkup4/vivianw/graphanalytics_wrk/dev/graphanalytics/fuzzymatch/5Party-ocp20/ncvr_numrec_1000000_modrec_2_ocp_20_myp_1_nump_5_100.csv"
+
 echo "patternFile is ${patternFile}" 
 echo "inputFile is ${inputFile}"
 

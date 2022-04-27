@@ -53,33 +53,60 @@ if [ "$compile_mode" -eq 1 ]; then
     gsql -u $username -p $password "$(cat $script_dir/../query/load.gsql | sed "s/@graph/$xgraph/")"
 
     # set timeout of loading job to 1 hour
-    time gsql -u $username -p $password -g $xgraph "SET QUERY_TIMEOUT=3600000 RUN LOADING JOB load_xgraph USING tp2wo_infile=\"$tp2wo_data\", tp2tr_infile=\"$tp2tr_data\""
-    gsql -u $username -p $password -g $xgraph "DROP JOB load_xgraph"
-    echo "INFO: -------- $(date) load_xgraph completed. --------"
+    time gsql -u $username -p $password -g $xgraph "SET QUERY_TIMEOUT=3600000 RUN LOADING JOB load_tp2tr USING tp2tr_infile=\"$tp2tr_data\""
+    gsql -u $username -p $password -g $xgraph "DROP JOB load_tp2tr"
+    time gsql -u $username -p $password -g $xgraph "SET QUERY_TIMEOUT=3600000 RUN LOADING JOB load_tp2wo USING tp2wo_infile=\"$tp2wo_data\""
+    gsql -u $username -p $password -g $xgraph "DROP JOB load_tp2wo"
+    echo "INFO: -------- $(date) load jobs completed. --------"
 
+    #  build tp2tp edges
+    echo " "
+    echo "Install and Run query build_edges"
     gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/build_edges.gsql | sed "s/@graph/$xgraph/")"
-    echo " "
-    gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/tg_maximal_indep_set.gsql)"
-    echo " "
-    gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/xlnx_maximal_indep_set.gsql | sed "s/@graph/$xgraph/")"
-
-    echo "Run query build_edges"
+    echo "Running build_edges()"
     time gsql -u $username -p $password -g $xgraph "run query build_edges()"
+    echo "Waiting for Graph to stabilize..."
+    sleep 90
+fi
+
+if [ "$compile_mode" -eq 1 ] || [ "$compile_mode" -eq 2 ]; then
+    gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/tg_supply_chain_schedule.gsql)"
+    echo " "
+    gsql -u $username -p $password -g $xgraph "$(cat $script_dir/../query/xlnx_supply_chain_schedule.gsql | sed "s/@graph/$xgraph/")"
 fi
 
 if [ "$run_mode" -eq 1 ] || [ "$run_mode" -eq 3 ]; then
-    echo "Run query tg_maximal_indep_set"
-    time gsql -u $username -p $password -g $xgraph "run query tg_maximal_indep_set([\"travel_plan\"], [\"tp2tp\"], 100, TRUE, \"/tmp/mis-$username.out\")"
+    echo "Run query tg_supply_chain_schedule"
+    tgrun=$(gsql -u $username -p $password -g $xgraph "SET QUERY_TIMEOUT=720000000 run query tg_supply_chain_schedule(\"travel_plan\", \"tp2tp\", 100, 0, False, \"/tmp/tg-mis_schedules.log\", \"/tmp/tg-mis_mdata.log\")")
+
+    # get run time
+    echo "$tgrun"
+    tgtime=$(echo "$tgrun" | jq .results | jq .[1] | jq .ExecTimeInMs)
 fi
 
 # Run on FPGA
 if [ "$run_mode" -eq 2 ] || [ "$run_mode" -eq 3 ]; then
     echo "Run query assign_ids"
-    time gsql -u $username -p $password -g $xgraph "run query assign_ids()"
+    time gsql -u $username -p $password -g $xgraph "run query assign_ids(\"travel_plan\")"
 
-    echo "Run query assign_ids"
-    time gsql -u $username -p $password -g $xgraph "run query build_csr()"
+    echo "Run query build_csr"
+    time gsql -u $username -p $password -g $xgraph "run query build_csr(\"travel_plan\", \"tp2tp\")"
 
-    echo "Run query maximal_indep_set_alveo"
-    time gsql -u $username -p $password -g $xgraph "run query maximal_indep_set_alveo()"
+    echo "Run query supply_chain_schedule_alveo"
+    xlnxrun=$(gsql -u $username -p $password -g $xgraph "run query supply_chain_schedule_alveo(\"travel_plan\", \"tp2tp\", 0, False, \"/tmp/xlnx-mis_schedules.log\", \"/tmp/xlnx-mis_mdata.log\")")
+
+    # get run status and time
+    echo "$xlnxrun"
+    xlnxtime=$(echo "$xlnxrun" | jq .results | jq .[1] | jq .ExecTimeInMs)
+    xlnxstatus=$(echo "$xlnxrun" | jq .results | jq .[4] | jq .StatusMessage)
+
+    # Print speedup or results
+    if [ "$xlnxstatus" == '"Success!"' ]; then
+        if [ "$run_mode" -eq 3 ]; then
+            python3 -c "print(f'\nAlveo Speedup over CPU = {($tgtime / $xlnxtime):.3f}X!\n')"
+        fi
+    else
+        echo ""
+        echo "Error: Xilinx query did not run correctly! Please run the CSR generation queries (assign_ids(), build_csr()) and re run supply_chain_schedule_alveo()."
+    fi
 fi

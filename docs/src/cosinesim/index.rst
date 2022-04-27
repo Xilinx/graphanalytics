@@ -11,7 +11,7 @@ of a given vector of integers within a large set of such vectors using the
     :maxdepth: 1
 
     Overview <overview.rst>
-    Installation <installation.rst>
-    Demos <demos.rst>
+    Installation <install.rst>
+    Demo(s) <demos.rst>
     API Reference <api.rst>
 

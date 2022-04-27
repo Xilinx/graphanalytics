@@ -48,6 +48,7 @@ rh_package_list()
      gcc-c++ \
      git \
      zeromq-devel \
+     java \
      jq \
     )
 
@@ -73,6 +74,7 @@ ub_package_list()
      python3-dev \
      python3-venv \
      libzmq3-dev \
+     default-jre \
      jq \
      )
 }
@@ -222,7 +224,7 @@ install()
         yum install -y "${RH_LIST[@]}"
         if [ $FLAVOR == "rhel" ] || [ $FLAVOR == "centos" ]; then
             if [ $VERSION -lt "8" ]; then
-                yum install -y devtoolset-6
+                yum install -y devtoolset-9
             fi
         fi
     fi

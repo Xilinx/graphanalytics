@@ -22,6 +22,7 @@ set -e
 
 SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`
+PRODUCT_VER=`cat $SCRIPTPATH/../VERSION`
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
@@ -88,25 +89,25 @@ compile_plugin_files="$pluginAlveoProductHeaders $pluginHeaders"
 # If uninstalling, remove UDFs from UDF file ExprFunctions.hpp and delete auxiliary files
 #
 
-if [ $uninstall -eq 1 ]; then
-    # If there are Recom Engine UDFs in the UDF file, uninstall them
+if [[ $uninstall -eq 1 ]]; then
+    # If there are product UDFs in the UDF file, uninstall them
     if [ -f $tg_udf_dir/ExprFunctions.hpp ] \
             && [ $(grep -c "mergeHeaders.*$pluginName" $tg_udf_dir/ExprFunctions.hpp) -gt 0 ]
     then
         if [ ! -f "$tg_udf_dir/mergeHeaders.py" ]; then
             cp $plugin_udf_dir/mergeHeaders.py $tg_udf_dir
         fi
-        echo "INFO: Uninstalling Xilinx Recommendation Engine UDFs"
+        echo "INFO: Uninstalling $pluginAlveoProductName UDFs"
         mv $tg_udf_dir/ExprFunctions.hpp $tg_udf_dir/ExprFunctions.hpp.prev
         python3 $tg_udf_dir/mergeHeaders.py -u $tg_udf_dir/ExprFunctions.hpp.prev $pluginName \
              > $tg_udf_dir/ExprFunctions.hpp
     else
         if [ $verbose -eq 1 ]; then
-            echo "INFO: Xilinx Recommendation Engine UDFs not found in UDF file ExprFunctions.hpp"
+            echo "INFO: $pluginAlveoProductName UDFs not found in UDF file ExprFunctions.hpp"
         fi
     fi
 
-    echo "INFO: Uninstalling Xilinx Recommendation Engine auxiliary files"
+    echo "INFO: Uninstalling $pluginAlveoProductName auxiliary files"
     for i in $app_plugin_files $app_alveo_product_files; do
         rm -f $tg_udf_dir/${i##*/}
     done
@@ -120,11 +121,12 @@ if [ $uninstall -eq 1 ]; then
 
     cp $tg_udf_dir/ExprFunctions.hpp $tg_temp_include_dir
 
+    echo "INFO: $pluginAlveoProductName uninstalled."
+
     exit 0
 fi
 
 ###############################################################################
-
 #
 # Install the plugin files to the current TigerGraph node
 #
@@ -189,6 +191,7 @@ mkdir -p $tg_data_root/xgstore
 
 # Generate cluster configuration file
 echo "INFO: Generate plugin configration file $tg_udf_dir/xilinx-plugin-config.json for $device_name"
+echo "DEBUG: python3 $SCRIPTPATH/gen-cluster-info.py $tg_udf_dir/xilinx-plugin-config.json $tg_data_root $device_name"
 python3 $SCRIPTPATH/gen-cluster-info.py $tg_udf_dir/xilinx-plugin-config.json $tg_data_root $device_name
 
 # Substitute the XCLBIN path for PLUGIN_XCLBIN_PATH_[FPGA] in all files that need the substitution
@@ -221,4 +224,16 @@ for i in $compile_plugin_files; do
 done
 cp $tg_udf_dir/ExprFunctions.hpp $tg_temp_include_dir
 cp $tg_udf_dir/ExprUtil.hpp $tg_temp_include_dir
+
+# Copy system libstdc++ for GPE to work around library compatibility issue
+OSDIST=`lsb_release -i |awk -F: '{print tolower($2)}' | tr -d ' \t'`
+mkdir -p $HOME/libstd
+if [[ $OSDIST == "ubuntu" ]]; then
+    cp /usr/lib/x86_64-linux-gnu/libstdc++.so.6* $HOME/libstd
+elif [[ $OSDIST == "centos" ]]; then
+    cp /usr/lib64/libstdc++.so.6* $HOME/libstd
+else 
+    echo "ERROR: only Ubuntu and Centos are supported."
+    exit 3
+fi
 

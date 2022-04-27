@@ -1,19 +1,24 @@
-Install TigerGraph Enterprise 3.x
----------------------------------
+.. _common-install-tigergraph-label:
 
-Next, follow the steps below to install TigerGraph on your server if you have 
-not already.  The latest version tested with Xilinx Graph Analytics products is 
-version 3.1.
+Install TigerGraph Enterprise Software
+--------------------------------------
 
-* Install `TigerGraph Enterprise version 3.1 <https://info.tigergraph.com/enterprise-free>`_, 
-  accepting the defaults for all settings that have them.  Be sure to leave the 
-  database owner as user "tigergraph", as the Fuzzy Match scripts 
-  depend on that user name.  Make a note of the password for the user "tigergraph". 
-  That password will be needed for later steps.
+.. note:: 
+    If you already have TigerGraph 3.4 installed on the machines with Alveo U50 or U55C 
+    cards, this step can be skipped. 
+
+
+Next, follow the steps below to install TigerGraph on your server.  The latest version tested with Xilinx Graph Analytics products is
+version 3.4.
+
+* Download `TigerGraph Enterprise version 3.4 <https://info.tigergraph.com/enterprise-free>`_ 
+  and follow installation instructions received from TigerGraph. Accept all default settings
+  during the installation. Be sure to leave the database owner as user "tigergraph". Make a note 
+  of the password for the user "tigergraph". That password will be needed for later steps.
 
 * Create an account in the TigerGraph installation for yourself in the role of 
   a TigerGraph application developer by issuing the commands below (replace 
-  YOUR-LINUX-USERNAME with your actual Linux username).  Xilinx Graph Analytics 
+  YOUR-LINUX-USERNAME with your actual Linux username). Xilinx Graph Analytics
   products examples will use this account to create graphs and install GSQL queries 
   on your behalf.
 
@@ -21,6 +26,12 @@ version 3.1.
 
    $su - tigergraph
    Password:
+
+   # Set up tigergraph environment if needed
+   $source ~/.bashrc
+   
+   # Set the new password to Xilinx123 if you plan to run demo scripts without entering a password.
+   # Otherwise make a note of the new password. It will be needed when running demo scripts.
    $gsql
    Welcome to TigerGraph.
    GSQL > create user

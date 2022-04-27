@@ -20,10 +20,8 @@
 #include <chrono>
 #include <cstdlib>
 #include <cassert>
-//#include "binFiles.hpp"
-//#include "mis_kernel_xrt.hpp"
-//#include "graph.hpp"
 #include "xilinxmis.hpp"
+
 using namespace xilinx_apps::mis;
 
 class ArgParser {
@@ -62,8 +60,8 @@ bool readBin(const std::string filename, const std::streampos readSize, std::vec
     fileSize = file.tellg();
     file.seekg(0, std::ios::beg);
     if (readSize > 0 && fileSize != readSize) {
-        std::cout << "WARNNING: file " << filename << " size " << fileSize << " doesn't match required size " << readSize
-             << std::endl;
+        std::cout << "WARNNING: file " << filename << " size " << fileSize << " doesn't match required size "
+                  << readSize << std::endl;
     }
     assert(fileSize >= readSize);
 
@@ -77,6 +75,13 @@ bool readBin(const std::string filename, const std::streampos readSize, std::vec
     else
         return false;
 }
+template <typename T, typename A>
+bool writeBin(const std::string filename, std::vector<T, A>& vec) {
+    std::ofstream file(filename, std::ios::binary);
+    file.write((char*)vec.data(), vec.size() * sizeof(T));
+    file.close();
+}
+
 int main(int argc, const char* argv[]) {
     ArgParser parser(argc, argv);
 
@@ -104,11 +109,11 @@ int main(int argc, const char* argv[]) {
     if (parser.getCmdOption("--devices", deviceNames)) {
         std::cout << "INFO: Set deviceNames to " << deviceNames << std::endl;
     } else {
-    	deviceNames = "xilinx_u50_gen3x16_xdma_201920_3";
+        deviceNames = "xilinx_u50_gen3x16_xdma_201920_3";
         std::cout << "INFO: Use default deviceNames " << deviceNames << std::endl;
     }
 
-//search for input file matrix meta data information which stored in infos.txt
+    // search for input file matrix meta data information which stored in infos.txt
     std::ifstream file(in_dir + "/infos.txt");
     std::string line;
     getline(file, line);
@@ -120,9 +125,9 @@ int main(int argc, const char* argv[]) {
     file.close();
 
     Options options;
-    options.xclbinPath=xclbin_path;
-    options.deviceNames=deviceNames;
-    
+    options.xclbinPath = xclbin_path;
+    options.deviceNames = deviceNames;
+
     MIS xmis(options);
     std::vector<int> h_rowPtr(n + 1);
     std::vector<int> h_colIdx(nz);
@@ -130,20 +135,24 @@ int main(int argc, const char* argv[]) {
     readBin(in_dir + "/rowPtr.bin", (n + 1) * sizeof(int), h_rowPtr);
     readBin(in_dir + "/colIdx.bin", nz * sizeof(int), h_colIdx);
 
-    //GraphCSR<std::vector<int> > graph(h_rowPtr, h_colIdx);
-    GraphCSR<int> graph(h_rowPtr, h_colIdx);
-    xmis.setGraph(&graph);
     xmis.startMis();
+    GraphCSR graph(std::move(h_rowPtr), std::move(h_colIdx));
+
+    xmis.setGraph(&graph);
+    std::vector<int> list, countList;
+    std::vector<double> timeList;
     auto start = std::chrono::high_resolution_clock::now();
-    xmis.executeMIS();
-
+    auto res = xmis.executeMIS();
     auto stop = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> duration = stop-start;
+    std::chrono::duration<double> duration = stop - start;
     double elapsed = duration.count();
-    int count = xmis.count();
-
-    std::cout << "Find MIS with " << count << " vertices within " << elapsed << " s." << std::endl;
-
+    int size = 0;
+    for (int i = 0; i < res.size(); i++) {
+        auto& list = res[i];
+        // std::cout << "Iter: " << i << " scheduled " << list.size() << " trips." << std::endl;
+        size += list.size();
+    }
+    std::cout << size << " trip(s) were scheduled in " << res.size()
+              << " kernel call(s) and the total execution time is " << elapsed << "s." << std::endl;
     return 0;
- 
 }

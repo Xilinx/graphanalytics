@@ -1,0 +1,135 @@
+/*
+ * Copyright 2021 Xilinx, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+USE GRAPH @graph
+DROP QUERY assign_ids, build_csr, supply_chain_schedule_alveo
+
+# Assign nice integer IDs to vertices
+CREATE QUERY assign_ids(STRING v_type) FOR GRAPH @graph
+{
+    # Note: the query requires v_id attribute to be present on vertices
+
+    Verts = {v_type.*};
+    udf_reset_context();
+    Start = SELECT v1 FROM Verts:v1
+                POST-ACCUM v1.v_id = udf_get_next_vid(getvid(v1));
+
+    PRINT v_type as VertexType;
+    PRINT Start.size() as TotalVertices;
+}
+
+CREATE QUERY build_csr(STRING v_type, STRING e_type) FOR GRAPH @graph
+{
+    INT num_neighbors = 0;
+    INT non_zero_entries = 0;
+
+    ListAccum<UINT> @@row_ptr;
+    MapAccum<UINT, ListAccum<INT> > @@col_idx;
+
+    udf_reset_timer(true);
+    Verts = {v_type.*};
+	
+	# create row pointer and column index arrays for CSR format
+    Start = SELECT v1
+            FROM Verts:v1 -(e_type:e)- v_type:v2
+            ACCUM @@col_idx += (v1.v_id -> v2.v_id);    # this is by far the most time taking step
+    PRINT udf_elapsed_time(true) AS TgEdgeTraversalTimeInMs;
+
+    # build the CSR arrays in C++
+    udf_reset_timer(true);
+    FOREACH i in RANGE[0, Start.size()-1] DO
+        udf_build_col_idx(@@col_idx.get(i));
+        num_neighbors = @@col_idx.get(i).size();
+        non_zero_entries = non_zero_entries + num_neighbors;
+        @@row_ptr += num_neighbors;
+    END;
+    udf_build_row_ptr(@@row_ptr);
+    PRINT udf_elapsed_time(true) AS CsrUdfTimeInMs;
+
+    udf_dump_csr();
+
+    PRINT @@row_ptr.size() as NumberOfRows;
+    PRINT non_zero_entries as NumberOfNonZeroEntries;
+}
+
+CREATE QUERY supply_chain_schedule_alveo(
+    STRING v_type,                      // vertex type
+    STRING e_type,                      // edge types to traverse
+    INT num_schedule = 10,              // total number of schedules to generate; 0 means generate all possible
+    BOOL print_accum = TRUE,            // print meta data for each schedule to stdout
+    STRING sched_file_path = "",        // if set, print meta data for each schedule to file
+    STRING sched_metadata_path = "")    // if set, print vertex MISs for each schedule to file
+    FOR GRAPH @graph
+{
+    TYPEDEF TUPLE <INT sz, INT itr, DOUBLE runtime> MIS_MDATA;
+
+    DOUBLE vm_peak, vm_hwm;
+    INT ret;
+    ListAccum<ListAccum<vertex>> @@schedules;
+    ListAccum<INT> @@mis_mdata;
+    FILE fs(sched_file_path);
+    FILE fm(sched_metadata_path);
+    INT total_scheduled = 0;
+    INT mis_size = 0;
+    STRING status;
+    STRING msg;
+
+    IF sched_metadata_path != "" THEN
+        fm.println("MIS size");
+    END;
+
+    udf_reset_timer(true);
+    myGraph = {v_type.*};
+
+    # call Xilinx MIS UDF
+    @@schedules += udf_xilinx_mis(num_schedule, myGraph.size(), status);
+
+    # check status of run
+    IF status == "0" THEN
+        # collect MIS vertex IDs
+        FOREACH i in RANGE[0, @@schedules.size()-1] DO
+            mis_size = @@schedules.get(i).size();
+            total_scheduled = total_scheduled + mis_size;
+            @@mis_mdata += mis_size;
+            IF sched_file_path != "" THEN
+                fs.println( @@schedules.get(i) );
+            END;
+            IF sched_metadata_path != "" THEN
+                fm.println( mis_size );
+            END;
+        END;
+        msg = "Success!";
+    ELSE IF status == "1" THEN
+        msg = "Failed: CSR data is missing!";
+    ELSE
+        msg = "Failed: CSR data is not consistent with the Graph size!";
+    END;
+
+    PRINT "Xilinx Alveo device" AS ComputationTechnique;
+    PRINT udf_elapsed_time(true) AS ExecTimeInMs;
+    ret = udf_peak_memory_usage(vm_peak, vm_hwm);
+    PRINT vm_peak/1000000.0 as PeakVirtualMemoryInGB;
+    PRINT vm_hwm/1000000.0 as PeakResidentMemoryInGB;
+    PRINT msg as StatusMessage;
+    PRINT total_scheduled as TripsScheduled;
+    PRINT @@schedules.size() as NumSchedules;
+
+    IF print_accum THEN
+      PRINT @@mis_mdata;
+    END;
+}
+
+INSTALL QUERY assign_ids, build_csr, supply_chain_schedule_alveo

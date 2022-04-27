@@ -13,6 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+# Product name and version: PRODUCT_NAME is the name for TigerGraph plugin
+STANDALONE_NAME = mis
+PRODUCT_NAME = mis
+PRODUCT_VER=$(strip $(shell cat VERSION))
+
 .DELETE_ON_ERROR:
 .PHONY: all
 
@@ -21,10 +27,6 @@ all:
 
 #all: stage
 
-
-# Product name and version
-STANDALONE_NAME = mis
-PRODUCT_VER=$(strip $(shell cat VERSION))
 
 EXAMPLE_DIR = examples/travelplan
 
@@ -38,7 +40,10 @@ STAGE_COPY_FILES = \
     udf/xilinxMis.hpp \
     udf/xilinxMisImpl.hpp \
     \
-    $(wildcard $(EXAMPLE_DIR)/data/*) \
+    $(wildcard $(EXAMPLE_DIR)/data/travelplan2trucks100.csv) \
+    $(wildcard $(EXAMPLE_DIR)/data/travelplan2workorders100.csv) \
+    $(wildcard $(EXAMPLE_DIR)/data/travelplan2trucks2000.csv) \
+    $(wildcard $(EXAMPLE_DIR)/data/travelplan2workorders2000.csv) \
 	$(EXAMPLE_DIR)/README.md \
     $(EXAMPLE_DIR)/bin/common.sh \
     $(EXAMPLE_DIR)/bin/set-plugin-vars.sh \
@@ -47,10 +52,12 @@ STAGE_COPY_FILES = \
     $(EXAMPLE_DIR)/query/schema.gsql \
     $(EXAMPLE_DIR)/query/load.gsql \
     $(EXAMPLE_DIR)/query/build_edges.gsql \
-	$(EXAMPLE_DIR)/query/tg_maximal_indep_set.gsql \
-	$(EXAMPLE_DIR)/query/xlnx_maximal_indep_set.gsql \
+	$(EXAMPLE_DIR)/query/tg_supply_chain_schedule.gsql \
+	$(EXAMPLE_DIR)/query/xlnx_supply_chain_schedule.gsql \
     \
     $(EXAMPLE_DIR)/bin/run.sh \
+    $(EXAMPLE_DIR)/jupyter/travelplan-jupyter-tg.ipynb \
+    $(EXAMPLE_DIR)/jupyter/travelplan-python-tg.py \
 
 # Example directories into which to copy example common files
 STAGE_EXAMPLES_DIRS = $(EXAMPLE_DIR)
@@ -58,7 +65,9 @@ STAGE_EXAMPLES_DIRS = $(EXAMPLE_DIR)
 include ../common/Makefile-common.mk
 
 update-version:
-	sed -i 's,/graphanalytics/STANDALONE_NAME/.*,/graphanalytics/STANDALONE_NAME/$(PRODUCT_VER),g' bin/set-plugin-vars.sh
+	sed -i 's,/graphanalytics/$(STANDALONE_NAME)/.*,/graphanalytics/$(STANDALONE_NAME)/$(PRODUCT_VER),g' bin/set-plugin-vars.sh
+	sed -i 's,/$(STANDALONE_NAME)/.*/examples,/$(STANDALONE_NAME)/$(PRODUCT_VER)/examples,g' examples/travelplan/jupyter/travelplan-jupyter-tg.ipynb
+	sed -i 's,/$(STANDALONE_NAME)/.*/examples,/$(STANDALONE_NAME)/$(PRODUCT_VER)/examples,g' examples/travelplan/jupyter/travelplan-python-tg.py
 
 stage: update-version stage-common
 

@@ -1,5 +1,5 @@
-Xilinx Louvain Modularity Alveo Product Demos
-============================================
+AMD Louvain Modularity Alveo Product Demos
+==========================================
 
 After installation, you can try out the Louvain Modularity Alveo Product, as shown in the sections below.
 

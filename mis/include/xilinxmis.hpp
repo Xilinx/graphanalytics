@@ -38,119 +38,121 @@
 #define XILINX_MIS_IMPL_DECL extern
 #endif
 
-
 namespace xilinx_apps {
 namespace mis {
-    struct Options;
-    class MisImpl;
+struct Options;
+class MisImpl;
 }
 }
 
 extern "C" {
 XILINX_MIS_IMPL_DECL
-xilinx_apps::mis::MisImpl *xilinx_mis_createImpl(const xilinx_apps::mis::Options& options);
+xilinx_apps::mis::MisImpl* xilinx_mis_createImpl(const xilinx_apps::mis::Options& options);
 
 XILINX_MIS_IMPL_DECL
-void xilinx_mis_destroyImpl(xilinx_apps::mis::MisImpl *pImpl);
+void xilinx_mis_destroyImpl(xilinx_apps::mis::MisImpl* pImpl);
 }
 
 namespace xilinx_apps {
 namespace mis {
-    template <typename T>
-    T* aligned_alloc(std::size_t num) {
-        void* ptr = nullptr;
-        #if _WIN32
-            ptr = (T*)malloc(num * sizeof(T));
-            if (num == 0) {
-        #else
-            if (posix_memalign(&ptr, 4096, num * sizeof(T))) {
-        #endif
-            throw std::bad_alloc();
-            }
-        return reinterpret_cast<T*>(ptr);
+
+// GraphCSR format class
+class GraphCSR {
+   public:
+    int n;
+    std::vector<int> rowPtr;
+    std::vector<int> colIdx;
+    int rowPtrSize;
+    int colIdxSize;
+
+    GraphCSR(const std::vector<int>& rowPtr, const std::vector<int>& colIdx) : rowPtr(rowPtr), colIdx(colIdx) {
+        rowPtrSize = rowPtr.size();
+        colIdxSize = colIdx.size();
+        n = rowPtr.size() - 1;
     }
- 
-    //GraphCSR format class
-    template <typename T>
-    class GraphCSR {
-    public:
-        
-        int n;
-        T* rowPtr;
-        T* colIdx;
-        int rowPtrSize;
-        int colIdxSize;
 
-        
-        template <typename G>
-        GraphCSR(G& rowPtr, G& colIdx) {
-            this->rowPtr = aligned_alloc<T>(rowPtr.size());
-            this->colIdx = aligned_alloc<T>(colIdx.size());
-            rowPtrSize = rowPtr.size();
-            colIdxSize = colIdx.size();
-            memcpy(this->rowPtr, rowPtr.data(),rowPtr.size() * sizeof(T));
-            memcpy(this->colIdx, colIdx.data(),colIdx.size() * sizeof(T));
-            n = rowPtr.size() - 1;
+    GraphCSR(std::vector<int>&& rowPtr, std::vector<int>&& colIdx)
+        : rowPtr(std::move(rowPtr)), colIdx(std::move(colIdx)) {
+        rowPtrSize = this->rowPtr.size();
+        colIdxSize = this->colIdx.size();
+        n = this->rowPtr.size() - 1;
+    }
+
+    void isolateVertex(const std::vector<int>& vertices) {
+        std::vector<bool> valid(n, true);
+        for (int v : vertices) valid[v] = false;
+
+        int cstart = 0, validPos = 0;
+        for (int r = 0; r < n; r++) {
+            int cstop = rowPtr[r + 1];
+            if (valid[r]) {
+                for (int c = cstart; c < cstop; c++) {
+                    int cId = colIdx[c];
+                    if (valid[cId]) {
+                        colIdx[validPos++] = cId;
+                    }
+                }
+            }
+            cstart = cstop;
+            rowPtr[r + 1] = validPos;
         }
+        colIdx.resize(validPos);
+        colIdxSize = validPos;
+    }
+};
 
-        int bandwidth();
+/*
+* This exception class is derived from `std::exception` and provides the standard @ref what() member function.
+* An object of this class is constructed with an error message string, which is stored internally and
+* retrieved with the @ref what() member function.
+*/
+class Exception : public std::exception {
+    std::string message;
 
-    };
-
-
-    /*
-    * This exception class is derived from `std::exception` and provides the standard @ref what() member function.
-    * An object of this class is constructed with an error message string, which is stored internally and
-    * retrieved with the @ref what() member function.
-    */
-    class Exception : public std::exception {
-        std::string message;
-    public:
-        /**
-         * Constructs an Exception object.
-         * 
-         * @param msg an error message string, which is copied and stored internal to the object
-         */
-        Exception(const std::string &msg) : message(msg) {}
-        
-        /**
-         * Returns the error message string passed to the constructor.
-         * 
-         * @return the error message string
-         */
-        virtual const char* what() const noexcept override { return message.c_str(); }
-    };
+   public:
+    /**
+     * Constructs an Exception object.
+     *
+     * @param msg an error message string, which is copied and stored internal to the object
+     */
+    Exception(const std::string& msg) : message(msg) {}
 
     /**
-     * @brief Struct containing MIS configuration options
+     * Returns the error message string passed to the constructor.
+     *
+     * @return the error message string
      */
-    struct Options {
-        XString xclbinPath;
-        XString deviceNames;
-    
-    };
-    /*
-    template <typename T>
-    using host_buffer_t = std::vector<T, aligned_allocator<T> >;
-    */
-    class MIS {
-    public:
-        MIS(const Options &options) : pImpl_(xilinx_mis_createImpl(options)) { }
+    virtual const char* what() const noexcept override { return message.c_str(); }
+};
 
-        ~MIS() { xilinx_mis_destroyImpl(pImpl_); }
+/**
+ * @brief Struct containing MIS configuration options
+ */
+struct Options {
+    XString xclbinPath;
+    XString deviceNames;
+};
+/*
+template <typename T>
+using host_buffer_t = std::vector<T, aligned_allocator<T> >;
+*/
+class MIS {
+   public:
+    MIS(const Options& options) : pImpl_(xilinx_mis_createImpl(options)) {}
 
-        // The intialize process will download FPGA binary to FPGA card
-        void startMis();
-        // set the graph and internal pre-process the graph 
-        void setGraph(GraphCSR<int>* graph);
-        std::vector<int> executeMIS();
-        size_t count() const;
-                
+    ~MIS() { xilinx_mis_destroyImpl(pImpl_); }
 
-    private:
-        MisImpl *pImpl_ = nullptr;
+    // The intialize process will download FPGA binary to FPGA card
+    void startMis();
+    // set the graph and internal pre-process the graph
+    void setGraph(GraphCSR* graph);
+    std::vector<std::vector<int> > executeMIS(int iter = 1);
+    // void evict(const std::vector<int>&);
+    size_t count() const;
 
-    };
+   private:
+    MisImpl* pImpl_ = nullptr;
+};
 
 } // namespace mis
 } // namespace xilinx_apps

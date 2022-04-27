@@ -2,13 +2,11 @@
 Xilinx Maximal Independent Set Alveo Product Installation
 =========================================================
 
-Follow the steps below to install the Maximal Independent Set Alveo Product.
-
-.. include:: ../common/install-alveo.rst
+Follow the steps below to install the Maximal Independent Set Alveo Product. Skip the collaboration section if only deploying.
 
 Installing Maximal Independent Set Alveo from a Pre-built Package
 ------------------------------------------------------------------
-* Get the installation package **xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz** from the
+* Get the installation package **amd-graphanalytics-install-%PACKAGE_VERSION.tar.gz** from the
   `Database Analytics POC Secure Site <%PACKAGE_LINK>`_.
   This package contains the MIS as well as its dependencies.
 
@@ -17,8 +15,8 @@ Installing Maximal Independent Set Alveo from a Pre-built Package
 
 .. code-block:: bash
 
-   tar xzf xilinx-tigergraph-install-%PACKAGE_VERSION.tar.gz
-   cd xilinx-tigergraph-install && ./install.sh -p mis
+   tar xzf amd-graphanalytics-install-%PACKAGE_VERSION.tar.gz
+   cd amd-graphanalytics-install && ./install.sh -p mis
 
 
 Setting up the Alveo Accelerator Card

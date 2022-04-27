@@ -18,29 +18,36 @@ USE GRAPH @graph
 SET SYNTAX_VERSION = "v2"
 DROP QUERY build_edges
 
-
 CREATE QUERY build_edges() FOR GRAPH @graph
 {
-    
-    SumAccum<INT> @@edge_cnt = 0;
+
+    INT edge_cnt = 0;
+    MapAccum<STRING, SetAccum<STRING> > @@edge_map;
     Start = {travel_plan.*};
-    
+
+    udf_reset_timer(true);
     TMP = SELECT tp1 FROM Start:tp1 -(tp2wo:e1)- work_order:r -(tp2wo:e2)- travel_plan:tp2
             WHERE tp1.tp_id != tp2.tp_id
-            ACCUM INSERT INTO tp2tp (FROM, TO) VALUES (tp1.tp_id, tp2.tp_id);
-            #ACCUM INSERT INTO tp2tp (FROM, TO) VALUES (tp1.tp_id, tp2.tp_id),
-            #      @@edge_cnt += 1;
-    
+            ACCUM @@edge_map += (tp1.tp_id -> tp2.tp_id);
+    PRINT udf_elapsed_time(true) AS WOEdgeTraversalTimeInMs;
+
+    udf_reset_timer(true);
     TMP = SELECT tp1 FROM Start:tp1 -(tp2truck:e1)- truck:r -(tp2truck:e2)- travel_plan:tp2
             WHERE tp1.tp_id != tp2.tp_id
-            ACCUM INSERT INTO tp2tp (FROM, TO) VALUES (tp1.tp_id, tp2.tp_id);
-            #ACCUM INSERT INTO tp2tp (FROM, TO) VALUES (tp1.tp_id, tp2.tp_id),
-            #      @@edge_cnt += 1;
+            ACCUM @@edge_map += (tp1.tp_id -> tp2.tp_id);
+    PRINT udf_elapsed_time(true) AS TruckEdgeTraversalTimeInMs;
 
-    PRINT @@edge_cnt;
-    
+    udf_reset_timer(true);
+    FOREACH (v1, n_set) in @@edge_map DO
+        FOREACH v2 in n_set DO
+            INSERT INTO tp2tp (FROM, TO) VALUES (v1, v2);
+            edge_cnt = edge_cnt + 1;
+        END;
+    END;
+    PRINT udf_elapsed_time(true) AS EdgeInsertionTimeInMs;
+
+    PRINT edge_cnt as NumberOfNewEdges;
+
 }
 
 INSTALL QUERY build_edges
-
-

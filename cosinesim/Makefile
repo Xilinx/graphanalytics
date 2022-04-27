@@ -16,19 +16,9 @@
 
 SHELL := /bin/bash
 
-#
-# Define __PROFILING__ to turn on profiling message from compute units
-#
-ifndef XILINX_XRT
-    XILINX_XRT = /opt/xilinx/xrt
-    export XILINX_XRT
-endif
-
-ifndef XILINX_XRM
-    XILINX_XRM=/opt/xilinx/xrm
-    export XILINX_XRM
-endif
-
+# Product name and version
+STANDALONE_NAME=cosinesim
+PRODUCT_VER=$(strip $(shell cat VERSION))
 
 .DELETE_ON_ERROR:
 .PHONY: all
@@ -46,8 +36,6 @@ GRAPH_ANALYTICS_DIR = ..
 # General output directory for intermediate build artifacts
 BUILD_DIR = build
 
-# Product version
-PRODUCT_VER=$(strip $(shell cat VERSION))
 
 #######################################################################################################################
 #
@@ -353,12 +341,20 @@ ifneq ($(verbose),0)
   verboseFlag=-v
 endif
 
-run-test: cppTest
+ifeq ($(deviceNames),xilinx_u50_gen3x16_xdma_201920_3)
+    XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U50)
+else ifeq ($(deviceNames),xilinx_u55c_gen3x16_xdma_base_2)
+    XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U55C)
+else ifeq ($(deviceNames), xilinx_aws-vu9p-f1_shell-v04261818_201920_2)
+    XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_F1)
+endif
+
+run: stage cppTest
 	set -e; \
 	. $(XILINX_XRT)/setup.sh && \
 	. $(XILINX_XRM)/setup.sh && \
 	LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$$LD_LIBRARY_PATH $(CPP_BUILD_DIR)/cosinesim_test \
-	    -d $(numDevices) -t $(deviceNames) -1 $(testNum) -n $(numResults) $(verboseFlag)
+	    -d $(numDevices) --xclbin $(XCLBIN_RUN) -t $(deviceNames) -1 $(testNum) -n $(numResults) $(verboseFlag)
 
 run-dyn-test: cppTest
 	LD_PRELOAD=$(PWD)/$(CPP_BUILD_DIR)/$(LIB_NAME) LD_LIBRARY_PATH=$(PWD)/$(CPP_BUILD_DIR):$(LD_LIBRARY_PATH) \
@@ -403,16 +399,25 @@ L2_XDEVICE_U50 = xilinx_u50_gen3x16_xdma_201920_3
 L2_BUILD_DIR_U50 = $(L2_TOP_DIR)/build_dir.hw.$(L2_XDEVICE_U50)
 XCLBIN_NAME = denseSimilarityKernelWithAlias.xclbin
 XCLBIN_FILE_U50 = $(L2_BUILD_DIR_U50)/$(XCLBIN_NAME)
-XCLBIN_NAME_U50 = cosinesim_32bit_$(L2_XDEVICE_U50).xclbin
-XCLBIN_INSTALLED_U50 = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/$(XCLBIN_NAME_U50)
+XCLBIN_INSTALLED_NAME_U50 = cosinesim_32bit_$(L2_XDEVICE_U50).xclbin
+XCLBIN_INSTALLED_U50 = /opt/xilinx/apps/graphanalytics/cosinesim/$(PRODUCT_VER)/xclbin/$(XCLBIN_INSTALLED_NAME_U50)
 
 L2_XDEVICE_U55C = xilinx_u55c_gen3x16_xdma_2_202110_1
 L2_BUILD_DIR_U55C = $(L2_TOP_DIR_4PU)/build_dir.hw.$(L2_XDEVICE_U55C)
 L2_TOP_DIR_4PU = $(GRAPH_ANALYTICS_DIR)/L2/dense_similarity_multi_kernel_4pu
 XCLBIN_NAME_4PU = denseSimilarityKernel4PUWithAlias.xclbin
-XCLBIN_NAME_U55C = cosinesim_32bit_4pu_xilinx_u55c_gen3x16_xdma_base_2.xclbin
 XCLBIN_FILE_U55C = $(L2_BUILD_DIR_U55C)/$(XCLBIN_NAME_4PU)
-XCLBIN_INSTALLED_U55C = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/$(XCLBIN_NAME_U55C)
+XCLBIN_INSTALLED_NAME_U55C = cosinesim_32bit_4pu_xilinx_u55c_gen3x16_xdma_base_2.xclbin
+XCLBIN_INSTALLED_U55C = /opt/xilinx/apps/graphanalytics/cosinesim/$(PRODUCT_VER)/xclbin/$(XCLBIN_INSTALLED_NAME_U55C)
+
+# F1 XCLBIN 
+L2_TOP_DIR_F1 = $(GRAPH_ANALYTICS_DIR)/L2/dense_similarity_multi_kernel
+L2_XDEVICE_F1 = xilinx_aws-vu9p-f1_shell-v04261818_201920_2
+L2_BUILD_DIR_F1 = $(L2_TOP_DIR_F1)/build_dir.hw.$(L2_XDEVICE_F1)
+XCLBIN_NAME_F1 = denseSimilarityKernel.awsxclbin 
+XCLBIN_FILE_F1 = $(L2_BUILD_DIR_F1)/$(XCLBIN_NAME_F1)
+XCLBIN_INSTALLED_NAME_F1 = cosinesim_xilinx_aws-vu9p-f1_shell-v04261818_201920_2.awsxclbin
+XCLBIN_INSTALLED_F1 =/opt/xilinx/apps/graphanalytics/cosinesim/$(PRODUCT_VER)/xclbin/$(XCLBIN_INSTALLED_NAME_F1)
 
 DEVICE ?= $(L2_XDEVICE)
 ifeq ($(findstring u55, $(DEVICE)), u55)
@@ -454,7 +459,17 @@ $(XCLBIN_FILE_U55C):
             false; \
         fi
 
-
+$(XCLBIN_FILE_F1):
+	@if [ -r $(XCLBIN_INSTALLED_F1) ]; then \
+	    echo "INFO: The XCLBIN file $(XCLBIN_FILE_F1) is missing.  Copying from installed area."; \
+	    cp -r $(XCLBIN_INSTALLED_F1) $@; \
+	else \
+	    echo "ERROR: The XCLBIN file $(XCLBIN_FILE_F1) is missing."; \
+	    echo "Because building an XCLBIN file can be an all-day proposition, you have two choices for completing this build:"; \
+	    echo "1. Copy a pre-built XCLBIN to the target location above.  (Recommended for developers)"; \
+	    echo "2. Do 'make xclbin' and go for a very long coffee break.  (Recommended for build automation)"; \
+	    false; \
+	fi
 #######################################################################################################################
 #
 # Staging
@@ -528,14 +543,20 @@ $(STAGE_STAGED_EXAMPLE_FILES):
 
 # XCLBIN file
 
-STAGE_XCLBIN_NAME_U50 = $(XCLBIN_NAME_U50)
+STAGE_XCLBIN_NAME_U50 = $(XCLBIN_INSTALLED_NAME_U50)
 STAGE_XCLBIN_FILE_U50 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U50)
+
+STAGE_XCLBIN_NAME_F1 = $(XCLBIN_INSTALLED_NAME_F1)
+STAGE_XCLBIN_FILE_F1 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_F1)
+
 
 $(STAGE_XCLBIN_FILE_U50): $(XCLBIN_FILE_U50)
 	cp -f $^ $@
 
+$(STAGE_XCLBIN_FILE_F1): $(XCLBIN_FILE_F1)
+	cp -f $^ $@
 
-STAGE_XCLBIN_NAME_U55C = $(XCLBIN_NAME_U55C)
+STAGE_XCLBIN_NAME_U55C = $(XCLBIN_INSTALLED_NAME_U55C)
 STAGE_XCLBIN_FILE_U55C = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U55C)
 
 $(STAGE_XCLBIN_FILE_U55C): $(XCLBIN_FILE_U55C)
@@ -551,6 +572,7 @@ STAGE_ALL_FILES = \
     $(STAGE_XCLBIN_FILE_U50) \
     $(STAGE_XCLBIN_FILE_U55C) \
 	$(STAGE_XILINX_APPS_COMMON) \
+	$(STAGE_XCLBIN_FILE_F1) 
 #    $(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP) \
 
 .PHONY: stage stage2
@@ -562,29 +584,6 @@ stage2: cppTest $(STAGE_SUBDIRS) stage-examples $(STAGE_ALL_FILES)
 $(STAGE_SUBDIRS):
 	mkdir -p $@
 
-#######################################################################################################################
-#
-# Packaging
-#
-
-OSDIST = $(shell lsb_release -si)
-DIST_TARGET =
-ifeq ($(OSDIST),Ubuntu)
-    DIST_TARGET = DEB
-else ifeq ($(OSDIST),CentOS)
-    DIST_TARGET = RPM
-endif
-
-.PHONY: dist
-
-dist: update-version stage
-	@cd package; \
-	if [ "$(DIST_TARGET)" == "" ]; then \
-	    echo "Packaging is supported for only Ubuntu and CentOS."; \
-	else \
-	    echo "Packaging $(DIST_TARGET) for $(OSDIST)"; \
-	    make ; \
-	fi
 
 examples/python/run.sh: VERSION
 	# update PRODUCT_VER in python run.sh
@@ -592,6 +591,9 @@ examples/python/run.sh: VERSION
 	sed -i 's,/cosinesim/1.2/xclbin,/cosinesim/$(PRODUCT_VER)/xclbin,g' src/cosinesim.cpp
 
 update-version : examples/python/run.sh
+
+# Common targets for all products (packaging)
+include ../common/Makefile-common.mk
 
 #######################################################################################################################
 #
@@ -603,52 +605,25 @@ update-version : examples/python/run.sh
 javaTest:
 	cd test/java && ant
 
-#######################################################################################################################
-#
-# Clean
-#
-
-#### Clean target deletes all generated files ####
-.PHONY: clean clean-xclbin clean-pyenv clean-all
-
-clean:
-	rm -rf Debug Release $(JAVA_LIB_DIR) $(BUILD_DIR) $(STAGE_DIR)
-	@echo "Note: because the XCLBIN file takes so long to generate, it is not removed with this 'clean' target."
-	@echo "To clean the XCLBIN, use 'make clean-xclbin'"
-	cd package; make clean
-	
-clean-xclbin:
-	rm -f $(XCLBIN_FILE_U50) $(XCLBIN_FILE_U55C)
-
-cleanpy:
-	rm -rf $(PYTHONENV_NAME)
-
-cleanall: clean cleanpy
-	# remove generated packages as well
-	rm -f ./package/*.deb ./package/*.rpm 
-	
 
 .PHONY: help
-help:
-	@echo "Makefile Usage:"
+help: help-common
 	@echo "  make"
 	@echo "      Build staging files including the library for PythonAPI"
-	@echo ""
-	@echo "  make dist"
-	@echo "      Generate cosinesim product package (RPM or DEB) for the current OS and architecture"
 	@echo ""
 	@echo "  make doxy-cpp "
 	@echo "      Generate CPP documentation using doxygen. The default html output directory is ./build/cppdocs"
 	@echo ""
-	@echo "  make run-test [numDevices=1] [iterations=1] [numVectors=5000] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3]"
+	@echo "  make run [numDevices=1] [iterations=1] [numVectors=5000] [deviceNames=xilinx_u50_gen3x16_xdma_201920_3]"
 	@echo "      Run standalone test with statically linked executable. numDevices, numVectors, and iterations are optional."
 	@echo "      Supported deviceNames: "
 	@echo "      xilinx_u50_gen3x16_xdma_201920_3"
 	@echo "      xilinx_u55c_gen3x16_xdma_base_2"
+	@echo "      xilinx_aws-vu9p-f1_shell-v04261818_201920_2"
 	@echo ""
 	@echo "  make xclbin DEVICE=<FPGA platform>"
 	@echo "      Build xclbin file targetting specified device. Vitis tool and PLATFORM_REPO_PATHS must be set to make xclbin."
 	@echo "      Supported devices:"
 	@echo "      xilinx_u50_gen3x16_xdma_201920_3 (Vitis 2020.2)"
 	@echo "      xilinx_u55c_gen3x16_xdma_2_202110_1 (Vitis 2021.2)"
-	@echo ""
+	@echo "      xilinx_aws-vu9p-f1_shell-v04261818_201920_2"

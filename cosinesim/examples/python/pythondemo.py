@@ -16,17 +16,24 @@
 
 import xilCosineSim as xcs
 import random as rand
+import sys
+
 
 # Setup
 VectorLength = 200
 NumVectors = 1000
 MaxValue = 16383
 testVec = []
+deviceNames = "xilinx_u50_gen3x16_xdma_201920_3"
+if len(sys.argv) > 1:
+    deviceNames = sys.argv[1]
 
+print(len(sys.argv), deviceNames)
 if __name__ == '__main__':
     # Create options for cosine similarity
     opt = xcs.options()
     opt.vecLength = VectorLength
+    opt.deviceNames = xcs.xString(deviceNames)
     testVecIdx = rand.randint(0, NumVectors - 1) # select one index as the test vector
 
     # Create cosinesim object, datatype is int, size 4 bytes

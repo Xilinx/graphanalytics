@@ -37,8 +37,10 @@ function gsql () {
 
 function usage() {
     echo "Usage: $0 -u TG-username -p TG-password [optional options]"
+    echo "Required Options:"
+    echo "  -a alveoProject      : Alveo partition project basename. It can include a path (.e.g /path/to/alveo_proj)"
+    echo ""
     echo "Optional options:"
-    echo "  -a alveoProject      : Alveo partition project basename. It can include a path (.e.g /path/to/alveo_proj"
 	echo "  -c compileMode       : 0: skip database creation and gsql compilation"
 	echo "                         1: recreate database and compile all (default)"
 	echo "                         2: only compile query gsql"
@@ -46,7 +48,7 @@ function usage() {
 	echo "                         1: Generate partitions from TigerGraph memory"
 	echo "                         2: Generate partitions from .mtx file"
 	echo "                         3: Generate partitions from TigerGraph using whole-graph technique (default)"
-        echo "                         4: Generate partitions from TG's vertex IDs and low-bandwidth partitioner"
+    echo "                         4: Generate partitions from TG's vertex IDs and low-bandwidth partitioner"
 	echo "  -r runMode           : 0: Skip both CPU and Alveo run (i.e. only run partition)"
 	echo "                         1: Run only on CPU"
 	echo "                         2: Run only on Alveo (default)"
@@ -89,7 +91,7 @@ if [ -f ~/.ssh/tigergraph_rsa ]; then
     ssh_key_flag="-i ~/.ssh/tigergraph_rsa"
 fi
 
-while getopts "c:fg:i:lm:n:p:r:s:u:vx:ha:" opt
+while getopts "c:fg:i:lm:n:o:p:r:s:u:vx:ha:" opt
 do
 case $opt in
     a) alveo_prj=$OPTARG;;
@@ -99,7 +101,7 @@ case $opt in
     i) ssh_key=$OPTARG; ssh_key_flag="-i $ssh_key";;
     m) num_nodes=$OPTARG;;
     n) num_partitions_node=$OPTARG;;
-    o) gen_outfile=1;;
+    o) gen_outfile=$OPTARG;;
     p) password=$OPTARG;;
     r) run_mode=$OPTARG;;
     s) data_source=$OPTARG;;

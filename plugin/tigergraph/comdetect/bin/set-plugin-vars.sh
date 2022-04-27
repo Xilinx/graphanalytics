@@ -27,12 +27,13 @@ pluginAlveoProductName="Xilinx Community Detection Engine"
 standaloneAlveoProductName="Xilinx Louvain Modularity"
 
 # The usual place where the Alveo Product is installed
-pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/louvainmod/0.5
+pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/louvainmod/0.6
 
 # Where to find the git repo for the Alveo Product if it exists
 pluginLocalAlveoProductPath=$SCRIPTPATH/../../../../../louvainmod/staging
 
 # The name of the Alveo Product's XCLBIN file
+pluginSupportedDevices="xilinx_u50_gen3x16_xdma_201920_3 xilinx_u55c_gen3x16_xdma_base_2"
 pluginXclbinNameU50=louvainmod_pruning_xilinx_u50_gen3x16_xdma_201920_3.xclbin
 pluginXclbinNameU55C=louvainmod_2cu_xilinx_u55c_gen3x16_xdma_2_202110_1.xclbin
 

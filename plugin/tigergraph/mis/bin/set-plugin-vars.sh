@@ -27,15 +27,15 @@ pluginAlveoProductName="Xilinx Maximal Independent Set"
 standaloneAlveoProductName="Xilinx Maximal Independent Set"
 
 # The usual place where the Alveo Product is installed
-pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/mis/0.1
+pluginInstalledAlveoProductPath=/opt/xilinx/apps/graphanalytics/mis/0.6
 
 # Where to find the git repo for the Alveo Product if it exists
 pluginLocalAlveoProductPath=$SCRIPTPATH/../../../../../mis/staging
 
 # The name of supported XCLBIN files
-pluginSupportedDevices="xilinx_u50_gen3x16_xdma_201920_3 xilinx_u55c_gen3x16_xdma_base_2"
+pluginSupportedDevices="xilinx_u50_gen3x16_xdma_201920_3 xilinx_u55c_gen3x16_xdma_base_2 aws-f1"
 pluginXclbinNameU50=mis_xilinx_u50_gen3x16_xdma_201920_3.xclbin
-pluginXclbinNameAwsF1=
+pluginXclbinNameAwsF1=mis_xilinx_aws-vu9p-f1_shell-v04261818_201920_3.awsxclbin
 pluginXclbinNameU55C=mis_xilinx_u55c_gen3x16_xdma_2_202110_1.xclbin
 
 # The name of the Alveo Product's .so file

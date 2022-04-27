@@ -1,12 +1,14 @@
+.. _cosinesim-demos-label:
+
 Xilinx Cosine Similarity Alveo Product Demos
 ============================================
 
-After installation, you can try out the Cosine Similarity Alveo Product, as shown in the sections below.
+For details about the usecase or to read the Notebook go to the corresponding usecase link below:
 
 .. toctree::
     :maxdepth: 1
 
-    cosinesim-example-makefile.rst
-    cosinesim-example-python.rst
-    cosinesim-example-jupyter.rst
+    API Demo <usecases-standalone.rst>
+    Wikipedia Search Engine <usecases-wiki-search.rst>
+
 

@@ -22,6 +22,7 @@ set -e
 
 SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`
+PRODUCT_VER=`cat $SCRIPTPATH/VERSION`
 
 # Read plugin specific variables
 . $SCRIPTPATH/bin/set-plugin-vars.sh
@@ -53,6 +54,7 @@ if [ -f ~/.ssh/tigergraph_rsa ]; then
 fi
 
 flags=
+uninstall=0
 device="notset"
 while getopts ":i:uha:d:fghpuv" opt
 do
@@ -60,13 +62,16 @@ case $opt in
     i) ssh_key=$OPTARG; ssh_key_flag="-i $ssh_key";;
     a) flags="$flags -$opt $OPTARG";;
     d) device=$OPTARG; flags="$flags -$opt $device";;
-    f|g|p|u|v) flags="$flags -$opt";;
+    f|g|p|v) flags="$flags -$opt";;
+    u) uninstall=1; flags="$flags -$opt";;
     h) usage; exit 1;;
     ?) echo "ERROR: Unknown option: -$OPTARG"; usage; exit 1;;
 esac
 done
 
-if [[ "$device" == "notset" ]] ; then
+if [[ $uninstall -eq 1 ]]; then
+    echo "INFO: Uninstall $pluginAlveoProductName"
+elif [[ "$device" == "notset" ]] ; then
     echo "ERROR: Alveo device name must be set via -d option."
     usage
     exit 2
@@ -76,7 +81,7 @@ else
     echo "--------------------------------------------------------------------------------"
 fi
 
-if [ "$USER" == "tigergraph" ]; then
+if [[ "$USER" == "tigergraph" ]]; then
     ${SCRIPTPATH}/bin/install-plugin-cluster.sh $flags
 else
     echo "--------------------------------------------------------------------------------"
@@ -87,10 +92,12 @@ else
     ssh $ssh_key_flag tigergraph@$hostname ${SCRIPTPATH}/bin/install-plugin-cluster.sh $flags
 fi
 
-# copy gsql_client.jar to current user's home
-mkdir -p $HOME/gsql_client
-cp /tmp/gsql_client.jar.tmp $HOME/gsql_client/gsql_client.jar
-echo "INFO: Remote GSQL client has been installed in $HOME/gsql_client"
+if [[ $uninstall -ne 1 ]]; then
+    # copy gsql_client.jar to current user's home
+    mkdir -p $HOME/gsql_client
+    cp /tmp/gsql_client.jar.tmp $HOME/gsql_client/gsql_client.jar
+    echo "INFO: Remote GSQL client has been installed in $HOME/gsql_client"
+fi
 
 if [ -r $SCRIPTPATH/bin/install-plugin-cluster-custom.sh ]; then
     echo "INFO: Installing product specific features: $SCRIPTPATH/bin/install-plugin-cluster-custom.sh"
