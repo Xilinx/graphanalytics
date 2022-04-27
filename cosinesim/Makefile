@@ -345,6 +345,8 @@ ifeq ($(deviceNames),xilinx_u50_gen3x16_xdma_201920_3)
     XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U50)
 else ifeq ($(deviceNames),xilinx_u55c_gen3x16_xdma_base_2)
     XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_U55C)
+else ifeq ($(deviceNames), xilinx_aws-vu9p-f1_shell-v04261818_201920_2)
+    XCLBIN_RUN = $(CURDIR)/staging/xclbin/$(XCLBIN_INSTALLED_NAME_F1)
 endif
 
 run: stage cppTest
@@ -398,7 +400,7 @@ L2_BUILD_DIR_U50 = $(L2_TOP_DIR)/build_dir.hw.$(L2_XDEVICE_U50)
 XCLBIN_NAME = denseSimilarityKernelWithAlias.xclbin
 XCLBIN_FILE_U50 = $(L2_BUILD_DIR_U50)/$(XCLBIN_NAME)
 XCLBIN_INSTALLED_NAME_U50 = cosinesim_32bit_$(L2_XDEVICE_U50).xclbin
-XCLBIN_INSTALLED_U50 = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/$(XCLBIN_INSTALLED_NAME_U50)
+XCLBIN_INSTALLED_U50 = /opt/xilinx/apps/graphanalytics/cosinesim/$(PRODUCT_VER)/xclbin/$(XCLBIN_INSTALLED_NAME_U50)
 
 L2_XDEVICE_U55C = xilinx_u55c_gen3x16_xdma_2_202110_1
 L2_BUILD_DIR_U55C = $(L2_TOP_DIR_4PU)/build_dir.hw.$(L2_XDEVICE_U55C)
@@ -406,7 +408,16 @@ L2_TOP_DIR_4PU = $(GRAPH_ANALYTICS_DIR)/L2/dense_similarity_multi_kernel_4pu
 XCLBIN_NAME_4PU = denseSimilarityKernel4PUWithAlias.xclbin
 XCLBIN_FILE_U55C = $(L2_BUILD_DIR_U55C)/$(XCLBIN_NAME_4PU)
 XCLBIN_INSTALLED_NAME_U55C = cosinesim_32bit_4pu_xilinx_u55c_gen3x16_xdma_base_2.xclbin
-XCLBIN_INSTALLED_U55C = /opt/xilinx/apps/graphanalytics/cosinesim/xclbin/$(XCLBIN_INSTALLED_NAME_U55C)
+XCLBIN_INSTALLED_U55C = /opt/xilinx/apps/graphanalytics/cosinesim/$(PRODUCT_VER)/xclbin/$(XCLBIN_INSTALLED_NAME_U55C)
+
+# F1 XCLBIN 
+L2_TOP_DIR_F1 = $(GRAPH_ANALYTICS_DIR)/L2/dense_similarity_multi_kernel
+L2_XDEVICE_F1 = xilinx_aws-vu9p-f1_shell-v04261818_201920_2
+L2_BUILD_DIR_F1 = $(L2_TOP_DIR_F1)/build_dir.hw.$(L2_XDEVICE_F1)
+XCLBIN_NAME_F1 = denseSimilarityKernel.awsxclbin 
+XCLBIN_FILE_F1 = $(L2_BUILD_DIR_F1)/$(XCLBIN_NAME_F1)
+XCLBIN_INSTALLED_NAME_F1 = cosinesim_xilinx_aws-vu9p-f1_shell-v04261818_201920_2.awsxclbin
+XCLBIN_INSTALLED_F1 =/opt/xilinx/apps/graphanalytics/cosinesim/$(PRODUCT_VER)/xclbin/$(XCLBIN_INSTALLED_NAME_F1)
 
 DEVICE ?= $(L2_XDEVICE)
 ifeq ($(findstring u55, $(DEVICE)), u55)
@@ -448,7 +459,17 @@ $(XCLBIN_FILE_U55C):
             false; \
         fi
 
-
+$(XCLBIN_FILE_F1):
+	@if [ -r $(XCLBIN_INSTALLED_F1) ]; then \
+	    echo "INFO: The XCLBIN file $(XCLBIN_FILE_F1) is missing.  Copying from installed area."; \
+	    cp -r $(XCLBIN_INSTALLED_F1) $@; \
+	else \
+	    echo "ERROR: The XCLBIN file $(XCLBIN_FILE_F1) is missing."; \
+	    echo "Because building an XCLBIN file can be an all-day proposition, you have two choices for completing this build:"; \
+	    echo "1. Copy a pre-built XCLBIN to the target location above.  (Recommended for developers)"; \
+	    echo "2. Do 'make xclbin' and go for a very long coffee break.  (Recommended for build automation)"; \
+	    false; \
+	fi
 #######################################################################################################################
 #
 # Staging
@@ -525,9 +546,15 @@ $(STAGE_STAGED_EXAMPLE_FILES):
 STAGE_XCLBIN_NAME_U50 = $(XCLBIN_INSTALLED_NAME_U50)
 STAGE_XCLBIN_FILE_U50 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U50)
 
+STAGE_XCLBIN_NAME_F1 = $(XCLBIN_INSTALLED_NAME_F1)
+STAGE_XCLBIN_FILE_F1 = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_F1)
+
+
 $(STAGE_XCLBIN_FILE_U50): $(XCLBIN_FILE_U50)
 	cp -f $^ $@
 
+$(STAGE_XCLBIN_FILE_F1): $(XCLBIN_FILE_F1)
+	cp -f $^ $@
 
 STAGE_XCLBIN_NAME_U55C = $(XCLBIN_INSTALLED_NAME_U55C)
 STAGE_XCLBIN_FILE_U55C = $(STAGE_DIR)/xclbin/$(STAGE_XCLBIN_NAME_U55C)
@@ -545,6 +572,7 @@ STAGE_ALL_FILES = \
     $(STAGE_XCLBIN_FILE_U50) \
     $(STAGE_XCLBIN_FILE_U55C) \
 	$(STAGE_XILINX_APPS_COMMON) \
+	$(STAGE_XCLBIN_FILE_F1) 
 #    $(STAGE_DIR)/$(STAGE_EXAMPLE_ZIP) \
 
 .PHONY: stage stage2
@@ -591,10 +619,11 @@ help: help-common
 	@echo "      Supported deviceNames: "
 	@echo "      xilinx_u50_gen3x16_xdma_201920_3"
 	@echo "      xilinx_u55c_gen3x16_xdma_base_2"
+	@echo "      xilinx_aws-vu9p-f1_shell-v04261818_201920_2"
 	@echo ""
 	@echo "  make xclbin DEVICE=<FPGA platform>"
 	@echo "      Build xclbin file targetting specified device. Vitis tool and PLATFORM_REPO_PATHS must be set to make xclbin."
 	@echo "      Supported devices:"
 	@echo "      xilinx_u50_gen3x16_xdma_201920_3 (Vitis 2020.2)"
 	@echo "      xilinx_u55c_gen3x16_xdma_2_202110_1 (Vitis 2021.2)"
-	@echo ""
+	@echo "      xilinx_aws-vu9p-f1_shell-v04261818_201920_2"

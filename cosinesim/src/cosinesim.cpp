@@ -119,6 +119,12 @@ public:
             kernelName_ = "denseSimilarityKernel4PU";
             kernelAlias_ = "denseSimilarityKernel4PU_U55C";
             numPUs_ = 4;
+        } else if (deviceNames == XString("xilinx_aws-vu9p-f1_shell-v04261818_201920_2")) {
+            xclbinPath = std::string("/opt/xilinx/apps/graphanalytics/cosinesim/") + std::string(VERSION) + 
+                         std::string("/xclbin/cosinesim_xilinx_aws-vu9p-f1_shell-v04261818_201920_2.awsxclbin");
+            kernelName_ = "denseSimilarityKernel";
+            //kernelAlias_ = "denseSimilarityKernel_F1";
+            numPUs_ = 1;
         } else {
             std::cout << "DEBUG: deviceNames " << deviceNames << " is not supported" << std::endl;
             std::ostringstream oss;
