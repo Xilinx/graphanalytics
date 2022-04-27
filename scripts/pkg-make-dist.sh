@@ -19,6 +19,9 @@
 set -e
 #set -x
 
+OSDIST=`lsb_release -i |awk -F: '{print tolower($2)}' | tr -d ' \t'`
+OSREL=`lsb_release -r |awk -F: '{print tolower($2)}' |tr -d ' \t' | awk -F. '{print $1*100+$2}'`
+
 device="notset"
 cosinesim=0
 louvain=0
@@ -42,13 +45,32 @@ done
 #    exit 1
 #fi
 
-if ! command -v vclf &> /dev/null
-    echo "INFO: Using $(command -v vclf)"
-then
+if ! [[ -x "$(command -v vclf)" ]]; then
     # set up vclf
     echo "INFO: Setting up environment for vclf"
-    source /proj/gdba/tools/py3-venv-u18/bin/activate
+    if [[ $OSDIST == "ubuntu" ]]; then
+        if (( $OSREL == 1804 )); then
+            source /proj/gdba/tools/py3-venv-u18/bin/activate
+        elif (( $OSREL == 2004 )); then
+            source /proj/gdba/tools/py3-venv-u20/bin/activate
+        else
+            echo "ERROR: Ubuntu release version must be 18.04 or 20.04."
+            exit 2
+        fi
+    elif [[ $OSDIST == "centos" ]]; then
+        if (( $OSREL == 709 )); then
+            echo "INFO: $OSREL"
+        else
+            echo "ERROR: CentOS release version must be 7.9."
+            exit 2
+        fi
+    else 
+        echo "ERROR: only Ubuntu and Centos are supported."
+        exit 3
+    fi
 fi
+
+echo "INFO: Using $(command -v vclf)"
 
 if [[ $cosinesim -eq 1 ]] ; then
     cd ../cosinesim && make cleanall && make dist DIST_RELEASE=1 && cd -

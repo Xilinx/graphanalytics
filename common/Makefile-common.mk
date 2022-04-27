@@ -120,7 +120,7 @@ cleanpy:
 	rm -rf $(PYTHONENV_NAME)
 
 cleanall: clean cleanpy
-	rm -rf ./package/*.deb ./package/*.rpm ./package/_CPack_Packages
+	rm -rf ./package/*.deb ./package/*.rpm ./package/_CPack_Packages ./package/PKG_Release
 
 #
 # Installation

@@ -172,11 +172,19 @@ if [[ $OSDIST == "ubuntu" ]]; then
         printf "\n-------------------------------------------------------------\n"
         sudo apt install --reinstall $pkg_dir/xrm/xrm*.deb -y
 
-        printf "\n-------------------------------------------------------------\n"
-        printf "INFO: Install deployment shell. Enter sudo password if asked."
-        printf "\n-------------------------------------------------------------\n"
-        sudo apt install $pkg_dir/../deployment-shell/u50/xilinx*.deb -y
-        sudo apt install $pkg_dir/../deployment-shell/u55c/xilinx*.deb -y
+        if [[ $device == "u50" || $device == "u55c" ]] ; then        
+            printf "\n-------------------------------------------------------------\n"
+            printf "INFO: Install deployment shell. Enter sudo password if asked."
+            printf "\n-------------------------------------------------------------\n"
+        fi
+
+        if [[ $device == "u50" ]] ; then
+            sudo apt install $pkg_dir/../deployment-shell/u50/xilinx*.deb -y
+        fi
+        
+        if [[ $device == "u55c" ]] ; then
+            sudo apt install $pkg_dir/../deployment-shell/u55c/xilinx*.deb -y
+        fi
     fi
 
     if [[ $product == "cosinesim" ]]; then

@@ -1,7 +1,7 @@
 Document Source Code
 =========================
 
-# Gnerating HTML Document
+# Generating HTML Document
 ## Set Up Environment
 Run `./setup.sh` to set up the environment for generating documents
 
