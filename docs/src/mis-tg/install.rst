@@ -25,7 +25,8 @@ Install the Maximal Independent Set from a Package
   .. code-block:: bash
 
     tar xzf amd-graphanalytics-install-%PACKAGE_VERSION.tar.gz
-    cd amd-graphanalytics-install && ./install.sh -p mis
+    # Install the MIS products for the specified device. Supported device name: u50, u55c, aws-f1
+    cd amd-graphanalytics-install && ./install.sh -p mis -d <device-name>
 
 * Install the Maximal Independent Set plugin into the TigerGraph installation 
   targeting a supported Alveo device. Below is an example targeting Alveo U50"
