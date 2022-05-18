@@ -435,14 +435,14 @@ Engine product.  Follow the steps in <em>only one</em> of the two sections below
 <div class="section" id="install-the-recommendation-engine-from-a-package">
 <h3>Install the Recommendation Engine from a Package<a class="headerlink" href="#install-the-recommendation-engine-from-a-package" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p>Get the installation package <strong>amd-graphanalytics-install-1.5.8b.tar.gz</strong> from the
+<li><p>Get the installation package <strong>amd-graphanalytics-install-1.5.9.tar.gz</strong> from the
 <a class="reference external" href="https://www.xilinx.com/member/dba_poc.html#designFiles">Database Analytics POC Secure Site</a>.  This package contains
 the Recommendation Engine as well as its dependencies: XRT, XRM, the Alveo U50 Platform, and the Cosine Similarity
 Alveo Product.</p></li>
 <li><p>Install the Recommendation Engine product and its dependencies by un-tarring the package and running
 the included install script.</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf amd-graphanalytics-install-1.5.8b.tar.gz
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf amd-graphanalytics-install-1.5.9.tar.gz
 <span class="nb">cd</span> amd-graphanalytics-install <span class="o">&amp;&amp;</span> ./install.sh
 </pre></div>
 </div>
@@ -450,7 +450,7 @@ the included install script.</p></li>
 <li><p>Install the Recommendation Engine plug-in into the TigerGraph installation.  This step makes TigerGraph aware
 of the Recommendation Engine features.</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/recomengine/1.5/install.sh
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/recomengine/1.5.1/install.sh
 </pre></div>
 </div>
 </div>
@@ -483,7 +483,7 @@ The package to download is called the “Deployment Target Platform.”</p></li>
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> cosinesim
 make dist
-sudo apt install --reinstall ./package/xilinx-cosinesim-1.5_18.04-x86_64.deb
+sudo apt install --reinstall ./package/xilinx-cosinesim-1.5.1_18.04-x86_64.deb
 </pre></div>
 </div>
 <ul class="simple">
@@ -492,14 +492,14 @@ installation command and name for your server’s OS.)</p></li>
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> plugin/tigergraph/recomengine
 make dist
-sudo apt install --reinstall ./package/xilinx-recomengine-tigergraph-1.5_18.04-x86_64.deb
+sudo apt install --reinstall ./package/xilinx-recomengine-tigergraph-1.5.1_18.04-x86_64.deb
 </pre></div>
 </div>
 <ul class="simple">
 <li><p>Install the Recommendation Engine plug-in into the TigerGraph installation.  This step makes TigerGraph aware
 of the Recommendation Engine features.</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/recomengine/1.5/install.sh
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/recomengine/1.5.1/install.sh
 </pre></div>
 </div>
 </div>
@@ -508,7 +508,7 @@ of the Recommendation Engine features.</p></li>
 <div class="section" id="uninstalling-the-recommendation-engine">
 <h2>Uninstalling the Recommendation Engine<a class="headerlink" href="#uninstalling-the-recommendation-engine" title="Permalink to this headline">¶</a></h2>
 <p>You can uninstall the Recommendation Engine from TigerGraph by running the install script with the <code class="docutils literal notranslate"><span class="pre">-u</span></code> option:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/recomengine/1.5/install.sh -u
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/recomengine/1.5.1/install.sh -u
 </pre></div>
 </div>
 <p><strong>TIP</strong>: To avoid TigerGraph errors, uninstall any queries and UDFs that use the Recommendation Engine,
@@ -545,7 +545,7 @@ such as the Synthea Demo, before uninstalling the Recommendation Engine itself.<
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on April 26, 2022.
+        Last updated on May 18, 2022.
       </span>
 
     </p>

@@ -451,12 +451,12 @@ product. Follow the steps in <em>only one</em> of the two sections below.</p>
 <div class="section" id="install-the-maximal-independent-set-from-a-package">
 <h3>Install the Maximal Independent Set from a Package<a class="headerlink" href="#install-the-maximal-independent-set-from-a-package" title="Permalink to this headline">¶</a></h3>
 <ul>
-<li><p>Get the installation package <strong>amd-graphanalytics-install-1.5.8b.tar.gz</strong> from the
+<li><p>Get the installation package <strong>amd-graphanalytics-install-1.5.9.tar.gz</strong> from the
 <a class="reference external" href="https://www.xilinx.com/member/dba_poc.html#designFiles">Database Analytics POC Secure Site</a>.
 This package contains the Maximal Independent Set as well as its dependencies.</p></li>
 <li><p>Install the product and its dependencies by un-tarring the package and running
 the included install script.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf amd-graphanalytics-install-1.5.8b.tar.gz
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar xzf amd-graphanalytics-install-1.5.9.tar.gz
 <span class="c1"># Install the MIS products for the specified device. Supported device name: u50, u55c, aws-f1</span>
 <span class="nb">cd</span> amd-graphanalytics-install <span class="o">&amp;&amp;</span> ./install.sh -p mis -d &lt;device-name&gt;
 </pre></div>
@@ -560,7 +560,7 @@ uninstalling the Maximal Independent Set itself.</p>
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on April 26, 2022.
+        Last updated on May 18, 2022.
       </span>
 
     </p>

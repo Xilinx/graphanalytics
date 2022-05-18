@@ -470,7 +470,7 @@ cp -r /opt/xilinx/apps/graphanalytics/integration/Tigergraph-3.x/mis/0.6/example
 <p>To run the demo on a larger dataset (included under <code class="code bash docutils literal notranslate"><span class="pre">/data</span></code> directory) that shows speedup over CPU only query, run
 with <strong>full</strong> path to data files as follows (assuming working under home directory).</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run travelplan speedup demo</span>
-./bin/run.sh -u &lt;username&gt; -p &lt;password&gt; <span class="nv">tp2tr</span><span class="o">=</span><span class="nv">$HOME</span>/mis-examples/travelplan/data/travelplan2trucks2000.csv <span class="nv">tp2wo</span><span class="o">=</span><span class="nv">$HOME</span>/mis-examples/travelplan/data/travelplan2workorders2000.csv
+./bin/run.sh -u &lt;username&gt; -p &lt;password&gt; -t <span class="nv">$HOME</span>/mis-examples/travelplan/data/travelplan2trucks2000.csv -w <span class="nv">$HOME</span>/mis-examples/travelplan/data/travelplan2workorders2000.csv
 </pre></div>
 </div>
 </div>
@@ -504,7 +504,7 @@ with <strong>full</strong> path to data files as follows (assuming working under
   <div role="contentinfo" class="copyright">
     <p class="footerinfo">
       <span class="lastupdated">
-        Last updated on April 26, 2022.
+        Last updated on May 18, 2022.
       </span>
 
     </p>
